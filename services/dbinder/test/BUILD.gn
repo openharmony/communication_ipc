@@ -1,0 +1,164 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+DBINDER_TEST_ROOT = "//foundation/communication/ipc/services/dbinder/test"
+MODULE_OUTPUT_PATH = "ipc/services/dbinder"
+
+###############################################################################
+config("libtestdbinder_config") {
+  visibility = [ ":*" ]
+  cflags = []
+  if (is_standard_system) {
+    cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
+  }
+  include_dirs = [
+    "//utils/native/base/include",
+    "//utils/system/safwk/native/include",
+    "//test/developertest/aw/distributed",
+    "$SUBSYSTEM_DIR/utils/include",
+    "$SUBSYSTEM_DIR/services/dbinder/dbinder_service/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$DBINDER_TEST_ROOT/distributedtest/include",
+  ]
+}
+
+ohos_distributedtest("DbinderTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  sources = [
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_distributed_test.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_service_test_helper.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service_skeleton.cpp",
+  ]
+
+  configs = [ ":libtestdbinder_config" ]
+
+  deps = [
+    ":dbinder_send",
+    ":dbinder_test",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  subsystem_name = "communication"
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/services/ohos_test.xml"
+}
+
+ohos_distributedtest("DbinderTestAgent") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  sources = [
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_service_test_helper.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_agent.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service_skeleton.cpp",
+  ]
+
+  configs = [ ":libtestdbinder_config" ]
+
+  deps = [
+    ":dbinder_send",
+    ":dbinder_test",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    "//third_party/googletest:gtest",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "dsoftbus_standard:softbus_client",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  subsystem_name = "communication"
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/services/ohos_test.xml"
+}
+
+###############################################################################
+ohos_executable("dbinder_test") {
+  sources = [
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_server_main.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service_skeleton.cpp",
+  ]
+
+  configs = [ ":libtestdbinder_config" ]
+
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+ohos_executable("dbinder_send") {
+  sources = [
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_server_main.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service.cpp",
+    "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service_skeleton.cpp",
+  ]
+
+  cflags_cc = [ "-DDBINDER_TEST_SECOND" ]
+
+  configs = [ ":libtestdbinder_config" ]
+
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+ohos_distributedtest_py("dbindertest_py") {
+  module_out_path = MODULE_OUTPUT_PATH
+  sources = [ "test_dbinder.py" ]
+}
+
+###############################################################################
+group("distributedtest") {
+  testonly = true
+  deps = [
+    ":DbinderTest",
+    ":DbinderTestAgent",
+    ":dbinder_send",
+    ":dbinder_test",
+    ":dbindertest_py",
+  ]
+}

@@ -1,0 +1,51 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
+MODULE_OUTPUT_PATH = "ipc"
+
+ohos_moduletest("IPCNativeFrameworksTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+  include_dirs = [ "//utils/system/safwk/native/include" ]
+  sources = [ "./common/ipc_core_module_test.cpp" ]
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+  deps = [
+    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+}
+
+###############################################################################
+group("moduletest") {
+  testonly = true
+  deps = [ ":IPCNativeFrameworksTest" ]
+}
+
+###############################################################################
+

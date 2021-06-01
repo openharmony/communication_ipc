@@ -1,0 +1,157 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//build/ohos.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
+
+ohos_shared_library("ipc_test_helper") {
+  include_dirs = [ "//utils/system/safwk/native/include" ]
+
+  sources = [
+    "./src/assist_test_service.cpp",
+    "./src/foo_service.cpp",
+    "./src/ipc_test_helper.cpp",
+    "./src/test_service.cpp",
+    "./src/test_service_client.cpp",
+    "./src/test_service_skeleton.cpp",
+  ]
+
+  configs = [
+    "$IPC_TEST_ROOT:ipc_test_config",
+    "$SUBSYSTEM_DIR:ipc_util_config",
+  ]
+
+  deps = [ "//utils/native/base:utils" ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+ohos_executable("ipc_server_test") {
+  sources = [ "./src/main_server.cpp" ]
+
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  deps = [
+    ":ipc_test_helper",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+ohos_executable("ipc_client_test") {
+  sources = [ "./src/main_client.cpp" ]
+
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  deps = [
+    ":ipc_test_helper",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+ohos_shared_library("ipc_test_helper_extra") {
+  include_dirs = [ "//utils/system/safwk/native/include" ]
+
+  sources = [
+    "./src/assist_test_service.cpp",
+    "./src/foo_service.cpp",
+    "./src/ipc_test_helper.cpp",
+    "./src/test_service.cpp",
+    "./src/test_service_client.cpp",
+    "./src/test_service_skeleton.cpp",
+  ]
+
+  cflags = [ "-DIPCSERVERTESTEXTRA" ]
+
+  configs = [
+    "$IPC_TEST_ROOT:ipc_test_config",
+    "$SUBSYSTEM_DIR:ipc_util_config",
+  ]
+
+  deps = [ "//utils/native/base:utils" ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+ohos_executable("ipc_server_test_extra") {
+  sources = [ "./src/main_server.cpp" ]
+
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  deps = [
+    ":ipc_test_helper_extra",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "ipc"
+  subsystem_name = "communication"
+}
+
+###############################################################################
+group("TestAssistance") {
+  testonly = true
+  deps = [
+    ":ipc_client_test",
+    ":ipc_server_test",
+    ":ipc_server_test_extra",
+    ":ipc_test_helper",
+  ]
+}
+###############################################################################
