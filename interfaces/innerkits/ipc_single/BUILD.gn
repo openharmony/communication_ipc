@@ -1,0 +1,58 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
+
+config("libipc_single_private_config") {
+  cflags_cc = [
+    "-DCONFIG_IPC_SINGLE",
+    "-O2",
+  ]
+}
+ohos_shared_library("ipc_single") {
+  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
+  sources = [
+    "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_object_stub.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_thread_pool.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_thread_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_workthread.cpp",
+    "$IPC_CORE_ROOT/src/core/source/iremote_broker.cpp",
+    "$IPC_CORE_ROOT/src/core/source/iremote_object.cpp",
+    "$IPC_CORE_ROOT/src/core/source/message_option.cpp",
+    "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
+    "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/invoker_factory.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/invoker_rawdata.cpp",
+  ]
+
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    ":libipc_single_private_config",
+  ]
+  public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
+  deps = [ "//utils/native/base:utils" ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  subsystem_name = "communication"
+  part_name = "ipc"
+}

@@ -1,0 +1,66 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder"
+
+config("libdbinder_config") {
+  visibility = [ ":*" ]
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags = [ "-DBINDER_IPC_32BIT" ]
+  }
+  if (is_standard_system) {
+    cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
+  }
+  include_dirs = [
+    "//utils/native/base/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
+    "$DBINDER_ROOT/dbinder_service/include",
+  ]
+}
+
+config("libdbinder_private_config") {
+  visibility = [ ":*" ]
+  cflags_cc = [
+    "-DLOG_TAG=\"libdbinder\"",
+    "-O2",
+  ]
+}
+
+ohos_shared_library("libdbinder") {
+  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
+  sources = [
+    "$DBINDER_ROOT/dbinder_service/src/dbinder_death_recipient.cpp",
+    "$DBINDER_ROOT/dbinder_service/src/dbinder_sa_death_recipient.cpp",
+    "$DBINDER_ROOT/dbinder_service/src/dbinder_service.cpp",
+    "$DBINDER_ROOT/dbinder_service/src/dbinder_service_stub.cpp",
+    "$DBINDER_ROOT/dbinder_service/src/socket/dbinder_remote_listener.cpp",
+  ]
+  public_configs = [ ":libdbinder_config" ]
+  configs = [ ":libdbinder_private_config" ]
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    "//utils/native/base:utils",
+  ]
+  external_deps = [
+    "dsoftbus_standard:softbus_client",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+  subsystem_name = "communication"
+  part_name = "ipc"
+}

@@ -1,0 +1,73 @@
+{
+  "subsystem": "communication",
+  "parts": {
+    "ipc": {
+      "module_list": [
+        "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+        "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+        "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder"
+      ],
+      "inner_kits": [
+        {
+          "type": "so",
+          "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+          "header": {
+            "header_files": [
+              "ipc_types.h",
+              "ipc_skeleton.h",
+              "iremote_object.h",
+              "iremote_proxy.h",
+              "iremote_stub.h",
+              "message_parcel.h",
+              "message_option.h",
+              "iremote_broker.h",
+              "ipc_object_proxy.h",
+              "ipc_object_stub.h",
+              "peer_holder.h",
+              "ipc_file_descriptor.h",
+              "jni_help.h"
+            ],
+            "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
+          }
+        },
+        {
+          "type": "so",
+          "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+          "header": {
+            "header_files": [
+              "ipc_types.h",
+              "ipc_skeleton.h",
+              "iremote_object.h",
+              "iremote_proxy.h",
+              "iremote_stub.h",
+              "message_parcel.h",
+              "message_option.h",
+              "iremote_broker.h",
+              "ipc_object_proxy.h",
+              "ipc_object_stub.h",
+              "peer_holder.h",
+              "ipc_file_descriptor.h",
+              "jni_help.h"
+            ],
+            "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
+          }
+        },
+        {
+          "type": "so",
+          "name": "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+          "header": {
+            "header_files": [
+              "dbinder_service.h",
+              "dbinder_service_stub.h"
+            ],
+            "header_base": "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include"
+          }
+        }
+      ],
+      "test_list": [
+        "//foundation/communication/ipc/ipc/test:moduletest",
+        "//foundation/communication/ipc/ipc/native/test:unittest"
+      ]
+    }
+  }
+}
