@@ -104,6 +104,8 @@ public:
     sptr<DBinderServiceStub> MakeRemoteBinder(const std::u16string &serviceName,
         const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid = 0);
     bool RegisterRemoteProxy(std::u16string serviceName, sptr<IRemoteObject> binderObject);
+    bool RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId); 
+    bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool OnRemoteMessageTask(const struct DHandleEntryTxRx *message);
     std::shared_ptr<struct SessionInfo> QuerySessionObject(binder_uintptr_t stub);
     bool DetachDeathRecipient(sptr<IRemoteObject> object);
