@@ -564,6 +564,26 @@ bool DBinderService::RegisterRemoteProxy(std::u16string serviceName, sptr<IRemot
     return result.second;
 }
 
+bool DBinderService::RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId)
+{
+    DBINDER_LOGI("register remote proxy, service name = %{public}s", Str16ToStr8(serviceName).c_str());
+
+    if (serviceName.length() == 0) {
+        DBINDER_LOGE("serviceName.length() = %zu", serviceName.length());
+        return false;
+    }
+
+    binder_uintptr_t binder = (binder_uintptr_t)systemAbilityId;
+    DBINDER_LOGI("register remote proxy");
+
+    std::unique_lock<std::shared_mutex> lockGuard(remoteBinderMutex_);
+
+    // clear historical remnants, Don't care if it succeeds
+    (void)mapRemoteBinderObjects_.erase(serviceName);
+    auto result = mapRemoteBinderObjects_.insert(std::pair<std::u16string, binder_uintptr_t>(serviceName, binder));
+    return result.second;
+}
+
 bool DBinderService::OnRemoteMessageTask(const struct DHandleEntryTxRx *message)
 {
     if (message == nullptr) {
