@@ -37,11 +37,7 @@ std::mutex BinderConnector::skeletonMutex;
 constexpr int SZ_1_M = 1048576;
 constexpr int DOUBLE = 2;
 static const int IPC_MMAP_SIZE = (SZ_1_M - sysconf(_SC_PAGE_SIZE) * DOUBLE);
-#if (defined CONFIG_DUAL_FRAMEWORK)
 static const std::string DRIVER_NAME = std::string("/dev/binder");
-#else
-static const std::string DRIVER_NAME = std::string("/dev/zbinder");
-#endif /* CONFIG_DUAL_FRAMEWORK */
 BinderConnector *BinderConnector::instance_ = nullptr;
 
 BinderConnector::BinderConnector(const std::string &deviceName)
