@@ -249,6 +249,10 @@ int BinderInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, 
 
 sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
 {
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current != nullptr) {
+        return current->GetRegistryObject();
+    }
     return nullptr;
 }
 
