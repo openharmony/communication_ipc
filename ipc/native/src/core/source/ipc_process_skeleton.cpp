@@ -126,7 +126,7 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
     IRemoteObject *remoteObject = nullptr;
     std::u16string descriptor = MakeHandleDescriptor(handle);
     {
-        std::unique_lock<std::shared_mutex> lockGuard(mutex_);
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         remoteObject = QueryObjectInner(descriptor);
         if (remoteObject == nullptr) {
@@ -232,7 +232,7 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 
 bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     // If it fails, clear it in the destructor.
     (void)isContainStub_.erase(object);
 
@@ -246,7 +246,7 @@ bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 
 bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return AttachObjectInner(object);
 }
 
@@ -269,7 +269,7 @@ IRemoteObject *IPCProcessSkeleton::QueryObject(const std::u16string &descriptor)
         return nullptr;
     }
 
-    std::shared_lock<std::shared_mutex> lockGuard(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return QueryObjectInner(descriptor);
 }
 
