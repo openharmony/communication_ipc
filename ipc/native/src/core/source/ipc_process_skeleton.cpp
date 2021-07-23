@@ -318,7 +318,7 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
 {
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
-    std::string pkgName = "dbinderService";
+    std::string pkgName = "DBinderBus";
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
         DBINDER_LOGE("Get local node device info failed");
