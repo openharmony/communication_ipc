@@ -423,6 +423,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
 #endif
     const pid_t oldPid = callerPid_;
     const auto oldUid = static_cast<const uid_t>(callerUid_);
+    uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
@@ -452,7 +453,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     }
     callerPid_ = oldPid;
     callerUid_ = oldUid;
-    SetStatus(IRemoteInvoker::IDLE_INVOKER);
+    SetStatus(oldStatus);
 }
 
 void BinderInvoker::OnAttemptAcquire()
