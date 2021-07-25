@@ -848,7 +848,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     const pid_t oldPid = GetCallerPid();
     const auto oldUid = static_cast<const uid_t>(GetCallerUid());
     const std::string oldDeviceId = GetCallerDeviceID();
-
+    uint32_t oldStatus = GetStatus();
     if (CheckAndSetCallerInfo(listenFd, tr->cookie) != ERR_NONE) {
         DBINDER_BASE_LOGE("set user info error, maybe cookie is NOT belong to current caller");
         return;
@@ -898,7 +898,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     SetCallerPid(oldPid);
     SetCallerUid(oldUid);
     SetCallerDeviceID(oldDeviceId);
-    SetStatus(IRemoteInvoker::IDLE_INVOKER);
+    SetStatus(oldStatus);
 }
 
 template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_data *tr, uint32_t listenFd)
