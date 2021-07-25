@@ -58,7 +58,6 @@ private:
 
     DISALLOW_COPY_AND_MOVE(DBinderRemoteListener);
     std::mutex busManagerMutex_;
-    std::shared_ptr<ISessionService> softbusManager_;
     sptr<DBinderService> dBinderService_;
 };
 } // namespace OHOS
