@@ -64,7 +64,7 @@ DBinderService::~DBinderService()
 
 std::string DBinderService::GetLocalDeviceID()
 {
-    std::string pkgName = "dbinderService";
+    std::string pkgName = "DBinderService";
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
         DBINDER_LOGE("Get local node device info failed");
