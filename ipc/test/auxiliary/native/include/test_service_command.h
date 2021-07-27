@@ -16,7 +16,7 @@
 #ifndef OHOS_IPC_TEST_SERVICE_COMMAND_H
 #define OHOS_IPC_TEST_SERVICE_COMMAND_H
 
-enum class TestCommand : int {
+enum TestCommand {
     TEST_CMD_NONE = 0,
     TEST_CMD_SYNC_TRANS = 1,
     TEST_CMD_ASYNC_TRANS = 2,

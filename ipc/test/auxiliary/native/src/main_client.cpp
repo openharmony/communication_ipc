@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     int result = 0;
     TestCommand commandId = TestCommand::TEST_CMD_SYNC_TRANS;
     if (argc > 1) {
-        commandId = { atoi(argv[1]) };
+        commandId = TestCommand(atoi(argv[1]));
     } else {
         ZLOGE(LABEL, "unknown command");
     }
