@@ -103,7 +103,6 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
 
 std::u16string IPCObjectProxy::GetInterfaceDescriptor()
 {
-    std::lock_guard<std::mutex> lockGuard(initMutex_);
     if (!remoteDescriptor_.empty()) {
         return remoteDescriptor_;
     }
@@ -159,34 +158,33 @@ std::string IPCObjectProxy::GetDataBusName()
 
 void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
 {
-    return WaitForInit();
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        invoker->AcquireHandle(handle_);
+    }
 }
 
-void IPCObjectProxy::WaitForInit()
+void IPCObjectProxy::WaitForInit(bool newProxy)
 {
 #ifndef CONFIG_IPC_SINGLE
     int type = 0;
 #endif
-
     {
-        bool acquire = true;
         std::lock_guard<std::mutex> lockGuard(initMutex_);
         if (IsObjectDead()) {
             ZLOGI(LABEL, "check a dead proxy, init again");
             isRemoteDead_ = false;
             isFinishInit_ = false;
-            acquire = false;
         }
 
         // check again is this object been initialized
         if (isFinishInit_) {
             return;
         }
-        IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
-        if (invoker != nullptr && acquire == true) {
-            invoker->AcquireHandle(handle_);
-        }
 #ifndef CONFIG_IPC_SINGLE
+        if (newProxy == true) {
+            ReleaseProto();
+        }
         type = UpdateProto();
 #endif
         isFinishInit_ = true;
@@ -206,15 +204,15 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
         return;
     }
 
-    if (current->DetachObject(this)) {
+    if (current->DetachObject(this)) { // if detach successfully, this proxy will be destroyed
+#ifndef CONFIG_IPC_SINGLE
+        ReleaseProto();
+#endif
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
         if (invoker != nullptr) {
             invoker->ReleaseHandle(handle_);
         }
     }
-#ifndef CONFIG_IPC_SINGLE
-    ReleaseProto();
-#endif
 }
 
 
@@ -412,23 +410,7 @@ void IPCObjectProxy::IncRefToRemote()
 
 void IPCObjectProxy::ReleaseProto()
 {
-    switch (GetProto()) {
-        case IRemoteObject::IF_PROT_BINDER: {
-            ZLOGW(LABEL, "it is normal binder, try to delete handle to index");
-            ReleaseBinderProto();
-            break;
-        }
-        case IRemoteObject::IF_PROT_DATABUS: {
-            ReleaseDatabusProto();
-            break;
-        }
-        default: {
-            ZLOGE(LABEL, "ReleaseProto Invalid Type");
-            break;
-        }
-    }
-
-    return;
+    ReleaseDatabusProto();
 }
 
 void IPCObjectProxy::SetProto(int proto)
@@ -637,24 +619,7 @@ void IPCObjectProxy::ReleaseDatabusProto()
 
 void IPCObjectProxy::ReleaseBinderProto()
 {
-    if (handle_ == 0) {
-        ZLOGI(LABEL, "%s:handle == 0, do nothing", __func__);
-        return;
-    }
-
-    if (GetProto() != IRemoteObject::IF_PROT_BINDER) {
-        ZLOGI(LABEL, "not binder proxy, need do nothing");
-        return;
-    }
-
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        ZLOGE(LABEL, "release proto current is null");
-        return;
-    }
-
-    (void)current->DetachHandleToIndex(handle_);
-    return;
+    // do nothing
 }
 #endif
 } // namespace OHOS
