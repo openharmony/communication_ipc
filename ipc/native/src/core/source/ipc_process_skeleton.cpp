@@ -123,6 +123,7 @@ std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
 
 IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
 {
+    bool newProxy = false;
     IRemoteObject *remoteObject = nullptr;
     std::u16string descriptor = MakeHandleDescriptor(handle);
     {
@@ -142,20 +143,22 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
                 }
             }
 
-            remoteObject = new IPCObjectProxy(handle, descriptor);
-            remoteObject->AttemptAcquire(this);
-
+            newProxy = true;
+            auto proxy = new IPCObjectProxy(handle, descriptor);
+            proxy->AttemptAcquire(this); // AttemptAcquire always returns true as life time is extended
+            remoteObject = reinterpret_cast<IRemoteObject *>(proxy);
             if (!AttachObjectInner(remoteObject)) {
-                DBINDER_LOGE("attach object fail");
-                delete remoteObject;
+                DBINDER_LOGE("attach object failed");
+                delete proxy;
                 return nullptr;
             }
-            return remoteObject;
+        } else {
+            remoteObject->AttemptAcquire(this);
         }
     }
 
     IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject);
-    remoteProxy->WaitForInit();
+    remoteProxy->WaitForInit(newProxy);
     return remoteObject;
 }
 
@@ -233,9 +236,14 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    int strongRef = object->GetSptrRefCount();
+    if (strongRef > 0) {
+        DBINDER_LOGI("proxy is still strong referenced:%{public}d", strongRef);
+        return false;
+    }
+
     // If it fails, clear it in the destructor.
     (void)isContainStub_.erase(object);
-
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
         return false;
@@ -277,13 +285,8 @@ IRemoteObject *IPCProcessSkeleton::QueryObjectInner(const std::u16string &descri
 {
     auto it = objects_.find(descriptor);
     if (it != objects_.end()) {
-        if (it->second == nullptr) {
-            return nullptr;
-        }
-        it->second->AttemptAcquire(this);
         return it->second.GetRefPtr();
     }
-
     return nullptr;
 }
 
