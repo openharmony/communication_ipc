@@ -568,12 +568,12 @@ bool DBinderDatabusInvoker::OnDatabusSessionClosed(std::shared_ptr<Session> sess
         std::u16string descriptor = current->MakeHandleDescriptor(*it);
         IRemoteObject *remoteObject = current->QueryObject(descriptor);
         if (remoteObject != nullptr) {
+            (void)current->ProxyDetachDBinderSession(*it);
+            (void)current->DetachHandleToIndex(*it);
             IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject);
             if (remoteProxy->IsSubscribeDeathNotice()) {
                 remoteProxy->SendObituary();
             }
-            (void)current->ProxyDetachDBinderSession(*it);
-            (void)current->DetachHandleToIndex(*it);
         }
     }
 
