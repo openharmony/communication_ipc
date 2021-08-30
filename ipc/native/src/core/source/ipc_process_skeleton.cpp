@@ -101,7 +101,8 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
     std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (manager != nullptr) {
-        (void)manager->RemoveSessionServer(DBINDER_SERVER_PKG_NAME, sessionName_);
+        std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
+        (void)manager->RemoveSessionServer(pkgName, sessionName_);
     }
 #endif
 }
@@ -321,7 +322,7 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
 {
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
-    std::string pkgName = "DBinderBus";
+    std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
         DBINDER_LOGE("Get local node device info failed");
@@ -945,8 +946,8 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         DBINDER_LOGE("fail to create softbus callbacks");
         return false;
     }
-
-    int ret = manager->CreateSessionServer(DBINDER_SERVER_PKG_NAME, name, callback);
+    std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
+    int ret = manager->CreateSessionServer(pkgName, name, callback);
     if (ret != 0) {
         DBINDER_LOGE("fail to create softbus server");
         return false;
