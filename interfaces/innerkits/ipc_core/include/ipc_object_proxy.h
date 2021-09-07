@@ -70,7 +70,7 @@ public:
 
     std::string GetDataBusName();
     int GetProto() const;
-    void WaitForInit(bool newProxy);
+    void WaitForInit();
     std::u16string GetInterfaceDescriptor();
 
 private:
