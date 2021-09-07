@@ -124,7 +124,6 @@ std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
 
 IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
 {
-    bool newProxy = false;
     IRemoteObject *remoteObject = nullptr;
     std::u16string descriptor = MakeHandleDescriptor(handle);
     {
@@ -135,7 +134,7 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
             if (handle == REGISTRY_HANDLE) {
                 IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
                 if (invoker == nullptr) {
-                    DBINDER_LOGE("fail to get invoker");
+                    DBINDER_LOGE("failed to get invoker");
                     return nullptr;
                 }
                 if (!invoker->PingService(REGISTRY_HANDLE)) {
@@ -144,7 +143,6 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
                 }
             }
 
-            newProxy = true;
             auto proxy = new IPCObjectProxy(handle, descriptor);
             proxy->AttemptAcquire(this); // AttemptAcquire always returns true as life time is extended
             remoteObject = reinterpret_cast<IRemoteObject *>(proxy);
@@ -159,7 +157,7 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
     }
 
     IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject);
-    remoteProxy->WaitForInit(newProxy);
+    remoteProxy->WaitForInit();
     return remoteObject;
 }
 
@@ -237,6 +235,11 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return DetachObjectInner(object);
+}
+
+bool IPCProcessSkeleton::DetachObjectInner(IRemoteObject *object)
+{
     int strongRef = object->GetSptrRefCount();
     if (strongRef > 0) {
         DBINDER_LOGI("proxy is still strong referenced:%{public}d", strongRef);

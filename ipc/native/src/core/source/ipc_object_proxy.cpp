@@ -164,7 +164,7 @@ void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
     }
 }
 
-void IPCObjectProxy::WaitForInit(bool newProxy)
+void IPCObjectProxy::WaitForInit()
 {
 #ifndef CONFIG_IPC_SINGLE
     int type = 0;
@@ -172,7 +172,7 @@ void IPCObjectProxy::WaitForInit(bool newProxy)
     {
         std::lock_guard<std::mutex> lockGuard(initMutex_);
         if (IsObjectDead()) {
-            ZLOGI(LABEL, "check a dead proxy, init again");
+            ZLOGW(LABEL, "check a dead proxy, init again");
             isRemoteDead_ = false;
             isFinishInit_ = false;
         }
@@ -182,9 +182,6 @@ void IPCObjectProxy::WaitForInit(bool newProxy)
             return;
         }
 #ifndef CONFIG_IPC_SINGLE
-        if (newProxy == true) {
-            ReleaseProto();
-        }
         type = UpdateProto();
 #endif
         isFinishInit_ = true;
@@ -203,15 +200,24 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
         ZLOGE(LABEL, "OnLastStrongRef current is null");
         return;
     }
-
-    if (current->DetachObject(this)) { // if detach successfully, this proxy will be destroyed
+#ifndef CONFIG_IPC_SINGLE
+    std::shared_ptr<DBinderSessionObject> session = nullptr;
+#endif
+    {
+        std::lock_guard<std::recursive_mutex> lock(current->mutex_);
+        if (current->DetachObjectInner(this) == false) { // if detach successfully, this proxy will be destroyed
+            return;
+        }
 #ifndef CONFIG_IPC_SINGLE
         ReleaseProto();
+        session = current->ProxyQueryDBinderSession(handle_);
+        (void)current->ProxyDetachDBinderSession(handle_);
+        (void)current->DetachHandleToIndex(handle_);
 #endif
-        IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
-        if (invoker != nullptr) {
-            invoker->ReleaseHandle(handle_);
-        }
+    }
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        invoker->ReleaseHandle(handle_);
     }
 }
 
@@ -231,7 +237,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (IsObjectDead()) {
-        ZLOGI(LABEL, "%s: proxy is already dead", __func__);
+        ZLOGW(LABEL, "%s: proxy is already dead", __func__);
         return false;
     }
 
@@ -269,9 +275,9 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
         status = AddDbinderDeathRecipient();
-        ZLOGE(LABEL, "%s: fail to add dbinder death recipient, status = %d", __func__, status);
 #ifndef BUILD_PUBLIC_VERSION
         if (!status) {
+            ZLOGE(LABEL, "failed to add dbinder death recipient");
             ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
                 DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::ERROR_CODE,
                 DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE);
@@ -593,8 +599,8 @@ void IPCObjectProxy::ReleaseDatabusProto()
         return;
     }
 
-    if (GetProto() != IRemoteObject::IF_PROT_DATABUS) {
-        ZLOGI(LABEL, "not databus dbinder, need do nothing");
+    if (proto_ != IRemoteObject::IF_PROT_DATABUS) {
+        ZLOGW(LABEL, "not databus dbinder, need do nothing");
         return;
     }
 
@@ -602,19 +608,9 @@ void IPCObjectProxy::ReleaseDatabusProto()
     MessageOption option = { MessageOption::TF_ASYNC };
     uint32_t err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "DBINDER_DECREFS_TRANSACTION transact return error = %{public}u", err);
+        ZLOGW(LABEL, "DBINDER_DECREFS_TRANSACTION transact return error = %{public}u", err);
         // do nothing
     }
-
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        ZLOGE(LABEL, "release proto current is null");
-        return;
-    }
-
-    (void)current->ProxyDetachDBinderSession(handle_);
-    (void)current->DetachHandleToIndex(handle_);
-    return;
 }
 
 void IPCObjectProxy::ReleaseBinderProto()

@@ -98,6 +98,7 @@ public:
     bool AttachObject(IRemoteObject *object);
     bool AttachObjectInner(IRemoteObject *object);
     bool DetachObject(IRemoteObject *object);
+    bool DetachObjectInner(IRemoteObject *object);
 
     bool OnThreadTerminated(const std::string &threadName);
 
@@ -207,6 +208,7 @@ private:
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;
     sptr<IRemoteObject> registryObject_ = nullptr;
+    friend void IPCObjectProxy::OnLastStrongRef(const void *objectId);
 
 #ifndef CONFIG_IPC_SINGLE
     std::mutex databusProcMutex_;
