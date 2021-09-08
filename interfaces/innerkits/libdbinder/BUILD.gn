@@ -19,9 +19,6 @@ DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder"
 config("libdbinder_config") {
   visibility = [ ":*" ]
   cflags = []
-  if (target_cpu == "arm") {
-    cflags = [ "-DBINDER_IPC_32BIT" ]
-  }
   if (is_standard_system) {
     cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
   }
