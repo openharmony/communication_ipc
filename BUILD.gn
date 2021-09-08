@@ -31,9 +31,6 @@ config("ipc_util_config") {
   if (is_double_framework) {
     cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
   }
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
   if (is_standard_system) {
     cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
   }
