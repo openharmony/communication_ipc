@@ -105,7 +105,6 @@ public:
         const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid = 0);
     bool RegisterRemoteProxy(std::u16string serviceName, sptr<IRemoteObject> binderObject);
     bool RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId); 
-    bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool OnRemoteMessageTask(const struct DHandleEntryTxRx *message);
     std::shared_ptr<struct SessionInfo> QuerySessionObject(binder_uintptr_t stub);
     bool DetachDeathRecipient(sptr<IRemoteObject> object);
@@ -137,7 +136,7 @@ private:
     sptr<IRemoteObject> QueryProxyObject(binder_uintptr_t binderObject);
     bool DetachSessionObject(binder_uintptr_t stub);
     bool AttachSessionObject(std::shared_ptr<struct SessionInfo> object, binder_uintptr_t stub);
-    sptr<IRemoteObject> FindOrNewProxy(binder_uintptr_t binderObject);
+    sptr<IRemoteObject> FindOrNewProxy(binder_uintptr_t binderObject, int32_t systemAbilityId);
     bool SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber);
     uint16_t AllocFreeSocketPort();
     std::string GetLocalDeviceID();
@@ -161,6 +160,8 @@ private:
     std::string QueryBusNameObject(IPCObjectProxy *proxy);
     std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
     uint32_t GetSeqNumber();
+    bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
+    bool CheckSystemAbilityId(int32_t systemAbilityId);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
@@ -191,6 +192,8 @@ private:
     std::map<sptr<IRemoteObject>, DBinderServiceStub *> noticeProxy_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
     std::map<IPCObjectProxy *, std::string> busNameObject_;
+    static constexpr int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
+    static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
