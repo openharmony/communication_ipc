@@ -244,7 +244,7 @@ sptr<DBinderServiceStub> DBinderService::FindOrNewDBinderStub(const std::u16stri
 sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &serviceName,
     const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid)
 {
-    if (IsDeviceIdIllegal(deviceID) || serviceName.length() == 0 || binderObject == 0) {
+    if (IsDeviceIdIllegal(deviceID) || serviceName.length() == 0) {
         DBINDER_LOGE("para is wrong device id length = %zu, service name length = %zu", deviceID.length(),
             serviceName.length());
         return nullptr;
@@ -295,7 +295,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->transType           = GetRemoteTransType();
     message->fromPort            = 0;
     message->toPort              = 0;
-    message->stubIndex           = 0;
+    message->stubIndex           = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
     message->seqNumber           = seqNumber;
     message->binderObject        = stub->GetBinderObject();
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -360,7 +360,12 @@ bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, u
     return true;
 }
 
-sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject)
+bool DBinderService::CheckSystemAbilityId(int32_t systemAbilityId)
+{
+    return systemAbilityId >= FIRST_SYS_ABILITY_ID && systemAbilityId <= LAST_SYS_ABILITY_ID;
+}
+
+sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject, int32_t systemAbilityId)
 {
     sptr<IRemoteObject> proxy = QueryProxyObject(binderObject);
     if (proxy != nullptr) {
@@ -369,12 +374,10 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
     }
     /* proxy is null, attempt to get a new proxy */
     std::u16string serviceName = GetRegisterService(binderObject);
-    if (serviceName.empty()) {
-        DBINDER_LOGE("service is not registered in this device");
+    if (serviceName.empty() && !CheckSystemAbilityId(systemAbilityId)) {
+        DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
         return nullptr;
     }
-
-    DBINDER_LOGI("new proxy serviceName = %s", Str16ToStr8(serviceName).c_str());
 
     auto manager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (manager == nullptr) {
@@ -382,7 +385,7 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
         return nullptr;
     }
 
-    int digitalName = std::atoi(Str16ToStr8(serviceName).c_str());
+    int digitalName = !serviceName.empty() ? std::atoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
     proxy = manager->GetSystemAbility(digitalName);
     if (proxy != nullptr) {
         /* When the stub object dies, you need to delete the corresponding busName information */
@@ -397,6 +400,8 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
             DBINDER_LOGE("attach proxy object fail");
             return nullptr;
         }
+    } else {
+        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", digitalName);
     }
     return proxy;
 }
@@ -408,7 +413,7 @@ uint16_t DBinderService::AllocFreeSocketPort()
 
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
 {
-    sptr<IRemoteObject> proxy = FindOrNewProxy(message->binderObject);
+    sptr<IRemoteObject> proxy = FindOrNewProxy(message->binderObject, static_cast<int32_t>(message->stubIndex));
     if (proxy == nullptr) {
         DBINDER_LOGE("find and new proxy fail");
         return false;
