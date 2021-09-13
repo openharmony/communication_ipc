@@ -1,0 +1,64 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+
+base_output_path = get_label_info(":rpc_js", "target_out_dir")
+ipc_js_obj_path = base_output_path + "/rpc.o"
+
+gen_js_obj("rpc_js") {
+  input = "//foundation/communication/ipc/interfaces/kits/js/napi/rpc.js"
+  output = ipc_js_obj_path
+}
+
+config("rpc_public_config") {
+  visibility = [ ":*" ]
+  include_dirs = [ "$SUBSYSTEM_DIR/ipc/native/src/napi/include" ]
+}
+
+ohos_shared_library("rpc") {
+  include_dirs = [
+    "$SUBSYSTEM_DIR/utils/include",
+    "//foundation/ace/napi/interfaces/kits",
+    "//utils/system/safwk/native/include",
+  ]
+  public_configs = [ ":rpc_public_config" ]
+
+  sources = [
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_parcel.cpp",
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_object.cpp",
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
+  ]
+
+  deps = [
+    ":rpc_js",
+    "//foundation/ace/napi:ace_napi",
+    "//third_party/libuv:uv_static",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  relative_install_dir = "module"
+
+  subsystem_name = "communication"
+  part_name = "ipc_js"
+}
