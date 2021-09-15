@@ -68,6 +68,23 @@
         "//foundation/communication/ipc/ipc/test:moduletest",
         "//foundation/communication/ipc/ipc/native/test:unittest"
       ]
+    },
+    "ipc_js": {
+      "module_list": [
+        "//foundation/communication/ipc/interfaces/kits/js/napi:rpc"
+      ],
+      "inner_kits": [
+        {
+          "type": "so",
+          "name": "//foundation/communication/ipc/interfaces/kits/js/napi:rpc",
+          "header": {
+            "header_files": [
+              "napi_remote_object.h"
+            ],
+            "header_base": "//foundation/communication/ipc/ipc/native/src/napi/include"
+          }
+        }
+      ]
     }
   }
 }
