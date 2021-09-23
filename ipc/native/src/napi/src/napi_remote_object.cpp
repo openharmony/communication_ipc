@@ -187,15 +187,6 @@ NAPIRemoteProxyHolder::~NAPIRemoteProxyHolder()
     object_ = nullptr;
 }
 
-namespace {
-    napi_value g_remoteStubConstructor = nullptr;
-    napi_ref g_remoteStubConsRef = nullptr;
-    napi_value g_remoteProxyConstructor = nullptr;
-    napi_ref g_remoteProxyConsRef = nullptr;
-    napi_value g_messageOptionConstructor = nullptr;
-    napi_ref g_messageOptionConsRef = nullptr;
-}
-
 napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
@@ -229,13 +220,17 @@ napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteProxy_isObjectDead),
         DECLARE_NAPI_FUNCTION("getHandle", NAPI_RemoteProxy_getHandle),
     };
+    napi_value constructor = nullptr;
     napi_define_class(env, className.c_str(), className.length(), RemoteProxy_JS_Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &g_remoteProxyConstructor);
-    NAPI_ASSERT(env, g_remoteProxyConstructor != nullptr, "define js class RemoteProxy failed");
-    napi_status status = napi_set_named_property(env, exports, "RemoteProxy", g_remoteProxyConstructor);
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    NAPI_ASSERT(env, constructor != nullptr, "define js class RemoteProxy failed");
+    napi_status status = napi_set_named_property(env, exports, "RemoteProxy", constructor);
     NAPI_ASSERT(env, status == napi_ok, "set property RemoteProxy to exports failed");
-    status = napi_create_reference(env, g_remoteProxyConstructor, 1, &g_remoteProxyConsRef);
-    NAPI_ASSERT(env, status == napi_ok, "create ref to js RemoteProxy constructor failed");
+    napi_value global = nullptr;
+    status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    status = napi_set_named_property(env, global, "IPCProxyConstructor_", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set proxy constructor failed");
     return exports;
 }
 EXTERN_C_END
@@ -251,6 +246,8 @@ public:
     ~NAPIRemoteObject() override;
 
     bool CheckObjectLegality() const override;
+
+    int GetObjectType() const override;
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
@@ -278,7 +275,7 @@ private:
         ThreadLockInfo *lockInfo;
         int result;
     };
-    void OnJsRemoteRequest(CallbackParam *param);
+    int OnJsRemoteRequest(CallbackParam *param);
 };
 
 /*
@@ -291,7 +288,7 @@ public:
     explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor);
     ~NAPIRemoteObjectHolder();
     sptr<NAPIRemoteObject> Get(napi_value object);
-
+    void Set(sptr<NAPIRemoteObject> object);
 private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
@@ -326,6 +323,12 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     return remoteObject;
 }
 
+void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    cachedObject_ = object;
+}
+
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
     // new napi remote object
@@ -354,7 +357,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, jsStringLength == stringLength, "string length wrong");
     std::string descriptor = stringValue;
 
-    auto holder = new NAPIRemoteObjectHolder(env, to_utf16(descriptor));
+    auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor));
     // connect native object to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, holder,
@@ -377,14 +380,19 @@ napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getCallingPid", NAPI_RemoteObject_getCallingPid),
         DECLARE_NAPI_FUNCTION("getCallingUid", NAPI_RemoteObject_getCallingUid),
+        DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteObject_sendRequest),
     };
+    napi_value constructor = nullptr;
     napi_define_class(env, className.c_str(), className.length(), RemoteObject_JS_Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &g_remoteStubConstructor);
-    NAPI_ASSERT(env, g_remoteStubConstructor != nullptr, "define js class RemoteObject failed");
-    napi_status status = napi_set_named_property(env, exports, "RemoteObject", g_remoteStubConstructor);
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    NAPI_ASSERT(env, constructor != nullptr, "define js class RemoteObject failed");
+    napi_status status = napi_set_named_property(env, exports, "RemoteObject", constructor);
     NAPI_ASSERT(env, status == napi_ok, "set property RemoteObject to exports failed");
-    status = napi_create_reference(env, g_remoteStubConstructor, 1, &g_remoteStubConsRef);
-    NAPI_ASSERT(env, status == napi_ok, "create ref to js RemoteObject constructor failed");
+    napi_value global = nullptr;
+    status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    status = napi_set_named_property(env, global, "IPCStubConstructor_", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
     return exports;
 }
 EXTERN_C_END
@@ -413,6 +421,11 @@ bool NAPIRemoteObject::CheckObjectLegality() const
     return true;
 }
 
+int NAPIRemoteObject::GetObjectType() const
+{
+    return OBJECT_TYPE_JAVASCRIPT;
+}
+
 napi_ref NAPIRemoteObject::GetJsObjectRef() const
 {
     return thisVarRef_;
@@ -438,21 +451,19 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         .data = &data,
         .reply = &reply,
         .option = &option,
-        .lockInfo = lockInfo.get(),
         .callingPid = callingPid,
         .callingUid = callingUid,
         .callingDeviceID = callingDeviceID,
         .localDeviceID = localDeviceID,
+        .lockInfo = lockInfo.get(),
         .result = 0
     };
-    OnJsRemoteRequest(param);
-    DBINDER_LOGI("OnJsRemoteRequest done");
-    int ret = param->result;
-    delete param;
+    int ret = OnJsRemoteRequest(param);
+    DBINDER_LOGI("OnJsRemoteRequest done, ret:%{public}d", ret);
     return ret;
 }
 
-void NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
+int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -460,8 +471,8 @@ void NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
         DBINDER_LOGE("failed to new uv_work_t");
-        jsParam->result = -1;
-        return;
+        delete jsParam;
+        return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
     DBINDER_LOGI("start nv queue work loop");
@@ -491,8 +502,18 @@ void NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value jsCode;
         napi_create_uint32(param->env, param->code, &jsCode);
 
+        napi_value global = nullptr;
+        napi_get_global(param->env, &global);
+        if (global == nullptr) {
+            DBINDER_LOGE("get napi global failed");
+            param->result = -1;
+            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+            param->lockInfo->ready = true;
+            param->lockInfo->condition.notify_all();
+            return;
+        }
         napi_value jsOptionConstructor = nullptr;
-        napi_get_reference_value(param->env, g_messageOptionConsRef, &jsOptionConstructor);
+        napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
         if (jsOptionConstructor == nullptr) {
             DBINDER_LOGE("jsOption constructor is null");
             param->result = -1;
@@ -518,8 +539,7 @@ void NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             return;
         }
         napi_value jsParcelConstructor = nullptr;
-        napi_ref ref = NAPI_MessageParcel::GetParcelConsRef();
-        napi_get_reference_value(param->env, ref, &jsParcelConstructor);
+        napi_get_named_property(param->env, global, "IPCParcelConstructor_", &jsParcelConstructor);
         if (jsParcelConstructor == nullptr) {
             DBINDER_LOGE("jsParcel constructor is null");
             param->result = -1;
@@ -575,7 +595,6 @@ void NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             return;
         }
         // save old calling pid, uid, device id
-        napi_value global;
         napi_get_global(param->env, &global);
         napi_value oldPid;
         napi_get_named_property(param->env, global, "callingPid_", &oldPid);
@@ -630,7 +649,10 @@ void NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     });
     std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
     jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
-    DBINDER_LOGI("onJsRemoteRequestDone");
+    int ret = jsParam->result;
+    delete jsParam;
+    delete work;
+    return ret;
 }
 
 NAPIRemoteProxyHolder *NAPI_ohos_rpc_getRemoteProxyHolder(napi_env env, napi_value jsRemoteProxy)
@@ -649,18 +671,47 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
     }
 
     if (target->CheckObjectLegality()) {
-        DBINDER_LOGI("napi create js remote object");
-        auto object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
-        napi_ref ref = object->GetJsObjectRef();
-        napi_value jsRemoteObject;
-        napi_get_reference_value(env, ref, &jsRemoteObject);
-        NAPI_ASSERT(env, jsRemoteObject != nullptr, "failed to get js RemoteObject");
-        return jsRemoteObject;
+        IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
+        DBINDER_LOGI("object type:%{public}d", tmp->GetObjectType());
+        if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
+            DBINDER_LOGI("napi create js remote object");
+            sptr<NAPIRemoteObject> object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
+            // retrieve js remote object constructor
+            napi_value global = nullptr;
+            napi_status status = napi_get_global(env, &global);
+            NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+            napi_value constructor = nullptr;
+            status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
+            NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
+            NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
+            // retrieve descriptor and it's length
+            std::u16string descriptor = object->GetObjectDescriptor();
+            std::string desc = Str16ToStr8(descriptor);
+            napi_value jsDesc = nullptr;
+            napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
+            napi_value len = nullptr;
+            napi_create_int32(env, desc.length(), &len);
+            // create a new js remote object
+            size_t argc = 2;
+            napi_value argv[2] = { jsDesc, len };
+            napi_value jsRemoteObject;
+            status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
+            NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
+            // retrieve holder and set object
+            NAPIRemoteObjectHolder *holder = nullptr;
+            napi_unwrap(env, jsRemoteObject, (void **)&holder);
+            NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
+            holder->Set(object);
+            return jsRemoteObject;
+        }
     }
 
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
     napi_value constructor = nullptr;
-    napi_status status = napi_get_reference_value(env, g_remoteProxyConsRef, &constructor);
-    NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteProxy constructor");
+    status = napi_get_named_property(env, global, "IPCProxyConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "get proxy constructor failed");
     napi_value jsRemoteProxy;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsRemoteProxy);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteProxy");
@@ -674,8 +725,14 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
 sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value object)
 {
     if (object != nullptr) {
+        napi_value global = nullptr;
+        napi_status status = napi_get_global(env, &global);
+        NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+        napi_value stubConstructor = nullptr;
+        status = napi_get_named_property(env, global, "IPCStubConstructor_", &stubConstructor);
+        NAPI_ASSERT(env, status == napi_ok, "get stub constructor failed");
         bool instanceOfStub = false;
-        napi_status status = napi_instanceof(env, object, g_remoteStubConstructor, &instanceOfStub);
+        status = napi_instanceof(env, object, stubConstructor, &instanceOfStub);
         NAPI_ASSERT(env, status == napi_ok, "failed to check js object type");
         if (instanceOfStub) {
             NAPIRemoteObjectHolder *holder = nullptr;
@@ -684,8 +741,11 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             return holder != nullptr ? holder->Get(object) : nullptr;
         }
 
+        napi_value proxyConstructor = nullptr;
+        status = napi_get_named_property(env, global, "IPCProxyConstructor_", &proxyConstructor);
+        NAPI_ASSERT(env, status == napi_ok, "get proxy constructor failed");
         bool instanceOfProxy = false;
-        status = napi_instanceof(env, object, g_remoteProxyConstructor, &instanceOfProxy);
+        status = napi_instanceof(env, object, proxyConstructor, &instanceOfProxy);
         NAPI_ASSERT(env, status == napi_ok, "failed to check js object type");
         if (instanceOfProxy) {
             NAPIRemoteProxyHolder *holder = NAPI_ohos_rpc_getRemoteProxyHolder(env, object);
@@ -844,11 +904,96 @@ napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info
     return result;
 }
 
+void ExecuteSendRequest(napi_env env, SendRequestParam *param)
+{
+    param->errCode = param->target->SendRequest(param->code,
+        *(param->data.get()), *(param->reply.get()), param->option);
+    DBINDER_LOGI("execute sendRequest done, errCode:%{public}d", param->errCode);
+
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env, &loop);
+    uv_work_t *work = new uv_work_t;
+    work->data = reinterpret_cast<void *>(param);
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+        DBINDER_LOGI("enter main loop");
+        SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
+        napi_value result = nullptr;
+        napi_create_int32(param->env, param->errCode, &result);
+        if (param->errCode == 0) {
+            napi_resolve_deferred(param->env, param->deferred, result);
+        } else {
+            napi_reject_deferred(param->env, param->deferred, result);
+        }
+        delete param;
+        delete work;
+    });
+}
+
+napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t code,
+    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option)
+{
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
+    SendRequestParam *sendRequestParam = new SendRequestParam {
+        .target = target,
+        .code = code,
+        .data = data,
+        .reply = reply,
+        .option = option,
+        .asyncWork = nullptr,
+        .deferred = deferred,
+        .errCode = -1,
+        .env = env
+    };
+    std::thread t(ExecuteSendRequest, env, sendRequestParam);
+    t.detach();
+    DBINDER_LOGI("sendRequest and returns promise");
+    return promise;
+}
+
+napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info)
+{
+    DBINDER_LOGI("remote object send request starts");
+    size_t argc = 4;
+    size_t expectedArgc = 4;
+    napi_value argv[4] = { 0 };
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    NAPI_ASSERT(env, argc == expectedArgc, "requires 4 parameter");
+    napi_valuetype valueType;
+    napi_typeof(env, argv[0], &valueType);
+    NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
+    napi_typeof(env, argv[1], &valueType);
+    NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 2");
+    napi_typeof(env, argv[2], &valueType);
+    NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 3");
+    napi_typeof(env, argv[3], &valueType);
+    NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 4");
+
+    NAPI_MessageParcel *data = nullptr;
+    napi_status status = napi_unwrap(env, argv[1], (void **)&data);
+    NAPI_ASSERT(env, status == napi_ok, "failed to get data message parcel");
+    NAPI_MessageParcel *reply = nullptr;
+    status = napi_unwrap(env, argv[2], (void **)&reply);
+    NAPI_ASSERT(env, status == napi_ok, "failed to get reply message parcel");
+    MessageOption *option = nullptr;
+    status = napi_unwrap(env, argv[3], (void **)&option);
+    NAPI_ASSERT(env, option != nullptr, "failed to get message option");
+
+    int32_t code = 0;
+    napi_get_value_int32(env, argv[0], &code);
+
+    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    return StubSendRequestPromise(env, target, code, data->GetMessageParcel(), reply->GetMessageParcel(), *option);
+}
+
 // This method runs on a worker thread, no access to the JavaScript
 void ExecuteSendRequest(napi_env env, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
-    param->errCode = param->target->SendRequest(param->code, param->data, param->reply, param->option);
+    param->errCode = param->target->SendRequest(param->code,
+        *(param->data.get()), *(param->reply.get()), param->option);
     DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
 }
 
@@ -869,7 +1014,7 @@ void SendRequestComplete(napi_env env, napi_status status, void *data)
 }
 
 napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t code,
-    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option)
 {
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
@@ -880,9 +1025,10 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .data = data,
         .reply = reply,
         .option = option,
+        .asyncWork = nullptr,
         .deferred = deferred,
         .errCode = -1,
-        .asyncWork = nullptr
+        .env = nullptr
     };
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
@@ -942,7 +1088,7 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
         napi_get_undefined(env, &undefined);
         return undefined;
     }
-    return SendRequestPromise(env, target, code, *(data->GetMessageParcel()), *(reply->GetMessageParcel()), *option);
+    return SendRequestPromise(env, target, code, data->GetMessageParcel(), reply->GetMessageParcel(), *option);
 }
 
 napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info info)
@@ -1225,13 +1371,17 @@ napi_value NAPIMessageOptionExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getWaitTime", NapiOhosRpcMessageOptionGetWaittime),
         DECLARE_NAPI_FUNCTION("setWaitTime", NapiOhosRpcMessageOptionSetWaittime),
     };
+    napi_value constructor = nullptr;
     napi_define_class(env, className.c_str(), className.length(), NAPIMessageOption_JS_Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &g_messageOptionConstructor);
-    NAPI_ASSERT(env, g_messageOptionConstructor != nullptr, "define js class MessageOption failed");
-    napi_status status = napi_set_named_property(env, exports, "MessageOption", g_messageOptionConstructor);
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    NAPI_ASSERT(env, constructor != nullptr, "define js class MessageOption failed");
+    napi_status status = napi_set_named_property(env, exports, "MessageOption", constructor);
     NAPI_ASSERT(env, status == napi_ok, "set property MessageOption to exports failed");
-    status = napi_create_reference(env, g_messageOptionConstructor, 1, &g_messageOptionConsRef);
-    NAPI_ASSERT(env, status == napi_ok, "create ref to js MessageOption constructor failed");
+    napi_value global = nullptr;
+    status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    status = napi_set_named_property(env, global, "IPCOptionConstructor_", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set message option constructor failed");
     return exports;
 }
 EXTERN_C_END

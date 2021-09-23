@@ -289,6 +289,11 @@ pid_t IPCObjectStub::GetCallingUid()
     return IPCSkeleton::GetCallingUid();
 }
 
+int IPCObjectStub::GetObjectType() const
+{
+    return OBJECT_TYPE_NATIVE;
+}
+
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int result = ERR_NONE;

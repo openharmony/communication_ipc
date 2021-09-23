@@ -64,10 +64,10 @@ NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, Message
     maxCapacityToWrite_ = MAX_CAPACITY_TO_WRITE;
     // do NOT reference js parcel here
     if (parcel == nullptr) {
-        nativeParcel_ = new MessageParcel();
+        nativeParcel_ = std::shared_ptr<MessageParcel>(new MessageParcel());
         owner = true;
     } else {
-        nativeParcel_ = parcel;
+        nativeParcel_ = std::shared_ptr<MessageParcel>(parcel, release);
         owner = false;
     }
 }
@@ -75,14 +75,16 @@ NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, Message
 NAPI_MessageParcel::~NAPI_MessageParcel()
 {
     DBINDER_LOGI("NAPI_MessageParcel::Destructor");
-    if (owner) {
-        delete nativeParcel_;
-    }
     nativeParcel_ = nullptr;
     env_ = nullptr;
 }
 
-MessageParcel *NAPI_MessageParcel::GetMessageParcel()
+void NAPI_MessageParcel::release(MessageParcel *parcel)
+{
+    DBINDER_LOGI("message parcel is created by others, do nothing");
+}
+
+std::shared_ptr<MessageParcel> NAPI_MessageParcel::GetMessageParcel()
 {
     return nativeParcel_;
 }
@@ -296,8 +298,8 @@ napi_value NAPI_MessageParcel::JS_writeChar(napi_env env, napi_callback_info inf
 
 napi_value NAPI_MessageParcel::JS_writeStringWithLength(napi_env env, napi_callback_info info)
 {
-    size_t expectedArgc = 2;
     size_t argc = 2;
+    size_t expectedArgc = 2;
     napi_value argv[2] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
@@ -821,7 +823,8 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
 
     napi_value funcArg[1] = { thisVar };
     napi_value callResult = nullptr;
-    bool result = napi_call_function(env, thisVar, prop, 1, funcArg, &callResult);
+    napi_status status = napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
+    bool result = (status == napi_ok);
     bool isExceptionPending = false;
     napi_is_exception_pending(env, &isExceptionPending);
     if (isExceptionPending) {
@@ -872,7 +875,8 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
 
         napi_value funcArg[1] = { thisVar };
         napi_value callResult = nullptr;
-        result = napi_call_function(env, thisVar, prop, 1, funcArg, &callResult);
+        napi_status status = napi_call_function(env, element, prop, 1, funcArg, &callResult);
+        result = (status == napi_ok);
 
         bool isExceptionPending = false;
         napi_is_exception_pending(env, &isExceptionPending);
@@ -1236,9 +1240,9 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
-    uint32_t maxBufLen = 40960;
+    uint32_t maxBytesLen = 40960;
     uint32_t arrayBufferLength = napiParcel->nativeParcel_->ReadUint32();
-    NAPI_ASSERT(env, arrayBufferLength < maxBufLen, "byte array length too large");
+    NAPI_ASSERT(env, arrayBufferLength < maxBytesLen, "byte array length too large");
     size_t len = (arrayBufferLength / BYTE_SIZE_32) + (arrayBufferLength % BYTE_SIZE_32 == 0 ? 0 : 1);
     DBINDER_LOGI("messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(len));
 
@@ -1725,7 +1729,8 @@ napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_i
 
         napi_value funcArg[1] = {thisVar};
         napi_value callResult = nullptr;
-        result = napi_call_function(env, thisVar, prop, 1, funcArg, &callResult);
+        napi_status status = napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
+        result = (status == napi_ok);
     }
 
     napi_value napiValue = nullptr;
@@ -1736,9 +1741,12 @@ napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_i
 napi_value NAPI_MessageParcel::JS_create(napi_env env, napi_callback_info info)
 {
     // new native parcel object
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
     napi_value constructor = nullptr;
-    napi_status status = napi_get_reference_value(env, g_messageParcelConsRef, &constructor);
-    NAPI_ASSERT(env, constructor != nullptr, "failed to get js MessageParcel constructor");
+    status = napi_get_named_property(env, global, "IPCParcelConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "get message parcel constructor failed");
     napi_value jsMessageParcel;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsMessageParcel);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js MessageParcel");
@@ -1912,13 +1920,17 @@ napi_value NAPI_MessageParcel::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("readCharArray", NAPI_MessageParcel::JS_readCharArray),
         DECLARE_NAPI_FUNCTION("readStringArray", NAPI_MessageParcel::JS_readStringArray),
     };
+    napi_value constructor = nullptr;
     napi_define_class(env, className.c_str(), className.length(), JS_constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &g_messageParcelConstructor);
-    NAPI_ASSERT(env, g_messageParcelConstructor != nullptr, "define js class MessageParcel failed");
-    napi_status status = napi_set_named_property(env, exports, "MessageParcel", g_messageParcelConstructor);
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    NAPI_ASSERT(env, constructor != nullptr, "define js class MessageParcel failed");
+    napi_status status = napi_set_named_property(env, exports, "MessageParcel", constructor);
     NAPI_ASSERT(env, status == napi_ok, "set property MessageParcel failed");
-    status = napi_create_reference(env, g_messageParcelConstructor, 1, &g_messageParcelConsRef);
-    NAPI_ASSERT(env, status == napi_ok, "create ref to js MessageParcel constructor failed");
+    napi_value global = nullptr;
+    status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    status = napi_set_named_property(env, global, "IPCParcelConstructor_", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set message parcel constructor failed");
     return exports;
 }
 
@@ -1948,10 +1960,5 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
         nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi wrap message parcel failed");
     return thisVar;
-}
-
-napi_ref NAPI_MessageParcel::GetParcelConsRef()
-{
-    return g_messageParcelConsRef;
 }
 } // namespace OHOS
