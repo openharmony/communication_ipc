@@ -59,9 +59,11 @@ EXTERN_C_END
 
     napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info);
 
+    napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info);
+
     // RemoteProxy napi methods
     napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t code,
-        MessageParcel &data, MessageParcel &reply, MessageOption &option);
+        std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option);
 
     napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info);
 
@@ -82,12 +84,13 @@ EXTERN_C_END
     struct SendRequestParam {
         sptr<IRemoteObject> target;
         uint32_t code;
-        MessageParcel &data;
-        MessageParcel &reply;
-        MessageOption &option;
+        std::shared_ptr<MessageParcel> data;
+        std::shared_ptr<MessageParcel> reply;
+        MessageOption& option;
         napi_async_work asyncWork;
         napi_deferred deferred;
         int errCode;
+        napi_env env;
     };
 } // namespace OHOS
 #endif // NAPI_IPC_OHOS_REMOTE_OBJECT_H

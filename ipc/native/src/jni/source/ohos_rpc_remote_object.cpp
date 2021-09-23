@@ -70,6 +70,8 @@ public:
 
     bool CheckObjectLegality() const override;
 
+    int GetObjectType() const override;
+
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
     int OnRemoteDump(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
@@ -158,6 +160,11 @@ JRemoteObject::JRemoteObject(jobject object, const std::u16string &descriptor) :
 bool JRemoteObject::CheckObjectLegality() const
 {
     return true;
+}
+
+int JRemoteObject::GetObjectType() const
+{
+    return OBJECT_TYPE_JAVA;
 }
 
 JRemoteObject::~JRemoteObject()
@@ -379,9 +386,13 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
     }
 
     if (target->CheckObjectLegality()) {
-        ZLOGI(LABEL, "native Get RemoteObject");
-        auto object = static_cast<JRemoteObject *>(target.GetRefPtr());
-        return object->GetJObject();
+        IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
+        ZLOGW(LABEL, "object type:%{public}d", tmp->GetObjectType());
+        if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVA) {
+            ZLOGW(LABEL, "native Get Java RemoteObject");
+            auto object = static_cast<JRemoteObject *>(tmp);
+            return object->GetJObject();
+        }
     }
 
     std::lock_guard<std::mutex> lockGuard(g_proxyMutex_);
