@@ -28,9 +28,8 @@ class NAPI_MessageParcel {
 public:
     NAPI_MessageParcel(napi_env env, napi_value thisVar, MessageParcel *parcel);
     virtual ~NAPI_MessageParcel();
-    MessageParcel *GetMessageParcel();
+    std::shared_ptr<MessageParcel> GetMessageParcel();
     static napi_value Export(napi_env env, napi_value exports);
-    static napi_ref GetParcelConsRef();
 private:
     // Napi methods and properties
     static napi_value JS_constructor(napi_env env, napi_callback_info cbinfo);
@@ -93,14 +92,12 @@ private:
     static napi_value JS_readCharArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readStringArray(napi_env env, napi_callback_info cbinfo);
 
+    static void release(MessageParcel *parcel);
+
     napi_env env_ = nullptr;
-    MessageParcel *nativeParcel_ = nullptr;
-    size_t maxCapacityToWrite_;
     bool owner;
+    std::shared_ptr<MessageParcel> nativeParcel_ = nullptr;
+    size_t maxCapacityToWrite_;
 };
-namespace {
-    napi_value g_messageParcelConstructor = nullptr;
-    napi_ref g_messageParcelConsRef = nullptr;
-}
 } // namespace OHOS
 #endif //  NAPI_IPC_OHOS_MESSAGE_PARCEL_H
