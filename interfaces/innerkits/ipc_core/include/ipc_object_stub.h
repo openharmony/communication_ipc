@@ -28,6 +28,12 @@ struct RefCountNode {
 
 class IPCObjectStub : public IRemoteObject {
 public:
+    enum {
+        OBJECT_TYPE_NATIVE,
+        OBJECT_TYPE_JAVA,
+        OBJECT_TYPE_JAVASCRIPT,
+    };
+
     explicit IPCObjectStub(std::u16string descriptor = nullptr);
     ~IPCObjectStub();
 
@@ -59,6 +65,8 @@ public:
     virtual int OnRemoteDump(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     virtual int32_t ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    virtual int GetObjectType() const;
 
 #ifndef CONFIG_IPC_SINGLE
     int32_t InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
