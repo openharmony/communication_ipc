@@ -11,9 +11,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//ark/ts2abc/ts2panda/ts2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/ace/ace_engine/ace_config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
+
+# compile .js to .abc.
+action("gen_rpc_abc") {
+  visibility = [ ":*" ]
+  script = "//ark/ts2abc/ts2panda/scripts/generate_js_bytecode.py"
+
+  args = [
+    "--src-js",
+    rebase_path(
+        "//foundation/communication/ipc/interfaces/kits/js/napi/rpc.js"),
+    "--dst-file",
+    rebase_path(target_out_dir + "/rpc.abc"),
+    "--node",
+    rebase_path("${node_path}"),
+    "--frontend-tool-path",
+    rebase_path("${ts2abc_build_path}"),
+    "--node-modules",
+    rebase_path("${node_modules}"),
+  ]
+  deps = [ "//ark/ts2abc/ts2panda:ark_ts2abc_build" ]
+
+  inputs = [ "//foundation/communication/ipc/interfaces/kits/js/napi/rpc.js" ]
+  outputs = [ target_out_dir + "/rpc.abc" ]
+}
 
 base_output_path = get_label_info(":rpc_js", "target_out_dir")
 ipc_js_obj_path = base_output_path + "/rpc.o"
@@ -21,6 +47,14 @@ ipc_js_obj_path = base_output_path + "/rpc.o"
 gen_js_obj("rpc_js") {
   input = "//foundation/communication/ipc/interfaces/kits/js/napi/rpc.js"
   output = ipc_js_obj_path
+}
+
+abc_output_path = get_label_info(":rpc_abc", "target_out_dir")
+rpc_abc_obj_path = abc_output_path + "/rpc_abc.o"
+gen_js_obj("rpc_abc") {
+  input = "$target_out_dir/rpc.abc"
+  output = rpc_abc_obj_path
+  dep = ":gen_rpc_abc"
 }
 
 config("rpc_public_config") {
@@ -44,6 +78,7 @@ ohos_shared_library("rpc") {
   ]
 
   deps = [
+    ":rpc_abc",
     ":rpc_js",
     "//foundation/ace/napi:ace_napi",
     "//third_party/libuv:uv_static",
