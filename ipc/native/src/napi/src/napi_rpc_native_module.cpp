@@ -23,6 +23,8 @@
 
 extern const char _binary_rpc_js_start[];
 extern const char _binary_rpc_js_end[];
+extern const char _binary_rpc_abc_start[];
+extern const char _binary_rpc_abc_end[];
 
 namespace OHOS {
 EXTERN_C_START
@@ -45,6 +47,17 @@ extern "C" __attribute__((visibility("default"))) void NAPI_rpc_GetJSCode(const 
 
     if (bufLen != nullptr) {
         *bufLen = _binary_rpc_js_end - _binary_rpc_js_start;
+    }
+}
+
+// rpc JS register
+extern "C" __attribute__((visibility("default"))) void NAPI_rpc_GetABCCode(const char **buf, int *buflen)
+{
+    if (buf != nullptr) {
+        *buf = _binary_rpc_abc_start;
+    }
+    if (buflen != nullptr) {
+        *buflen = _binary_rpc_abc_end - _binary_rpc_abc_start;
     }
 }
 
