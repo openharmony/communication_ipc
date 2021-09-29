@@ -1954,8 +1954,6 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
     status = napi_wrap(
         env, thisVar, messageParcel,
         [](napi_env env, void *data, void *hint) {
-            DBINDER_LOGI("NAPI_MessageParcel:%{public}p destructed by js callback", data);
-            delete (reinterpret_cast<NAPI_MessageParcel *>(data));
         },
         nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi wrap message parcel failed");
