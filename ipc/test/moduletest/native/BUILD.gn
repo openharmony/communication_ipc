@@ -32,9 +32,9 @@ ohos_moduletest("IPCNativeFrameworksTest") {
   ]
 
   external_deps = [
-    "ipc:ipc_core",
     "hiviewdfx_hilog_native:libhilog",
-    "samgr_L2:samgr_proxy",
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
   ]
 
   resource_config_file =
