@@ -55,6 +55,8 @@ EXTERN_C_END
     napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info info);
 
     // RemoteObject napi methods
+    napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_info info);
+
     napi_value NAPI_RemoteObject_getCallingPid(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info);
@@ -66,6 +68,8 @@ EXTERN_C_END
         std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option);
 
     napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info info);
 
