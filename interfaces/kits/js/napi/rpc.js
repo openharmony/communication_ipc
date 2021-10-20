@@ -15,26 +15,57 @@
 
 const rpcSo = requireInternal("rpc");
 
-const EXC_INSECURITY = -1;
-const EXC_ILLEGAL_ARGUMENT = -3;
-const EXC_NULL_POINTER = -4;
-const EXC_ILLEGAL_STATE = -5;
-const EXC_UNSUPPORTED_OPERATION = -7;
-const EXC_INDEX_OUTOF_BOUNDS = -10;
-const EXC_NEGATIVE_ARRAY_SIZE = -11;
-const EXC_ARRAY_STORE = -12;
-const EXC_CLASS_CAST = -13;
-const EXC_PARCEL_CAPACITY_ERROR = -14;
-const EXC_REMOTE_TRANSACTION_FAILED = -200;
-
-let MessageParcel = rpcSo.MessageParcel;
-let IPCSkeleton = rpcSo.IPCSkeleton;
-let RemoteObject = rpcSo.RemoteObject;
+let NAPIMessageParcel = rpcSo.MessageParcel;
+let NAPIIPCSkeleton = rpcSo.IPCSkeleton;
+let NAPIRemoteObject = rpcSo.RemoteObject;
 let RemoteProxy = rpcSo.RemoteProxy;
 let MessageOption = rpcSo.MessageOption;
 
+class RemoteObject extends NAPIRemoteObject {
+    constructor(descriptor) {
+        if (typeof descriptor === 'string' && descriptor.length > 0) {
+            super(descriptor, descriptor.length);
+            this.descriptor = descriptor;
+        } else {
+            throw new NullPointerException("invalid descriptor");
+        }
+    }
+
+    addDeathRecipient(recipient, flags) {
+        return false;
+    }
+
+    removeDeathRecipient(recipient, flags) {
+        return false;
+    }
+
+    isObjectDead() {
+        return false;
+    }
+
+    attachLocalInterface(localInterface, descriptor) {
+        this.descriptor = descriptor;
+        this.interface = localInterface;
+    }
+
+    queryLocalInterface(descriptor) {
+        if (this.descriptor === descriptor) {
+            return this.interface;
+        }
+        return null;
+    }
+}
+
+class IPCSkeleton extends NAPIIPCSkeleton {
+    static setCallingIdentity(identity) {
+        if (typeof identity === 'string') {
+            return NAPIIPCSkeleton.setCallingIdentity(identity, identity.length);
+        }
+        return false;
+    }
+}
+
 class Exception {
-    message;
     constructor(msg) {
         this.message = msg;
     }
@@ -57,101 +88,110 @@ class RemoteException extends Exception {}
 class ParcelException extends Exception {}
 class RuntimeException extends Exception {}
 
+class MessageParcel extends NAPIMessageParcel {
+    static EXC_INSECURITY = -1;
+    static EXC_ILLEGAL_ARGUMENT = -3;
+    static EXC_NULL_POINTER = -4;
+    static EXC_ILLEGAL_STATE = -5;
+    static EXC_UNSUPPORTED_OPERATION = -7;
+    static EXC_INDEX_OUTOF_BOUNDS = -10;
+    static EXC_NEGATIVE_ARRAY_SIZE = -11;
+    static EXC_ARRAY_STORE = -12;
+    static EXC_CLASS_CAST = -13;
+    static EXC_PARCEL_CAPACITY_ERROR = -14;
+    static EXC_REMOTE_TRANSACTION_FAILED = -200;
 
-MessageParcel.prototype.createException = function(code, msg) {
-    switch (code) {
-        case EXC_INSECURITY: {
-            return new SecurityException(msg);
-        }
-        case EXC_ILLEGAL_ARGUMENT: {
-            return new IllegalArgumentException(msg);
-        }
-        case EXC_NULL_POINTER: {
-            return new NullPointerException(msg);
-        }
-        case EXC_ILLEGAL_STATE: {
-            return new IllegalStateException(msg);
-        }
-        case EXC_UNSUPPORTED_OPERATION: {
-            return new UnsupportedOperationException(msg);
-        }
-        case EXC_INDEX_OUTOF_BOUNDS: {
-            return new IndexOutOfBoundsException(msg);
-        }
-        case EXC_NEGATIVE_ARRAY_SIZE: {
-            return new NegativeArraySizeException(msg);
-        }
-        case EXC_ARRAY_STORE: {
-            return new ArrayStoreException(msg);
-        }
-        case EXC_CLASS_CAST: {
-            return new ClassCastException(msg);
-        }
-        case EXC_REMOTE_TRANSACTION_FAILED: {
-            return new RemoteException(msg);
-        }
-        case EXC_PARCEL_CAPACITY_ERROR: {
-            return new ParcelException(msg);
-        }
-        default: {
-            return new RuntimeException("Unknown exception code: " + code + " msg " + msg);
+    createException(code, msg) {
+        switch (code) {
+            case MessageParcel.EXC_INSECURITY: {
+                return new SecurityException(msg);
+            }
+            case MessageParcel.EXC_ILLEGAL_ARGUMENT: {
+                return new IllegalArgumentException(msg);
+            }
+            case MessageParcel.EXC_NULL_POINTER: {
+                return new NullPointerException(msg);
+            }
+            case MessageParcel.EXC_ILLEGAL_STATE: {
+                return new IllegalStateException(msg);
+            }
+            case MessageParcel.EXC_UNSUPPORTED_OPERATION: {
+                return new UnsupportedOperationException(msg);
+            }
+            case MessageParcel.EXC_INDEX_OUTOF_BOUNDS: {
+                return new IndexOutOfBoundsException(msg);
+            }
+            case MessageParcel.EXC_NEGATIVE_ARRAY_SIZE: {
+                return new NegativeArraySizeException(msg);
+            }
+            case MessageParcel.EXC_ARRAY_STORE: {
+                return new ArrayStoreException(msg);
+            }
+            case MessageParcel.EXC_CLASS_CAST: {
+                return new ClassCastException(msg);
+            }
+            case MessageParcel.EXC_REMOTE_TRANSACTION_FAILED: {
+                return new RemoteException(msg);
+            }
+            case MessageParcel.EXC_PARCEL_CAPACITY_ERROR: {
+                return new ParcelException(msg);
+            }
+            default: {
+                return new RuntimeException("Unknown exception code: " + code + " msg " + msg);
+            }
         }
     }
-}
 
-MessageParcel.prototype.writeException = function(exception) {
-    let code = 0;
-    if (exception instanceof SecurityException) {
-        code = EXC_INSECURITY;
-    } else if (exception instanceof IllegalArgumentException) {
-        code = EXC_ILLEGAL_ARGUMENT;
-    } else if (exception instanceof NullPointerException) {
-        code = EXC_NULL_POINTER;
-    } else if (exception instanceof IllegalStateException) {
-        code = EXC_ILLEGAL_STATE;
-    } else if (exception instanceof UnsupportedOperationException) {
-        code = EXC_UNSUPPORTED_OPERATION;
-    } else if (exception instanceof IndexOutOfBoundsException) {
-        code = EXC_INDEX_OUTOF_BOUNDS;
-    } else if (exception instanceof NegativeArraySizeException) {
-        code = EXC_NEGATIVE_ARRAY_SIZE;
-    } else if (exception instanceof ArrayStoreException) {
-        code = EXC_ARRAY_STORE;
-    } else if (exception instanceof ClassCastException) {
-        code = EXC_CLASS_CAST;
-    } else if (exception instanceof RemoteException) {
-        code = EXC_REMOTE_TRANSACTION_FAILED;
-    } else if (exception instanceof ParcelException) {
-        code = EXC_PARCEL_CAPACITY_ERROR;
-    } else {
-        code = 0;
-    }
-    this.writeInt(code);
-    if (code === 0) {
-        if (exception instanceof RuntimeException) {
+    writeException(exception) {
+        let code = 0;
+        if (exception instanceof SecurityException) {
+            code = MessageParcel.EXC_INSECURITY;
+        } else if (exception instanceof IllegalArgumentException) {
+            code = MessageParcel.EXC_ILLEGAL_ARGUMENT;
+        } else if (exception instanceof NullPointerException) {
+            code = MessageParcel.EXC_NULL_POINTER;
+        } else if (exception instanceof IllegalStateException) {
+            code = MessageParcel.EXC_ILLEGAL_STATE;
+        } else if (exception instanceof UnsupportedOperationException) {
+            code = MessageParcel.EXC_UNSUPPORTED_OPERATION;
+        } else if (exception instanceof IndexOutOfBoundsException) {
+            code = MessageParcel.EXC_INDEX_OUTOF_BOUNDS;
+        } else if (exception instanceof NegativeArraySizeException) {
+            code = MessageParcel.EXC_NEGATIVE_ARRAY_SIZE;
+        } else if (exception instanceof ArrayStoreException) {
+            code = MessageParcel.EXC_ARRAY_STORE;
+        } else if (exception instanceof ClassCastException) {
+            code = MessageParcel.EXC_CLASS_CAST;
+        } else if (exception instanceof RemoteException) {
+            code = MessageParcel.EXC_REMOTE_TRANSACTION_FAILED;
+        } else if (exception instanceof ParcelException) {
+            code = MessageParcel.EXC_PARCEL_CAPACITY_ERROR;
+        } else {
+            code = 0;
+        }
+        this.writeInt(code);
+        if (code === 0) {
             throw new RuntimeException(exception.getMessage());
-        }
-        throw new RuntimeException(exception.getMessage());
+        }  
+        this.writeString(exception.getMessage());
     }
-    this.writeString(exception.getMessage());
-}
 
-MessageParcel.prototype.writeNoException = function() {
-    this.writeInt(0);
-}
+    writeNoException() {
+        this.writeInt(0);
+    }
 
-MessageParcel.prototype.readException = function() {
-    let code = this.readInt();
+    readException() {
+        let code = this.readInt();
         if (code === 0) {
             return;
         }
         let msg = this.readString();
         let exception = this.createException(code, msg);
-        return exception;
-}
+        throw exception;
+    }
 
-MessageParcel.prototype.createRemoteObjectArray = function() {
-    let num = this.readInt();
+    createRemoteObjectArray() {
+        let num = this.readInt();
         if (num <= 0) {
             return null;
         }
@@ -160,46 +200,35 @@ MessageParcel.prototype.createRemoteObjectArray = function() {
             list[i] = this.readRemoteObject();
         }
         return list;
-}
-
-MessageParcel.prototype.writeRemoteObjectArray = function(objects) {
-    if (objects === null || objects.length <= 0 ) {
-        this.writeInt(-1);
-        return false;
     }
 
-    let num = objects.length;
-    this.writeInt(num);
-    for (let i = 0; i < num; i ++)   {
-        this.writeRemoteObject(objects[i]);
+    writeRemoteObjectArray(objects) {
+        if (objects === null || objects.length <= 0) {
+            this.writeInt(-1);
+            return false;
+        }
+
+        let num = objects.length;
+        this.writeInt(num);
+        for (let i = 0; i < num; i++) {
+            this.writeRemoteObject(objects[i]);
+        }
+        return true;
     }
-    return true;
-}
 
-MessageParcel.prototype.readRemoteObjectArray = function(objects) {
-    if (objects === null) {
-        return;
+    readRemoteObjectArray(objects) {
+        if (objects === null) {
+            return;
+        }
+
+        let num = this.readInt();
+        if (num !== objects.length) {
+            return;
+        }
+        for (let i = 0; i < num; i++) {
+            objects[i] = this.readRemoteObject();
+        }
     }
-
-    let num = this.readInt();
-    if (num !== objects.length) {
-        return;
-    }
-    for (let i = 0; i < num; i ++) {
-        objects[i] = this.readRemoteObject();
-    }
-}
-
-RemoteObject.prototype.addDeathRecipient = function(recipient, flags) {
-    return false;
-}
-
-RemoteObject.prototype.removeDeathRecipient = function(recipient, flags) {
-    return false;
-}
-
-RemoteObject.prototype.isObjectDead = function() {
-    return false;
 }
 
 export default {
