@@ -296,45 +296,6 @@ napi_value NAPI_MessageParcel::JS_writeChar(napi_env env, napi_callback_info inf
     return napiValue;
 }
 
-napi_value NAPI_MessageParcel::JS_writeStringWithLength(napi_env env, napi_callback_info info)
-{
-    size_t argc = 2;
-    size_t expectedArgc = 2;
-    napi_value argv[2] = {0};
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc == expectedArgc, "requires 2 parameter");
-
-    NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
-    NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
-
-    napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
-    NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
-
-    napi_typeof(env, argv[1], &valueType);
-    NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
-
-    uint32_t maxStrLen = 40960;
-    uint32_t stringLength = 0;
-    napi_get_value_uint32(env, argv[1], &stringLength);
-    NAPI_ASSERT(env, stringLength < maxStrLen, "string length too large");
-
-    char stringValue[stringLength + 1];
-    size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, stringLength + 1, &jsStringLength);
-    NAPI_ASSERT(env, jsStringLength == stringLength, "string length wrong");
-
-    CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * stringLength, napiParcel);
-    std::string parcelString = stringValue;
-    bool result = napiParcel->nativeParcel_->WriteString16(to_utf16(parcelString));
-
-    napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
-    return napiValue;
-}
-
 napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -716,7 +677,7 @@ napi_value NAPI_MessageParcel::JS_writeString(napi_env env, napi_callback_info i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    NAPI_ASSERT(env, argc == 1, "requires 2 parameter");
+    NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
@@ -823,46 +784,44 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
 
     napi_value funcArg[1] = { thisVar };
     napi_value callResult = nullptr;
-    napi_status status = napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
-    bool result = (status == napi_ok);
-    bool isExceptionPending = false;
-    napi_is_exception_pending(env, &isExceptionPending);
-    if (isExceptionPending) {
-        napiParcel->nativeParcel_->RewindWrite(pos);
+    napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
+    if (callResult != nullptr) {
+        return callResult;
     }
-
-    napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
-    return napiValue;
+    DBINDER_LOGE("call mashalling failed");
+    napiParcel->nativeParcel_->RewindWrite(pos);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_get_boolean(env, false, &result));
+    return result;
 }
 
 napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_callback_info info)
 {
+    napi_value retValue = nullptr;
+    napi_get_boolean(env, false, &retValue);
+
     size_t argc = 1;
     napi_value argv[1] = { 0 };
     napi_value thisVar = nullptr;
-    void *data = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    NAPI_ASSERT_BASE(env, argc == 1 && argv[0] != nullptr, "requires 1 parameter", retValue);
 
     bool isArray = false;
     napi_is_array(env, argv[0], &isArray);
-    NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
-
+    NAPI_ASSERT_BASE(env, isArray == true, "type mismatch for parameter 1", retValue);
     uint32_t arrayLength = 0;
     napi_get_array_length(env, argv[0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
-    NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
+    NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", retValue);
 
     size_t pos = napiParcel->nativeParcel_->GetWritePosition();
-    napiParcel->nativeParcel_->WriteUint32(arrayLength);
-    bool result = false;
+    bool result = napiParcel->nativeParcel_->WriteUint32(arrayLength);
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
         napi_has_element(env, argv[0], i, &hasElement);
-        NAPI_ASSERT(env, hasElement == true, "parameter check error");
+        NAPI_ASSERT_BASE(env, hasElement == true, "parameter check error", retValue);
 
         napi_value element = nullptr;
         napi_get_element(env, argv[0], i, &element);
@@ -875,20 +834,15 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
 
         napi_value funcArg[1] = { thisVar };
         napi_value callResult = nullptr;
-        napi_status status = napi_call_function(env, element, prop, 1, funcArg, &callResult);
-        result = (status == napi_ok);
-
-        bool isExceptionPending = false;
-        napi_is_exception_pending(env, &isExceptionPending);
-        if (!result || isExceptionPending) {
+        napi_call_function(env, element, prop, 1, funcArg, &callResult);
+        if (callResult == nullptr) {
+            DBINDER_LOGE("call mashalling failed, element index: %{public}zu", i);
             napiParcel->nativeParcel_->RewindWrite(pos);
-            break;
+            return retValue;
         }
     }
-
-    napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
-    return napiValue;
+    napi_get_boolean(env, result, &retValue);
+    return retValue;
 }
 
 napi_value NAPI_MessageParcel::JS_readByte(napi_env env, napi_callback_info info)
@@ -1719,7 +1673,6 @@ napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_i
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", 0);
 
     int32_t len = napiParcel->nativeParcel_->ReadInt32();
-    bool result = false;
     if (len > 0) {
         napi_value propKey = nullptr;
         const char *propKeyStr = "unmarshalling";
@@ -1729,12 +1682,15 @@ napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_i
 
         napi_value funcArg[1] = {thisVar};
         napi_value callResult = nullptr;
-        napi_status status = napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
-        result = (status == napi_ok);
+        napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
+        if (callResult != nullptr) {
+            return callResult;
+        }
+        DBINDER_LOGI("call unmarshalling failed");
     }
 
     napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
+    NAPI_CALL(env, napi_get_boolean(env, false, &napiValue));
     return napiValue;
 }
 
@@ -1899,7 +1855,6 @@ napi_value NAPI_MessageParcel::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("writeCharArray", NAPI_MessageParcel::JS_writeCharArray),
         DECLARE_NAPI_FUNCTION("writeStringArray", NAPI_MessageParcel::JS_writeStringArray),
         DECLARE_NAPI_FUNCTION("writeSequenceableArray", NAPI_MessageParcel::JS_writeSequenceableArray),
-        DECLARE_NAPI_FUNCTION("writeStringWithLength", NAPI_MessageParcel::JS_writeStringWithLength),
         DECLARE_NAPI_FUNCTION("readByte", NAPI_MessageParcel::JS_readByte),
         DECLARE_NAPI_FUNCTION("readShort", NAPI_MessageParcel::JS_readShort),
         DECLARE_NAPI_FUNCTION("readInt", NAPI_MessageParcel::JS_readInt),
