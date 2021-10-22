@@ -32,7 +32,6 @@ public:
     static napi_value Export(napi_env env, napi_value exports);
 private:
     // Napi methods and properties
-    static napi_value JS_constructor(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_create(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_reclaim(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeRemoteObject(napi_env env, napi_callback_info cbinfo);
@@ -58,7 +57,6 @@ private:
     static napi_value JS_writeDouble(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeBoolean(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeChar(napi_env env, napi_callback_info cbinfo);
-    static napi_value JS_writeStringWithLength(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeString(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeSequenceable(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeByteArray(napi_env env, napi_callback_info cbinfo);
@@ -92,6 +90,7 @@ private:
     static napi_value JS_readCharArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readStringArray(napi_env env, napi_callback_info cbinfo);
 
+    static napi_value JS_constructor(napi_env env, napi_callback_info cbinfo);
     static void release(MessageParcel *parcel);
 
     napi_env env_ = nullptr;

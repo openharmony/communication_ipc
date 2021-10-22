@@ -32,10 +32,6 @@ EXTERN_C_START
 EXTERN_C_END
 
     // IPCSkeleton napi methods
-    napi_value NAPI_IPCSkeleton_getSystemAbility(napi_env env, napi_callback_info info);
-
-    napi_value NAPI_IPCSkeleton_addSystemAbility(napi_env env, napi_callback_info info);
-
     napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info info);
 
     napi_value NAPI_IPCSkeleton_getCallingPid(napi_env env, napi_callback_info info);
@@ -55,18 +51,25 @@ EXTERN_C_END
     napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info info);
 
     // RemoteObject napi methods
-    napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_info info);
+    napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteObject_getCallingPid(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info);
 
-    napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info);
+    napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteObject_addDeathRecipient(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteObject_removeDeathRecipient(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info);
 
     // RemoteProxy napi methods
-    napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t code,
-        std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option);
-
     napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info info);
@@ -79,8 +82,6 @@ EXTERN_C_END
 
     napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info);
 
-    napi_value NAPI_RemoteProxy_getHandle(napi_env env, napi_callback_info info);
-
     sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value object);
 
     napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target);
@@ -90,7 +91,7 @@ EXTERN_C_END
         uint32_t code;
         std::shared_ptr<MessageParcel> data;
         std::shared_ptr<MessageParcel> reply;
-        MessageOption& option;
+        MessageOption &option;
         napi_async_work asyncWork;
         napi_deferred deferred;
         int errCode;
