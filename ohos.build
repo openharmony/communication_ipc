@@ -2,6 +2,11 @@
   "subsystem": "communication",
   "parts": {
     "ipc": {
+      "version": "1.0.0",
+      "interface-version": {
+        "ext-interface": "1.0",
+        "inter-device-interface": "1.0"
+      },
       "module_list": [
         "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
         "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
@@ -70,6 +75,11 @@
       ]
     },
     "ipc_js": {
+      "version": "1.0.0",
+      "interface-version": {
+        "ext-interface": "1.0",
+        "inter-device-interface": "1.0"
+      },
       "module_list": [
         "//foundation/communication/ipc/interfaces/kits/js/napi:rpc"
       ],
