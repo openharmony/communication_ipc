@@ -17,11 +17,9 @@
 #define NAPI_IPC_OHOS_REMOTE_OBJECT_H
 
 #include "iremote_object.h"
-#include "iservice_registry.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "refbase.h"
-#include "system_ability_manager_proxy.h"
 
 namespace OHOS {
 EXTERN_C_START
@@ -95,6 +93,10 @@ EXTERN_C_END
         napi_async_work asyncWork;
         napi_deferred deferred;
         int errCode;
+        napi_ref jsCodeRef;
+        napi_ref jsDataRef;
+        napi_ref jsReplyRef;
+        napi_ref callback;
         napi_env env;
     };
 } // namespace OHOS
