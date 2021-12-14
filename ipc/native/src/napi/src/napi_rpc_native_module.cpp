@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include "hilog/log.h"
 #include "log_tags.h"
+#include "napi_ashmem.h"
 #include "napi_message_parcel.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -26,6 +27,7 @@ EXTERN_C_START
 static napi_value rpcExport(napi_env env, napi_value exports)
 {
     NAPI_MessageParcel::Export(env, exports);
+    NAPIAshmem::AshmemExport(env, exports);
     NAPIIPCSkeletonExport(env, exports);
     NAPIRemoteObjectExport(env, exports);
     NAPIRemoteProxyExport(env, exports);
@@ -34,21 +36,8 @@ static napi_value rpcExport(napi_env env, napi_value exports)
 }
 EXTERN_C_END
 
-static napi_module RPCModule_ = {
-    .nm_version = 1,
-    .nm_flags = 0,
-    .nm_filename = nullptr,
-    .nm_register_func = rpcExport,
-    .nm_modname = "rpc",
-    .nm_priv = ((void*)0),
-    .reserved = { 0 }
-};
-
 /*
  * Module register function
  */
-extern "C" __attribute__((constructor)) void RegisterModule(void)
-{
-    napi_module_register(&RPCModule_);
-}
+NAPI_MODULE(rpc, rpcExport)
 } // namesapce OHOS
