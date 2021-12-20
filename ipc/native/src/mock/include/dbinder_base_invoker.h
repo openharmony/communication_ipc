@@ -239,7 +239,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size
     }
 
     uint32_t totalSize = 0;
-    uintptr_t *binderObjectsOffsets = reinterpret_cast<uintptr_t *>(data.GetObjectOffsets());
+    binder_size_t *binderObjectsOffsets = reinterpret_cast<binder_size_t *>(data.GetObjectOffsets());
     uint32_t offsetOfSession = buffer_size + data.GetOffsetsSize() * sizeof(binder_size_t);
     char *flatOffset = dataBuffer + offsetOfSession;
 
