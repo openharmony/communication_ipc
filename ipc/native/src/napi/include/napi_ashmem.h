@@ -33,7 +33,7 @@ public:
     explicit NAPIAshmem(sptr<Ashmem> &ashmem);
     NAPIAshmem():ashmem_(nullptr){}
     ~NAPIAshmem() = default;
-    sptr<Ashmem> &GetAshmem()
+    const sptr<Ashmem> &GetAshmem()
     {
         return ashmem_;
     }
