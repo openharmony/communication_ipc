@@ -58,7 +58,10 @@ protected:
     virtual ~NAPIDeathRecipient();
 
 private:
-    std::mutex mutex_;
+    struct OnRemoteDiedParam {
+        napi_env env;
+        napi_ref deathRecipientRef;
+    };
     napi_env env_ = nullptr;
     napi_ref deathRecipientRef_ = nullptr;
 };
@@ -83,31 +86,47 @@ NAPIDeathRecipient::~NAPIDeathRecipient()
 
 void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
-    DBINDER_LOGI("OnRemoteDied called");
     if (deathRecipientRef_ == nullptr) {
         DBINDER_LOGE("js death recipient has already removed");
         return;
     }
-    napi_value jsDeathRecipient = nullptr;
-    napi_get_reference_value(env_, deathRecipientRef_, &jsDeathRecipient);
-    NAPI_ASSERT_RETURN_VOID(env_, jsDeathRecipient != nullptr, "failed to get js death recipient");
-    napi_value onRemoteDied = nullptr;
-    napi_get_named_property(env_, jsDeathRecipient, "onRemoteDied", &onRemoteDied);
-    NAPI_ASSERT_RETURN_VOID(env_, onRemoteDied != nullptr, "failed to get property onRemoteDied");
-    napi_value return_val = nullptr;
-    napi_status status = napi_call_function(env_, jsDeathRecipient, onRemoteDied, 0, nullptr, &return_val);
-    NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to call function onRemoteDied");
 
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    napi_delete_reference(env_, deathRecipientRef_);
-    deathRecipientRef_ = nullptr;
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    uv_work_t *work = new(std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        DBINDER_LOGE("failed to new uv_work_t");
+        return;
+    };
+    OnRemoteDiedParam *param = new OnRemoteDiedParam {
+        .env = env_,
+        .deathRecipientRef = deathRecipientRef_
+    };
+    work->data = reinterpret_cast<void *>(param);
+    DBINDER_LOGI("start to queue");
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+        DBINDER_LOGI("start to call onRmeoteDied");
+        OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
+        napi_value jsDeathRecipient = nullptr;
+        napi_get_reference_value(param->env, param->deathRecipientRef, &jsDeathRecipient);
+        NAPI_ASSERT_RETURN_VOID(param->env, jsDeathRecipient != nullptr, "failed to get js death recipient");
+        napi_value onRemoteDied = nullptr;
+        napi_get_named_property(param->env, jsDeathRecipient, "onRemoteDied", &onRemoteDied);
+        NAPI_ASSERT_RETURN_VOID(param->env, onRemoteDied != nullptr, "failed to get property onRemoteDied");
+        napi_value return_val = nullptr;
+        napi_call_function(param->env, jsDeathRecipient, onRemoteDied, 0, nullptr, &return_val);
+        if (return_val == nullptr) {
+            DBINDER_LOGE("failed to call function onRemoteDied");
+        }
+        delete param;
+        delete work;
+    });
 }
 
 bool NAPIDeathRecipient::Matches(napi_value object)
 {
     bool result = false;
     if (object != nullptr) {
-        std::lock_guard<std::mutex> lockGuard(mutex_);
         if (deathRecipientRef_ != nullptr) {
             napi_value jsDeathRecipient = nullptr;
             napi_get_reference_value(env_, deathRecipientRef_, &jsDeathRecipient);
@@ -382,7 +401,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
-    napi_valuetype valueType;
+    napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
     size_t bufferSize = 0;
@@ -596,7 +615,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             return;
         }
         napi_value jsData;
-        DBINDER_LOGI("native data parcel:%{public}p", param->data);
         napi_value dataParcel;
         napi_create_int64(param->env, reinterpret_cast<int64_t>(param->data), &dataParcel);
         if (dataParcel == nullptr) {
@@ -618,7 +636,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->condition.notify_all();
             return;
         }
-        DBINDER_LOGI("native reply parcel:%{public}p", param->reply);
         napi_value jsReply;
         napi_value replyParcel;
         napi_create_int64(param->env, reinterpret_cast<int64_t>(param->reply), &replyParcel);
@@ -748,11 +765,9 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
             std::string desc = Str16ToStr8(descriptor);
             napi_value jsDesc = nullptr;
             napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
-            napi_value len = nullptr;
-            napi_create_int32(env, desc.length(), &len);
             // create a new js remote object
-            size_t argc = 2;
-            napi_value argv[2] = { jsDesc, len };
+            size_t argc = 1;
+            napi_value argv[1] = { jsDesc };
             napi_value jsRemoteObject = nullptr;
             status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
             NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
@@ -981,7 +996,7 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
         napi_value newCallingUid;
         napi_create_int32(env, callerUid, &newCallingUid);
         napi_set_named_property(env, global, "callingUid_", newCallingUid);
-        napi_value result;
+        napi_value result = nullptr;
         napi_create_string_utf8(env, std::to_string(identity).c_str(), NAPI_AUTO_LENGTH, &result);
         return result;
     } else {
@@ -1039,7 +1054,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT_BASE(env, argc == expectedArgc, "requires 1 parameters", retValue);
-    napi_valuetype valueType;
+    napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT_BASE(env, valueType == napi_string, "type mismatch for parameter 1", retValue);
     size_t bufferSize = 0;
@@ -1106,7 +1121,7 @@ napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
-    napi_valuetype valueType;
+    napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
     size_t bufferSize = 0;
@@ -1138,65 +1153,113 @@ napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_
 
 napi_value NAPI_RemoteObject_getCallingPid(napi_env env, napi_callback_info info)
 {
-    napi_value result = nullptr;
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, nullptr, &thisVar, nullptr);
-    sptr<IRemoteObject> nativeObject = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
-    if ((nativeObject != nullptr) && (!nativeObject->IsProxyObject())) {
-        IPCObjectStub *target = reinterpret_cast<IPCObjectStub *>(nativeObject.GetRefPtr());
-        uint32_t pid = target->GetCallingPid();
-        napi_create_uint32(env, pid, &result);
-        return result;
-    }
-    uint32_t pid = getpid();
-    napi_create_uint32(env, pid, &result);
-    return result;
+    return NAPI_IPCSkeleton_getCallingPid(env, info);
 }
 
 napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info)
 {
+    return NAPI_IPCSkeleton_getCallingUid(env, info);
+}
+
+napi_value MakeSendRequestResult(SendRequestParam *param)
+{
+    napi_value errCode = nullptr;
+    napi_create_int32(param->env, param->errCode, &errCode);
+    napi_value code = nullptr;
+    napi_get_reference_value(param->env, param->jsCodeRef, &code);
+    napi_value data = nullptr;
+    napi_get_reference_value(param->env, param->jsDataRef, &data);
+    napi_value reply = nullptr;
+    napi_get_reference_value(param->env, param->jsReplyRef, &reply);
     napi_value result = nullptr;
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, nullptr, &thisVar, nullptr);
-    sptr<IRemoteObject> nativeObject = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
-    if ((nativeObject != nullptr) && (!nativeObject->IsProxyObject())) {
-        IPCObjectStub *target = reinterpret_cast<IPCObjectStub *>(nativeObject.GetRefPtr());
-        uint32_t uid = target->GetCallingUid();
-        napi_create_uint32(env, uid, &result);
-        return result;
-    }
-    uint32_t uid = getuid();
-    napi_create_uint32(env, uid, &result);
+    napi_create_object(param->env, &result);
+    napi_set_named_property(param->env, result, "errCode", errCode);
+    napi_set_named_property(param->env, result, "code", code);
+    napi_set_named_property(param->env, result, "data", data);
+    napi_set_named_property(param->env, result, "reply", reply);
     return result;
 }
 
-void ExecuteSendRequest(napi_env env, SendRequestParam *param)
+void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
 {
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
-    DBINDER_LOGI("execute sendRequest done, errCode:%{public}d", param->errCode);
+    DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
 
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
     uv_work_t *work = new uv_work_t;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
-        DBINDER_LOGI("enter main loop");
-        SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
-        napi_value result = nullptr;
-        napi_create_int32(param->env, param->errCode, &result);
-        if (param->errCode == 0) {
-            napi_resolve_deferred(param->env, param->deferred, result);
-        } else {
-            napi_reject_deferred(param->env, param->deferred, result);
-        }
-        delete param;
-        delete work;
-    });
+    uv_after_work_cb afterWorkCb = nullptr;
+    if (param->callback != nullptr) {
+        afterWorkCb = [](uv_work_t *work, int status) {
+            DBINDER_LOGI("callback started");
+            SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
+            napi_value result = MakeSendRequestResult(param);
+            napi_value callback = nullptr;
+            napi_get_reference_value(param->env, param->callback, &callback);
+            napi_value cbResult = nullptr;
+            napi_call_function(param->env, nullptr, callback, 1, &result, &cbResult);
+            napi_delete_reference(param->env, param->jsCodeRef);
+            napi_delete_reference(param->env, param->jsDataRef);
+            napi_delete_reference(param->env, param->jsReplyRef);
+            napi_delete_reference(param->env, param->callback);
+            delete param;
+            delete work;
+        };
+    } else {
+        afterWorkCb = [](uv_work_t *work, int status) {
+            DBINDER_LOGI("promise fullfilled");
+            SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
+            napi_value result = MakeSendRequestResult(param);
+            if (param->errCode == 0) {
+                napi_resolve_deferred(param->env, param->deferred, result);
+            } else {
+                napi_reject_deferred(param->env, param->deferred, result);
+            }
+            napi_delete_reference(param->env, param->jsCodeRef);
+            napi_delete_reference(param->env, param->jsDataRef);
+            napi_delete_reference(param->env, param->jsReplyRef);
+            delete param;
+            delete work;
+        };
+    }
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, afterWorkCb);
+}
+
+napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t code,
+    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply,
+    MessageOption &option, napi_value *argv)
+{
+    SendRequestParam *sendRequestParam = new SendRequestParam {
+        .target = target,
+        .code = code,
+        .data = data,
+        .reply = reply,
+        .option = option,
+        .asyncWork = nullptr,
+        .deferred = nullptr,
+        .errCode = -1,
+        .jsCodeRef = nullptr,
+        .jsDataRef = nullptr,
+        .jsReplyRef = nullptr,
+        .callback = nullptr,
+        .env = env,
+    };
+    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[4], 1, &sendRequestParam->callback);
+    std::thread t(StubExecuteSendRequest, env, sendRequestParam);
+    t.detach();
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
 }
 
 napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t code,
-    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option)
+    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply,
+    MessageOption &option, napi_value *argv)
 {
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
@@ -1210,23 +1273,29 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
         .asyncWork = nullptr,
         .deferred = deferred,
         .errCode = -1,
-        .env = env
+        .jsCodeRef = nullptr,
+        .jsDataRef = nullptr,
+        .jsReplyRef = nullptr,
+        .callback = nullptr,
+        .env = env,
     };
-    std::thread t(ExecuteSendRequest, env, sendRequestParam);
+    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    std::thread t(StubExecuteSendRequest, env, sendRequestParam);
     t.detach();
-    DBINDER_LOGI("sendRequest and returns promise");
     return promise;
 }
 
 napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info)
 {
-    DBINDER_LOGI("remote object send request starts");
     size_t argc = 4;
+    size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[4] = { 0 };
+    napi_value argv[5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc == argcPromise, "requires 4 parameters");
+    NAPI_ASSERT(env, argc == argcPromise || argc == argcCallback, "requires 4 or 5 parameters");
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
@@ -1245,12 +1314,22 @@ napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, status == napi_ok, "failed to get reply message parcel");
     MessageOption *option = nullptr;
     status = napi_unwrap(env, argv[3], (void **)&option);
-    NAPI_ASSERT(env, option != nullptr, "failed to get message option");
+    NAPI_ASSERT(env, status == napi_ok, "failed to get message option");
     int32_t code = 0;
     napi_get_value_int32(env, argv[0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
-    return StubSendRequestPromise(env, target, code, data->GetMessageParcel(), reply->GetMessageParcel(), *option);
+    if (argc == argcCallback) {
+        napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+        napi_valuetype valuetype = napi_undefined;
+        napi_typeof(env, argv[argcPromise], &valuetype);
+        if (valuetype == napi_function) {
+            return StubSendRequestAsync(env, target, code, data->GetMessageParcel(),
+                reply->GetMessageParcel(), *option, argv);
+        }
+    }
+    return StubSendRequestPromise(env, target, code, data->GetMessageParcel(),
+        reply->GetMessageParcel(), *option, argv);
 }
 
 napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_callback_info info)
@@ -1261,7 +1340,7 @@ napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_callback_in
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 2 parameters");
-    napi_valuetype valueType;
+    napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
     napi_typeof(env, argv[1], &valueType);
@@ -1317,27 +1396,81 @@ void ExecuteSendRequest(napi_env env, void *data)
 }
 
 // This method runs on the main thread after 'ExecuteSendRequest' exits
+void SendRequestCbComplete(napi_env env, napi_status status, void *data)
+{
+    SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
+    DBINDER_LOGI("sendRequestCallback completed, errCode:%{public}d", param->errCode);
+    napi_value result = MakeSendRequestResult(param);
+    napi_value callback = nullptr;
+    napi_get_reference_value(env, param->callback, &callback);
+    napi_value cbResult = nullptr;
+    napi_call_function(env, nullptr, callback, 1, &result, &cbResult);
+    napi_delete_reference(env, param->jsCodeRef);
+    napi_delete_reference(env, param->jsDataRef);
+    napi_delete_reference(env, param->jsReplyRef);
+    napi_delete_reference(env, param->callback);
+    napi_delete_async_work(env, param->asyncWork);
+    delete param;
+}
+
+// This method runs on the main thread after 'ExecuteSendRequest' exits
 void SendRequestPromiseComplete(napi_env env, napi_status status, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
-    napi_value result = nullptr;
-    napi_create_int32(env, param->errCode, &result);
-    DBINDER_LOGI("sendRequest complete, errCode:%{public}d", param->errCode);
+    DBINDER_LOGI("sendRequestPromise completed, errCode:%{public}d", param->errCode);
+    napi_value result = MakeSendRequestResult(param);
     if (param->errCode == 0) {
         napi_resolve_deferred(env, param->deferred, result);
     } else {
         napi_reject_deferred(env, param->deferred, result);
     }
+    napi_delete_reference(env, param->jsCodeRef);
+    napi_delete_reference(env, param->jsDataRef);
+    napi_delete_reference(env, param->jsReplyRef);
     napi_delete_async_work(env, param->asyncWork);
     delete param;
 }
 
+napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t code,
+    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply,
+    MessageOption &option, napi_value *argv)
+{
+    SendRequestParam *sendRequestParam = new SendRequestParam {
+        .target = target,
+        .code = code,
+        .data = data,
+        .reply = reply,
+        .option = option,
+        .asyncWork = nullptr,
+        .deferred = nullptr,
+        .errCode = -1,
+        .jsCodeRef = nullptr,
+        .jsDataRef = nullptr,
+        .jsReplyRef = nullptr,
+        .callback = nullptr,
+        .env = env,
+    };
+    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[4], 1, &sendRequestParam->callback);
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
+        SendRequestCbComplete, (void *)sendRequestParam, &sendRequestParam->asyncWork));
+    NAPI_CALL(env, napi_queue_async_work(env, sendRequestParam->asyncWork));
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
 napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t code,
-    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply, MessageOption &option)
+    std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply,
+    MessageOption &option, napi_value *argv)
 {
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
-    NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
+    napi_create_promise(env, &deferred, &promise);
     SendRequestParam *sendRequestParam = new SendRequestParam {
         .target = target,
         .code = code,
@@ -1347,26 +1480,32 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .asyncWork = nullptr,
         .deferred = deferred,
         .errCode = -1,
-        .env = nullptr
+        .jsCodeRef = nullptr,
+        .jsDataRef = nullptr,
+        .jsReplyRef = nullptr,
+        .callback = nullptr,
+        .env = env,
     };
+    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
         SendRequestPromiseComplete, (void *)sendRequestParam, &sendRequestParam->asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, sendRequestParam->asyncWork));
-    DBINDER_LOGI("sendRequest and returns promise");
     return promise;
 }
 
 napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
 {
-    DBINDER_LOGI("send request starts");
     size_t argc = 4;
+    size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[4] = { 0 };
+    napi_value argv[5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc == argcPromise, "requires 4 parameters");
+    NAPI_ASSERT(env, argc == argcPromise || argc == argcCallback, "requires 4 or 5 parameters");
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
@@ -1379,35 +1518,33 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
 
     NAPI_MessageParcel *data = nullptr;
     napi_status status = napi_unwrap(env, argv[1], (void **)&data);
-    NAPI_ASSERT(env, status == napi_ok, "failed t0 get data message parcel");
+    NAPI_ASSERT(env, status == napi_ok, "failed to get data message parcel");
     NAPI_MessageParcel *reply = nullptr;
     status = napi_unwrap(env, argv[2], (void **)&reply);
-    NAPI_ASSERT(env, status == napi_ok, "failed t0 get reply message parcel");
+    NAPI_ASSERT(env, status == napi_ok, "failed to get reply message parcel");
     MessageOption *option = nullptr;
     status = napi_unwrap(env, argv[3], (void **)&option);
-    NAPI_ASSERT(env, option != nullptr, "failed to get message option");
+    NAPI_ASSERT(env, status == napi_ok, "failed to get message option");
     int32_t code = 0;
     napi_get_value_int32(env, argv[0], &code);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
     status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
-    NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
-    if (proxyHolder == nullptr) {
-        DBINDER_LOGE("proxy holder is null");
-        napi_value undefined;
-        napi_get_undefined(env, &undefined);
-        return undefined;
-    }
-
+    NAPI_ASSERT(env, proxyHolder != nullptr, "failed to get proxy holder");
     sptr<IRemoteObject> target = proxyHolder->object_;
-    if (target == nullptr) {
-        DBINDER_LOGE("Invalid proxy object");
-        napi_value undefined;
-        napi_get_undefined(env, &undefined);
-        return undefined;
+    NAPI_ASSERT(env, target != nullptr, "invalid proxy object");
+
+    if (argc == argcCallback) {
+        napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+        napi_valuetype valuetype = napi_undefined;
+        napi_typeof(env, argv[argcPromise], &valuetype);
+        if (valuetype == napi_function) {
+            return SendRequestAsync(env, target, code, data->GetMessageParcel(),
+                reply->GetMessageParcel(), *option, argv);
+        }
     }
     return SendRequestPromise(env, target, code, data->GetMessageParcel(),
-        reply->GetMessageParcel(), *option);
+        reply->GetMessageParcel(), *option, argv);
 }
 
 napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info info)
@@ -1522,7 +1659,6 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
 
 napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_info info)
 {
-    DBINDER_LOGI("get inteface descriptor");
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, 0, 0, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;

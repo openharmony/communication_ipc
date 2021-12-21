@@ -29,6 +29,7 @@ ohos_shared_library("rpc") {
   public_configs = [ ":rpc_public_config" ]
 
   sources = [
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ashmem.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_parcel.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_object.cpp",
@@ -44,8 +45,6 @@ ohos_shared_library("rpc") {
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
-    "samgr_standard:samgr_proxy",
   ]
 
   relative_install_dir = "module"
