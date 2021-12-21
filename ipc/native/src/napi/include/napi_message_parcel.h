@@ -48,6 +48,8 @@ private:
     static napi_value JS_getWritePosition(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_rewindWrite(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_rewindRead(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_writeNoException(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_readException(napi_env env, napi_callback_info cbinfo);
 
     static napi_value JS_writeByte(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeShort(napi_env env, napi_callback_info cbinfo);
@@ -69,6 +71,7 @@ private:
     static napi_value JS_writeCharArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeStringArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeSequenceableArray(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_writeRemoteObjectArray(napi_env env, napi_callback_info cbinfo);
 
     static napi_value JS_readByte(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readShort(napi_env env, napi_callback_info cbinfo);
@@ -89,6 +92,19 @@ private:
     static napi_value JS_readBooleanArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readCharArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readStringArray(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_readSequenceableArray(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_readRemoteObjectArray(napi_env env, napi_callback_info cbinfo);
+
+    static napi_value JS_CloseFileDescriptor(napi_env env, napi_callback_info info);
+    static napi_value JS_DupFileDescriptor(napi_env env, napi_callback_info info);
+    static napi_value JS_WriteFileDescriptor(napi_env env, napi_callback_info info);
+    static napi_value JS_ReadFileDescriptor(napi_env env, napi_callback_info info);
+    static napi_value JS_ContainFileDescriptors(napi_env env, napi_callback_info info);
+    static napi_value JS_WriteAshmem(napi_env env, napi_callback_info info);
+    static napi_value JS_ReadAshmem(napi_env env, napi_callback_info info);
+    static napi_value JS_GetRawDataCapacity(napi_env env, napi_callback_info info);
+    static napi_value JS_WriteRawData(napi_env env, napi_callback_info info);
+    static napi_value JS_ReadRawData(napi_env env, napi_callback_info info);
 
     static napi_value JS_constructor(napi_env env, napi_callback_info cbinfo);
     static void release(MessageParcel *parcel);
