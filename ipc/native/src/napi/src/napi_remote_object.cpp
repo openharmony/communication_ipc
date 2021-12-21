@@ -765,11 +765,9 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
             std::string desc = Str16ToStr8(descriptor);
             napi_value jsDesc = nullptr;
             napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
-            napi_value len = nullptr;
-            napi_create_int32(env, desc.length(), &len);
             // create a new js remote object
-            size_t argc = 2;
-            napi_value argv[2] = { jsDesc, len };
+            size_t argc = 1;
+            napi_value argv[1] = { jsDesc };
             napi_value jsRemoteObject = nullptr;
             status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
             NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
