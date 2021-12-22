@@ -31,6 +31,8 @@ public:
     int PingService(std::u16string &serviceName) override;
     int TransProxyObject(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
         int &withdrawRes) override;
+    int TransProxyObjectAgain(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
+        int &withdrawRes) override;
     int TransStubObject(int data, sptr<IRemoteObject> &transObject, int &rep, int &stubRep) override;
     int TransOversizedPkt(const std::string &dataStr, std::string &repStr) override;
     int ProxyTransRawData(int length) override;

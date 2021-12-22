@@ -35,8 +35,8 @@ ohos_shared_library("ipc_test_helper") {
   deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]
 
@@ -58,8 +58,8 @@ ohos_executable("ipc_server_test") {
   ]
 
   external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]
 
@@ -81,8 +81,8 @@ ohos_executable("ipc_client_test") {
   ]
 
   external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]
 
@@ -112,8 +112,8 @@ ohos_shared_library("ipc_test_helper_extra") {
   deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]
 
@@ -135,8 +135,8 @@ ohos_executable("ipc_server_test_extra") {
   ]
 
   external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]
 

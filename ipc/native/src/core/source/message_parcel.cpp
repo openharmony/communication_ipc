@@ -20,11 +20,30 @@
 #include "ipc_debug.h"
 #include "iremote_object.h"
 #include "ipc_file_descriptor.h"
+#include "ipc_process_skeleton.h"
+#ifndef CONFIG_IPC_SINGLE
+#include "dbinder_callback_stub.h"
+#include "dbinder_session_object.h"
+#endif
 #include "sys_binder.h"
 #include "ashmem.h"
 #include "securec.h"
+#include "log_tags.h"
 
 namespace OHOS {
+#ifndef TITLE
+#define TITLE __PRETTY_FUNCTION__
+#endif
+
+#ifndef CONFIG_IPC_SINGLE
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "MessageParcel" };
+#define DBINDER_LOGE(fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+#define DBINDER_LOGI(fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+#endif
+
+
 MessageParcel::MessageParcel()
     : Parcel(),
       writeRawDataFd_(-1),
@@ -71,15 +90,81 @@ MessageParcel::~MessageParcel()
     rawDataSize_ = 0;
 }
 
+
+#ifndef CONFIG_IPC_SINGLE
+bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_t handle, uint64_t stubIndex)
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        DBINDER_LOGE("current is nullptr");
+        return false;
+    }
+    std::shared_ptr<DBinderSessionObject> sessionOfPeer = current->ProxyQueryDBinderSession(handle);
+    if (sessionOfPeer == nullptr) {
+        DBINDER_LOGE("sessionOfPeer is nullptr");
+        return false;
+    }
+    std::string peerName = sessionOfPeer->GetServiceName();
+    std::string peerId = sessionOfPeer->GetDeviceId();
+    std::string localId = current->GetLocalDeviceID();
+    sptr<DBinderCallbackStub> fakeStub = current->QueryDBinderCallbackStub(object);
+    if (fakeStub == nullptr) {
+        // note that cannot use this proxy's descriptor
+        fakeStub = new DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle);
+        if (!current->AttachDBinderCallbackStub(object, fakeStub)) {
+            DBINDER_LOGE("save callback of fake stub failed");
+            return false;
+        }
+    }
+    return WriteRemoteObject(fakeStub);
+}
+#endif
+
 bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
 {
+    if (object == nullptr) {
+        return false;
+    }
     holders_.push_back(object);
-    return WriteObject<IRemoteObject>(object);
+#ifndef CONFIG_IPC_SINGLE
+    if (object->IsProxyObject()) {
+        const IPCObjectProxy *proxy = reinterpret_cast<const IPCObjectProxy *>(object.GetRefPtr());
+        const uint32_t handle = proxy ? proxy->GetHandle() : 0;
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (IPCProcessSkeleton::IsHandleMadeByUser(handle) && current != nullptr) {
+            DBINDER_LOGI("send dbinder object to local devices");
+            /* this is a fake proxy which handle get by MakeRemoteHandle(), Not binder driver of kernel */
+            uint64_t stubIndex = current->QueryHandleToIndex(handle);
+            if (stubIndex > 0) {
+                DBINDER_LOGI("this is dbinder proxy want to send anthor process in this device");
+                return WriteDBinderProxy(object, handle, stubIndex);
+            }
+        }
+    }
+#endif
+    auto result = WriteObject<IRemoteObject>(object);
+    if (result == false) {
+        return result;
+    }
+    return result;
 }
 
 sptr<IRemoteObject> MessageParcel::ReadRemoteObject()
 {
-    return ReadObject<IRemoteObject>();
+    sptr<IRemoteObject> temp = ReadObject<IRemoteObject>();
+#ifndef CONFIG_IPC_SINGLE
+    if (temp != nullptr && !temp->IsProxyObject()) {
+        // if this stub is a DBinderCallbackStub, return corresponding proxy
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current != nullptr) {
+            sptr<IRemoteObject> proxy = current->QueryDBinderCallbackProxy(temp);
+            if (proxy != nullptr) {
+                temp = proxy;
+            }
+        }
+    }
+#endif
+    return temp;
 }
 
 bool MessageParcel::WriteFileDescriptor(int fd)

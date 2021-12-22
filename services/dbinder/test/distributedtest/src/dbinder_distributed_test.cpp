@@ -1450,6 +1450,45 @@ HWTEST_F(DbinderTest, DbinderRemoteCall029, TestSize.Level3)
     SetCurrentTestCase(DBINDER_TEST_INIT);
 }
 
+/*
+ * @tc.name: DbinderRemoteCall030
+ * @tc.desc: Verify transferring objects between remote devices and tranfer to anthor process again
+ * @tc.type: FUNC
+ * @tc.require: SR000FL75G
+ */
+HWTEST_F(DbinderTest, DbinderRemoteCall030, TestSize.Level3)
+{
+    SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_011);
+    DBINDER_LOGI("");
+
+    /*
+     * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
+     * @tc.expected: step1.Get both objects successfully.
+     */
+    sptr<IRemoteObject> object = manager_->GetSystemAbility(RPC_TEST_SERVICE);
+    ASSERT_TRUE(object != nullptr);
+    sptr<IRemoteObject> remoteObject = manager_->GetSystemAbility(RPC_TEST_SERVICE, serverId_);
+    ASSERT_TRUE(remoteObject != nullptr);
+
+    sptr<IDBinderTestService> remoteTestService = iface_cast<IDBinderTestService>(remoteObject);
+    ASSERT_TRUE(remoteTestService != nullptr);
+
+    /*
+     * @tc.steps: step2.Transfer the binder object to remote device repeatedly.
+     * @tc.expected: step2.Remote device receives the object and use it to communicate with server.
+     */
+    for (int i = 0; i < MULTIPLEX_TIMES; i++) {
+        int reply = 0;
+        int withdrawRes = 0;
+        int result = remoteTestService->TransProxyObjectAgain(2021, object, DBinderTestServiceProxy::NOT_SAVE,
+            reply, withdrawRes);
+        EXPECT_EQ(result, 0);
+        EXPECT_EQ(reply, 1202);
+    }
+
+    SetCurrentTestCase(DBINDER_TEST_INIT);
+}
+
 int main(int argc, char *argv[])
 {
     g_pDistributetestEnv = new DistributeTestEnvironment("major.desc");

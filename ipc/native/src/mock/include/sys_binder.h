@@ -43,13 +43,8 @@ enum {
     FLAT_BINDER_FLAG_ACCEPTS_FDS = 0x100,
     FLAT_BINDER_FLAG_TXN_SECURITY_CTX = 0x1000,
 };
-#ifdef BINDER_IPC_32BIT
-typedef __u32 binder_size_t;
-typedef __u32 binder_uintptr_t;
-#else
 typedef __u64 binder_size_t;
 typedef __u64 binder_uintptr_t;
-#endif
 struct binder_object_header {
     __u32 type;
 };
@@ -101,11 +96,7 @@ struct binder_write_read {
 struct binder_version {
     __s32 protocol_version;
 };
-#ifdef BINDER_IPC_32BIT
-#define BINDER_CURRENT_PROTOCOL_VERSION 7
-#else
 #define BINDER_CURRENT_PROTOCOL_VERSION 8
-#endif
 struct binder_node_debug_info {
     binder_uintptr_t ptr;
     binder_uintptr_t cookie;

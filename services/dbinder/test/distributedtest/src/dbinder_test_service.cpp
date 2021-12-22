@@ -125,6 +125,13 @@ int DBinderTestService::TransProxyObject(int data, sptr<IRemoteObject> &transObj
     return 0;
 }
 
+int DBinderTestService::TransProxyObjectAgain(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
+    int &withdrawRes)
+{
+    DBINDER_LOGI("enter");
+    return 0;
+}
+
 int DBinderTestService::TransStubObject(int data, sptr<IRemoteObject> &transObject, int &rep, int &stubRep)
 {
     DBINDER_LOGI("enter %{public}s", __func__);

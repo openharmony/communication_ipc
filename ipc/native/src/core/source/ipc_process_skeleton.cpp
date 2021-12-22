@@ -335,6 +335,15 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
     return networkId;
 }
 
+bool IPCProcessSkeleton::IsHandleMadeByUser(uint32_t handle)
+{
+    if (handle > DBINDER_HANDLE_BASE && handle < (DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE)) {
+        DBINDER_LOGE("handle = %{public}u is make by user, not kernel", handle);
+        return true;
+    }
+    return false;
+}
+
 uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(uint64_t stubIndex)
 {
     std::unique_lock<std::shared_mutex> lockGuard(handleToIndexMutex_);
@@ -605,7 +614,7 @@ std::shared_ptr<ThreadProcessInfo> IPCProcessSkeleton::PopDataInfoFromThread(con
     std::lock_guard<std::mutex> lockGuard(dataQueueMutex_);
 
     if ((dataInfoQueue_[threadId]).size() == 0) {
-        return 0;
+        return nullptr;
     }
 
     std::shared_ptr<ThreadProcessInfo> processInfo = (dataInfoQueue_[threadId]).front();
@@ -1229,6 +1238,43 @@ void IPCProcessSkeleton::DetachCommAuthInfoByStub(IRemoteObject *stub)
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     commAuth_.remove_if(check);
 }
+
+bool IPCProcessSkeleton::AttachDBinderCallbackStub(sptr<IRemoteObject> proxy, sptr<DBinderCallbackStub> stub)
+{
+    std::unique_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
+    auto result = dbinderSentCallback.insert(std::pair<sptr<IRemoteObject>, sptr<DBinderCallbackStub>>(proxy, stub));
+    return result.second;
+}
+
+bool IPCProcessSkeleton::DetachDBinderCallbackStubByProxy(sptr<IRemoteObject> proxy)
+{
+    std::unique_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
+
+    return (dbinderSentCallback.erase(proxy) > 0);
+}
+
+sptr<DBinderCallbackStub> IPCProcessSkeleton::QueryDBinderCallbackStub(sptr<IRemoteObject> proxy)
+{
+    std::shared_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
+    auto it = dbinderSentCallback.find(proxy);
+    if (it != dbinderSentCallback.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteObject> stub)
+{
+    std::shared_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
+    for (auto it = dbinderSentCallback.begin(); it != dbinderSentCallback.end(); it++) {
+        if (it->second.GetRefPtr() == stub.GetRefPtr()) {
+            return it->first;
+        }
+    }
+
+    return nullptr;
+}
+
 #endif
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

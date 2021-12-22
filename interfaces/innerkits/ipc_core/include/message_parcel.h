@@ -52,6 +52,9 @@ public:
     };
 
 private:
+#ifndef CONFIG_IPC_SINGLE
+    bool WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_t handle, uint64_t stubIndex);
+#endif
     static constexpr size_t MAX_RAWDATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_RAWDATA_SIZE = 32 * 1024;         // 32k
     bool needCloseFd_ = false;
