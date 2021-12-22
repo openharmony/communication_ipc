@@ -28,6 +28,7 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/core/source/buffer_object.cpp",
     "$IPC_CORE_ROOT/src/core/source/comm_auth_info.cpp",
     "$IPC_CORE_ROOT/src/core/source/databus_session_callback.cpp",
+    "$IPC_CORE_ROOT/src/core/source/dbinder_callback_stub.cpp",
     "$IPC_CORE_ROOT/src/core/source/dbinder_session_object.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",

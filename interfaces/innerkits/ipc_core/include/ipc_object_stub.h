@@ -70,18 +70,15 @@ public:
 
 #ifndef CONFIG_IPC_SINGLE
     int32_t InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-
     int32_t NoticeServiceDie(MessageParcel &data, MessageParcel &reply, MessageOption &option);
-
     int32_t InvokerDataBusThread(MessageParcel &data, MessageParcel &reply);
-
     int32_t IncStubRefs(MessageParcel &data, MessageParcel &reply);
     int32_t DecStubRefs(MessageParcel &data, MessageParcel &reply);
-
-    int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply);
+    int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code);
 
 private:
     int32_t GrantDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int32_t TransDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     std::string CreateDatabusName(int uid, int pid);
     std::string GetDataBusName();
 #endif

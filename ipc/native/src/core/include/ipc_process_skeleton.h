@@ -29,6 +29,7 @@
 #include "sys_binder.h"
 
 #ifndef CONFIG_IPC_SINGLE
+#include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
 #include "Session.h"
 #include "ISessionService.h"
@@ -82,6 +83,7 @@ public:
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
+    static bool IsHandleMadeByUser(uint32_t handle);
 #endif
     bool SetMaxWorkThread(int maxThreadNum);
 
@@ -185,6 +187,10 @@ public:
     void DetachAppInfoToStubIndex(uint64_t stubIndex);
     bool AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, const std::string &deviceId, uint64_t stubIndex);
     bool QueryAppInfoToStubIndex(uint32_t pid, uint32_t uid, const std::string &deviceId, uint64_t stubIndex);
+    bool AttachDBinderCallbackStub(sptr<IRemoteObject> rpcProxy, sptr<DBinderCallbackStub> stub);
+    bool DetachDBinderCallbackStubByProxy(sptr<IRemoteObject> rpcProxy);
+    sptr<DBinderCallbackStub> QueryDBinderCallbackStub(sptr<IRemoteObject> rpcProxy);
+    sptr<IRemoteObject> QueryDBinderCallbackProxy(sptr<IRemoteObject> stub);
 #endif
 
 public:
@@ -230,6 +236,7 @@ private:
     std::shared_mutex stubRecvRefMutex_;
     std::shared_mutex appInfoToIndexMutex_;
     std::shared_mutex commAuthMutex_;
+    std::shared_mutex dbinderSentMutex_;
 
     std::map<uint64_t, std::shared_ptr<ThreadMessageInfo>> seqNumberToThread_;
     std::map<uint64_t, IRemoteObject *> stubObjects_;
@@ -241,6 +248,7 @@ private:
     std::map<IRemoteObject *, uint32_t> transTimes_;
     std::map<std::thread::id, std::vector<std::shared_ptr<ThreadProcessInfo>>> dataInfoQueue_; // key is threadId
     std::map<std::string, std::map<uint64_t, bool>> appInfoToStubIndex_;
+    std::map<sptr<IRemoteObject>, sptr<DBinderCallbackStub>> dbinderSentCallback;
 
     std::list<std::thread::id> idleDataThreads_;
     std::list<std::shared_ptr<StubRefCountObject>> stubRecvRefs_;
