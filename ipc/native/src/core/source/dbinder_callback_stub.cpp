@@ -16,14 +16,15 @@
 #include "dbinder_callback_stub.h"
 
 #include <cinttypes>
-#include "sys_binder.h"
-#include "string_ex.h"
-#include "ipc_types.h"
-#include "ipc_debug.h"
+
 #include "log_tags.h"
-#include "ipc_skeleton.h"
+#include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
+#include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
+#include "ipc_types.h"
+#include "string_ex.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 #ifndef TITLE
