@@ -17,6 +17,7 @@
 #define OHOS_IPC_DBINDER_CALLBACK_STUB_H
 
 #include <string>
+
 #include "ipc_object_stub.h"
 
 namespace OHOS {

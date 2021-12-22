@@ -14,7 +14,9 @@
  */
 
 #include "dbinder_test_service_skeleton.h"
+
 #include <cinttypes>
+
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"

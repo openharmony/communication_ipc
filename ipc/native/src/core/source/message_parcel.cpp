@@ -14,21 +14,22 @@
  */
 
 #include "message_parcel.h"
-#include <unistd.h>
-#include <sys/mman.h>
 
-#include "ipc_debug.h"
-#include "iremote_object.h"
-#include "ipc_file_descriptor.h"
-#include "ipc_process_skeleton.h"
+#include <sys/mman.h>
+#include <unistd.h>
+
+#include "ashmem.h"
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
 #endif
-#include "sys_binder.h"
-#include "ashmem.h"
-#include "securec.h"
+#include "ipc_debug.h"
+#include "ipc_file_descriptor.h"
+#include "ipc_process_skeleton.h"
+#include "iremote_object.h"
 #include "log_tags.h"
+#include "securec.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 #ifndef TITLE

@@ -16,25 +16,26 @@
 #ifndef OHOS_IPC_IPC_PROCESS_SKELETON_H
 #define OHOS_IPC_IPC_PROCESS_SKELETON_H
 
-#include <map>
 #include <list>
+#include <map>
 #include <shared_mutex>
-#include "refbase.h"
-#include "iremote_object.h"
-#include "ipc_thread_pool.h"
-#include "nocopyable.h"
+
+#include "invoker_rawdata.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
-#include "invoker_rawdata.h"
+#include "ipc_thread_pool.h"
+#include "iremote_object.h"
+#include "nocopyable.h"
+#include "refbase.h"
 #include "sys_binder.h"
 
 #ifndef CONFIG_IPC_SINGLE
+#include "comm_auth_info.h"
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
-#include "Session.h"
 #include "ISessionService.h"
+#include "Session.h"
 #include "stub_refcount_object.h"
-#include "comm_auth_info.h"
 
 using Communication::SoftBus::ISessionService;
 using Communication::SoftBus::Session;

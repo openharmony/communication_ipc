@@ -56,8 +56,8 @@ ohos_distributedtest("DbinderTest") {
   ]
 
   external_deps = [
-    "ipc:ipc_core",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
   ]
 
