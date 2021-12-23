@@ -69,6 +69,7 @@ public:
     std::string GetPidAndUidInfo();
 
     std::string GetDataBusName();
+    std::string TransDataBusName(uint32_t uid, uint32_t pid);
     int GetProto() const;
     void WaitForInit();
     std::u16string GetInterfaceDescriptor();

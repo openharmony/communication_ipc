@@ -56,6 +56,18 @@ napi_value NAPIAshmem::CreateAshmem(napi_env env, napi_callback_info info)
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
+    napi_valuetype valueType = napi_null;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType != napi_string) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
+        return nullptr;
+    }
+    napi_typeof(env, argv[1], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
+        return nullptr;
+    }
+
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
