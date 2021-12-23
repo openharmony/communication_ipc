@@ -197,13 +197,14 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             result = DecStubRefs(data, reply);
             break;
         }
-        case DBINDER_ADD_COMMAUTH: {
+        case DBINDER_ADD_COMMAUTH:
+        case DBINDER_TRANS_COMMAUTH: {
             if (IPCSkeleton::IsLocalCalling() || IPCSkeleton::GetCallingUid() >= ALLOWED_UID) {
                 ZLOGE(LABEL, "%s: DBINDER_ADD_COMMAUTH unauthenticated user ", __func__);
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
             }
-            result = AddAuthInfo(data, reply);
+            result = AddAuthInfo(data, reply, code);
             break;
         }
         case GET_UIDPID_INFO: {
@@ -232,6 +233,15 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
                 break;
             }
             result = GrantDataBusName(code, data, reply, option);
+            break;
+        }
+        case TRANS_DATABUS_NAME: {
+            if (!IPCSkeleton::IsLocalCalling() || getuid() != SYSTEM_SERVER_UID) {
+                ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
+                result = IPC_STUB_INVALID_DATA_ERR;
+                break;
+            }
+            result = TransDataBusName(code, data, reply, option);
             break;
         }
 #endif
@@ -428,7 +438,7 @@ int32_t IPCObjectStub::DecStubRefs(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
-int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply)
+int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code)
 {
     uint32_t remotePid = data.ReadUint32();
     uint32_t remoteUid = data.ReadUint32();
@@ -448,12 +458,27 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply)
         ZLOGE(LABEL, "fail to attach comm auth info fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
+    if (code == DBINDER_TRANS_COMMAUTH) {
+        uint64_t stubIndex = data.ReadUint64();
+        if (stubIndex == 0) {
+            ZLOGE(LABEL, "fail to attach comm auth info fail");
+            return BINDER_CALLBACK_STUBINDEX_ERR;
+        }
+        if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteDeviceId, stubIndex)) {
+            ZLOGE(LABEL, "fail to add appinfo and stubIndex, maybe attach already");
+        }
+    }
     return ERR_NONE;
 }
 
 std::string IPCObjectStub::GetDataBusName()
 {
-    sptr<IRemoteObject> object = IPCProcessSkeleton::GetCurrent()->GetSAMgrObject();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "get current is null");
+        return std::string("");
+    }
+    sptr<IRemoteObject> object = current->GetSAMgrObject();
     if (object == nullptr) {
         ZLOGE(LABEL, "get object is null");
         return std::string("");
@@ -470,6 +495,27 @@ int32_t IPCObjectStub::GrantDataBusName(uint32_t code, MessageParcel &data, Mess
     std::string sessionName = CreateDatabusName(uid, pid);
     if (sessionName.empty()) {
         ZLOGE(LABEL, "pid/uid is invalid, pid = {public}%d, uid = {public}%d", pid, uid);
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteString(sessionName)) {
+        ZLOGE(LABEL, "write to parcel fail");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    return ERR_NONE;
+}
+
+int32_t IPCObjectStub::TransDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    uint32_t remotePid = data.ReadUint32();
+    uint32_t remoteUid = data.ReadUint32();
+    if (remotePid == static_cast<uint32_t>(IPCSkeleton::GetCallingPid())) {
+        ZLOGE(LABEL, "pid/uid is invalid, pid = {public}%d, uid = {public}%d", remotePid, remoteUid);
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    std::string sessionName = CreateDatabusName(remoteUid, remotePid);
+    if (sessionName.empty()) {
+        ZLOGE(LABEL, "pid/uid is invalid, pid = {public}%d, uid = {public}%d", remotePid, remoteUid);
         return IPC_STUB_INVALID_DATA_ERR;
     }
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteString(sessionName)) {

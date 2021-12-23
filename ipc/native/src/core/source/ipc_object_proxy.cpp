@@ -156,6 +156,33 @@ std::string IPCObjectProxy::GetDataBusName()
     return reply.ReadString();
 }
 
+std::string IPCObjectProxy::TransDataBusName(uint32_t uid, uint32_t pid)
+{
+    if (pid == static_cast<uint32_t>(getpid())) {
+        ZLOGE(LABEL, "TransDataBusName can't write local pid. my/remotePid = %{public}u/%{public}u", getpid(), pid);
+        return std::string("");
+    }
+
+    MessageParcel data, reply;
+    MessageOption option;
+    if (!data.WriteUint32(pid) || !data.WriteUint32(uid)) {
+        ZLOGE(LABEL, "TransDataBusName write pid/uid = %{public}u/%{public}u failed", pid, uid);
+        return std::string("");
+    }
+    uint32_t err = SendRequestInner(false, TRANS_DATABUS_NAME, data, reply, option);
+    if (err != ERR_NONE) {
+        ZLOGE(LABEL, "TransDataBusName transact return error = %{public}u", err);
+        return std::string("");
+    }
+
+    if (reply.ReadUint32() != IRemoteObject::IF_PROT_DATABUS) {
+        ZLOGE(LABEL, "TransDataBusName normal binder");
+        return std::string("");
+    }
+
+    return reply.ReadString();
+}
+
 void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();

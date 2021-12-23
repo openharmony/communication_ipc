@@ -14,10 +14,16 @@
  */
 
 #include "dbinder_test_service_skeleton.h"
+
 #include <cinttypes>
-#include "iremote_proxy.h"
+
+#include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
+#include "iremote_proxy.h"
+#include "iservice_registry.h"
+#include "string_ex.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -80,6 +86,24 @@ int DBinderTestServiceProxy::TransProxyObject(int data, sptr<IRemoteObject> &tra
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(TRANS_OBJECT, dataParcel, replyParcel, option);
+
+    rep = replyParcel.ReadInt32();
+    withdrawRes = replyParcel.ReadInt32();
+    return error;
+}
+
+int DBinderTestServiceProxy::TransProxyObjectAgain(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
+    int &withdrawRes)
+{
+    int error;
+    MessageOption option;
+    MessageParcel dataParcel, replyParcel;
+    if (!dataParcel.WriteInt32(data) || !dataParcel.WriteInt32(operation) ||
+        !dataParcel.WriteRemoteObject(transObject)) {
+        DBINDER_LOGE("fail to write parcel");
+        return ERR_INVALID_STATE;
+    }
+    error = Remote()->SendRequest(TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS, dataParcel, replyParcel, option);
 
     rep = replyParcel.ReadInt32();
     withdrawRes = replyParcel.ReadInt32();
@@ -417,8 +441,13 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
         case ONLY_DELAY: {
             return OnDelay(data, reply);
         }
-        case TRANS_OBJECT: {
+        case TRANS_OBJECT:
+        case TRANS_RPC_OBJECT_TO_LOCAL: {
+            DBINDER_LOGE("TestServiceStub::TRANS_RPC_OBJECT_TO_LOCAL?, cmd = %{public}d", code);
             return OnReceivedObject(data, reply);
+        }
+        case TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS: {
+            return OnReceivedObjectTransAgain(data, reply);
         }
         case TRANS_STUB_OBJECT: {
             return OnReceivedStubObject(data, reply);
@@ -556,10 +585,10 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
         DBINDER_LOGE("fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    HiLog::Info(LABEL, "%s:TRANSOBJECT: reqData=%d", __func__, reqData);
+    HiLog::Info(LABEL, "%{public}s:TRANSOBJECT: reqData=%{public}d", __func__, reqData);
     int ret = proxy->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
     int reqResult = replyParcel.ReadInt32();
-    HiLog::Info(LABEL, "%s:TRANSOBJECT: result=%d", __func__, reqResult);
+    HiLog::Info(LABEL, "%{public}s:TRANSOBJECT: result=%{public}d", __func__, reqResult);
 
     if (!reply.WriteInt32(reqResult)) {
         DBINDER_LOGE("fail to write parcel");
@@ -583,6 +612,54 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
         DBINDER_LOGE("fail to write parcel");
         return ERR_INVALID_STATE;
     }
+    return ret;
+}
+
+int DBinderTestServiceStub::OnReceivedObjectTransAgain(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t reqData = data.ReadInt32();
+    int32_t operation = data.ReadInt32();
+    sptr<IRemoteObject> proxy = data.ReadRemoteObject();
+    if (proxy == nullptr) {
+        DBINDER_LOGE("null proxy");
+        return ERR_INVALID_STATE;
+    }
+    sptr<ISystemAbilityManager> manager_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (manager_ == nullptr) {
+        DBINDER_LOGE("null manager_");
+        return ERR_INVALID_STATE;
+    }
+    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-1: reqData=%{public}d", __func__, reqData);
+
+    sptr<IRemoteObject> object = manager_->GetSystemAbility(RPC_TEST_SERVICE2);
+    if (object == nullptr) {
+        DBINDER_LOGE("null object of RPC_TEST_SERVICE2");
+        return ERR_INVALID_STATE;
+    }
+
+    MessageOption option;
+    MessageParcel dataParcel, replyParcel;
+    if (!dataParcel.WriteInt32(reqData) || !dataParcel.WriteInt32(operation) ||
+        !dataParcel.WriteRemoteObject(proxy)) {
+        DBINDER_LOGE("fail to write parcel");
+        return ERR_INVALID_STATE;
+    }
+    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-2: reqData=%{public}d", __func__, reqData);
+    int ret = object->SendRequest(TRANS_RPC_OBJECT_TO_LOCAL, dataParcel, replyParcel, option);
+
+    int reqResult = replyParcel.ReadInt32();
+    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-3: result=%{public}d", __func__, reqResult);
+
+    if (!reply.WriteInt32(reqResult)) {
+        DBINDER_LOGE("fail to write parcel");
+        return ERR_INVALID_STATE;
+    }
+    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-4: result=%{public}d", __func__, reqResult);
+    if (!reply.WriteInt32(0)) {
+        DBINDER_LOGE("fail to write parcel");
+        return ERR_INVALID_STATE;
+    }
+    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-5: result=%{public}d", __func__, reqResult);
     return ret;
 }
 
