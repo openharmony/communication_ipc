@@ -62,12 +62,23 @@ napi_value NAPIAshmem::CreateAshmem(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return nullptr;
     }
+    size_t bufferSize = 0;
+    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    if (bufferSize <= 0) {
+        ZLOGE(LOG_LABEL, "invalid ashmem name");
+        return nullptr;
+    }
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
         return nullptr;
     }
-
+    int32_t ashmemSize = 0;
+    napi_get_value_int32(env, argv[1], &ashmemSize);
+    if (ashmemSize <= 0) {
+        ZLOGE(LOG_LABEL, "invalid ashmem size");
+        return nullptr;
+    }
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
