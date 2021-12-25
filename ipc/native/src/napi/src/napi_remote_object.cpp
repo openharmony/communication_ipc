@@ -395,12 +395,12 @@ napi_value NAPIRemoteObjectHolder::queryLocalInterface(std::string &descriptor)
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
     // new napi remote object
-    size_t argc = 1;
+    size_t argc = 2;
     size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
+    NAPI_ASSERT(env, argc >= expectedArgc, "requires at least 1 parameters");
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
