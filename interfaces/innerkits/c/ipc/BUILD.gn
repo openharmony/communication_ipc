@@ -1,0 +1,100 @@
+# Copyright (c) 2020 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/lite/config/component/lite_component.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
+
+config("ipc_rpc_interface") {
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
+  ]
+}
+
+if (ohos_kernel_type == "liteos_m") {
+  hilog_lite_include_path =
+      "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite"
+} else {
+  hilog_lite_include_path =
+      "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits"
+}
+
+if (ohos_kernel_type == "liteos_m") {
+  static_library("ipc_single") {
+    sources = [
+      "$IPC_CORE_ROOT/ipc/src/binder_invoker_virtual.c",
+      "$IPC_CORE_ROOT/manager/src/ipc_process_skeleton.c",
+      "$IPC_CORE_ROOT/manager/src/ipc_skeleton.c",
+      "$IPC_CORE_ROOT/manager/src/ipc_thread_pool.c",
+      "$IPC_CORE_ROOT/manager/src/iremote_invoker.c",
+      "$IPC_CORE_ROOT/manager/src/rpc_log.c",
+      "$IPC_CORE_ROOT/manager/src/serializer.c",
+    ]
+    defines = [ "IPCRPC_DEBUG" ]
+    public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = [
+      "$IPC_CORE_ROOT/ipc/include",
+      "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/manager/include",
+      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "//third_party/bounds_checking_function/include",
+      "//utils/native/lite/include",
+      "$hilog_lite_include_path",
+    ]
+  }
+} else {
+  shared_library("rpc_log") {
+    sources = [ "$IPC_CORE_ROOT/manager/src/rpc_log.c" ]
+    include_dirs = [
+      "$IPC_CORE_ROOT/manager/include",
+      "$hilog_lite_include_path",
+    ]
+    public_deps = [
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//third_party/bounds_checking_function/:libsec_shared",
+    ]
+  }
+
+  shared_library("ipc_single") {
+    sources = [
+      "$IPC_CORE_ROOT/ipc/src/binder_invoker.c",
+      "$IPC_CORE_ROOT/manager/src/ipc_process_skeleton.c",
+      "$IPC_CORE_ROOT/manager/src/ipc_skeleton.c",
+      "$IPC_CORE_ROOT/manager/src/ipc_thread_pool.c",
+      "$IPC_CORE_ROOT/manager/src/iremote_invoker.c",
+      "$IPC_CORE_ROOT/manager/src/serializer.c",
+    ]
+    public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = [
+      "$IPC_CORE_ROOT/ipc/include",
+      "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/manager/include",
+      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "//third_party/bounds_checking_function/include",
+      "//utils/native/lite/include",
+    ]
+    ldflags = [
+      "-lstdc++",
+      "-lpthread",
+      "-fPIC",
+    ]
+    public_deps = [
+      ":rpc_log",
+      "//third_party/bounds_checking_function/:libsec_shared",
+    ]
+
+    configs -= [ "//build/lite/config:clang_opt" ]
+  }
+}
