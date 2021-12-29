@@ -19,6 +19,7 @@
 #include "iremote_invoker.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "rpc_os_adapter.h"
 #include "rpc_types.h"
 #include "securec.h"
 #include "utils_list.h"
@@ -125,7 +126,7 @@ pid_t ProcessGetCallingPid()
     if (currentContext != NULL) {
         return currentContext->callerPid;
     }
-    return getpid();
+    return RpcGetPid();
 }
 
 pid_t ProcessGetCallingUid()
@@ -134,7 +135,7 @@ pid_t ProcessGetCallingUid()
     if (currentContext != NULL) {
         return currentContext->callerUid;
     }
-    return getuid();
+    return RpcGetUid();
 }
 
 const SvcIdentity *GetRegistryObject(void)

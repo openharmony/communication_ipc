@@ -19,8 +19,10 @@
 #include "iremote_invoker.h"
 
 #ifdef __cplusplus
+#if __cplusplus
 extern "C" {
 #endif
+#endif /* __cplusplus */
 
 RemoteInvoker *GetIpcInvoker(void);
 int32_t AcquireHandle(int32_t handle);
@@ -35,6 +37,8 @@ int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie);
 void IpcExitCurrentThread(void);
 
 #ifdef __cplusplus
+#if __cplusplus
 }
 #endif
-#endif // OHOS_IPC_INVOKER_H
+#endif /* __cplusplus */
+#endif /* OHOS_IPC_INVOKER_H */
