@@ -30,6 +30,7 @@
 #include "ipc_thread_pool.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "rpc_os_adapter.h"
 #include "rpc_types.h"
 #include "securec.h"
 #include "sys_binder.h"
@@ -141,8 +142,8 @@ static void ToTransData(uint32_t handle, uint32_t code, MessageOption option, co
     buf->btd.code = code;
     buf->btd.flags = option;
     buf->btd.cookie = 0;
-    buf->btd.sender_pid = getpid();
-    buf->btd.sender_euid = getuid();
+    buf->btd.sender_pid = RpcGetPid();
+    buf->btd.sender_euid = RpcGetUid();
     buf->btd.data_size = (data == NULL) ? 0 : (data->bufferCur - data->bufferBase);
     buf->btd.data.ptr.buffer = (data == NULL) ? 0 : (binder_uintptr_t)data->bufferBase;
     buf->btd.offsets_size = (data == NULL) ? 0 : ((char*)data->offsetsCur - (char*)data->offsetsBase);

@@ -52,6 +52,7 @@ if (ohos_kernel_type == "liteos_m") {
       "//utils/native/lite/include",
       "$hilog_lite_include_path",
     ]
+    deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
   }
 } else {
   shared_library("rpc_log") {
@@ -91,6 +92,7 @@ if (ohos_kernel_type == "liteos_m") {
     ]
     public_deps = [
       ":rpc_log",
+      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
 

@@ -21,6 +21,7 @@
 #include "iremote_invoker.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "rpc_os_adapter.h"
 #include "rpc_types.h"
 #include "securec.h"
 
@@ -156,8 +157,8 @@ ThreadContext *GetCurrentThreadContext(void)
         }
         current->threadId = pthread_self();
         current->proto = IF_PROT_DEFAULT;
-        current->callerPid = getpid();
-        current->callerUid = getuid();
+        current->callerPid = RpcGetPid();
+        current->callerUid = RpcGetUid();
         pthread_setspecific(g_localKey, current);
     }
     return current;
