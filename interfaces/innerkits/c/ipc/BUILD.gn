@@ -42,7 +42,6 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/manager/src/rpc_log.c",
       "$IPC_CORE_ROOT/manager/src/serializer.c",
     ]
-    defines = [ "IPCRPC_DEBUG" ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = [
       "$IPC_CORE_ROOT/ipc/include",
