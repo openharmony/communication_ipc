@@ -17,10 +17,7 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
 
 config("ipc_rpc_interface") {
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
-  ]
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include" ]
 }
 
 if (ohos_kernel_type == "liteos_m") {
@@ -31,28 +28,62 @@ if (ohos_kernel_type == "liteos_m") {
       "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits"
 }
 
+ipc_common_include = [
+  "$IPC_CORE_ROOT/ipc/include",
+  "$IPC_CORE_ROOT/manager/include",
+  "//third_party/bounds_checking_function/include",
+  "//utils/native/lite/include",
+  "$hilog_lite_include_path",
+]
+
+ipc_common_src = [
+  "$IPC_CORE_ROOT/manager/src/ipc_process_skeleton.c",
+  "$IPC_CORE_ROOT/manager/src/ipc_skeleton.c",
+  "$IPC_CORE_ROOT/manager/src/ipc_thread_pool.c",
+  "$IPC_CORE_ROOT/manager/src/iremote_invoker.c",
+  "$IPC_CORE_ROOT/manager/src/serializer.c",
+]
+
 if (ohos_kernel_type == "liteos_m") {
   static_library("ipc_single") {
-    sources = [
+    sources = ipc_common_src
+    sources += [
       "$IPC_CORE_ROOT/ipc/src/binder_invoker_virtual.c",
-      "$IPC_CORE_ROOT/manager/src/ipc_process_skeleton.c",
-      "$IPC_CORE_ROOT/manager/src/ipc_skeleton.c",
-      "$IPC_CORE_ROOT/manager/src/ipc_thread_pool.c",
-      "$IPC_CORE_ROOT/manager/src/iremote_invoker.c",
       "$IPC_CORE_ROOT/manager/src/rpc_log.c",
-      "$IPC_CORE_ROOT/manager/src/serializer.c",
     ]
+    include_dirs = ipc_common_include
     public_configs = [ ":ipc_rpc_interface" ]
+    deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
+  }
+} else if (ohos_kernel_type == "liteos_a") {
+  shared_library("rpc_log") {
+    sources = [ "$IPC_CORE_ROOT/manager/src/rpc_log.c" ]
     include_dirs = [
-      "$IPC_CORE_ROOT/ipc/include",
-      "$IPC_CORE_ROOT/rpc/include",
       "$IPC_CORE_ROOT/manager/include",
-      "$SUBSYSTEM_DIR/services/dbinder/c/include",
-      "//third_party/bounds_checking_function/include",
-      "//utils/native/lite/include",
       "$hilog_lite_include_path",
     ]
-    deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
+    public_deps = [
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//third_party/bounds_checking_function/:libsec_shared",
+    ]
+  }
+
+  shared_library("ipc_single") {
+    sources = ipc_common_src
+    sources += [ "$IPC_CORE_ROOT/ipc/src/binder_invoker_virtual.c" ]
+    public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = ipc_common_include
+    ldflags = [
+      "-lstdc++",
+      "-lpthread",
+    ]
+    cflags = [ "-fPIC" ]
+    cflags_cc = cflags
+    public_deps = [
+      ":rpc_log",
+      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
+      "//third_party/bounds_checking_function/:libsec_shared",
+    ]
   }
 } else {
   shared_library("rpc_log") {
@@ -68,34 +99,21 @@ if (ohos_kernel_type == "liteos_m") {
   }
 
   shared_library("ipc_single") {
-    sources = [
-      "$IPC_CORE_ROOT/ipc/src/binder_invoker.c",
-      "$IPC_CORE_ROOT/manager/src/ipc_process_skeleton.c",
-      "$IPC_CORE_ROOT/manager/src/ipc_skeleton.c",
-      "$IPC_CORE_ROOT/manager/src/ipc_thread_pool.c",
-      "$IPC_CORE_ROOT/manager/src/iremote_invoker.c",
-      "$IPC_CORE_ROOT/manager/src/serializer.c",
-    ]
+    sources = ipc_common_src
+    sources += [ "$IPC_CORE_ROOT/ipc/src/binder_invoker.c" ]
     public_configs = [ ":ipc_rpc_interface" ]
-    include_dirs = [
-      "$IPC_CORE_ROOT/ipc/include",
-      "$IPC_CORE_ROOT/rpc/include",
-      "$IPC_CORE_ROOT/manager/include",
-      "$SUBSYSTEM_DIR/services/dbinder/c/include",
-      "//third_party/bounds_checking_function/include",
-      "//utils/native/lite/include",
-    ]
+    include_dirs = ipc_common_include
     ldflags = [
       "-lstdc++",
       "-lpthread",
-      "-fPIC",
     ]
+    cflags = [ "-fPIC" ]
+    cflags_cc = cflags
     public_deps = [
       ":rpc_log",
       "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
-
     configs -= [ "//build/lite/config:clang_opt" ]
   }
 }

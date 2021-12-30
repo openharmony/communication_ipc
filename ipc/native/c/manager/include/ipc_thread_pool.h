@@ -64,8 +64,7 @@ int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto);
 
 ThreadContext *GetCurrentThreadContext(void);
 
-// get or update invoker
-RemoteInvoker *GetRemoteInvoker(int32_t proto);
+RemoteInvoker *GetRemoteInvoker(void);
 
 void UpdateMaxThreadNum(ThreadPool *threadPool, int32_t maxThreadNum);
 

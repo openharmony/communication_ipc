@@ -23,5 +23,5 @@ int32_t RpcGetPid(void)
 
 int32_t RpcGetUid()
 {
-    return (int32_t)getuid(void);
+    return (int32_t)getuid();
 }

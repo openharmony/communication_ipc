@@ -211,7 +211,7 @@ static int32_t SendReply(IpcIo *reply, const int32_t *status)
 
 static void HandleTransaction(const struct binder_transaction_data *tr)
 {
-    ThreadContext *threadContext = GetCurrentThreadContext();  // sender pid, uid作用域范围
+    ThreadContext *threadContext = GetCurrentThreadContext();
     const pid_t oldPid = threadContext->callerPid;
     const pid_t oldUid = threadContext->callerUid;
     threadContext->callerPid = tr->sender_pid;

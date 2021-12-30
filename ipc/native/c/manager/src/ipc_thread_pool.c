@@ -30,6 +30,26 @@
 static pthread_key_t g_localKey = -1;
 static RemoteInvoker *g_invoker[PROTO_NUM];
 
+ThreadContext *GetCurrentThreadContext(void)
+{
+    ThreadContext *current = NULL;
+    void *curTLS = pthread_getspecific(g_localKey);
+    if (curTLS != NULL) {
+        current = (ThreadContext *)curTLS;
+    } else {
+        current = (ThreadContext *)calloc(1, sizeof(ThreadContext));
+        if (current == NULL) {
+            return NULL;
+        }
+        current->threadId = pthread_self();
+        current->proto = IF_PROT_DEFAULT;
+        current->callerPid = RpcGetPid();
+        current->callerUid = RpcGetUid();
+        pthread_setspecific(g_localKey, current);
+    }
+    return current;
+}
+
 static void TlsDestructor(void *args)
 {
     RPC_LOG_INFO("thread exit, call tls destructor");
@@ -53,6 +73,16 @@ static void ThreadContextDestructor(int32_t proto)
     pthread_mutex_unlock(&threadPool->lock);
 }
 
+static RemoteInvoker *GetAndUpdateInvoker(int32_t proto)
+{
+    ThreadContext *threadContext = GetCurrentThreadContext();
+    if (threadContext == NULL) {
+        return NULL;
+    }
+    threadContext->proto = proto;
+    return g_invoker[proto];
+}
+
 static void *ThreadHandler(void *args)
 {
     ThreadContext *threadContext = (ThreadContext *)args;
@@ -60,7 +90,7 @@ static void *ThreadHandler(void *args)
     int32_t policy = threadContext->policy;
     free(threadContext);
     threadContext = NULL;
-    RemoteInvoker *invoker = GetRemoteInvoker(proto);
+    RemoteInvoker *invoker = GetAndUpdateInvoker(proto);
     if (invoker != NULL) {
         switch (policy) {
             case SPAWN_PASSIVE:
@@ -103,7 +133,7 @@ void DeinitThreadPool(ThreadPool *threadPool)
     pthread_key_delete(g_localKey);
     free(threadPool);
     for (int32_t index = 0; index < PROTO_NUM; ++index) {
-        DeleteInvoker(g_invoker[index], index);
+        g_invoker[index] = NULL;
     }
 }
 
@@ -144,26 +174,6 @@ int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto)
     return ERR_NONE;
 }
 
-ThreadContext *GetCurrentThreadContext(void)
-{
-    ThreadContext *current = NULL;
-    void *curTLS = pthread_getspecific(g_localKey);
-    if (curTLS != NULL) {
-        current = (ThreadContext *)curTLS;
-    } else {
-        current = (ThreadContext *)calloc(1, sizeof(ThreadContext));
-        if (current == NULL) {
-            return NULL;
-        }
-        current->threadId = pthread_self();
-        current->proto = IF_PROT_DEFAULT;
-        current->callerPid = RpcGetPid();
-        current->callerUid = RpcGetUid();
-        pthread_setspecific(g_localKey, current);
-    }
-    return current;
-}
-
 void UpdateMaxThreadNum(ThreadPool *threadPool, int32_t maxThreadNum)
 {
     int32_t totalNum = maxThreadNum + maxThreadNum;
@@ -183,11 +193,11 @@ void UpdateMaxThreadNum(ThreadPool *threadPool, int32_t maxThreadNum)
     pthread_mutex_unlock(&threadPool->lock);
 }
 
-RemoteInvoker *GetRemoteInvoker(int32_t proto)
+RemoteInvoker *GetRemoteInvoker(void)
 {
     ThreadContext *threadContext = GetCurrentThreadContext();
     if (threadContext == NULL) {
         return NULL;
     }
-    return g_invoker[proto];
+    return g_invoker[threadContext->proto];
 }
