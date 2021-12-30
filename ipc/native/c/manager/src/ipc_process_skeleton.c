@@ -50,7 +50,7 @@ static IpcSkeleton* IpcProcessSkeleton()
         RPC_LOG_ERROR("init thread pool failed.");
         return NULL;
     }
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker == NULL) {
         DeleteIpcSkeleton(temp);
         RPC_LOG_ERROR("get remote invoker failed.");
@@ -104,7 +104,7 @@ int32_t SetMaxWorkThread(int32_t maxThreadNum)
     }
     UpdateMaxThreadNum(g_ipcSkeleton->threadPool, maxThreadNum);
 
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         return (invoker->SetMaxWorkThread)(maxThreadNum);
     }
@@ -114,7 +114,7 @@ int32_t SetMaxWorkThread(int32_t maxThreadNum)
 
 void JoinMainWorkThread(void)
 {
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         (invoker->JoinThread)(true);
     }
@@ -146,7 +146,7 @@ const SvcIdentity *GetRegistryObject(void)
 int32_t SetRegistryObject(SvcIdentity target)
 {
     int32_t ret = ERR_THREAD_INVOKER_NOT_INIT;
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         ret = (invoker->SetRegistryObject)();
     }
@@ -177,7 +177,7 @@ static void DeleteDeadHandle(int32_t handle)
     }
     pthread_mutex_unlock(&g_ipcSkeleton->lock);
     if (isValidHandle) {
-        RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+        RemoteInvoker *invoker = GetRemoteInvoker();
         if (invoker != NULL) {
             (invoker->ReleaseHandle)(handle);
         }
@@ -188,7 +188,7 @@ int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo
     MessageOption option, uintptr_t *buffer)
 {
     int32_t ret = ERR_THREAD_INVOKER_NOT_INIT;
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         ret = (invoker->SendRequest)(target, code, data, reply, option, buffer);
     }
@@ -201,7 +201,7 @@ int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo
 
 int32_t ProcessFreeBuffer(void *ptr)
 {
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         return (invoker->FreeBuffer)(ptr);
     }
@@ -247,7 +247,7 @@ static void OnFirstStrongRef(int32_t handle)
         return;
     }
     if (FirstAddObject(handle)) {
-        RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+        RemoteInvoker *invoker = GetRemoteInvoker();
         if (invoker != NULL) {
             (invoker->AcquireHandle)(handle);
         }
@@ -309,7 +309,7 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
     pthread_mutex_unlock(&g_ipcSkeleton->lock);
     if (firstDeathNode) {
         RPC_LOG_ERROR("first add death callback for handle = %d.", handle);
-        RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+        RemoteInvoker *invoker = GetRemoteInvoker();
         if (invoker != NULL) {
             ret = (invoker->AddDeathRecipient)(handle, node);
         }
@@ -379,7 +379,7 @@ void SendObituary(DeathCallback *deathCallback)
     }
     pthread_mutex_unlock(&deathCallback->lock);
     if (deathNum > 0) {
-        RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+        RemoteInvoker *invoker = GetRemoteInvoker();
         if (invoker != NULL) {
             (invoker->RemoveDeathRecipient)(deathCallback->handle, deathCallback);
         }
@@ -404,7 +404,7 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
         RPC_LOG_ERROR("invalid death node");
         return;
     }
-    RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
+    RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         (invoker->ReleaseHandle)(deathCallback->handle);
     }

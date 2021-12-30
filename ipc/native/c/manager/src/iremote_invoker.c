@@ -26,13 +26,3 @@ RemoteInvoker *InitRemoteInvoker(int32_t proto)
     }
     return remoteInvoker;
 }
-
-void DeleteInvoker(RemoteInvoker *remoteInvoker, int32_t proto)
-{
-    if (remoteInvoker == NULL) {
-        return;
-    }
-    if (proto == IF_PROT_BINDER) {
-        remoteInvoker = NULL;
-    }
-}

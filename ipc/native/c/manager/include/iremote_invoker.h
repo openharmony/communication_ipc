@@ -43,8 +43,6 @@ typedef struct {
 } RemoteInvoker;
 
 RemoteInvoker *InitRemoteInvoker(int32_t proto);
-
-void DeleteInvoker(RemoteInvoker *invoker, int32_t proto);
 #ifdef __cplusplus
 #if __cplusplus
 }
