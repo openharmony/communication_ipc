@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 #include "serializer.h"
 
@@ -33,7 +34,7 @@
 #define IPC_IO_RETURN_IF_FAIL(value)                                             \
     do {                                                                         \
         if (!(value)) {                                                          \
-            printf("IPC_ASSERT failed: %s:%d\n", __FUNCTION__, __LINE__); \
+            printf("IPC_CHECK failed: %s:%d\n", __FUNCTION__, __LINE__);        \
             if (io != NULL) {                                                    \
                 io->flag |= IPC_IO_OVERFLOW;                                     \
             }                                                                    \
@@ -42,7 +43,7 @@
     } while (0)
 
 
-void IpcIoInit(IpcIo* io, void* buffer, size_t bufferSize, size_t maxobjects)
+void IpcIoInit(IpcIo *io, void *buffer, size_t bufferSize, size_t maxobjects)
 {
     if ((io == NULL) || (buffer == NULL) || (bufferSize == 0) ||
         (bufferSize > MAX_IO_SIZE) || (maxobjects > MAX_OBJ_NUM)) {
@@ -57,14 +58,14 @@ void IpcIoInit(IpcIo* io, void* buffer, size_t bufferSize, size_t maxobjects)
         return;
     }
 
-    io->bufferCur = io->bufferBase = (char*)buffer + objectsSize;
-    io->offsetsCur = io->offsetsBase = (size_t*)buffer;
+    io->bufferCur = io->bufferBase = (char *)buffer + objectsSize;
+    io->offsetsCur = io->offsetsBase = (size_t *)buffer;
     io->bufferLeft = bufferSize - objectsSize;
     io->offsetsLeft = maxobjects;
     io->flag = IPC_IO_INITIALIZED;
 }
 
-static bool IpcIoAvailable(IpcIo* io)
+static bool IpcIoAvailable(IpcIo *io)
 {
     bool ret = false;
     if (io != NULL) {
@@ -73,7 +74,7 @@ static bool IpcIoAvailable(IpcIo* io)
     return ret;
 }
 
-static void* IoPush(IpcIo* io, size_t size)
+static void *IoPush(IpcIo *io, size_t size)
 {
     IPC_IO_RETURN_IF_FAIL(io != NULL);
     IPC_IO_RETURN_IF_FAIL(IpcIoAvailable(io));
@@ -83,14 +84,14 @@ static void* IoPush(IpcIo* io, size_t size)
         RPC_LOG_ERROR("IoPush IPC_IO_OVERFLOW.");
         return NULL;
     } else {
-        void* ptr = io->bufferCur;
+        void *ptr = io->bufferCur;
         io->bufferCur += size;
         io->bufferLeft -= size;
         return ptr;
     }
 }
 
-static void* IoPop(IpcIo* io, size_t size)
+static void *IoPop(IpcIo *io, size_t size)
 {
     IPC_IO_RETURN_IF_FAIL(io != NULL);
     IPC_IO_RETURN_IF_FAIL(IpcIoAvailable(io));
@@ -101,7 +102,7 @@ static void* IoPop(IpcIo* io, size_t size)
         io->flag |= IPC_IO_OVERFLOW;
         return NULL;
     } else {
-        void* ptr = io->bufferCur;
+        void *ptr = io->bufferCur;
         io->bufferCur += size;
         io->bufferLeft -= size;
         return ptr;
@@ -109,11 +110,11 @@ static void* IoPop(IpcIo* io, size_t size)
 }
 
 #ifdef __LINUX__
-static struct flat_binder_object* IoPushBinderObj(IpcIo* io)
+static struct flat_binder_object *IoPushBinderObj(IpcIo *io)
 {
     IPC_IO_RETURN_IF_FAIL(io != NULL);
     IPC_IO_RETURN_IF_FAIL(io->offsetsCur != NULL);
-    struct flat_binder_object* ptr = NULL;
+    struct flat_binder_object *ptr = NULL;
     ptr = IoPush(io, sizeof(struct flat_binder_object));
     if ((ptr != NULL) && io->offsetsLeft) {
         io->offsetsLeft--;
@@ -126,9 +127,9 @@ static struct flat_binder_object* IoPushBinderObj(IpcIo* io)
     }
 }
 
-static bool IpcIoPushObject(IpcIo* io, uint32_t token, uint32_t cookie)
+static bool IpcIoPushObject(IpcIo *io, uint32_t token, uint32_t cookie)
 {
-    struct flat_binder_object* ptr = IoPushBinderObj(io);
+    struct flat_binder_object *ptr = IoPushBinderObj(io);
     if (ptr == NULL) {
         RPC_LOG_ERROR("Io push object IPC_IO_OVERFLOW.");
         return false;
@@ -140,9 +141,9 @@ static bool IpcIoPushObject(IpcIo* io, uint32_t token, uint32_t cookie)
     return true;
 }
 
-static bool IpcIoPushRef(IpcIo* io, uint32_t handle, uint32_t cookie)
+static bool IpcIoPushRef(IpcIo *io, uint32_t handle, uint32_t cookie)
 {
-    struct flat_binder_object* ptr = IoPushBinderObj(io);
+    struct flat_binder_object *ptr = IoPushBinderObj(io);
     if (ptr == NULL) {
         RPC_LOG_ERROR("Io push ref IPC_IO_OVERFLOW.");
         return false;
@@ -154,7 +155,7 @@ static bool IpcIoPushRef(IpcIo* io, uint32_t handle, uint32_t cookie)
     return true;
 }
 
-struct flat_binder_object* IpcIoPopRef(IpcIo *io)
+struct flat_binder_object *IpcIoPopRef(IpcIo *io)
 {
     IPC_IO_RETURN_IF_FAIL(io != NULL);
     IPC_IO_RETURN_IF_FAIL(io->offsetsCur != NULL);
@@ -162,7 +163,7 @@ struct flat_binder_object* IpcIoPopRef(IpcIo *io)
         io->flag |= IPC_IO_OVERFLOW;
         return NULL;
     }
-    struct flat_binder_object* obj = (struct flat_binder_object*)IoPop(io, sizeof(struct flat_binder_object));
+    struct flat_binder_object *obj = (struct flat_binder_object *)IoPop(io, sizeof(struct flat_binder_object));
     if (obj != NULL) {
         io->offsetsCur++;
         io->offsetsLeft--;
@@ -191,7 +192,7 @@ bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
     if (io == NULL || svc == NULL) {
         return false;
     }
-    struct flat_binder_object* obj = IpcIoPopRef(io);
+    struct flat_binder_object *obj = IpcIoPopRef(io);
     if (obj == NULL) {
         RPC_LOG_ERROR("ReadRemoteObject failed: obj is null");
         return false;
@@ -243,16 +244,6 @@ int32_t ReadFileDescriptor(IpcIo *io)
     RPC_LOG_ERROR("ReadFileDescriptor failed: type:%d", obj->type);
     return -1;
 }
-
-bool IpcIoPushSvc(IpcIo *io, const SvcIdentity *svc)
-{
-    return false;
-}
-
-bool IpcIoPopSvc(IpcIo *io, SvcIdentity *svc)
-{
-    return false;
-}
 #else
 bool WriteRemoteObject(IpcIo *io, const SvcIdentity *svc)
 {
@@ -261,33 +252,23 @@ bool WriteRemoteObject(IpcIo *io, const SvcIdentity *svc)
     return false;
 }
 
-bool WriteFileDescriptor(IpcIo* io, uint32_t fd)
+bool WriteFileDescriptor(IpcIo *io, uint32_t fd)
 {
     (void)io;
     (void)fd;
     return false;
 }
 
-bool ReadRemoteObject(IpcIo* io, SvcIdentity* svc)
+bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
 {
     (void)io;
     (void)svc;
     return false;
 }
 
-int32_t ReadFileDescriptor(IpcIo* io)
+int32_t ReadFileDescriptor(IpcIo *io)
 {
     (void)io;
     return -1;
-}
-
-bool IpcIoPushSvc(IpcIo* io, const SvcIdentity* svc)
-{
-    return;
-}
-
-bool IpcIoPopSvc(IpcIo* io, SvcIdentity* svc)
-{
-    return;
 }
 #endif
