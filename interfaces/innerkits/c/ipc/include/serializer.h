@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef _LITEIPC_SERIALIZER_H_
-#define _LITEIPC_SERIALIZER_H_
+#ifndef OHOS_IPC_RPC_SERIALIZER_H
+#define OHOS_IPC_RPC_SERIALIZER_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -51,7 +51,6 @@ typedef struct {
  * offset entries to reserve from the buffer
  */
 void IpcIoInit(IpcIo* io, void* data, size_t maxdata, size_t maxobjects);
-bool IpcIoAvailable(IpcIo* io);
 /* Must ensure all the input is valid */
 void IpcIoPushChar(IpcIo* io, char c);
 void IpcIoPushCharUnaligned(IpcIo* io, char c);
@@ -103,12 +102,10 @@ void* IpcIoPopFlatObj(IpcIo* io, uint32_t* size);
 bool IpcIoPopSvc(IpcIo* io, SvcIdentity* svc);
 int32_t IpcIoPopFd(IpcIo* io);
 
-struct flat_binder_object* IpcIoPopRef(IpcIo *io);
-
 #ifdef __cplusplus
 #if __cplusplus
 }
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#endif
+#endif /* OHOS_IPC_RPC_SERIALIZER_H */

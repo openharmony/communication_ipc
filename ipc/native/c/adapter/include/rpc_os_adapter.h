@@ -24,9 +24,9 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
-int32_t RpcGetPid();
+int32_t RpcGetPid(void);
 
-int32_t RpcGetUid();
+int32_t RpcGetUid(void);
 #ifdef __cplusplus
 #if __cplusplus
 }

@@ -27,7 +27,8 @@ extern "C" {
 RemoteInvoker *GetIpcInvoker(void);
 int32_t AcquireHandle(int32_t handle);
 int32_t ReleaseHandle(int32_t handle);
-int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, uintptr_t *buffer);
+int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
+    MessageOption option, uintptr_t *buffer);
 int32_t IpcFreeBuffer(void *ptr);
 int32_t IpcSetMaxWorkThread(int32_t maxThreadNum);
 void IpcJoinThread(bool initiative);

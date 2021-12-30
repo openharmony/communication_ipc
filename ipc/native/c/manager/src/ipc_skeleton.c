@@ -37,7 +37,7 @@ int32_t SetMaxWorkThreadNum(int32_t maxThreadNum)
 }
 
 // join current thread into work loop.
-void JoinWorkThread()
+void JoinWorkThread(void)
 {
     if (GetCurrentSkeleton() == NULL) {
         RPC_LOG_ERROR("init ipc process skeleton failed.");
@@ -46,7 +46,7 @@ void JoinWorkThread()
     return JoinMainWorkThread();
 }
 
-pid_t GetCallingPid()
+pid_t GetCallingPid(void)
 {
     if (GetCurrentSkeleton() == NULL) {
         RPC_LOG_ERROR("init ipc process skeleton failed.");
@@ -55,7 +55,7 @@ pid_t GetCallingPid()
     return ProcessGetCallingPid();
 }
 
-pid_t GetCallingUid()
+pid_t GetCallingUid(void)
 {
     if (GetCurrentSkeleton() == NULL) {
         RPC_LOG_ERROR("init ipc process skeleton failed.");

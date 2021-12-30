@@ -17,7 +17,7 @@
 #include "securec.h"
 #include <stdlib.h>
 #include <string.h>
-#ifndef __LITEOS_M__
+#ifdef __LINUX__
 #include "sys_binder.h"
 #endif
 #include "rpc_log.h"
@@ -45,7 +45,8 @@ static void* IoPop(IpcIo* io, size_t size);
 
 void IpcIoInit(IpcIo* io, void* buffer, size_t bufferSize, size_t maxobjects)
 {
-    if ((io == NULL) || (buffer == NULL) || (bufferSize == 0) || (bufferSize > MAX_IO_SIZE) || (maxobjects > MAX_OBJ_NUM)) {
+    if ((io == NULL) || (buffer == NULL) || (bufferSize == 0) ||
+        (bufferSize > MAX_IO_SIZE) || (maxobjects > MAX_OBJ_NUM)) {
         return;
     }
     size_t objectsSize = maxobjects * sizeof(size_t);
@@ -64,7 +65,7 @@ void IpcIoInit(IpcIo* io, void* buffer, size_t bufferSize, size_t maxobjects)
     io->flag = IPC_IO_INITIALIZED;
 }
 
-bool IpcIoAvailable(IpcIo* io)
+static bool IpcIoAvailable(IpcIo* io)
 {
     bool ret = false;
     if (io != NULL) {
@@ -479,7 +480,7 @@ void IpcIoPushFlatObj(IpcIo* io, const void* obj, uint32_t size)
     }
 }
 
-#ifndef __LITEOS_M__
+#ifdef __LINUX__
 static struct flat_binder_object* IoPushBinderObj(IpcIo* io)
 {
     IPC_IO_RETURN_IF_FAIL(io != NULL);
@@ -581,7 +582,7 @@ bool IpcIoPopSvc(IpcIo* io, SvcIdentity *svc)
 
 bool IpcIoPushFd(IpcIo* io, uint32_t fd)
 {
-   if (io == NULL) {
+    if (io == NULL) {
         RPC_LOG_ERROR("push fd io is NULL.");
         return false;
     }

@@ -40,8 +40,6 @@ typedef struct {
     int32_t (*SetRegistryObject)(void);
     int32_t (*AddDeathRecipient)(int32_t handle, void *cookie);
     int32_t (*RemoveDeathRecipient)(int32_t handle, void *cookie);
-    // pid_t (*GetCallerPid)();
-    // uid_t (*GetCallerUid)();
 } RemoteInvoker;
 
 RemoteInvoker *InitRemoteInvoker(int32_t proto);

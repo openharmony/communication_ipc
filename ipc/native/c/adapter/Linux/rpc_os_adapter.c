@@ -16,12 +16,12 @@
 #include <unistd.h>
 #include "rpc_os_adapter.h"
 
-int32_t RpcGetPid()
+int32_t RpcGetPid(void)
 {
     return (int32_t)getpid();
 }
 
 int32_t RpcGetUid()
 {
-    return (int32_t)getuid();
+    return (int32_t)getuid(void);
 }

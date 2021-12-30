@@ -32,7 +32,7 @@ static RemoteInvoker *g_invoker[PROTO_NUM];
 
 static void TlsDestructor(void *args)
 {
-    RPC_LOG_INFO( "thread exit, call tls destructor");
+    RPC_LOG_INFO("thread exit, call tls destructor");
     ThreadContext *threadContext = (ThreadContext *)args;
     RemoteInvoker *invoker = g_invoker[threadContext->proto];
     free(threadContext);

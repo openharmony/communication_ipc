@@ -58,7 +58,8 @@ const SvcIdentity *GetContextObject(void);
 
 int32_t SetContextObject(SvcIdentity target);
 
-int32_t SendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, uintptr_t *buffer);
+int32_t SendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
+    MessageOption option, uintptr_t *buffer);
 
 int32_t FreeBuffer(void *ptr);
 

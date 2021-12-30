@@ -15,10 +15,12 @@
 
 #ifndef _UAPI_LINUX_BINDER_H
 #define _UAPI_LINUX_BINDER_H
-#include <linux/types.h>
+
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <linux/types.h>
+
 #define B_PACK_CHARS(c1, c2, c3, c4) ((((c1) << 24)) | (((c2) << 16)) | (((c3) << 8)) | (c4))
 #define B_TYPE_LARGE 0x85
 
@@ -31,8 +33,6 @@ enum {
     BINDER_TYPE_HANDLE = B_PACK_CHARS('s', 'h', '*', B_TYPE_LARGE),
     BINDER_TYPE_REMOTE_HANDLE = B_PACK_CHARS('r', 'h', '*', B_TYPE_LARGE),
     BINDER_TYPE_WEAK_HANDLE = B_PACK_CHARS('w', 'h', '*', B_TYPE_LARGE),
-    ZBINDER_TYPE_REMOTE_NODE = B_PACK_CHARS('r', 'n', '*', B_TYPE_LARGE),
-    ZBINDER_TYPE_NODE = B_PACK_CHARS('s', 'n', '*', B_TYPE_LARGE),
     BINDER_TYPE_FD = B_PACK_CHARS('f', 'd', '*', B_TYPE_LARGE),
     BINDER_TYPE_FDA = B_PACK_CHARS('f', 'd', 'a', B_TYPE_LARGE),
     BINDER_TYPE_PTR = B_PACK_CHARS('p', 't', '*', B_TYPE_LARGE),
@@ -133,7 +133,6 @@ struct binder_ptr_count {
 #define BINDER_THREAD_EXIT _IOW('b', 8, __s32)
 #define BINDER_VERSION _IOWR('b', 9, struct binder_version)
 #define BINDER_GET_NODE_DEBUG_INFO _IOWR('b', 11, struct binder_node_debug_info)
-#define BINDER_SET_DBINDER_MGR _IOW('b', 12, __s32)
 #define BINDER_GET_NODE_REFCOUNT _IOWR('b', 17, struct binder_ptr_count)
 
 enum transaction_flags {
@@ -233,21 +232,6 @@ enum binder_driver_command_protocol {
     BC_TRANSACTION_SG = _IOW('c', 17, struct binder_transaction_data_sg),
     BC_REPLY_SG = _IOW('c', 18, struct binder_transaction_data_sg),
     BC_RELEASE_NODE = _IOW('c', 19, binder_uintptr_t),
-};
-
-struct dbinder_transaction_data {
-    __u32 sizeOfSelf;
-    __u32 magic;
-    __u32 version;
-    int cmd;
-    __u32 code;
-    __u32 flags;
-    __u64 cookie;
-    __u64 seqNumber;
-    binder_size_t buffer_size;
-    binder_size_t offsets_size;
-    binder_uintptr_t offsets;
-    char *buffer;
 };
 
 #endif

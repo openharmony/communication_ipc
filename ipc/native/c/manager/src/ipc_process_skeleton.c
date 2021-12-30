@@ -112,7 +112,7 @@ int32_t SetMaxWorkThread(int32_t maxThreadNum)
     return ERR_THREAD_INVOKER_NOT_INIT;
 }
 
-void JoinMainWorkThread()
+void JoinMainWorkThread(void)
 {
     RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
     if (invoker != NULL) {
@@ -120,7 +120,7 @@ void JoinMainWorkThread()
     }
 }
 
-pid_t ProcessGetCallingPid()
+pid_t ProcessGetCallingPid(void)
 {
     ThreadContext *currentContext = GetCurrentThreadContext();
     if (currentContext != NULL) {
@@ -129,7 +129,7 @@ pid_t ProcessGetCallingPid()
     return RpcGetPid();
 }
 
-pid_t ProcessGetCallingUid()
+pid_t ProcessGetCallingUid(void)
 {
     ThreadContext *currentContext = GetCurrentThreadContext();
     if (currentContext != NULL) {
@@ -184,7 +184,8 @@ static void DeleteDeadHandle(int32_t handle)
     }
 }
 
-int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, uintptr_t *buffer)
+int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
+    MessageOption option, uintptr_t *buffer)
 {
     int32_t ret = ERR_THREAD_INVOKER_NOT_INIT;
     RemoteInvoker *invoker = GetRemoteInvoker(IF_PROT_DEFAULT);
@@ -269,7 +270,6 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
         return ERR_IPC_SKELETON_NOT_INIT;
     }
     if (deathFunc == NULL || cbId == NULL) {
-        RPC_LOG_ERROR("death func or callback id is NULL.");
         return ERR_INVALID_PARAM;
     }
     if (pthread_mutex_lock(&g_ipcSkeleton->lock) != 0) {
@@ -288,7 +288,6 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
             return ERR_DEAD_OBJECT;
         }
         if (node->deathNum == MAX_DEATH_CALLBACK_NUM) {
-            RPC_LOG_ERROR("reached max death num on this service handle = %d.", handle);
             pthread_mutex_unlock(&g_ipcSkeleton->lock);
             return ERR_INVALID_PARAM;
         }
