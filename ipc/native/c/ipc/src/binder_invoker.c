@@ -136,7 +136,8 @@ int32_t ReleaseHandle(int32_t handle)
     return ret;
 }
 
-static void ToTransData(uint32_t handle, uint32_t code, MessageOption option, const IpcIo *data, struct TransactData *buf)
+static void ToTransData(uint32_t handle, uint32_t code, MessageOption option,
+    const IpcIo *data, struct TransactData *buf)
 {
     buf->btd.target.handle = handle;
     buf->btd.code = code;
@@ -371,7 +372,6 @@ void IpcJoinThread(bool initiative)
         bwr.read_consumed = 0;
         bwr.read_buffer = (uintptr_t)readbuf;
         ret = ioctl(g_connector->fd, BINDER_WRITE_READ, &bwr);
-
         if (ret < 0) {
             RPC_LOG_ERROR("ioctl failed errno = %d.", errno);
             break;

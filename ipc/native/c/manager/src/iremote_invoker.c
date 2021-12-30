@@ -23,7 +23,7 @@ RemoteInvoker *InitRemoteInvoker(int32_t proto)
     RemoteInvoker *remoteInvoker = NULL;
     if (proto == IF_PROT_BINDER) {
         remoteInvoker = GetIpcInvoker();
-    } 
+    }
     return remoteInvoker;
 }
 

@@ -15,12 +15,12 @@
 
 #include "rpc_os_adapter.h"
 
-int32_t RpcGetPid()
+int32_t RpcGetPid(void)
 {
     return 0;
 }
 
-int32_t RpcGetUid()
+int32_t RpcGetUid(void)
 {
     return 0;
 }
