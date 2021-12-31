@@ -30,9 +30,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_debug.h"
-#ifndef CONFIG_STANDARD_SYSTEM
 #include "hitrace_invoker.h"
-#endif
 #include "dbinder_error_code.h"
 #include "log_tags.h"
 
@@ -678,11 +676,9 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     int userWaitTime = option.GetWaitTime();
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
-#ifndef CONFIG_STANDARD_SYSTEM
     HiTraceId traceId = HiTrace::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
-#endif
     std::shared_ptr<T> session = WriteTransaction(BC_TRANSACTION, flags, handle, 0, code, data, seqNumber, 0);
     if (session == nullptr) {
         newData.RewindWrite(oldWritePosition);
@@ -699,9 +695,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     } else {
         ret = SendOrWaitForCompletion(userWaitTime, seqNumber, session, &reply);
     }
-#ifndef CONFIG_STANDARD_SYSTEM
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
-#endif
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
     return ret;
@@ -840,10 +834,8 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         data.InjectOffsets(reinterpret_cast<binder_uintptr_t>(reinterpret_cast<char *>(tr->buffer) + tr->offsets),
             tr->offsets_size / sizeof(binder_size_t));
     }
-#ifndef CONFIG_STANDARD_SYSTEM
     uint32_t &newflags = const_cast<uint32_t &>(tr->flags);
     int isServerTraced = HitraceInvoker::TraceServerReceieve(tr->cookie, tr->code, data, newflags);
-#endif
 
     const pid_t oldPid = GetCallerPid();
     const auto oldUid = static_cast<const uid_t>(GetCallerUid());
@@ -884,9 +876,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         DBINDER_BASE_LOGE("delete raw data in process skeleton");
         current->DetachRawData(listenFd);
     }
-#ifndef CONFIG_STANDARD_SYSTEM
     HitraceInvoker::TraceServerSend(tr->cookie, tr->code, isServerTraced, newflags);
-#endif
     if (!(flags & MessageOption::TF_ASYNC)) {
         SetClientFd(listenFd);
         SetSeqNum(senderSeqNumber);
