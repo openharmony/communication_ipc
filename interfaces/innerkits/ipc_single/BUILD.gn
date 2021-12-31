@@ -23,7 +23,10 @@ config("libipc_single_private_config") {
   ]
 }
 ohos_shared_library("ipc_single") {
-  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
+  include_dirs = [
+    "$SUBSYSTEM_DIR/utils/include",
+    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
+  ]
   sources = [
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",
@@ -41,6 +44,7 @@ ohos_shared_library("ipc_single") {
     "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/hitrace_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/invoker_factory.cpp",
     "$IPC_CORE_ROOT/src/mock/source/invoker_rawdata.cpp",
   ]
@@ -52,7 +56,10 @@ ohos_shared_library("ipc_single") {
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
   deps = [ "//utils/native/base:utils" ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hitrace_native:libhitrace",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   subsystem_name = "communication"
   part_name = "ipc"
 }
