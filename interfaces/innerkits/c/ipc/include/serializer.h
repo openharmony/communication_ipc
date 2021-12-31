@@ -54,6 +54,76 @@ bool WriteFileDescriptor(IpcIo *io, uint32_t fd);
 bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc);
 int32_t ReadFileDescriptor(IpcIo *io);
 
+bool WriteBool(IpcIo *io, bool value);
+bool WriteInt8(IpcIo *io, int8_t value);
+bool WriteInt16(IpcIo *io, int16_t value);
+bool WriteInt32(IpcIo *io, int32_t value);
+bool WriteInt64(IpcIo *io, int64_t value);
+bool WriteUint8(IpcIo *io, uint8_t value);
+bool WriteUint16(IpcIo *io, uint16_t value);
+bool WriteUint32(IpcIo *io, uint32_t value);
+bool WriteUint64(IpcIo *io, uint64_t value);
+bool WriteBoolUnaligned(IpcIo *io, bool value);
+bool WriteInt8Unaligned(IpcIo *io, int8_t value);
+bool WriteInt16Unaligned(IpcIo *io, int16_t value);
+bool WriteUint8Unaligned(IpcIo *io, uint8_t value);
+bool WriteUint16Unaligned(IpcIo *io, uint16_t value);
+bool WriteFloat(IpcIo *io, float value);
+bool WriteDouble(IpcIo *io, double value);
+bool WritePointer(IpcIo *io, uintptr_t value);
+bool WriteString(IpcIo *io, const char *value);
+
+bool ReadBool(IpcIo *io, bool *value);
+bool ReadInt8(IpcIo *io, int8_t *value);
+bool ReadInt16(IpcIo *io, int16_t *value);
+bool ReadInt32(IpcIo *io, int32_t *value);
+bool ReadInt64(IpcIo *io, int64_t *value);
+bool ReadUint8(IpcIo *io, uint8_t *value);
+bool ReadUint16(IpcIo *io, uint16_t *value);
+bool ReadUint32(IpcIo *io, uint32_t *value);
+bool ReadUint64(IpcIo *io, uint64_t *value);
+bool ReadFloat(IpcIo *io, float *value);
+bool ReadDouble(IpcIo *io, double *value);
+uintptr_t ReadPointer(IpcIo *io);
+bool ReadBoolUnaligned(IpcIo *io, bool *value);
+bool ReadInt8Unaligned(IpcIo *io, int8_t *value);
+bool ReadInt16Unaligned(IpcIo *io, int16_t *value);
+bool ReadUInt8Unaligned(IpcIo *io, uint8_t *value);
+bool ReadUInt16Unaligned(IpcIo *io, uint16_t *value);
+uint8_t *ReadString(IpcIo *io, size_t *len);
+
+bool WriteString16(IpcIo *io, const uint16_t *value, size_t len);
+bool WriteBuffer(IpcIo *io, const void *data, size_t size);
+bool WriteInterfaceToken(IpcIo *io, const uint16_t *name, size_t len);
+bool WriteRawData(IpcIo *io, const void *data, size_t size);
+bool WriteBoolVector(IpcIo *io, const bool *val, size_t size);
+bool WriteInt8Vector(IpcIo *io, const int8_t *val, size_t size);
+bool WriteInt16Vector(IpcIo *io, const int16_t *val, size_t size);
+bool WriteInt32Vector(IpcIo *io, const int32_t *val, size_t size);
+bool WriteInt64Vector(IpcIo *io, const int64_t *val, size_t size);
+bool WriteUInt8Vector(IpcIo *io, const uint8_t *val, size_t size);
+bool WriteUInt16Vector(IpcIo *io, const uint16_t *val, size_t size);
+bool WriteUInt32Vector(IpcIo *io, const uint32_t *val, size_t size);
+bool WriteUInt64Vector(IpcIo *io, const uint64_t *val, size_t size);
+bool WriteFloatVector(IpcIo *io, const float *val, size_t size);
+bool WriteDoubleVector(IpcIo *io, const double *val, size_t size);
+
+uint16_t *ReadString16(IpcIo *io, size_t *size);
+uint16_t *ReadInterfaceToken(IpcIo *io, size_t *size);
+const uint8_t *ReadBuffer(IpcIo *io, size_t size);
+void *ReadRawData(IpcIo *io, size_t size);
+bool *ReadBoolVector(IpcIo *io, size_t *size);
+int8_t *ReadInt8Vector(IpcIo *io, size_t *size);
+int16_t *ReadInt16Vector(IpcIo *io, size_t *size);
+int32_t *ReadInt32Vector(IpcIo *io, size_t *size);
+int64_t *ReadInt64Vector(IpcIo *io, size_t *size);
+uint8_t *ReadUInt8Vector(IpcIo *io, size_t *size);
+uint16_t *ReadUInt16Vector(IpcIo *io, size_t *size);
+uint32_t *ReadUInt32Vector(IpcIo *io, size_t *size);
+uint64_t *ReadUInt64Vector(IpcIo *io, size_t *size);
+float *ReadFloatVector(IpcIo *io, size_t *size);
+double *ReadDoubleVector(IpcIo *io, size_t *size);
+
 #ifdef __cplusplus
 #if __cplusplus
 }
