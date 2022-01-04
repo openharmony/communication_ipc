@@ -21,7 +21,10 @@ config("libipc_core_private_config") {
 }
 
 ohos_shared_library("ipc_core") {
-  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
+  include_dirs = [
+    "$SUBSYSTEM_DIR/utils/include",
+    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
+  ]
   sources = [
     "$IPC_CORE_ROOT/src/core/source/buffer_object.cpp",
     "$IPC_CORE_ROOT/src/core/source/comm_auth_info.cpp",
@@ -46,6 +49,7 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/dbinder_databus_invoker.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/hitrace_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/invoker_factory.cpp",
     "$IPC_CORE_ROOT/src/mock/source/invoker_rawdata.cpp",
   ]
@@ -59,6 +63,7 @@ ohos_shared_library("ipc_core") {
 
   external_deps = [
     "dsoftbus_standard:softbus_client",
+    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
   ]
   subsystem_name = "communication"

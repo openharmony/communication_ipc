@@ -22,9 +22,7 @@
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
-#ifndef CONFIG_STANDARD_SYSTEM
 #include "hitrace_invoker.h"
-#endif
 #include "dbinder_error_code.h"
 #include "log_tags.h"
 
@@ -97,11 +95,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     ZLOGI(LABEL, "%{public}s: handle=%d ,flags:%d", __func__, handle, flags);
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
-#ifndef CONFIG_STANDARD_SYSTEM
     HiTraceId traceId = HiTrace::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
-#endif
     if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LABEL, "WriteTransaction ERROR");
@@ -117,9 +113,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     } else {
         error = WaitForCompletion(&reply);
     }
-#ifndef CONFIG_STANDARD_SYSTEM
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
-#endif
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
     ZLOGI(LABEL, "%{public}s: handle=%d result = %{public}d", __func__, handle, error);
@@ -417,10 +411,8 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     if (tr->offsets_size > 0) {
         data->InjectOffsets(tr->data.ptr.offsets, tr->offsets_size / sizeof(binder_size_t));
     }
-#ifndef CONFIG_STANDARD_SYSTEM
     uint32_t &newflags = const_cast<uint32_t &>(tr->flags);
     int isServerTraced = HitraceInvoker::TraceServerReceieve(tr->target.handle, tr->code, *data, newflags);
-#endif
     const pid_t oldPid = callerPid_;
     const auto oldUid = static_cast<const uid_t>(callerUid_);
     uint32_t oldStatus = status_;
@@ -445,9 +437,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         option.SetFlags(static_cast<int>(flagValue));
         error = targetObject->SendRequest(tr->code, *data, reply, option);
     }
-#ifndef CONFIG_STANDARD_SYSTEM
     HitraceInvoker::TraceServerSend(tr->target.handle, tr->code, isServerTraced, newflags);
-#endif
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
