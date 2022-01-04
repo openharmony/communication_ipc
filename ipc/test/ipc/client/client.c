@@ -111,19 +111,19 @@ static void CallServerAdd(void)
     EXPECT_EQ(res, tmpSum);
 }
 
+static IpcObjectStub objectStub = {
+    .func = RemoteRequest,
+    .isRemote = false
+};
+
+static SvcIdentity clientSvc = {
+    .handle = -1,
+    .token = &objectStub,
+    .cookie = &objectStub
+};
+
 static void AnonymousTest(void)
 {
-    IpcObjectStub objectStub = {
-        .func = RemoteRequest,
-        .isRemote = false
-    };
-
-    SvcIdentity svc = {
-        .handle = -1,
-        .token = (uintptr_t)&objectStub,
-        .cookie = (uintptr_t)&objectStub
-    };
-
     IpcIo anonymous;
     uint8_t anonymousData[IPC_MAX_SIZE];
     IpcIoInit(&anonymous, anonymousData, IPC_MAX_SIZE, 1);
@@ -187,6 +187,7 @@ int main(int argc, char *argv[])
     RPC_LOG_INFO("Enter System Ability Client .... ");
     GetServerOne();
     CallServerAdd();
+    AnonymousTest();
     DeathCallbackTest();
     JoinWorkThread();
     return -1;
