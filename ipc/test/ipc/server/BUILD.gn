@@ -17,23 +17,20 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc/test"
 IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
 
 executable("ipc_server") {
-    sources = [
-        "$SUBSYSTEM_DIR/ipc/server/server.c",
-    ]
-    include_dirs = [
-        "//third_party/bounds_checking_function/include",
-        "//utils/native/lite/include",
-        "$IPC_CORE_ROOT/manager/include",
-        "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
-        "$SUBSYSTEM_DIR/ipc/include",
-    ]
-    ldflags = [
-        "-lstdc++",
-        "-lpthread",
-    ]
-    deps = [
-        "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single"
-    ]
+  sources = [ "$SUBSYSTEM_DIR/ipc/server/server.c" ]
+  include_dirs = [
+    "//third_party/bounds_checking_function/include",
+    "//utils/native/lite/include",
+    "$IPC_CORE_ROOT/manager/include",
+    "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
+    "$SUBSYSTEM_DIR/ipc/include",
+  ]
+  ldflags = [
+    "-lstdc++",
+    "-lpthread",
+  ]
+  deps =
+      [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]
 
-    configs -= [ "//build/lite/config:clang_opt" ]
+  configs -= [ "//build/lite/config:clang_opt" ]
 }
