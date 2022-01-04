@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#include <stdlib.h>
 #include <pthread.h>
-#include "rpc_log.h"
-#include "rpc_errno.h"
-#include "ipc_skeleton.h"
-#include "serializer.h"
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "ipc_proxy.h"
+#include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
+#include "serializer.h"
 
 static SvcIdentity *sid = NULL;
 
@@ -117,7 +117,7 @@ int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return result;
 }
 
-static void *ThreadHandler()
+static void *ThreadHandler(void *args)
 {
     sleep(IPC_TEST_TIME_INTERVAL); // sleep 2 min
     const char *str = "server call anonymos service new thread.";
@@ -149,7 +149,7 @@ static SvcIdentity svcTwo = {
     .cookie = (uintptr_t)&objectStubTwo
 };
 
-static void AddSaOne()
+static void AddSaOne(void)
 {
     IpcIo data;
     uint8_t tmpData1[IPC_MAX_SIZE];
@@ -165,10 +165,10 @@ static void AddSaOne()
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
     EXPECT_EQ(res, ERR_NONE);
-    sleep(2);
+    sleep(1);
 }
 
-static void AddSaTwo()
+static void AddSaTwo(void)
 {
     IpcIo dataTwo;
     uint8_t tmpData2[IPC_MAX_SIZE];
@@ -184,10 +184,10 @@ static void AddSaTwo()
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
     EXPECT_EQ(res, ERR_NONE);
-    sleep(2);
+    sleep(1);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Server .... ");
     AddSaOne();
@@ -205,7 +205,7 @@ int main()
     ReadRemoteObject(&reply, &sidOne);
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
-    sleep(2);
+    sleep(1);
 
     RPC_LOG_INFO("====== call serverone OP_MULTI ======");
     IpcIo data2;

@@ -16,10 +16,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
-#include "ipc_skeleton.h"
 #include "ipc_proxy.h"
+#include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
 #include "serializer.h"
 #include "utils_list.h"
 
@@ -38,6 +38,9 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     }
 
     SvcInfo* node = (SvcInfo *)calloc(1, sizeof(SvcInfo));
+    if (node == NULL) {
+        return ERR_FAILED;
+    }
     node->saId = saId;
     node->sid = sid;
     UtilsListAdd(g_saList, &node->list);
