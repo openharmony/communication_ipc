@@ -15,11 +15,12 @@
 
 #include <stdlib.h>
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
-#include "ipc_skeleton.h"
-#include "serializer.h"
 #include "ipc_proxy.h"
+#include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
+#include "serializer.h"
+
 
 static SvcIdentity g_serverSid;
 
@@ -55,17 +56,17 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
     return result;
 }
 
-void ServerDead1()
+void ServerDead1(void)
 {
     RPC_LOG_INFO("#### server dead callback11 called ... ");
 }
 
-void ServerDead2()
+void ServerDead2(void)
 {
     RPC_LOG_INFO("#### server dead callback22 called ... ");
 }
 
-void ServerDead3()
+void ServerDead3(void)
 {
     RPC_LOG_INFO("#### server dead callback33 called ... ");
 }
@@ -76,7 +77,7 @@ static SvcIdentity g_samgr = {
 
 MessageOption g_option = TF_OP_SYNC;
 
-static void GetServerOne()
+static void GetServerOne(void)
 {
     IpcIo data1;
     uint8_t tmpData1[IPC_MAX_SIZE];
@@ -90,7 +91,7 @@ static void GetServerOne()
     EXPECT_EQ(ret, ERR_NONE);
 }
 
-static void CallServerAdd()
+static void CallServerAdd(void)
 {
     IpcIo data2;
     uint8_t tmpData2[IPC_MAX_SIZE];
@@ -110,7 +111,7 @@ static void CallServerAdd()
     EXPECT_EQ(res, tmpSum);
 }
 
-static void AnonymousTest()
+static void AnonymousTest(void)
 {
     IpcObjectStub objectStub = {
         .func = RemoteRequest,
@@ -139,7 +140,7 @@ static void AnonymousTest()
     EXPECT_EQ(res, ERR_NONE);
 }
 
-static void DeathCallbackTest()
+static void DeathCallbackTest(void)
 {
     uint32_t cbId1 = -1;
     uint32_t cbId2 = -1;
@@ -167,14 +168,13 @@ static void DeathCallbackTest()
     EXPECT_EQ(ret, ERR_NONE);
     ret = RemoveDeathRecipient(g_serverSid, cbId3);
     EXPECT_EQ(ret, ERR_NONE);
-    int handleOld = g_serverSid.handle;
-    g_serverSid.handle = 17;
+    ++g_serverSid.handle;
     ret = AddDeathRecipient(g_serverSid, ServerDead3, NULL, &cbId5); // failed
     EXPECT_EQ(ret, ERR_INVALID_PARAM);
     ret = RemoveDeathRecipient(g_serverSid, cbId3); // failed
     EXPECT_EQ(ret, ERR_INVALID_PARAM);
 
-    g_serverSid.handle = handleOld;
+    --g_serverSid.handle;
 
     ret = AddDeathRecipient(g_serverSid, ServerDead1, NULL, &cbId1);
     EXPECT_EQ(ret, ERR_NONE);
@@ -182,7 +182,7 @@ static void DeathCallbackTest()
     EXPECT_EQ(ret, ERR_NONE);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Client .... ");
     GetServerOne();
