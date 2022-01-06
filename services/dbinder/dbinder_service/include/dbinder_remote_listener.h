@@ -44,7 +44,7 @@ public:
     };
 
     bool SendDataToRemote(const std::string &deviceId, const struct DHandleEntryTxRx *msg);
-    bool StartListener();
+    bool StartListener(std::shared_ptr<DBinderRemoteListener> &listener);
     bool StopListener();
     bool CloseDatabusSession(const std::string &deviceId);
 
