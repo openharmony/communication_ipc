@@ -220,7 +220,7 @@ HWTEST_F(IpcClientTest, IpcClientTest007, TestSize.Level2) // 同步性能测试
     struct timespec end = {0, 0};
 
     clock_gettime(CLOCK_REALTIME, &start);
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < PERFORMANCE_TEST_TIMES; i++) {
         SendRequest(sidServer, SERVER_OP_ADD, &data2, &reply2, g_option, &ptr2);
         ReadInt32(&reply2, &res);
         FreeBuffer((void *)ptr2);
@@ -239,15 +239,13 @@ HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)   // 异步性能测�
     WriteInt32(&data2, OP_A);
     WriteInt32(&data2, OP_B);
 
-    int res;
-
     struct timespec start = {0, 0};
     struct timespec end = {0, 0};
 
     MessageOption option = TF_OP_ASYNC;
 
     clock_gettime(CLOCK_REALTIME, &start);
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < PERFORMANCE_TEST_TIMES; i++) {
         SendRequest(sidServer, SERVER_OP_ADD, &data2, NULL, option, NULL);
     }
     clock_gettime(CLOCK_REALTIME, &end);

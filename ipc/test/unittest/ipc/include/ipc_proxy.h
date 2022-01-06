@@ -41,7 +41,9 @@ enum {
     SERVER_SA_ID2 = 18,
 };
 
-#define IPC_TEST_TIME_INTERVAL 60
+#define IPC_TEST_TIME_INTERVAL 120
+
+#define PERFORMANCE_TEST_TIMES 100
 
 #define OP_A 12
 #define OP_B 17
