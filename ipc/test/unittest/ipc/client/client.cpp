@@ -15,17 +15,17 @@
 
 #include "gtest/gtest.h"
 
-#include <time.h>
-#include <stdlib.h>
+#include <ctime>
 
 #include "ipc_proxy.h"
-
-#include "rpc_log.h"
-#include "rpc_errno.h"
 #include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
 #include "serializer.h"
 
-static SvcIdentity sidServer;
+namespace {
+constexpr int32_t PERFORMANCE_TEST_TIMES = 100;
+SvcIdentity sidServer;
 MessageOption g_option = TF_OP_SYNC;
 
 uint32_t cbId1 = -1;
@@ -81,6 +81,7 @@ void ServerDead2()
 void ServerDead3()
 {
     RPC_LOG_INFO("#### server dead callback33 called ... ");
+}
 }
 
 using namespace testing::ext;
@@ -168,15 +169,15 @@ HWTEST_F(IpcClientTest, IpcClientTest003, TestSize.Level1)
 HWTEST_F(IpcClientTest, IpcClientTest004, TestSize.Level0)
 {
     RPC_LOG_INFO("============= test case for add death callback ============");
-    int ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead1, NULL, &cbId1);
+    int ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead1, nullptr, &cbId1);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead2, NULL, &cbId2);
+    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead2, nullptr, &cbId2);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, NULL, &cbId3);
+    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, nullptr, &cbId3);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, NULL, &cbId4);
+    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, nullptr, &cbId4);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, NULL, &cbId5); // failed
+    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, nullptr, &cbId5); // failed
     EXPECT_EQ(ret, ERR_INVALID_PARAM);
 }
 
@@ -196,7 +197,7 @@ HWTEST_F(IpcClientTest, IpcClientTest005, TestSize.Level0)
 HWTEST_F(IpcClientTest, IpcClientTest006, TestSize.Level1)
 {
     ++sidServer.handle;
-    int ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, NULL, &cbId5); // failed
+    int ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead3, nullptr, &cbId5); // failed
     EXPECT_EQ(ret, ERR_INVALID_PARAM);
 
     ret = RemoveDeathRecipient(sidServer, cbId3); // failed
@@ -246,7 +247,7 @@ HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)   // 异步性能测�
 
     clock_gettime(CLOCK_REALTIME, &start);
     for (int i = 0; i < PERFORMANCE_TEST_TIMES; i++) {
-        SendRequest(sidServer, SERVER_OP_ADD, &data2, NULL, option, NULL);
+        SendRequest(sidServer, SERVER_OP_ADD, &data2, nullptr, option, nullptr);
     }
     clock_gettime(CLOCK_REALTIME, &end);
 
@@ -256,9 +257,9 @@ HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)   // 异步性能测�
 
 HWTEST_F(IpcClientTest, IpcClientTest009, TestSize.Level0)
 {
-    int ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead1, NULL, &cbId1);
+    int ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead1, nullptr, &cbId1);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead2, NULL, &cbId2);
+    ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead2, nullptr, &cbId2);
     EXPECT_EQ(ret, ERR_NONE);
     JoinWorkThread();
 }

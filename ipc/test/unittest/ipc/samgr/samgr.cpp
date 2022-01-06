@@ -13,16 +13,12 @@
  * limitations under the License.
  */
 
-#include "ipc_proxy.h"
-
 #include "gtest/gtest.h"
 
-#include <stdlib.h>
-#include <string.h>
-
-#include "rpc_log.h"
-#include "rpc_errno.h"
+#include "ipc_proxy.h"
 #include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
 #include "serializer.h"
 #include "utils_list.h"
 
@@ -32,12 +28,13 @@ typedef struct {
     SvcIdentity *sid;
 } SvcInfo;
 
-static UTILS_DL_LIST *g_saList = NULL;
-static int32_t g_saSum = 0;
+namespace {
+UTILS_DL_LIST *g_saList = nullptr;
+int32_t g_saSum = 0;
 
 int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 {
-    if (g_saList == NULL) {
+    if (g_saList == nullptr) {
         return ERR_FAILED;
     }
 
@@ -52,8 +49,8 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 
 int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
-    SvcInfo* node = NULL;
-    SvcInfo* next = NULL;
+    SvcInfo* node = nullptr;
+    SvcInfo* next = nullptr;
     UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
     {
         if (node->saId == saId) {
@@ -103,11 +100,12 @@ int32_t mainFunc(void)
     RPC_LOG_INFO("Enter System Ability Manager .... ");
 
     g_saList = (UTILS_DL_LIST *)calloc(1, sizeof(UTILS_DL_LIST));
-    if (g_saList == NULL) {
+    if (g_saList == nullptr) {
         return -1;
     }
     UtilsListInit(g_saList);
     return ERR_NONE;
+}
 }
 
 using namespace testing::ext;
