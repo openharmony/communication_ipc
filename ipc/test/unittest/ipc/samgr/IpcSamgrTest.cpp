@@ -39,6 +39,9 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     }
 
     SvcInfo* node = (SvcInfo *)calloc(1, sizeof(SvcInfo));
+    if (node == nullptr) {
+        return ERR_FAILED;
+    }
     node->saId = saId;
     node->sid = sid;
     UtilsListAdd(g_saList, &node->list);
