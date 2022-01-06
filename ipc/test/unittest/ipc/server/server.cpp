@@ -13,25 +13,24 @@
  * limitations under the License.
  */
 
-#include "ipc_proxy.h"
-
 #include "gtest/gtest.h"
 
-#include <stdlib.h>
 #include <pthread.h>
 
-#include "rpc_log.h"
 #include "rpc_errno.h"
+#include "rpc_log.h"
+#include "ipc_proxy.h"
 #include "ipc_skeleton.h"
 #include "serializer.h"
-#include <unistd.h>
 
-static SvcIdentity *sid = NULL;
+namespace {
+constexpr uint32_t IPC_TEST_TIME_INTERVAL = 120;
+SvcIdentity *sid = nullptr;
 MessageOption g_option = TF_OP_SYNC;
 
-static void CallAnonymosFunc(const char *str)
+void CallAnonymosFunc(const char *str)
 {
-    if (sid == NULL) {
+    if (sid == nullptr) {
         RPC_LOG_INFO("invalid anonymous client");
         return;
     }
@@ -43,7 +42,7 @@ static void CallAnonymosFunc(const char *str)
 
     IpcIo reply;
     MessageOption option = TF_OP_ASYNC;
-    SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, NULL);
+    SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
 }
 
 int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
@@ -123,37 +122,38 @@ int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return result;
 }
 
-static void *ThreadHandler(void *args)
+void *ThreadHandler(void *args)
 {
     sleep(IPC_TEST_TIME_INTERVAL); // sleep 2 min
     const char *str = "server call anonymos service new thread.";
     CallAnonymosFunc(str);
-    return NULL;
+    return nullptr;
 }
 
-static IpcObjectStub objectStubOne = {
+IpcObjectStub objectStubOne = {
     .func = RemoteRequestOne,
     .isRemote = false
 };
 
-static IpcObjectStub objectStubTwo = {
+IpcObjectStub objectStubTwo = {
     .func = RemoteRequestTwo,
     .isRemote = false
 };
 
-static SvcIdentity svcOne = {
+SvcIdentity svcOne = {
     .handle = -1,
     .token  = (uintptr_t)&objectStubOne,
     .cookie = (uintptr_t)&objectStubOne
 };
 
-static SvcIdentity svcTwo = {
+SvcIdentity svcTwo = {
     .handle = -1,
     .token  = (uintptr_t)&objectStubTwo,
     .cookie = (uintptr_t)&objectStubTwo
 };
 
-static SvcIdentity sidOne;
+SvcIdentity sidOne;
+}
 
 using namespace testing::ext;
 
@@ -178,7 +178,7 @@ HWTEST_F(IpcServerTest, IpcServerTest001, TestSize.Level1)
     uint8_t tmpData1[IPC_MAX_SIZE];
     IpcIoInit(&data, tmpData1, IPC_MAX_SIZE, 1);
     WriteInt32(&data, SERVER_SA_ID1);
-    bool res = WriteRemoteObject(NULL, &svcOne);
+    bool res = WriteRemoteObject(nullptr, &svcOne);
     EXPECT_EQ(res, false);
 }
 
@@ -188,7 +188,7 @@ HWTEST_F(IpcServerTest, IpcServerTest002, TestSize.Level1)
     uint8_t tmpData1[IPC_MAX_SIZE];
     IpcIoInit(&data, tmpData1, IPC_MAX_SIZE, 1);
     WriteInt32(&data, SERVER_SA_ID1);
-    bool res = WriteRemoteObject(&data, NULL);
+    bool res = WriteRemoteObject(&data, nullptr);
     EXPECT_EQ(res, false);
 }
 
@@ -275,7 +275,7 @@ HWTEST_F(IpcServerTest, IpcServerTest006, TestSize.Level0)
 HWTEST_F(IpcServerTest, IpcServerTest007, TestSize.Level0)
 {
     pthread_t pid;
-    pthread_create(&pid, NULL, ThreadHandler, NULL);
+    pthread_create(&pid, nullptr, ThreadHandler, nullptr);
     pthread_detach(pid);
 
     JoinWorkThread();
