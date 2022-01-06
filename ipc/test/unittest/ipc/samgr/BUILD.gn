@@ -33,7 +33,7 @@ unittest("samgr") {
     "$IPC_CORE_ROOT/ipc/include",
   ]
 
-  sources = [ "samgr.cpp" ]
+  sources = [ "IpcSamgrTest.cpp" ]
 
   deps =
       [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]

@@ -34,7 +34,7 @@ unittest("ipc_client") {
     "$IPC_CORE_ROOT/ipc/include",
   ]
 
-  sources = [ "$SUBSYSTEM_DIR/client/client.cpp" ]
+  sources = [ "IpcClientTest.cpp" ]
 
   deps =
       [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]
