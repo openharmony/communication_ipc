@@ -102,7 +102,7 @@ bool DBinderService::StartRemoteListener()
         return false;
     }
 
-    if (remoteListener_->StartListener() != true) {
+    if (remoteListener_->StartListener(remoteListener_) != true) {
         StopRemoteListener();
         return false;
     }
