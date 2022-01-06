@@ -32,7 +32,7 @@ DBinderRemoteListener::~DBinderRemoteListener()
     DBINDER_LOGI("delete dbinder remote listener");
 }
 
-bool DBinderRemoteListener::StartListener()
+bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener> &listener)
 {
     std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
     std::shared_ptr<ISessionService> softbusManager_ = ISessionService::GetInstance();
@@ -40,8 +40,7 @@ bool DBinderRemoteListener::StartListener()
         DBINDER_LOGE("fail to get softbus service");
         return false;
     }
-    std::shared_ptr<ISessionListener> callbacks(this);
-    int ret = softbusManager_->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, callbacks);
+    int ret = softbusManager_->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, listener);
     if (ret != 0) {
         DBINDER_LOGE("fail to create softbus server with ret = %{public}d", ret);
         return false;
