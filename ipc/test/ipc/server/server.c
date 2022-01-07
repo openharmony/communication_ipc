@@ -79,7 +79,7 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
             break;
         }
         default:
-            RPC_LOG_ERROR("unknown code %{public}d", code);
+            RPC_LOG_ERROR("unknown code %d", code);
             break;
     }
     return result;
@@ -111,7 +111,7 @@ int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
             break;
         }
         default:
-            RPC_LOG_ERROR("unknown code %{public}d", code);
+            RPC_LOG_ERROR("unknown code %d", code);
             break;
     }
     return result;
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     ret = SendRequest(sidOne, SERVER_OP_MULTI, &data2, &reply, g_option, &ptr);
     int res = -1;
     ReadInt32(&reply, &res);
-    RPC_LOG_INFO(" 12 * 17 = %{public}d", res);
+    RPC_LOG_INFO(" 12 * 17 = %d", res);
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
     int tmpMul = OP_A * OP_B;

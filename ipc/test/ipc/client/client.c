@@ -46,11 +46,11 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
         case CLIENT_OP_PRINT: {
             size_t len;
             char *str = (char *)ReadString(data, &len);
-            RPC_LOG_INFO("client pop string %{public}s....", str);
+            RPC_LOG_INFO("client pop string %s....", str);
             break;
         }
         default:
-            RPC_LOG_ERROR("unknown code %{public}d", code);
+            RPC_LOG_ERROR("unknown code %d", code);
             break;
     }
     return result;
@@ -104,7 +104,7 @@ static void CallServerAdd(void)
     int ret = SendRequest(g_serverSid, SERVER_OP_ADD, &data2, &reply2, g_option, &ptr2);
     int res;
     ReadInt32(&reply2, &res);
-    RPC_LOG_INFO(" 12 + 17 = %{public}d", res);
+    RPC_LOG_INFO(" 12 + 17 = %d", res);
     FreeBuffer((void *)ptr2);
     EXPECT_EQ(ret, ERR_NONE);
     int tmpSum = OP_A + OP_B;
@@ -134,7 +134,7 @@ static void AnonymousTest(void)
     int ret = SendRequest(g_serverSid, SERVER_OP_ADD_SERVICE, &anonymous, &anonymousreply, g_option, &anonymousptr);
     int res = -1;
     ReadInt32(&anonymousreply, &res);
-    RPC_LOG_INFO("add self to server = %{public}d", res);
+    RPC_LOG_INFO("add self to server = %d", res);
     FreeBuffer((void *)anonymousptr);
     EXPECT_EQ(ret, ERR_NONE);
     EXPECT_EQ(res, ERR_NONE);
