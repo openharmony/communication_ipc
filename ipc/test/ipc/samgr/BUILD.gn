@@ -13,7 +13,7 @@
 
 import("//build/lite/config/component/lite_component.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/test"
+SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test"
 IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
 
 executable("samgr") {
