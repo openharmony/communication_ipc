@@ -127,7 +127,7 @@ static void AnonymousTest(void)
     IpcIo anonymous;
     uint8_t anonymousData[IPC_MAX_SIZE];
     IpcIoInit(&anonymous, anonymousData, IPC_MAX_SIZE, 1);
-    WriteRemoteObject(&anonymous, &svc);
+    WriteRemoteObject(&anonymous, &clientSvc);
 
     IpcIo anonymousreply;
     uintptr_t anonymousptr = 0;

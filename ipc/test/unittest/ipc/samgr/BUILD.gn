@@ -14,7 +14,7 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/config/test.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/test/unittest/ipc"
+SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test/unittest/ipc"
 IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
 
 unittest("samgr") {

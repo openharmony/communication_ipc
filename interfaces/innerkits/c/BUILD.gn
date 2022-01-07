@@ -15,4 +15,9 @@ import("//build/lite/config/component/lite_component.gni")
 
 lite_component("rpc") {
   features = [ "ipc:ipc_single" ]
+  if (ohos_build_type == "debug") {
+    features += [
+      "//foundation/communication/ipc/ipc/test/unittest/ipc:ipc_test_gtest",
+    ]
+  }
 }
