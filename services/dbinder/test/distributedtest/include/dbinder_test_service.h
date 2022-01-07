@@ -37,9 +37,7 @@ public:
     int TransOversizedPkt(const std::string &dataStr, std::string &repStr) override;
     int ProxyTransRawData(int length) override;
     int StubTransRawData(int length) override;
-#ifndef CONFIG_STANDARD_SYSTEM
     int GetChildId(uint64_t &rep) override;
-#endif
     sptr<IRemoteObject> GetRemoteObject(int type) override;
     int FlushAsyncCommands(int count, int length) override;
     int GetRemoteDecTimes() override;
