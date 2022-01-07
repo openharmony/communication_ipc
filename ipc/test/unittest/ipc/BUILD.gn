@@ -12,12 +12,15 @@
 # limitations under the License.
 
 import("//build/lite/config/component/lite_component.gni")
-import("//build/lite/config/test.gni")
 
-group("ipc_test_gtest") {
-  deps = [
-    "client:ipc_client",
-    "samgr:samgr",
-    "server:ipc_server",
-  ]
+lite_component("ipc_test_gtest") {
+  if (ohos_kernel_type == "liteos_m") {
+    features = []
+  } else {
+    features = [
+      "client:ipc_client",
+      "samgr:samgr",
+      "server:ipc_server",
+    ]
+  }
 }
