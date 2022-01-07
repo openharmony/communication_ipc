@@ -23,9 +23,7 @@
 #include "iremote_proxy.h"
 #include "hilog/log.h"
 #include "log_tags.h"
-#ifndef CONFIG_STANDARD_SYSTEM
 #include "hitrace/trace.h"
-#endif
 
 namespace OHOS {
 class IDBinderTestService : public IRemoteBroker {
@@ -74,9 +72,7 @@ public:
     virtual int TransOversizedPkt(const std::string &dataStr, std::string &repStr) = 0;
     virtual int ProxyTransRawData(int lengths) = 0;
     virtual int StubTransRawData(int length) = 0;
-#ifndef CONFIG_STANDARD_SYSTEM
     virtual int GetChildId(uint64_t &rep) = 0;
-#endif
     virtual int FlushAsyncCommands(int count, int length) = 0;
     virtual sptr<IRemoteObject> GetRemoteObject(int type) = 0;
     virtual int GetRemoteDecTimes() = 0;
@@ -108,9 +104,7 @@ private:
     int OnReceivedStubObject(MessageParcel &data, MessageParcel &reply);
     int OnReceivedOversizedPkt(MessageParcel &data, MessageParcel &reply);
     int OnReceivedRawData(MessageParcel &data, MessageParcel &reply);
-#ifndef CONFIG_STANDARD_SYSTEM
     int OnGetChildId(MessageParcel &data, MessageParcel &reply);
-#endif
     int OnSentRawData(MessageParcel &data, MessageParcel &reply);
     int OnReceivedGetStubObject(MessageParcel &data, MessageParcel &reply);
     int OnReceivedGetDecTimes(MessageParcel &data, MessageParcel &reply);
@@ -137,9 +131,7 @@ public:
     int TransOversizedPkt(const std::string &dataStr, std::string &repStr) override;
     int ProxyTransRawData(int length) override;
     int StubTransRawData(int length) override;
-#ifndef CONFIG_STANDARD_SYSTEM
     int GetChildId(uint64_t &rep) override;
-#endif
     sptr<IRemoteObject> GetRemoteObject(int type) override;
     int GetRemoteDecTimes() override;
     void ClearRemoteDecTimes() override;

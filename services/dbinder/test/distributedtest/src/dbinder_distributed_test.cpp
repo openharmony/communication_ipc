@@ -1083,7 +1083,6 @@ HWTEST_F(DbinderTest, DbinderRemoteCall023, TestSize.Level3)
     SetCurrentTestCase(DBINDER_TEST_INIT);
 }
 
-#ifndef CONFIG_STANDARD_SYSTEM
 /*
  * @tc.name: DbinderRemoteCall024
  * @tc.desc: trace test
@@ -1117,7 +1116,6 @@ HWTEST_F(DbinderTest, DbinderRemoteCall024, TestSize.Level3)
 
     SetCurrentTestCase(DBINDER_TEST_INIT);
 }
-#endif
 
 /*
  * @tc.name: DbinderRemoteCall025
