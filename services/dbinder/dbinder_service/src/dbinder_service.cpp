@@ -21,14 +21,12 @@
 #include <arpa/inet.h>
 #include "securec.h"
 #include "string_ex.h"
-#include "iservice_registry.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
 
 #include "dbinder_log.h"
 #include "dbinder_service_stub.h"
 #include "dbinder_remote_listener.h"
-#include "if_system_ability_manager.h"
 #include "dbinder_error_code.h"
 #include "softbus_bus_center.h"
 #include "dbinder_sa_death_recipient.h"
@@ -85,6 +83,22 @@ bool DBinderService::StartDBinderService()
         return false;
     }
     mainThreadCreated_ = true;
+
+    return true;
+}
+
+bool DBinderService::StartDBinderService(std::shared_ptr<IDBinderService> &callbackImpl)
+{
+    if (mainThreadCreated_) {
+        return true;
+    }
+
+    bool result = StartRemoteListener();
+    if (!result) {
+        return false;
+    }
+    mainThreadCreated_ = true;
+    dbinderCallback_ = callbackImpl;
 
     return true;
 }
@@ -378,15 +392,8 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
         DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
         return nullptr;
     }
-
-    auto manager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (manager == nullptr) {
-        DBINDER_LOGE("when new proxy, find samgr fail!");
-        return nullptr;
-    }
-
-    int digitalName = !serviceName.empty() ? std::atoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
-    proxy = manager->GetSystemAbility(digitalName);
+    int32_t digitalName = !serviceName.empty() ? std::atoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
+    proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
     if (proxy != nullptr) {
         /* When the stub object dies, you need to delete the corresponding busName information */
         IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
