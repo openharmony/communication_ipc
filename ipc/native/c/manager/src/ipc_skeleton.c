@@ -86,7 +86,8 @@ int32_t SetContextObject(SvcIdentity target)
     return SetRegistryObject(target);
 }
 
-int32_t SendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, uintptr_t *buffer)
+int32_t SendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
+    MessageOption option, uintptr_t *buffer)
 {
     if (GetCurrentSkeleton() == NULL) {
         RPC_LOG_ERROR("init ipc process skeleton failed.");
