@@ -19,7 +19,7 @@
 #include "iremote_object.h"
 
 namespace OHOS {
-class IDBinderService{
+class IDBinderService {
 public:
     virtual sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) = 0;
     IDBinderService() = default;
