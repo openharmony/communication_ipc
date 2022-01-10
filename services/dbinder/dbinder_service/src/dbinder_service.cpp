@@ -56,6 +56,7 @@ DBinderService::~DBinderService()
     noticeProxy_.clear();
     deathRecipients_.clear();
     busNameObject_.clear();
+    dbinderCallback_ = nullptr;
 
     DBINDER_LOGI("dbinder service died");
 }
@@ -393,7 +394,9 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
         return nullptr;
     }
     int32_t digitalName = !serviceName.empty() ? std::atoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
-    proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
+    if (dbinderCallback_ != nullptr) {
+        proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
+    }
     if (proxy != nullptr) {
         /* When the stub object dies, you need to delete the corresponding busName information */
         IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
