@@ -24,6 +24,7 @@
 #include <list>
 #include <thread>
 
+#include "if_dbinder_service.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "dbinder_service_stub.h"
@@ -101,6 +102,7 @@ public:
 public:
     static sptr<DBinderService> GetInstance();
     bool StartDBinderService();
+    bool StartDBinderService(std::shared_ptr<IDBinderService> &callbackImpl);
     sptr<DBinderServiceStub> MakeRemoteBinder(const std::u16string &serviceName,
         const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid = 0);
     bool RegisterRemoteProxy(std::u16string serviceName, sptr<IRemoteObject> binderObject);
@@ -194,6 +196,8 @@ private:
     std::map<IPCObjectProxy *, std::string> busNameObject_;
     static constexpr int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
+
+    std::shared_ptr<IDBinderService> dbinderCallback_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
