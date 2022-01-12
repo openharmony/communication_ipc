@@ -69,11 +69,41 @@ ohos_unittest("IPCFileDescOpsTest") {
       "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
+ohos_unittest("IPCHiTraceUnitTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [ "//utils/system/safwk/native/include" ]
+
+  sources = [ "ipc_hitrace_unittest.cpp" ]
+
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  deps = [
+    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hitrace_native:libhitrace",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+  ]
+
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
     ":IPCFileDescOpsTest",
+    ":IPCHiTraceUnitTest",
     ":IPCNativeUnitTest",
   ]
 }

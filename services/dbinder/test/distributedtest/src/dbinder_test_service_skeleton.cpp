@@ -60,7 +60,6 @@ int DBinderTestServiceProxy::ReverseInt(int data, int &rep)
     return error;
 }
 
-#ifndef CONFIG_STANDARD_SYSTEM
 int DBinderTestServiceProxy::GetChildId(uint64_t &rep)
 {
     int error;
@@ -72,7 +71,6 @@ int DBinderTestServiceProxy::GetChildId(uint64_t &rep)
     DBINDER_LOGE("rep = %{public}" PRIu64 ", error = %{public}d", rep, error);
     return error;
 }
-#endif
 
 int DBinderTestServiceProxy::TransProxyObject(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
     int &withdrawRes)
@@ -461,11 +459,9 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
         case RECEIVE_RAW_DATA: {
             return OnSentRawData(data, reply);
         }
-#ifndef CONFIG_STANDARD_SYSTEM
         case TRANS_TRACE_ID: {
             return OnGetChildId(data, reply);
         }
-#endif
         case GET_REMOTE_STUB_OBJECT: {
             return OnReceivedGetStubObject(data, reply);
         }
@@ -501,7 +497,6 @@ int DBinderTestServiceStub::OnReverseInt(MessageParcel &data, MessageParcel &rep
     return ret;
 }
 
-#ifndef CONFIG_STANDARD_SYSTEM
 int DBinderTestServiceStub::OnGetChildId(MessageParcel &data, MessageParcel &reply)
 {
     uint64_t reqData = HiTrace::GetId().GetChainId();
@@ -527,7 +522,6 @@ int DBinderTestServiceStub::OnGetChildId(MessageParcel &data, MessageParcel &rep
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     return ERR_NONE;
 }
-#endif
 
 int DBinderTestServiceStub::OnReverseIntDelay(MessageParcel &data, MessageParcel &reply)
 {
