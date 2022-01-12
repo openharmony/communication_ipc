@@ -156,13 +156,11 @@ int DBinderTestService::StubTransRawData(int length)
     return 0;
 }
 
-#ifndef CONFIG_STANDARD_SYSTEM
 int DBinderTestService::GetChildId(uint64_t &rep)
 {
     DBINDER_LOGI("enter %{public}s", __func__);
     return 0;
 }
-#endif
 
 int DBinderTestService::FlushAsyncCommands(int count, int length)
 {
