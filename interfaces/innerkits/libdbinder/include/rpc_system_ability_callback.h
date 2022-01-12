@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef INTERFACES_RPC_SERVICES_DBINDER_H
-#define INTERFACES_RPC_SERVICES_DBINDER_H
+#ifndef INTERFACES_RPC_SERVICES_CALLBACK_H
+#define INTERFACES_RPC_SERVICES_CALLBACK_H
 
 #include "iremote_object.h"
 
 namespace OHOS {
-class IDBinderService {
+class RpcSystemAbilityCallback {
 public:
     virtual sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) = 0;
-    IDBinderService() = default;
-    virtual ~IDBinderService() = default;
+    RpcSystemAbilityCallback() = default;
+    virtual ~RpcSystemAbilityCallback() = default;
 };
 } // namespace OHOS
-#endif // INTERFACES_RPC_SERVICES_DBINDER_H
+#endif // INTERFACES_RPC_SERVICES_CALLBACK_H

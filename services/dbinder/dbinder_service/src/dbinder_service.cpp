@@ -73,22 +73,7 @@ std::string DBinderService::GetLocalDeviceID()
     return networkId;
 }
 
-bool DBinderService::StartDBinderService()
-{
-    if (mainThreadCreated_) {
-        return true;
-    }
-
-    bool result = StartRemoteListener();
-    if (!result) {
-        return false;
-    }
-    mainThreadCreated_ = true;
-
-    return true;
-}
-
-bool DBinderService::StartDBinderService(std::shared_ptr<IDBinderService> &callbackImpl)
+bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallback> &callbackImpl)
 {
     if (mainThreadCreated_) {
         return true;
@@ -387,6 +372,10 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
         DBINDER_LOGI("already have proxy");
         return proxy;
     }
+    if (dbinderCallback_ == nullptr) {
+        DBINDER_LOGE("samgr not initialized get remote sa callback");
+        return nullptr;
+    }
     /* proxy is null, attempt to get a new proxy */
     std::u16string serviceName = GetRegisterService(binderObject);
     if (serviceName.empty() && !CheckSystemAbilityId(systemAbilityId)) {
@@ -394,9 +383,7 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
         return nullptr;
     }
     int32_t digitalName = !serviceName.empty() ? std::atoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
-    if (dbinderCallback_ != nullptr) {
-        proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
-    }
+    proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
     if (proxy != nullptr) {
         /* When the stub object dies, you need to delete the corresponding busName information */
         IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
