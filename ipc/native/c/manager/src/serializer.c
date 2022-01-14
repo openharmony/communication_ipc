@@ -262,8 +262,11 @@ bool WriteFileDescriptor(IpcIo *io, uint32_t fd)
 bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
 {
     (void)io;
-    (void)svc;
-    return false;
+    if (svc == NULL) {
+        return false;
+    }
+    OnFirstStrongRef(svc->handle);
+    return true;
 }
 
 int32_t ReadFileDescriptor(IpcIo *io)
