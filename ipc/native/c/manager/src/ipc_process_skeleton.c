@@ -20,6 +20,7 @@
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "rpc_os_adapter.h"
+#include "rpc_process_skeleton.h"
 #include "rpc_types.h"
 #include "securec.h"
 #include "utils_list.h"
@@ -81,6 +82,10 @@ IpcSkeleton *GetCurrentSkeleton(void)
                 return NULL;
             }
             g_ipcSkeleton = temp;
+            int32_t ret = RpcProcessSkeleton();
+            if (ret != ERR_NONE) {
+                RPC_LOG_ERROR("rpc process skeleton init failed");
+            }
         }
         pthread_mutex_unlock(&g_ipcSkeletonMutex);
     }
@@ -265,7 +270,7 @@ static uint32_t SetDeathHandlerPair(DeathCallback *node, uint32_t index, OnRemot
 
 int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *args, uint32_t *cbId)
 {
-    int32_t ret = ERR_INVALID_PARAM;
+    int32_t ret = ERR_NONE;
     if (g_ipcSkeleton == NULL) {
         return ERR_IPC_SKELETON_NOT_INIT;
     }
@@ -359,6 +364,7 @@ int32_t ProcessRemoveDeathRecipient(int32_t handle, uint32_t cbId)
 int32_t OnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, IpcObjectStub *objectStub)
 {
     int32_t result = ERR_NOT_RPC;
+    result = RpcOnRemoteRequestInner(code, data, reply, option, objectStub);
     if (result == ERR_NOT_RPC) {
         if (objectStub != NULL && objectStub->func != NULL) {
             result = (OnRemoteRequest)(objectStub->func)(code, data, reply, option);
@@ -417,4 +423,5 @@ void WaitForProxyInit(int32_t handle)
 {
     RPC_LOG_INFO("ipc skeleton wait for proxy init");
     OnFirstStrongRef(handle);
+    UpdateProtoIfNeed(handle);
 }

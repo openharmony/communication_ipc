@@ -22,6 +22,7 @@
 
 #include "ipc_skeleton.h"
 #include "iremote_invoker.h"
+#include "dbinder_types.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -43,7 +44,7 @@ typedef struct {
     IpcObjectStub *objectStub;
     pid_t callerPid;
     pid_t callerUid;
-    char callerDeviceID[64];
+    char callerDeviceID[DEVICEID_LENGTH + 1];
     bool stopWorkThread;
     uint64_t seqNumber;
     uint32_t clientFd;
