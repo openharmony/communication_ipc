@@ -64,7 +64,7 @@ const SvcIdentity *GetRegistryObject(void);
 int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
     MessageOption option, uintptr_t *buffer);
 int32_t ProcessFreeBuffer(void *ptr);
-void OnLastStrongRef(int32_t handle);
+void OnFirstStrongRef(int32_t handle);
 int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *args, uint32_t *cbId);
 int32_t ProcessRemoveDeathRecipient(int32_t handle, uint32_t cbId);
 int32_t OnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply,

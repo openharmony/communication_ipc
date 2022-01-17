@@ -240,7 +240,7 @@ static bool FirstAddObject(int32_t handle)
     return true;
 }
 
-static void OnFirstStrongRef(int32_t handle)
+void OnFirstStrongRef(int32_t handle)
 {
     if (handle <= 0) {
         RPC_LOG_ERROR("invalid handle.");
