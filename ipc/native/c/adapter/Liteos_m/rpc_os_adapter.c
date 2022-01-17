@@ -19,7 +19,7 @@
 
 int32_t RpcGetPid(void)
 {
-    return (int32_t)pthread_self();
+    return (int32_t)pthread_self(); // Use tid instead of pid on mini system
 }
 
 int32_t RpcGetUid(void)
