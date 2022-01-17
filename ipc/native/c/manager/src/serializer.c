@@ -247,9 +247,11 @@ int32_t ReadFileDescriptor(IpcIo *io)
 #else
 bool WriteRemoteObject(IpcIo *io, const SvcIdentity *svc)
 {
-    (void)io;
-    (void)svc;
-    return false;
+    if (io == NULL || svc == NULL) {
+        RPC_LOG_ERROR("push io or svc is NULL ...");
+        return false;
+    }
+    return WriteBuffer(io, svc, sizeof(SvcIdentity));
 }
 
 bool WriteFileDescriptor(IpcIo *io, uint32_t fd)
@@ -261,9 +263,18 @@ bool WriteFileDescriptor(IpcIo *io, uint32_t fd)
 
 bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
 {
-    (void)io;
-    (void)svc;
-    return false;
+    if (io == NULL || svc == NULL) {
+        return false;
+    }
+    SvcIdentity *svcId = ReadBuffer(io, sizeof(SvcIdentity));
+    if (svcId == NULL) {
+        return false;
+    }
+    svc->handle = svcId->handle;
+    svc->token = svcId->token;
+    svc->cookie = svcId->cookie;
+    WaitForProxyInit(svcId->handle);
+    return true;
 }
 
 int32_t ReadFileDescriptor(IpcIo *io)
