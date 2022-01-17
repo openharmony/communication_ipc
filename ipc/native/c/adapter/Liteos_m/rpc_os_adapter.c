@@ -15,9 +15,11 @@
 
 #include "rpc_os_adapter.h"
 
+#include <pthread.h>
+
 int32_t RpcGetPid(void)
 {
-    return 0;
+    return (int32_t)pthread_self();
 }
 
 int32_t RpcGetUid(void)
