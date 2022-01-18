@@ -32,7 +32,10 @@ ohos_shared_library("ipc_test_helper") {
     "$SUBSYSTEM_DIR:ipc_util_config",
   ]
 
-  deps = [ "//utils/native/base:utils" ]
+  deps = [
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+    "//utils/native/base:utils",
+  ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
@@ -54,6 +57,7 @@ ohos_executable("ipc_server_test") {
 
   deps = [
     ":ipc_test_helper",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//utils/native/base:utils",
   ]
 
@@ -109,7 +113,10 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$SUBSYSTEM_DIR:ipc_util_config",
   ]
 
-  deps = [ "//utils/native/base:utils" ]
+  deps = [
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+    "//utils/native/base:utils",
+  ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
