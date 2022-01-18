@@ -54,7 +54,10 @@ ohos_shared_library("ipc_single") {
     ":libipc_single_private_config",
   ]
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
-  deps = [ "//utils/native/base:utils" ]
+  deps = [
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+    "//utils/native/base:utils",
+  ]
 
   external_deps = [
     "hitrace_native:libhitrace",

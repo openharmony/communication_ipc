@@ -343,9 +343,9 @@ template <class T> uint64_t DBinderBaseInvoker<T>::GetUniqueSeqNumber(int cmd)
         return 0;
     }
 
-    if (cmd == BC_TRANSACTION) {
+    if (cmd == BC_TRANSACTION_V8) {
         return current->GetSeqNumber();
-    } else if (cmd == BC_REPLY) {
+    } else if (cmd == BC_REPLY_V8) {
         /* use sender sequence number */
         return GetSeqNum();
     } else {
@@ -679,7 +679,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     HiTraceId traceId = HiTrace::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
-    std::shared_ptr<T> session = WriteTransaction(BC_TRANSACTION, flags, handle, 0, code, data, seqNumber, 0);
+    std::shared_ptr<T> session = WriteTransaction(BC_TRANSACTION_V8, flags, handle, 0, code, data, seqNumber, 0);
     if (session == nullptr) {
         newData.RewindWrite(oldWritePosition);
         DBINDER_BASE_LOGE("seqNumber can not be zero,handle=%d", handle);
@@ -724,7 +724,8 @@ template <class T> bool DBinderBaseInvoker<T>::SetMaxWorkThread(int maxThreadNum
 template <class T> int DBinderBaseInvoker<T>::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
 {
     uint64_t seqNumber = 0;
-    std::shared_ptr<T> sessionObject = WriteTransaction(BC_REPLY, flags, 0, GetClientFd(), 0, reply, seqNumber, result);
+    std::shared_ptr<T> sessionObject =
+        WriteTransaction(BC_REPLY_V8, flags, 0, GetClientFd(), 0, reply, seqNumber, result);
 
     if (seqNumber == 0) {
         DBINDER_BASE_LOGE("seqNumber can not be zero");
@@ -956,9 +957,9 @@ template <class T> void DBinderBaseInvoker<T>::OnTransaction(std::shared_ptr<Thr
         return;
     }
 
-    if (tr->cmd == BC_TRANSACTION) {
+    if (tr->cmd == BC_TRANSACTION_V8) {
         ProcessTransaction(tr, listenFd);
-    } else if (tr->cmd == BC_REPLY) {
+    } else if (tr->cmd == BC_REPLY_V8) {
         ProcessReply(tr, listenFd);
     }
     return;

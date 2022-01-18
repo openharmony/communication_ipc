@@ -27,6 +27,7 @@
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "token_setproc.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -280,6 +281,85 @@ int TestServiceProxy::TestCallingUidPid()
     return -1;
 }
 
+int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
+{
+    MessageOption option;
+    MessageParcel dataParcel, replyParcel1, replyParcel2;
+
+    int32_t token  = IPCSkeleton::GetCallingTokenID();
+    int32_t ftoken  = IPCSkeleton::GetFirstTokenID();
+    int32_t tokenSelf = GetSelfTokenID();
+    ZLOGE(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
+    ZLOGE(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
+    ZLOGE(LABEL, "TestServiceProxy ftoken_expected: %{public}d", ftoken_expected);
+
+    if (token != tokenSelf) {
+        ZLOGE(LABEL, "token != tokenSelf 1, token:%{public}d", token);
+        return -1;
+    }
+
+    if (ftoken != 0) {
+        ZLOGE(LABEL, "ftoken != 0 1");
+        return -1;
+    }
+
+    int ret = SetFirstCallerTokenID(ftoken_expected);
+    if (ret != 0) {
+        ZLOGE(LABEL, "SetFirstCallerTokenID ret = %{public}d", ret);
+        return -1;
+    }
+
+    ret = GetFirstCallerTokenID();
+    ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}d", ret);
+
+    ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel1, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "SendRequest ret = %{public}d", ret);
+        return ret;
+    }
+
+    token  = replyParcel1.ReadInt32();
+    ftoken  = replyParcel1.ReadInt32();
+
+    if (token != tokenSelf) {
+        ZLOGE(LABEL, "token != tokenSelf 2, token:%{public}d", token);
+        return -1;
+    }
+
+    if (ftoken != ftoken_expected) {
+        ZLOGE(LABEL, "ftoken != ftoken_expected 2, ftoken:%{public}d", ftoken);
+        return -1;
+    }
+
+    ret = SetSelfTokenID(666);
+    if (ret != 0) {
+        ZLOGE(LABEL, "SetSelfTokenID ret = %{public}d", ret);
+        return -1;
+    }
+
+    tokenSelf = GetSelfTokenID();
+    ZLOGE(LABEL, "TestServiceProxy get token after set: %{public}d", tokenSelf);
+    ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel2, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+
+    token  = replyParcel2.ReadInt32();
+    ftoken  = replyParcel2.ReadInt32();
+
+    if (token != tokenSelf) {
+        ZLOGE(LABEL, "token != tokenSelf 3, token:%{public}d", token);
+        return -1;
+    }
+
+    if (ftoken != ftoken_expected) {
+        ZLOGE(LABEL, "ftoken != ftoken_expected 3, ftoken:%{public}d", ftoken);
+        return -1;
+    }
+    return 0;
+}
+
 int TestServiceProxy::TestFlushAsyncCalls(int count, int length)
 {
     int ret;
@@ -489,6 +569,15 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
             sptr<IFoo> foo = iface_cast<IFoo>(object);
             int innerResult = foo->TestNestingSend(data.ReadInt32());
             reply.WriteInt32(innerResult);
+            break;
+        }
+        case TRANS_ID_ACCESS_TOKENID: {
+            int32_t token = IPCSkeleton::GetCallingTokenID();
+            int32_t ftoken = IPCSkeleton::GetFirstTokenID();
+            ZLOGE(LABEL, "server GetCallingTokenID:%{public}d", token);
+            ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
+            reply.WriteInt32(token);
+            reply.WriteInt32(ftoken);
             break;
         }
         default:

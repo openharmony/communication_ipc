@@ -299,6 +299,16 @@ pid_t IPCObjectStub::GetCallingUid()
     return IPCSkeleton::GetCallingUid();
 }
 
+uint32_t IPCObjectStub::GetCallingTokenID()
+{
+    return IPCSkeleton::GetCallingTokenID();
+}
+
+uint32_t IPCObjectStub::GetFirstTokenID()
+{
+    return IPCSkeleton::GetFirstTokenID();
+}
+
 int IPCObjectStub::GetObjectType() const
 {
     return OBJECT_TYPE_NATIVE;

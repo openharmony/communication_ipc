@@ -59,7 +59,10 @@ ohos_shared_library("ipc_core") {
     ":libipc_core_private_config",
   ]
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
-  deps = [ "//utils/native/base:utils" ]
+  deps = [
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+    "//utils/native/base:utils",
+  ]
 
   external_deps = [
     "dsoftbus_standard:softbus_client",
