@@ -17,7 +17,7 @@
 
 #include <stdbool.h>
 
-#include "dbinder_service.h"
+#include "dbinder_service_inner.h"
 #include "rpc_log.h"
 #include "rpc_errno.h"
 

@@ -106,13 +106,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    RPC_LOG_INFO("argv 1 is %s", argv[1]);
-    if (strcmp(argv[1], "deviceId") == 0) {
-        RPC_LOG_INFO("local deviceId is %s", GetLocalDeviceID());
-        return 0;
-    }
-
     const char *deviceId = argv[1];
+    RPC_LOG_INFO("input deviceid is %s", deviceId);
 
     IpcIo data1;
     uint8_t tmpData1[IPC_LENGTH];

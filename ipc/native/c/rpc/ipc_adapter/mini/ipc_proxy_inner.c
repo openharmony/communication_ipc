@@ -23,6 +23,7 @@
 #include "rpc_process_skeleton.h"
 #include "dbinder_invoker.h"
 #include "dbinder_types.h"
+#include "dbinder_service_inner.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 
