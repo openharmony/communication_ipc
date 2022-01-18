@@ -46,6 +46,7 @@ public:
         TRANS_ID_ASHMEM = 15,
         TRANS_ID_ASYNC_DUMP_SERVICE = 16,
         TRANS_ID_NESTING_SEND = 17,
+        TRANS_ID_ACCESS_TOKENID = 18,
     };
 public:
     virtual int TestSyncTransaction(int data, int &reply, int delayTime = 0) = 0;
@@ -65,6 +66,7 @@ public:
     virtual std::u16string TestAshmem(sptr<Ashmem> ashmem, int32_t contentSize) = 0;
     virtual void TestAsyncDumpService() = 0;
     virtual int TestNestingSend(int sendCode, int &replyCode) = 0;
+    virtual int TestAccessTokenID(int32_t ftoken_expected) = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");
 };
@@ -102,6 +104,7 @@ public:
     std::u16string TestAshmem(sptr<Ashmem> ashmem, int32_t contentSize) override;
     void TestAsyncDumpService() override;
     int TestNestingSend(int sendCode, int &replyCode) override;
+    int TestAccessTokenID(int32_t ftoken_expected) override;
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceProxy" };

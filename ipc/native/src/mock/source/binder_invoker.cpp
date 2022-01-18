@@ -25,6 +25,7 @@
 #include "hitrace_invoker.h"
 #include "dbinder_error_code.h"
 #include "log_tags.h"
+#include "token_setproc.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -40,8 +41,10 @@ enum {
 };
 
 BinderInvoker::BinderInvoker()
-    : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()), status_(0)
+    : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()),
+    firstTokenID_(-1), status_(0)
 {
+    callerTokenID_ = (uint32_t)GetSelfTokenID();
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
 }
@@ -98,7 +101,8 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HiTraceId traceId = HiTrace::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
-    if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
+    int cmd = binderConnector_->IsAccessTokenSupported() ? BC_TRANSACTION : BC_TRANSACTION_V8;
+    if (!WriteTransaction(cmd, flags, handle, code, data, nullptr)) {
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LABEL, "WriteTransaction ERROR");
 #ifndef BUILD_PUBLIC_VERSION
@@ -318,7 +322,8 @@ void BinderInvoker::StartWorkLoop()
 
 int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
 {
-    int error = WriteTransaction(BC_REPLY, flags, -1, 0, reply, &result);
+    int cmd = binderConnector_->IsAccessTokenSupported() ? BC_REPLY : BC_REPLY_V8;
+    int error = WriteTransaction(cmd, flags, -1, 0, reply, &result);
     if (error < ERR_NONE) {
         return error;
     }
@@ -415,9 +420,15 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     int isServerTraced = HitraceInvoker::TraceServerReceieve(tr->target.handle, tr->code, *data, newflags);
     const pid_t oldPid = callerPid_;
     const auto oldUid = static_cast<const uid_t>(callerUid_);
+    const uint32_t oldToken = callerTokenID_;
+    const uint32_t oldFirstToken = firstTokenID_;
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
+    if (binderConnector_->IsAccessTokenSupported()) {
+        callerTokenID_ = tr->sender_tokenid;
+        firstTokenID_ = tr->first_tokenid;
+    }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
     sptr<IRemoteObject> targetObject;
@@ -443,6 +454,8 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     }
     callerPid_ = oldPid;
     callerUid_ = oldUid;
+    callerTokenID_ = oldToken;
+    firstTokenID_ = oldFirstToken;
     SetStatus(oldStatus);
 }
 
@@ -481,7 +494,8 @@ void BinderInvoker::OnRemoveRecipientDone()
 
 int BinderInvoker::HandleReply(MessageParcel *reply)
 {
-    const size_t readSize = sizeof(binder_transaction_data);
+    const size_t readSize = binderConnector_->IsAccessTokenSupported() ?
+        sizeof(binder_transaction_data) : sizeof(binder_transaction_data_v8);
     const uint8_t *buffer = input_.ReadBuffer(readSize);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "HandleReply read tr failed");
@@ -541,6 +555,15 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
             break;
         case BR_TRANSACTION: {
             const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data));
+            if (buffer == nullptr) {
+                error = IPC_INVOKER_INVALID_DATA_ERR;
+                break;
+            }
+            OnTransaction(buffer);
+            break;
+        }
+        case BR_TRANSACTION_V8: {
+            const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data_v8));
             if (buffer == nullptr) {
                 error = IPC_INVOKER_INVALID_DATA_ERR;
                 break;
@@ -666,8 +689,8 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
         ZLOGE(LABEL, "WriteTransaction Command failure");
         return false;
     }
-
-    return output_.WriteBuffer(&tr, sizeof(binder_transaction_data));
+    size_t buffSize = (cmd == BC_TRANSACTION) ? sizeof(binder_transaction_data) : sizeof(binder_transaction_data_v8);
+    return output_.WriteBuffer(&tr, buffSize);
 }
 
 int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResult)
@@ -708,6 +731,15 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
                 break;
             }
             case BR_REPLY: {
+                error = HandleReply(reply);
+                if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
+                    continueLoop = false;
+                    break;
+                }
+                error = ERR_NONE;
+                break;
+            }
+            case BR_REPLY_V8: {
                 error = HandleReply(reply);
                 if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
                     continueLoop = false;
@@ -792,6 +824,19 @@ pid_t BinderInvoker::GetCallerPid() const
 uid_t BinderInvoker::GetCallerUid() const
 {
     return callerUid_;
+}
+
+uint32_t BinderInvoker::GetCallerTokenID() const
+{
+    return callerTokenID_;
+}
+
+uint32_t BinderInvoker::GetFirstTokenID() const
+{
+    if (firstTokenID_ == -1) {
+        return (uint32_t)GetFirstCallerTokenID();
+    }
+    return firstTokenID_;
 }
 
 uint32_t BinderInvoker::GetStatus() const

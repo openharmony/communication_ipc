@@ -33,6 +33,7 @@ public:
     int WriteBinder(unsigned long request, void *value);
     void ExitCurrentThread(unsigned long request);
     bool IsDriverAlive();
+    bool IsAccessTokenSupported();
 private:
     static BinderConnector *instance_;
     static std::mutex skeletonMutex;
@@ -40,6 +41,8 @@ private:
     int driverFD_;
     void *vmAddr_;
     const std::string deviceName_;
+    int32_t version_;
+    int32_t subVersion_;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
