@@ -217,7 +217,8 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
         return proto;
     }
 
-    UpdateClientSession(svc->handle, sessionObject, localBusName, session->serviceName, session->deviceIdInfo.toDeviceId);
+    UpdateClientSession(svc->handle, sessionObject, localBusName,
+        session->serviceName, session->deviceIdInfo.toDeviceId);
 
     return proto;
 }
