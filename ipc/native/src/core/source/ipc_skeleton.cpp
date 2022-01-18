@@ -16,6 +16,7 @@
 #include "ipc_skeleton.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
+#include "token_setproc.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -82,6 +83,26 @@ pid_t IPCSkeleton::GetCallingUid()
         return invoker->GetCallerUid();
     }
     return getuid();
+}
+
+uint32_t IPCSkeleton::GetCallingTokenID()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetCallerTokenID();
+    }
+    uint64_t token = GetSelfTokenID();
+    return (uint32_t)token;
+}
+
+uint32_t IPCSkeleton::GetFirstTokenID()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetFirstTokenID();
+    }
+    uint64_t ftoken = GetFirstCallerTokenID();
+    return (uint32_t)ftoken;
 }
 
 std::string IPCSkeleton::GetLocalDeviceID()
