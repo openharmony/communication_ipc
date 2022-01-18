@@ -41,7 +41,8 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC,
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 DBinderDatabusInvoker::DBinderDatabusInvoker()
-    : stopWorkThread_(false), callerPid_(getpid()), callerUid_(getuid()), callerDeviceID_(""), status_(0)
+    : stopWorkThread_(false), callerPid_(getpid()), callerUid_(getuid()), callerDeviceID_(""),
+    callerTokenID_(0), firstTokenID_(0), status_(0)
 {
     DBINDER_LOGI("Create DBinderDatabusInvoker");
 }
@@ -640,6 +641,16 @@ uid_t DBinderDatabusInvoker::GetCallerUid() const
 void DBinderDatabusInvoker::SetCallerUid(pid_t uid)
 {
     callerUid_ = uid;
+}
+
+uint32_t DBinderDatabusInvoker::GetCallerTokenID() const
+{
+    return callerTokenID_;
+}
+
+uint32_t DBinderDatabusInvoker::GetFirstTokenID() const
+{
+    return firstTokenID_;
 }
 
 void DBinderDatabusInvoker::SetCallerDeviceID(const std::string &deviceId)
