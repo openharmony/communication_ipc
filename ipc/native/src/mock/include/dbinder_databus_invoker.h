@@ -46,6 +46,8 @@ public:
     bool WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnership) override;
     pid_t GetCallerPid() const override;
     uid_t GetCallerUid() const override;
+    uint32_t GetCallerTokenID() const override;
+    uint32_t GetFirstTokenID() const override;
     uint32_t GetStatus() const override;
     bool IsLocalCalling() override;
     std::string GetLocalDeviceID() override;
@@ -102,6 +104,8 @@ private:
     pid_t callerPid_;
     pid_t callerUid_;
     std::string callerDeviceID_;
+    uint32_t callerTokenID_;
+    uint32_t firstTokenID_;
     uint64_t seqNumber_ = 0;
     uint32_t clientFd_ = 0;
     uint32_t status_;

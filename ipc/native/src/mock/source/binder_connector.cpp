@@ -26,6 +26,7 @@
 #include "ipc_debug.h"
 #include "dbinder_error_code.h"
 #include "log_tags.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -41,7 +42,7 @@ static const std::string DRIVER_NAME = std::string("/dev/binder");
 BinderConnector *BinderConnector::instance_ = nullptr;
 
 BinderConnector::BinderConnector(const std::string &deviceName)
-    : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName)
+    : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName), version_(0), subVersion_(0)
 {}
 
 BinderConnector::~BinderConnector()
@@ -73,7 +74,21 @@ bool BinderConnector::OpenDriver()
 #endif
         return false;
     }
-
+    int32_t version = 0;
+    int ret = ioctl(fd, BINDER_VERSION, &version);
+    if (ret != 0) {
+        ZLOGE(LABEL, "Get Binder version failed: %s", strerror(errno));
+        close(fd);
+        return false;
+    }
+    int32_t subVersion = version >> BINDER_SUB_VERSION_SHIFT_BASE;
+    version = version & BINDER_VERSION_MASK;
+    if (version != BINDER_CURRENT_PROTOCOL_VERSION) {
+        ZLOGE(LABEL, "Binder version not match! driver version:%d, ipc version:%d",
+            version, BINDER_CURRENT_PROTOCOL_VERSION);
+        close(fd);
+        return false;
+    }
     ZLOGI(LABEL, "%s:succ to open, fd=%d", __func__, fd);
     driverFD_ = fd;
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
@@ -87,8 +102,17 @@ bool BinderConnector::OpenDriver()
 #endif
         return false;
     }
-
+    version_ = version;
+    subVersion_ = subVersion;
     return true;
+}
+
+bool BinderConnector::IsAccessTokenSupported()
+{
+    if (driverFD_ > 0) {
+        return subVersion_ & ACCESS_TOKEN_MASK;
+    }
+    return false;
 }
 
 int BinderConnector::WriteBinder(unsigned long request, void *value)
