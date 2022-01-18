@@ -35,6 +35,7 @@ extern "C" {
 #define GET_SYSTEM_ABILITY_TRANSACTION 1
 #define ID_DIGITS 10
 #define DEFAULT_SEND_WAIT_TIME 4
+#define USECTONSEC 1000
 
 enum DBinderCode {
     MESSAGE_AS_INVOKER          = 1,

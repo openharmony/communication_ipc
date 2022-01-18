@@ -27,8 +27,6 @@
 #include "rpc_errno.h"
 #include "rpc_log.h"
 
-#define USECTONSEC 1000
-
 static RpcSkeleton g_rpcSkeleton = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
     .isServerCreated = -1
