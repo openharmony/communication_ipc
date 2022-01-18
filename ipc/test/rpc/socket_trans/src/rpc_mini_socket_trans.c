@@ -353,27 +353,7 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
     return ERR_NONE;
 }
 
-static TransInterface g_socketTrans = {
-    .StartListen = StartListen,
-    .StopListen = StopListen,
-    .Connect = Connect,
-    .Disconnect = Disconnect,
-    .Send = Send
-};
-
-TransInterface *GetSocketTrans(void)
-{
-    if (g_init == -1) {
-        pthread_mutex_lock(&g_socketNodeList.mutex);
-        UtilsListInit(&g_socketNodeList.list);
-        g_init = 0;
-        printf("g_socketTrans %x\n", g_socketTrans.StartListen);
-        pthread_mutex_unlock(&g_socketNodeList.mutex);
-    }
-    return &g_socketTrans;
-}
-
-char *GetSocketLocalDeviceID(void)
+static char *GetSocketLocalDeviceID(void)
 {
     extern struct netif if_wifi;
 
@@ -386,4 +366,25 @@ char *GetSocketLocalDeviceID(void)
 
     RPC_LOG_INFO("GetSocketLocalDeviceID %s\n", localDeviceId);
     return localDeviceId;
+}
+
+static TransInterface g_socketTrans = {
+    .StartListen = StartListen,
+    .StopListen = StopListen,
+    .Connect = Connect,
+    .Disconnect = Disconnect,
+    .Send = Send,
+    .GetLocalDeviceID = GetSocketLocalDeviceID
+};
+
+TransInterface *GetSocketTrans(void)
+{
+    if (g_init == -1) {
+        pthread_mutex_lock(&g_socketNodeList.mutex);
+        UtilsListInit(&g_socketNodeList.list);
+        g_init = 0;
+        printf("g_socketTrans %x\n", g_socketTrans.StartListen);
+        pthread_mutex_unlock(&g_socketNodeList.mutex);
+    }
+    return &g_socketTrans;
 }

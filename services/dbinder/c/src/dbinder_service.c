@@ -27,6 +27,7 @@
 #include "rpc_trans.h"
 #include "dbinder_trans_callback.h"
 #include "dbinder_ipc_adapter.h"
+#include "dbinder_service_inner.h"
 #include "serializer.h"
 #include "dbinder_stub.h"
 #include "ipc_skeleton.h"
@@ -214,7 +215,7 @@ static int32_t SendEntryToRemote(DBinderServiceStub *stub, const uint32_t seqNum
     }
     uint32_t toDeviceIDLength = (uint32_t)strlen(toDeviceID);
 
-    char *localDeviceID = GetLocalDeviceID();
+    char *localDeviceID = g_trans->GetLocalDeviceID();
     if (localDeviceID == NULL) {
         RPC_LOG_ERROR("GetLocalDeviceID failed");
         return ERR_FAILED;
@@ -400,7 +401,7 @@ static int32_t AttachProxyObject(ProxyObject *proxy)
     return ERR_NONE;
 }
 
-void DetachProxyObject(ProxyObject *proxy)
+static void DetachProxyObject(ProxyObject *proxy)
 {
     pthread_mutex_lock(&g_proxyObjectList.mutex);
     UtilsListDelete(&proxy->list);
@@ -496,7 +497,7 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
 
     IpcIo reply;
     uintptr_t ptr;
-    int32_t ret = InvokerListenThread(proxy, GetLocalDeviceID(), remoteDeviceID, pid, uid, &reply, &ptr);
+    int32_t ret = InvokerListenThread(proxy, g_trans->GetLocalDeviceID(), remoteDeviceID, pid, uid, &reply, &ptr);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("INVOKE_LISTEN_THREAD failed");
         FreeBuffer((void *)ptr);

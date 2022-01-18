@@ -13,21 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_RPC_DBINDER_RTANS_CALLBACK_H
-#define OHOS_RPC_DBINDER_RTANS_CALLBACK_H
+#ifndef DBINDER_SERVICE_INNER_H
+#define DBINDER_SERVICE_INNER_H
 
-#include <stdint.h>
-#include <stdlib.h>
-
-#include "rpc_trans.h"
+#include "dbinder_types.h"
 
 #ifdef __cplusplus
+#if __cplusplus
 extern "C" {
 #endif
+#endif /* __cplusplus */
 
-TransCallback *GetDBinderTransCallback(void);
+int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message);
+SessionInfo *QuerySessionObject(uintptr_t stub);
 
 #ifdef __cplusplus
+#if __cplusplus
 }
 #endif
-#endif // OHOS_RPC_DBINDER_RTANS_CALLBACK_H
+#endif /* __cplusplus */
+#endif /* DBINDER_SERVICE_INNER_H */

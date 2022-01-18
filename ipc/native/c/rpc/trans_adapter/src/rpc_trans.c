@@ -29,12 +29,3 @@ TransInterface *GetRpcTrans(void)
 
     return NULL;
 }
-
-char *GetLocalDeviceID(void)
-{
-#if defined(RPC_SOCKET_TRANS)
-    return GetSocketLocalDeviceID();
-#endif
-
-    return NULL;
-}

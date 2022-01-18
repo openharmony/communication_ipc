@@ -24,8 +24,8 @@
 #include "ipc_thread_pool.h"
 #include "ipc_skeleton.h"
 #include "ipc_process_skeleton.h"
-#include "dbinder_service.h"
 #include "dbinder_ipc_adapter.h"
+#include "dbinder_service_inner.h"
 
 #define IPC_INVALID_HANDLE (-1)
 
