@@ -37,6 +37,10 @@ public:
 
     static pid_t GetCallingUid();
 
+    static uint32_t GetCallingTokenID();
+
+    static uint32_t GetFirstTokenID();
+
     static std::string GetLocalDeviceID();
 
     static std::string GetCallingDeviceID();

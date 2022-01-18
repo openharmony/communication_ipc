@@ -80,6 +80,10 @@ public:
 
     uid_t GetCallerUid() const override;
 
+    uint32_t GetCallerTokenID() const override;
+
+    uint32_t GetFirstTokenID() const override;
+
     uint32_t GetStatus() const override;
 
     bool IsLocalCalling() override;
@@ -111,6 +115,8 @@ protected:
     bool stopWorkThread;
     pid_t callerPid_;
     pid_t callerUid_;
+    uint32_t callerTokenID_;
+    uint32_t firstTokenID_;
 
 private:
     int TransactWithDriver(bool doRead = true);
