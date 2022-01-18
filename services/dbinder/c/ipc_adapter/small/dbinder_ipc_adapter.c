@@ -23,8 +23,6 @@
 #include "rpc_log.h"
 #include "rpc_errno.h"
 
-#define IPC_STUB_HANDLE (-1)
-
 bool IsSameStub(DBinderServiceStub *stub, const char *serviceName,
     const char *deviceID, uintptr_t binderObject)
 {
@@ -33,16 +31,6 @@ bool IsSameStub(DBinderServiceStub *stub, const char *serviceName,
     }
     return (strcmp(stub->serviceName, serviceName) == 0 && strcmp(stub->deviceID, deviceID) == 0
         && stub->binderObject == binderObject);
-}
-
-int32_t GetDBinderHandle(uintptr_t stubAddr)
-{
-    return IPC_STUB_HANDLE;
-}
-
-int32_t UpdateSessionIfNeed(uintptr_t stubAddr)
-{
-    return ERR_NONE;
 }
 
 ProxyObject *RpcGetSystemAbility(int32_t systemAbility)

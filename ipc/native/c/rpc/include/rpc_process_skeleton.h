@@ -134,7 +134,7 @@ ThreadMessageInfo *QueryThreadBySeqNumber(uint64_t seqNumber);
 void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle);
 int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply,
     MessageOption option, IpcObjectStub *objectStub);
-void UpdateProtoIfNeed(int32_t handle);
+void UpdateProtoIfNeed(SvcIdentity *svc);
 void WakeUpDataThread(pthread_t threadId);
 uint64_t GetNewStubIndex(void);
 

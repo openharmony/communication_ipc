@@ -270,7 +270,7 @@ static uint32_t SetDeathHandlerPair(DeathCallback *node, uint32_t index, OnRemot
 
 int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *args, uint32_t *cbId)
 {
-    int32_t ret = ERR_NONE;
+    int32_t ret = ERR_INVALID_PARAM;
     if (g_ipcSkeleton == NULL) {
         return ERR_IPC_SKELETON_NOT_INIT;
     }
@@ -419,9 +419,9 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
     free(deathCallback);
 }
 
-void WaitForProxyInit(int32_t handle)
+void WaitForProxyInit(SvcIdentity *svc)
 {
     RPC_LOG_INFO("ipc skeleton wait for proxy init");
-    OnFirstStrongRef(handle);
-    UpdateProtoIfNeed(handle);
+    OnFirstStrongRef(svc->handle);
+    UpdateProtoIfNeed(svc);
 }
