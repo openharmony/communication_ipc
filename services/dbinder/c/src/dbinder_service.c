@@ -319,11 +319,6 @@ static int32_t InvokerRemoteDBinder(DBinderServiceStub *dBinderServiceStub, uint
         ret = ERR_FAILED;
     }
 
-    if (UpdateSessionIfNeed(dBinderServiceStub->svc.cookie) != ERR_NONE) {
-        RPC_LOG_ERROR("UpdateSessionIfNeed failed");
-        ret = ERR_FAILED;
-    }
-
     pthread_mutex_unlock(&threadLockInfo->mutex);
     DetachThreadLockInfo(threadLockInfo);
     free(threadLockInfo);

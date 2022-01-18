@@ -482,10 +482,10 @@ int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, Messag
     return result;
 }
 
-void UpdateProtoIfNeed(int32_t handle)
+void UpdateProtoIfNeed(SvcIdentity *svc)
 {
-    RPC_LOG_INFO("rpc manager update proto, handle %d", handle);
-    UpdateProto(handle);
+    RPC_LOG_INFO("rpc manager update proto, handle %d", svc->handle);
+    UpdateProto(svc);
 }
 
 uint64_t GetNewStubIndex(void)

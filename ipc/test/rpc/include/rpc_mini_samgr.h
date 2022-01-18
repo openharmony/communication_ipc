@@ -26,9 +26,9 @@ extern "C" {
 
 void RpcStartSamgr(void);
 int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid);
-SvcIdentity *GetSystemAbilityById(int32_t systemAbility);
-int32_t AddRemoteSystemAbility(int32_t saId, SvcIdentity *sid);
-int32_t GetRemoteSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid);
+int32_t GetSystemAbilityById(int32_t systemAbility, IpcIo *reply);
+int32_t AddRemoteSystemAbility(IpcIo *data);
+int32_t GetRemoteSystemAbility(int32_t saId, const char* deviceId, IpcIo *reply);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,8 @@
 #include "dbinder_service.h"
 #include "dbinder_ipc_adapter.h"
 
+#define IPC_INVALID_HANDLE (-1)
+
 static int32_t GetDigits(int32_t number)
 {
     int32_t n = 0;
@@ -135,7 +137,7 @@ int32_t GetDBinderStub(const char *serviceName, const char *deviceID,
     objectStub->isRemote = true;
 
     dBinderServiceStub->binderObject = binderObject;
-    dBinderServiceStub->svc.handle = GetDBinderHandle((uintptr_t)objectStub);
+    dBinderServiceStub->svc.handle = IPC_INVALID_HANDLE;
     dBinderServiceStub->svc.token = (uintptr_t)objectStub;
     dBinderServiceStub->svc.cookie = (uintptr_t)objectStub;
     return ERR_NONE;
