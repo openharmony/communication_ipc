@@ -45,6 +45,7 @@ public:
     std::u16string TestAshmem(sptr<Ashmem> ashmem, int32_t contentSize) override;
     void TestAsyncDumpService() override;
     int TestNestingSend(int sendCode, int &replyCode) override;
+    int TestAccessTokenID(int32_t ftoken_expected) override;
 private:
     int testFd_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestService" };

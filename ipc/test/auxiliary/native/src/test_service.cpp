@@ -183,6 +183,11 @@ int TestService::TestCallingUidPid()
     return 0;
 }
 
+int TestService::TestAccessTokenID(int32_t ftoken_expected)
+{
+    return 0;
+}
+
 int TestService::TestFlushAsyncCalls(int count, int length)
 {
     return 0;
