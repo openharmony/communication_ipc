@@ -438,9 +438,9 @@ void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle)
         return;
     }
 
-    if (handle != messageInfo->socketId) {
+    if (handle != messageInfo->sessionId) {
         RPC_LOG_ERROR("error! handle is not equal messageInfo, handle = %d, messageFd = %u", handle,
-            messageInfo->socketId);
+            messageInfo->sessionId);
         return;
     }
     if (pthread_equal(messageInfo->threadId, pthread_self()) == 0) {

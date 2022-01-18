@@ -47,7 +47,7 @@ typedef struct {
     char callerDeviceID[DEVICEID_LENGTH + 1];
     bool stopWorkThread;
     uint64_t seqNumber;
-    uint32_t clientFd;
+    uint32_t sessionId;
 } ThreadContext;
 
 typedef struct {

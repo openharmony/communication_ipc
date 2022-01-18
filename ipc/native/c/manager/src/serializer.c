@@ -202,9 +202,9 @@ bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
         svc->handle = MIN_BINDER_HANDLE;
         svc->cookie = obj->cookie;
     } else {
-        WaitForProxyInit(obj);
         svc->handle = obj->handle;
         svc->cookie = obj->cookie;
+        WaitForProxyInit(svc);
     }
     return true;
 }

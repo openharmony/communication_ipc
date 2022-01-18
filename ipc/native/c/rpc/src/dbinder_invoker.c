@@ -26,6 +26,7 @@
 #include "rpc_errno.h"
 #include "rpc_trans.h"
 #include "rpc_trans_callback.h"
+#include "rpc_process_skeleton.h"
 #include "ipc_skeleton.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_pool.h"
@@ -46,14 +47,14 @@ void DeleteRpcInvoker(RemoteInvoker *remoteInvoker)
     free(remoteInvoker);
 }
 
-static HandleSessionList *GetSessionObject(uint32_t handle, uint32_t socketId)
+static HandleSessionList *GetSessionObject(uint32_t handle, uint32_t sessionId)
 {
     if (handle != 0) {
         /* transact case */
         return QueryProxySession(handle);
     } else {
         /* reply case */
-        return QueryStubSession(socketId);
+        return QueryStubSession(sessionId);
     }
 }
 
@@ -176,11 +177,11 @@ static int32_t MoveTransData2Buffer(HandleSessionList *sessionObject, dbinder_tr
 }
 
 static HandleSessionList *WriteTransaction(int cmd, MessageOption option, int32_t handle,
-    int32_t socketId, uint32_t code, IpcIo *data, uint64_t *seqNumber, int status)
+    int32_t sessionId, uint32_t code, IpcIo *data, uint64_t *seqNumber, int status)
 {
-    HandleSessionList *sessionObject = GetSessionObject(handle, socketId);
+    HandleSessionList *sessionObject = GetSessionObject(handle, sessionId);
     if (sessionObject == NULL) {
-        RPC_LOG_ERROR("session is not exist for listenFd = %d, handle = %d", socketId, handle);
+        RPC_LOG_ERROR("session is not exist for sessionId = %d, handle = %d", sessionId, handle);
         return NULL;
     }
 
@@ -253,7 +254,7 @@ static ThreadMessageInfo *MakeThreadMessageInfo(uint64_t seqNumber, uint32_t han
     messageInfo->seqNumber = seqNumber;
     messageInfo->buffer = NULL;
     messageInfo->offsets = 0;
-    messageInfo->socketId = handle;
+    messageInfo->sessionId = handle;
     return messageInfo;
 }
 
@@ -329,16 +330,16 @@ static int32_t SendOrWaitForCompletion(int userWaitTime, uint64_t seqNumber,
     return WaitForReply(seqNumber, reply, sessionOfPeer->handle, userWaitTime, buffer);
 }
 
-static int32_t GetClientFd(void)
+static int32_t GetCallerSessionId(void)
 {
     ThreadContext *threadContext = GetCurrentThreadContext();
-    return threadContext->clientFd;
+    return threadContext->sessionId;
 }
 
 static int32_t SendReply(IpcIo *reply, uint32_t flags, int32_t result)
 {
     uint64_t seqNumber = 0;
-    HandleSessionList *sessionObject = WriteTransaction(BC_REPLY, flags, 0, GetClientFd(),
+    HandleSessionList *sessionObject = WriteTransaction(BC_REPLY, flags, 0, GetCallerSessionId(),
         0, reply, &seqNumber, result);
 
     if (seqNumber == 0) {
@@ -349,7 +350,7 @@ static int32_t SendReply(IpcIo *reply, uint32_t flags, int32_t result)
     return ERR_NONE;
 }
 
-static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t listenFd)
+static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t sessionId)
 {
     if (tr == NULL || tr->cookie == 0) {
         return;
@@ -384,10 +385,10 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t list
         RPC_LOG_ERROR("stub is invalid, has not OnReceive or Request");
     }
     if (!(option & TF_OP_ASYNC)) {
-        threadContext->clientFd = listenFd;
+        threadContext->sessionId = sessionId;
         threadContext->seqNumber = senderSeqNumber;
         SendReply(&reply, 0, result);
-        threadContext->clientFd = 0;
+        threadContext->sessionId = 0;
         threadContext->seqNumber = 0;
     }
 
@@ -398,7 +399,7 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t list
     }
 }
 
-static void ProcessReply(const dbinder_transaction_data *tr, uint32_t listenFd)
+static void ProcessReply(const dbinder_transaction_data *tr, uint32_t sessionId)
 {
     ThreadMessageInfo *messageInfo = QueryThreadBySeqNumber(tr->seqNumber);
     if (messageInfo == NULL) {
@@ -412,14 +413,14 @@ static void ProcessReply(const dbinder_transaction_data *tr, uint32_t listenFd)
     if (messageInfo->buffer == NULL) {
         RPC_LOG_ERROR("some thread is waiting for reply message, but no memory");
         /* wake up sender thread */
-        WakeUpThreadBySeqNumber(tr->seqNumber, listenFd);
+        WakeUpThreadBySeqNumber(tr->seqNumber, sessionId);
         return;
     }
 
     if (memcpy_s(messageInfo->buffer, bufferSize, tr->buffer, bufferSize) != EOK) {
         RPC_LOG_ERROR("messageInfo buffer memset failed");
         free(messageInfo->buffer);
-        WakeUpThreadBySeqNumber(tr->seqNumber, listenFd);
+        WakeUpThreadBySeqNumber(tr->seqNumber, sessionId);
         return;
     }
 
@@ -427,10 +428,10 @@ static void ProcessReply(const dbinder_transaction_data *tr, uint32_t listenFd)
     messageInfo->bufferSize = tr->buffer_size;
     messageInfo->offsetsSize = tr->offsets_size;
     messageInfo->offsets = tr->offsets;
-    messageInfo->socketId = listenFd;
+    messageInfo->sessionId = sessionId;
 
     /* wake up sender thread */
-    WakeUpThreadBySeqNumber(tr->seqNumber, listenFd);
+    WakeUpThreadBySeqNumber(tr->seqNumber, sessionId);
 }
 
 static void OnTransaction(ThreadProcessInfo *processInfo)
@@ -442,9 +443,9 @@ static void OnTransaction(ThreadProcessInfo *processInfo)
     tr->buffer = (char *)(processInfo->buffer + sizeof(dbinder_transaction_data));
 
     if (tr->cmd == BC_TRANSACTION) {
-        ProcessTransaction(tr, processInfo->listenFd);
+        ProcessTransaction(tr, processInfo->sessionId);
     } else if (tr->cmd == BC_REPLY) {
-        ProcessReply(tr, processInfo->listenFd);
+        ProcessReply(tr, processInfo->sessionId);
     }
 }
 
@@ -469,7 +470,7 @@ static ThreadProcessInfo *MakeThreadProcessInfo(uint32_t handle, const char *inB
         free(processInfo);
         return NULL;
     }
-    processInfo->listenFd = handle;
+    processInfo->sessionId = handle;
     processInfo->packageSize = size;
 
     return processInfo;

@@ -50,7 +50,7 @@ typedef struct {
 typedef struct {
     UTILS_DL_LIST list;
     pthread_t threadId;
-    uint32_t listenFd;
+    uint32_t sessionId;
     uint32_t packageSize;
     char *buffer;
 } ThreadProcessInfo;
@@ -104,7 +104,7 @@ typedef struct {
     size_t bufferSize;
     size_t offsetsSize;
     uintptr_t offsets;
-    uint32_t socketId;
+    uint32_t sessionId;
     void *buffer;
 } ThreadMessageInfo;
 
