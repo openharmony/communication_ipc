@@ -1,0 +1,81 @@
+# Copyright (c) 2020 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/lite/config/component/lite_component.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder/c"
+
+config("ipc_rpc_interface") {
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
+  ]
+}
+if (ohos_kernel_type == "linux") {
+  SYSTEM_LEVEL = "small"
+  shared_library("dbinder") {
+    sources = [
+      "$DBINDER_ROOT/ipc_adapter/${SYSTEM_LEVEL}/dbinder_ipc_adapter.c",
+      "$DBINDER_ROOT/src/dbinder_service.c",
+      "$DBINDER_ROOT/src/dbinder_stub.c",
+      "$DBINDER_ROOT/src/dbinder_trans_callback.c",
+    ]
+    public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = [
+      "$DBINDER_ROOT/include",
+      "$DBINDER_ROOT/ipc_adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/ipc/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/rpc/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/rpc/ipc_adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
+      "//third_party/bounds_checking_function/include",
+      "//utils/native/lite/include",
+    ]
+    ldflags = [
+      "-lstdc++",
+      "-lpthread",
+    ]
+    public_deps = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:rpc_log",
+      "//third_party/bounds_checking_function/:libsec_shared",
+    ]
+  }
+} else if (ohos_kernel_type == "liteos_m") {
+  SYSTEM_LEVEL = "mini"
+  static_library("dbinder") {
+    sources = [
+      "$DBINDER_ROOT/ipc_adapter/${SYSTEM_LEVEL}/dbinder_ipc_adapter.c",
+      "$DBINDER_ROOT/src/dbinder_service.c",
+      "$DBINDER_ROOT/src/dbinder_stub.c",
+      "$DBINDER_ROOT/src/dbinder_trans_callback.c",
+    ]
+    public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = [
+      "$DBINDER_ROOT/include",
+      "$DBINDER_ROOT/ipc_adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/ipc/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/rpc/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/rpc/ipc_adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
+      "$SUBSYSTEM_DIR/ipc/test/rpc/include",
+      "//third_party/bounds_checking_function/include",
+      "//utils/native/lite/include",
+      "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite",
+    ]
+    ldflags = [ "-lpthread" ]
+    deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
+  }
+}

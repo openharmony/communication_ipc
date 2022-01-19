@@ -17,7 +17,10 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
 
 config("ipc_rpc_interface") {
-  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include" ]
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
+  ]
 }
 
 if (ohos_kernel_type == "liteos_m") {
@@ -45,14 +48,40 @@ ipc_common_src = [
 ]
 
 if (ohos_kernel_type == "liteos_m") {
-  static_library("ipc_single") {
+  SYSTEM_LEVEL = "mini"
+  static_library("rpc_manager") {
     sources = ipc_common_src
     sources += [
       "$IPC_CORE_ROOT/ipc/src/binder_invoker_virtual.c",
       "$IPC_CORE_ROOT/manager/src/rpc_log.c",
+      "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_proxy_inner.c",
+      "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_stub_inner.c",
+      "$IPC_CORE_ROOT/rpc/src/dbinder_invoker.c",
+      "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton.c",
+      "$IPC_CORE_ROOT/rpc/src/rpc_trans_callback.c",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_trans.c",
     ]
-    include_dirs = ipc_common_include
     public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = ipc_common_include
+    include_dirs += [
+      "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/include",
+      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    ]
+    if (ohos_build_type == "debug") {
+      sources += [
+        "$SUBSYSTEM_DIR/ipc/test/rpc/samgr/rpc_mini_samgr.c",
+        "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_${SYSTEM_LEVEL}_socket_trans.c",
+      ]
+      include_dirs += [
+        "$SUBSYSTEM_DIR/ipc/test/rpc/include",
+        "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include",
+        "//third_party/lwip/src/include",
+      ]
+      defines = [ "RPC_SOCKET_TRANS" ]
+    }
+    ldflags = [ "-lpthread" ]
     deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
   }
 } else if (ohos_kernel_type == "liteos_a") {
@@ -85,6 +114,9 @@ if (ohos_kernel_type == "liteos_m") {
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
   }
+
+  shared_library("rpc_manager") {
+  }
 } else {
   shared_library("rpc_log") {
     sources = [ "$IPC_CORE_ROOT/manager/src/rpc_log.c" ]
@@ -100,9 +132,17 @@ if (ohos_kernel_type == "liteos_m") {
 
   shared_library("ipc_single") {
     sources = ipc_common_src
-    sources += [ "$IPC_CORE_ROOT/ipc/src/binder_invoker.c" ]
+    sources += [
+      "$IPC_CORE_ROOT/ipc/src/binder_invoker.c",
+      "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton_virtual.c",
+    ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = ipc_common_include
+    include_dirs += [
+      "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/include",
+      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    ]
     ldflags = [
       "-lstdc++",
       "-lpthread",
@@ -115,5 +155,46 @@ if (ohos_kernel_type == "liteos_m") {
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
     configs -= [ "//build/lite/config:clang_opt" ]
+  }
+
+  SYSTEM_LEVEL = "small"
+  shared_library("rpc_manager") {
+    sources = ipc_common_src
+    sources += [
+      "$IPC_CORE_ROOT/ipc/src/binder_invoker.c",
+      "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_proxy_inner.c",
+      "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_stub_inner.c",
+      "$IPC_CORE_ROOT/rpc/src/dbinder_invoker.c",
+      "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton.c",
+      "$IPC_CORE_ROOT/rpc/src/rpc_trans_callback.c",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_trans.c",
+    ]
+    public_configs = [ ":ipc_rpc_interface" ]
+    include_dirs = ipc_common_include
+    include_dirs += [
+      "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/include",
+      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "//third_party/bounds_checking_function/include",
+    ]
+    ldflags = [
+      "-lstdc++",
+      "-lpthread",
+    ]
+    cflags = [ "-fPIC" ]
+    cflags_cc = cflags
+    public_deps = [
+      ":rpc_log",
+      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
+      "//third_party/bounds_checking_function/:libsec_shared",
+    ]
+
+    if (ohos_build_type == "debug") {
+      sources +=
+          [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_socket_trans.c" ]
+      include_dirs += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include" ]
+      defines = [ "RPC_SOCKET_TRANS" ]
+    }
   }
 }
