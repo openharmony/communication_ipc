@@ -28,8 +28,6 @@ extern "C" {
 
 bool IsSameStub(DBinderServiceStub *stub, const char *serviceName,
     const char *deviceID, uintptr_t binderObject);
-int32_t GetDBinderHandle(uintptr_t stubAddr);
-int32_t UpdateSessionIfNeed(uintptr_t stubAddr);
 ProxyObject *RpcGetSystemAbility(int32_t systemAbility);
 
 #ifdef __cplusplus

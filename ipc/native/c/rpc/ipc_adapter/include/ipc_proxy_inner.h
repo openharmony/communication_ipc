@@ -29,7 +29,7 @@ int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID,
     const char *remoteDeviceID, uint32_t pid, uint32_t uid, IpcIo *reply, uintptr_t *ptr);
 int32_t GetPidAndUidInfo(ProxyObject *proxy);
 char *GetDataBusName(void);
-void UpdateProto(int32_t handle);
+void UpdateProto(SvcIdentity *svc);
 
 #ifdef __cplusplus
 }

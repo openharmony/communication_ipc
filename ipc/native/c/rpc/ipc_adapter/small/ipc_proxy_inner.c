@@ -225,9 +225,9 @@ char *GetDataBusName(void)
     return sessionName;
 }
 
-void UpdateProto(int32_t handle)
+void UpdateProto(SvcIdentity *svc)
 {
-    if (handle < 0) {
+    if (svc->handle < 0) {
         RPC_LOG_ERROR("UpdateProto handle invalid");
         return;
     }
@@ -237,11 +237,11 @@ void UpdateProto(int32_t handle)
         RPC_LOG_ERROR("UpdateProto threadContext is null");
         return;
     }
-    HandleSessionList *sessionObject = QueryProxySession(handle);
+    HandleSessionList *sessionObject = QueryProxySession(svc->handle);
     if (sessionObject != NULL) {
         threadContext->proto = IF_PROT_DATABUS;
         return;
     }
-    threadContext->proto = GetSessionFromDBinderService(handle);
+    threadContext->proto = GetSessionFromDBinderService(svc->handle);
     RPC_LOG_INFO("UpdateProto get proto: %d", threadContext->proto);
 }

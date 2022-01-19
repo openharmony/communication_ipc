@@ -296,26 +296,7 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
     return ERR_NONE;
 }
 
-static TransInterface g_socketTrans = {
-    .StartListen = StartListen,
-    .StopListen = StopListen,
-    .Connect = Connect,
-    .Disconnect = Disconnect,
-    .Send = Send
-};
-
-TransInterface *GetSocketTrans(void)
-{
-    if (g_init == -1) {
-        pthread_mutex_lock(&g_socketNodeList.mutex);
-        UtilsListInit(&g_socketNodeList.list);
-        g_init = 0;
-        pthread_mutex_unlock(&g_socketNodeList.mutex);
-    }
-    return &g_socketTrans;
-}
-
-char *GetSocketLocalDeviceID(void)
+static char *GetSocketLocalDeviceID(void)
 {
     if (g_localDeviceId != NULL) {
         return g_localDeviceId;
@@ -365,4 +346,24 @@ char *GetSocketLocalDeviceID(void)
     freeifaddrs(ifaddr);
 
     return g_localDeviceId;
+}
+
+static TransInterface g_socketTrans = {
+    .StartListen = StartListen,
+    .StopListen = StopListen,
+    .Connect = Connect,
+    .Disconnect = Disconnect,
+    .Send = Send,
+    .GetLocalDeviceID = GetSocketLocalDeviceID,
+};
+
+TransInterface *GetSocketTrans(void)
+{
+    if (g_init == -1) {
+        pthread_mutex_lock(&g_socketNodeList.mutex);
+        UtilsListInit(&g_socketNodeList.list);
+        g_init = 0;
+        pthread_mutex_unlock(&g_socketNodeList.mutex);
+    }
+    return &g_socketTrans;
 }

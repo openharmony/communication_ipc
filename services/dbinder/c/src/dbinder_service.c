@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #include "utils_list.h"
 #include "securec.h"
@@ -27,6 +28,7 @@
 #include "rpc_trans.h"
 #include "dbinder_trans_callback.h"
 #include "dbinder_ipc_adapter.h"
+#include "dbinder_service_inner.h"
 #include "serializer.h"
 #include "dbinder_stub.h"
 #include "ipc_skeleton.h"
@@ -214,7 +216,7 @@ static int32_t SendEntryToRemote(DBinderServiceStub *stub, const uint32_t seqNum
     }
     uint32_t toDeviceIDLength = (uint32_t)strlen(toDeviceID);
 
-    char *localDeviceID = GetLocalDeviceID();
+    char *localDeviceID = g_trans->GetLocalDeviceID();
     if (localDeviceID == NULL) {
         RPC_LOG_ERROR("GetLocalDeviceID failed");
         return ERR_FAILED;
@@ -270,6 +272,40 @@ static void DetachThreadLockInfo(ThreadLockInfo *threadLockInfo)
     pthread_mutex_unlock(&g_threadLockInfoList.mutex);
 }
 
+static ThreadLockInfo *NewThreadLock(void)
+{
+    ThreadLockInfo *threadLockInfo = (ThreadLockInfo *)malloc(sizeof(ThreadLockInfo));
+    if (threadLockInfo == NULL) {
+        RPC_LOG_ERROR("threadLockInfo malloc failed");
+        return NULL;
+    }
+    if (pthread_mutex_init(&threadLockInfo->mutex, NULL) != 0) {
+        RPC_LOG_ERROR("threadLockInfo mutex init failed");
+        free(threadLockInfo);
+        return NULL;
+    }
+    if (pthread_cond_init(&threadLockInfo->condition, NULL) != 0) {
+        RPC_LOG_ERROR("threadLockInfo condition init failed");
+        free(threadLockInfo);
+        return NULL;
+    }
+
+    return threadLockInfo;
+}
+
+static int32_t GetWaitTime(struct timespec *waitTime)
+{
+    struct timeval now;
+    if (gettimeofday(&now, NULL) != 0) {
+        RPC_LOG_ERROR("gettimeofday failed");
+        return ERR_FAILED;
+    }
+    waitTime->tv_sec = now.tv_sec + DEFAULT_SEND_WAIT_TIME;
+    waitTime->tv_nsec = now.tv_usec * USECTONSEC;
+
+    return ERR_NONE;
+}
+
 static int32_t InvokerRemoteDBinder(DBinderServiceStub *dBinderServiceStub, uint32_t seqNumber)
 {
     if (dBinderServiceStub == NULL) {
@@ -278,29 +314,14 @@ static int32_t InvokerRemoteDBinder(DBinderServiceStub *dBinderServiceStub, uint
     }
 
     int32_t ret = ERR_FAILED;
-    ThreadLockInfo *threadLockInfo = (ThreadLockInfo *)malloc(sizeof(ThreadLockInfo));
+    ThreadLockInfo *threadLockInfo = NewThreadLock();
     if (threadLockInfo == NULL) {
-        RPC_LOG_ERROR("threadLockInfo malloc failed");
-        return ERR_FAILED;
+        return ret;
     }
-    if (pthread_mutex_init(&threadLockInfo->mutex, NULL) != 0) {
-        RPC_LOG_ERROR("threadLockInfo mutex init failed");
-        free(threadLockInfo);
-        return ERR_FAILED;
-    }
-    if (pthread_cond_init(&threadLockInfo->condition, NULL) != 0) {
-        RPC_LOG_ERROR("threadLockInfo condition init failed");
-        pthread_mutex_destroy(&threadLockInfo->mutex);
-        free(threadLockInfo);
-        return ERR_FAILED;
-    }
-
     threadLockInfo->seqNumber = seqNumber;
     ret = AttachThreadLockInfo(threadLockInfo);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("AttachThreadLockInfo failed");
-        pthread_mutex_destroy(&threadLockInfo->mutex);
-        pthread_cond_destroy(&threadLockInfo->condition);
         free(threadLockInfo);
         return ret;
     }
@@ -310,7 +331,23 @@ static int32_t InvokerRemoteDBinder(DBinderServiceStub *dBinderServiceStub, uint
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("send entry to remote dbinderService failed");
     } else {
-        pthread_cond_wait(&threadLockInfo->condition, &threadLockInfo->mutex);
+        struct timespec waitTime;
+        ret = GetWaitTime(&waitTime);
+        if (ret != ERR_NONE) {
+            DetachThreadLockInfo(threadLockInfo);
+            pthread_mutex_unlock(&threadLockInfo->mutex);
+            free(threadLockInfo);
+            return ERR_FAILED;
+        }
+
+        ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
+        if (ret == ETIMEDOUT) {
+            RPC_LOG_ERROR("InvokerRemoteDBinder wait for reply timeout");
+            DetachThreadLockInfo(threadLockInfo);
+            pthread_mutex_unlock(&threadLockInfo->mutex);
+            free(threadLockInfo);
+            return ERR_FAILED;
+        }
         RPC_LOG_INFO("InvokerRemoteDBinder wakeup!");
     }
 
@@ -319,13 +356,8 @@ static int32_t InvokerRemoteDBinder(DBinderServiceStub *dBinderServiceStub, uint
         ret = ERR_FAILED;
     }
 
-    if (UpdateSessionIfNeed(dBinderServiceStub->svc.cookie) != ERR_NONE) {
-        RPC_LOG_ERROR("UpdateSessionIfNeed failed");
-        ret = ERR_FAILED;
-    }
-
-    pthread_mutex_unlock(&threadLockInfo->mutex);
     DetachThreadLockInfo(threadLockInfo);
+    pthread_mutex_unlock(&threadLockInfo->mutex);
     free(threadLockInfo);
 
     return ret;
@@ -405,7 +437,7 @@ static int32_t AttachProxyObject(ProxyObject *proxy)
     return ERR_NONE;
 }
 
-void DetachProxyObject(ProxyObject *proxy)
+static void DetachProxyObject(ProxyObject *proxy)
 {
     pthread_mutex_lock(&g_proxyObjectList.mutex);
     UtilsListDelete(&proxy->list);
@@ -501,7 +533,7 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
 
     IpcIo reply;
     uintptr_t ptr;
-    int32_t ret = InvokerListenThread(proxy, GetLocalDeviceID(), remoteDeviceID, pid, uid, &reply, &ptr);
+    int32_t ret = InvokerListenThread(proxy, g_trans->GetLocalDeviceID(), remoteDeviceID, pid, uid, &reply, &ptr);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("INVOKE_LISTEN_THREAD failed");
         FreeBuffer((void *)ptr);
