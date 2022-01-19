@@ -35,6 +35,7 @@ extern "C" {
 #define GET_SYSTEM_ABILITY_TRANSACTION 1
 #define ID_DIGITS 10
 #define DEFAULT_SEND_WAIT_TIME 4
+#define USECTONSEC 1000
 
 enum DBinderCode {
     MESSAGE_AS_INVOKER          = 1,
@@ -98,6 +99,23 @@ typedef struct {
     uintptr_t offsets;
     char *buffer;
 } dbinder_transaction_data;
+
+typedef struct {
+    struct DHandleEntryHead head;
+    uint32_t transType;
+    uint32_t dBinderCode;
+    uint16_t fromPort;
+    uint16_t toPort;
+    uint64_t stubIndex;
+    uint32_t seqNumber;
+    uintptr_t binderObject;
+    struct DeviceIdInfo deviceIdInfo;
+    uintptr_t stub;
+    uint16_t serviceNameLength;
+    char serviceName[SERVICENAME_LENGTH + 1];
+    uint32_t pid;
+    uint32_t uid;
+} DHandleEntryTxRx;
 
 #ifdef __cplusplus
 }

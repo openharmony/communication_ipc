@@ -23,6 +23,7 @@
 #include "rpc_process_skeleton.h"
 #include "dbinder_invoker.h"
 #include "dbinder_types.h"
+#include "dbinder_service_inner.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 
@@ -169,12 +170,12 @@ static char *CreateDatabusName(void)
     return sessionName;
 }
 
-static int GetSessionFromDBinderService(uint32_t handle)
+static int GetSessionFromDBinderService(SvcIdentity *svc)
 {
     RPC_LOG_INFO("GetSessionFromDBinderService start");
 
     int32_t proto = IF_PROT_DATABUS;
-    SessionInfo *session = QuerySessionObject((uintptr_t)handle);
+    SessionInfo *session = QuerySessionObject(svc->cookie);
     if (session == NULL) {
         RPC_LOG_ERROR("client find session is null");
         return proto;
@@ -197,7 +198,7 @@ static int GetSessionFromDBinderService(uint32_t handle)
         free(sessionObject);
         return proto;
     }
-    handleToIndex->handle = handle;
+    handleToIndex->handle = svc->handle;
     handleToIndex->index = session->stubIndex;
 
     if (AttachHandleToIndex(handleToIndex) != ERR_NONE) {
@@ -216,14 +217,15 @@ static int GetSessionFromDBinderService(uint32_t handle)
         return proto;
     }
 
-    UpdateClientSession(handle, sessionObject, localBusName, session->serviceName, session->deviceIdInfo.toDeviceId);
+    UpdateClientSession(svc->handle, sessionObject, localBusName,
+        session->serviceName, session->deviceIdInfo.toDeviceId);
 
     return proto;
 }
 
-void UpdateProto(int32_t handle)
+void UpdateProto(SvcIdentity *svc)
 {
-    if (handle < 0) {
+    if (svc->handle < 0) {
         RPC_LOG_ERROR("UpdateProto handle invalid");
         return;
     }
@@ -233,11 +235,11 @@ void UpdateProto(int32_t handle)
         RPC_LOG_ERROR("UpdateProto threadContext is null");
         return;
     }
-    HandleSessionList *sessionObject = QueryProxySession(handle);
+    HandleSessionList *sessionObject = QueryProxySession(svc->handle);
     if (sessionObject != NULL) {
         threadContext->proto = IF_PROT_DATABUS;
         return;
     }
-    threadContext->proto = GetSessionFromDBinderService(handle);
+    threadContext->proto = GetSessionFromDBinderService(svc);
     RPC_LOG_INFO("UpdateProto get proto: %d", threadContext->proto);
 }

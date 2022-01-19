@@ -72,7 +72,7 @@ int32_t OnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply,
 bool OnThreadTerminated(pthread_t threadId);
 void SendObituary(DeathCallback *deathCallback);
 void DeleteDeathCallback(DeathCallback *deathCallback);
-void WaitForProxyInit(int32_t handle);
+void WaitForProxyInit(SvcIdentity *svc);
 #ifdef __cplusplus
 #if __cplusplus
 }

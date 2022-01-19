@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include "rpc_trans.h"
-#include "dbinder_service.h"
 
 #ifdef __cplusplus
 extern "C" {

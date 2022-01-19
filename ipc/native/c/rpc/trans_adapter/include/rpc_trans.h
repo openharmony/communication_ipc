@@ -34,10 +34,10 @@ typedef struct {
     int32_t (*Connect)(const char *SaSessionName, const char *peerDeviceId, void *args);
     int32_t (*Disconnect)(int32_t sessionId);
     int32_t (*Send)(int32_t sessionId, const void *data, uint32_t len);
+    char *(*GetLocalDeviceID)(void);
 } TransInterface;
 
 TransInterface *GetRpcTrans(void);
-char *GetLocalDeviceID(void);
 
 #ifdef __cplusplus
 }

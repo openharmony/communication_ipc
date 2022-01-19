@@ -27,8 +27,6 @@
 #include "rpc_errno.h"
 #include "rpc_log.h"
 
-#define USECTONSEC 1000
-
 static RpcSkeleton g_rpcSkeleton = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
     .isServerCreated = -1
@@ -440,9 +438,9 @@ void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle)
         return;
     }
 
-    if (handle != messageInfo->socketId) {
+    if (handle != messageInfo->sessionId) {
         RPC_LOG_ERROR("error! handle is not equal messageInfo, handle = %d, messageFd = %u", handle,
-            messageInfo->socketId);
+            messageInfo->sessionId);
         return;
     }
     if (pthread_equal(messageInfo->threadId, pthread_self()) == 0) {
@@ -482,10 +480,10 @@ int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, Messag
     return result;
 }
 
-void UpdateProtoIfNeed(int32_t handle)
+void UpdateProtoIfNeed(SvcIdentity *svc)
 {
-    RPC_LOG_INFO("rpc manager update proto, handle %d", handle);
-    UpdateProto(handle);
+    RPC_LOG_INFO("rpc manager update proto, handle %d", svc->handle);
+    UpdateProto(svc);
 }
 
 uint64_t GetNewStubIndex(void)

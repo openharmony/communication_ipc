@@ -34,7 +34,6 @@ static const uint16_t DEFAULT_HASH_SEED = 5381;
 static const uint16_t DEFAULT_PORT_MIN = 10000;
 
 TransInterface *GetSocketTrans(void);
-char *GetSocketLocalDeviceID(void);
 
 #ifdef __cplusplus
 }

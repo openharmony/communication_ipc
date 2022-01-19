@@ -28,24 +28,17 @@ bool IsSameStub(DBinderServiceStub *stub, const char *serviceName,
     return false;
 }
 
-int32_t GetDBinderHandle(uintptr_t stubAddr)
-{
-    return (int32_t)stubAddr;
-}
-
-int32_t UpdateSessionIfNeed(uintptr_t stubAddr)
-{
-    UpdateProto((int32_t)stubAddr);
-    return ERR_NONE;
-}
-
 ProxyObject *RpcGetSystemAbility(int32_t systemAbility)
 {
-    SvcIdentity *target = GetSystemAbilityById(systemAbility);
-    if (target == NULL) {
-        RPC_LOG_ERROR("GetSystemAbilityById return null");
+    IpcIo reply;
+    uint8_t replyAlloc[RPC_IPC_LENGTH];
+    IpcIoInit(&reply, replyAlloc, RPC_IPC_LENGTH, 0);
+    if (GetSystemAbilityById(systemAbility, &reply) != ERR_NONE) {
+        RPC_LOG_ERROR("GetSystemAbilityById failed");
         return NULL;
     }
+    SvcIdentity target;
+    ReadRemoteObject(&reply, &target);
 
     ProxyObject *proxyObject = (ProxyObject *)calloc(1, sizeof(ProxyObject));
     if (proxyObject == NULL) {
@@ -57,7 +50,7 @@ ProxyObject *RpcGetSystemAbility(int32_t systemAbility)
         return NULL;
     }
 
-    if (memcpy_s(proxyObject->proxy, sizeof(SvcIdentity), target, sizeof(SvcIdentity)) != EOK) {
+    if (memcpy_s(proxyObject->proxy, sizeof(SvcIdentity), &target, sizeof(SvcIdentity)) != EOK) {
         free(proxyObject->proxy);
         free(proxyObject);
         return NULL;

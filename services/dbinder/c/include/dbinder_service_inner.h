@@ -13,33 +13,23 @@
  * limitations under the License.
  */
 
-#include "rpc_process_skeleton.h"
+#ifndef DBINDER_SERVICE_INNER_H
+#define DBINDER_SERVICE_INNER_H
 
-#include "dbinder_invoker.h"
-#include "rpc_errno.h"
+#include "dbinder_types.h"
 
-int32_t RpcProcessSkeleton(void)
-{
-    return ERR_NONE;
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif
+#endif /* __cplusplus */
+
+int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message);
+SessionInfo *QuerySessionObject(uintptr_t stub);
+
+#ifdef __cplusplus
+#if __cplusplus
 }
-
-RpcSkeleton *GetCurrentRpcSkeleton(void)
-{
-    return NULL;
-}
-
-int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option,
-    IpcObjectStub *objectStub)
-{
-    return ERR_NOT_RPC;
-}
-
-void UpdateProtoIfNeed(SvcIdentity *svc)
-{
-    return;
-}
-
-RemoteInvoker *GetRpcInvoker(void)
-{
-    return NULL;
-}
+#endif
+#endif /* __cplusplus */
+#endif /* DBINDER_SERVICE_INNER_H */
