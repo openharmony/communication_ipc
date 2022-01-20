@@ -91,7 +91,6 @@ static int32_t ProcessProto(uint32_t code, IpcIo *data, IpcIo *reply, MessageOpt
             WriteString(reply, session->deviceIdInfo.toDeviceId);
             WriteString(reply, session->deviceIdInfo.fromDeviceId);
             WriteString(reply, localBusName);
-            free((void *)localBusName);
             break;
         }
         default: {
@@ -99,6 +98,7 @@ static int32_t ProcessProto(uint32_t code, IpcIo *data, IpcIo *reply, MessageOpt
             break;
         }
     }
+    free((void *)localBusName);
     return result;
 }
 
@@ -111,7 +111,7 @@ static int32_t DBinderRemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, Me
             break;
         }
         default: {
-            RPC_LOG_ERROR("unknown dbinder code %{public}d", code);
+            RPC_LOG_ERROR("unknown dbinder code %d", code);
             ret = -1;
             break;
         }
