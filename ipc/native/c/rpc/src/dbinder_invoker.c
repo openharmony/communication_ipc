@@ -136,7 +136,7 @@ static int32_t ProcessNormalData(IpcIo *data, int32_t handle, int status, dbinde
     } else {
         HandleToIndexList *handleToIndex = QueryHandleToIndex(handle);
         if (handleToIndex == NULL) {
-            RPC_LOG_ERROR("stubIndex not found for handle %{public}d", handle);
+            RPC_LOG_ERROR("stubIndex not found for handle %d", handle);
             return ERR_FAILED;
         }
         transData->cookie = handleToIndex->index;
@@ -283,7 +283,7 @@ static int32_t HandleReply(uint64_t seqNumber, IpcIo *reply, uintptr_t *buffer)
         .buffer = messageInfo->buffer
     };
     ToIpcData(&transData, reply);
-    buffer = (uintptr_t *)messageInfo->buffer;
+    *buffer = (uintptr_t)messageInfo->buffer;
 
     return ERR_NONE;
 }
@@ -619,10 +619,11 @@ void OnMessageAvailable(int sessionId, const void *data, unsigned int len)
     };
 }
 
-void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject, const char *sessionName,
+void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject,
     const char *serviceName, const char *deviceId)
 {
-    if (handle < 0 || sessionObject == NULL || sessionName == NULL || serviceName == NULL || deviceId == NULL) {
+    if (handle < 0 || sessionObject == NULL || serviceName == NULL || deviceId == NULL) {
+        RPC_LOG_ERROR("UpdateClientSession params invalid");
         return;
     }
 
