@@ -21,6 +21,7 @@
 #include "napi/native_node_api.h"
 #include "refbase.h"
 
+constexpr size_t  TRACESIZE = 64;
 namespace OHOS {
 EXTERN_C_START
     napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports);
@@ -98,6 +99,8 @@ EXTERN_C_END
         napi_ref jsReplyRef;
         napi_ref callback;
         napi_env env;
+        char traceVaue[TRACESIZE];
+        int32_t traceId;
     };
 } // namespace OHOS
 #endif // NAPI_IPC_OHOS_REMOTE_OBJECT_H
