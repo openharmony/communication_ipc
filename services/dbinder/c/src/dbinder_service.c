@@ -549,7 +549,7 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
     size_t sessionLen;
     char *serverSessionName = (char *)ReadString(&reply, &sessionLen);
 
-    if (stubIndex == 0 || serverSessionName == NULL || strlen(serverSessionName) > SERVICENAME_LENGTH) {
+    if (stubIndex == 0 || serverSessionName == NULL || sessionLen > SERVICENAME_LENGTH) {
         RPC_LOG_ERROR("INVOKE_LISTEN_THREAD reply stubIndex or sessionName invalid");
         FreeBuffer((void *)ptr);
         return ERR_FAILED;
@@ -734,12 +734,12 @@ int32_t StartDBinderService(void)
 
 int32_t RegisterRemoteProxy(const void *name, uint32_t len, int32_t systemAbility)
 {
-    RPC_LOG_INFO("register remote proxy, service name = %s", (char*)name);
     if (name == NULL || systemAbility < 0) {
         RPC_LOG_ERROR("RegisterRemoteProxy name is null or systemAbility invalid");
         return ERR_FAILED;
     }
-    const char *serviceName = (char *)name;
+    const char *serviceName = (const char *)name;
+    RPC_LOG_INFO("register remote proxy, service name = %s", serviceName);
 
     RemoteBinderObjects *binderObject = (RemoteBinderObjects *)malloc(sizeof(RemoteBinderObjects));
     if (binderObject == NULL) {

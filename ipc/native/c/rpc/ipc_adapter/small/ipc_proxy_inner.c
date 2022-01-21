@@ -68,7 +68,7 @@ static void UpdateDatabusClientSession(int32_t handle, IpcIo *reply)
         return;
     }
 
-    UpdateClientSession(handle, sessionObject, localBusName, serviceName, peerID);
+    UpdateClientSession(handle, sessionObject, serviceName, peerID);
 }
 
 static int GetSessionFromDBinderService(uint32_t handle)
