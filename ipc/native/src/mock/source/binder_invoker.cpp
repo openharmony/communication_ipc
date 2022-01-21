@@ -14,6 +14,7 @@
  */
 
 #include "binder_invoker.h"
+#include "access_token_adapter.h"
 #include "string_ex.h"
 #include "sys_binder.h"
 #include "hilog/log.h"
@@ -25,7 +26,6 @@
 #include "hitrace_invoker.h"
 #include "dbinder_error_code.h"
 #include "log_tags.h"
-#include "token_setproc.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -44,7 +44,7 @@ BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()),
     firstTokenID_(-1), status_(0)
 {
-    callerTokenID_ = (uint32_t)GetSelfTokenID();
+    callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
 }
@@ -834,7 +834,7 @@ uint32_t BinderInvoker::GetCallerTokenID() const
 uint32_t BinderInvoker::GetFirstTokenID() const
 {
     if (firstTokenID_ == -1) {
-        return (uint32_t)GetFirstCallerTokenID();
+        return (uint32_t)RpcGetFirstCallerTokenID();
     }
     return firstTokenID_;
 }
