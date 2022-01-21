@@ -14,9 +14,9 @@
  */
 
 #include "ipc_skeleton.h"
+#include "access_token_adapter.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
-#include "token_setproc.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -91,7 +91,7 @@ uint32_t IPCSkeleton::GetCallingTokenID()
     if (invoker != nullptr) {
         return invoker->GetCallerTokenID();
     }
-    uint64_t token = GetSelfTokenID();
+    uint64_t token = RpcGetSelfTokenID();
     return (uint32_t)token;
 }
 
@@ -101,7 +101,7 @@ uint32_t IPCSkeleton::GetFirstTokenID()
     if (invoker != nullptr) {
         return invoker->GetFirstTokenID();
     }
-    uint64_t ftoken = GetFirstCallerTokenID();
+    uint64_t ftoken = RpcGetFirstCallerTokenID();
     return (uint32_t)ftoken;
 }
 

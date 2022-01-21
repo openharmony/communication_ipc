@@ -22,10 +22,12 @@ config("libipc_core_private_config") {
 
 ohos_shared_library("ipc_core") {
   include_dirs = [
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$SUBSYSTEM_DIR/utils/include",
     "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
   ]
   sources = [
+    "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
     "$IPC_CORE_ROOT/src/core/source/buffer_object.cpp",
     "$IPC_CORE_ROOT/src/core/source/comm_auth_info.cpp",
     "$IPC_CORE_ROOT/src/core/source/databus_session_callback.cpp",
@@ -59,10 +61,7 @@ ohos_shared_library("ipc_core") {
     ":libipc_core_private_config",
   ]
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
-  deps = [
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
     "dsoftbus_standard:softbus_client",
