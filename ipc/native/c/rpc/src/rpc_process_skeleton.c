@@ -51,6 +51,14 @@ int32_t RpcProcessSkeleton(void)
 {
     pthread_mutex_lock(&g_rpcSkeletonMutex);
 
+    g_rpcSkeleton.rpcTrans = GetRpcTrans();
+    if (g_rpcSkeleton.rpcTrans == NULL) {
+        RPC_LOG_ERROR("GetRpcTrans return null");
+        pthread_mutex_unlock(&g_rpcSkeletonMutex);
+        return ERR_FAILED;
+    }
+    g_rpcSkeleton.seqNumber = 0;
+
     UtilsListInit(&g_stubObjectList.stubObjects);
     UtilsListInit(&g_processInfoList.processInfo);
     UtilsListInit(&g_socketLockInfoList.socketLockInfo);
@@ -60,11 +68,7 @@ int32_t RpcProcessSkeleton(void)
     UtilsListInit(&g_handleToIndexList.list);
     UtilsListInit(&g_seqNumberToThread.list);
 
-    g_rpcSkeleton.seqNumber = 0;
-    g_rpcSkeleton.rpcTrans = GetRpcTrans();
-
     pthread_mutex_unlock(&g_rpcSkeletonMutex);
-
     return ERR_NONE;
 }
 
@@ -359,7 +363,6 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, 
 {
     if (AddThreadBySeqNumber(messageInfo) != ERR_NONE) {
         RPC_LOG_ERROR("add seqNumber = %llu failed", seqNumber);
-        free(messageInfo);
         return ERR_FAILED;
     }
 

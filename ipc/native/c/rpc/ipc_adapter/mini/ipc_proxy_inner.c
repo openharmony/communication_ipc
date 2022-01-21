@@ -183,12 +183,14 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
     const char *localBusName = CreateDatabusName();
     if (localBusName == NULL) {
         RPC_LOG_ERROR("ProcessProto CreateDatabusName failed");
+        free(localBusName);
         return proto;
     }
 
     HandleSessionList *sessionObject = (HandleSessionList *)malloc(sizeof(HandleSessionList));
     if (sessionObject == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession sessionObject malloc failed");
+        free(localBusName);
         return proto;
     }
 
@@ -196,6 +198,7 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
     if (handleToIndex == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession handleToIndex malloc failed");
         free(sessionObject);
+        free(localBusName);
         return proto;
     }
     handleToIndex->handle = svc->handle;
@@ -205,6 +208,7 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
         RPC_LOG_ERROR("AttachHandleToIndex failed");
         free(sessionObject);
         free(handleToIndex);
+        free(localBusName);
         return proto;
     }
 
@@ -214,12 +218,13 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
         DetachHandleToIndex(handleToIndex);
         free(sessionObject);
         free(handleToIndex);
+        free(localBusName);
         return proto;
     }
 
-    UpdateClientSession(svc->handle, sessionObject, localBusName,
-        session->serviceName, session->deviceIdInfo.toDeviceId);
+    UpdateClientSession(svc->handle, sessionObject, session->serviceName, session->deviceIdInfo.toDeviceId);
 
+    free(localBusName);
     return proto;
 }
 
