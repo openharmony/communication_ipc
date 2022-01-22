@@ -13,10 +13,14 @@
 import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 
 ohos_shared_library("ipc_test_helper") {
-  include_dirs = [ "//utils/system/safwk/native/include" ]
+  include_dirs = [
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
+    "//utils/system/safwk/native/include",
+  ]
 
   sources = [
     "./src/assist_test_service.cpp",
@@ -32,10 +36,7 @@ ohos_shared_library("ipc_test_helper") {
     "$SUBSYSTEM_DIR:ipc_util_config",
   ]
 
-  deps = [
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
@@ -57,7 +58,6 @@ ohos_executable("ipc_server_test") {
 
   deps = [
     ":ipc_test_helper",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//utils/native/base:utils",
   ]
 
@@ -95,7 +95,10 @@ ohos_executable("ipc_client_test") {
 }
 
 ohos_shared_library("ipc_test_helper_extra") {
-  include_dirs = [ "//utils/system/safwk/native/include" ]
+  include_dirs = [
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
+    "//utils/system/safwk/native/include",
+  ]
 
   sources = [
     "./src/assist_test_service.cpp",
@@ -113,10 +116,7 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$SUBSYSTEM_DIR:ipc_util_config",
   ]
 
-  deps = [
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
