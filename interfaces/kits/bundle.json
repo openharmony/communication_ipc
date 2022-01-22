@@ -1,0 +1,49 @@
+{
+    "name": "@openharmony/ipc_js",
+    "version": "3.1.0",
+    "description": "ipc_js",
+    "publishAs": "code-segment",
+    "scripts": {
+      "install": "DEST_PATH=${DEP_BUNDLE_BASE}/foundation/communication/ipc_js && mkdir -p $DEST_PATH && cp -r ./* $DEST_PATH"
+    },
+    "author": {},
+    "repository": "",
+    "license": "Apache License 2.0",
+    "component": {
+      "name": "ipc_js",
+      "subsystem": "communication",
+      "adapted_system_type": [ 
+        "standard"
+      ],
+      "features": [],
+      "rom": "500KB",
+      "ram": "100KB",
+      "deps": {
+        "components": [
+            "//foundation/ace/napi:ace_napi",
+            "//third_party/libuv:uv_static",
+            "//utils/native/base:utils"
+        ],
+        "third_party": [
+          "bounds_checking_function"
+        ]
+      },
+      "build": {
+        "sub_component": [
+            "//foundation/communication/ipc/interfaces/kits/js/napi:rpc"
+        ],
+        "inner_kits": [
+          {
+              "name": "//foundation/communication/ipc/interfaces/kits/js/napi:rpc",
+              "header": {
+                "header_files": [
+                    "napi_remote_object.h"
+                ],
+                "header_base": "//foundation/communication/ipc/ipc/native/src/napi/include"
+              }
+            }
+        ],
+        "test": [ ]
+        }
+      }
+    }
