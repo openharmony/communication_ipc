@@ -1,0 +1,44 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/lite/config/component/lite_component.gni")
+import("//build/lite/config/test.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "${SUBSYSTEM_DIR}/ipc/native/c"
+
+unittest("rpc_server") {
+  output_extension = "bin"
+  output_dir = "$root_out_dir/test/unittest/rpc"
+
+  sources = [ "RpcServerTest.cpp" ]
+  include_dirs = [
+    "${SUBSYSTEM_DIR}/ipc/test/unittest/rpc/include",
+    "//third_party/bounds_checking_function/include",
+    "//utils/native/lite/include",
+    "$IPC_CORE_ROOT/ipc/include",
+    "$IPC_CORE_ROOT/manager/include",
+    "$IPC_CORE_ROOT/rpc/include",
+    "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
+    "$IPC_CORE_ROOT/rpc/trans_adapter/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
+    "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
+  ]
+  ldflags = [ "-lstdc++" ]
+  deps = [
+    "${SUBSYSTEM_DIR}/interfaces/innerkits/c/dbinder:dbinder",
+    "${SUBSYSTEM_DIR}/interfaces/innerkits/c/ipc:rpc_manager",
+  ]
+}
