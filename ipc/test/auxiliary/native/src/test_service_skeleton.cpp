@@ -16,8 +16,12 @@
 #include "test_service_skeleton.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "access_token_adapter.h"
 #include "ipc_debug.h"
 #include "string_ex.h"
 #include "iremote_proxy.h"
@@ -27,7 +31,6 @@
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
-#include "token_setproc.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -281,6 +284,58 @@ int TestServiceProxy::TestCallingUidPid()
     return -1;
 }
 
+#define ACCESS_TOKEN_ID_IOCTL_BASE 'A'
+
+enum {
+    GET_TOKEN_ID = 1,
+    SET_TOKEN_ID,
+    GET_FTOKEN_ID,
+    SET_FTOKEN_ID,
+    ACCESS_TOKENID_MAX_NR,
+};
+
+#define ACCESS_TOKENID_SET_TOKENID \
+    _IOW(ACCESS_TOKEN_ID_IOCTL_BASE, SET_TOKEN_ID, unsigned long long)
+#define ACCESS_TOKENID_SET_FTOKENID \
+    _IOW(ACCESS_TOKEN_ID_IOCTL_BASE, SET_FTOKEN_ID, unsigned long long)
+
+#define ACCESS_TOKEN_OK 0
+#define ACCESS_TOKEN_ERROR (-1)
+
+#define TOKENID_DEVNODE "/dev/access_token_id"
+
+int RpcSetSelfTokenID(uint64_t tokenID)
+{
+    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    if (fd < 0) {
+        return ACCESS_TOKEN_ERROR;
+    }
+    int ret = ioctl(fd, ACCESS_TOKENID_SET_TOKENID, &tokenID);
+    if (ret) {
+        close(fd);
+        return ACCESS_TOKEN_ERROR;
+    }
+
+    close(fd);
+    return ACCESS_TOKEN_OK;
+}
+
+int RpcSetFirstCallerTokenID(uint64_t tokenID)
+{
+    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    if (fd < 0) {
+        return ACCESS_TOKEN_ERROR;
+    }
+    int ret = ioctl(fd, ACCESS_TOKENID_SET_FTOKENID, &tokenID);
+    if (ret) {
+        close(fd);
+        return ACCESS_TOKEN_ERROR;
+    }
+
+    close(fd);
+    return ACCESS_TOKEN_OK;
+}
+
 int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
 {
     MessageOption option;
@@ -288,7 +343,7 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
 
     int32_t token  = IPCSkeleton::GetCallingTokenID();
     int32_t ftoken  = IPCSkeleton::GetFirstTokenID();
-    int32_t tokenSelf = GetSelfTokenID();
+    int32_t tokenSelf = RpcGetSelfTokenID();
     ZLOGE(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
     ZLOGE(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
     ZLOGE(LABEL, "TestServiceProxy ftoken_expected: %{public}d", ftoken_expected);
@@ -303,13 +358,13 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
         return -1;
     }
 
-    int ret = SetFirstCallerTokenID(ftoken_expected);
+    int ret = RpcSetFirstCallerTokenID(ftoken_expected);
     if (ret != 0) {
-        ZLOGE(LABEL, "SetFirstCallerTokenID ret = %{public}d", ret);
+        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}d", ret);
         return -1;
     }
 
-    ret = GetFirstCallerTokenID();
+    ret = RpcGetFirstCallerTokenID();
     ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}d", ret);
 
     ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel1, option);
@@ -331,13 +386,13 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
         return -1;
     }
 
-    ret = SetSelfTokenID(666);
+    ret = RpcSetSelfTokenID(666);
     if (ret != 0) {
-        ZLOGE(LABEL, "SetSelfTokenID ret = %{public}d", ret);
+        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}d", ret);
         return -1;
     }
 
-    tokenSelf = GetSelfTokenID();
+    tokenSelf = RpcGetSelfTokenID();
     ZLOGE(LABEL, "TestServiceProxy get token after set: %{public}d", tokenSelf);
     ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel2, option);
     if (ret != ERR_NONE) {
