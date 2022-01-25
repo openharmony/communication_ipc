@@ -25,10 +25,14 @@ ohos_shared_library("rpc") {
     "$SUBSYSTEM_DIR/utils/include",
     "//foundation/ace/napi/interfaces/kits",
     "//utils/system/safwk/native/include",
+    "$SUBSYSTEM_DIR/ipc/native/c/adapter/bytrace/include",
+    "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
   ]
   public_configs = [ ":rpc_public_config" ]
 
   sources = [
+    "$SUBSYSTEM_DIR/ipc/native/c/adapter/bytrace/source/rpc_bytrace.c",
+    "$SUBSYSTEM_DIR/ipc/native/c/adapter/bytrace/source/rpc_bytrace_inner.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ashmem.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_parcel.cpp",
@@ -43,6 +47,7 @@ ohos_shared_library("rpc") {
   ]
 
   external_deps = [
+    "bytrace_standard:bytrace_core",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
