@@ -96,15 +96,14 @@ static int GetSessionFromDBinderService(uint32_t handle)
     }
 
     switch (proto) {
-        case IF_PROT_BINDER:
-            break;
         case IF_PROT_DATABUS: {
             UpdateDatabusClientSession(handle, &reply);
-            proto = IF_PROT_DATABUS;
             break;
         }
-        default:
+        default: {
+            proto = IF_PROT_BINDER;
             break;
+        }
     }
 
     FreeBuffer((void *)ptr);
