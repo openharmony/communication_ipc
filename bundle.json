@@ -1,0 +1,99 @@
+{
+    "name": "@openharmony/ipc",
+    "version": "3.1.0",
+    "description": "ipc",
+    "publishAs": "code-segment",
+    "scripts": {
+      "install": "DEST_PATH=${DEP_BUNDLE_BASE}/foundation/communication/ipc && mkdir -p $DEST_PATH && cp -r ./* $DEST_PATH"
+    },
+    "author": {},
+    "repository": "",
+    "license": "Apache License 2.0",
+    "component": {
+      "name": "ipc",
+      "subsystem": "communication",
+      "adapted_system_type": [ 
+        "standard"
+      ],
+      "features": [],
+      "rom": "500KB",
+      "ram": "100KB",
+      "deps": {
+        "components": [
+          "samgr_proxy",
+          "utils_base",
+          "dsoftbus_standard:softbus_client",
+          "hitrace_native:libhitrace",
+          "hiviewdfx_hilog_native:libhilog"
+        ],
+        "third_party": [
+          "bounds_checking_function"
+        ]
+      },
+      "build": {
+        "sub_component": [
+          "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+          "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+          "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder"
+        ],
+        "inner_kits": [
+          {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+              "header": {
+                "header_files": [
+                  "ipc_types.h",
+                  "ipc_skeleton.h",
+                  "iremote_object.h",
+                  "iremote_proxy.h",
+                  "iremote_stub.h",
+                  "message_parcel.h",
+                  "message_option.h",
+                  "iremote_broker.h",
+                  "ipc_object_proxy.h",
+                  "ipc_object_stub.h",
+                  "peer_holder.h",
+                  "ipc_file_descriptor.h",
+                  "jni_help.h"
+                ],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
+              }
+            },
+            {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+              "header": {
+                "header_files": [
+                  "ipc_types.h",
+                  "ipc_skeleton.h",
+                  "iremote_object.h",
+                  "iremote_proxy.h",
+                  "iremote_stub.h",
+                  "message_parcel.h",
+                  "message_option.h",
+                  "iremote_broker.h",
+                  "ipc_object_proxy.h",
+                  "ipc_object_stub.h",
+                  "peer_holder.h",
+                  "ipc_file_descriptor.h",
+                  "jni_help.h"
+                ],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
+              }
+            },
+            {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+              "header": {
+                "header_files": [
+                  "dbinder_service.h",
+                  "dbinder_service_stub.h"
+                ],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include"
+              }
+            }
+        ],
+        "test": [
+          "//foundation/communication/ipc/ipc/test:moduletest",
+          "//foundation/communication/ipc/ipc/native/test:unittest"
+        ]
+      }
+    }
+  }
