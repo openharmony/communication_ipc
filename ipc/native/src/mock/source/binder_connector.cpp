@@ -42,7 +42,7 @@ static const std::string DRIVER_NAME = std::string("/dev/binder");
 BinderConnector *BinderConnector::instance_ = nullptr;
 
 BinderConnector::BinderConnector(const std::string &deviceName)
-    : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName), version_(0), subVersion_(0)
+    : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName), version_(0), featureSet_(0)
 {}
 
 BinderConnector::~BinderConnector()
@@ -81,13 +81,17 @@ bool BinderConnector::OpenDriver()
         close(fd);
         return false;
     }
-    int32_t subVersion = version >> BINDER_SUB_VERSION_SHIFT_BASE;
-    version = version & BINDER_VERSION_MASK;
     if (version != BINDER_CURRENT_PROTOCOL_VERSION) {
         ZLOGE(LABEL, "Binder version not match! driver version:%d, ipc version:%d",
             version, BINDER_CURRENT_PROTOCOL_VERSION);
         close(fd);
         return false;
+    }
+    uint64_t featureSet = 0;
+    ret = ioctl(fd, BINDER_FEATURE_SET, &featureSet);
+    if (ret != 0) {
+        ZLOGE(LABEL, "Get Binder featureSet failed: %s, disable all enhance feature.", strerror(errno));
+        featureSet = 0;
     }
     ZLOGI(LABEL, "%s:succ to open, fd=%d", __func__, fd);
     driverFD_ = fd;
@@ -103,14 +107,14 @@ bool BinderConnector::OpenDriver()
         return false;
     }
     version_ = version;
-    subVersion_ = subVersion;
+    featureSet_ = featureSet;
     return true;
 }
 
 bool BinderConnector::IsAccessTokenSupported()
 {
     if (driverFD_ > 0) {
-        return subVersion_ & ACCESS_TOKEN_MASK;
+        return featureSet_ & ACCESS_TOKEN_FAETURE_MASK;
     }
     return false;
 }

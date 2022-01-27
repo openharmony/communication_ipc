@@ -42,7 +42,7 @@ private:
     void *vmAddr_;
     const std::string deviceName_;
     int32_t version_;
-    int32_t subVersion_;
+    uint64_t featureSet_;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
