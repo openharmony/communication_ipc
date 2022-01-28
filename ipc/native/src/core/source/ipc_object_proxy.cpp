@@ -369,7 +369,9 @@ void IPCObjectProxy::SendObituary()
         for (int i = 0; i < recipientCount; i++) {
             sptr<DeathRecipient> recipient = recipients_[i];
             ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
-            recipient->OnRemoteDied(this);
+            if (recipient != nullptr) {
+                recipient->OnRemoteDied(this);
+            }
         }
         recipients_.clear();
 
