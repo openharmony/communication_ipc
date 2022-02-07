@@ -101,8 +101,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HiTraceId traceId = HiTrace::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
-    int cmd = binderConnector_->IsAccessTokenSupported() ? BC_TRANSACTION : BC_TRANSACTION_V8;
-    if (!WriteTransaction(cmd, flags, handle, code, data, nullptr)) {
+    if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LABEL, "WriteTransaction ERROR");
 #ifndef BUILD_PUBLIC_VERSION
@@ -322,8 +321,7 @@ void BinderInvoker::StartWorkLoop()
 
 int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
 {
-    int cmd = binderConnector_->IsAccessTokenSupported() ? BC_REPLY : BC_REPLY_V8;
-    int error = WriteTransaction(cmd, flags, -1, 0, reply, &result);
+    int error = WriteTransaction(BC_REPLY, flags, -1, 0, reply, &result);
     if (error < ERR_NONE) {
         return error;
     }
@@ -426,8 +424,16 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
     if (binderConnector_->IsAccessTokenSupported()) {
-        callerTokenID_ = tr->sender_tokenid;
-        firstTokenID_ = tr->first_tokenid;
+        struct access_token tmp;
+        int error = binderConnector_->WriteBinder(BINDER_GET_ACCESS_TOKEN, &tmp);
+        if (error != ERR_NONE) {
+            ZLOGE(LABEL, "BINDER_GET_ACCESS_TOKEN error = %{public}d", error);
+            callerTokenID_ = 0;
+            firstTokenID_ = 0;
+        } else {
+            callerTokenID_ = tmp.sender_tokenid;
+            firstTokenID_ = tmp.first_tokenid;
+        }
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
@@ -494,8 +500,7 @@ void BinderInvoker::OnRemoveRecipientDone()
 
 int BinderInvoker::HandleReply(MessageParcel *reply)
 {
-    const size_t readSize = binderConnector_->IsAccessTokenSupported() ?
-        sizeof(binder_transaction_data) : sizeof(binder_transaction_data_v8);
+    const size_t readSize = sizeof(binder_transaction_data);
     const uint8_t *buffer = input_.ReadBuffer(readSize);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "HandleReply read tr failed");
@@ -555,15 +560,6 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
             break;
         case BR_TRANSACTION: {
             const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data));
-            if (buffer == nullptr) {
-                error = IPC_INVOKER_INVALID_DATA_ERR;
-                break;
-            }
-            OnTransaction(buffer);
-            break;
-        }
-        case BR_TRANSACTION_V8: {
-            const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data_v8));
             if (buffer == nullptr) {
                 error = IPC_INVOKER_INVALID_DATA_ERR;
                 break;
@@ -689,8 +685,7 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
         ZLOGE(LABEL, "WriteTransaction Command failure");
         return false;
     }
-    size_t buffSize = (cmd == BC_TRANSACTION) ? sizeof(binder_transaction_data) : sizeof(binder_transaction_data_v8);
-    return output_.WriteBuffer(&tr, buffSize);
+    return output_.WriteBuffer(&tr, sizeof(binder_transaction_data));
 }
 
 int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResult)
@@ -731,15 +726,6 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
                 break;
             }
             case BR_REPLY: {
-                error = HandleReply(reply);
-                if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
-                    continueLoop = false;
-                    break;
-                }
-                error = ERR_NONE;
-                break;
-            }
-            case BR_REPLY_V8: {
                 error = HandleReply(reply);
                 if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
                     continueLoop = false;

@@ -28,10 +28,6 @@
 #define B_PACK_CHARS(c1, c2, c3, c4) ((((c1) << 24)) | (((c2) << 16)) | (((c3) << 8)) | (c4))
 #endif
 
-#define BINDER_SUB_VERSION_SHIFT_BASE 16
-#define BINDER_VERSION_MASK 0x0000FFFF
-#define ACCESS_TOKEN_MASK (1 << 0)
-
 #define B_TYPE_LARGE 0x85
 enum {
     BINDER_TYPE_BINDER = B_PACK_CHARS('s', 'b', '*', B_TYPE_LARGE),
@@ -101,6 +97,12 @@ struct binder_version {
     __s32 protocol_version;
 };
 #define BINDER_CURRENT_PROTOCOL_VERSION 8
+
+struct binder_feature_set {
+    __u64 feature_set;
+};
+#define ACCESS_TOKEN_FAETURE_MASK (1 << 0)
+
 struct binder_node_debug_info {
     binder_uintptr_t ptr;
     binder_uintptr_t cookie;
@@ -117,6 +119,12 @@ struct binder_node_info_for_ref {
     __u32 reserved3;
 };
 
+struct access_token {
+    __u64 sender_tokenid;
+    __u64 first_tokenid;
+    __u64 reserved[2];
+};
+
 #define BINDER_WRITE_READ _IOWR('b', 1, struct binder_write_read)
 #define BINDER_SET_IDLE_TIMEOUT _IOW('b', 3, __s64)
 #define BINDER_SET_MAX_THREADS _IOW('b', 5, __u32)
@@ -129,6 +137,8 @@ struct binder_node_info_for_ref {
 #define BINDER_SET_CONTEXT_MGR_EXT _IOW('b', 13, struct flat_binder_object)
 #define BINDER_GET_NODE_REFCOUNT _IOWR('b', 17, struct binder_ptr_count)
 #define BINDER_TRANSLATE_HANDLE _IOWR('b', 18, __u32)
+#define BINDER_FEATURE_SET	_IOWR('b', 30, struct binder_feature_set)
+#define BINDER_GET_ACCESS_TOKEN	_IOWR('b', 31, struct access_token)
 
 enum transaction_flags {
     TF_ONE_WAY = 0x01,
@@ -138,28 +148,6 @@ enum transaction_flags {
     TF_HITRACE = 0x80, // add flag for hitrace
 };
 struct binder_transaction_data {
-    union {
-        __u32 handle;
-        binder_uintptr_t ptr;
-    } target;
-    binder_uintptr_t cookie;
-    __u32 code;
-    __u32 flags;
-    pid_t sender_pid;
-    uid_t sender_euid;
-    binder_size_t data_size;
-    binder_size_t offsets_size;
-    union {
-        struct {
-            binder_uintptr_t buffer;
-            binder_uintptr_t offsets;
-        } ptr;
-        __u8 buf[8];
-    } data;
-    __u64 sender_tokenid;
-    __u64 first_tokenid;
-};
-struct binder_transaction_data_v8 {
     union {
         __u32 handle;
         binder_uintptr_t ptr;
@@ -200,9 +188,7 @@ enum binder_driver_return_protocol {
     BR_ERROR = _IOR('r', 0, __s32),
     BR_OK = _IO('r', 1),
     BR_TRANSACTION = _IOR('r', 2, struct binder_transaction_data),
-    BR_TRANSACTION_V8 = _IOR('r', 2, struct binder_transaction_data_v8),
     BR_REPLY = _IOR('r', 3, struct binder_transaction_data),
-    BR_REPLY_V8 = _IOR('r', 3, struct binder_transaction_data_v8),
     BR_ACQUIRE_RESULT = _IOR('r', 4, __s32),
     BR_DEAD_REPLY = _IO('r', 5),
     BR_TRANSACTION_COMPLETE = _IO('r', 6),
@@ -221,9 +207,7 @@ enum binder_driver_return_protocol {
 };
 enum binder_driver_command_protocol {
     BC_TRANSACTION = _IOW('c', 0, struct binder_transaction_data),
-    BC_TRANSACTION_V8 = _IOW('c', 0, struct binder_transaction_data_v8),
     BC_REPLY = _IOW('c', 1, struct binder_transaction_data),
-    BC_REPLY_V8 = _IOW('c', 1, struct binder_transaction_data_v8),
     BC_ACQUIRE_RESULT = _IOW('c', 2, __s32),
     BC_FREE_BUFFER = _IOW('c', 3, binder_uintptr_t),
     BC_INCREFS = _IOW('c', 4, __u32),
