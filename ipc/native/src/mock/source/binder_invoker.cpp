@@ -427,13 +427,15 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         struct access_token tmp;
         int error = binderConnector_->WriteBinder(BINDER_GET_ACCESS_TOKEN, &tmp);
         if (error != ERR_NONE) {
-            ZLOGE(LABEL, "BINDER_GET_ACCESS_TOKEN error = %{public}d", error);
             callerTokenID_ = 0;
             firstTokenID_ = 0;
         } else {
             callerTokenID_ = tmp.sender_tokenid;
             firstTokenID_ = tmp.first_tokenid;
         }
+    } else {
+        callerTokenID_ = 0;
+        firstTokenID_ = 0;
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
