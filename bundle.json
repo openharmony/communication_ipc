@@ -20,7 +20,6 @@
       "ram": "100KB",
       "deps": {
         "components": [
-          "samgr_proxy",
           "utils_base",
           "dsoftbus_standard:softbus_client",
           "hitrace_native:libhitrace",
