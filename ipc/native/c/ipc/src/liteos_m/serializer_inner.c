@@ -16,6 +16,7 @@
 #include "serializer.h"
 
 #include "ipc_process_skeleton.h"
+#include "rpc_log.h"
 
 bool WriteRemoteObject(IpcIo *io, const SvcIdentity *svc)
 {
