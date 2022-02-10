@@ -52,7 +52,8 @@ if (ohos_kernel_type == "liteos_m") {
   static_library("rpc_manager") {
     sources = ipc_common_src
     sources += [
-      "$IPC_CORE_ROOT/ipc/src/binder_invoker_virtual.c",
+      "$IPC_CORE_ROOT/ipc/src/liteos_m/ipc_invoker.c",
+      "$IPC_CORE_ROOT/ipc/src/liteos_m/serializer_inner.c",
       "$IPC_CORE_ROOT/manager/src/rpc_log.c",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_proxy_inner.c",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_stub_inner.c",
@@ -99,7 +100,7 @@ if (ohos_kernel_type == "liteos_m") {
 
   shared_library("ipc_single") {
     sources = ipc_common_src
-    sources += [ "$IPC_CORE_ROOT/ipc/src/binder_invoker_virtual.c" ]
+    sources += [ "$IPC_CORE_ROOT/ipc/src/liteos_a/ipc_invoker.c" ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = ipc_common_include
     ldflags = [
@@ -133,13 +134,15 @@ if (ohos_kernel_type == "liteos_m") {
   shared_library("ipc_single") {
     sources = ipc_common_src
     sources += [
-      "$IPC_CORE_ROOT/ipc/src/binder_invoker.c",
+      "$IPC_CORE_ROOT/ipc/src/linux/ipc_invoker.c",
+      "$IPC_CORE_ROOT/ipc/src/linux/serializer_inner.c",
       "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton_virtual.c",
     ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = ipc_common_include
     include_dirs += [
       "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/ipc/src/linux/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/services/dbinder/c/include",
     ]
@@ -161,7 +164,8 @@ if (ohos_kernel_type == "liteos_m") {
   shared_library("rpc_manager") {
     sources = ipc_common_src
     sources += [
-      "$IPC_CORE_ROOT/ipc/src/binder_invoker.c",
+      "$IPC_CORE_ROOT/ipc/src/linux/ipc_invoker.c",
+      "$IPC_CORE_ROOT/ipc/src/linux/serializer_inner.c",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_proxy_inner.c",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/${SYSTEM_LEVEL}/ipc_stub_inner.c",
       "$IPC_CORE_ROOT/rpc/src/dbinder_invoker.c",
@@ -173,6 +177,7 @@ if (ohos_kernel_type == "liteos_m") {
     include_dirs = ipc_common_include
     include_dirs += [
       "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/ipc/src/linux/include",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/services/dbinder/c/include",

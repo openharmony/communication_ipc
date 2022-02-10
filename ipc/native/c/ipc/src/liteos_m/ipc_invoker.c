@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "binder_invoker.h"
+#include "ipc_invoker.h"
 
 RemoteInvoker *GetIpcInvoker(void)
 {
