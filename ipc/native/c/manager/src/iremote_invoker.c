@@ -15,8 +15,8 @@
 
 #include "iremote_invoker.h"
 
-#include "binder_invoker.h"
 #include "dbinder_invoker.h"
+#include "ipc_invoker.h"
 #include "rpc_types.h"
 
 RemoteInvoker *InitRemoteInvoker(int32_t proto)

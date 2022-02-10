@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "binder_invoker.h"
+#include "ipc_invoker.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "binder_types.h"
+#include "ipc_types.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_pool.h"
 #include "rpc_errno.h"
@@ -117,7 +117,7 @@ static int32_t BinderWrite(void *data, size_t len)
     return ERR_NONE;
 }
 
-int32_t AcquireHandle(int32_t handle)
+static int32_t AcquireHandle(int32_t handle)
 {
     uint32_t cmd[2];
     cmd[0] = BC_ACQUIRE;
@@ -126,7 +126,7 @@ int32_t AcquireHandle(int32_t handle)
     return ret;
 }
 
-int32_t ReleaseHandle(int32_t handle)
+static int32_t ReleaseHandle(int32_t handle)
 {
     RPC_LOG_ERROR("SA dead delete it, handle = %d.", handle);
     uint32_t cmd[2];
@@ -178,7 +178,7 @@ static void BinderRefDone(const struct binder_ptr_cookie *ptrCookie, uint32_t cm
     BinderWrite(&data, sizeof(data));
 }
 
-int32_t IpcFreeBuffer(void *ptr)
+static int32_t IpcFreeBuffer(void *ptr)
 {
     if (ptr == NULL) {
         return ERR_NONE;
@@ -351,7 +351,7 @@ static int32_t BinderParse(IpcIo *reply, uintptr_t ptr, size_t size, uintptr_t *
     return ret;
 }
 
-void IpcJoinThread(bool initiative)
+static void IpcJoinThread(bool initiative)
 {
     struct binder_write_read bwr;
     uint32_t readbuf[READ_BUFFER_SIZE];
@@ -388,7 +388,7 @@ void IpcJoinThread(bool initiative)
     }
 }
 
-int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
+static int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
 {
     if (g_connector == NULL) {
         RPC_LOG_ERROR("ipc driver not init");
@@ -398,7 +398,7 @@ int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
     return ret;
 }
 
-int32_t IpcSetRegistryObject(void)
+static int32_t IpcSetRegistryObject(void)
 {
     if (g_connector == NULL) {
         RPC_LOG_ERROR("ipc driver not init");
@@ -430,7 +430,7 @@ static int32_t InternalRequest(SvcIdentity sid, uint32_t code, IpcIo *data, IpcI
     return error;
 }
 
-int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
+static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
     MessageOption option, uintptr_t *buffer)
 {
     if (g_connector == NULL) {
@@ -468,6 +468,7 @@ int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *re
             }
         }
     } else {
+        *buffer = 0;
         bwr.read_size = sizeof(readbuf);
         bwr.read_consumed = 0;
         bwr.read_buffer = (uintptr_t)readbuf;
@@ -483,7 +484,7 @@ int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *re
     return ret;
 }
 
-int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
+static int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
 {
     struct {
         uint32_t cmd;
@@ -495,7 +496,7 @@ int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
     return BinderWrite(&data, sizeof(data));
 }
 
-int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie)
+static int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie)
 {
     struct {
         uint32_t cmd;
@@ -508,7 +509,7 @@ int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie)
     return BinderWrite(&data, sizeof(data));
 }
 
-void IpcExitCurrentThread(void)
+static void IpcExitCurrentThread(void)
 {
     ioctl(g_connector->fd, BINDER_THREAD_EXIT, 0);
 }
