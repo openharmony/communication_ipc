@@ -25,17 +25,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 RemoteInvoker *GetIpcInvoker(void);
-int32_t AcquireHandle(int32_t handle);
-int32_t ReleaseHandle(int32_t handle);
-int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
-    MessageOption option, uintptr_t *buffer);
-int32_t IpcFreeBuffer(void *ptr);
-int32_t IpcSetMaxWorkThread(int32_t maxThreadNum);
-void IpcJoinThread(bool initiative);
-int32_t IpcSetRegistryObject(void);
-int32_t IpcAddDeathRecipient(int32_t handle, void *cookie);
-int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie);
-void IpcExitCurrentThread(void);
 
 #ifdef __cplusplus
 #if __cplusplus
