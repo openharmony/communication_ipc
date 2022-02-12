@@ -121,6 +121,45 @@ static void *IoPushUnaligned(IpcIo *io, size_t size)
     }
 }
 
+bool IpcIoAppend(IpcIo *dst, IpcIo *src)
+{
+    if (!IpcIoAvailable(dst) || !IpcIoAvailable(src)) {
+        RPC_LOG_ERROR("IpcIo dst or src not available\n", __FUNCTION__, __LINE__);
+        return false;
+    }
+    size_t srcUsedBufferSize = src->bufferCur - src->bufferBase;
+    size_t srcUsedOffsetsNum = src->offsetsCur - src->offsetsBase;
+    if (srcUsedBufferSize == 0 && srcUsedOffsetsNum != 0) {
+        RPC_LOG_ERROR("IpcIo src not available\n", __FUNCTION__, __LINE__);
+        return false;
+    }
+    if (dst->bufferLeft < srcUsedBufferSize || dst->offsetsLeft < srcUsedOffsetsNum) {
+        RPC_LOG_ERROR("IpcIo dst buffer space is not enough\n", __FUNCTION__, __LINE__);
+        return false;
+    }
+    if (srcUsedBufferSize > 0) {
+        char *ptr = (uint8_t *)IoPush(dst, srcUsedBufferSize);
+        if (ptr == NULL) {
+            return false;
+        }
+        size_t offsetAdjust = ptr - dst->bufferBase;
+        if (memset_s(ptr, IPC_IO_ALIGN(srcUsedBufferSize), 0, IPC_IO_ALIGN(srcUsedBufferSize)) != EOK) {
+            dst->flag |= IPC_IO_OVERFLOW;
+            return false;
+        }
+        if (memcpy_s(ptr, IPC_IO_ALIGN(srcUsedBufferSize), src->bufferBase, srcUsedBufferSize) != EOK) {
+            dst->flag |= IPC_IO_OVERFLOW;
+            return false;
+        }
+        for (int i = 0; i < srcUsedOffsetsNum; i++) {
+            dst->offsetsLeft--;
+            *(dst->offsetsCur) = *(src->offsetsBase + i) + offsetAdjust;
+            dst->offsetsCur++;
+        }
+    }
+    return true;
+}
+
 bool WriteInt32(IpcIo *io, int32_t value)
 {
     if (io == NULL) {
