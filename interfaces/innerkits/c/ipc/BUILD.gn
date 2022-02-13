@@ -71,19 +71,18 @@ if (ohos_kernel_type == "liteos_m") {
       "$SUBSYSTEM_DIR/services/dbinder/c/include",
     ]
     if (ohos_build_type == "debug") {
-      sources += [
-        "$SUBSYSTEM_DIR/ipc/test/rpc/samgr/rpc_mini_samgr.c",
-        "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_${SYSTEM_LEVEL}_socket_trans.c",
-      ]
+      sources += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_${SYSTEM_LEVEL}_socket_trans.c" ]
       include_dirs += [
         "$SUBSYSTEM_DIR/ipc/test/rpc/include",
         "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include",
-        "//third_party/lwip/src/include",
       ]
       defines = [ "RPC_SOCKET_TRANS" ]
     }
     ldflags = [ "-lpthread" ]
-    deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
+    deps = [
+      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
+      "//kernel/liteos_m/components/net",
+    ]
   }
 } else if (ohos_kernel_type == "liteos_a") {
   shared_library("rpc_log") {

@@ -105,6 +105,7 @@ static void TcpShutDown(int fd)
 
 static void *HandleAccept(void *args)
 {
+    pthread_setname_np(pthread_self(), "h_rpc_req");
     if (args == NULL) {
         return NULL;
     }
@@ -245,6 +246,7 @@ static int32_t StopListen(const char *SaSessionName)
 
 static void *HandleSendReply(void *args)
 {
+    pthread_setname_np(pthread_self(), "h_rpc_r");
     if (args == NULL) {
         RPC_LOG_ERROR("HandleSendReply args is null");
         return NULL;
@@ -356,9 +358,8 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
 static char *GetSocketLocalDeviceID(void)
 {
     extern struct netif if_wifi;
-
-    uint32_t ip = ((ip4_addr_t *)&if_wifi.ip_addr)->addr;
-    char *localDeviceId = inet_ntoa(ip);
+    const ip4_addr_t *ip4Addr = netif_ip4_addr(&if_wifi);
+    char *localDeviceId = ip4addr_ntoa(ip4Addr);
     if (localDeviceId == NULL) {
         RPC_LOG_ERROR("GetSocketLocalDeviceID inet_ntoa return null");
         return NULL;
