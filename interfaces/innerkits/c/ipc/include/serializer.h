@@ -47,6 +47,7 @@ typedef struct {
 #define IPC_IO_OVERFLOW    0x02 /* ipc flag indicates whether io is running out of space */
 
 void IpcIoInit(IpcIo* io, void* buffer, size_t bufferSize, size_t maxobjects);
+bool IpcIoAppend(IpcIo *dst, IpcIo *src);
 
 bool WriteRemoteObject(IpcIo *io, const SvcIdentity *svc);
 bool WriteFileDescriptor(IpcIo *io, uint32_t fd);
