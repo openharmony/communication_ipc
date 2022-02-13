@@ -85,14 +85,18 @@ static char const *DBINDER_SESSION_NAME = "DBinderService";
 static const uint32_t RETRY_TIMES = 2;
 static const int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
 static const int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
+static int g_listInit = 0;
 
 static int32_t InitDBinder(void)
 {
-    UtilsListInit(&g_binderList.remoteBinderObjects);
-    UtilsListInit(&g_stubRegistedList.dBinderStubs);
-    UtilsListInit(&g_threadLockInfoList.threadLocks);
-    UtilsListInit(&g_sessionInfoList.sessionInfos);
-    UtilsListInit(&g_proxyObjectList.proxyObject);
+    if (g_listInit == 0) {
+        UtilsListInit(&g_binderList.remoteBinderObjects);
+        UtilsListInit(&g_stubRegistedList.dBinderStubs);
+        UtilsListInit(&g_threadLockInfoList.threadLocks);
+        UtilsListInit(&g_sessionInfoList.sessionInfos);
+        UtilsListInit(&g_proxyObjectList.proxyObject);
+        g_listInit = 1;
+    }
     return ERR_NONE;
 }
 
@@ -234,7 +238,7 @@ static int32_t SendEntryToRemote(DBinderServiceStub *stub, const uint32_t seqNum
         .dBinderCode = MESSAGE_AS_INVOKER,
         .fromPort = 0,
         .toPort = 0,
-        .stubIndex = atoi(stub->serviceName),
+        .stubIndex = stub->binderObject,
         .seqNumber = seqNumber,
         .binderObject = stub->binderObject,
         .deviceIdInfo.afType = DATABBUS_TYPE,
@@ -469,12 +473,7 @@ static ProxyObject *FindOrNewProxy(uintptr_t binderObject, int32_t systemAbility
         return NULL;
     }
 
-    int32_t digitalName = systemAbilityId;
-    if (serviceName != NULL) {
-        digitalName = atoi(serviceName);
-    }
-
-    proxyObject = RpcGetSystemAbility(digitalName);
+    proxyObject = RpcGetSystemAbility(systemAbilityId);
     if (proxyObject == NULL) {
         RPC_LOG_ERROR("RpcGetSystemAbility failed, saId: %d", systemAbilityId);
         return NULL;
@@ -734,6 +733,7 @@ int32_t StartDBinderService(void)
 
 int32_t RegisterRemoteProxy(const void *name, uint32_t len, int32_t systemAbility)
 {
+    InitDBinder();
     if (name == NULL || systemAbility < 0) {
         RPC_LOG_ERROR("RegisterRemoteProxy name is null or systemAbility invalid");
         return ERR_FAILED;
