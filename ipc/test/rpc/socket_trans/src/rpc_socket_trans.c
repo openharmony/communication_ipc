@@ -48,7 +48,6 @@ static SocketNodeList g_socketNodeList = {.mutex = PTHREAD_MUTEX_INITIALIZER};
 static int32_t g_init = -1;
 static int32_t g_serverCreated = -1;
 static TransCallback g_callback;
-static char *g_localDeviceId = NULL;
 
 static uint16_t Hash(const char *name)
 {
@@ -296,12 +295,8 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
     return ERR_NONE;
 }
 
-static char *GetSocketLocalDeviceID(void)
+static int32_t GetSocketLocalDeviceID(const char *SaSessionName, char *deviceId)
 {
-    if (g_localDeviceId != NULL) {
-        return g_localDeviceId;
-    }
-
     struct ifaddrs *ifaddr;
     struct ifaddrs *ifa;
     int family;
@@ -309,7 +304,7 @@ static char *GetSocketLocalDeviceID(void)
     if (getifaddrs(&ifaddr) == -1) {
         RPC_LOG_ERROR("getifaddrs failed");
         freeifaddrs(ifaddr);
-        return NULL;
+        return ERR_FAILED;
     }
 
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
@@ -328,24 +323,22 @@ static char *GetSocketLocalDeviceID(void)
             size_t deviceIdLen = strlen(localDeviceId);
             if (deviceIdLen == 0 || deviceIdLen > DEVICEID_LENGTH) {
                 RPC_LOG_ERROR("deviceIdLen invalid");
+                free(localDeviceId);
                 break;
             }
-            g_localDeviceId = (char *)malloc(deviceIdLen + 1);
-            if (g_localDeviceId == NULL) {
-                RPC_LOG_ERROR("g_localDeviceId malloc failed");
-                break;
+            if (strcpy_s(deviceId, DEVICEID_LENGTH + 1, localDeviceId) != EOK) {
+                RPC_LOG_ERROR("deviceId strcpy failed");
+                free(localDeviceId);
+                return ERR_FAILED;
             }
-            if (strcpy_s(g_localDeviceId, deviceIdLen + 1, localDeviceId) != EOK) {
-                RPC_LOG_ERROR("g_localDeviceId strcpy failed");
-            } else {
-                RPC_LOG_INFO("GetSocketLocalDeviceID %s", g_localDeviceId);
-            }
+            free(localDeviceId);
             break;
         }
     }
-    freeifaddrs(ifaddr);
 
-    return g_localDeviceId;
+    RPC_LOG_INFO("GetSocketLocalDeviceID %s", deviceId);
+    freeifaddrs(ifaddr);
+    return ERR_NONE;
 }
 
 static TransInterface g_socketTrans = {

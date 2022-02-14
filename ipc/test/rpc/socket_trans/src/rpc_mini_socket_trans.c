@@ -206,7 +206,6 @@ static void *OpenTcpServerSocket(void *args)
 
 static int32_t StartListen(const char *SaSessionName, void *cb)
 {
-    printf("StartListen called %s, %d\n", SaSessionName, strlen(SaSessionName));
     if (SaSessionName == NULL) {
         RPC_LOG_ERROR("SaSessionName is null");
         return ERR_FAILED;
@@ -316,11 +315,13 @@ static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void
     int ret = pthread_attr_init(&threadAttr);
     if (ret != 0) {
         RPC_LOG_ERROR("pthread_attr_init failed %d", ret);
+        free(sessionId);
         return ERR_FAILED;
     }
 
     if (pthread_attr_setstacksize(&threadAttr, DEFAULT_THREAD_STACK_SIZE) != 0) {
         RPC_LOG_ERROR("pthread_attr_setstacksize failed");
+        free(sessionId);
         return ERR_FAILED;
     }
 
@@ -355,18 +356,22 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
     return ERR_NONE;
 }
 
-static char *GetSocketLocalDeviceID(void)
+static int32_t GetSocketLocalDeviceID(const char *SaSessionName, char *deviceId)
 {
     extern struct netif if_wifi;
     const ip4_addr_t *ip4Addr = netif_ip4_addr(&if_wifi);
     char *localDeviceId = ip4addr_ntoa(ip4Addr);
     if (localDeviceId == NULL) {
         RPC_LOG_ERROR("GetSocketLocalDeviceID inet_ntoa return null");
-        return NULL;
+        return ERR_FAILED;
     }
-
-    RPC_LOG_INFO("GetSocketLocalDeviceID %s\n", localDeviceId);
-    return localDeviceId;
+    if (memcpy_s(deviceId, DEVICEID_LENGTH + 1, localDeviceId, DEVICEID_LENGTH + 1) != EOK) {
+        RPC_LOG_ERROR("GetSocketLocalDeviceID memcpy failed");
+        free(localDeviceId);
+        return ERR_FAILED;
+    }
+    RPC_LOG_INFO("GetSocketLocalDeviceID %s\n", deviceId);
+    return ERR_NONE;
 }
 
 static TransInterface g_socketTrans = {

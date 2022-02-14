@@ -35,6 +35,7 @@
 #include "ipc_proxy_inner.h"
 #include "rpc_log.h"
 #include "rpc_errno.h"
+#include "rpc_session_handle.h"
 
 typedef struct {
     UTILS_DL_LIST list;
@@ -79,6 +80,10 @@ static DBinderStubRegistedList g_stubRegistedList = {.mutex = PTHREAD_MUTEX_INIT
 static ThreadLockInfoList g_threadLockInfoList = {.mutex = PTHREAD_MUTEX_INITIALIZER};
 static SessionInfoList g_sessionInfoList = {.mutex = PTHREAD_MUTEX_INITIALIZER};
 static ProxyObjectList g_proxyObjectList = {.mutex = PTHREAD_MUTEX_INITIALIZER};
+static SessionIdList g_sessionIdList = {
+    .mutex = PTHREAD_MUTEX_INITIALIZER,
+    .condition = PTHREAD_COND_INITIALIZER
+};
 
 static TransInterface *g_trans = NULL;
 static char const *DBINDER_SESSION_NAME = "DBinderService";
@@ -95,6 +100,7 @@ static int32_t InitDBinder(void)
         UtilsListInit(&g_threadLockInfoList.threadLocks);
         UtilsListInit(&g_sessionInfoList.sessionInfos);
         UtilsListInit(&g_proxyObjectList.proxyObject);
+        UtilsListInit(&g_sessionIdList.idList);
         g_listInit = 1;
     }
     return ERR_NONE;
@@ -203,6 +209,11 @@ static int32_t SendDataToRemote(const char *deviceId, const DHandleEntryTxRx *ms
         return ERR_FAILED;
     }
 
+    if (WaitForSessionIdReady(&g_sessionIdList, sessionId) != ERR_NONE) {
+        RPC_LOG_ERROR("SendDataToRemote connect failed, sessionId=%d", sessionId);
+        return ERR_FAILED;
+    }
+
     if (g_trans->Send(sessionId, (void *)msg, msg->head.len) != ERR_NONE) {
         RPC_LOG_ERROR("SendDataToRemote send failed");
         return ERR_FAILED;
@@ -220,8 +231,8 @@ static int32_t SendEntryToRemote(DBinderServiceStub *stub, const uint32_t seqNum
     }
     uint32_t toDeviceIDLength = (uint32_t)strlen(toDeviceID);
 
-    char *localDeviceID = g_trans->GetLocalDeviceID();
-    if (localDeviceID == NULL) {
+    char localDeviceID[DEVICEID_LENGTH + 1];
+    if (g_trans->GetLocalDeviceID(DBINDER_SESSION_NAME, localDeviceID) != ERR_NONE) {
         RPC_LOG_ERROR("GetLocalDeviceID failed");
         return ERR_FAILED;
     }
@@ -530,9 +541,16 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
         return ERR_FAILED;
     }
 
+    char localDeviceId[DEVICEID_LENGTH + 1];
+    int32_t ret = g_trans->GetLocalDeviceID(DBINDER_SESSION_NAME, localDeviceId);
+    if (ret != ERR_NONE) {
+        RPC_LOG_ERROR("OnRemoteInvokerDataBusMessage GetLocalDeviceID failed");
+        return ERR_FAILED;
+    }
+
     IpcIo reply;
     uintptr_t ptr;
-    int32_t ret = InvokerListenThread(proxy, g_trans->GetLocalDeviceID(), remoteDeviceID, pid, uid, &reply, &ptr);
+    ret = InvokerListenThread(proxy, localDeviceId, remoteDeviceID, pid, uid, &reply, &ptr);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("INVOKE_LISTEN_THREAD failed");
         FreeBuffer((void *)ptr);
@@ -567,18 +585,19 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
     return ERR_NONE;
 }
 
-static int32_t OnRemoteInvokerMessage(const DHandleEntryTxRx *message)
+static void *OnRemoteInvokerMessage(void *args)
 {
+    DHandleEntryTxRx *message = (DHandleEntryTxRx *)args;
     ProxyObject *saProxy = FindOrNewProxy(message->binderObject, (int32_t)message->stubIndex);
     if (saProxy == NULL) {
         RPC_LOG_ERROR("OnRemoteInvokerMessage get SA Proxy failed");
-        return ERR_FAILED;
+        return (void *)ERR_FAILED;
     }
 
     DHandleEntryTxRx replyMessage;
     if (memcpy_s(&replyMessage, sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != EOK) {
         RPC_LOG_ERROR("OnRemoteInvokerMessage replyMessage memcpy failed");
-        return ERR_FAILED;
+        return (void *)ERR_FAILED;
     }
     char *fromDeviceID = replyMessage.deviceIdInfo.fromDeviceId;
 
@@ -587,21 +606,21 @@ static int32_t OnRemoteInvokerMessage(const DHandleEntryTxRx *message)
             if (OnRemoteInvokerDataBusMessage(saProxy, &replyMessage, fromDeviceID,
                 message->pid, message->uid) != ERR_NONE) {
                 RPC_LOG_ERROR("OnRemoteInvokerMessage Invoker Databus Message fail");
-                return ERR_FAILED;
+                return (void *)ERR_FAILED;
             }
             break;
         }
         default: {
             RPC_LOG_ERROR("OnRemoteInvokerMessage msg transType invalid");
-            return ERR_FAILED;
+            return (void *)ERR_FAILED;
         }
     }
 
     if (SendDataToRemote(fromDeviceID, &replyMessage) != ERR_NONE) {
         RPC_LOG_ERROR("fail to send data from server DBS to client DBS");
-        return ERR_FAILED;
+        return (void *)ERR_FAILED;
     }
-    return ERR_NONE;
+    return (void *)ERR_NONE;
 }
 
 static ThreadLockInfo *QueryThreadLockInfo(uint32_t seqNumber)
@@ -702,6 +721,11 @@ static int32_t OnRemoteReplyMessage(const DHandleEntryTxRx *replyMessage)
     MakeSessionByReplyMessage(replyMessage);
     WakeupThreadByStub(replyMessage->seqNumber);
     return ERR_NONE;
+}
+
+SessionIdList *GetSessionIdList(void)
+{
+    return &g_sessionIdList;
 }
 
 int32_t StartDBinderService(void)
@@ -826,7 +850,16 @@ int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message)
     int32_t ret = ERR_NONE;
     switch (message->dBinderCode) {
         case MESSAGE_AS_INVOKER: {
-            ret = OnRemoteInvokerMessage(message);
+            pthread_t threadId;
+            ret = pthread_create(&threadId, NULL, OnRemoteInvokerMessage, (void *)message);
+            if (ret != 0) {
+                RPC_LOG_ERROR("OnRemoteMessageTask pthread_create failed %d", ret);
+                ret = ERR_FAILED;
+                break;
+            }
+
+            pthread_detach(threadId);
+            ret = ERR_NONE;
             break;
         }
         case MESSAGE_AS_REPLY: {

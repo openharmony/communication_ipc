@@ -18,18 +18,23 @@
 #include <stdbool.h>
 
 #include "dbinder_service_inner.h"
+#include "rpc_session_handle.h"
 #include "rpc_log.h"
 #include "rpc_errno.h"
 
 static int32_t OnConnected(int32_t sessionId, int32_t result)
 {
-    RPC_LOG_ERROR("dbinder OnConnected callback, receive sessionId: %d", sessionId);
-    return ERR_NONE;
+    if (sessionId <= 0 || result != 0) {
+        RPC_LOG_INFO("dbinder OnConnected failed, receive sessionId=%d, result=%d", sessionId, result);
+        return ERR_FAILED;
+    }
+    RPC_LOG_INFO("dbinder OnConnected callback, receive sessionId: %d", sessionId);
+    return HandleNewConnection(GetSessionIdList(), sessionId);
 }
 
 static int32_t OnDisconnected(int32_t sessionId)
 {
-    RPC_LOG_ERROR("dbinder OnDisconnected callback, receive sessionId: %d", sessionId);
+    RPC_LOG_INFO("dbinder OnDisconnected callback, receive sessionId: %d", sessionId);
     return ERR_NONE;
 }
 

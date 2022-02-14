@@ -49,6 +49,7 @@ ipc_common_src = [
 
 if (ohos_kernel_type == "liteos_m") {
   SYSTEM_LEVEL = "mini"
+  enable_socket_trans = false
   static_library("rpc_manager") {
     sources = ipc_common_src
     sources += [
@@ -60,7 +61,9 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/src/dbinder_invoker.c",
       "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton.c",
       "$IPC_CORE_ROOT/rpc/src/rpc_trans_callback.c",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_softbus_trans.c",
       "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_trans.c",
+      "$SUBSYSTEM_DIR/utils/src/rpc_session_handle.c",
     ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = ipc_common_include
@@ -69,20 +72,23 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/utils/include",
     ]
-    if (ohos_build_type == "debug") {
-      sources += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_${SYSTEM_LEVEL}_socket_trans.c" ]
-      include_dirs += [
-        "$SUBSYSTEM_DIR/ipc/test/rpc/include",
-        "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include",
-      ]
-      defines = [ "RPC_SOCKET_TRANS" ]
-    }
-    ldflags = [ "-lpthread" ]
     deps = [
+      "//foundation/communication/dsoftbus/sdk:softbus_client",
       "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
       "//kernel/liteos_m/components/net",
     ]
+    defines = [ "RPC_SOFTBUS_TRANS" ]
+    ldflags = [ "-lpthread" ]
+
+    if (enable_socket_trans) {
+      sources -= [ "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_softbus_trans.c" ]
+      sources += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_${SYSTEM_LEVEL}_socket_trans.c" ]
+      include_dirs += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include" ]
+      defines -= [ "RPC_SOFTBUS_TRANS" ]
+      defines += [ "RPC_SOCKET_TRANS" ]
+    }
   }
 } else if (ohos_kernel_type == "liteos_a") {
   shared_library("rpc_log") {
@@ -160,6 +166,7 @@ if (ohos_kernel_type == "liteos_m") {
   }
 
   SYSTEM_LEVEL = "small"
+  enable_socket_trans = false
   shared_library("rpc_manager") {
     sources = ipc_common_src
     sources += [
@@ -170,7 +177,9 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/src/dbinder_invoker.c",
       "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton.c",
       "$IPC_CORE_ROOT/rpc/src/rpc_trans_callback.c",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_softbus_trans.c",
       "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_trans.c",
+      "$SUBSYSTEM_DIR/utils/src/rpc_session_handle.c",
     ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = ipc_common_include
@@ -180,6 +189,7 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
     ]
     ldflags = [
@@ -193,8 +203,10 @@ if (ohos_kernel_type == "liteos_m") {
       "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
+    deps = [ "//foundation/communication/dsoftbus/sdk:softbus_client" ]
+    defines = [ "RPC_SOFTBUS_TRANS" ]
 
-    if (ohos_build_type == "debug") {
+    if (enable_socket_trans) {
       sources +=
           [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_socket_trans.c" ]
       include_dirs += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include" ]
