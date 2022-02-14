@@ -20,12 +20,14 @@
 #include "rpc_errno.h"
 #include "rpc_log.h"
 
-#include "rpc_mini_samgr.h" // samgr refactory needed in mini system
-
 bool IsSameStub(DBinderServiceStub *stub, const char *serviceName,
     const char *deviceID, uintptr_t binderObject)
 {
-    return false;
+    if (stub == NULL) {
+        return false;
+    }
+    return (strcmp(stub->serviceName, serviceName) == 0 && strcmp(stub->deviceID, deviceID) == 0
+        && stub->binderObject == binderObject);
 }
 
 ProxyObject *RpcGetSystemAbility(int32_t systemAbility)

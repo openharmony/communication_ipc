@@ -17,13 +17,17 @@
 
 #include <stddef.h>
 
-#if defined(RPC_SOCKET_TRANS)
+#if defined(RPC_SOFTBUS_TRANS)
+#include "rpc_softbus_trans.h"
+#elif defined(RPC_SOCKET_TRANS)
 #include "rpc_socket_trans.h"
 #endif
 
 TransInterface *GetRpcTrans(void)
 {
-#if defined(RPC_SOCKET_TRANS)
+#if defined(RPC_SOFTBUS_TRANS)
+    return GetSoftbusTrans();
+#elif defined(RPC_SOCKET_TRANS)
     return GetSocketTrans();
 #endif
 

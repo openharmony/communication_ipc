@@ -21,6 +21,7 @@
 
 #include "ipc_skeleton.h"
 #include "rpc_trans.h"
+#include "rpc_session_handle.h"
 #include "utils_list.h"
 
 #ifdef __cplusplus
@@ -137,6 +138,7 @@ int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply,
 void UpdateProtoIfNeed(SvcIdentity *svc);
 void WakeUpDataThread(pthread_t threadId);
 uint64_t GetNewStubIndex(void);
+SessionIdList *RpcGetSessionIdList(void);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,7 @@
 #include "rpc_trans.h"
 #include "rpc_trans_callback.h"
 #include "rpc_process_skeleton.h"
+#include "rpc_session_handle.h"
 #include "ipc_skeleton.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_pool.h"
@@ -537,7 +538,7 @@ int32_t OnReceiveNewConnection(int sessionId)
         free(stubSession);
         return ERR_FAILED;
     }
-    return ERR_NONE;
+    return HandleNewConnection(RpcGetSessionIdList(), sessionId);
 }
 
 void OnDatabusSessionClosed(int sessionId)
@@ -633,8 +634,12 @@ void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject,
     }
     int sessionId = rpcSkeleton->rpcTrans->Connect(serviceName, deviceId, NULL);
     if (sessionId < 0) {
-        RPC_LOG_ERROR("UpdateClientSession OpenSessionSync failed");
+        RPC_LOG_ERROR("UpdateClientSession connect failed");
         return;
+    }
+    if (WaitForSessionIdReady(RpcGetSessionIdList(), sessionId) != ERR_NONE) {
+        RPC_LOG_ERROR("SendDataToRemote connect failed, sessionId=%d", sessionId);
+        return ERR_FAILED;
     }
 
     sessionObject->handle = handle;

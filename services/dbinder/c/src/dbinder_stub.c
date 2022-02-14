@@ -122,8 +122,8 @@ static int32_t DBinderRemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, Me
 int32_t GetDBinderStub(const char *serviceName, const char *deviceID,
     uintptr_t binderObject, DBinderServiceStub *dBinderServiceStub)
 {
-    if (strcpy_s(dBinderServiceStub->serviceName, SERVICENAME_LENGTH, serviceName) != EOK
-        || strcpy_s(dBinderServiceStub->deviceID, DEVICEID_LENGTH, deviceID) != EOK) {
+    if (strcpy_s(dBinderServiceStub->serviceName, SERVICENAME_LENGTH + 1, serviceName) != EOK
+        || strcpy_s(dBinderServiceStub->deviceID, DEVICEID_LENGTH + 1, deviceID) != EOK) {
         RPC_LOG_ERROR("dBinderServiceStub string copy failed");
         return ERR_FAILED;
     }
