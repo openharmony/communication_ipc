@@ -22,9 +22,6 @@
 #include "rpc_log.h"
 #include "securec.h"
 
-#define MAX_IO_SIZE 8192UL
-#define MAX_OBJ_NUM 32UL
-
 #define ALIGN_SZ 4
 #define IPC_IO_ALIGN(sz) (((sz) + ALIGN_SZ - 1) & (~(ALIGN_SZ - 1)))
 

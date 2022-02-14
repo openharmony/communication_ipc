@@ -45,6 +45,8 @@ typedef struct {
 #define MIN_BINDER_HANDLE (-1)
 #define IPC_IO_INITIALIZED 0x01 /* ipc flag indicates whether io is initialized */
 #define IPC_IO_OVERFLOW    0x02 /* ipc flag indicates whether io is running out of space */
+#define MAX_IO_SIZE 8192UL
+#define MAX_OBJ_NUM 32UL
 
 void IpcIoInit(IpcIo* io, void* buffer, size_t bufferSize, size_t maxobjects);
 bool IpcIoAppend(IpcIo *dst, IpcIo *src);
