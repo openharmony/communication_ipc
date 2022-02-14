@@ -149,27 +149,6 @@ char *GetDataBusName(void)
     return NULL;
 }
 
-static char *CreateDatabusName(void)
-{
-    int32_t pid = (int32_t)GetCallingPid();
-    int32_t pidLen = GetDigits(pid);
-    int32_t uid = (int32_t)GetCallingUid();
-    int32_t uidLen = GetDigits(uid);
-
-    uint32_t sessionNameLen = SESSION_NAME_LEGNTH + pidLen + uidLen;
-    char *sessionName = (char *)malloc(sessionNameLen + 1);
-    if (sessionName == NULL) {
-        RPC_LOG_ERROR("sessionName mallo failed");
-        return NULL;
-    }
-    if (sprintf_s(sessionName, sessionNameLen + 1, "DBinder%d_%d", uid, pid) == -1) {
-        RPC_LOG_ERROR("sessionName sprintf failed");
-        free(sessionName);
-        return NULL;
-    }
-    return sessionName;
-}
-
 static int GetSessionFromDBinderService(SvcIdentity *svc)
 {
     RPC_LOG_INFO("GetSessionFromDBinderService start");
@@ -180,17 +159,10 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
         RPC_LOG_ERROR("client find session is null");
         return proto;
     }
-    const char *localBusName = CreateDatabusName();
-    if (localBusName == NULL) {
-        RPC_LOG_ERROR("ProcessProto CreateDatabusName failed");
-        free(localBusName);
-        return proto;
-    }
 
     HandleSessionList *sessionObject = (HandleSessionList *)malloc(sizeof(HandleSessionList));
     if (sessionObject == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession sessionObject malloc failed");
-        free(localBusName);
         return proto;
     }
 
@@ -198,7 +170,6 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
     if (handleToIndex == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession handleToIndex malloc failed");
         free(sessionObject);
-        free(localBusName);
         return proto;
     }
     handleToIndex->handle = svc->handle;
@@ -208,23 +179,19 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
         RPC_LOG_ERROR("AttachHandleToIndex failed");
         free(sessionObject);
         free(handleToIndex);
-        free(localBusName);
         return proto;
     }
 
-    if (CreateTransServer(localBusName) != ERR_NONE) {
+    if (CreateTransServer(session->serviceName) != ERR_NONE) {
         RPC_LOG_ERROR("create bus server fail name = %s, localID = %s",
-            localBusName, session->deviceIdInfo.fromDeviceId);
+            session->serviceName, session->deviceIdInfo.fromDeviceId);
         DetachHandleToIndex(handleToIndex);
         free(sessionObject);
         free(handleToIndex);
-        free(localBusName);
         return proto;
     }
 
     UpdateClientSession(svc->handle, sessionObject, session->serviceName, session->deviceIdInfo.toDeviceId);
-
-    free(localBusName);
     return proto;
 }
 

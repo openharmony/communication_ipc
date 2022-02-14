@@ -30,6 +30,7 @@ if (ohos_kernel_type == "linux") {
       "$DBINDER_ROOT/src/dbinder_service.c",
       "$DBINDER_ROOT/src/dbinder_stub.c",
       "$DBINDER_ROOT/src/dbinder_trans_callback.c",
+      "$SUBSYSTEM_DIR/utils/src/rpc_session_handle.c",
     ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = [
@@ -40,6 +41,7 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/native/c/rpc/ipc_adapter/include",
       "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
+      "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
       "//utils/native/lite/include",
     ]
@@ -60,6 +62,7 @@ if (ohos_kernel_type == "linux") {
       "$DBINDER_ROOT/src/dbinder_service.c",
       "$DBINDER_ROOT/src/dbinder_stub.c",
       "$DBINDER_ROOT/src/dbinder_trans_callback.c",
+      "$SUBSYSTEM_DIR/utils/src/rpc_session_handle.c",
     ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = [
@@ -71,6 +74,7 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
       "$SUBSYSTEM_DIR/ipc/test/rpc/include",
+      "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
       "//utils/native/lite/include",
       "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite",

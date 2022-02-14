@@ -17,6 +17,7 @@
 #define DBINDER_SERVICE_INNER_H
 
 #include "dbinder_types.h"
+#include "rpc_session_handle.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -26,6 +27,7 @@ extern "C" {
 
 int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message);
 SessionInfo *QuerySessionObject(uintptr_t stub);
+SessionIdList *GetSessionIdList(void);
 
 #ifdef __cplusplus
 #if __cplusplus

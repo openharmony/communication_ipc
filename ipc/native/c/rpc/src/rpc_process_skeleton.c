@@ -26,6 +26,7 @@
 #include "rpc_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "rpc_session_handle.h"
 
 static RpcSkeleton g_rpcSkeleton = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
@@ -46,6 +47,10 @@ static HandleToIndexList g_handleToIndexList;
 static pthread_mutex_t g_handleToIndexMutex = PTHREAD_MUTEX_INITIALIZER;
 static ThreadMessageInfo g_seqNumberToThread;
 static pthread_mutex_t g_seqNumberToThreadMutex = PTHREAD_MUTEX_INITIALIZER;
+static SessionIdList g_sessionIdList = {
+    .mutex = PTHREAD_MUTEX_INITIALIZER,
+    .condition = PTHREAD_COND_INITIALIZER
+};
 
 int32_t RpcProcessSkeleton(void)
 {
@@ -67,6 +72,7 @@ int32_t RpcProcessSkeleton(void)
     UtilsListInit(&g_proxySessionList.list);
     UtilsListInit(&g_handleToIndexList.list);
     UtilsListInit(&g_seqNumberToThread.list);
+    UtilsListInit(&g_sessionIdList.idList);
 
     pthread_mutex_unlock(&g_rpcSkeletonMutex);
     return ERR_NONE;
@@ -495,4 +501,9 @@ uint64_t GetNewStubIndex(void)
     uint64_t stubIndex = ++g_rpcSkeleton.stubIndex;
     pthread_mutex_unlock(&g_rpcSkeleton.lock);
     return stubIndex;
+}
+
+SessionIdList *RpcGetSessionIdList(void)
+{
+    return &g_sessionIdList;
 }
