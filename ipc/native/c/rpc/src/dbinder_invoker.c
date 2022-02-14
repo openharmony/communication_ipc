@@ -639,7 +639,7 @@ void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject,
     }
     if (WaitForSessionIdReady(RpcGetSessionIdList(), sessionId) != ERR_NONE) {
         RPC_LOG_ERROR("SendDataToRemote connect failed, sessionId=%d", sessionId);
-        return ERR_FAILED;
+        return;
     }
 
     sessionObject->handle = handle;
