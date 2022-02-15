@@ -412,6 +412,18 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
         ZLOGE(LABEL, "ftoken != ftoken_expected 3, ftoken:%{public}d", ftoken);
         return -1;
     }
+
+    ret = RpcSetFirstCallerTokenID(0);
+    if (ret != 0) {
+        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}d", ret);
+        return -1;
+    }
+
+    ret = RpcSetSelfTokenID(0);
+    if (ret != 0) {
+        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}d", ret);
+        return -1;
+    }
     return 0;
 }
 
