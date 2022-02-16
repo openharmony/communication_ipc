@@ -30,6 +30,7 @@ executable("rpc_client") {
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
     "$SUBSYSTEM_DIR/services/dbinder/c/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
+    "$SUBSYSTEM_DIR/utils/include",
   ]
   ldflags = [ "-lstdc++" ]
   deps = [

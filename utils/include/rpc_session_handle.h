@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+#define CONNECT_WAIT_TIME_SECONDS 2
+
 typedef struct {
     UTILS_DL_LIST idList;
     pthread_mutex_t mutex;
