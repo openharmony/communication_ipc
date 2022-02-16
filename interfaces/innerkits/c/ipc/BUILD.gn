@@ -167,7 +167,7 @@ if (ohos_kernel_type == "liteos_m") {
   }
 
   SYSTEM_LEVEL = "small"
-  enable_socket_trans = false
+  enable_socket_trans = true
   shared_library("rpc_manager") {
     sources = ipc_common_src
     sources += [
@@ -208,10 +208,13 @@ if (ohos_kernel_type == "liteos_m") {
     defines = [ "RPC_SOFTBUS_TRANS" ]
 
     if (enable_socket_trans) {
+      sources -= [ "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_softbus_trans.c" ]
       sources +=
           [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_socket_trans.c" ]
       include_dirs += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include" ]
-      defines = [ "RPC_SOCKET_TRANS" ]
+      deps -= [ "//foundation/communication/dsoftbus/sdk:softbus_client" ]
+      defines -= [ "RPC_SOFTBUS_TRANS" ]
+      defines += [ "RPC_SOCKET_TRANS" ]
     }
   }
 }
