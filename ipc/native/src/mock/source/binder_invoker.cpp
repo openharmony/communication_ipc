@@ -955,22 +955,31 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
 
 std::string BinderInvoker::ResetCallingIdentity()
 {
-    int64_t identity = (static_cast<int64_t>(callerUid_) << PID_LEN) | callerPid_;
+    char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
+    int ret = std::sprintf(buf, "%010u", callerTokenID_);
+    if (ret < 0) {
+        ZLOGE(LABEL, "%s: sprintf callerTokenID_ %u failed", __func__, callerTokenID_);
+        return "";
+    }
+    std::string accessToken(buf);
+    std::string pidUid = std::to_string(((static_cast<int64_t>(callerUid_) << PID_LEN) | callerPid_));
     callerUid_ = getuid();
     callerPid_ = getpid();
-    return std::to_string(identity);
+    callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
+    return accessToken + pidUid;
 }
 
 bool BinderInvoker::SetCallingIdentity(std::string &identity)
 {
-    if (identity.empty()) {
+    if (identity.empty() || identity.length() <= ACCESS_TOKEN_MAX_LEN) {
         return false;
     }
 
-    int64_t token = std::atoll(identity.c_str());
-    callerUid_ = static_cast<int>(token >> PID_LEN);
-    callerPid_ = static_cast<int>(token);
-
+    int64_t pidUid =
+        std::atoll(identity.substr(ACCESS_TOKEN_MAX_LEN, identity.length() - ACCESS_TOKEN_MAX_LEN).c_str());
+    callerUid_ = static_cast<int>(pidUid >> PID_LEN);
+    callerPid_ = static_cast<int>(pidUid);
+    callerTokenID_ = static_cast<uint32_t>(std::atoi(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str()));
     return true;
 }
 #ifdef CONFIG_IPC_SINGLE
