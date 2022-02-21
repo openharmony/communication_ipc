@@ -27,6 +27,7 @@ ohos_shared_library("rpc") {
     "//utils/system/safwk/native/include",
     "$SUBSYSTEM_DIR/ipc/native/c/adapter/bytrace/include",
     "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
+    "$SUBSYSTEM_DIR/ipc/native/c/adapter/access_token/include",
   ]
   public_configs = [ ":rpc_public_config" ]
 
