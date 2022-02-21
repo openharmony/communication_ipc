@@ -18,18 +18,18 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#include "dbinder_types.h"
 #include "rpc_log.h"
 #include "rpc_errno.h"
 
 static int32_t GetWaitTime(struct timespec *waitTime)
 {
+#define USECTONSEC 1000
     struct timeval now;
     if (gettimeofday(&now, NULL) != 0) {
         RPC_LOG_ERROR("gettimeofday failed");
         return ERR_FAILED;
     }
-    waitTime->tv_sec = now.tv_sec + DEFAULT_SEND_WAIT_TIME;
+    waitTime->tv_sec = now.tv_sec + CONNECT_WAIT_TIME_SECONDS;
     waitTime->tv_nsec = now.tv_usec * USECTONSEC;
 
     return ERR_NONE;

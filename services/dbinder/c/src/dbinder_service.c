@@ -587,6 +587,7 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
 
 static void *OnRemoteInvokerMessage(void *args)
 {
+    pthread_detach(pthread_self());
     DHandleEntryTxRx *message = (DHandleEntryTxRx *)args;
     ProxyObject *saProxy = FindOrNewProxy(message->binderObject, (int32_t)message->stubIndex);
     if (saProxy == NULL) {
@@ -858,7 +859,6 @@ int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message)
                 break;
             }
 
-            pthread_detach(threadId);
             ret = ERR_NONE;
             break;
         }
