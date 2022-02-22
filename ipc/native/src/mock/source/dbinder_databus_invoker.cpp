@@ -103,7 +103,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
 
     MessageParcel data, reply;
     if (!data.WriteUint32(IRemoteObject::DATABUS_TYPE) || !data.WriteString(current->GetLocalDeviceID()) ||
-        !data.WriteUint32(session->GetPeerPid()) || !data.WriteUint32(session->GetPeerUid()) ||
+        !data.WriteUint32((uint32_t)(session->GetPeerPid())) || !data.WriteUint32(session->GetPeerUid()) ||
         !data.WriteString(session->GetPeerDeviceId()) || !data.WriteString(sessionName)) {
         DBINDER_LOGE("write to parcel fail");
         return nullptr;
@@ -156,13 +156,13 @@ bool DBinderDatabusInvoker::AuthSession2Proxy(uint32_t handle,
     MessageParcel data, reply;
     MessageOption option;
 
-    if (!data.WriteUint32(session->GetPeerPid()) || !data.WriteUint32(session->GetPeerUid()) ||
+    if (!data.WriteUint32((uint32_t)(session->GetPeerPid())) || !data.WriteUint32(session->GetPeerUid()) ||
         !data.WriteString(session->GetPeerDeviceId())) {
         DBINDER_LOGE("write to MessageParcel fail");
         return false;
     }
 
-    uint32_t err = SendRequest(handle, DBINDER_ADD_COMMAUTH, data, reply, option);
+    int32_t err = SendRequest(handle, DBINDER_ADD_COMMAUTH, data, reply, option);
     if (err != ERR_NONE) {
         DBINDER_LOGE("send auth info to remote fail");
         return false;
@@ -225,7 +225,7 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(std::shared_ptr<Session> sess
         return false;
     }
 
-    if (!current->QueryIsAuth(session->GetPeerPid(), session->GetPeerUid(), session->GetPeerDeviceId())) {
+    if (!current->QueryIsAuth(session->GetPeerPid(), (int32_t)(session->GetPeerUid()), session->GetPeerDeviceId())) {
         DBINDER_LOGE("remote device is not auth");
         return false;
     }
@@ -344,14 +344,14 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
     sessionBuff->UpdateSendBuffer();
-    size_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
-    size_t readCursor = sessionBuff->GetSendBufferReadCursor();
+    ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
+    ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
     if (writeCursor <= readCursor) {
         sessionBuff->ReleaseSendBufferLock();
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
 
-    size_t size = writeCursor - readCursor;
+    ssize_t size = writeCursor - readCursor;
     int ret = session->SendBytes(static_cast<const void *>(sendBuffer + readCursor), static_cast<ssize_t>(size));
     if (ret == 0) {
         readCursor += size;
@@ -678,7 +678,7 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stu
     }
 
     int pid = session->GetPeerPid();
-    int uid = session->GetPeerUid();
+    int uid = (int)(session->GetPeerUid());
     std::string deviceId = session->GetPeerDeviceId();
     if (uid < 0 || deviceId.length() > DEVICEID_LENGTH) {
         DBINDER_LOGE("user id and device id error");
@@ -690,7 +690,7 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stu
         DBINDER_LOGE("current process skeleton is nullptr");
         return IPC_SKELETON_ERR;
     }
-    if (current->QueryAppInfoToStubIndex(pid, uid, deviceId, stubIndex) == false) {
+    if (current->QueryAppInfoToStubIndex((uint32_t)pid, (uint32_t)uid, deviceId, stubIndex) == false) {
         DBINDER_LOGE("stub index is NOT belong to caller,serviceName = %{public}s, listenFd = %{public}u",
             deviceId.c_str(), listenFd);
         return RPC_DATABUS_INVOKER_INVALID_STUB_INDEX;
@@ -778,9 +778,9 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
     }
 
     int peerPid = session->GetPeerPid();
-    int peerUid = session->GetPeerUid();
+    int peerUid = (int)(session->GetPeerUid());
     std::string deviceId = session->GetPeerDeviceId();
-    if (!current->AttachAppInfoToStubIndex(peerPid, peerUid, deviceId, stubIndex)) {
+    if (!current->AttachAppInfoToStubIndex((uint32_t)peerPid, (uint32_t)peerUid, deviceId, stubIndex)) {
         DBINDER_LOGI("fail to attach appinfo to stub index, when proxy call we check appinfo");
         // attempt attach again, if failed, do nothing
     }
@@ -793,7 +793,7 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
         if (!current->IncStubRefTimes(stubObject)) {
             DBINDER_LOGE("Inc Stub RefTimes fail");
             current->DetachCommAuthInfo(stubObject, peerPid, peerUid, deviceId);
-            current->DetachAppInfoToStubIndex(peerPid, peerUid, deviceId, stubIndex);
+            current->DetachAppInfoToStubIndex((uint32_t)peerPid, (uint32_t)peerUid, deviceId, stubIndex);
             return false;
         }
         stubObject->IncStrongRef(this);
@@ -845,7 +845,7 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
 {
     std::string token = std::to_string(((static_cast<int64_t>(callerUid_) << PID_LEN) | callerPid_));
     std::string identity = callerDeviceID_ + token;
-    callerUid_ = getuid();
+    callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerDeviceID_ = GetLocalDeviceID();
     return identity;
@@ -872,7 +872,7 @@ int DBinderDatabusInvoker::TranslateProxy(uint32_t handle, uint32_t flag)
     return -IPC_INVOKER_TRANSLATE_ERR;
 }
 
-int DBinderDatabusInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd)
+int DBinderDatabusInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int32_t cmd)
 {
     return -IPC_INVOKER_TRANSLATE_ERR;
 }
