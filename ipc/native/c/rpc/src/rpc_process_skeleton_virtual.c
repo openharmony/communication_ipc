@@ -29,12 +29,12 @@ RpcSkeleton *GetCurrentRpcSkeleton(void)
 }
 
 int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option,
-    const IpcObjectStub *objectStub)
+    IpcObjectStub *objectStub)
 {
     return ERR_NOT_RPC;
 }
 
-void UpdateProtoIfNeed(const SvcIdentity *svc)
+void UpdateProtoIfNeed(SvcIdentity *svc)
 {
     return;
 }

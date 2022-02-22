@@ -365,7 +365,7 @@ static int32_t AddThreadBySeqNumber(ThreadMessageInfo *messageInfo)
     return ERR_NONE;
 }
 
-int32_t AddSendThreadInWait(uint64_t seqNumber, const ThreadMessageInfo *messageInfo, int userWaitTime)
+int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, int userWaitTime)
 {
     if (AddThreadBySeqNumber(messageInfo) != ERR_NONE) {
         RPC_LOG_ERROR("add seqNumber = %llu failed", seqNumber);
@@ -466,7 +466,7 @@ void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle)
 }
 
 int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option,
-    const IpcObjectStub *objectStub)
+    IpcObjectStub *objectStub)
 {
     int32_t result;
     switch (code) {
@@ -489,7 +489,7 @@ int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, Messag
     return result;
 }
 
-void UpdateProtoIfNeed(const SvcIdentity *svc)
+void UpdateProtoIfNeed(SvcIdentity *svc)
 {
     RPC_LOG_INFO("rpc manager update proto, handle %d", svc->handle);
     UpdateProto(svc);
