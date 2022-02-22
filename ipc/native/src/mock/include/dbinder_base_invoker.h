@@ -425,8 +425,8 @@ bool DBinderBaseInvoker<T>::MoveMessageParcel2TransData(MessageParcel &data, std
             DBINDER_BASE_LOGE("check trans data fail");
             return false;
         }
-        if (!IRemoteObjectTranslate(reinterpret_cast<char *>(transData->buffer), transData->buffer_size, data, (uint32_t)socketId,
-            sessionObject)) {
+        if (!IRemoteObjectTranslate(reinterpret_cast<char *>(transData->buffer), transData->buffer_size,
+            data, (uint32_t)socketId, sessionObject)) {
             DBINDER_BASE_LOGE("translate object failed");
             return false;
         }
