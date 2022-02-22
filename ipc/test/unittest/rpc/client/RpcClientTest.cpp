@@ -35,7 +35,9 @@ void ServerDead1(void *args)
     RPC_LOG_INFO("#### rpc server dead callback11 called");
 }
 
-MessageOption option = TF_OP_SYNC;
+MessageOption option = {
+    .flags = TF_OP_SYNC
+};
 SvcIdentity sid;
 char deviceId[DEVICEID_LENGTH];
 uint32_t cbId1 = 0;
@@ -278,7 +280,9 @@ HWTEST_F(RpcClientTest, RpcClientTest008, TestSize.Level0)
 
     IpcIo reply;
     uintptr_t ptr = 0;
-    MessageOption oneWayOption = TF_OP_ASYNC;
+    MessageOption oneWayOption = {
+        .flags = TF_OP_ASYNC
+    };
     int32_t ret = SendRequest(sid, OP_DIVISION, &data, &reply, oneWayOption, &ptr);
     EXPECT_EQ(ret, ERR_NONE);
     FreeBuffer((void *)ptr);

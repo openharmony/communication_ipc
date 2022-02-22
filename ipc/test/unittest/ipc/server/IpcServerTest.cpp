@@ -26,7 +26,9 @@
 namespace {
 constexpr uint32_t IPC_TEST_TIME_INTERVAL = 120;
 SvcIdentity *sid = nullptr;
-MessageOption g_option = TF_OP_SYNC;
+MessageOption g_option = {
+    .flags = TF_OP_SYNC
+};
 
 void CallAnonymosFunc(const char *str)
 {
@@ -41,7 +43,9 @@ void CallAnonymosFunc(const char *str)
     WriteString(&data, str);
 
     IpcIo reply;
-    MessageOption option = TF_OP_ASYNC;
+    MessageOption option = {
+        .flags = TF_OP_ASYNC
+    };
     SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
 }
 
@@ -165,6 +169,7 @@ public:
         RPC_LOG_INFO("----------test case for ipc server start-------------\n");
     }
     static void TearDownTestCase() {}
+
     void SetUp() {}
     void TearDown()
     {
