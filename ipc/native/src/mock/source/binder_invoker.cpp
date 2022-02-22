@@ -14,18 +14,19 @@
  */
 
 #include "binder_invoker.h"
+
 #include "access_token_adapter.h"
-#include "string_ex.h"
-#include "sys_binder.h"
-#include "hilog/log.h"
 #include "binder_debug.h"
-#include "ipc_object_stub.h"
+#include "dbinder_error_code.h"
+#include "hilog/log.h"
+#include "hitrace_invoker.h"
 #include "ipc_object_proxy.h"
+#include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
-#include "hitrace_invoker.h"
-#include "dbinder_error_code.h"
 #include "log_tags.h"
+#include "string_ex.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE

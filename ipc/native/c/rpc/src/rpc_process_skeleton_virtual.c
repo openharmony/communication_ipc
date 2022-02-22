@@ -34,7 +34,7 @@ int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, Messag
     return ERR_NOT_RPC;
 }
 
-void UpdateProtoIfNeed(SvcIdentity *svc)
+void UpdateProtoIfNeed(const SvcIdentity *svc)
 {
     return;
 }

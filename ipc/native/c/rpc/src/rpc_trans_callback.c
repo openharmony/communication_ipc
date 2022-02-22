@@ -15,9 +15,9 @@
 
 #include "rpc_trans_callback.h"
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
 #include "dbinder_invoker.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
 
 static int32_t OnConnected(int32_t sessionId, int32_t result)
 {
