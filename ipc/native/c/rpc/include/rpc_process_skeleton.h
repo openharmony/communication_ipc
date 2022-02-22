@@ -129,13 +129,13 @@ uint64_t ProcessGetSeqNumber(void);
 int32_t AttachHandleToIndex(HandleToIndexList *handleToIndex);
 void DetachHandleToIndex(HandleToIndexList *handleToIndex);
 HandleToIndexList *QueryHandleToIndex(uint32_t handle);
-int32_t AddSendThreadInWait(uint64_t seqNumber, const ThreadMessageInfo *messageInfo, int userWaitTime);
+int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, int userWaitTime);
 void EraseThreadBySeqNumber(ThreadMessageInfo *messageInfo);
 ThreadMessageInfo *QueryThreadBySeqNumber(uint64_t seqNumber);
 void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle);
 int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply,
-    MessageOption option, const IpcObjectStub *objectStub);
-void UpdateProtoIfNeed(const SvcIdentity *svc);
+    MessageOption option, IpcObjectStub *objectStub);
+void UpdateProtoIfNeed(SvcIdentity *svc);
 void WakeUpDataThread(pthread_t threadId);
 uint64_t GetNewStubIndex(void);
 SessionIdList *RpcGetSessionIdList(void);
