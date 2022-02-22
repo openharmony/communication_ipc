@@ -45,46 +45,8 @@ static void CallAnonymosFunc(const char *str)
     MessageOption option = {
         .flags = TF_OP_ASYNC
     };
-    SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
-}
-
-static int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
-{
-    int32_t result = ERR_NONE;
-    RPC_LOG_INFO("server OnRemoteRequestOne called....");
-    int a = 0;
-    int b = 0;
-    switch (code) {
-        case SERVER_OP_ADD: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a + b);
-            break;
-        }
-        case SERVER_OP_SUB: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a - b);
-            break;
-        }
-        case SERVER_OP_MULTI: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a * b);
-            break;
-        }
-        case SERVER_OP_ADD_SERVICE: {
-            sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
-            ReadRemoteObject(data, sid);
-            const char *str = "server call anonymos service one.";
-            CallAnonymosFunc(str);
-            break;
-        }
-        default:
-            RPC_LOG_ERROR("unknown code %d", code);
-            break;
-    }
-    return result;
+    int ret = SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
+    RPC_LOG_INFO("server Async call res = %d", ret);
 }
 
 static int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
@@ -130,20 +92,9 @@ static MessageOption g_option = {
     .flags = TF_OP_SYNC
 };
 
-static IpcObjectStub objectStubOne = {
-    .func = RemoteRequestOne,
-    .isRemote = false
-};
-
 static IpcObjectStub objectStubTwo = {
     .func = RemoteRequestTwo,
     .isRemote = false
-};
-
-static SvcIdentity svcOne = {
-    .handle = -1,
-    .token  = (uintptr_t)&objectStubOne,
-    .cookie = (uintptr_t)&objectStubOne
 };
 
 static SvcIdentity svcTwo = {
