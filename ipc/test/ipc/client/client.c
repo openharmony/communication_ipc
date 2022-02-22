@@ -75,7 +75,9 @@ static SvcIdentity g_samgr = {
     .handle = 0
 };
 
-MessageOption g_option = TF_OP_SYNC;
+MessageOption g_option = {
+    .flags = TF_OP_SYNC
+};
 
 static void GetServerOne(void)
 {
