@@ -42,7 +42,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
         childId = HiTrace::CreateSpan();
         // add childid to parcel data
         uint8_t idBytes[HITRACE_ID_LEN];
-        int idLen = childId.ToBytes(idBytes, HITRACE_ID_LEN);
+        size_t idLen = (size_t)(childId.ToBytes(idBytes, HITRACE_ID_LEN));
         if (idLen != HITRACE_ID_LEN) {
             ZLOGE(TRACE_LABEL, "%{public}s:idLen not correct", __func__);
             return childId;

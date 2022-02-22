@@ -110,7 +110,7 @@ napi_value NAPIAshmem::CreateAshmemFromExisting(napi_env env, napi_callback_info
     napi_unwrap(env, argv[0], (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
-    uint32_t size = napiAshmem->GetAshmem()->GetAshmemSize();
+    uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
     NAPI_ASSERT(env,  (fd > 0) && (size > 0), "fd <= 0 or  size <= 0");
     sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
     NAPI_ASSERT(env, newAshmem != nullptr, "napiAshmem is null");
@@ -131,7 +131,7 @@ napi_value NAPIAshmem::GetAshmemSize(napi_env env, napi_callback_info info)
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
-    int32_t ashmemSize = napiAshmem->GetAshmem()->GetAshmemSize();
+    uint32_t ashmemSize = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
     napi_value napiValue;
     napi_create_uint32(env, ashmemSize, &napiValue);
     return napiValue;

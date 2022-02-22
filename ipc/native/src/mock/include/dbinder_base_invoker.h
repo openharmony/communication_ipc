@@ -672,7 +672,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     uint64_t seqNumber = 0;
     int ret;
 
-    uint32_t flags = option.GetFlags();
+    uint32_t flags = (uint32_t)option.GetFlags();
     int userWaitTime = option.GetWaitTime();
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
