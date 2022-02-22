@@ -444,17 +444,16 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
         return ERR_FAILED;
     }
     if (target.handle < 0) {
-        *buffer = 0;
+        if (buffer != NULL) {
+            *buffer = 0;
+        }
         return InternalRequest(target, code, data, reply, option.flags);
     }
     int32_t ret;
     struct TransactData buf;
-    struct binder_write_read bwr;
     buf.cmd = BC_TRANSACTION;
     ToTransData(target.handle, code, option.flags, data, &buf);
-    bwr.write_size = sizeof(buf);
-    bwr.write_consumed = 0;
-    bwr.write_buffer = (uintptr_t)&buf;
+    struct binder_write_read bwr = {.write_size = sizeof(buf), .write_consumed = 0, .write_buffer = (uintptr_t)&buf};
     uint32_t readbuf[READ_BUFFER_SIZE] = {0};
     if (option.flags != TF_OP_ASYNC) {
         while (1) {
@@ -475,7 +474,9 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
             }
         }
     } else {
-        *buffer = 0;
+        if (buffer != NULL) {
+            *buffer = 0;
+        }
         bwr.read_size = sizeof(readbuf);
         bwr.read_consumed = 0;
         bwr.read_buffer = (uintptr_t)readbuf;
@@ -484,9 +485,7 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
             return IPC_INVOKER_IOCTL_FAILED;
         }
         ret = BinderParse(reply, (uintptr_t)readbuf, bwr.read_consumed, NULL);
-        if (ret == 1) {
-            ret = 0;
-        }
+        ret = (ret == 1) ? 0 : ret;
     }
     return ret;
 }
