@@ -74,6 +74,8 @@ int32_t FreeBuffer(void *ptr);
 int32_t AddDeathRecipient(SvcIdentity target, OnRemoteDead deathFunc, void *args, uint32_t *cbId);
 
 int32_t RemoveDeathRecipient(SvcIdentity target, uint32_t cbId);
+
+int32_t MessageOptionInit(MessageOption *option);
 #ifdef __cplusplus
 #if __cplusplus
 }
