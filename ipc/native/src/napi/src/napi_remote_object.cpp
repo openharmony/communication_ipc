@@ -878,7 +878,7 @@ napi_value NAPI_IPCSkeleton_getCallingUid(napi_env env, napi_callback_info info)
             return callingUid;
         }
     }
-    pid_t uid = (pid_t)getuid();
+    pid_t uid = getuid();
     napi_value result = nullptr;
     napi_create_int32(env, static_cast<int32_t>(uid), &result);
     return result;
@@ -992,7 +992,7 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
     if (isLocalCalling) {
         int64_t identity = (static_cast<int64_t>(callerUid) << PID_LEN) | callerPid;
         callerPid = getpid();
-        callerUid = (int32_t)getuid();
+        callerUid = getuid();
         napi_value newCallingPid;
         napi_create_int32(env, callerPid, &newCallingPid);
         napi_set_named_property(env, global, "callingPid_", newCallingPid);
@@ -1016,7 +1016,7 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
         std::string callerDeviceID = stringValue;
         std::string token = std::to_string(((static_cast<int64_t>(callerUid) << PID_LEN) | callerPid));
         std::string identity = callerDeviceID + token;
-        callerUid = (int32_t)getuid();
+        callerUid = getuid();
         napi_value newCallingUid;
         napi_create_int32(env, callerUid, &newCallingUid);
         napi_set_named_property(env, global, "callingUid_", newCallingUid);
@@ -1257,7 +1257,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
     if (targetProxy != nullptr) {
         std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
         if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
-            Str16ToStr8(remoteDescriptor).c_str(), (int32_t)code) > 0) {
+            Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
             sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
             RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
         }
@@ -1301,7 +1301,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
     if (targetProxy != nullptr) {
         std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
         if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
-            Str16ToStr8(remoteDescriptor).c_str(), (int32_t)code) > 0) {
+            Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
             sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
             RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
         }
@@ -1351,7 +1351,7 @@ napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info)
         napi_valuetype valuetype = napi_undefined;
         napi_typeof(env, argv[argcPromise], &valuetype);
         if (valuetype == napi_function) {
-            return StubSendRequestAsync(env, target, (uint32_t)code, data->GetMessageParcel(),
+            return StubSendRequestAsync(env, target, code, data->GetMessageParcel(),
                 reply->GetMessageParcel(), *option, argv);
         }
     }
@@ -1590,11 +1590,11 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
         napi_valuetype valuetype = napi_undefined;
         napi_typeof(env, argv[argcPromise], &valuetype);
         if (valuetype == napi_function) {
-            return SendRequestAsync(env, target, (uint32_t)code, data->GetMessageParcel(),
+            return SendRequestAsync(env, target, code, data->GetMessageParcel(),
                 reply->GetMessageParcel(), *option, argv);
         }
     }
-    return SendRequestPromise(env, target, (uint32_t)code, data->GetMessageParcel(),
+    return SendRequestPromise(env, target, code, data->GetMessageParcel(),
         reply->GetMessageParcel(), *option, argv);
 }
 
