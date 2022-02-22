@@ -34,7 +34,7 @@ enum {
     TF_OP_ASYNC = 0x01,
     TF_OP_STATUS_CODE = 0x08,
     TF_OP_ACCEPT_FDS = 0x10,
-    TF_WAIT_TIME = 0x4,
+    TF_WAIT_TIME = 0x04,
 };
 
 typedef struct {

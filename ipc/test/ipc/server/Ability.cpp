@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
-#include <iostream>
-
-#include <pthread.h>
 #include <cstdlib>
+#include <thread>
 #include <unistd.h>
 
 #include "ipc_proxy.h"
@@ -25,7 +23,7 @@
 #include "rpc_log.h"
 #include "serializer.h"
 
-static SvcIdentity *sid = NULL;
+static SvcIdentity *sid = nullptr;
 
 static SvcIdentity g_samgr = {
     .handle = 0
@@ -33,7 +31,7 @@ static SvcIdentity g_samgr = {
 
 static void CallAnonymosFunc(const char *str)
 {
-    if (sid == NULL) {
+    if (sid == nullptr) {
         RPC_LOG_INFO("invalid anonymous client");
         return;
     }
@@ -47,10 +45,10 @@ static void CallAnonymosFunc(const char *str)
     MessageOption option = {
         .flags = TF_OP_ASYNC
     };
-    SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, NULL);
+    SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
 }
 
-int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("server OnRemoteRequestOne called....");
@@ -89,7 +87,7 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return result;
 }
 
-int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("server OnRemoteRequestTwo called....");
@@ -121,15 +119,14 @@ int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return result;
 }
 
-static void *ThreadHandler(void *args)
+static void ThreadHandler()
 {
     sleep(IPC_TEST_TIME_INTERVAL); // sleep 2 min
     const char *str = "server call anonymos service new thread.";
     CallAnonymosFunc(str);
-    return NULL;
 }
 
-MessageOption g_option = {
+static MessageOption g_option = {
     .flags = TF_OP_SYNC
 };
 
@@ -157,7 +154,7 @@ static SvcIdentity svcTwo = {
 
 class Ability {
 public:
-    Ability(int32_t data) : data_(data)
+    explicit Ability(int32_t data) : data_(data)
     {
         sid_ = (SvcIdentity *)malloc(sizeof(SvcIdentity));
         objectStub_ = (IpcObjectStub *)malloc(sizeof(IpcObjectStub));
@@ -295,9 +292,8 @@ int main(int argc, char *argv[])
     int tmpMul = OP_A * OP_B;
     EXPECT_EQ(res, tmpMul);
 
-    pthread_t pid;
-    ret = pthread_create(&pid, NULL, ThreadHandler, NULL);
-    pthread_detach(pid);
+    std::thread task(ThreadHandler);
+    task.detach();
     JoinWorkThread();
     return -1;
 }

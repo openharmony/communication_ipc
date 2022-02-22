@@ -17,7 +17,7 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test"
 IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
 
 executable("ipc_server") {
-  sources = [ "$SUBSYSTEM_DIR/ipc/server/server.cpp" ]
+  sources = [ "$SUBSYSTEM_DIR/ipc/server/Ability.cpp" ]
   include_dirs = [
     "//third_party/bounds_checking_function/include",
     "//utils/native/lite/include",
