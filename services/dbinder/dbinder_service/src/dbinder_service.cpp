@@ -301,7 +301,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     message->deviceIdInfo.afType = DATABBUS_TYPE;
     message->pid                 = IPCSkeleton::GetCallingPid();
-    message->uid                 = IPCSkeleton::GetCallingUid();
+    message->uid                 = (uint32_t)IPCSkeleton::GetCallingUid();
     if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
         memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
         DBINDER_LOGE("fail to copy memory");
@@ -502,7 +502,7 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteUint16(IRemoteObject::DATABUS_TYPE) || !data.WriteString(GetLocalDeviceID()) ||
-        !data.WriteUint32(pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
+        !data.WriteUint32((uint32_t)pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
         !data.WriteString(sessionName)) {
         DBINDER_LOGE("write to parcel fail");
         return false;
