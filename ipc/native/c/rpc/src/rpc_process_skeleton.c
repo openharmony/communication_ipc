@@ -83,7 +83,7 @@ RpcSkeleton *GetCurrentRpcSkeleton(void)
     return &g_rpcSkeleton;
 }
 
-int32_t AddStubByIndex(const StubObject *stubObject)
+int32_t AddStubByIndex(StubObject *stubObject)
 {
     pthread_mutex_lock(&g_stubObjectList.mutex);
     UtilsListAdd(&g_stubObjectList.stubObjects, &stubObject->list);
@@ -106,7 +106,7 @@ StubObject *QueryStubByIndex(uint64_t stubIndex)
     return NULL;
 }
 
-static int32_t AttachThreadLockInfo(const SocketThreadLockInfo *threadLockInfo)
+static int32_t AttachThreadLockInfo(SocketThreadLockInfo *threadLockInfo)
 {
     pthread_mutex_lock(&g_socketLockInfoList.mutex);
     UtilsListAdd(&g_socketLockInfoList.socketLockInfo, &threadLockInfo->list);
@@ -129,7 +129,7 @@ static SocketThreadLockInfo *QueryThreadLockInfo(pthread_t threadId)
     return NULL;
 }
 
-static int32_t AddDataThreadToIdle(const IdleDataThread *idleDataThread)
+static int32_t AddDataThreadToIdle(IdleDataThread *idleDataThread)
 {
     pthread_mutex_lock(&g_idleDataThreadsList.mutex);
     UtilsListAdd(&g_idleDataThreadsList.idleDataThread, &idleDataThread->list);
@@ -137,7 +137,7 @@ static int32_t AddDataThreadToIdle(const IdleDataThread *idleDataThread)
     return ERR_NONE;
 }
 
-static void DeleteDataThreadFromIdle(const IdleDataThread *idleDataThread)
+static void DeleteDataThreadFromIdle(IdleDataThread *idleDataThread)
 {
     pthread_mutex_lock(&g_idleDataThreadsList.mutex);
     UtilsListDelete(&idleDataThread->list);
@@ -206,7 +206,7 @@ IdleDataThread *GetIdleDataThread(void)
     return NULL;
 }
 
-void AddDataInfoToThread(const ThreadProcessInfo *processInfo)
+void AddDataInfoToThread(ThreadProcessInfo *processInfo)
 {
     pthread_mutex_lock(&g_processInfoList.mutex);
     UtilsListAdd(&g_processInfoList.processInfo, &processInfo->list);
@@ -239,7 +239,7 @@ uint32_t ConvertChannelID2Int(int64_t databusChannelId)
     return (channelType | channelID);
 }
 
-int32_t AttachStubSession(const HandleSessionList *handleSession)
+int32_t AttachStubSession(HandleSessionList *handleSession)
 {
     pthread_mutex_lock(&g_stubSessionMutex);
     UtilsListAdd(&g_stubSessionList.list, &handleSession->list);
@@ -247,7 +247,7 @@ int32_t AttachStubSession(const HandleSessionList *handleSession)
     return ERR_NONE;
 }
 
-void DetachStubSession(const HandleSessionList *handleSession)
+void DetachStubSession(HandleSessionList *handleSession)
 {
     pthread_mutex_lock(&g_stubSessionMutex);
     UtilsListDelete(&handleSession->list);
@@ -269,7 +269,7 @@ HandleSessionList *QueryStubSession(uint32_t handle)
     return NULL;
 }
 
-int32_t AttachProxySession(const HandleSessionList *handleSession)
+int32_t AttachProxySession(HandleSessionList *handleSession)
 {
     pthread_mutex_lock(&g_proxySessionMutex);
     UtilsListAdd(&g_proxySessionList.list, &handleSession->list);
@@ -277,7 +277,7 @@ int32_t AttachProxySession(const HandleSessionList *handleSession)
     return ERR_NONE;
 }
 
-void DetachProxySession(const HandleSessionList *handleSession)
+void DetachProxySession(HandleSessionList *handleSession)
 {
     pthread_mutex_lock(&g_proxySessionMutex);
     UtilsListDelete(&handleSession->list);
@@ -327,7 +327,7 @@ uint64_t ProcessGetSeqNumber()
     return g_rpcSkeleton.seqNumber;
 }
 
-int32_t AttachHandleToIndex(const HandleToIndexList *handleToIndex)
+int32_t AttachHandleToIndex(HandleToIndexList *handleToIndex)
 {
     pthread_mutex_lock(&g_handleToIndexMutex);
     UtilsListAdd(&g_handleToIndexList.list, &handleToIndex->list);
@@ -335,7 +335,7 @@ int32_t AttachHandleToIndex(const HandleToIndexList *handleToIndex)
     return ERR_NONE;
 }
 
-void DetachHandleToIndex(const HandleToIndexList *handleToIndex)
+void DetachHandleToIndex(HandleToIndexList *handleToIndex)
 {
     pthread_mutex_lock(&g_handleToIndexMutex);
     UtilsListDelete(&handleToIndex->list);
@@ -357,7 +357,7 @@ HandleToIndexList *QueryHandleToIndex(uint32_t handle)
     return NULL;
 }
 
-static int32_t AddThreadBySeqNumber(const ThreadMessageInfo *messageInfo)
+static int32_t AddThreadBySeqNumber(ThreadMessageInfo *messageInfo)
 {
     pthread_mutex_lock(&g_seqNumberToThreadMutex);
     UtilsListAdd(&g_seqNumberToThread.list, &messageInfo->list);
@@ -417,7 +417,7 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, const ThreadMessageInfo *message
     return ERR_NONE;
 }
 
-void EraseThreadBySeqNumber(const ThreadMessageInfo *messageInfo)
+void EraseThreadBySeqNumber(ThreadMessageInfo *messageInfo)
 {
     pthread_mutex_lock(&g_seqNumberToThreadMutex);
     UtilsListDelete(&messageInfo->list);

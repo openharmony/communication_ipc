@@ -111,26 +111,26 @@ typedef struct {
 
 int32_t RpcProcessSkeleton(void);
 RpcSkeleton *GetCurrentRpcSkeleton(void);
-int32_t AddStubByIndex(const StubObject *stubObject);
+int32_t AddStubByIndex(StubObject *stubObject);
 StubObject *QueryStubByIndex(uint64_t stubIndex);
 void AddDataThreadInWait(pthread_t threadId);
 IdleDataThread *GetIdleDataThread(void);
-void AddDataInfoToThread(const ThreadProcessInfo *processInfo);
+void AddDataInfoToThread(cThreadProcessInfo *processInfo);
 ThreadProcessInfo *PopDataInfoFromThread(pthread_t threadId);
 uint32_t ConvertChannelID2Int(int64_t databusChannelId);
-int32_t AttachStubSession(const HandleSessionList *handleSession);
-void DetachStubSession(const HandleSessionList *handleSession);
+int32_t AttachStubSession(HandleSessionList *handleSession);
+void DetachStubSession(HandleSessionList *handleSession);
 HandleSessionList *QueryStubSession(uint32_t handle);
-int32_t AttachProxySession(const HandleSessionList *handleSession);
-void DetachProxySession(const HandleSessionList *handleSession);
+int32_t AttachProxySession(HandleSessionList *handleSession);
+void DetachProxySession(HandleSessionList *handleSession);
 HandleSessionList *QueryProxySession(uint32_t handle);
 HandleSessionList *QueryProxySessionBySessionId(uint32_t sessionId);
 uint64_t ProcessGetSeqNumber(void);
-int32_t AttachHandleToIndex(const HandleToIndexList *handleToIndex);
-void DetachHandleToIndex(const HandleToIndexList *handleToIndex);
+int32_t AttachHandleToIndex(HandleToIndexList *handleToIndex);
+void DetachHandleToIndex(HandleToIndexList *handleToIndex);
 HandleToIndexList *QueryHandleToIndex(uint32_t handle);
 int32_t AddSendThreadInWait(uint64_t seqNumber, const ThreadMessageInfo *messageInfo, int userWaitTime);
-void EraseThreadBySeqNumber(const ThreadMessageInfo *messageInfo);
+void EraseThreadBySeqNumber(ThreadMessageInfo *messageInfo);
 ThreadMessageInfo *QueryThreadBySeqNumber(uint64_t seqNumber);
 void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle);
 int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply,
