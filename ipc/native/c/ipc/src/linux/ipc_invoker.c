@@ -136,7 +136,7 @@ static int32_t ReleaseHandle(int32_t handle)
     return ret;
 }
 
-static void ToTransData(uint32_t handle, uint32_t code, MessageOption option,
+static void ToTransData(uint32_t handle, uint32_t code, uint32_t option,
     const IpcIo *data, struct TransactData *buf)
 {
     buf->btd.target.handle = handle;
@@ -225,7 +225,10 @@ static void HandleTransaction(const struct binder_transaction_data *tr)
     threadContext->objectStub = objectStub;
     IpcIo data;
     ToIpcData(tr, &data);
-    MessageOption option = tr->flags;
+    MessageOption option = {
+        .flags = tr->flags,
+        .args = objectStub->args
+    };
     IpcIo reply;
     uint8 tempData[IPC_IO_DATA_MAX];
     IpcIoInit(&reply, tempData, IPC_IO_DATA_MAX, MAX_OBJECT_NUM);
@@ -413,7 +416,7 @@ static int32_t IpcSetRegistryObject(void)
     return ERR_FAILED;
 }
 
-static int32_t InternalRequest(SvcIdentity sid, uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static int32_t InternalRequest(SvcIdentity sid, uint32_t code, IpcIo *data, IpcIo *reply, uint32_t flags)
 {
     RPC_LOG_INFO("Internal ipc request called");
     int32_t error = ERR_FAILED;
@@ -423,6 +426,10 @@ static int32_t InternalRequest(SvcIdentity sid, uint32_t code, IpcIo *data, IpcI
     if (objectStub->func != NULL) {
         uint8 tempData[IPC_IO_DATA_MAX];
         IpcIoInit(reply, tempData, IPC_IO_DATA_MAX, MAX_OBJECT_NUM);
+        MessageOption option = {
+            .flags = flags,
+            .args = objectStub->args
+        };
         error = OnRemoteRequestInner(code, data, reply, option, objectStub);
     }
     reply->bufferCur = reply->bufferBase;
@@ -437,19 +444,18 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
         return ERR_FAILED;
     }
     if (target.handle < 0) {
-        *buffer = 0;
-        return InternalRequest(target, code, data, reply, option);
+        if (buffer != NULL) {
+            *buffer = 0;
+        }
+        return InternalRequest(target, code, data, reply, option.flags);
     }
     int32_t ret;
     struct TransactData buf;
-    struct binder_write_read bwr;
     buf.cmd = BC_TRANSACTION;
-    ToTransData(target.handle, code, option, data, &buf);
-    bwr.write_size = sizeof(buf);
-    bwr.write_consumed = 0;
-    bwr.write_buffer = (uintptr_t)&buf;
+    ToTransData(target.handle, code, option.flags, data, &buf);
+    struct binder_write_read bwr = {.write_size = sizeof(buf), .write_consumed = 0, .write_buffer = (uintptr_t)&buf};
     uint32_t readbuf[READ_BUFFER_SIZE] = {0};
-    if (option != TF_OP_ASYNC) {
+    if (option.flags != TF_OP_ASYNC) {
         while (1) {
             bwr.read_size = sizeof(readbuf);
             bwr.read_consumed = 0;
@@ -468,7 +474,9 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
             }
         }
     } else {
-        *buffer = 0;
+        if (buffer != NULL) {
+            *buffer = 0;
+        }
         bwr.read_size = sizeof(readbuf);
         bwr.read_consumed = 0;
         bwr.read_buffer = (uintptr_t)readbuf;
@@ -477,9 +485,7 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
             return IPC_INVOKER_IOCTL_FAILED;
         }
         ret = BinderParse(reply, (uintptr_t)readbuf, bwr.read_consumed, NULL);
-        if (ret == 1) {
-            ret = 0;
-        }
+        ret = (ret == 1) ? 0 : ret;
     }
     return ret;
 }

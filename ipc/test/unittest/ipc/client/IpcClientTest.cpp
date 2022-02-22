@@ -26,7 +26,9 @@
 namespace {
 constexpr int32_t PERFORMANCE_TEST_TIMES = 100;
 SvcIdentity sidServer;
-MessageOption g_option = TF_OP_SYNC;
+MessageOption g_option = {
+    .flags = TF_OP_SYNC
+};
 
 uint32_t cbId1 = -1;
 uint32_t cbId2 = -1;
@@ -243,7 +245,9 @@ HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)   // 异步性能测�
     struct timespec start = {0, 0};
     struct timespec end = {0, 0};
 
-    MessageOption option = TF_OP_ASYNC;
+    MessageOption option = {
+        .flags = TF_OP_ASYNC
+    };
 
     clock_gettime(CLOCK_REALTIME, &start);
     for (int i = 0; i < PERFORMANCE_TEST_TIMES; i++) {
