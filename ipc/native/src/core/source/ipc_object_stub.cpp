@@ -379,7 +379,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteDeviceId, stubIndex)) {
         ZLOGE(LABEL, "fail to attach appinfo to stubIndex, maybe attach already");
     }
-    if (!current->AttachCommAuthInfo(this, (int)remotePid, (int)remoteUid, remoteDeviceId)) {
+    if (!current->AttachCommAuthInfo(this, (int32_t)remotePid, (int32_t)remoteUid, remoteDeviceId)) {
         ZLOGE(LABEL, "fail to attach comm auth info");
     }
 
@@ -464,7 +464,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
         return IPC_STUB_CURRENT_NULL_ERR;
     }
 
-    if (!current->AttachCommAuthInfo(this, (int)remotePid, (int)remoteUid, remoteDeviceId)) {
+    if (!current->AttachCommAuthInfo(this, (int32_t)remotePid, (int32_t)remoteUid, remoteDeviceId)) {
         ZLOGE(LABEL, "fail to attach comm auth info fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
