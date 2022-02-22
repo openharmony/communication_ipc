@@ -425,7 +425,7 @@ bool DBinderBaseInvoker<T>::MoveMessageParcel2TransData(MessageParcel &data, std
             DBINDER_BASE_LOGE("check trans data fail");
             return false;
         }
-        if (!IRemoteObjectTranslate(reinterpret_cast<char *>(transData->buffer), transData->buffer_size, data, socketId,
+        if (!IRemoteObjectTranslate(reinterpret_cast<char *>(transData->buffer), transData->buffer_size, data, (uint32_t)socketId,
             sessionObject)) {
             DBINDER_BASE_LOGE("translate object failed");
             return false;
@@ -456,7 +456,7 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
     }
     ConstructTransData(*transData, sendSize, seqNum, cmd, code, flags);
 
-    if (SetSenderStubIndex(transData, handle) != true) {
+    if (SetSenderStubIndex(transData, (uint32_t)handle) != true) {
         DBINDER_BASE_LOGE("set stubIndex failed, handle = %{public}d", handle);
         return nullptr;
     }
@@ -672,7 +672,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     uint64_t seqNumber = 0;
     int ret;
 
-    uint32_t flags = option.GetFlags();
+    uint32_t flags = (uint32_t)option.GetFlags();
     int userWaitTime = option.GetWaitTime();
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
