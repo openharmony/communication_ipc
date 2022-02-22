@@ -32,7 +32,7 @@
 #include "rpc_bytrace.h"
 #include "string_ex.h"
 
-static std::atomic<int32_t> bytraceId = 1000;
+static std::atomic<int32_t> byTraceId = 1000;
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
@@ -1258,7 +1258,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
         std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
         if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
             Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
+            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
             RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
         }
     }
@@ -1302,7 +1302,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
         std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
         if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
             Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
+            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
             RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
         }
     }
@@ -1488,7 +1488,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
         if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
             Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
+            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
             RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
         }
     }
@@ -1534,7 +1534,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
         if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
             Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
+            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
             RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
         }
     }
