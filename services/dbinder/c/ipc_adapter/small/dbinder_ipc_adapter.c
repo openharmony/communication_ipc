@@ -42,7 +42,9 @@ ProxyObject *RpcGetSystemAbility(int32_t systemAbility)
     WriteInt32(&data, systemAbility);
 
     IpcIo reply;
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
 
     RPC_LOG_INFO("get system ability from samgr");
     uintptr_t ptr;
