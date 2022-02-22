@@ -17,17 +17,17 @@
 
 #include "rpc_errno.h"
 
-int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_t option, OnRemoteRequest *func)
+int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest *func)
 {
     return ERR_NONE;
 }
 
-int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_t option)
+int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     return ERR_NONE;
 }
 
-int32_t GrantDataBusNameStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_t option)
+int32_t GrantDataBusNameStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     return ERR_NONE;
 }

@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+#include <iostream>
+
 #include <pthread.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 
 #include "ipc_proxy.h"
@@ -42,7 +44,9 @@ static void CallAnonymosFunc(const char *str)
     WriteString(&data, str);
 
     IpcIo reply;
-    MessageOption option = TF_OP_ASYNC;
+    MessageOption option = {
+        .flags = TF_OP_ASYNC
+    };
     SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, NULL);
 }
 
@@ -125,7 +129,9 @@ static void *ThreadHandler(void *args)
     return NULL;
 }
 
-MessageOption g_option = TF_OP_SYNC;
+MessageOption g_option = {
+    .flags = TF_OP_SYNC
+};
 
 static IpcObjectStub objectStubOne = {
     .func = RemoteRequestOne,
@@ -149,13 +155,80 @@ static SvcIdentity svcTwo = {
     .cookie = (uintptr_t)&objectStubTwo
 };
 
+class Ability {
+public:
+    Ability(int32_t data) : data_(data)
+    {
+        sid_ = (SvcIdentity *)malloc(sizeof(SvcIdentity));
+        objectStub_ = (IpcObjectStub *)malloc(sizeof(IpcObjectStub));
+        objectStub_->func = Ability::MsgHandleInner;
+        objectStub_->args = this;
+        sid_->handle = -1;
+        sid_->token  = (uintptr_t)objectStub_;
+        sid_->cookie = (uintptr_t)objectStub_;
+    }
+
+    static int32_t MsgHandleInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+    {
+        Ability *ability = static_cast<Ability *>(option.args);
+        RPC_LOG_INFO("server MsgHandleInner called...., p = %p, data = %d", ability, ability->data_);
+
+        int32_t result = ERR_NONE;
+        switch (code) {
+            case SERVER_OP_ADD: {
+                int32_t a;
+                ReadInt32(data, &a);
+                int32_t b;
+                ReadInt32(data, &b);
+                WriteInt32(reply, a + b);
+                break;
+            }
+            case SERVER_OP_SUB: {
+                int32_t a;
+                ReadInt32(data, &a);
+                int32_t b;
+                ReadInt32(data, &b);
+                WriteInt32(reply, a - b);
+                break;
+            }
+            case SERVER_OP_MULTI: {
+                int32_t a;
+                ReadInt32(data, &a);
+                int32_t b;
+                ReadInt32(data, &b);
+                WriteInt32(reply, a * b);
+                break;
+            }
+            case SERVER_OP_ADD_SERVICE: {
+                sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
+                ReadRemoteObject(data, sid);
+                const char *str = "server call anonymos service one.";
+                break;
+            }
+            default:
+                RPC_LOG_ERROR("unknown code %d", code);
+                break;
+        }
+        return result;
+    }
+
+    SvcIdentity *sid_;
+private:
+    int32_t data_;
+    IpcObjectStub *objectStub_;
+};
+
 static void AddSaOne(void)
 {
     IpcIo data;
     uint8_t tmpData1[IPC_MAX_SIZE];
     IpcIoInit(&data, tmpData1, IPC_MAX_SIZE, 1);
     WriteInt32(&data, SERVER_SA_ID1);
-    WriteRemoteObject(&data, &svcOne);
+
+    Ability *ability = new Ability(322516);
+    RPC_LOG_INFO("====== add ability one to samgr ====== %p", ability);
+    WriteRemoteObject(&data, ability->sid_);
+
     IpcIo reply;
     uintptr_t ptr = 0;
     RPC_LOG_INFO("====== add ability one to samgr ======");
