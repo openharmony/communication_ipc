@@ -502,7 +502,7 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteUint16(IRemoteObject::DATABUS_TYPE) || !data.WriteString(GetLocalDeviceID()) ||
-        !data.WriteUint32((uint32_t)pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
+        !data.WriteUint32(pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
         !data.WriteString(sessionName)) {
         DBINDER_LOGE("write to parcel fail");
         return false;
