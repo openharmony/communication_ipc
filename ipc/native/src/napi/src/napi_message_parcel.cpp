@@ -741,6 +741,9 @@ napi_value NAPI_MessageParcel::JS_writeStringArray(napi_env env, napi_callback_i
 
         napi_value element = nullptr;
         napi_get_element(env, argv[0], i, &element);
+        napi_valuetype valuetype;
+        napi_typeof(env, element, &valuetype);
+        NAPI_ASSERT(env, valuetype == napi_string, "Parameter type error");
 
         size_t bufferSize = 0;
         napi_get_value_string_utf8(env, element, nullptr, 0, &bufferSize);
