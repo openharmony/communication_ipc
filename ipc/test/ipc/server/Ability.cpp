@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <pthread.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <thread>
 #include <unistd.h>
 
 #include "ipc_proxy.h"
@@ -23,7 +23,7 @@
 #include "rpc_log.h"
 #include "serializer.h"
 
-static SvcIdentity *sid = NULL;
+static SvcIdentity *sid = nullptr;
 
 static SvcIdentity g_samgr = {
     .handle = 0
@@ -31,7 +31,7 @@ static SvcIdentity g_samgr = {
 
 static void CallAnonymosFunc(const char *str)
 {
-    if (sid == NULL) {
+    if (sid == nullptr) {
         RPC_LOG_INFO("invalid anonymous client");
         return;
     }
@@ -42,50 +42,14 @@ static void CallAnonymosFunc(const char *str)
     WriteString(&data, str);
 
     IpcIo reply;
-    MessageOption option = TF_OP_ASYNC;
-    SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, NULL);
+    MessageOption option = {
+        .flags = TF_OP_ASYNC
+    };
+    int ret = SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
+    RPC_LOG_INFO("server Async call res = %d", ret);
 }
 
-int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
-{
-    int32_t result = ERR_NONE;
-    RPC_LOG_INFO("server OnRemoteRequestOne called....");
-    int a = 0;
-    int b = 0;
-    switch (code) {
-        case SERVER_OP_ADD: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a + b);
-            break;
-        }
-        case SERVER_OP_SUB: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a - b);
-            break;
-        }
-        case SERVER_OP_MULTI: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a * b);
-            break;
-        }
-        case SERVER_OP_ADD_SERVICE: {
-            sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
-            ReadRemoteObject(data, sid);
-            const char *str = "server call anonymos service one.";
-            CallAnonymosFunc(str);
-            break;
-        }
-        default:
-            RPC_LOG_ERROR("unknown code %d", code);
-            break;
-    }
-    return result;
-}
-
-int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("server OnRemoteRequestTwo called....");
@@ -117,30 +81,20 @@ int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return result;
 }
 
-static void *ThreadHandler(void *args)
+static void ThreadHandler()
 {
     sleep(IPC_TEST_TIME_INTERVAL); // sleep 2 min
     const char *str = "server call anonymos service new thread.";
     CallAnonymosFunc(str);
-    return NULL;
 }
 
-MessageOption g_option = TF_OP_SYNC;
-
-static IpcObjectStub objectStubOne = {
-    .func = RemoteRequestOne,
-    .isRemote = false
+static MessageOption g_option = {
+    .flags = TF_OP_SYNC
 };
 
 static IpcObjectStub objectStubTwo = {
     .func = RemoteRequestTwo,
     .isRemote = false
-};
-
-static SvcIdentity svcOne = {
-    .handle = -1,
-    .token  = (uintptr_t)&objectStubOne,
-    .cookie = (uintptr_t)&objectStubOne
 };
 
 static SvcIdentity svcTwo = {
@@ -149,13 +103,80 @@ static SvcIdentity svcTwo = {
     .cookie = (uintptr_t)&objectStubTwo
 };
 
+class Ability {
+public:
+    explicit Ability(int32_t data) : data_(data)
+    {
+        sid_ = (SvcIdentity *)malloc(sizeof(SvcIdentity));
+        objectStub_ = (IpcObjectStub *)malloc(sizeof(IpcObjectStub));
+        objectStub_->func = Ability::MsgHandleInner;
+        objectStub_->args = this;
+        sid_->handle = -1;
+        sid_->token  = (uintptr_t)objectStub_;
+        sid_->cookie = (uintptr_t)objectStub_;
+    }
+
+    static int32_t MsgHandleInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+    {
+        Ability *ability = static_cast<Ability *>(option.args);
+        RPC_LOG_INFO("server MsgHandleInner called...., p = %p, data = %d", ability, ability->data_);
+
+        int32_t result = ERR_NONE;
+        switch (code) {
+            case SERVER_OP_ADD: {
+                int32_t a;
+                ReadInt32(data, &a);
+                int32_t b;
+                ReadInt32(data, &b);
+                WriteInt32(reply, a + b);
+                break;
+            }
+            case SERVER_OP_SUB: {
+                int32_t a;
+                ReadInt32(data, &a);
+                int32_t b;
+                ReadInt32(data, &b);
+                WriteInt32(reply, a - b);
+                break;
+            }
+            case SERVER_OP_MULTI: {
+                int32_t a;
+                ReadInt32(data, &a);
+                int32_t b;
+                ReadInt32(data, &b);
+                WriteInt32(reply, a * b);
+                break;
+            }
+            case SERVER_OP_ADD_SERVICE: {
+                sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
+                ReadRemoteObject(data, sid);
+                const char *str = "server call anonymos service one.";
+                break;
+            }
+            default:
+                RPC_LOG_ERROR("unknown code %d", code);
+                break;
+        }
+        return result;
+    }
+
+    SvcIdentity *sid_;
+private:
+    int32_t data_;
+    IpcObjectStub *objectStub_;
+};
+
 static void AddSaOne(void)
 {
     IpcIo data;
     uint8_t tmpData1[IPC_MAX_SIZE];
     IpcIoInit(&data, tmpData1, IPC_MAX_SIZE, 1);
     WriteInt32(&data, SERVER_SA_ID1);
-    WriteRemoteObject(&data, &svcOne);
+
+    Ability *ability = new Ability(322516);
+    RPC_LOG_INFO("====== add ability one to samgr ====== %p", ability);
+    WriteRemoteObject(&data, ability->sid_);
+
     IpcIo reply;
     uintptr_t ptr = 0;
     RPC_LOG_INFO("====== add ability one to samgr ======");
@@ -222,9 +243,8 @@ int main(int argc, char *argv[])
     int tmpMul = OP_A * OP_B;
     EXPECT_EQ(res, tmpMul);
 
-    pthread_t pid;
-    ret = pthread_create(&pid, NULL, ThreadHandler, NULL);
-    pthread_detach(pid);
+    std::thread task(ThreadHandler);
+    task.detach();
     JoinWorkThread();
     return -1;
 }

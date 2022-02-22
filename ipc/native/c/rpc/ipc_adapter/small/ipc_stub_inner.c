@@ -113,7 +113,7 @@ static int32_t InvokerDataBusThread(IpcIo *data, IpcIo *reply, OnRemoteRequest f
     return MakeStubCached(reply, func, sessionName, deviceID);
 }
 
-int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_t option, OnRemoteRequest *func)
+int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest *func)
 {
     uint16_t type;
     if (!ReadUint16(data, &type)) {
@@ -135,7 +135,7 @@ int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_
     return ERR_NONE;
 }
 
-int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_t option)
+int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
 
@@ -164,7 +164,7 @@ static int32_t GetDigits(int32_t number)
     return n;
 }
 
-int32_t GrantDataBusNameStub(uint32_t code, IpcIo *data, IpcIo *reply, int32_t option)
+int32_t GrantDataBusNameStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t pid = (int32_t)GetCallingPid();
     int32_t pidLen = GetDigits(pid);

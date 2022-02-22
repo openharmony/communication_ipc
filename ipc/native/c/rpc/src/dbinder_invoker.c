@@ -201,7 +201,7 @@ static HandleSessionList *WriteTransaction(int cmd, MessageOption option, int32_
         .version = VERSION_NUM,
         .cmd = cmd,
         .code = code,
-        .flags = option,
+        .flags = option.flags,
         .seqNumber = *seqNumber,
         .buffer = NULL
     };
@@ -340,7 +340,10 @@ static int32_t GetCallerSessionId(void)
 static int32_t SendReply(IpcIo *reply, uint32_t flags, int32_t result)
 {
     uint64_t seqNumber = 0;
-    HandleSessionList *sessionObject = WriteTransaction(BC_REPLY, flags, 0, GetCallerSessionId(),
+    MessageOption option = {
+        .flags = flags
+    };
+    HandleSessionList *sessionObject = WriteTransaction(BC_REPLY, option, 0, GetCallerSessionId(),
         0, reply, &seqNumber, result);
 
     if (seqNumber == 0) {
@@ -361,7 +364,9 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t sess
     IpcIo reply;
     uint8_t replyAlloc[RPC_IPC_LENGTH];
     IpcIoInit(&reply, replyAlloc, RPC_IPC_LENGTH, 0);
-    MessageOption option = tr->flags;
+    MessageOption option = {
+        .flags =  tr->flags
+    };
     uint64_t senderSeqNumber = tr->seqNumber;
 
     ToIpcData(tr, &data);
@@ -385,7 +390,7 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t sess
     if (result != ERR_NONE) {
         RPC_LOG_ERROR("stub is invalid, has not OnReceive or Request");
     }
-    if (!(option & TF_OP_ASYNC)) {
+    if (!(option.flags & TF_OP_ASYNC)) {
         threadContext->sessionId = sessionId;
         threadContext->seqNumber = senderSeqNumber;
         SendReply(&reply, 0, result);
@@ -703,7 +708,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
         return ERR_FAILED;
     }
 
-    if (option & TF_OP_ASYNC) {
+    if (option.flags & TF_OP_ASYNC) {
         result = SendOrWaitForCompletion(userWaitTime, seqNumber, sessinoObject, NULL, buffer);
     } else {
         result = SendOrWaitForCompletion(userWaitTime, seqNumber, sessinoObject, reply, buffer);
