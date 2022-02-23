@@ -404,7 +404,7 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, 
             return ERR_FAILED;
         }
 
-        waitTime.tv_sec = now.tv_sec + DEFAULT_SEND_WAIT_TIME;
+        waitTime.tv_sec = now.tv_sec + RPC_DEFAULT_SEND_WAIT_TIME;
         waitTime.tv_nsec = now.tv_usec * USECTONSEC;
         int ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
         pthread_mutex_unlock(&threadLockInfo->mutex);

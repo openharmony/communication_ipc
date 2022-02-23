@@ -21,8 +21,9 @@
 #include "rpc_log.h"
 #include "serializer.h"
 
-
 static SvcIdentity g_serverSid;
+
+static MessageOption g_option;
 
 int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
@@ -73,10 +74,6 @@ void ServerDead3(void)
 
 static SvcIdentity g_samgr = {
     .handle = 0
-};
-
-MessageOption g_option = {
-    .flags = TF_OP_SYNC
 };
 
 static void GetServerOne(void)
@@ -187,6 +184,7 @@ static void DeathCallbackTest(void)
 int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Client .... ");
+    MessageOptionInit(&g_option);
     GetServerOne();
     CallServerAdd();
     AnonymousTest();

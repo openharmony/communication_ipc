@@ -99,7 +99,8 @@ int main(int argc, char *argv[])
     WriteRemoteObject(&data, &svcOne);
 
     IpcIo reply;
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option;
+    MessageOptionInit(&option);
 
     SvcIdentity target = {
         .handle = 0
