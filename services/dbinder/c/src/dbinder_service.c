@@ -756,7 +756,7 @@ int32_t StartDBinderService(void)
 
 int32_t RegisterRemoteProxy(const void *name, uint32_t len, int32_t systemAbility)
 {
-    ret = InitDBinder();
+    int32_t ret = InitDBinder();
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("InitDBinder failed");
     }

@@ -15,8 +15,9 @@
 
 #include "rpc_socket_trans.h"
 
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
