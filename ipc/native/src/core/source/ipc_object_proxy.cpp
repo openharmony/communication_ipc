@@ -114,9 +114,9 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     MessageParcel data, reply;
     MessageOption option;
 
-    uint32_t err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
+    int32_t err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "INTERFACE_TRANSACTION transact return error = %{public}u", err);
+        ZLOGE(LABEL, "INTERFACE_TRANSACTION transact return error = %{public}d", err);
         return std::u16string();
     }
     remoteDescriptor_ = reply.ReadString16();
@@ -129,9 +129,9 @@ std::string IPCObjectProxy::GetPidAndUidInfo()
     MessageParcel data, reply;
     MessageOption option;
 
-    uint32_t err = SendRequestInner(false, GET_UIDPID_INFO, data, reply, option);
+    int32_t err = SendRequestInner(false, GET_UIDPID_INFO, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "GetPidAndUidInfo SendRequestInner return error = %{public}u", err);
+        ZLOGE(LABEL, "GetPidAndUidInfo SendRequestInner return error = %{public}d", err);
         return std::string("");
     }
     return reply.ReadString();
@@ -142,9 +142,9 @@ std::string IPCObjectProxy::GetDataBusName()
     MessageParcel data, reply;
     MessageOption option;
 
-    uint32_t err = SendRequestInner(false, GRANT_DATABUS_NAME, data, reply, option);
+    int32_t err = SendRequestInner(false, GRANT_DATABUS_NAME, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "GetDataBusName transact return error = %{public}u", err);
+        ZLOGE(LABEL, "GetDataBusName transact return error = %{public}d", err);
         return std::string("");
     }
 
@@ -169,9 +169,9 @@ std::string IPCObjectProxy::TransDataBusName(uint32_t uid, uint32_t pid)
         ZLOGE(LABEL, "TransDataBusName write pid/uid = %{public}u/%{public}u failed", pid, uid);
         return std::string("");
     }
-    uint32_t err = SendRequestInner(false, TRANS_DATABUS_NAME, data, reply, option);
+    int32_t err = SendRequestInner(false, TRANS_DATABUS_NAME, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "TransDataBusName transact return error = %{public}u", err);
+        ZLOGE(LABEL, "TransDataBusName transact return error = %{public}d", err);
         return std::string("");
     }
 
@@ -464,9 +464,9 @@ int IPCObjectProxy::GetSessionFromDBinderService()
         return type;
     }
 
-    uint32_t err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
+    int32_t err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGI(LABEL, "GET_PROTO_INFO transact return error = %{public}u", err);
+        ZLOGI(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
         return IRemoteObject::IF_PROT_BINDER;
     }
 
@@ -602,7 +602,7 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
         }
     }
 
-    if (!current->AttachHandleToIndex(handle, stubIndex)) {
+    if (!current->AttachHandleToIndex((uint32_t)handle, stubIndex)) {
         ZLOGE(LABEL, "add stub index err stubIndex = %" PRIu64 ", handle = %d", stubIndex, handle);
         return false;
     }
@@ -635,9 +635,9 @@ void IPCObjectProxy::ReleaseDatabusProto()
 
     MessageParcel data, reply;
     MessageOption option = { MessageOption::TF_ASYNC };
-    uint32_t err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
+    int32_t err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGW(LABEL, "DBINDER_DECREFS_TRANSACTION transact return error = %{public}u", err);
+        ZLOGW(LABEL, "DBINDER_DECREFS_TRANSACTION transact return error = %{public}d", err);
         // do nothing
     }
 }
