@@ -15,20 +15,20 @@
 
 #include "rpc_socket_trans.h"
 
-#include <string.h>
-#include <stddef.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <stddef.h>
+#include <string.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include "lwip/def.h"
 #include "lwip/inet.h"
 #include "lwip/netif.h"
 #include "lwip/netifapi.h"
 
-#include "utils_list.h"
-#include "securec.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "securec.h"
+#include "utils_list.h"
 
 #define DEVICEID_LENGTH 64
 #define SERVICENAME_LENGTH 200
@@ -203,10 +203,10 @@ static void *OpenTcpServerSocket(void *args)
     return NULL;
 }
 
-static int32_t StartListen(const char *SaSessionName, void *cb)
+static int32_t StartListen(const char *saSessionName, void *cb)
 {
-    if (SaSessionName == NULL) {
-        RPC_LOG_ERROR("SaSessionName is null");
+    if (saSessionName == NULL) {
+        RPC_LOG_ERROR("saSessionName is null");
         return ERR_FAILED;
     }
     if (memcpy_s(&g_callback, sizeof(TransCallback), cb, sizeof(TransCallback)) != EOK) {
@@ -227,7 +227,7 @@ static int32_t StartListen(const char *SaSessionName, void *cb)
         return ERR_FAILED;
     }
 
-    ret = pthread_create(&threadId, &threadAttr, OpenTcpServerSocket, (void *)SaSessionName);
+    ret = pthread_create(&threadId, &threadAttr, OpenTcpServerSocket, (void *)saSessionName);
     if (ret != 0) {
         RPC_LOG_ERROR("pthread_create failed %d", ret);
         return ERR_FAILED;
@@ -237,7 +237,7 @@ static int32_t StartListen(const char *SaSessionName, void *cb)
     return ERR_NONE;
 }
 
-static int32_t StopListen(const char *SaSessionName)
+static int32_t StopListen(const char *saSessionName)
 {
     return ERR_NONE;
 }
@@ -273,13 +273,13 @@ static void *HandleSendReply(void *args)
     return NULL;
 }
 
-static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void *args)
+static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void *args)
 {
-    if (SaSessionName == NULL) {
-        RPC_LOG_INFO("SaSessionName is null");
+    if (saSessionName == NULL) {
+        RPC_LOG_INFO("saSessionName is null");
         return ERR_FAILED;
     }
-    uint16_t port = Hash(SaSessionName);
+    uint16_t port = Hash(saSessionName);
 
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
@@ -355,7 +355,7 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
     return ERR_NONE;
 }
 
-static int32_t GetSocketLocalDeviceID(const char *SaSessionName, char *deviceId)
+static int32_t GetSocketLocalDeviceID(const char *saSessionName, char *deviceId)
 {
     extern struct netif if_wifi;
     const ip4_addr_t *ip4Addr = netif_ip4_addr(&if_wifi);
