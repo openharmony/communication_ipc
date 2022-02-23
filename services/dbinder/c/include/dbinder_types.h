@@ -88,14 +88,14 @@ typedef struct {
     uint32_t sizeOfSelf;
     uint32_t magic;
     uint32_t version;
-    int cmd;
+    int32_t cmd;
     uint32_t code;
     uint32_t flags;
     uint64_t cookie;
     uint64_t seqNumber;
-    size_t buffer_size;
-    size_t offsets_size;
-    uintptr_t offsets;
+    uint64_t buffer_size;
+    uint64_t offsets_size;
+    uint64_t offsets;
     char *buffer;
 } dbinder_transaction_data;
 
