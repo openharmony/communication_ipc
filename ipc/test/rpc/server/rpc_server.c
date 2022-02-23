@@ -15,11 +15,11 @@
 
 #include <stdlib.h>
 #include <securec.h>
-#include "rpc_log.h"
-#include "rpc_errno.h"
-#include "ipc_skeleton.h"
-#include "serializer.h"
 #include "dbinder_types.h"
+#include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
+#include "serializer.h"
 
 enum {
     OP_ADD = 1,

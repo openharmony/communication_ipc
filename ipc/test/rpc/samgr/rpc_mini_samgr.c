@@ -18,13 +18,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
+#include "dbinder_service.h"
 #include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
+#include "securec.h"
 #include "serializer.h"
 #include "utils_list.h"
-#include "securec.h"
-#include "dbinder_service.h"
 
 typedef struct {
     UTILS_DL_LIST list;
