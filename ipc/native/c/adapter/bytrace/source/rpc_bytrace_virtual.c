@@ -25,12 +25,12 @@ void RpcFinishTrace(void)
     return;
 }
 
-void RpcStartAsyncTrace(const char *value, int32_t TraceId)
+void RpcStartAsyncTrace(const char *value, int32_t traceId)
 {
     return;
 }
 
-void RpcFinishAsyncTrace(const char *value, int32_t TraceId)
+void RpcFinishAsyncTrace(const char *value, int32_t traceId)
 {
     return;
 }

@@ -15,7 +15,6 @@
 
 #include "rpc_bytrace.h"
 #include <stddef.h>
-#include <stdint.h>
 #include "rpc_bytrace_inner.h"
 
 static const uint64_t BYTRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
@@ -32,20 +31,20 @@ void RpcFinishTrace(void)
     RpcFinishTraceInner(BYTRACE_TAG_RPC);
 }
 
-void RpcStartAsyncTrace(const char *value, int32_t TraceId)
+void RpcStartAsyncTrace(const char *value, int32_t traceId)
 {
     if (value == NULL) {
         return;
     }
-    RpcStartAsyncTraceInner(BYTRACE_TAG_RPC, value, TraceId);
+    RpcStartAsyncTraceInner(BYTRACE_TAG_RPC, value, traceId);
 }
 
-void RpcFinishAsyncTrace(const char *value, int32_t TraceId)
+void RpcFinishAsyncTrace(const char *value, int32_t traceId)
 {
     if (value == NULL) {
         return;
     }
-    RpcFinishAsyncTraceInner(BYTRACE_TAG_RPC, value, TraceId);
+    RpcFinishAsyncTraceInner(BYTRACE_TAG_RPC, value, traceId);
 }
 
 void RpcMiddleTrace(const char *beforeValue, const char *afterValue)
