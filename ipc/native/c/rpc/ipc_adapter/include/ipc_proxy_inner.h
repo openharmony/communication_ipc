@@ -16,8 +16,6 @@
 #ifndef OHOS_IPC_PROXY_INNER_H
 #define OHOS_IPC_PROXY_INNER_H
 
-#include <stdint.h>
-
 #include "dbinder_types.h"
 #include "serializer.h"
 
