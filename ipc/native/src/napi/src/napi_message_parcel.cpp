@@ -1373,7 +1373,7 @@ napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_inf
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             int16_t val = napiParcel->nativeParcel_->ReadInt16();
             napi_value num = nullptr;
             napi_create_int32(env, val, &num);
@@ -1391,9 +1391,9 @@ napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_inf
     }
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         int16_t val = napiParcel->nativeParcel_->ReadInt16();
         napi_value num = nullptr;
         napi_create_int32(env, val, &num);
@@ -1424,7 +1424,7 @@ napi_value NAPI_MessageParcel::JS_readIntArray(napi_env env, napi_callback_info 
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             int32_t val = napiParcel->nativeParcel_->ReadInt32();
             napi_value num = nullptr;
             napi_create_int32(env, val, &num);
@@ -1442,9 +1442,9 @@ napi_value NAPI_MessageParcel::JS_readIntArray(napi_env env, napi_callback_info 
     }
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         int32_t val = napiParcel->nativeParcel_->ReadInt32();
         napi_value num = nullptr;
         napi_create_int32(env, val, &num);
@@ -1475,7 +1475,7 @@ napi_value NAPI_MessageParcel::JS_readLongArray(napi_env env, napi_callback_info
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             int64_t val = napiParcel->nativeParcel_->ReadInt64();
             napi_value num = nullptr;
             napi_create_int64(env, val, &num);
@@ -1493,9 +1493,9 @@ napi_value NAPI_MessageParcel::JS_readLongArray(napi_env env, napi_callback_info
     }
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_64, napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         int64_t val = napiParcel->nativeParcel_->ReadInt64();
         napi_value num = nullptr;
         napi_create_int64(env, val, &num);
@@ -1526,7 +1526,7 @@ napi_value NAPI_MessageParcel::JS_readFloatArray(napi_env env, napi_callback_inf
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             double val = napiParcel->nativeParcel_->ReadDouble();
             napi_value num = nullptr;
             napi_create_double(env, val, &num);
@@ -1544,9 +1544,9 @@ napi_value NAPI_MessageParcel::JS_readFloatArray(napi_env env, napi_callback_inf
     }
     CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         double val = napiParcel->nativeParcel_->ReadDouble();
         napi_value num = nullptr;
         napi_create_double(env, val, &num);
@@ -1577,7 +1577,7 @@ napi_value NAPI_MessageParcel::JS_readDoubleArray(napi_env env, napi_callback_in
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             double val = napiParcel->nativeParcel_->ReadDouble();
             napi_value num = nullptr;
             napi_create_double(env, val, &num);
@@ -1595,9 +1595,9 @@ napi_value NAPI_MessageParcel::JS_readDoubleArray(napi_env env, napi_callback_in
     }
     CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         double val = napiParcel->nativeParcel_->ReadDouble();
         napi_value num = nullptr;
         napi_create_double(env, val, &num);
@@ -1628,7 +1628,7 @@ napi_value NAPI_MessageParcel::JS_readBooleanArray(napi_env env, napi_callback_i
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             int8_t val = napiParcel->nativeParcel_->ReadInt8();
             napi_value boolean = nullptr;
             napi_get_boolean(env, val, &boolean);
@@ -1647,9 +1647,9 @@ napi_value NAPI_MessageParcel::JS_readBooleanArray(napi_env env, napi_callback_i
 
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         int8_t val = napiParcel->nativeParcel_->ReadInt8();
         napi_value boolean = nullptr;
         napi_get_boolean(env, val, &boolean);
@@ -1680,7 +1680,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             uint16_t val = napiParcel->nativeParcel_->ReadUint16();
             char ch[2] = { 0 };
             sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val);
@@ -1700,9 +1700,9 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     }
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
     napi_value result = nullptr;
-    napi_create_array_with_length(env, arrayLength, &result);
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         uint16_t val = napiParcel->nativeParcel_->ReadUint16();
         char ch[2] = { 0 };
         sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val);
@@ -1735,7 +1735,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
         napi_is_array(env, argv[0], &isArray);
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             if (napiParcel->nativeParcel_->GetReadableBytes() <= 0) {
                 break;
             }
@@ -1753,7 +1753,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
     napi_value result = nullptr;
     napi_create_array(env, &result);
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         if (napiParcel->nativeParcel_->GetReadableBytes() <= 0) {
             break;
         }
@@ -1794,7 +1794,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceableArray(napi_env env, napi_callb
         return result;
     }
 
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         int32_t len = napiParcel->nativeParcel_->ReadInt32();
         if (len > 0) {
             bool hasElement = false;
@@ -1849,7 +1849,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
         if (static_cast<int32_t>(length) != arrayLength) {
             return result;
         }
-        for (int32_t i = 0; i < arrayLength; i++) {
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             sptr<IRemoteObject> value = napiParcel->nativeParcel_->ReadRemoteObject();
             napi_value napiValue = NAPI_ohos_rpc_CreateJsRemoteObject(env, value);
             napi_set_element(env, argv[0], i, napiValue);
@@ -1862,7 +1862,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
         return result;
     }
     napi_create_array(env, &result);
-    for (int32_t i = 0; i < arrayLength; i++) {
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         sptr<IRemoteObject> value = napiParcel->nativeParcel_->ReadRemoteObject();
         napi_value napiValue = NAPI_ohos_rpc_CreateJsRemoteObject(env, value);
         napi_set_element(env, result, i, napiValue);
@@ -2224,9 +2224,9 @@ napi_value NAPI_MessageParcel::JS_ReadRawData(napi_env env, napi_callback_info i
     // [c++] rawData -> byteBuffer()[js]
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
-    napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
+    napi_create_arraybuffer(env, (int32_t)size, &arrayBufferPtr, &arrayBuffer);
     napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int8_array, size, arrayBuffer, 0, &typedarray);
+    napi_create_typedarray(env, napi_int8_array, (int32_t)size, arrayBuffer, 0, &typedarray);
     bool isTypedArray = false;
     napi_is_typedarray(env, typedarray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");

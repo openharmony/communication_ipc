@@ -95,7 +95,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     MessageOption &option)
 {
     int error = ERR_NONE;
-    uint32_t flags = option.GetFlags();
+    uint32_t flags = (uint32_t)option.GetFlags();
     ZLOGI(LABEL, "%{public}s: handle=%d ,flags:%d", __func__, handle, flags);
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
@@ -234,7 +234,7 @@ int BinderInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, 
     }
     info.cookie = cookie;
     info.ptr = ptr;
-    info.has_weak_ref = cmd;
+    info.has_weak_ref = (uint32_t)cmd;
     info.has_strong_ref = flag;
     int error = binderConnector_->WriteBinder(BINDER_TRANSLATE_HANDLE, &info);
     if (error == ERR_NONE && info.has_strong_ref > 0) {
@@ -545,7 +545,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     int error = ERR_NONE;
-    ZLOGI(LABEL, "HandleCommands:cmd=[%u]:%{public}s\n", cmd, BinderDebug::ToString(cmd).c_str());
+    ZLOGI(LABEL, "HandleCommands:cmd=[%u]:%{public}s\n", cmd, BinderDebug::ToString((int32_t)cmd).c_str());
     switch (cmd) {
         case BR_ERROR:
             error = input_.ReadInt32();
@@ -595,7 +595,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     }
     if (error != ERR_NONE) {
         ZLOGE(LABEL, "HandleCommands cmd = %{public}u(%{public}s), error = %{public}d", cmd,
-            BinderDebug::ToString(cmd).c_str(), error);
+            BinderDebug::ToString((int32_t)cmd).c_str(), error);
     }
 
     return error;
@@ -713,9 +713,9 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
             }
             case BR_DEAD_REPLY: // fall-through
             case BR_FAILED_REPLY: {
-                error = cmd;
+                error = (int)cmd;
                 if (acquireResult != nullptr) {
-                    *acquireResult = cmd;
+                    *acquireResult = (int32_t)cmd;
                 }
                 continueLoop = false;
                 break;
@@ -861,7 +861,7 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
     flat_binder_object flat;
     if (object->IsProxyObject()) {
         const IPCObjectProxy *proxy = reinterpret_cast<const IPCObjectProxy *>(object);
-        const int32_t handle = proxy ? proxy->GetHandle() : -1;
+        const int32_t handle = proxy ? (int32_t)(proxy->GetHandle()) : -1;
         flat.hdr.type = BINDER_TYPE_HANDLE;
         flat.binder = 0;
         flat.handle = (uint32_t)handle;
@@ -947,7 +947,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
     flat.hdr.type = BINDER_TYPE_FD;
     flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
     flat.binder = 0; // Don't pass uninitialized stack data to a remote process
-    flat.handle = fd;
+    flat.handle = (uint32_t)fd;
     flat.cookie = takeOwnership ? 1 : 0;
 
     ZLOGW(LABEL, "%s(%d) write fd : %d", __func__, __LINE__, fd);
@@ -957,7 +957,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
 std::string BinderInvoker::ResetCallingIdentity()
 {
     int64_t identity = (static_cast<int64_t>(callerUid_) << PID_LEN) | callerPid_;
-    callerUid_ = getuid();
+    callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     return std::to_string(identity);
 }

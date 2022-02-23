@@ -253,7 +253,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_005, TestSize.Level1)
     long startTime = helper.GetCurrentTimeMs();
     int result = 0;
     result = testService->TestAsyncTransaction(2019, 0);
-    ZLOGI(LABEL, "testService ReverseInt result = %d, get reply = %d", result, reply);
+    ZLOGI(LABEL, "testService ReverseInt result = %d", result);
     EXPECT_EQ(result, 0);
     long finishTime = helper.GetCurrentTimeMs();
     ZLOGI(LABEL, "startTime = %ld, finishTime = %ld", startTime, finishTime);
