@@ -15,13 +15,10 @@
 
 #include "dbinder_service.h"
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
-#include "securec.h"
-#include "utils_list.h"
 
 #include "dbinder_ipc_adapter.h"
 #include "dbinder_service_inner.h"
@@ -34,7 +31,9 @@
 #include "rpc_session_handle.h"
 #include "rpc_trans.h"
 #include "rpc_types.h"
+#include "securec.h"
 #include "serializer.h"
+#include "utils_list.h"
 
 typedef struct {
     UTILS_DL_LIST list;
@@ -85,7 +84,7 @@ static SessionIdList g_sessionIdList = {
 };
 
 static TransInterface *g_trans = NULL;
-static char const *DBINDER_SESSION_NAME = "DBinderService";
+static char const *g_dbinderSessionName = "DBinderService";
 static const uint32_t RETRY_TIMES = 2;
 static const int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
 static const int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
@@ -201,7 +200,7 @@ static int32_t SendDataToRemote(const char *deviceId, const DHandleEntryTxRx *ms
         return ERR_FAILED;
     }
 
-    int32_t sessionId = g_trans->Connect(DBINDER_SESSION_NAME, deviceId, NULL);
+    int32_t sessionId = g_trans->Connect(g_dbinderSessionName, deviceId, NULL);
     if (sessionId < 0) {
         RPC_LOG_ERROR("SendDataToRemote connect failed");
         return ERR_FAILED;
@@ -230,7 +229,7 @@ static int32_t SendEntryToRemote(DBinderServiceStub *stub, const uint32_t seqNum
     uint32_t toDeviceIDLength = (uint32_t)strlen(toDeviceID);
 
     char localDeviceID[DEVICEID_LENGTH + 1];
-    if (g_trans->GetLocalDeviceID(DBINDER_SESSION_NAME, localDeviceID) != ERR_NONE) {
+    if (g_trans->GetLocalDeviceID(g_dbinderSessionName, localDeviceID) != ERR_NONE) {
         RPC_LOG_ERROR("GetLocalDeviceID failed");
         return ERR_FAILED;
     }
@@ -540,7 +539,7 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
     }
 
     char localDeviceId[DEVICEID_LENGTH + 1];
-    int32_t ret = g_trans->GetLocalDeviceID(DBINDER_SESSION_NAME, localDeviceId);
+    int32_t ret = g_trans->GetLocalDeviceID(g_dbinderSessionName, localDeviceId);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("OnRemoteInvokerDataBusMessage GetLocalDeviceID failed");
         return ERR_FAILED;
@@ -740,7 +739,7 @@ int32_t StartDBinderService(void)
         RPC_LOG_ERROR("GetRpcTrans failed");
         return ERR_FAILED;
     }
-    ret = g_trans->StartListen(DBINDER_SESSION_NAME, (void *)GetDBinderTransCallback());
+    ret = g_trans->StartListen(g_dbinderSessionName, (void *)GetDBinderTransCallback());
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("StartListen failed");
         return ret;
