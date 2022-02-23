@@ -36,7 +36,8 @@ void ServerDead1(void *args)
 }
 
 MessageOption option = {
-    .flags = TF_OP_SYNC
+    .flags = TF_OP_SYNC,
+    .waitTime = RPC_DEFAULT_SEND_WAIT_TIME
 };
 SvcIdentity sid;
 char deviceId[DEVICEID_LENGTH];

@@ -31,7 +31,7 @@ void DeleteRpcInvoker(RemoteInvoker *remoteInvoker);
 void RpcStopWorkThread(void);
 int32_t OnReceiveNewConnection(int sessionId);
 void OnDatabusSessionClosed(int sessionId);
-void OnMessageAvailable(int sessionId, const void *data, unsigned int len);
+void OnMessageAvailable(int sessionId, const void *data, uint32_t len);
 void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject,
     const char *serviceName, const char *deviceId);
 int32_t CreateTransServer(const char *sessionName);
