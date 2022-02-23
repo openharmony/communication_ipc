@@ -15,6 +15,7 @@
 
 #include "rpc_log.h"
 
+#include <stdint.h>
 #include "securec.h"
 
 #define LOG_NAME_MAX_LEN 5

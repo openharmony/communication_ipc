@@ -15,17 +15,17 @@
 
 #include "ipc_proxy_inner.h"
 
+#include <securec.h>
 #include <stddef.h>
 #include <string.h>
-#include <securec.h>
 
-#include "ipc_thread_pool.h"
-#include "rpc_process_skeleton.h"
 #include "dbinder_invoker.h"
 #include "dbinder_types.h"
 #include "dbinder_service_inner.h"
+#include "ipc_thread_pool.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "rpc_process_skeleton.h"
 
 static int32_t GetDigits(int32_t number)
 {

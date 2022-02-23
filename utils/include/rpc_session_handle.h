@@ -17,6 +17,8 @@
 #define OHOS_RPC_SESSION_HANDLE_H
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <pthread.h>
 
 #include "utils_list.h"
 

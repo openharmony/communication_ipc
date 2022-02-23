@@ -32,20 +32,20 @@ void RpcFinishTraceInner(uint64_t label)
     FinishTrace(label);
 }
 
-void RpcStartAsyncTraceInner(uint64_t label, const char *value, int32_t TraceId)
+void RpcStartAsyncTraceInner(uint64_t label, const char *value, int32_t traceId)
 {
     if (value == nullptr) {
         return;
     }
-    StartAsyncTrace(label, value, TraceId);
+    StartAsyncTrace(label, value, traceId);
 }
 
-void RpcFinishAsyncTraceInner(uint64_t label, const char *value, int32_t TraceId)
+void RpcFinishAsyncTraceInner(uint64_t label, const char *value, int32_t traceId)
 {
     if (value == nullptr) {
         return;
     }
-    FinishAsyncTrace(label, value, TraceId);
+    FinishAsyncTrace(label, value, traceId);
 }
 
 void RpcMiddleTraceInner(uint64_t label, const char *beforeValue, const char *afterValue)

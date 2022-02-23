@@ -16,6 +16,8 @@
 #ifndef OHOS_IPC_RPC_OS_ADAPTER_H
 #define OHOS_IPC_RPC_OS_ADAPTER_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
