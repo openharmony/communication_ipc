@@ -42,9 +42,9 @@ static void CallAnonymosFunc(const char *str)
     WriteString(&data, str);
 
     IpcIo reply;
-    MessageOption option = {
-        .flags = TF_OP_ASYNC
-    };
+    MessageOption option;
+    MessageOptionInit(&option);
+    option.flags = TF_OP_ASYNC;
     int ret = SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
     RPC_LOG_INFO("server Async call res = %d", ret);
 }
@@ -88,9 +88,7 @@ static void ThreadHandler()
     CallAnonymosFunc(str);
 }
 
-static MessageOption g_option = {
-    .flags = TF_OP_SYNC
-};
+static MessageOption g_option;
 
 static IpcObjectStub objectStubTwo = {
     .func = RemoteRequestTwo,
@@ -211,6 +209,7 @@ static void AddSaTwo(void)
 int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Server .... ");
+    MessageOptionInit(&g_option);
     AddSaOne();
     AddSaTwo();
 
