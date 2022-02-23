@@ -16,7 +16,6 @@
 
 #ifndef ACCESS_TOKEN_ADAPTER_H
 #define ACCESS_TOKEN_ADAPTER_H
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
