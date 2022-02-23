@@ -34,7 +34,6 @@ extern "C" {
 #define RPC_IPC_LENGTH_LONG 256
 #define GET_SYSTEM_ABILITY_TRANSACTION 1
 #define ID_DIGITS 10
-#define DEFAULT_SEND_WAIT_TIME 4
 #define USECTONSEC 1000
 
 enum DBinderCode {

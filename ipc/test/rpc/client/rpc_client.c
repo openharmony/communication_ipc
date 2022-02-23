@@ -115,7 +115,8 @@ int main(int argc, char *argv[])
     WriteString(&data1, deviceId);
 
     IpcIo reply1;
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option;
+    MessageOptionInit(&option);
 
     SvcIdentity target = {
         .handle = 0

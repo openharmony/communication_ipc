@@ -142,7 +142,7 @@ int32_t MessageOptionInit(MessageOption *option)
         return ERR_INVALID_PARAM;
     }
     option->flags = TF_OP_SYNC;
-    option->waitTime = TF_WAIT_TIME;
+    option->waitTime = RPC_DEFAULT_SEND_WAIT_TIME;
     option->args = NULL;
     return ERR_NONE;
 }
