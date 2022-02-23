@@ -77,7 +77,7 @@ int TestService::TestSyncTransaction(int data, int &rep, int delayTime)
     rep = Reverse(data);
 
     if (delayTime > 0) {
-        sleep(delayTime);
+        sleep((uint32_t)delayTime);
     }
 
     ZLOGE(LABEL, "TestServiceStub:read from client data = %{public}d", data);
@@ -89,7 +89,7 @@ int TestService::TestAsyncTransaction(int data, int timeout)
     ZLOGE(LABEL, "TestServiceStub:read from client data = %{public}d", data);
 
     if (timeout > 0) {
-        sleep(timeout);
+        sleep((uint32_t)timeout);
     }
 
     return Reverse(data);
