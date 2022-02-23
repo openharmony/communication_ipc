@@ -352,7 +352,7 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
     }
 
     ssize_t size = writeCursor - readCursor;
-    int ret = session->SendBytes(static_cast<const void *>(sendBuffer + readCursor), static_cast<ssize_t>(size));
+    int ret = session->SendBytes(static_cast<const void *>(sendBuffer + readCursor), size);
     if (ret == 0) {
         readCursor += size;
         sessionBuff->SetSendBufferReadCursor(readCursor);
@@ -872,7 +872,7 @@ int DBinderDatabusInvoker::TranslateProxy(uint32_t handle, uint32_t flag)
     return -IPC_INVOKER_TRANSLATE_ERR;
 }
 
-int DBinderDatabusInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int32_t cmd)
+int DBinderDatabusInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd)
 {
     return -IPC_INVOKER_TRANSLATE_ERR;
 }
