@@ -49,6 +49,8 @@ enum {
 #define SET_MAX_THREADS_MAX     16
 #define MAX_DEATH_CALLBACK_NUM  4
 
+#define RPC_DEFAULT_SEND_WAIT_TIME 4
+
 #if defined(__LITEOS_M__)
 #define IF_PROT_DEFAULT IF_PROT_DATABUS
 #else

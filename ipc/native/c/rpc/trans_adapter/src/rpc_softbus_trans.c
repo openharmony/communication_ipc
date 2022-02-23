@@ -18,19 +18,19 @@
 #include <stddef.h>
 #include <unistd.h>
 
-#include "session.h"
-#include "softbus_bus_center.h"
-#include "securec.h"
+#include "dbinder_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
-#include "dbinder_types.h"
+#include "securec.h"
+#include "session.h"
+#include "softbus_bus_center.h"
 
 static SessionAttribute g_sessionAttr = {.dataType = TYPE_BYTES};
 
-static int32_t StartListen(const char *SaSessionName, void *cb)
+static int32_t StartListen(const char *saSessionName, void *cb)
 {
-    if (SaSessionName == NULL) {
-        RPC_LOG_ERROR("StartListen SaSessionName is null");
+    if (saSessionName == NULL) {
+        RPC_LOG_ERROR("StartListen saSessionName is null");
         return ERR_FAILED;
     }
     if (cb == NULL) {
@@ -38,7 +38,7 @@ static int32_t StartListen(const char *SaSessionName, void *cb)
         return ERR_FAILED;
     }
 
-    int ret = CreateSessionServer(SaSessionName, SaSessionName, (ISessionListener *)cb);
+    int ret = CreateSessionServer(saSessionName, saSessionName, (ISessionListener *)cb);
     if (ret != 0) {
         RPC_LOG_ERROR("CreateSessionServer failed, error=%d", ret);
         return ERR_FAILED;
@@ -46,14 +46,14 @@ static int32_t StartListen(const char *SaSessionName, void *cb)
     return ERR_NONE;
 }
 
-static int32_t StopListen(const char *SaSessionName)
+static int32_t StopListen(const char *saSessionName)
 {
-    if (SaSessionName == NULL) {
-        RPC_LOG_ERROR("StopListen SaSessionName is null");
+    if (saSessionName == NULL) {
+        RPC_LOG_ERROR("StopListen saSessionName is null");
         return ERR_FAILED;
     }
 
-    int ret = RemoveSessionServer(SaSessionName, SaSessionName);
+    int ret = RemoveSessionServer(saSessionName, saSessionName);
     if (ret != 0) {
         RPC_LOG_ERROR("RemoveSessionServer failed, error=%d", ret);
         return ERR_FAILED;
@@ -61,9 +61,9 @@ static int32_t StopListen(const char *SaSessionName)
     return ERR_NONE;
 }
 
-static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void *args)
+static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void *args)
 {
-    if (SaSessionName == NULL) {
+    if (saSessionName == NULL) {
         RPC_LOG_ERROR("Connect SaSessionName is null");
         return ERR_FAILED;
     }
@@ -72,7 +72,7 @@ static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void
         return ERR_FAILED;
     }
 
-    int ret = OpenSession(SaSessionName, SaSessionName, peerDeviceId, "", &g_sessionAttr);
+    int ret = OpenSession(saSessionName, saSessionName, peerDeviceId, "", &g_sessionAttr);
     printf("SOFTBUS Connect deviceid %s\n", peerDeviceId);
     if (ret < 0) {
         RPC_LOG_ERROR("Connect OpenSession failed, error=%d", ret);
@@ -111,14 +111,14 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
     return ERR_NONE;
 }
 
-static int32_t GetLocalDeviceID(const char *SaSessionName, char *deviceId)
+static int32_t GetLocalDeviceID(const char *saSessionName, char *deviceId)
 {
-    if (SaSessionName == NULL) {
+    if (saSessionName == NULL) {
         RPC_LOG_ERROR("GetLocalDeviceID SaSessionName is null");
         return NULL;
     }
     NodeBasicInfo nodeInfo;
-    int32_t ret = GetLocalNodeDeviceInfo(SaSessionName, &nodeInfo);
+    int32_t ret = GetLocalNodeDeviceInfo(saSessionName, &nodeInfo);
     if (ret != 0) {
         RPC_LOG_ERROR("GetLocalDeviceID failed, error=%d", ret);
         return NULL;

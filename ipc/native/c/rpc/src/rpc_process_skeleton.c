@@ -22,10 +22,11 @@
 #include "dbinder_types.h"
 #include "ipc_proxy_inner.h"
 #include "ipc_stub_inner.h"
-#include "rpc_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "rpc_session_handle.h"
+#include "rpc_trans_callback.h"
+#include "rpc_types.h"
 
 static RpcSkeleton g_rpcSkeleton = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
@@ -403,7 +404,7 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, 
             return ERR_FAILED;
         }
 
-        waitTime.tv_sec = now.tv_sec + DEFAULT_SEND_WAIT_TIME;
+        waitTime.tv_sec = now.tv_sec + RPC_DEFAULT_SEND_WAIT_TIME;
         waitTime.tv_nsec = now.tv_usec * USECTONSEC;
         int ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
         pthread_mutex_unlock(&threadLockInfo->mutex);
