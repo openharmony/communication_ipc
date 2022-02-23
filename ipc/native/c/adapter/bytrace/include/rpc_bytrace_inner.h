@@ -16,6 +16,8 @@
 #ifndef RPC_BYTRACE_INNER_H
 #define RPC_BYTRACE_INNER_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
