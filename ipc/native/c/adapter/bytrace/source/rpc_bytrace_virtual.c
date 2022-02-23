@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <stdint.h>
 #include "rpc_bytrace.h"
 
 void RpcStartTrace(const char *value)
