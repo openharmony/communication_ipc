@@ -290,7 +290,7 @@ static int32_t HandleReply(uint64_t seqNumber, IpcIo *reply, uintptr_t *buffer)
     return ERR_NONE;
 }
 
-static int32_t WaitForReply(uint64_t seqNumber, IpcIo *reply, uint32_t handle, int userWaitTime, uintptr_t *buffer)
+static int32_t WaitForReply(uint64_t seqNumber, IpcIo *reply, uint32_t handle, uint32_t userWaitTime, uintptr_t *buffer)
 {
     if (reply == NULL || userWaitTime == 0) {
         return ERR_NONE;
@@ -313,7 +313,7 @@ static int32_t WaitForReply(uint64_t seqNumber, IpcIo *reply, uint32_t handle, i
     return result;
 }
 
-static int32_t SendOrWaitForCompletion(int userWaitTime, uint64_t seqNumber,
+static int32_t SendOrWaitForCompletion(uint32_t userWaitTime, uint64_t seqNumber,
     HandleSessionList *sessionOfPeer, IpcIo *reply, uintptr_t *buffer)
 {
     if (seqNumber == 0) {
@@ -701,7 +701,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     RPC_LOG_INFO("RPCInvokerSendRequest called");
     int32_t result = ERR_NONE;
     uint64_t seqNumber = 0;
-    int userWaitTime = RPC_DEFAULT_SEND_WAIT_TIME;
+    uint32_t userWaitTime = option.waitTime;
 
     HandleSessionList *sessinoObject = WriteTransaction(BC_TRANSACTION, option, target.handle,
         0, code, data, &seqNumber, 0);

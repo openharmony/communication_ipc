@@ -129,7 +129,7 @@ uint64_t ProcessGetSeqNumber(void);
 int32_t AttachHandleToIndex(HandleToIndexList *handleToIndex);
 void DetachHandleToIndex(HandleToIndexList *handleToIndex);
 HandleToIndexList *QueryHandleToIndex(uint32_t handle);
-int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, int userWaitTime);
+int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, uint32_t userWaitTime);
 void EraseThreadBySeqNumber(ThreadMessageInfo *messageInfo);
 ThreadMessageInfo *QueryThreadBySeqNumber(uint64_t seqNumber);
 void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle);

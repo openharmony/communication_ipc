@@ -113,7 +113,7 @@ static int32_t InvokerDataBusThread(IpcIo *data, IpcIo *reply, OnRemoteRequest f
     return MakeStubCached(reply, func, sessionName, deviceID);
 }
 
-int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest *func)
+int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest func)
 {
     uint16_t type;
     if (!ReadUint16(data, &type)) {
