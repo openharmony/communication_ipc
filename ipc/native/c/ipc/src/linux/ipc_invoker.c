@@ -17,7 +17,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -370,7 +369,7 @@ static void IpcJoinThread(bool initiative)
         readbuf[0] = BC_REGISTER_LOOPER;
     }
     BinderWrite(readbuf, sizeof(uint32_t));
-    for (;;) {
+    for (; ;) {
         bwr.read_size = sizeof(readbuf);
         bwr.read_consumed = 0;
         bwr.read_buffer = (uintptr_t)readbuf;
