@@ -16,22 +16,21 @@
 #include "dbinder_invoker.h"
 
 #include <inttypes.h>
-#include <pthread.h>
 #include <unistd.h>
+
+#include "dbinder_types.h"
+#include "ipc_process_skeleton.h"
+#include "ipc_skeleton.h"
+#include "ipc_thread_pool.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
+#include "rpc_process_skeleton.h"
+#include "rpc_session_handle.h"
+#include "rpc_trans.h"
+#include "rpc_trans_callback.h"
 
 #include "securec.h"
 #include "utils_list.h"
-
-#include "rpc_log.h"
-#include "rpc_errno.h"
-#include "rpc_trans.h"
-#include "rpc_trans_callback.h"
-#include "rpc_process_skeleton.h"
-#include "rpc_session_handle.h"
-#include "ipc_skeleton.h"
-#include "ipc_process_skeleton.h"
-#include "ipc_thread_pool.h"
-#include "dbinder_types.h"
 
 #define BC_TRANSACTION 1076388608
 #define BC_REPLY 1076388609
@@ -698,7 +697,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     MessageOption option, uintptr_t *buffer)
 {
     RPC_LOG_INFO("RPCInvokerSendRequest called");
-    int32_t result = ERR_NONE;
+    int32_t result;
     uint64_t seqNumber = 0;
     int userWaitTime = DEFAULT_SEND_WAIT_TIME;
 

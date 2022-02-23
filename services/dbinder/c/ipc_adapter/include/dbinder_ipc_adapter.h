@@ -16,7 +16,6 @@
 #ifndef OHOS_RPC_DBINDER_IPC_ADAPTER_H
 #define OHOS_RPC_DBINDER_IPC_ADAPTER_H
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "dbinder_stub.h"
