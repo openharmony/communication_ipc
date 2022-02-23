@@ -16,9 +16,7 @@
 #ifndef OHOS_IPC_RPC_PROCESS_SKELETON_H
 #define OHOS_IPC_RPC_PROCESS_SKELETON_H
 
-#include <pthread.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "ipc_skeleton.h"
 #include "ipc_thread_pool.h"

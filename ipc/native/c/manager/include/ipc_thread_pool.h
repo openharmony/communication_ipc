@@ -18,7 +18,6 @@
 
 #include <pthread.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "ipc_skeleton.h"
 #include "iremote_invoker.h"

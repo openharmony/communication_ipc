@@ -27,7 +27,11 @@
 
 static IpcSkeleton *g_ipcSkeleton = NULL;
 static pthread_mutex_t g_ipcSkeletonMutex = PTHREAD_MUTEX_INITIALIZER;
-static SvcIdentity g_samgrSvc = {.handle = 0, .token = 0, .cookie = 0};
+static SvcIdentity g_samgrSvc = {
+    .handle = 0, 
+    .token = 0, 
+    .cookie = 0
+};
 
 static void DeleteIpcSkeleton(IpcSkeleton *temp)
 {
@@ -363,8 +367,7 @@ int32_t ProcessRemoveDeathRecipient(int32_t handle, uint32_t cbId)
 
 int32_t OnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, IpcObjectStub *objectStub)
 {
-    int32_t result = ERR_NOT_RPC;
-    result = RpcOnRemoteRequestInner(code, data, reply, option, objectStub);
+    int32_t result = RpcOnRemoteRequestInner(code, data, reply, option, objectStub);
     if (result == ERR_NOT_RPC) {
         if (objectStub != NULL && objectStub->func != NULL) {
             result = (OnRemoteRequest)(objectStub->func)(code, data, reply, option);
