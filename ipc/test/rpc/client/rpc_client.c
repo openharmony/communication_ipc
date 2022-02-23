@@ -15,7 +15,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
 #include "rpc_log.h"
 #include "rpc_errno.h"

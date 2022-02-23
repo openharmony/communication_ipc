@@ -16,7 +16,6 @@
 #include "dbinder_stub.h"
 
 #include <stdbool.h>
-#include <pthread.h>
 
 #include "rpc_log.h"
 #include "rpc_errno.h"
@@ -24,7 +23,6 @@
 #include "ipc_thread_pool.h"
 #include "ipc_skeleton.h"
 #include "ipc_process_skeleton.h"
-#include "dbinder_ipc_adapter.h"
 #include "dbinder_service_inner.h"
 
 #define IPC_INVALID_HANDLE (-1)
@@ -104,7 +102,7 @@ static int32_t ProcessProto(uint32_t code, IpcIo *data, IpcIo *reply, MessageOpt
 
 static int32_t DBinderRemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption *option)
 {
-    int32_t ret = 0;
+    int32_t ret;
     switch (code) {
         case GET_PROTO_INFO: {
             ret = ProcessProto(code, data, reply, option);

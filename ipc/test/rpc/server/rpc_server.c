@@ -19,7 +19,6 @@
 #include "rpc_errno.h"
 #include "ipc_skeleton.h"
 #include "serializer.h"
-#include "dbinder_invoker.h"
 #include "dbinder_types.h"
 
 enum {

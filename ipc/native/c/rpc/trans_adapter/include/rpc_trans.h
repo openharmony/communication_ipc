@@ -16,8 +16,6 @@
 #ifndef OHOS_RPC_TRANS_H
 #define OHOS_RPC_TRANS_H
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

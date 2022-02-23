@@ -17,7 +17,6 @@
 #define OHOS_RPC_INVOKER_H
 
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "rpc_process_skeleton.h"
 #include "iremote_invoker.h"

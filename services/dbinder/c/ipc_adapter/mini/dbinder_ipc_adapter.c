@@ -16,7 +16,6 @@
 #include "dbinder_ipc_adapter.h"
 
 #include "securec.h"
-#include "ipc_proxy_inner.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 
