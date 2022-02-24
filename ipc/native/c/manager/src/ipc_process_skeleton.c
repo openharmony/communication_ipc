@@ -28,8 +28,8 @@
 static IpcSkeleton *g_ipcSkeleton = NULL;
 static pthread_mutex_t g_ipcSkeletonMutex = PTHREAD_MUTEX_INITIALIZER;
 static SvcIdentity g_samgrSvc = {
-    .handle = 0, 
-    .token = 0, 
+    .handle = 0,
+    .token = 0,
     .cookie = 0
 };
 
