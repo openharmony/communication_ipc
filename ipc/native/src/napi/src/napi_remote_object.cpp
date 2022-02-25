@@ -33,7 +33,6 @@
 #include "rpc_bytrace.h"
 #include "string_ex.h"
 
-static std::atomic<int32_t> byTraceId = 1000;
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
@@ -1219,9 +1218,6 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
     DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
-    if (param->traceId != 0) {
-        RpcFinishAsyncTrace(param->traceVaue, param->traceId);
-    }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
     uv_work_t *work = new uv_work_t;
@@ -1281,18 +1277,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
         .jsReplyRef = nullptr,
         .callback = nullptr,
         .env = env,
-        .traceVaue = "",
-        .traceId = 0,
     };
-    IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
-    if (targetProxy != nullptr) {
-        std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
-        if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
-            Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
-        }
-    }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
@@ -1325,18 +1310,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
         .jsReplyRef = nullptr,
         .callback = nullptr,
         .env = env,
-        .traceVaue = "",
-        .traceId = 0,
     };
-    IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
-    if (targetProxy != nullptr) {
-        std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
-        if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
-            Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
-        }
-    }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
@@ -1451,9 +1425,6 @@ void ExecuteSendRequest(napi_env env, void *data)
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
     DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
-    if (param->traceId != 0) {
-        RpcFinishAsyncTrace(param->traceVaue, param->traceId);
-    }
 }
 
 // This method runs on the main thread after 'ExecuteSendRequest' exits
@@ -1511,18 +1482,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         .jsReplyRef = nullptr,
         .callback = nullptr,
         .env = env,
-        .traceVaue = "",
-        .traceId = 0,
     };
-    IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
-    if (targetProxy != nullptr) {
-        std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
-        if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
-            Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
-        }
-    }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
@@ -1557,18 +1517,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .jsReplyRef = nullptr,
         .callback = nullptr,
         .env = env,
-        .traceVaue = "",
-        .traceId = 0,
     };
-    IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
-    if (targetProxy != nullptr) {
-        std::u16string remoteDescriptor = targetProxy->GetInterfaceDescriptor();
-        if (sprintf_s(sendRequestParam->traceVaue, sizeof(sendRequestParam->traceVaue), "%s:%d",
-            Str16ToStr8(remoteDescriptor).c_str(), code) > 0) {
-            sendRequestParam->traceId = byTraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace(sendRequestParam->traceVaue, sendRequestParam->traceId);
-        }
-    }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
