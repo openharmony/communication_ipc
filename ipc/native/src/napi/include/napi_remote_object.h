@@ -49,6 +49,8 @@ EXTERN_C_END
 
     napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info info);
 
+    napi_value NAPI_IPCSkeleton_getCallingTokenId(napi_env env, napi_callback_info info);
+
     // RemoteObject napi methods
     napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info);
 

@@ -135,7 +135,9 @@ HWTEST_F(RpcServerTest, RpcServerTest001, TestSize.Level1)
     WriteRemoteObject(&data, &svcOne);
 
     IpcIo reply;
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
 
     SvcIdentity target = {
         .handle = 0
@@ -195,7 +197,9 @@ HWTEST_F(RpcServerTest, RpcServerTest003, TestSize.Level0)
     WriteRemoteObject(&data, &svcOne);
 
     IpcIo reply;
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
 
     SvcIdentity target = {
         .handle = 0

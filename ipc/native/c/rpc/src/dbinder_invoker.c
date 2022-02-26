@@ -22,16 +22,17 @@
 #include "securec.h"
 #include "utils_list.h"
 
-#include "rpc_log.h"
+#include "dbinder_types.h"
+#include "ipc_process_skeleton.h"
+#include "ipc_skeleton.h"
+#include "ipc_thread_pool.h"
 #include "rpc_errno.h"
-#include "rpc_trans.h"
-#include "rpc_trans_callback.h"
+#include "rpc_log.h"
 #include "rpc_process_skeleton.h"
 #include "rpc_session_handle.h"
-#include "ipc_skeleton.h"
-#include "ipc_process_skeleton.h"
-#include "ipc_thread_pool.h"
-#include "dbinder_types.h"
+#include "rpc_trans.h"
+#include "rpc_trans_callback.h"
+#include "rpc_types.h"
 
 #define BC_TRANSACTION 1076388608
 #define BC_REPLY 1076388609
@@ -201,7 +202,7 @@ static HandleSessionList *WriteTransaction(int cmd, MessageOption option, int32_
         .version = VERSION_NUM,
         .cmd = cmd,
         .code = code,
-        .flags = option,
+        .flags = option.flags,
         .seqNumber = *seqNumber,
         .buffer = NULL
     };
@@ -340,7 +341,10 @@ static int32_t GetCallerSessionId(void)
 static int32_t SendReply(IpcIo *reply, uint32_t flags, int32_t result)
 {
     uint64_t seqNumber = 0;
-    HandleSessionList *sessionObject = WriteTransaction(BC_REPLY, flags, 0, GetCallerSessionId(),
+    MessageOption option = {
+        .flags = flags
+    };
+    HandleSessionList *sessionObject = WriteTransaction(BC_REPLY, option, 0, GetCallerSessionId(),
         0, reply, &seqNumber, result);
 
     if (seqNumber == 0) {
@@ -361,7 +365,9 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t sess
     IpcIo reply;
     uint8_t replyAlloc[RPC_IPC_LENGTH];
     IpcIoInit(&reply, replyAlloc, RPC_IPC_LENGTH, 0);
-    MessageOption option = tr->flags;
+    MessageOption option = {
+        .flags =  tr->flags
+    };
     uint64_t senderSeqNumber = tr->seqNumber;
 
     ToIpcData(tr, &data);
@@ -385,7 +391,7 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t sess
     if (result != ERR_NONE) {
         RPC_LOG_ERROR("stub is invalid, has not OnReceive or Request");
     }
-    if (!(option & TF_OP_ASYNC)) {
+    if (!(option.flags & TF_OP_ASYNC)) {
         threadContext->sessionId = sessionId;
         threadContext->seqNumber = senderSeqNumber;
         SendReply(&reply, 0, result);
@@ -695,7 +701,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     RPC_LOG_INFO("RPCInvokerSendRequest called");
     int32_t result = ERR_NONE;
     uint64_t seqNumber = 0;
-    int userWaitTime = DEFAULT_SEND_WAIT_TIME;
+    int userWaitTime = RPC_DEFAULT_SEND_WAIT_TIME;
 
     HandleSessionList *sessinoObject = WriteTransaction(BC_TRANSACTION, option, target.handle,
         0, code, data, &seqNumber, 0);
@@ -703,7 +709,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
         return ERR_FAILED;
     }
 
-    if (option & TF_OP_ASYNC) {
+    if (option.flags & TF_OP_ASYNC) {
         result = SendOrWaitForCompletion(userWaitTime, seqNumber, sessinoObject, NULL, buffer);
     } else {
         result = SendOrWaitForCompletion(userWaitTime, seqNumber, sessinoObject, reply, buffer);

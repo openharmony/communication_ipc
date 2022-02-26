@@ -241,7 +241,7 @@ int TestServiceProxy::TestRawDataReply(int length)
     }
 
     const char *buffer = nullptr;
-    if ((buffer = reinterpret_cast<const char *>(replyParcel.ReadRawData(length))) == nullptr) {
+    if ((buffer = reinterpret_cast<const char *>(replyParcel.ReadRawData((size_t)length))) == nullptr) {
         ZLOGE(LABEL, "read raw data failed, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
@@ -341,8 +341,8 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     MessageOption option;
     MessageParcel dataParcel, replyParcel1, replyParcel2;
 
-    int32_t token  = IPCSkeleton::GetCallingTokenID();
-    int32_t ftoken  = IPCSkeleton::GetFirstTokenID();
+    int32_t token  = (int32_t)IPCSkeleton::GetCallingTokenID();
+    int32_t ftoken  = (int32_t)IPCSkeleton::GetFirstTokenID();
     int32_t tokenSelf = RpcGetSelfTokenID();
     ZLOGE(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
     ZLOGE(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
@@ -639,8 +639,8 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
             break;
         }
         case TRANS_ID_ACCESS_TOKENID: {
-            int32_t token = IPCSkeleton::GetCallingTokenID();
-            int32_t ftoken = IPCSkeleton::GetFirstTokenID();
+            int32_t token = (int32_t)IPCSkeleton::GetCallingTokenID();
+            int32_t ftoken = (int32_t)IPCSkeleton::GetFirstTokenID();
             ZLOGE(LABEL, "server GetCallingTokenID:%{public}d", token);
             ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
             reply.WriteInt32(token);
@@ -672,7 +672,7 @@ int TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
     }
 
     const char *buffer = nullptr;
-    if ((buffer = reinterpret_cast<const char *>(data.ReadRawData(length))) == nullptr) {
+    if ((buffer = reinterpret_cast<const char *>(data.ReadRawData((size_t)length))) == nullptr) {
         ZLOGE(LABEL, "%{public}s:read raw data failed, length = %{public}d", __func__, length);
         if (reply.WriteInt32(0)) {
             ZLOGE(LABEL, "fail to write parcel");
@@ -720,7 +720,7 @@ int TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
     buffer[0] = 'a';
     buffer[length - 1] = 'z';
     if (!reply.WriteInt32(length) ||
-        !reply.WriteRawData(buffer, length) ||
+        !reply.WriteRawData(buffer, (size_t)length) ||
         !reply.WriteInt32(length)) {
         ZLOGE(LABEL, "fail to write parcel");
         delete [] buffer;

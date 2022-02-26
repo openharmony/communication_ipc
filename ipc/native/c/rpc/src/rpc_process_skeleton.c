@@ -19,14 +19,14 @@
 #include <sys/time.h>
 #include <errno.h>
 
+#include "dbinder_types.h"
 #include "ipc_proxy_inner.h"
 #include "ipc_stub_inner.h"
-#include "dbinder_types.h"
-#include "rpc_trans_callback.h"
-#include "rpc_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "rpc_session_handle.h"
+#include "rpc_trans_callback.h"
+#include "rpc_types.h"
 
 static RpcSkeleton g_rpcSkeleton = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
@@ -404,7 +404,7 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, 
             return ERR_FAILED;
         }
 
-        waitTime.tv_sec = now.tv_sec + DEFAULT_SEND_WAIT_TIME;
+        waitTime.tv_sec = now.tv_sec + RPC_DEFAULT_SEND_WAIT_TIME;
         waitTime.tv_nsec = now.tv_usec * USECTONSEC;
         int ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
         pthread_mutex_unlock(&threadLockInfo->mutex);
@@ -468,7 +468,7 @@ void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle)
 int32_t RpcOnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option,
     IpcObjectStub *objectStub)
 {
-    int32_t result = ERR_FAILED;
+    int32_t result;
     switch (code) {
         case INVOKE_LISTEN_THREAD: {
             result = InvokerListenThreadStub(code, data, reply, option, objectStub->func);
