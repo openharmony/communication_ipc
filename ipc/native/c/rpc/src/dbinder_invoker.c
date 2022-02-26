@@ -701,7 +701,13 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     RPC_LOG_INFO("RPCInvokerSendRequest called");
     int32_t result = ERR_NONE;
     uint64_t seqNumber = 0;
+
     uint32_t userWaitTime = option.waitTime;
+    if (userWaitTime < 0) {
+        userWaitTime = RPC_DEFAULT_SEND_WAIT_TIME;
+    } else if (userWaitTime > RPC_MAX_SEND_WAIT_TIME) {
+        userWaitTime = RPC_MAX_SEND_WAIT_TIME;
+    }
 
     HandleSessionList *sessinoObject = WriteTransaction(BC_TRANSACTION, option, target.handle,
         0, code, data, &seqNumber, 0);
