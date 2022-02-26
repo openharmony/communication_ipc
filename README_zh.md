@@ -293,7 +293,7 @@ deps = [
    class ITestAbility : public IRemoteBroker {
    public:
    // DECLARE_INTERFACE_DESCRIPTOR是必须的， 入参需使用std::u16string；
-   DECLARE_INTERFACE_DESCRIPTOR(u"test.ITestAbility");
+   DECLARE_INTERFACE_DESCRIPTOR(u"test.ITestAbility"); // DESCRIPTOR接口描述符建议使用"组件名.类名"的格式
    int TRANS_ID_PING_ABILITY = 1; // 定义消息码
    virtual int TestPingAbility(const std::u16string &dummy) = 0; // 定义业务函数
    };
@@ -315,6 +315,9 @@ deps = [
    int TestServiceStub::OnRemoteRequest(uint32_t code,
        MessageParcel &data, MessageParcel &reply, MessageOption &option)
    {
+       if (data.ReadInterfaceToken() != GetDescriptor()) { //校验是否为本服务的接口描述符，避免中继攻击
+           return -1;
+       }
        switch (code) {
            case TRANS_ID_PING_ABILITY: {
                std::u16string dummy = data.ReadString16();
@@ -366,7 +369,12 @@ deps = [
    int TestAbilityProxy::TestPingService(const std::u16string &dummy) {
        MessageOption option;
        MessageParcel dataParcel, replyParcel;
-       dataParcel.WriteString16(dummy);
+       if(!dataParcel.WriteInterfaceToken(GetDescriptor())) { //所有对外接口的proxy实现都要写入接口描述符，用于stub端检验
+           return -1;
+       }
+       if(!dataParcel.WriteString16(dummy)) {
+           return -1;
+       }
        int error = Remote()->SendRequest(TRANS_ID_PING_ABILITY, dataParcel, replyParcel, option);
        int result = (error == ERR_NONE) ? replyParcel.ReadInt32() : -1;
        return result;
