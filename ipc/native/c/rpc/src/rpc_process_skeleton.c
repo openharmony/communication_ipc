@@ -365,7 +365,7 @@ static int32_t AddThreadBySeqNumber(ThreadMessageInfo *messageInfo)
     return ERR_NONE;
 }
 
-int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, int userWaitTime)
+int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, uint32_t userWaitTime)
 {
     if (AddThreadBySeqNumber(messageInfo) != ERR_NONE) {
         RPC_LOG_ERROR("add seqNumber = %llu failed", seqNumber);
@@ -393,25 +393,22 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, 
     }
 
     pthread_mutex_lock(&threadLockInfo->mutex);
-    if (userWaitTime < 0) {
-        pthread_cond_wait(&threadLockInfo->condition, &threadLockInfo->mutex);
-    } else {
-        struct timespec waitTime;
-        struct timeval now;
-        if (gettimeofday(&now, NULL) != 0) {
-            RPC_LOG_ERROR("gettimeofday failed");
-            pthread_mutex_unlock(&threadLockInfo->mutex);
-            return ERR_FAILED;
-        }
 
-        waitTime.tv_sec = now.tv_sec + RPC_DEFAULT_SEND_WAIT_TIME;
-        waitTime.tv_nsec = now.tv_usec * USECTONSEC;
-        int ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
+    struct timespec waitTime;
+    struct timeval now;
+    if (gettimeofday(&now, NULL) != 0) {
+        RPC_LOG_ERROR("gettimeofday failed");
         pthread_mutex_unlock(&threadLockInfo->mutex);
-        if (ret == ETIMEDOUT) {
-            RPC_LOG_ERROR("send thread wait for reply timeout");
-            return ERR_FAILED;
-        }
+        return ERR_FAILED;
+    }
+
+    waitTime.tv_sec = now.tv_sec + userWaitTime;
+    waitTime.tv_nsec = now.tv_usec * USECTONSEC;
+    int ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
+    pthread_mutex_unlock(&threadLockInfo->mutex);
+    if (ret == ETIMEDOUT) {
+        RPC_LOG_ERROR("send thread wait for reply timeout");
+        return ERR_FAILED;
     }
 
     return ERR_NONE;
