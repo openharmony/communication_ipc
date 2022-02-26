@@ -101,8 +101,6 @@ EXTERN_C_END
         napi_ref jsReplyRef;
         napi_ref callback;
         napi_env env;
-        char traceVaue[TRACESIZE];
-        int32_t traceId;
     };
 } // namespace OHOS
 #endif // NAPI_IPC_OHOS_REMOTE_OBJECT_H
