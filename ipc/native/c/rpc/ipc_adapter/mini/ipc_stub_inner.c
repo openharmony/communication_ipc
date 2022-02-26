@@ -17,7 +17,7 @@
 
 #include "rpc_errno.h"
 
-int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest *func)
+int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest func)
 {
     return ERR_NONE;
 }

@@ -80,7 +80,7 @@ static void ToTransData(const IpcIo *data, dbinder_transaction_data *buf)
     buf->buffer_size = (data == NULL) ? 0 : (data->bufferCur - data->bufferBase);
     buf->offsets = buf->buffer_size;
     buf->offsets_size = (data == NULL) ? 0 :
-        ((size_t)(data->offsetsCur - data->offsetsBase) * sizeof(size_t));
+        (uint64_t)((data->offsetsCur - data->offsetsBase) * sizeof(size_t));
 }
 
 static void ToIpcData(const dbinder_transaction_data *tr, IpcIo *data)
@@ -159,7 +159,7 @@ static int32_t MoveTransData2Buffer(HandleSessionList *sessionObject, dbinder_tr
         RPC_LOG_ERROR("sessionObject buffer malloc failed");
         return ERR_FAILED;
     }
-    sessionObject->len = (uint32_t)transData->sizeOfSelf;
+    sessionObject->len = transData->sizeOfSelf;
 
     if (memcpy_s(sessionObject->buffer, sizeof(dbinder_transaction_data),
         transData, sizeof(dbinder_transaction_data)) != EOK) {
@@ -178,7 +178,7 @@ static int32_t MoveTransData2Buffer(HandleSessionList *sessionObject, dbinder_tr
     return ERR_NONE;
 }
 
-static HandleSessionList *WriteTransaction(int cmd, MessageOption option, int32_t handle,
+static HandleSessionList *WriteTransaction(int32_t cmd, MessageOption option, int32_t handle,
     int32_t sessionId, uint32_t code, IpcIo *data, uint64_t *seqNumber, int status)
 {
     HandleSessionList *sessionObject = GetSessionObject(handle, sessionId);
@@ -238,7 +238,7 @@ static int32_t OnSendMessage(HandleSessionList *sessionOfPeer)
     }
 
     int32_t ret = rpcSkeleton->rpcTrans->Send((int)sessionOfPeer->sessionId,
-        (void *)sessionOfPeer->buffer, (unsigned int)sessionOfPeer->len);
+        (void *)sessionOfPeer->buffer, (uint32_t)sessionOfPeer->len);
 
     free(sessionOfPeer->buffer);
     return ret;
@@ -290,7 +290,7 @@ static int32_t HandleReply(uint64_t seqNumber, IpcIo *reply, uintptr_t *buffer)
     return ERR_NONE;
 }
 
-static int32_t WaitForReply(uint64_t seqNumber, IpcIo *reply, uint32_t handle, int userWaitTime, uintptr_t *buffer)
+static int32_t WaitForReply(uint64_t seqNumber, IpcIo *reply, uint32_t handle, uint32_t userWaitTime, uintptr_t *buffer)
 {
     if (reply == NULL || userWaitTime == 0) {
         return ERR_NONE;
@@ -313,7 +313,7 @@ static int32_t WaitForReply(uint64_t seqNumber, IpcIo *reply, uint32_t handle, i
     return result;
 }
 
-static int32_t SendOrWaitForCompletion(int userWaitTime, uint64_t seqNumber,
+static int32_t SendOrWaitForCompletion(uint32_t userWaitTime, uint64_t seqNumber,
     HandleSessionList *sessionOfPeer, IpcIo *reply, uintptr_t *buffer)
 {
     if (seqNumber == 0) {
@@ -594,7 +594,7 @@ void OnDatabusSessionClosed(int sessionId)
     }
 }
 
-static uint32_t HasCompletePackage(const char *data, uint32_t readCursor, unsigned int len)
+static uint32_t HasCompletePackage(const char *data, uint32_t readCursor, uint32_t len)
 {
     const dbinder_transaction_data *tr = (const dbinder_transaction_data *)(data + readCursor);
     if ((tr->magic == DBINDER_MAGICWORD) &&
@@ -605,7 +605,7 @@ static uint32_t HasCompletePackage(const char *data, uint32_t readCursor, unsign
     return 0;
 }
 
-void OnMessageAvailable(int sessionId, const void *data, unsigned int len)
+void OnMessageAvailable(int sessionId, const void *data, uint32_t len)
 {
     if (sessionId < 0 || data == NULL || len < sizeof(dbinder_transaction_data)) {
         RPC_LOG_ERROR("session has wrong inputs");
@@ -701,7 +701,13 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     RPC_LOG_INFO("RPCInvokerSendRequest called");
     int32_t result = ERR_NONE;
     uint64_t seqNumber = 0;
-    int userWaitTime = RPC_DEFAULT_SEND_WAIT_TIME;
+
+    uint32_t userWaitTime = option.waitTime;
+    if (userWaitTime < 0) {
+        userWaitTime = RPC_DEFAULT_SEND_WAIT_TIME;
+    } else if (userWaitTime > RPC_MAX_SEND_WAIT_TIME) {
+        userWaitTime = RPC_MAX_SEND_WAIT_TIME;
+    }
 
     HandleSessionList *sessinoObject = WriteTransaction(BC_TRANSACTION, option, target.handle,
         0, code, data, &seqNumber, 0);
