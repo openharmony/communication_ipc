@@ -47,7 +47,11 @@ typedef struct {
 static SocketNodeList g_socketNodeList = {.mutex = PTHREAD_MUTEX_INITIALIZER};
 static int32_t g_init = -1;
 static int32_t g_serverCreated = -1;
-static TransCallback g_callback;
+static TransCallback g_callback = {
+    .OnConnected = NULL,
+    .OnDisconnected = NULL,
+    .OnRecieved = NULL
+};
 
 static uint16_t Hash(const char *name)
 {
@@ -267,6 +271,10 @@ static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void
     }
 
     *sessionId = fd;
+    if (g_callback.OnConnected != NULL) {
+        g_callback.OnConnected(*sessionId, ERR_NONE);
+    }
+
     pthread_t threadId;
     pthread_create(&threadId, NULL, HandleSendReply, (void *)sessionId);
     pthread_detach(threadId);

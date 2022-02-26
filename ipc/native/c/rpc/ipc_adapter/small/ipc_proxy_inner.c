@@ -78,7 +78,9 @@ static int GetSessionFromDBinderService(uint32_t handle)
     IpcIo reply;
     uint8_t dataAlloc[RPC_IPC_LENGTH_LONG];
     IpcIoInit(&data, dataAlloc, RPC_IPC_LENGTH_LONG, 0);
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
     SvcIdentity target = {
         .handle = handle
     };
@@ -128,7 +130,9 @@ int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID,
     WriteUint32(&data, uid);
     WriteString(&data, remoteDeviceID);
     WriteString(&data, proxyObject->sessionName);
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
 
     int32_t ret = SendRequest(*proxyObject->proxy, INVOKE_LISTEN_THREAD, &data, ipcReply, option, ptr);
     if (ret != ERR_NONE) {
@@ -148,7 +152,9 @@ int32_t GetPidAndUidInfo(ProxyObject *proxyObject)
     IpcIo reply;
     uint8_t dataAlloc[RPC_IPC_LENGTH];
     IpcIoInit(&data, dataAlloc, RPC_IPC_LENGTH, 0);
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
     uintptr_t ptr;
 
     int32_t ret = SendRequest(*proxyObject->proxy, GET_UIDPID_INFO, &data, &reply, option, &ptr);
@@ -184,7 +190,9 @@ char *GetDataBusName(void)
     IpcIo reply;
     uint8_t dataAlloc[RPC_IPC_LENGTH];
     IpcIoInit(&data, dataAlloc, RPC_IPC_LENGTH, 0);
-    MessageOption option = TF_OP_SYNC;
+    MessageOption option = {
+        .flags = TF_OP_SYNC
+    };
     uintptr_t ptr;
     int32_t ret = ProcessSendRequest(*GetContextObject(), GRANT_DATABUS_NAME, &data, &reply, option, &ptr);
     if (ret != ERR_NONE) {

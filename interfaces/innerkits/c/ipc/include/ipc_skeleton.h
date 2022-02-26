@@ -29,11 +29,17 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
-typedef enum {
+enum {
     TF_OP_SYNC = 0x00,
     TF_OP_ASYNC = 0x01,
     TF_OP_STATUS_CODE = 0x08,
     TF_OP_ACCEPT_FDS = 0x10,
+};
+
+typedef struct {
+    uint32_t flags;
+    uint32_t waitTime;
+    void *args;
 } MessageOption;
 
 typedef int32_t (*OnRemoteRequest)(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option);
@@ -41,6 +47,7 @@ typedef void (*OnRemoteDead)(void *args);
 
 typedef struct {
     OnRemoteRequest func;
+    void *args;
     bool isRemote;
 } IpcObjectStub;
 
@@ -66,6 +73,8 @@ int32_t FreeBuffer(void *ptr);
 int32_t AddDeathRecipient(SvcIdentity target, OnRemoteDead deathFunc, void *args, uint32_t *cbId);
 
 int32_t RemoveDeathRecipient(SvcIdentity target, uint32_t cbId);
+
+int32_t MessageOptionInit(MessageOption *option);
 #ifdef __cplusplus
 #if __cplusplus
 }

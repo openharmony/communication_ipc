@@ -22,20 +22,21 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-#include "utils_list.h"
 #include "securec.h"
+#include "utils_list.h"
 
-#include "rpc_trans.h"
-#include "dbinder_trans_callback.h"
 #include "dbinder_ipc_adapter.h"
 #include "dbinder_service_inner.h"
-#include "serializer.h"
 #include "dbinder_stub.h"
+#include "dbinder_trans_callback.h"
 #include "ipc_skeleton.h"
 #include "ipc_proxy_inner.h"
-#include "rpc_log.h"
 #include "rpc_errno.h"
+#include "rpc_log.h"
 #include "rpc_session_handle.h"
+#include "rpc_trans.h"
+#include "rpc_types.h"
+#include "serializer.h"
 
 typedef struct {
     UTILS_DL_LIST list;
@@ -315,7 +316,7 @@ static int32_t GetWaitTime(struct timespec *waitTime)
         RPC_LOG_ERROR("gettimeofday failed");
         return ERR_FAILED;
     }
-    waitTime->tv_sec = now.tv_sec + DEFAULT_SEND_WAIT_TIME;
+    waitTime->tv_sec = now.tv_sec + RPC_DEFAULT_SEND_WAIT_TIME;
     waitTime->tv_nsec = now.tv_usec * USECTONSEC;
 
     return ERR_NONE;
@@ -587,6 +588,7 @@ static int32_t OnRemoteInvokerDataBusMessage(ProxyObject *proxy, DHandleEntryTxR
 
 static void *OnRemoteInvokerMessage(void *args)
 {
+    pthread_detach(pthread_self());
     DHandleEntryTxRx *message = (DHandleEntryTxRx *)args;
     ProxyObject *saProxy = FindOrNewProxy(message->binderObject, (int32_t)message->stubIndex);
     if (saProxy == NULL) {
@@ -858,7 +860,6 @@ int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message)
                 break;
             }
 
-            pthread_detach(threadId);
             ret = ERR_NONE;
             break;
         }

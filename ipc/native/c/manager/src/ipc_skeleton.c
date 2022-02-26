@@ -134,3 +134,15 @@ int32_t FreeBuffer(void *ptr)
     }
     return ProcessFreeBuffer(ptr);
 }
+
+int32_t MessageOptionInit(MessageOption *option)
+{
+    if (option == NULL) {
+        RPC_LOG_ERROR("option is null");
+        return ERR_INVALID_PARAM;
+    }
+    option->flags = TF_OP_SYNC;
+    option->waitTime = RPC_DEFAULT_SEND_WAIT_TIME;
+    option->args = NULL;
+    return ERR_NONE;
+}

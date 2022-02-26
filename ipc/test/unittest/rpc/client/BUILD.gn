@@ -34,6 +34,7 @@ unittest("rpc_client") {
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
     "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    "$SUBSYSTEM_DIR/utils/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
   ]
   ldflags = [ "-lstdc++" ]
