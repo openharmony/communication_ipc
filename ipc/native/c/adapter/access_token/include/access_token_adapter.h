@@ -21,6 +21,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+static const int ACCESS_TOKEN_MAX_LEN = 10;
 
 uint64_t RpcGetSelfTokenID(void);
 
