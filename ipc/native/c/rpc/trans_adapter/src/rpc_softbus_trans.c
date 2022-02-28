@@ -15,7 +15,6 @@
 
 #include "rpc_softbus_trans.h"
 
-#include <stdint.h>
 #include <stddef.h>
 #include <unistd.h>
 

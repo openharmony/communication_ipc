@@ -15,10 +15,9 @@
 
 #include "dbinder_ipc_adapter.h"
 
-#include "securec.h"
-#include "ipc_proxy_inner.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "securec.h"
 
 bool IsSameStub(DBinderServiceStub *stub, const char *serviceName,
     const char *deviceID, uintptr_t binderObject)

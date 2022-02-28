@@ -18,9 +18,10 @@
 #include <stdbool.h>
 
 #include "dbinder_service_inner.h"
-#include "rpc_session_handle.h"
-#include "rpc_log.h"
 #include "rpc_errno.h"
+#include "rpc_log.h"
+#include "rpc_session_handle.h"
+
 
 static int32_t OnConnected(int32_t sessionId, int32_t result)
 {

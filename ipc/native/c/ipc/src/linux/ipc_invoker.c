@@ -17,7 +17,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -25,9 +24,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "ipc_types.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_pool.h"
+#include "ipc_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "rpc_os_adapter.h"
@@ -370,7 +369,7 @@ static void IpcJoinThread(bool initiative)
         readbuf[0] = BC_REGISTER_LOOPER;
     }
     BinderWrite(readbuf, sizeof(uint32_t));
-    for (;;) {
+    for (; ;) {
         bwr.read_size = sizeof(readbuf);
         bwr.read_consumed = 0;
         bwr.read_buffer = (uintptr_t)readbuf;

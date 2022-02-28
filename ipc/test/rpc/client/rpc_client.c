@@ -15,15 +15,14 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
-#include "rpc_trans.h"
 #include "dbinder_service.h"
-#include "ipc_skeleton.h"
 #include "ipc_process_skeleton.h"
+#include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
 #include "rpc_process_skeleton.h"
+#include "rpc_trans.h"
 #include "serializer.h"
 
 #define IPC_LENGTH 64
