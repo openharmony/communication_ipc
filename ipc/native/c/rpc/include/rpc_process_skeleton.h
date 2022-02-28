@@ -16,9 +16,6 @@
 #ifndef OHOS_RPC_PROCESS_SKELETON_H
 #define OHOS_RPC_PROCESS_SKELETON_H
 
-#include <stdint.h>
-#include <pthread.h>
-
 #include "ipc_skeleton.h"
 #include "rpc_trans.h"
 #include "rpc_session_handle.h"

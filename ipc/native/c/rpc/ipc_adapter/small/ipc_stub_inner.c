@@ -137,7 +137,7 @@ int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, Messag
 
 int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
-    int32_t result = ERR_NONE;
+    int32_t result;
 
     char *sessionName = GetDataBusName();
     if (sessionName == NULL || strlen(sessionName) == 0) {

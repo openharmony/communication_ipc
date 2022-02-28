@@ -15,19 +15,19 @@
 
 #include "rpc_socket_trans.h"
 
-#include <string.h>
-#include <stddef.h>
-#include <pthread.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
 #include <arpa/inet.h>
 #include <ifaddrs.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stddef.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
-#include "utils_list.h"
-#include "securec.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
+#include "securec.h"
+#include "utils_list.h"
 
 #define DEVICEID_LENGTH 64
 #define SERVICENAME_LENGTH 200
@@ -117,7 +117,7 @@ static void HandleAccept(void *args)
 
     char buf[DEFAULT_PACKET_SIZE];
     if (g_callback.OnRecieved != NULL) {
-        for (;;) {
+        for (; ;) {
             ssize_t readLen = read(clientFd, buf, DEFAULT_PACKET_SIZE);
             if (readLen == 0) {
                 RPC_LOG_INFO("client socket close");
@@ -170,7 +170,7 @@ static void OpenTcpServerSocket(void *args)
     }
 
     g_serverCreated = 0;
-    for (;;) {
+    for (; ;) {
         socklen_t len = sizeof(addr);
         int32_t clientFd = accept(fd, (struct sockaddr *)&addr, &len);
         pthread_t threadId;
@@ -217,7 +217,7 @@ static void HandleSendReply(void *args)
 
     char buf[DEFAULT_PACKET_SIZE];
     if (g_callback.OnRecieved != NULL) {
-        for (;;) {
+        for (; ;) {
             ssize_t readLen = read(fd, buf, DEFAULT_PACKET_SIZE);
             if (readLen == 0) {
                 RPC_LOG_INFO("HandleSendReply received len %d", readLen);

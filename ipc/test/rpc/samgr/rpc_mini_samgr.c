@@ -17,15 +17,14 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
+#include "dbinder_service.h"
 #include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
+#include "securec.h"
 #include "serializer.h"
 #include "utils_list.h"
-#include "securec.h"
-#include "dbinder_service.h"
 
 typedef struct {
     UTILS_DL_LIST list;
@@ -113,10 +112,11 @@ int32_t GetRemoteSystemAbility(int32_t saId, const char* deviceId, IpcIo *reply)
 {
     RPC_LOG_INFO("GetRemoteSystemAbility start");
     const char *name = "16";
+    uint32_t nameLen = 2;
     uint32_t idLen = (uint32_t)strlen(deviceId);
 
     SvcIdentity sid;
-    int32_t ret = MakeRemoteBinder(name, 2, deviceId, idLen, (uintptr_t)saId, 0, &sid);
+    int32_t ret = MakeRemoteBinder(name, nameLen, deviceId, idLen, (uintptr_t)saId, 0, &sid);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("MakeRemoteBinder failed");
     }

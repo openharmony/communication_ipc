@@ -110,15 +110,15 @@ static void CallServerAdd(void)
     EXPECT_EQ(res, tmpSum);
 }
 
-static IpcObjectStub objectStub = {
+static IpcObjectStub g_objectStub = {
     .func = RemoteRequest,
     .isRemote = false
 };
 
-static SvcIdentity clientSvc = {
+static SvcIdentity g_clientSvc = {
     .handle = -1,
-    .token = &objectStub,
-    .cookie = &objectStub
+    .token = &g_objectStub,
+    .cookie = &g_objectStub
 };
 
 static void AnonymousTest(void)
@@ -126,7 +126,7 @@ static void AnonymousTest(void)
     IpcIo anonymous;
     uint8_t anonymousData[IPC_MAX_SIZE];
     IpcIoInit(&anonymous, anonymousData, IPC_MAX_SIZE, 1);
-    WriteRemoteObject(&anonymous, &clientSvc);
+    WriteRemoteObject(&anonymous, &g_clientSvc);
 
     IpcIo anonymousreply;
     uintptr_t anonymousptr = 0;

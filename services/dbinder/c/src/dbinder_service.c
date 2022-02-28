@@ -15,15 +15,10 @@
 
 #include "dbinder_service.h"
 
-#include <stdio.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <sys/time.h>
-
-#include "securec.h"
-#include "utils_list.h"
 
 #include "dbinder_ipc_adapter.h"
 #include "dbinder_service_inner.h"
@@ -36,7 +31,9 @@
 #include "rpc_session_handle.h"
 #include "rpc_trans.h"
 #include "rpc_types.h"
+#include "securec.h"
 #include "serializer.h"
+#include "utils_list.h"
 
 typedef struct {
     UTILS_DL_LIST list;
@@ -203,8 +200,7 @@ static int32_t SendDataToRemote(const char *deviceId, const DHandleEntryTxRx *ms
         return ERR_FAILED;
     }
 
-    int32_t sessionId = 0;
-    sessionId = g_trans->Connect(DBINDER_SESSION_NAME, deviceId, NULL);
+    int32_t sessionId = g_trans->Connect(DBINDER_SESSION_NAME, deviceId, NULL);
     if (sessionId < 0) {
         RPC_LOG_ERROR("SendDataToRemote connect failed");
         return ERR_FAILED;
@@ -759,7 +755,10 @@ int32_t StartDBinderService(void)
 
 int32_t RegisterRemoteProxy(const void *name, uint32_t len, int32_t systemAbility)
 {
-    InitDBinder();
+    int32_t ret = InitDBinder();
+    if (ret != ERR_NONE) {
+        RPC_LOG_ERROR("InitDBinder failed");
+    }
     if (name == NULL || systemAbility < 0) {
         RPC_LOG_ERROR("RegisterRemoteProxy name is null or systemAbility invalid");
         return ERR_FAILED;
@@ -816,7 +815,7 @@ int32_t MakeRemoteBinder(const void *serviceName, uint32_t nameLen, const char *
     }
 
     uint32_t retryTimes = 0;
-    int32_t ret = ERR_FAILED;
+    int32_t ret;
     do {
         ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber());
         retryTimes++;
@@ -849,7 +848,7 @@ int32_t OnRemoteMessageTask(const DHandleEntryTxRx *message)
         return ERR_FAILED;
     }
 
-    int32_t ret = ERR_NONE;
+    int32_t ret;
     switch (message->dBinderCode) {
         case MESSAGE_AS_INVOKER: {
             pthread_t threadId;

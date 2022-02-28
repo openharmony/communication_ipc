@@ -16,7 +16,6 @@
 #include "dbinder_invoker.h"
 
 #include <inttypes.h>
-#include <pthread.h>
 #include <unistd.h>
 
 #include "securec.h"
@@ -699,7 +698,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     MessageOption option, uintptr_t *buffer)
 {
     RPC_LOG_INFO("RPCInvokerSendRequest called");
-    int32_t result = ERR_NONE;
+    int32_t result;
     uint64_t seqNumber = 0;
 
     uint32_t userWaitTime = option.waitTime;

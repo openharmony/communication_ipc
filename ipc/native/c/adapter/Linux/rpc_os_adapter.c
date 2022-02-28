@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
 #include "rpc_os_adapter.h"
+
+#include <unistd.h>
 
 int32_t RpcGetPid(void)
 {

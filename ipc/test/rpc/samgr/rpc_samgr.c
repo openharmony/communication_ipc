@@ -16,12 +16,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rpc_log.h"
-#include "rpc_errno.h"
+#include "dbinder_service.h"
 #include "ipc_skeleton.h"
+#include "rpc_errno.h"
+#include "rpc_log.h"
 #include "serializer.h"
 #include "utils_list.h"
-#include "dbinder_service.h"
 
 typedef struct {
     UTILS_DL_LIST list;
@@ -98,10 +98,11 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     const char *deviceId = (const char *)ReadString(data, &len);
 
     const char *name = "16";
+    uint32_t nameLen = 2;
     uint32_t idLen = (uint32_t)strlen(deviceId);
     RPC_LOG_INFO("GetRemoteSystemAbility start");
 
-    int32_t ret = MakeRemoteBinder(name, 2, deviceId, idLen, (uintptr_t)saId, 0, (void *)sid);
+    int32_t ret = MakeRemoteBinder(name, nameLen, deviceId, idLen, (uintptr_t)saId, 0, (void *)sid);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("MakeRemoteBinder failed");
     }
