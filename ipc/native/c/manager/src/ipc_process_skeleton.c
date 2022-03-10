@@ -424,6 +424,10 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
 
 void WaitForProxyInit(SvcIdentity *svc)
 {
+    if (svc == NULL) {
+        RPC_LOG_ERROR("invalid svc.");
+        return;
+    }
     RPC_LOG_INFO("ipc skeleton wait for proxy init");
     OnFirstStrongRef(svc->handle);
     UpdateProtoIfNeed(svc);
