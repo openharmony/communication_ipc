@@ -28,7 +28,11 @@ public:
     ~BrokerCreator() = default;
     sptr<IRemoteBroker> operator () (const sptr<IRemoteObject> &object)
     {
-        return static_cast<IRemoteBroker *>(new T(object));
+        T *proxy = new (std::nothrow) T(object);
+        if (proxy != nullptr) {
+            return static_cast<IRemoteBroker *>(proxy);
+        }
+        return nullptr;
     };
 };
 
