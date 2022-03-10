@@ -115,7 +115,7 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
 int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
-    RPC_LOG_INFO("OnRemoteRequest called.... code = %d", code);
+    RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
     switch (code) {
         case GET_SYSTEM_ABILITY_TRANSACTION: {
             int32_t saId;
@@ -163,7 +163,7 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
             break;
         }
         default:
-            RPC_LOG_ERROR("unknown code %d", code);
+            RPC_LOG_ERROR("unknown code %u", code);
             break;
     }
     return result;

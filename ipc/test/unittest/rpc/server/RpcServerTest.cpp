@@ -54,7 +54,7 @@ int32_t Calculator(uint32_t code, int32_t a, int32_t b, IpcIo *reply)
             break;
         }
         default: {
-            RPC_LOG_ERROR("unknown calculator code %d", code);
+            RPC_LOG_ERROR("unknown calculator code %u", code);
             break;
         }
     }
@@ -83,7 +83,7 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
             break;
         }
         default: {
-            RPC_LOG_ERROR("unknown code %d", code);
+            RPC_LOG_ERROR("unknown code %u", code);
             result = ERR_INVALID_PARAM;
             WriteInt32(reply, ERR_INVALID_PARAM);
             break;
