@@ -114,7 +114,7 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
 int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
-    RPC_LOG_INFO("OnRemoteRequest called.... code = %d", code);
+    RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
     switch (code) {
         case GET_SYSTEM_ABILITY_TRANSACTION: {
             int32_t saId;
@@ -163,6 +163,8 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
 
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     RPC_LOG_INFO("Enter System Ability Manager .... ");
 
     g_saList = (UTILS_DL_LIST *)calloc(1, sizeof(UTILS_DL_LIST));
