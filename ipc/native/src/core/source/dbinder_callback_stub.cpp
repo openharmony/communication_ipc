@@ -103,7 +103,7 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         DBINDER_LOGE("no databus thread and invoker");
         return RPC_DATABUS_INVOKER_ERR;
     }
-    uint32_t err = dbinderInvoker->SendRequest(handle_, DBINDER_TRANS_COMMAUTH, authData, authReply, authOption);
+    int err = dbinderInvoker->SendRequest(handle_, DBINDER_TRANS_COMMAUTH, authData, authReply, authOption);
     if (err != ERR_NONE) {
         DBINDER_LOGE("send auth info to remote fail");
         return BINDER_CALLBACK_AUTHCOMM_ERR;

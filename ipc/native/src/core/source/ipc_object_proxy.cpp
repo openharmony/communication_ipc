@@ -365,8 +365,8 @@ void IPCObjectProxy::SendObituary()
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         MarkObjectDied();
-        int recipientCount = recipients_.size();
-        for (int i = 0; i < recipientCount; i++) {
+        size_t recipientCount = recipients_.size();
+        for (size_t i = 0; i < recipientCount; i++) {
             sptr<DeathRecipient> recipient = recipients_[i];
             ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
             if (recipient != nullptr) {
