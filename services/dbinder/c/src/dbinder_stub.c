@@ -109,7 +109,7 @@ static int32_t DBinderRemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, Me
             break;
         }
         default: {
-            RPC_LOG_ERROR("unknown dbinder code %d", code);
+            RPC_LOG_ERROR("unknown dbinder code %u", code);
             ret = -1;
             break;
         }
