@@ -61,7 +61,7 @@ static pthread_mutex_t g_connectorMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static BinderConnector *OpenDriver(void)
 {
-    BinderConnector *connector = (BinderConnector *)malloc(sizeof(BinderConnector));
+    BinderConnector *connector = (BinderConnector *)calloc(1, sizeof(BinderConnector));
     if (connector == NULL) {
         RPC_LOG_ERROR("ipc open driver malloc failed.");
         return NULL;
