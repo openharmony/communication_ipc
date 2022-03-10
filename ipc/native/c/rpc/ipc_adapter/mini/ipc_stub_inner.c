@@ -19,15 +19,28 @@
 
 int32_t InvokerListenThreadStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option, OnRemoteRequest func)
 {
+    (void)code;
+    (void)data;
+    (void)reply;
+    (void)option;
+    (void)func;
     return ERR_NONE;
 }
 
 int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
+    (void)code;
+    (void)data;
+    (void)reply;
+    (void)option;
     return ERR_NONE;
 }
 
 int32_t GrantDataBusNameStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
+    (void)code;
+    (void)data;
+    (void)reply;
+    (void)option;
     return ERR_NONE;
 }

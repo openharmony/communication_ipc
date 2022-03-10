@@ -1177,7 +1177,7 @@ int16_t *ReadInt16Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
-    int16_t *val = (int16_t *)malloc((*size) * sizeof(int16_t));
+    int16_t *val = (int16_t *)calloc(1, (*size) * sizeof(int16_t));
     if (val == NULL) {
         RPC_LOG_ERROR("IPC  malloc failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
