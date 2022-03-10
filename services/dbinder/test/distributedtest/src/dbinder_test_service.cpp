@@ -134,6 +134,7 @@ int DBinderTestService::TransProxyObjectAgain(int data, sptr<IRemoteObject> &tra
 
 int DBinderTestService::TransStubObject(int data, sptr<IRemoteObject> &transObject, int &rep, int &stubRep)
 {
+    (void)transObject;
     DBINDER_LOGI("enter %{public}s", __func__);
     return 0;
 }
@@ -152,6 +153,7 @@ int DBinderTestService::ProxyTransRawData(int length)
 
 int DBinderTestService::StubTransRawData(int length)
 {
+    (void)length;
     DBINDER_LOGI("enter %{public}s", __func__);
     return 0;
 }
