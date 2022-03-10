@@ -686,11 +686,13 @@ int32_t CreateTransServer(const char *sessionName)
 
 static int32_t RpcAcquireHandle(int32_t handle)
 {
+    (void)handle;
     return ERR_NONE;
 }
 
 static int32_t RpcReleaseHandle(int32_t handle)
 {
+    (void)handle;
     return ERR_NONE;
 }
 
@@ -733,6 +735,7 @@ static int32_t RpcFreeBuffer(void *ptr)
 
 static int32_t RpcSetMaxWorkThread(int32_t maxThreadNum)
 {
+    (void)maxThreadNum;
     return ERR_NONE;
 }
 
@@ -778,11 +781,15 @@ int32_t RpcSetRegistryObject(void)
 
 static int32_t RpcAddDeathRecipient(int32_t handle, void *cookie)
 {
+    (void)handle;
+    (void)cookie;
     return ERR_NONE;
 }
 
 static int32_t RpcRemoveDeathRecipient(int32_t handle, void *cookie)
 {
+    (void)handle;
+    (void)cookie;
     return ERR_NONE;
 }
 
