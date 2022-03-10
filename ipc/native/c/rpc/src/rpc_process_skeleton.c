@@ -229,16 +229,6 @@ ThreadProcessInfo *PopDataInfoFromThread(pthread_t threadId)
     return NULL;
 }
 
-uint32_t ConvertChannelID2Int(int64_t databusChannelId)
-{
-    if (databusChannelId < 0) {
-        return 0;
-    }
-    uint32_t channelType = (uint32_t)((databusChannelId >> 8) & 0X00000000FF000000ULL);
-    uint32_t channelID = (uint32_t)(databusChannelId & 0X0000000000FFFFFFULL);
-    return (channelType | channelID);
-}
-
 int32_t AttachStubSession(HandleSessionList *handleSession)
 {
     pthread_mutex_lock(&g_stubSessionMutex);
@@ -445,7 +435,7 @@ void WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t handle)
     }
 
     if (handle != messageInfo->sessionId) {
-        RPC_LOG_ERROR("error! handle is not equal messageInfo, handle = %d, messageFd = %u", handle,
+        RPC_LOG_ERROR("error! handle is not equal messageInfo, handle = %u, messageFd = %u", handle,
             messageInfo->sessionId);
         return;
     }

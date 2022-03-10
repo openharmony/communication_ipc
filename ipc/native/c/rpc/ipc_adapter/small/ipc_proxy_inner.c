@@ -38,7 +38,7 @@ static void UpdateDatabusClientSession(int32_t handle, IpcIo *reply)
     char *localID = (char *)ReadString(reply, &len);
     char *localBusName = (char *)ReadString(reply, &len);
 
-    HandleSessionList *sessionObject = (HandleSessionList *)malloc(sizeof(HandleSessionList));
+    HandleSessionList *sessionObject = (HandleSessionList *)calloc(1, sizeof(HandleSessionList));
     if (sessionObject == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession sessionObject malloc failed");
         return;

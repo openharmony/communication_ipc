@@ -114,7 +114,6 @@ void AddDataThreadInWait(pthread_t threadId);
 IdleDataThread *GetIdleDataThread(void);
 void AddDataInfoToThread(ThreadProcessInfo *processInfo);
 ThreadProcessInfo *PopDataInfoFromThread(pthread_t threadId);
-uint32_t ConvertChannelID2Int(int64_t databusChannelId);
 int32_t AttachStubSession(HandleSessionList *handleSession);
 void DetachStubSession(HandleSessionList *handleSession);
 HandleSessionList *QueryStubSession(uint32_t handle);
