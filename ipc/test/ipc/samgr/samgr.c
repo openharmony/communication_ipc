@@ -49,6 +49,7 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 
 int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
+    (void)deviceId;
     SvcInfo* node = NULL;
     SvcInfo* next = NULL;
     UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
@@ -66,7 +67,7 @@ int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
-    RPC_LOG_INFO("OnRemoteRequest called.... code = %d", code);
+    RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
     switch (code) {
         case ADD_SYSTEM_ABILITY_TRANSACTION: {
             int32_t saId;
