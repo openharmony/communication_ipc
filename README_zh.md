@@ -246,7 +246,7 @@ deps = [
        .finally(() => {
            data.reclaim()
            reply.reclaim()
-       }
+       })
    
    // 使用回调函数
    function sendRequestCallback(result) {

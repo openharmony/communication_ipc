@@ -1030,7 +1030,9 @@ napi_value NAPI_MessageParcel::JS_readChar(napi_env env, napi_callback_info info
 
     uint16_t value = napiParcel->nativeParcel_->ReadUint16();
     char ch[2] = { 0 };
-    sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", value);
+    if (sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", value) < 0) {
+        return nullptr;
+    }
     napi_value result = nullptr;
     napi_create_string_utf8(env, ch, 1, &result);
     return result;
@@ -1683,7 +1685,9 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
         for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             uint16_t val = napiParcel->nativeParcel_->ReadUint16();
             char ch[2] = { 0 };
-            sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val);
+            if (sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val) < 0) {
+                return nullptr;
+            }
             napi_value num = nullptr;
             napi_create_string_utf8(env, ch, 1, &num);
             napi_set_element(env, argv[0], i, num);
@@ -1705,7 +1709,9 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         uint16_t val = napiParcel->nativeParcel_->ReadUint16();
         char ch[2] = { 0 };
-        sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val);
+        if (sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val) < 0) {
+            return nullptr;
+        }
         napi_value num = nullptr;
         napi_create_string_utf8(env, ch, 1, &num);
         napi_set_element(env, result, i, num);
