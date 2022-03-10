@@ -214,11 +214,13 @@ int TestService::Dump(int fd, const std::vector<std::u16string> &args)
 
 std::u16string TestService::TestAshmem(sptr<Ashmem> ashmem, int32_t contentSize)
 {
+    (void)contentSize;
     return u"";
 }
 
 int TestService::TestNestingSend(int sendCode, int &replyCode)
 {
+    (void)sendCode;
     return 0;
 }
 } // namespace OHOS
