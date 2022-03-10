@@ -54,12 +54,12 @@ static SessionIdList *FindOrNewSessionIdObject(SessionIdList *sessionIdList, int
     }
 
     node = (SessionIdList *)malloc(sizeof(SessionIdList));
-    memset_s(node, sizeof(SessionIdList), 0, sizeof(SessionIdList));
     if (node == NULL) {
         RPC_LOG_ERROR("FindOrNewSessionIdObject malloc failed");
         pthread_mutex_unlock(&sessionIdList->mutex);
         return NULL;
     }
+    memset_s(node, sizeof(SessionIdList), 0, sizeof(SessionIdList));
     (void)pthread_mutex_init(&node->mutex, NULL);
     (void)pthread_cond_init(&node->condition, NULL);
     node->sessionId = sessionId;
