@@ -17,7 +17,7 @@
 
 void RpcStartTrace(const char *value)
 {
-    void(value);
+    (void)value;
     return;
 }
 
