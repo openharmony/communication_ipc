@@ -34,7 +34,7 @@ public:
         OBJECT_TYPE_JAVASCRIPT,
     };
 
-    explicit IPCObjectStub(std::u16string descriptor = nullptr);
+    explicit IPCObjectStub(std::u16string descriptor = std::u16string());
     ~IPCObjectStub();
 
     bool IsProxyObject() const override

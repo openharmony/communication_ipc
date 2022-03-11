@@ -145,11 +145,11 @@ static void *HandleAccept(void *args)
 
 static void *OpenTcpServerSocket(void *args)
 {
-    printf("OpenTcpServerSocket %d\n", strlen((char *)args));
-    sleep(1);
     if (args == NULL) {
         return NULL;
     }
+    printf("OpenTcpServerSocket %d\n", strlen((char *)args));
+    sleep(1);
 
     char *ip = (char *)SOCKET_SERVER_ADDR;
     uint16_t port = Hash((char *)args);
