@@ -144,7 +144,6 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
 
             auto proxy = new (std::nothrow) IPCObjectProxy(handle, descriptor);
             if (proxy == nullptr) {
-                DBINDER_LOGE("create ipc object proxy failed");
                 return nullptr;
             }
             proxy->AttemptAcquire(this); // AttemptAcquire always returns true as life time is extended
