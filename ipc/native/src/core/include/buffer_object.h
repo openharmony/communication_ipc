@@ -27,7 +27,7 @@
 namespace OHOS {
 constexpr int SOCKET_DEFAULT_BUFF_SIZE = 4 * 1024;
 constexpr int SOCKET_MAX_BUFF_SIZE = 1024 * 1024;
-constexpr int SOCKET_BUFF_RESERVED_SIZE = 256;
+constexpr uint32_t SOCKET_BUFF_RESERVED_SIZE = 256;
 constexpr size_t MAX_RAWDATA_SIZE = 128 * 1024 * 1024; // 128M
 
 constexpr uint32_t SOCKET_BUFF_SIZE_USER_S = 4 * 1024;

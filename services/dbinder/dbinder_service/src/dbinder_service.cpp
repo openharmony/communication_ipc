@@ -300,8 +300,8 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->binderObject        = stub->GetBinderObject();
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     message->deviceIdInfo.afType = DATABBUS_TYPE;
-    message->pid                 = IPCSkeleton::GetCallingPid();
-    message->uid                 = (uint32_t)IPCSkeleton::GetCallingUid();
+    message->pid                 = static_cast<uint32_t>(IPCSkeleton::GetCallingPid());
+    message->uid                 = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
     if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
         memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
         DBINDER_LOGE("fail to copy memory");
