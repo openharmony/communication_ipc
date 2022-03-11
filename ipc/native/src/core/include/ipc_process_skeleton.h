@@ -208,7 +208,7 @@ private:
     IPCProcessSkeleton();
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
-    std::recursive_mutex mutex_;
+    std::shared_mutex mutex_;
     std::shared_mutex rawDataMutex_;
     std::map<std::u16string, wptr<IRemoteObject>> objects_;
     std::map<IRemoteObject *, bool> isContainStub_;
