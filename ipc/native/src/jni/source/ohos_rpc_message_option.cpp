@@ -32,7 +32,7 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJni" 
 int JavaOhosRpcMessageOptionGetFlags(JNIEnv *env, jobject object)
 {
     ZLOGI(LABEL, "%s", __func__);
-    if (g_jMessageOption.flagsField != nullptr) {
+    if ((g_jMessageOption.flagsField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.flagsField);
     }
     return 0;
@@ -44,7 +44,7 @@ int JavaOhosRpcMessageOptionGetFlags(JNIEnv *env, jobject object)
 int JavaOhosRpcMessageOptionGetWaitTime(JNIEnv *env, jobject object)
 {
     ZLOGI(LABEL, "%s", __func__);
-    if (g_jMessageOption.waitTimeField != nullptr) {
+    if ((g_jMessageOption.waitTimeField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.waitTimeField);
     }
     return 0;
@@ -56,7 +56,9 @@ int JavaOhosRpcMessageOptionGetWaitTime(JNIEnv *env, jobject object)
 void JavaOhosRpcMessageOptionSetFlags(JNIEnv *env, jobject object, int flags)
 {
     ZLOGI(LABEL, "%s", __func__);
-    env->SetIntField(object, g_jMessageOption.flagsField, flags);
+    if (env != nullptr) {
+        env->SetIntField(object, g_jMessageOption.flagsField, flags);
+    }
 }
 
 /*
@@ -65,7 +67,9 @@ void JavaOhosRpcMessageOptionSetFlags(JNIEnv *env, jobject object, int flags)
 void JavaOhosRpcMessageOptionSetWaitTime(JNIEnv *env, jobject object, int waitTime)
 {
     ZLOGI(LABEL, "%s", __func__);
-    env->SetIntField(object, g_jMessageOption.waitTimeField, waitTime);
+    if (env != nullptr) {
+        env->SetIntField(object, g_jMessageOption.waitTimeField, waitTime);
+    }
 }
 
 /*
@@ -74,7 +78,10 @@ void JavaOhosRpcMessageOptionSetWaitTime(JNIEnv *env, jobject object, int waitTi
 jobject JavaOhosRpcMessageOptionNewJavaObject(JNIEnv *env, int flags, int waitTime)
 {
     ZLOGI(LABEL, "%s", __func__);
-    jobject option = env->NewObject(g_jMessageOption.klazz, g_jMessageOption.initMethod, flags, waitTime);
+    jobject option = nullptr;
+    if (env != nullptr) {
+        option = env->NewObject(g_jMessageOption.klazz, g_jMessageOption.initMethod, flags, waitTime);
+    }
     return option;
 }
 
@@ -98,6 +105,9 @@ MessageOptionPtr JavaOhosRpcMessageOptionGetNative(JNIEnv *env, jobject object)
 int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
 {
     ZLOGI(LABEL, "%s", __func__);
+    if (env == nullptr) {
+        return -1;
+    }
     jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageOption"));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageOption");
