@@ -63,7 +63,6 @@ int32_t IPCObjectStub::GetObjectRefCount()
     int kRefCount = 0;
     int refCount = GetSptrRefCount();
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-
     if (invoker != nullptr) {
         kRefCount = invoker->GetObjectRefCount(this);
     }
@@ -281,6 +280,7 @@ void IPCObjectStub::OnLastStrongRef(const void *objectId)
 
 bool IPCObjectStub::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
+    (void)recipient;
     return false;
 }
 

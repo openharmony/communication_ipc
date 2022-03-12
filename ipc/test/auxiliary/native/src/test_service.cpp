@@ -110,6 +110,7 @@ int TestService::TestZtraceTransaction(std::string &send, std::string &receive, 
     transform(receive.begin(), receive.end(), receive.begin(), ::tolower);
     return 0;
 }
+
 int TestService::TestPingService(const std::u16string &serviceName)
 {
     std::u16string localServiceName = GetObjectDescriptor();
@@ -170,6 +171,8 @@ void TestService::TestAsyncDumpService()
 
 int TestService::TestRawDataTransaction(int length, int &reply)
 {
+    (void)length;
+    (void)reply;
     return 0;
 }
 
@@ -185,6 +188,7 @@ int TestService::TestCallingUidPid()
 
 int TestService::TestAccessTokenID(int32_t ftoken_expected)
 {
+    (void)ftoken_expected;
     return 0;
 }
 
@@ -195,6 +199,9 @@ int TestService::TestFlushAsyncCalls(int count, int length)
 
 int TestService::TestMultipleProcesses(int data, int &rep, int delayTime)
 {
+    (void)data;
+    (void)rep;
+    (void)delayTime;
     return 0;
 }
 
