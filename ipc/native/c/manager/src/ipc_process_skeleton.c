@@ -321,6 +321,8 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
         RemoteInvoker *invoker = GetRemoteInvoker();
         if (invoker != NULL) {
             ret = (invoker->AddDeathRecipient)(handle, node);
+        } else {
+            return ERR_INVALID_PARAM;
         }
     }
     return ret;
