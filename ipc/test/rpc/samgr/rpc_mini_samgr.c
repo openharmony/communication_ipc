@@ -81,7 +81,7 @@ int32_t GetSystemAbilityById(int32_t systemAbility, IpcIo *reply)
         if (node->saId == systemAbility) {
             WriteRemoteObject(reply, node->sid);
             reply->bufferCur = reply->bufferBase;
-            reply->offsetsCur = reply->offsetsCur;
+            reply->offsetsCur = reply->offsetsBase;
             return ERR_NONE;
         }
     }
