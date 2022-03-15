@@ -887,7 +887,7 @@ napi_value NAPI_IPCSkeleton_getCallingUid(napi_env env, napi_callback_info info)
             return callingUid;
         }
     }
-    pid_t uid = getuid();
+    uint32_t uid = getuid();
     napi_value result = nullptr;
     napi_create_int32(env, static_cast<int32_t>(uid), &result);
     return result;
@@ -1013,8 +1013,8 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
     napi_get_value_int32(env, napiCallingPid, &callerPid);
     napi_value napiCallingUid = nullptr;
     napi_get_named_property(env, global, "callingUid_", &napiCallingUid);
-    int32_t callerUid;
-    napi_get_value_int32(env, napiCallingUid, &callerUid);
+    uint32_t callerUid;
+    napi_get_value_uint32(env, napiCallingUid, &callerUid);
     napi_value napiIsLocalCalling = nullptr;
     napi_get_named_property(env, global, "isLocalCalling_", &napiIsLocalCalling);
     bool isLocalCalling = true;
@@ -1027,7 +1027,7 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
         napi_create_int32(env, callerPid, &newCallingPid);
         napi_set_named_property(env, global, "callingPid_", newCallingPid);
         napi_value newCallingUid;
-        napi_create_int32(env, callerUid, &newCallingUid);
+        napi_create_uint32(env, callerUid, &newCallingUid);
         napi_set_named_property(env, global, "callingUid_", newCallingUid);
         napi_value result = nullptr;
         napi_create_string_utf8(env, std::to_string(identity).c_str(), NAPI_AUTO_LENGTH, &result);
@@ -1044,11 +1044,12 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
         napi_get_value_string_utf8(env, napiCallingDeviceID, stringValue, bufferSize + 1, &jsStringLength);
         NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
         std::string callerDeviceID = stringValue;
-        std::string token = std::to_string(((static_cast<int64_t>(callerUid) << PID_LEN) | callerPid));
+        std::string token = std::to_string(((static_cast<uint64_t>(callerUid) << PID_LEN)
+            | static_cast<uint64_t>(callerPid)));
         std::string identity = callerDeviceID + token;
         callerUid = getuid();
         napi_value newCallingUid;
-        napi_create_int32(env, callerUid, &newCallingUid);
+        napi_create_uint32(env, callerUid, &newCallingUid);
         napi_set_named_property(env, global, "callingUid_", newCallingUid);
         callerPid = getpid();
         napi_value newCallingPid;
@@ -1112,7 +1113,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
         }
 
         int64_t token = std::atoll(identity.c_str());
-        int callerUid = static_cast<int>(token >> PID_LEN);
+        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
         int callerPid = static_cast<int>(token);
         napi_value napiCallingPid;
         napi_create_int32(env, callerPid, &napiCallingPid);
@@ -1130,7 +1131,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
 
         std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
         int64_t token = std::atoll(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH).c_str());
-        int callerUid = static_cast<int>(token >> PID_LEN);
+        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
         int callerPid = static_cast<int>(token);
         napi_value napiCallingPid;
         napi_create_int32(env, callerPid, &napiCallingPid);

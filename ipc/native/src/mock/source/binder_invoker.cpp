@@ -97,7 +97,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 {
     int error = ERR_NONE;
     uint32_t flags = (uint32_t)option.GetFlags();
-    ZLOGI(LABEL, "%{public}s: handle=%d ,flags:%d", __func__, handle, flags);
+    ZLOGI(LABEL, "%{public}s: handle=%d ,flags:%u", __func__, handle, flags);
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
     HiTraceId traceId = HiTrace::GetId();
