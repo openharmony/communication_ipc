@@ -228,11 +228,20 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
         return;
     }
 #ifndef CONFIG_IPC_SINGLE
-    ReleaseProto();
-    (void)current->ProxyDetachDBinderSession(handle_);
-    (void)current->DetachHandleToIndex(handle_);
+    std::shared_ptr<DBinderSessionObject> session = nullptr;
 #endif
-    current->DetachObject(this);
+    {
+        std::lock_guard<std::recursive_mutex> lock(current->mutex_);
+        if (current->DetachObjectInner(this) == false) { // if detach successfully, this proxy will be destroyed
+            return;
+        }
+#ifndef CONFIG_IPC_SINGLE
+        ReleaseProto();
+        session = current->ProxyQueryDBinderSession(handle_);
+        (void)current->ProxyDetachDBinderSession(handle_);
+        (void)current->DetachHandleToIndex(handle_);
+#endif
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
     if (invoker != nullptr) {
         invoker->ReleaseHandle(handle_);
@@ -353,21 +362,24 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 void IPCObjectProxy::SendObituary()
 {
-    std::vector<sptr<DeathRecipient>> deathCallback;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         MarkObjectDied();
-        deathCallback = recipients_;
-        IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
-        if (deathCallback.size() > 0 && invoker != nullptr) {
-            invoker->RemoveDeathRecipient(handle_, this);
+        size_t recipientCount = recipients_.size();
+        for (size_t i = 0; i < recipientCount; i++) {
+            sptr<DeathRecipient> recipient = recipients_[i];
+            ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
+            if (recipient != nullptr) {
+                recipient->OnRemoteDied(this);
+            }
         }
         recipients_.clear();
-    }
-    for (auto &deathRecipient : deathCallback) {
-        ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
-        if (deathRecipient != nullptr) {
-            deathRecipient->OnRemoteDied(this);
+
+        if (recipientCount > 0) {
+            IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+            if (invoker != nullptr) {
+                invoker->RemoveDeathRecipient(handle_, this);
+            }
         }
     }
 #ifndef CONFIG_IPC_SINGLE
@@ -392,11 +404,11 @@ int32_t IPCObjectProxy::NoticeServiceDie()
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option(MessageOption::TF_SYNC);
     data.WriteInt32(IRemoteObject::DeathRecipient::NOTICE_DEATH_RECIPIENT);
 
     int status = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
-    if (status != ERR_NONE) {
+    if (status != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
         ZLOGE(LABEL, "%s: send local request fail, status = %d", __func__, status);
         return IPC_PROXY_TRANSACTION_ERR;
     }
