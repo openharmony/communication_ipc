@@ -83,7 +83,7 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
             break;
         }
         default: {
-            RPC_LOG_ERROR("unknown code %d", code);
+            RPC_LOG_ERROR("unknown code %u", code);
             result = ERR_INVALID_PARAM;
             WriteInt32(reply, ERR_INVALID_PARAM);
             break;

@@ -479,6 +479,7 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 
 int DBinderTestServiceStub::ReverseIntDelayAsync(int data, int &rep)
 {
+    (void)data;
     HiLog::Error(LABEL, "%{public}s: not valid operate", __func__);
     return 0;
 }
