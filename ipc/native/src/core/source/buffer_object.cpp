@@ -43,7 +43,7 @@ void BufferObject::UpdateSendBuffer()
         return;
     }
     /* check whether buffer size is enough, if not, move write/read cursor to head */
-    if (sendBuffSize_ - sendBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE) {
+    if (sendBuffSize_ - static_cast<uint32_t>(sendBufferCursorW_) < SOCKET_BUFF_RESERVED_SIZE) {
         /* writeCursor always bigger than readCursor */
         if (sendBufferCursorW_ - sendBufferCursorR_ < sendBufferCursorR_) {
             auto memcpyResult = memmove_s(sendBuffer_, sendBufferCursorW_ - sendBufferCursorR_,
@@ -67,7 +67,7 @@ void BufferObject::UpdateReceiveBuffer()
         return;
     }
     /* check whether buffer size is enough, if not, move write/read cursor to head */
-    if (recvBuffSize_ - recvBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE) {
+    if (recvBuffSize_ - static_cast<uint32_t>(recvBufferCursorW_) < SOCKET_BUFF_RESERVED_SIZE) {
         /* writeCursor always bigger than readCursor */
         if (recvBufferCursorW_ - recvBufferCursorR_ < recvBufferCursorR_) {
             auto memcpyResult = memmove_s(receiveBuffer_, recvBufferCursorW_ - recvBufferCursorR_,
