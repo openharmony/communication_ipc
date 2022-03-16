@@ -858,9 +858,9 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
     }
 
     std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-    int64_t token = std::stoull(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH).c_str());
+    uint64_t token = std::stoull(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH).c_str());
 
-    callerUid_ = static_cast<int>(static_cast<uint64_t>(token) >> PID_LEN);
+    callerUid_ = static_cast<int>(token >> PID_LEN);
     callerPid_ = static_cast<int>(token);
     callerDeviceID_ = deviceId;
 
