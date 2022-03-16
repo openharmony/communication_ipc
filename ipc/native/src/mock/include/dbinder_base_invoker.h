@@ -488,7 +488,7 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
     sessionBuff->UpdateSendBuffer();
     ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
-    if (writeCursor < 0 || readCursor < 0 || sendSize > sessionBuff->GetSendBufferSize() - writeCursor) {
+    if (writeCursor < 0 || readCursor < 0 || sendSize > sessionBuff->GetSendBufferSize() - (uint32_t)writeCursor) {
         sessionBuff->ReleaseSendBufferLock();
         DBINDER_BASE_LOGE("sender's data is large than idle buffer");
         return false;
@@ -499,7 +499,7 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
         return false;
     }
 
-    writeCursor += sendSize;
+    writeCursor += static_cast<ssize_t>(sendSize);
     sessionBuff->SetSendBufferWriteCursor(writeCursor);
     sessionBuff->SetSendBufferReadCursor(readCursor);
     sessionBuff->ReleaseSendBufferLock();
@@ -565,7 +565,7 @@ template <class T> int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, Me
     }
 
     if (messageInfo->flags & MessageOption::TF_STATUS_CODE) {
-        int32_t err = messageInfo->offsetsSize;
+        int32_t err = static_cast<int32_t>(messageInfo->offsetsSize);
         return err;
     }
     if (messageInfo->buffer == nullptr) {

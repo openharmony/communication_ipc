@@ -90,7 +90,7 @@ bool BinderConnector::OpenDriver()
     uint64_t featureSet = 0;
     ret = ioctl(fd, BINDER_FEATURE_SET, &featureSet);
     if (ret != 0) {
-        ZLOGE(LABEL, "Get Binder featureSet failed: %s, disable all enhance feature.", strerror(errno));
+        ZLOGE(LABEL, "Get Binder featureSet failed: %d, disable all enhance feature.", errno);
         featureSet = 0;
     }
     ZLOGI(LABEL, "%s:succ to open, fd=%d", __func__, fd);
