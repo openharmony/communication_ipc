@@ -1020,7 +1020,7 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
     bool isLocalCalling = true;
     napi_get_value_bool(env, napiIsLocalCalling, &isLocalCalling);
     if (isLocalCalling) {
-        int64_t identity = (static_cast<int64_t>(callerUid) << PID_LEN) | callerPid;
+        int64_t identity = (static_cast<uint64_t>(callerUid) << PID_LEN) | static_cast<uint64_t>(callerPid);
         callerPid = getpid();
         callerUid = getuid();
         napi_value newCallingPid;
