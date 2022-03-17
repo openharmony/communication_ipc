@@ -77,7 +77,7 @@ bool BinderConnector::OpenDriver()
     int32_t version = 0;
     int ret = ioctl(fd, BINDER_VERSION, &version);
     if (ret != 0) {
-        ZLOGE(LABEL, "Get Binder version failed: %s", strerror(errno));
+        ZLOGE(LABEL, "Get Binder version failed: %d", errno);
         close(fd);
         return false;
     }

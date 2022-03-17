@@ -843,7 +843,8 @@ int DBinderDatabusInvoker::FlushCommands(IRemoteObject *object)
 
 std::string DBinderDatabusInvoker::ResetCallingIdentity()
 {
-    std::string token = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN) | callerPid_));
+    std::string token = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
+        | static_cast<uint64_t>(callerPid_)));
     std::string identity = callerDeviceID_ + token;
     callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
