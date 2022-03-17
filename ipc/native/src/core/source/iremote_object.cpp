@@ -32,7 +32,6 @@ bool IRemoteObject::CheckObjectLegality() const
 bool IRemoteObject::Marshalling(Parcel &parcel) const
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-
     if (invoker != nullptr) {
         return invoker->FlattenObject(parcel, this);
     }
@@ -53,7 +52,6 @@ bool IRemoteObject::Marshalling(Parcel &parcel, const sptr<IRemoteObject> &objec
 IRemoteObject *IRemoteObject::Unmarshalling(Parcel &parcel)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-
     if (invoker != nullptr) {
         return invoker->UnflattenObject(parcel);
     }
