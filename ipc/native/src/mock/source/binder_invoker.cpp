@@ -964,7 +964,8 @@ std::string BinderInvoker::ResetCallingIdentity()
         return "";
     }
     std::string accessToken(buf);
-    std::string pidUid = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN) | static_cast<uint64_t>(callerPid_)));
+    std::string pidUid = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
+        | static_cast<uint64_t>(callerPid_)));
     callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
