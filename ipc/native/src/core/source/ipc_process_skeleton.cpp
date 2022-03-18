@@ -75,7 +75,7 @@ IPCProcessSkeleton::IPCProcessSkeleton()
     std::random_device randDevice;
     std::default_random_engine baseRand { randDevice() };
     std::uniform_int_distribution<> range(1, DBINDER_HANDLE_BASE * DBINDER_HANDLE_RANG);
-    randNum_ = static_cast<uint64_t>(range(baseRand)); 
+    randNum_ = static_cast<uint64_t>(range(baseRand));
 #endif
 }
 
