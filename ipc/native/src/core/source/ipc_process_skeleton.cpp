@@ -145,7 +145,7 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
             auto proxy = new (std::nothrow) IPCObjectProxy(handle, descriptor);
             if (proxy == nullptr) {
                 return nullptr;
-            } 
+            }
             proxy->AttemptAcquire(this); // AttemptAcquire always returns true as life time is extended
             remoteObject = reinterpret_cast<IRemoteObject *>(proxy);
             if (!AttachObjectInner(remoteObject)) {
