@@ -75,8 +75,7 @@ IPCProcessSkeleton::IPCProcessSkeleton()
     std::random_device randDevice;
     std::default_random_engine baseRand { randDevice() };
     std::uniform_int_distribution<> range(1, DBINDER_HANDLE_BASE * DBINDER_HANDLE_RANG);
-    uint32_t temp = range(baseRand);
-    randNum_ = static_cast<uint64_t>(temp);
+    randNum_ = static_cast<uint64_t>(range(baseRand));
 #endif
 }
 
@@ -319,8 +318,9 @@ uint32_t IPCProcessSkeleton::ConvertChannelID2Int(int64_t databusChannelId)
     if (databusChannelId < 0) {
         return 0;
     }
-    uint32_t channelType = static_cast<uint32_t>((databusChannelId >> 8) & 0X00000000FF000000ULL);
-    uint32_t channelID = static_cast<uint32_t>(databusChannelId & 0X0000000000FFFFFFULL);
+    uint64_t databusChannel = static_cast<uint64_t>(databusChannelId);
+    uint32_t channelType = static_cast<uint32_t>((databusChannel >> 8) & 0X00000000FF000000ULL);
+    uint32_t channelID = static_cast<uint32_t>(databusChannel & 0X0000000000FFFFFFULL);
     return (channelType | channelID);
 }
 
