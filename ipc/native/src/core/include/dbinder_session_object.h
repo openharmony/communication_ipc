@@ -56,6 +56,7 @@ public:
     std::string GetServiceName() const;
     std::string GetDeviceId() const;
     uint32_t GetSessionHandle() const;
+    void CloseDatabusSession();
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderSessionObject);
