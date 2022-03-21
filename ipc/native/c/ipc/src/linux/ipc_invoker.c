@@ -418,21 +418,32 @@ static int32_t IpcSetRegistryObject(void)
 static int32_t InternalRequest(SvcIdentity sid, uint32_t code, IpcIo *data, IpcIo *reply, uint32_t flags)
 {
     RPC_LOG_INFO("Internal ipc request called");
-    int32_t error = ERR_FAILED;
     IpcObjectStub *objectStub = (IpcObjectStub *)(sid.cookie);
-    data->bufferCur = data->bufferBase;
-    data->offsetsCur = data->offsetsBase;
-    if (objectStub->func != NULL) {
+    if (objectStub == NULL) {
+        RPC_LOG_INFO("ipc object stub is null");
+        return ERR_INVALID_PARAM;
+    }
+    if (data != NULL && data->flag == IPC_IO_INITIALIZED) {
+        data->bufferLeft = data->bufferCur - data->bufferBase;
+        data->offsetsLeft = ((char*)data->offsetsCur - (char*)data->offsetsBase) / sizeof(size_t);
+        data->bufferCur = data->bufferBase;
+        data->offsetsCur = data->offsetsBase;
+    }
+    if (flags == TF_OP_SYNC && reply != NULL) {
         uint8 tempData[IPC_IO_DATA_MAX];
         IpcIoInit(reply, tempData, IPC_IO_DATA_MAX, MAX_OBJECT_NUM);
-        MessageOption option = {
-            .flags = flags,
-            .args = objectStub->args
-        };
-        error = OnRemoteRequestInner(code, data, reply, option, objectStub);
     }
-    reply->bufferCur = reply->bufferBase;
-    reply->offsetsCur = reply->offsetsBase;
+    MessageOption option = {
+        .flags = flags,
+        .args = objectStub->args
+    };
+    int32_t error = OnRemoteRequestInner(code, data, reply, option, objectStub);
+    if (flags == TF_OP_SYNC && reply != NULL) {
+        reply->bufferLeft = reply->bufferCur - reply->bufferBase;
+        reply->offsetsLeft = ((char*)reply->offsetsCur - (char*)reply->offsetsBase) / sizeof(size_t);
+        reply->bufferCur = reply->bufferBase;
+        reply->offsetsCur = reply->offsetsBase;
+    }
     return error;
 }
 
