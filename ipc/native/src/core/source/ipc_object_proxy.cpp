@@ -640,6 +640,17 @@ void IPCObjectProxy::ReleaseDatabusProto()
         ZLOGW(LABEL, "DBINDER_DECREFS_TRANSACTION transact return error = %{public}d", err);
         // do nothing
     }
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "release proto current is null");
+        return;
+    }
+    std::shared_ptr<DBinderSessionObject> toBeDelete = current->ProxyQueryDBinderSession(handle_);
+    if (toBeDelete != nullptr &&
+        current->QuerySessionByInfo(toBeDelete->GetServiceName(), toBeDelete->GetDeviceId()) != nullptr) {
+            toBeDelete->CloseDatabusSession();
+        }
 }
 
 void IPCObjectProxy::ReleaseBinderProto()
