@@ -616,16 +616,28 @@ bool DBinderService::OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMe
     return true;
 }
 
+bool DBinderService::IsSameSession(std::shared_ptr<struct SessionInfo> oldSession,
+    std::shared_ptr<struct SessionInfo> nowSession)
+{
+    if ((oldSession->stubIndex != nowSession->stubIndex) || (oldSession->type != nowSession->type)
+        ||(oldSession->serviceName != nowSession->serviceName)) {
+        return false;
+    }
+    if (strncmp(oldSession->deviceIdInfo.fromDeviceId, nowSession->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH) != 0
+        || strncmp(oldSession->deviceIdInfo.toDeviceId, nowSession->deviceIdInfo.toDeviceId, DEVICEID_LENGTH) != 0) {
+        return false;
+    }
+
+    return true;
+}
+
 void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
 {
     if (HasDBinderStub(replyMessage->binderObject) == false) {
         DBINDER_LOGE("invalid stub object");
         return;
     }
-    if (QuerySessionObject(replyMessage->stub) != nullptr) {
-        DBINDER_LOGI("invoker remote session already, do nothing");
-        return;
-    }
+
     std::shared_ptr<struct SessionInfo> session = std::make_shared<struct SessionInfo>();
     if (session == nullptr) {
         DBINDER_LOGE("new SessionInfo fail");
@@ -637,6 +649,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         DBINDER_LOGE("fail to copy memory");
         return;
     }
+    session->seqNumber = replyMessage->seqNumber;
     session->socketFd    = 0;
     session->stubIndex   = replyMessage->stubIndex;
     session->toPort      = replyMessage->toPort;
@@ -647,6 +660,21 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
     if (session->stubIndex == 0) {
         DBINDER_LOGE("get stub index == 0, it is invalid");
         return;
+    }
+
+    std::shared_ptr<struct SessionInfo> oldSession = QuerySessionObject(replyMessage->stub);
+    if (oldSession != nullptr) {
+        if (IsSameSession(oldSession, session)) {
+            DBINDER_LOGI("invoker remote session already, do nothing");
+            return;
+        }
+        if (oldSession->seqNumber < session->seqNumber) {
+            DBINDER_LOGI("replace oldsession %{public}s with newsession %{public}s",
+                oldSession->serviceName.c_str(), session->serviceName.c_str());
+            if (!DetachSessionObject(replyMessage->stub)) {
+                DBINDER_LOGE("failed to detach session object");
+            }
+        }
     }
 
     if (!AttachSessionObject(session, replyMessage->stub)) {

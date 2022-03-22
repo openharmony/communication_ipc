@@ -68,6 +68,7 @@ struct DHandleEntryTxRx {
 };
 
 struct SessionInfo {
+    uint32_t seqNumber;
     uint32_t type;
     uint16_t toPort;
     uint16_t fromPort;
@@ -105,7 +106,7 @@ public:
     sptr<DBinderServiceStub> MakeRemoteBinder(const std::u16string &serviceName,
         const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid = 0);
     bool RegisterRemoteProxy(std::u16string serviceName, sptr<IRemoteObject> binderObject);
-    bool RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId); 
+    bool RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId);
     bool OnRemoteMessageTask(const struct DHandleEntryTxRx *message);
     std::shared_ptr<struct SessionInfo> QuerySessionObject(binder_uintptr_t stub);
     bool DetachDeathRecipient(sptr<IRemoteObject> object);
@@ -163,6 +164,7 @@ private:
     uint32_t GetSeqNumber();
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool CheckSystemAbilityId(int32_t systemAbilityId);
+    bool IsSameSession(std::shared_ptr<struct SessionInfo> oldSession, std::shared_ptr<struct SessionInfo> nowSession);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
