@@ -87,7 +87,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     virtual void SetUp();
-    virtual void TearDown() {};
+    virtual void TearDown() {}
     std::string IpToDeviceId(const std::string &localIp);
     bool GetRemoteDeviceId();
 };

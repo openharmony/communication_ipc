@@ -970,7 +970,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_threshold_001, TestSi
     IpcIoInit(&io, buffer, SMALL_BUFFER_SIZE, 0);
     const char* strwrite ="test for write string threshold********************************************************\
     #####################################################";
-                       
+
     bool result = WriteString(&io, strwrite);
     EXPECT_EQ(result, false);
 }
