@@ -15,6 +15,7 @@
 
 #include "rpc_session_handle.h"
 
+#include <stdlib.h>
 #include <errno.h>
 #include <sys/time.h>
 

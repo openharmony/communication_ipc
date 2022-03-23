@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "access_token_adapter.h"
 #include <fcntl.h>
 #include <stdio.h>
@@ -50,7 +50,7 @@ uint64_t RpcGetSelfTokenID(void)
     if (fd < 0) {
         return INVAL_TOKEN_ID;
     }
-    int ret =ioctl(fd, ACCESS_TOKENID_GET_TOKENID, &token);
+    int ret = ioctl(fd, ACCESS_TOKENID_GET_TOKENID, &token);
     if (ret) {
         close(fd);
         return INVAL_TOKEN_ID;
