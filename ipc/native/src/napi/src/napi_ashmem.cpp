@@ -382,4 +382,4 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
     NAPI_ASSERT(env, status == napi_ok, "wrap js Ashmem and native holder failed");
     return thisVar;
 }
-}
+} // namespace OHOS

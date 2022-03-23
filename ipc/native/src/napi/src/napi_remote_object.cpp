@@ -100,7 +100,7 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     if (work == nullptr) {
         DBINDER_LOGE("failed to new uv_work_t");
         return;
-    };
+    }
     OnRemoteDiedParam *param = new OnRemoteDiedParam {
         .env = env_,
         .deathRecipientRef = deathRecipientRef_
