@@ -404,7 +404,9 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
     jobject object = env->CallStaticObjectMethod(g_jRemoteProxy.klass, g_jRemoteProxy.methodGetInstance,
         reinterpret_cast<jlong>(cachedHolder));
     if (object == nullptr) {
-        delete cachedHolder;
+        if (g_cachedProxyHolder == nullptr) {
+            delete cachedHolder;
+        }
         return nullptr;
     }
     if (JniHelperCheckAndClearLocalException(env)) {
