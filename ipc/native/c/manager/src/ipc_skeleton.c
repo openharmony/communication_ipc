@@ -146,3 +146,16 @@ int32_t MessageOptionInit(MessageOption *option)
     option->args = NULL;
     return ERR_NONE;
 }
+
+int32_t ReleaseSvc(SvcIdentity target)
+{
+    if (GetCurrentSkeleton() == NULL) {
+        RPC_LOG_ERROR("init ipc process skeleton failed.");
+        return ERR_IPC_SKELETON_NOT_INIT;
+    }
+    if (target.handle <= 0) {
+        RPC_LOG_ERROR("release svc is invalid handle.");
+        return ERR_INVALID_PARAM;
+    }
+    return DeleteHandle(target.handle);
+}
