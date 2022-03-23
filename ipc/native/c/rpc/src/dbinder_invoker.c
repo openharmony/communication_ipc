@@ -622,7 +622,7 @@ void OnMessageAvailable(int sessionId, const void *data, uint32_t len)
             // If the current is abnormal, the subsequent is no longer processed.
             break;
         }
-    };
+    }
 }
 
 void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject,
@@ -704,9 +704,7 @@ static int32_t RpcInvokerSendRequest(SvcIdentity target, uint32_t code, IpcIo *d
     uint64_t seqNumber = 0;
 
     uint32_t userWaitTime = option.waitTime;
-    if (userWaitTime < 0) {
-        userWaitTime = RPC_DEFAULT_SEND_WAIT_TIME;
-    } else if (userWaitTime > RPC_MAX_SEND_WAIT_TIME) {
+    if (userWaitTime > RPC_MAX_SEND_WAIT_TIME) {
         userWaitTime = RPC_MAX_SEND_WAIT_TIME;
     }
 
@@ -757,7 +755,7 @@ static void RpcJoinThread(bool initiative)
             free(processInfo->buffer);
             free(processInfo);
         }
-    };
+    }
 }
 
 void RpcStopWorkThread(void)

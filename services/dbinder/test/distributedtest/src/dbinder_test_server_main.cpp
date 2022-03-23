@@ -29,5 +29,5 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 
     HiLog::Info(LG_LABEL, "DBinderTestService-main call StartThreadPool");
 
-    while (1) {};
+    while (1) {}
 }

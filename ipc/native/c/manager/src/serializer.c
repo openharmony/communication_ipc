@@ -121,17 +121,17 @@ static void *IoPushUnaligned(IpcIo *io, size_t size)
 bool IpcIoAppend(IpcIo *dst, IpcIo *src)
 {
     if (!IpcIoAvailable(dst) || !IpcIoAvailable(src)) {
-        RPC_LOG_ERROR("IpcIo dst or src not available\n", __FUNCTION__, __LINE__);
+        RPC_LOG_ERROR("IpcIo dst or src not available: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
     size_t srcUsedBufferSize = src->bufferCur - src->bufferBase;
     size_t srcUsedOffsetsNum = src->offsetsCur - src->offsetsBase;
     if (srcUsedBufferSize == 0 && srcUsedOffsetsNum != 0) {
-        RPC_LOG_ERROR("IpcIo src not available\n", __FUNCTION__, __LINE__);
+        RPC_LOG_ERROR("IpcIo src not available: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
     if (dst->bufferLeft < srcUsedBufferSize || dst->offsetsLeft < srcUsedOffsetsNum) {
-        RPC_LOG_ERROR("IpcIo dst buffer space is not enough\n", __FUNCTION__, __LINE__);
+        RPC_LOG_ERROR("IpcIo dst buffer space is not enough: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
     if (srcUsedBufferSize > 0) {

@@ -22,7 +22,6 @@
 #include "test_service_command.h"
 #include "test_service_client.h"
 #include "ipc_test_helper.h"
-#include "iservice_registry.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
