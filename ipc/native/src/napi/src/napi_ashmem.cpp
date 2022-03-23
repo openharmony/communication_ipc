@@ -28,7 +28,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-static constexpr int MMAP_TYPE = 7;
+static constexpr int MMAP_PROT_MAX = 7;
 
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
@@ -150,7 +150,7 @@ napi_value NAPIAshmem::MapAshmem(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
     uint32_t mapType = 0;
     napi_get_value_uint32(env, argv[0], &mapType);
-    NAPI_ASSERT(env, mapType <= MMAP_TYPE, "napiAshmem mapType error");
+    NAPI_ASSERT(env, mapType <= MMAP_PROT_MAX, "napiAshmem mapType error");
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
