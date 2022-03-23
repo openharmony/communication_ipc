@@ -28,7 +28,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-static constexpr int MMAP_PROT_MAX = 7;
+static constexpr int MMAP_PROT_MAX = NAPIAshmem::PROT_EXEC | NAPIAshmem::PROT_READ | NAPIAshmem::PROT_WRITE;
 
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
