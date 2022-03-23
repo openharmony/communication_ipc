@@ -710,6 +710,7 @@ static void MakeSessionByReplyMessage(const DHandleEntryTxRx *replyMessage)
     }
     if (AttachSessionObject(session) != 0) {
         RPC_LOG_ERROR("AttachSessionObject failed");
+        free(session);
         return;
     }
 }
