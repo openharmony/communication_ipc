@@ -403,11 +403,17 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
 
     jobject object = env->CallStaticObjectMethod(g_jRemoteProxy.klass, g_jRemoteProxy.methodGetInstance,
         reinterpret_cast<jlong>(cachedHolder));
-
+    if (object == nullptr) {
+        if (g_cachedProxyHolder == nullptr) {
+            delete cachedHolder;
+        }
+        return nullptr;
+    }
     if (JniHelperCheckAndClearLocalException(env)) {
         if (g_cachedProxyHolder == nullptr) {
             delete cachedHolder;
         }
+        env->DeleteLocalRef(object);
         return nullptr;
     }
 
@@ -870,6 +876,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     g_jRemoteStub.klass = (jclass)env->NewGlobalRef(clazz);
     if (g_jRemoteStub.klass == nullptr) {
         ZLOGE(LABEL, "JRemoteObject NewGlobalRef failed");
+        env->DeleteLocalRef(clazz);
         return -1;
     }
 
@@ -877,6 +884,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     if (g_jRemoteStub.methodDispatchRequest == nullptr) {
         ZLOGE(LABEL, "JRemoteObject get method execTransact failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
+        env->DeleteLocalRef(clazz);
         return -1;
     }
 
@@ -884,6 +892,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     if (g_jRemoteStub.methodDispatchDump == nullptr) {
         ZLOGE(LABEL, "JRemoteObject get method execTransact failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
+        env->DeleteLocalRef(clazz);
         return -1;
     }
 
@@ -891,6 +900,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     if (g_jRemoteStub.fieldNativeHolder == nullptr) {
         ZLOGE(LABEL, "JRemoteObject get field mNativeHolder failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
+        env->DeleteLocalRef(clazz);
         return -1;
     }
 
@@ -910,6 +920,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
     if (g_jRemoteProxy.methodGetInstance == nullptr) {
         ZLOGE(LABEL, "JRemoteProxy get method getInstance failed");
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
+        env->DeleteLocalRef(clazz);
         return -1;
     }
 
@@ -917,6 +928,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         env->GetStaticMethodID(clazz, "sendObituary", "(Lohos/rpc/IRemoteObject$DeathRecipient;)V");
     if (g_jRemoteProxy.methodSendObituary == nullptr) {
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
+        env->DeleteLocalRef(clazz);
         ZLOGE(LABEL, "JRemoteProxy get method sendObituary failed");
         return -1;
     }
@@ -924,6 +936,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
     g_jRemoteProxy.fieldNativeData = env->GetFieldID(clazz, "mNativeData", "J");
     if (g_jRemoteProxy.fieldNativeData == nullptr) {
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
+        env->DeleteLocalRef(clazz);
         ZLOGE(LABEL, "JRemoteProxy get field mNativeData failed");
         return -1;
     }
