@@ -75,6 +75,8 @@ int32_t AddDeathRecipient(SvcIdentity target, OnRemoteDead deathFunc, void *args
 int32_t RemoveDeathRecipient(SvcIdentity target, uint32_t cbId);
 
 int32_t MessageOptionInit(MessageOption *option);
+
+int32_t ReleaseSvc(SvcIdentity target);
 #ifdef __cplusplus
 #if __cplusplus
 }
