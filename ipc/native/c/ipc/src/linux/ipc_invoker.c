@@ -274,14 +274,6 @@ static void HandleDeadBinder(uintptr_t ptr)
     }
 }
 
-static void OnRemoveRecipientDone(uintptr_t ptr)
-{
-    DeathCallback *death = (DeathCallback *)(uintptr_t) *(binder_uintptr_t *)ptr;
-    if (death != NULL) {
-        DeleteDeathCallback(death);
-    }
-}
-
 static int32_t BinderParse(IpcIo *reply, uintptr_t ptr, size_t size, uintptr_t *buffer)
 {
     int32_t ret = 1;
@@ -336,7 +328,6 @@ static int32_t BinderParse(IpcIo *reply, uintptr_t ptr, size_t size, uintptr_t *
                 break;
             }
             case BR_CLEAR_DEATH_NOTIFICATION_DONE: {
-                OnRemoveRecipientDone(ptr);
                 ptr += sizeof(binder_uintptr_t);
                 break;
             }

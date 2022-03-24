@@ -166,19 +166,21 @@ int32_t SetRegistryObject(SvcIdentity target)
     return ret;
 }
 
-static void DeleteDeadHandle(int32_t handle)
+int32_t DeleteHandle(int32_t handle)
 {
     if (pthread_mutex_lock(&g_ipcSkeleton->lock) != 0) {
         RPC_LOG_ERROR("Get ipc skeleton mutex failed.");
-        return;
+        return ERR_FAILED;
     }
     DeathCallback *node = NULL;
     DeathCallback *next = NULL;
     bool isValidHandle = false;
+    int32_t ret = ERR_INVALID_PARAM;
     UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
     {
         if (node->handle == handle) {
             isValidHandle = true;
+            pthread_mutex_destroy(&node->lock);
             UtilsListDelete(&node->list);
             free(node);
             break;
@@ -190,7 +192,9 @@ static void DeleteDeadHandle(int32_t handle)
         if (invoker != NULL) {
             (invoker->ReleaseHandle)(handle);
         }
+        ret = ERR_NONE;
     }
+    return ret;
 }
 
 int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo *reply,
@@ -200,10 +204,6 @@ int32_t ProcessSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, IpcIo
     RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
         ret = (invoker->SendRequest)(target, code, data, reply, option, buffer);
-    }
-    if (ret == ERR_DEAD_OBJECT) {
-        RPC_LOG_ERROR("dead binder = %d now delete it", target.handle);
-        DeleteDeadHandle(target.handle);
     }
     return ret;
 }
@@ -379,48 +379,28 @@ int32_t OnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
 
 void SendObituary(DeathCallback *deathCallback)
 {
-    int32_t deathNum = deathCallback->deathNum;
-    deathCallback->isRemoteDead = true;
     (void)pthread_mutex_lock(&deathCallback->lock);
-    for (int i = 0; i < MAX_DEATH_CALLBACK_NUM; i++) {
-        if (deathCallback->handler[i].usedFlag && deathCallback->handler[i].func != NULL) {
-            (deathCallback->handler[i].func)(deathCallback->handler[i].args);
-        }
-    }
-    pthread_mutex_unlock(&deathCallback->lock);
+    int32_t deathNum = deathCallback->deathNum;
+    DeathHandler handler[deathNum];
+    deathCallback->isRemoteDead = true;
     if (deathNum > 0) {
+        int32_t index = 0;
+        for (int32_t i = 0; i < MAX_DEATH_CALLBACK_NUM && index < deathNum; i++) {
+            if (deathCallback->handler[i].usedFlag && deathCallback->handler[i].func != NULL) {
+                handler[index].func = deathCallback->handler[i].func;
+                handler[index].args = deathCallback->handler[i].args;
+                ++index;
+            }
+        }
         RemoteInvoker *invoker = GetRemoteInvoker();
         if (invoker != NULL) {
             (invoker->RemoveDeathRecipient)(deathCallback->handle, deathCallback);
         }
     }
-}
-
-void DeleteDeathCallback(DeathCallback *deathCallback)
-{
-    (void)pthread_mutex_lock(&g_ipcSkeleton->lock);
-    DeathCallback *node = NULL;
-    DeathCallback *next = NULL;
-    bool isValidDead = false;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
-    {
-        if (node == deathCallback) {
-            isValidDead = true;
-            break;
-        }
+    pthread_mutex_unlock(&deathCallback->lock);
+    for (int32_t i = 0; i < deathNum; i++) {
+        handler[i].func(handler[i].args);
     }
-    pthread_mutex_unlock(&g_ipcSkeleton->lock);
-    if (!isValidDead) {
-        RPC_LOG_ERROR("invalid death node");
-        return;
-    }
-    RemoteInvoker *invoker = GetRemoteInvoker();
-    if (invoker != NULL) {
-        (invoker->ReleaseHandle)(deathCallback->handle);
-    }
-    UtilsListDelete(&deathCallback->list);
-    pthread_mutex_destroy(&deathCallback->lock);
-    free(deathCallback);
 }
 
 void WaitForProxyInit(SvcIdentity *svc)
@@ -432,4 +412,11 @@ void WaitForProxyInit(SvcIdentity *svc)
     RPC_LOG_INFO("ipc skeleton wait for proxy init");
     OnFirstStrongRef(svc->handle);
     UpdateProtoIfNeed(svc);
+}
+
+void DeleteDeathCallback(DeathCallback *deathCallback)
+{
+    UtilsListDelete(&deathCallback->list);
+    pthread_mutex_destroy(&deathCallback->lock);
+    free(deathCallback);
 }
