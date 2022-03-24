@@ -103,8 +103,6 @@ group("unittest") {
   testonly = true
   deps = [
     ":IPCFileDescOpsTest",
-    ":IPCHiTraceUnitTest",
-    ":IPCNativeUnitTest",
   ]
 }
 
