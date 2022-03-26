@@ -1112,7 +1112,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
             return result;
         }
 
-        int64_t token = std::stoll(identity.c_str());
+        int64_t token = std::stoll(identity);
         int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
         int callerPid = static_cast<int>(token);
         napi_value napiCallingPid;
@@ -1130,7 +1130,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
         }
 
         std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-        int64_t token = std::stoll(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH).c_str());
+        int64_t token = std::stoll(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH));
         int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
         int callerPid = static_cast<int>(token);
         napi_value napiCallingPid;
