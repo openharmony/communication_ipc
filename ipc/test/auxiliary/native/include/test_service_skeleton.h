@@ -73,7 +73,7 @@ public:
 
 class TestServiceStub : public IRemoteStub<ITestService> {
 public:
-    virtual int OnRemoteRequest(uint32_t code,
+    int OnRemoteRequest(uint32_t code,
         MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceStub" };
