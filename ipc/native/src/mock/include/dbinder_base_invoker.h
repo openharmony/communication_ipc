@@ -64,17 +64,17 @@ public:
     virtual std::shared_ptr<T> QueryServerSessionObject(uint32_t handle) = 0;
     virtual bool UpdateClientSession(uint32_t handle, std::shared_ptr<T> sessionObject) = 0;
 
-    virtual int SendRequest(int32_t handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
+    int SendRequest(int32_t handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
         MessageOption &option) override;
-    virtual bool AddDeathRecipient(int32_t handle, void *cookie) override;
-    virtual bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
-    virtual int GetObjectRefCount(const IRemoteObject *object) override;
-    virtual bool SetMaxWorkThread(int maxThreadNum) override;
-    virtual int SendReply(MessageParcel &reply, uint32_t flags, int32_t result) override;
-    virtual bool PingService(int32_t handle) override;
-    virtual sptr<IRemoteObject> GetSAMgrObject() override;
-    virtual bool SetRegistryObject(sptr<IRemoteObject> &object) override;
-    virtual void FreeBuffer(void *data) override;
+    bool AddDeathRecipient(int32_t handle, void *cookie) override;
+    bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
+    int GetObjectRefCount(const IRemoteObject *object) override;
+    bool SetMaxWorkThread(int maxThreadNum) override;
+    int SendReply(MessageParcel &reply, uint32_t flags, int32_t result) override;
+    bool PingService(int32_t handle) override;
+    sptr<IRemoteObject> GetSAMgrObject() override;
+    bool SetRegistryObject(sptr<IRemoteObject> &object) override;
+    void FreeBuffer(void *data) override;
     virtual std::shared_ptr<T> WriteTransaction(int cmd, uint32_t flags, int32_t handle, int32_t socketId,
         uint32_t code, MessageParcel &data, uint64_t &seqNumber, int status);
     virtual int SendOrWaitForCompletion(int userWaitTime, uint64_t seqNumber, std::shared_ptr<T> sessionOfPeer,

@@ -43,7 +43,7 @@ public:
 class FooStub : public IRemoteStub<IFoo> {
 public:
     virtual ~FooStub();
-    virtual int OnRemoteRequest(uint32_t code,
+    int OnRemoteRequest(uint32_t code,
         MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     std::string GetFooName() override;
     void SendAsyncReply(int &reply) override;

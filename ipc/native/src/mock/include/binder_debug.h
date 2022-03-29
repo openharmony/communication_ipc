@@ -24,7 +24,7 @@ public:
     BinderDebug() = default;
     ~BinderDebug() = default;
     static const std::string &ToString(int value);
-    virtual ErrorMap &GetErrorMap() override;
+    ErrorMap &GetErrorMap() override;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_BINDER_DEBUG_H

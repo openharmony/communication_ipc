@@ -295,7 +295,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->transType           = GetRemoteTransType();
     message->fromPort            = 0;
     message->toPort              = 0;
-    message->stubIndex           = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
+    message->stubIndex           = static_cast<uint64_t>(std::stoi(stub->GetServiceName().c_str()));
     message->seqNumber           = seqNumber;
     message->binderObject        = stub->GetBinderObject();
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -382,7 +382,7 @@ sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject
         DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
         return nullptr;
     }
-    int32_t digitalName = !serviceName.empty() ? std::atoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
+    int32_t digitalName = !serviceName.empty() ? std::stoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
     proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
     if (proxy != nullptr) {
         /* When the stub object dies, you need to delete the corresponding busName information */
