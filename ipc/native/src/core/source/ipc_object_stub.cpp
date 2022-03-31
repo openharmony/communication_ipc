@@ -164,6 +164,10 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             result = OnRemoteDump(code, data, reply, option);
             break;
         }
+        case GET_PROTO_INFO: {
+            result = ProcessProto(code, data, reply, option);
+            break;
+        }
 #ifndef CONFIG_IPC_SINGLE
         case INVOKE_LISTEN_THREAD: {
             if (!IPCSkeleton::IsLocalCalling() || IPCSkeleton::GetCallingUid() >= ALLOWED_UID) {
@@ -172,10 +176,6 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
                 break;
             }
             result = InvokerThread(code, data, reply, option);
-            break;
-        }
-        case GET_PROTO_INFO: {
-            result = ProcessProto(code, data, reply, option);
             break;
         }
         case DBINDER_INCREFS_TRANSACTION: {
