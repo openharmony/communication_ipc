@@ -37,6 +37,7 @@ public:
         IF_PROT_DEFAULT, /* Invoker family. */
         IF_PROT_BINDER = IF_PROT_DEFAULT,
         IF_PROT_DATABUS,
+        IF_PROT_ERROR,
     };
     enum {
         DATABUS_TYPE,
