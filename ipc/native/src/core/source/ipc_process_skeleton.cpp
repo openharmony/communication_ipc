@@ -160,6 +160,14 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
 
     IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject);
     remoteProxy->WaitForInit();
+
+    if (remoteProxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
+        DBINDER_LOGE("init rpc proxy:%{public}d failed", handle);
+        remoteProxy->DecStrongRef(this);
+        return nullptr;
+    }
+
+    DBINDER_LOGI("handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
     return remoteObject;
 }
 

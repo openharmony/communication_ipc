@@ -528,6 +528,10 @@ bool DBinderDatabusInvoker::UpdateClientSession(uint32_t handle, std::shared_ptr
 
     if (!current->ProxyAttachDBinderSession(handle, sessionObject)) {
         DBINDER_LOGE("fail to attach session");
+        if (current->QuerySessionByInfo(sessionObject->GetServiceName(),
+            sessionObject->GetDeviceId()) == nullptr) {
+            sessionObject->CloseDatabusSession();
+        }
         return false;
     }
 
