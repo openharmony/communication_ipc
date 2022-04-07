@@ -86,7 +86,7 @@ private:
 
     void ReleaseProto();
 
-    void IncRefToRemote();
+    int32_t IncRefToRemote();
 
     int GetSessionFromDBinderService();
 
@@ -100,7 +100,7 @@ private:
 
     bool UpdateDatabusClientSession(int handle, MessageParcel &reply);
 
-    bool CheckHaveSession(uint32_t &type);
+    bool CheckHaveSession();
 #endif
 
 private:

@@ -193,9 +193,6 @@ void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
 
 void IPCObjectProxy::WaitForInit()
 {
-#ifndef CONFIG_IPC_SINGLE
-    int type = 0;
-#endif
     {
         std::lock_guard<std::mutex> lockGuard(initMutex_);
         if (IsObjectDead()) {
@@ -206,16 +203,31 @@ void IPCObjectProxy::WaitForInit()
 
         // check again is this object been initialized
         if (isFinishInit_) {
+#ifndef CONFIG_IPC_SINGLE
+            if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
+                if (!CheckHaveSession()) {
+                    SetProto(IRemoteObject::IF_PROT_ERROR);
+                    isRemoteDead_ = true;
+                }
+            }
+#endif
             return;
         }
 #ifndef CONFIG_IPC_SINGLE
-        type = UpdateProto();
+        if (UpdateProto() == IRemoteObject::IF_PROT_ERROR) {
+            ZLOGE(LABEL, "UpdateProto get IF_PROT_ERROR");
+            isRemoteDead_ = true;
+        }
 #endif
         isFinishInit_ = true;
     }
 #ifndef CONFIG_IPC_SINGLE
-    if (type == IRemoteObject::IF_PROT_DATABUS) {
-        IncRefToRemote();
+    if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
+        int32_t errcode = IncRefToRemote();
+        if (errcode != ERR_NONE) {
+            SetProto(IRemoteObject::IF_PROT_ERROR);
+            isRemoteDead_ = true;
+        }
     }
 #endif
 }
@@ -430,7 +442,7 @@ int IPCObjectProxy::UpdateProto()
     return type;
 }
 
-void IPCObjectProxy::IncRefToRemote()
+int32_t IPCObjectProxy::IncRefToRemote()
 {
     MessageParcel data, reply;
     MessageOption option;
@@ -438,8 +450,8 @@ void IPCObjectProxy::IncRefToRemote()
     int32_t err = SendRequestInner(false, DBINDER_INCREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGE(LABEL, "DBINDER_INCREFS_TRANSACTION transact return error = %{public}d", err);
-        // do nothing
     }
+    return err;
 }
 
 
@@ -457,17 +469,20 @@ int IPCObjectProxy::GetSessionFromDBinderService()
 {
     MessageParcel data, reply;
     MessageOption option;
-    uint32_t type = IRemoteObject::IF_PROT_BINDER;
 
-    if (CheckHaveSession(type)) {
-        ZLOGE(LABEL, "GetSessionFromDBinderService type = %u", type);
-        return type;
+    if (CheckHaveSession()) {
+        ZLOGE(LABEL, "GetSessionFromDBinderService CheckHaveSession success");
+        return IRemoteObject::IF_PROT_DATABUS;
+    }
+    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        ZLOGE(LABEL, "cannot find session for handle:%{public}u", handle_);
+        return IRemoteObject::IF_PROT_ERROR;
     }
 
     int32_t err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGI(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
-        return IRemoteObject::IF_PROT_BINDER;
+        return IRemoteObject::IF_PROT_ERROR;
     }
 
     switch (reply.ReadUint32()) {
@@ -479,11 +494,15 @@ int IPCObjectProxy::GetSessionFromDBinderService()
             if (UpdateDatabusClientSession(handle_, reply)) {
                 ZLOGW(LABEL, "it is dbinder, not binder");
                 return IRemoteObject::IF_PROT_DATABUS;
+            } else {
+                ZLOGE(LABEL, "UpdateDatabusClientSession failed");
+                return IRemoteObject::IF_PROT_ERROR;
             }
             break;
         }
         default: {
             ZLOGE(LABEL, "GetSessionFromDBinderService Invalid Type");
+            return IRemoteObject::IF_PROT_ERROR;
             break;
         }
     }
@@ -555,7 +574,7 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
     return current->DetachCallbackStubByProxy(this);
 }
 
-bool IPCObjectProxy::CheckHaveSession(uint32_t &type)
+bool IPCObjectProxy::CheckHaveSession()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
@@ -568,7 +587,7 @@ bool IPCObjectProxy::CheckHaveSession(uint32_t &type)
         ZLOGW(LABEL, "no databus session attach to this handle, maybe need update");
         return false;
     }
-    type = IRemoteObject::IF_PROT_DATABUS;
+
     return true;
 }
 
