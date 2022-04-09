@@ -39,7 +39,7 @@ static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectStub" };
 // Authentication information can be added only for processes with system permission.
 static constexpr pid_t ALLOWED_UID = 10000;
 // Only the samgr can obtain the UID and PID.
-static constexpr pid_t SYSTEM_SERVER_UID = 1000;
+static constexpr pid_t SYSTEM_SERVER_UID = SAMGR_PROCESS_UID;
 #endif
 static constexpr pid_t SHELL_UID = 2000;
 
