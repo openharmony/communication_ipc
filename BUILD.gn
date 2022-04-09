@@ -37,4 +37,9 @@ config("ipc_util_config") {
   if (defined(build_public_version) && build_public_version) {
     cflags += [ "-DBUILD_PUBLIC_VERSION" ]
   }
+  if (use_musl) {
+    cflags += [ "-DSAMGR_PROCESS_UID=1005" ]
+  } else {
+    cflags += [ "-DSAMGR_PROCESS_UID=1000" ]
+  }
 }
