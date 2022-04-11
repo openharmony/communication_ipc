@@ -433,7 +433,9 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         auto *refs = reinterpret_cast<IRemoteObject *>(tr->target.ptr);
         if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this))) {
             targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
-            targetObject->DecStrongRef(this);
+            if (targetObject != nullptr) {
+                targetObject->DecStrongRef(this);
+            }
         }
     } else {
         targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
