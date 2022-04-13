@@ -421,3 +421,11 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
     pthread_mutex_destroy(&deathCallback->lock);
     free(deathCallback);
 }
+
+void ResetIpc(void)
+{
+    RemoteInvoker *invoker = GetRemoteInvoker();
+    if (invoker != NULL && invoker->InvokerResetIpc != NULL) {
+        (invoker->InvokerResetIpc)();
+    }
+}

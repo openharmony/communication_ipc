@@ -114,7 +114,7 @@ bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
     }
     if (obj->type == BINDER_TYPE_BINDER) {
         svc->token = obj->binder;
-        svc->handle = MIN_BINDER_HANDLE;
+        svc->handle = IPC_INVALID_HANDLE;
         svc->cookie = obj->cookie;
     } else {
         svc->handle = obj->handle;
