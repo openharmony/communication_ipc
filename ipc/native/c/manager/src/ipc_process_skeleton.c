@@ -66,6 +66,7 @@ static IpcSkeleton* IpcProcessSkeleton()
         RPC_LOG_ERROR("init thread context failed.");
         return NULL;
     }
+    SpawnNewThread(temp->threadPool, SPAWN_ACTIVE, IF_PROT_BINDER);
     UtilsListInit(&temp->objects);
     pthread_mutex_init(&temp->lock, NULL);
     return temp;
