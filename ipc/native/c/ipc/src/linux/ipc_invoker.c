@@ -229,8 +229,8 @@ static void HandleTransaction(const struct binder_transaction_data *tr)
         .args = objectStub->args
     };
     IpcIo reply;
-    uint8 tempData[IPC_IO_DATA_MAX];
-    IpcIoInit(&reply, tempData, IPC_IO_DATA_MAX, MAX_OBJECT_NUM);
+    uint8 tempData[MAX_IO_SIZE];
+    IpcIoInit(&reply, tempData, MAX_IO_SIZE, MAX_OBJ_NUM);
     int32_t error = OnRemoteRequestInner(tr->code, &data, &reply, option, objectStub);
     if (tr->flags & TF_ONE_WAY) {
         IpcFreeBuffer((void *)(tr->data.ptr.buffer));
@@ -421,8 +421,8 @@ static int32_t InternalRequest(SvcIdentity sid, uint32_t code, IpcIo *data, IpcI
         data->offsetsCur = data->offsetsBase;
     }
     if (flags == TF_OP_SYNC && reply != NULL) {
-        uint8 tempData[IPC_IO_DATA_MAX];
-        IpcIoInit(reply, tempData, IPC_IO_DATA_MAX, MAX_OBJECT_NUM);
+        uint8 tempData[MAX_IO_SIZE];
+        IpcIoInit(reply, tempData, MAX_IO_SIZE, MAX_OBJ_NUM);
     }
     MessageOption option = {
         .flags = flags,
@@ -521,6 +521,8 @@ static void IpcExitCurrentThread(void)
     ioctl(g_connector->fd, BINDER_THREAD_EXIT, 0);
 }
 
+static void InvokerResetIpc(void) {}
+
 static BinderConnector *InitBinderConnector(void)
 {
     if (g_connector == NULL) {
@@ -547,6 +549,7 @@ static BinderConnector *InitBinderConnector(void)
             g_ipcInvoker.AddDeathRecipient = IpcAddDeathRecipient;
             g_ipcInvoker.RemoveDeathRecipient = IpcRemoveDeathRecipient;
             g_ipcInvoker.ExitCurrentThread = IpcExitCurrentThread;
+            g_ipcInvoker.InvokerResetIpc = InvokerResetIpc;
         }
         pthread_mutex_unlock(&g_connectorMutex);
     }
