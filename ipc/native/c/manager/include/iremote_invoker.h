@@ -40,6 +40,7 @@ typedef struct {
     int32_t (*SetRegistryObject)(void);
     int32_t (*AddDeathRecipient)(int32_t handle, void *cookie);
     int32_t (*RemoveDeathRecipient)(int32_t handle, void *cookie);
+    void (*InvokerResetIpc)(void);
 } RemoteInvoker;
 
 RemoteInvoker *InitRemoteInvoker(int32_t proto);

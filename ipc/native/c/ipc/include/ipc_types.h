@@ -18,7 +18,5 @@
 
 #define BINDER_DRIVER "/dev/binder"
 #define MMAP_MAX_SIZE 262144UL    /* 256KB */
-#define IPC_IO_DATA_MAX 8192UL
-#define MAX_OBJECT_NUM 4
 
 #endif /* OHOS_BINDER_TYPES_H */

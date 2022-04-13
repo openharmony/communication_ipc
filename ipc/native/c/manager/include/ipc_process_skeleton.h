@@ -72,6 +72,7 @@ void SendObituary(DeathCallback *deathCallback);
 void DeleteDeathCallback(DeathCallback *deathCallback);
 void WaitForProxyInit(SvcIdentity *svc);
 int32_t DeleteHandle(int32_t handle);
+void ResetIpc(void);
 #ifdef __cplusplus
 #if __cplusplus
 }

@@ -189,6 +189,6 @@ int main(int argc, char *argv[])
     CallServerAdd();
     AnonymousTest();
     DeathCallbackTest();
-    JoinWorkThread();
+    while (1) {}
     return -1;
 }
