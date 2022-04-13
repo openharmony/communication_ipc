@@ -42,7 +42,7 @@ typedef struct {
     uintptr_t cookie;
 } SvcIdentity;
 
-#define MIN_BINDER_HANDLE (-1)
+#define IPC_INVALID_HANDLE (-1)
 #define IPC_IO_INITIALIZED 0x01 /* ipc flag indicates whether io is initialized */
 #define IPC_IO_OVERFLOW    0x02 /* ipc flag indicates whether io is running out of space */
 #define MAX_IO_SIZE 8192UL
