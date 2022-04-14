@@ -171,7 +171,7 @@ void StopExecutable(std::string name)
     }
 }
 
-int StartDBinderServiceSARegistry()
+int StartDBinderServiceSARegistry(void)
 {
     pid_t registryPid = GetPidByName(SYSTEM_ABILITY_MANAGER_NAME);
     if (registryPid != -1) {
@@ -184,12 +184,12 @@ int StartDBinderServiceSARegistry()
     return ERR_NONE;
 }
 
-void StopDBinderServiceSARegistry()
+void StopDBinderServiceSARegistry(void)
 {
     StopExecutable(SYSTEM_ABILITY_MANAGER_NAME);
 }
 
-void StartDBinderServiceTestService()
+void StartDBinderServiceTestService(void)
 {
     pid_t pid = StartExecutable(DBINDER_TEST_SERVICE_NAME);
     DBINDER_LOGE("DBINDER_TEST_SERVICE_NAME pid : %{public}d", pid);
@@ -198,7 +198,7 @@ void StartDBinderServiceTestService()
     DBINDER_LOGE("DBINDER_TEST_SERVICE_NAME_SECOND pid : %{public}d", pid);
 }
 
-void StopDBinderServiceTestService()
+void StopDBinderServiceTestService(void)
 {
     StopExecutable(DBINDER_TEST_SERVICE_NAME);
     DBINDER_LOGE("Stop DBINDER_TEST_SERVICE_NAME");
@@ -227,7 +227,7 @@ int GetCurrentTestCase(void)
     return DBINDER_TEST_INIT;
 }
 
-int64_t GetCurrentTime()
+int64_t GetCurrentTime(void)
 {
     struct timeval timeInterval = {};
     gettimeofday(&timeInterval, nullptr);

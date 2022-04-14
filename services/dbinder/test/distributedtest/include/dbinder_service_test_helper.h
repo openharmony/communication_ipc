@@ -80,17 +80,17 @@ enum {
 static int g_currentTestCase = DBINDER_TEST_INIT;
 
 pid_t GetPidByName(std::string taskName);
-int StartDBinderServiceSARegistry();
-void StopDBinderServiceSARegistry();
-void StartDBinderServiceTestService();
-void StopDBinderServiceTestService();
+int StartDBinderServiceSARegistry(void);
+void StopDBinderServiceSARegistry(void);
+void StartDBinderServiceTestService(void);
+void StopDBinderServiceTestService(void);
 int GetChildPids(std::vector<pid_t> &childPids);
 pid_t StartExecutable(std::string name, std::string args = "");
 void StopExecutable(pid_t pid);
 void StopExecutable(std::string name);
 int SetCurrentTestCase(int caseNum);
 int GetCurrentTestCase(void);
-int64_t GetCurrentTime();
+int64_t GetCurrentTime(void);
 float GetSpeed(int64_t timeInterval, int size, int times);
 
 bool MakeIpLoop(void);
