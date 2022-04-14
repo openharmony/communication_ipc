@@ -14,7 +14,6 @@
  */
 
 #include "test_service_client.h"
-//#include <fcntl.h>
 #include <unistd.h>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
