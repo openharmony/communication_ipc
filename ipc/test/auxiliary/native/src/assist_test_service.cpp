@@ -293,7 +293,7 @@ bool AssistTestServiceProxy::TestParcelInt32Vector()
     MessageParcel data, reply;
     MessageOption option;
     std::vector<int32_t> readInt32Vector;
-    std::vector<int32_t> writeInt32Vector = { 0x12345678, -0x23456789, 0x34567890, -0x45678901 };;
+    std::vector<int32_t> writeInt32Vector = { 0x12345678, -0x23456789, 0x34567890, -0x45678901 };
     data.WriteInt32Vector(writeInt32Vector);
 
     if (Remote()->SendRequest(TEST_PARCEL_INT32_VECTOR, data, reply, option) != ERR_NONE) {

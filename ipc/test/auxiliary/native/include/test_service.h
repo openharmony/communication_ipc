@@ -52,4 +52,3 @@ private:
 };
 } // namespace OHOS
 #endif // OHOS_IPC_TEST_SERVICE_H
-

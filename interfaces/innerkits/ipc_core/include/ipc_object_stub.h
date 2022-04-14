@@ -16,9 +16,9 @@
 #ifndef OHOS_IPC_IPC_OBJECT_STUB_H
 #define OHOS_IPC_IPC_OBJECT_STUB_H
 
-#include "iremote_object.h"
 #include <list>
 #include "ipc_object_proxy.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 struct RefCountNode {
