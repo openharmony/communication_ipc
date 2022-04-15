@@ -94,7 +94,7 @@ public:
 
     std::u16string MakeHandleDescriptor(int handle);
 
-    IRemoteObject *FindOrNewObject(int handle);
+    sptr<IRemoteObject> FindOrNewObject(int handle);
     bool IsContainsObject(IRemoteObject *object);
     IRemoteObject *QueryObject(const std::u16string &descriptor);
     IRemoteObject *QueryObjectInner(const std::u16string &descriptor);

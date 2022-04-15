@@ -66,7 +66,7 @@ public:
 
     virtual bool Marshalling(Parcel &parcel) const override;
 
-    static IRemoteObject *Unmarshalling(Parcel &parcel);
+    static sptr<IRemoteObject> Unmarshalling(Parcel &parcel);
 
     static bool Marshalling(Parcel &parcel, const sptr<IRemoteObject> &object);
 

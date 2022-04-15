@@ -49,7 +49,7 @@ bool IRemoteObject::Marshalling(Parcel &parcel, const sptr<IRemoteObject> &objec
     return false;
 }
 
-IRemoteObject *IRemoteObject::Unmarshalling(Parcel &parcel)
+sptr<IRemoteObject> IRemoteObject::Unmarshalling(Parcel &parcel)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
     if (invoker != nullptr) {

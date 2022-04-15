@@ -121,14 +121,14 @@ std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
     return to_utf16(descriptor);
 }
 
-IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
+sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 {
-    IRemoteObject *remoteObject = nullptr;
+    sptr<IRemoteObject> result = nullptr;
     std::u16string descriptor = MakeHandleDescriptor(handle);
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-        remoteObject = QueryObjectInner(descriptor);
+        IRemoteObject *remoteObject = QueryObjectInner(descriptor);
         if (remoteObject == nullptr) {
             if (handle == REGISTRY_HANDLE) {
                 IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
@@ -146,19 +146,16 @@ IRemoteObject *IPCProcessSkeleton::FindOrNewObject(int handle)
             if (proxy == nullptr) {
                 return nullptr;
             }
-            proxy->AttemptAcquire(this); // AttemptAcquire always returns true as life time is extended
             remoteObject = reinterpret_cast<IRemoteObject *>(proxy);
             if (!AttachObjectInner(remoteObject)) {
-                DBINDER_LOGE("attach object failed");
                 delete proxy;
                 return nullptr;
             }
-        } else {
-            remoteObject->AttemptAcquire(this);
         }
+        result = remoteObject;
     }
 
-    IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject);
+    sptr<IPCObjectProxy> remoteProxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
     remoteProxy->WaitForInit();
     return remoteObject;
 }
