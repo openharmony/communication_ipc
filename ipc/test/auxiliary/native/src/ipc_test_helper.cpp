@@ -14,9 +14,7 @@
  */
 
 #include "ipc_test_helper.h"
-#include <vector>
 #include <csignal>
-#include <fstream>
 #include <string>
 #include <securec.h>
 #include <sys/time.h>

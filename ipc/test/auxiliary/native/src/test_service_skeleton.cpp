@@ -258,7 +258,6 @@ int TestServiceProxy::TestRawDataReply(int length)
     return ERR_NONE;
 }
 
-
 int TestServiceProxy::TestCallingUidPid()
 {
     MessageOption option;
@@ -284,7 +283,7 @@ int TestServiceProxy::TestCallingUidPid()
     return -1;
 }
 
-#define ACCESS_TOKEN_ID_IOCTL_BASE 'A'
+constexpr char ACCESS_TOKEN_ID_IOCTL_BASE = 'A';
 
 enum {
     GET_TOKEN_ID = 1,
@@ -299,10 +298,10 @@ enum {
 #define ACCESS_TOKENID_SET_FTOKENID \
     _IOW(ACCESS_TOKEN_ID_IOCTL_BASE, SET_FTOKEN_ID, unsigned long long)
 
-#define ACCESS_TOKEN_OK 0
-#define ACCESS_TOKEN_ERROR (-1)
+constexpr int ACCESS_TOKEN_OK = 0;
+constexpr int ACCESS_TOKEN_ERROR = -1;
 
-#define TOKENID_DEVNODE "/dev/access_token_id"
+constexpr char TOKENID_DEVNODE[] = "/dev/access_token_id";
 
 int RpcSetSelfTokenID(uint64_t tokenID)
 {

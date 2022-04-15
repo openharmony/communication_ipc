@@ -16,10 +16,10 @@
 #ifndef OHOS_IPC_MESSAGE_PARCEL_H
 #define OHOS_IPC_MESSAGE_PARCEL_H
 
-#include <string>
+#include <ashmem.h>
 #include "parcel.h"
 #include "refbase.h"
-#include <ashmem.h>
+#include <string>
 
 namespace OHOS {
 class IRemoteObject;
