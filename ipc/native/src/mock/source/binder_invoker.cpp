@@ -887,7 +887,7 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
     return status;
 }
 
-IRemoteObject *BinderInvoker::UnflattenObject(Parcel &parcel)
+sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
 {
     const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object));
     if (buffer == nullptr) {
@@ -900,7 +900,7 @@ IRemoteObject *BinderInvoker::UnflattenObject(Parcel &parcel)
         return nullptr;
     }
 
-    IRemoteObject *remoteObject = nullptr;
+    sptr<IRemoteObject> remoteObject = nullptr;
     auto *flat = reinterpret_cast<const flat_binder_object *>(buffer);
     switch (flat->hdr.type) {
         case BINDER_TYPE_BINDER: {
