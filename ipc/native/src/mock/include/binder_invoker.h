@@ -70,7 +70,7 @@ public:
 
     bool FlattenObject(Parcel &parcel, const IRemoteObject *object) const override;
 
-    IRemoteObject *UnflattenObject(Parcel &parcel) override;
+    sptr<IRemoteObject> UnflattenObject(Parcel &parcel) override;
 
     int ReadFileDescriptor(Parcel &parcel) override;
 
