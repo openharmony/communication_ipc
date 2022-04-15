@@ -74,4 +74,3 @@ private:
 };
 } // namespace OHOS
 #endif // OHOS_IPC_FOO_SERVICE_H
-
