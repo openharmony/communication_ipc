@@ -658,16 +658,21 @@ bool ReadDouble(IpcIo *io, double *value)
 
 uint8_t *ReadString(IpcIo *io, size_t *len)
 {
-    if (io == NULL || len == NULL) {
-        RPC_LOG_ERROR("IPC io == NULL || len == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
-        return false;
+    if (io == NULL) {
+        RPC_LOG_ERROR("IPC io == NULL  failed: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
     }
     uint32_t value;
     bool ret = ReadUint32(io, &value);
     if (ret) {
-        *len = value;
-    }
-    if (value > MAX_IO_SIZE) {
+        if (value > MAX_IO_SIZE) {
+            return NULL;
+        }
+        if (len != NULL) {
+            *len = value;
+        }
+    } else {
+        RPC_LOG_ERROR("IPC ReadUint32 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
     return (uint8_t *)IoPop(io, value + 1);
