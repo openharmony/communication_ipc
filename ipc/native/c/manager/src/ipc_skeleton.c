@@ -48,19 +48,11 @@ void JoinWorkThread(void)
 
 pid_t GetCallingPid(void)
 {
-    if (GetCurrentSkeleton() == NULL) {
-        RPC_LOG_ERROR("init ipc process skeleton failed.");
-        return ERR_IPC_SKELETON_NOT_INIT;
-    }
     return ProcessGetCallingPid();
 }
 
 pid_t GetCallingUid(void)
 {
-    if (GetCurrentSkeleton() == NULL) {
-        RPC_LOG_ERROR("init ipc process skeleton failed.");
-        return ERR_IPC_SKELETON_NOT_INIT;
-    }
     return ProcessGetCallingUid();
 }
 

@@ -29,3 +29,13 @@ RemoteInvoker *InitRemoteInvoker(int32_t proto)
     }
     return remoteInvoker;
 }
+
+void DeinitRemoteInvoker(RemoteInvoker *invoker, int32_t proto)
+{
+    if (invoker == NULL) {
+        return;
+    }
+    if (proto == IF_PROT_BINDER) {
+        DeinitIpcInvoker(invoker);
+    }
+}
