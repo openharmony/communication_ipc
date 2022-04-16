@@ -25,7 +25,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 RemoteInvoker *GetIpcInvoker(void);
-
+void DeinitIpcInvoker(RemoteInvoker *invoker);
 #ifdef __cplusplus
 #if __cplusplus
 }

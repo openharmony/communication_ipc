@@ -91,10 +91,12 @@ static void DeleteBinderConnector(void)
     if (g_connector == NULL) {
         return;
     }
+    pthread_mutex_lock(&g_connectorMutex);
     munmap(g_connector->mmapAddr, g_connector->mmapSize);
     close(g_connector->fd);
     free(g_connector);
     g_connector = NULL;
+    pthread_mutex_unlock(&g_connectorMutex);
 }
 
 static int32_t BinderWrite(void *data, size_t len)
@@ -563,4 +565,12 @@ RemoteInvoker *GetIpcInvoker(void)
         return NULL;
     }
     return &g_ipcInvoker;
+}
+
+void DeinitIpcInvoker(RemoteInvoker *invoker)
+{
+    if (invoker != &g_ipcInvoker) {
+        return;
+    }
+    DeleteBinderConnector();
 }

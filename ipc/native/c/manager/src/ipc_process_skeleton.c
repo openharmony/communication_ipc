@@ -132,18 +132,22 @@ void JoinMainWorkThread(void)
 
 pid_t ProcessGetCallingPid(void)
 {
-    ThreadContext *currentContext = GetCurrentThreadContext();
-    if (currentContext != NULL) {
-        return currentContext->callerPid;
+    if (g_ipcSkeleton != NULL) {
+        ThreadContext *currentContext = GetCurrentThreadContext();
+        if (currentContext != NULL) {
+            return currentContext->callerPid;
+        }
     }
     return RpcGetPid();
 }
 
 pid_t ProcessGetCallingUid(void)
 {
-    ThreadContext *currentContext = GetCurrentThreadContext();
-    if (currentContext != NULL) {
-        return currentContext->callerUid;
+    if (g_ipcSkeleton != NULL) {
+        ThreadContext *currentContext = GetCurrentThreadContext();
+        if (currentContext != NULL) {
+            return currentContext->callerUid;
+        }
     }
     return RpcGetUid();
 }
