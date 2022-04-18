@@ -374,24 +374,21 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 void IPCObjectProxy::SendObituary()
 {
+    std::vector<sptr<DeathRecipient>> deathCallback;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         MarkObjectDied();
-        size_t recipientCount = recipients_.size();
-        for (size_t i = 0; i < recipientCount; i++) {
-            sptr<DeathRecipient> recipient = recipients_[i];
-            ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
-            if (recipient != nullptr) {
-                recipient->OnRemoteDied(this);
-            }
+        deathCallback = recipients_;
+        IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+        if (recipients_.size() > 0 && invoker != nullptr) {
+            invoker->RemoveDeathRecipient(handle_, this);
         }
         recipients_.clear();
-
-        if (recipientCount > 0) {
-            IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
-            if (invoker != nullptr) {
-                invoker->RemoveDeathRecipient(handle_, this);
-            }
+    }
+    for (auto &deathRecipient : deathCallback) {
+        ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
+        if (deathRecipient != nullptr) {
+            deathRecipient->OnRemoteDied(this);
         }
     }
 #ifndef CONFIG_IPC_SINGLE
