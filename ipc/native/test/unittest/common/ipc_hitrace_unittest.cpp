@@ -75,7 +75,7 @@ static std::string HitraceLongToString(unsigned long data)
     constexpr int BUFFER_SIZE = 16;
     char str[BUFFER_SIZE] = {0};
 
-    if (sprintf_s(str, sizeof(str), "%lx", data) <= 0) {
+    if (sprintf_s(str, sizeof(str), "%lu", data) <= 0) {
         return result;
     }
 
