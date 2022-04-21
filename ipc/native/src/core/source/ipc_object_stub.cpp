@@ -25,6 +25,7 @@
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_databus_invoker.h"
 #include "dbinder_error_code.h"
+#include "rpc_feature_set.h"
 #include "ISessionService.h"
 #endif
 
@@ -352,6 +353,16 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     uint32_t remoteUid = data.ReadUint32();
     std::string remoteDeviceId = data.ReadString();
     std::string sessionName = data.ReadString();
+    uint32_t featureSet = data.ReadUint32();
+    uint32_t tokenId = 0;
+
+    std::shared_ptr<FeatureSetData> feature = std::make_shared<FeatureSetData>();
+    if (feature == nullptr) {
+        ZLOGE(LABEL, "%s: feature null", __func__);
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    feature->featureSet = featureSet;
+    feature->tokenId = tokenId;
     if (IsDeviceIdIllegal(deviceId) || IsDeviceIdIllegal(remoteDeviceId) || sessionName.empty()) {
         ZLOGE(LABEL, "%s: device ID is invalid or session name nil", __func__);
         return IPC_STUB_INVALID_DATA_ERR;
@@ -379,7 +390,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteDeviceId, stubIndex)) {
         ZLOGE(LABEL, "fail to attach appinfo to stubIndex, maybe attach already");
     }
-    if (!current->AttachCommAuthInfo(this, (int32_t)remotePid, (int32_t)remoteUid, remoteDeviceId)) {
+    if (!current->AttachCommAuthInfo(this, (int32_t)remotePid, (int32_t)remoteUid, remoteDeviceId, feature)) {
         ZLOGE(LABEL, "fail to attach comm auth info");
     }
 
@@ -453,6 +464,17 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
     uint32_t remotePid = data.ReadUint32();
     uint32_t remoteUid = data.ReadUint32();
     std::string remoteDeviceId = data.ReadString();
+    uint32_t remoteFeature = data.ReadUint32();
+    uint32_t tokenId = 0;
+
+    std::shared_ptr<FeatureSetData> feature = nullptr;
+    feature.reset(reinterpret_cast<FeatureSetData *>(::operator new(sizeof(FeatureSetData))));
+    if (feature == nullptr) {
+        ZLOGE(LABEL, "%s: feature null", __func__);
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    feature->featureSet = remoteFeature;
+    feature->tokenId = tokenId;
     if (IsDeviceIdIllegal(remoteDeviceId)) {
         ZLOGE(LABEL, "%s: remote deviceId is null", __func__);
         return IPC_STUB_INVALID_DATA_ERR;
@@ -464,7 +486,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
         return IPC_STUB_CURRENT_NULL_ERR;
     }
 
-    if (!current->AttachCommAuthInfo(this, (int32_t)remotePid, (int32_t)remoteUid, remoteDeviceId)) {
+    if (!current->AttachCommAuthInfo(this, (int32_t)remotePid, (int32_t)remoteUid, remoteDeviceId, feature)) {
         ZLOGE(LABEL, "fail to attach comm auth info fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }

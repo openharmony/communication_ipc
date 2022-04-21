@@ -33,6 +33,7 @@
 #include "comm_auth_info.h"
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
+#include "rpc_feature_set.h"
 #include "ISessionService.h"
 #include "Session.h"
 #include "stub_refcount_object.h"
@@ -169,10 +170,11 @@ public:
     bool DecStubRefTimes(IRemoteObject *stub);
     bool DetachStubRefTimes(IRemoteObject *stub);
 
-    bool AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId);
+    bool AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId,
+        std::shared_ptr<FeatureSetData> featureSet);
     void DetachCommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId);
     void DetachCommAuthInfoByStub(IRemoteObject *stub);
-    bool QueryIsAuth(int pid, int uid, const std::string &deviceId);
+    std::shared_ptr<FeatureSetData> QueryIsAuth(int pid, int uid, const std::string &deviceId);
     bool AddDataThreadToIdle(const std::thread::id &threadId);
     bool DeleteDataThreadFromIdle(const std::thread::id &threadId);
     std::thread::id GetIdleDataThread();

@@ -88,6 +88,7 @@ private:
     void SetCallerUid(pid_t uid) override;
     void SetStatus(uint32_t status) override;
     void SetCallerDeviceID(const std::string &deviceId) override;
+    void SetCallerTokenID(const uint32_t tokenId) override;
     int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) override;
     uint32_t HasRawDataPackage(const char *data, ssize_t len);
     uint32_t HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len);
@@ -97,6 +98,7 @@ private:
     bool ConnectRemoteObject2Session(IRemoteObject *stubObject, uint64_t stubIndex,
         const std::shared_ptr<DBinderSessionObject> sessionObject);
     bool AuthSession2Proxy(uint32_t handle, const std::shared_ptr<DBinderSessionObject> Session);
+    bool SetTokenId(const dbinder_transaction_data *tr, uint32_t listenFd) override;
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderDatabusInvoker);

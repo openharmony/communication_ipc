@@ -30,6 +30,7 @@
 #include "dbinder_error_code.h"
 #include "softbus_bus_center.h"
 #include "dbinder_sa_death_recipient.h"
+#include "rpc_feature_set.h"
 
 namespace OHOS {
 using namespace Communication;
@@ -293,9 +294,8 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->head.version        = VERSION_NUM;
     message->dBinderCode         = MESSAGE_AS_INVOKER;
     message->transType           = GetRemoteTransType();
-    message->fromPort            = 0;
-    message->toPort              = 0;
-    message->stubIndex           = static_cast<uint64_t>(std::stoi(stub->GetServiceName().c_str()));
+    message->rpcFeatureSet       = GetLocalRpcFeature();
+    message->stubIndex           = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
     message->seqNumber           = seqNumber;
     message->binderObject        = stub->GetBinderObject();
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -486,34 +486,9 @@ std::string DBinderService::CreateDatabusName(int uid, int pid)
     return sessionName;
 }
 
-bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
-    std::string &remoteDeviceId, int pid, int uid)
+bool DBinderService::HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t stubIndex,
+    std::string serverSessionName, struct DHandleEntryTxRx *replyMessage)
 {
-    if (IsDeviceIdIllegal(remoteDeviceId)) {
-        DBINDER_LOGE("remote device id is error");
-        return false;
-    }
-    std::string sessionName = GetDatabusNameByProxy(proxy);
-    if (sessionName.empty()) {
-        DBINDER_LOGE("get bus name fail");
-        return false;
-    }
-
-    MessageParcel data;
-    MessageParcel reply;
-    if (!data.WriteUint16(IRemoteObject::DATABUS_TYPE) || !data.WriteString(GetLocalDeviceID()) ||
-        !data.WriteUint32(pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
-        !data.WriteString(sessionName)) {
-        DBINDER_LOGE("write to parcel fail");
-        return false;
-    }
-    int err = proxy->InvokeListenThread(data, reply);
-    if (err != ERR_NONE) {
-        DBINDER_LOGE("start service listen error = %d", err);
-        return false;
-    }
-    uint64_t stubIndex = reply.ReadUint64();
-    std::string serverSessionName = reply.ReadString();
     if (stubIndex == 0 || serverSessionName.empty() || serverSessionName.length() > SERVICENAME_LENGTH) {
         DBINDER_LOGE("stubindex or session name invalid");
         return false;
@@ -528,9 +503,42 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
         return false;
     }
     replyMessage->serviceName[replyMessage->serviceNameLength] = '\0';
+    replyMessage->rpcFeatureSet = GetLocalRpcFeature() | GetRpcFeatureAck();
 
     (void)AttachBusNameObject(proxy, serverSessionName);
     return true;
+}
+
+bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
+    std::string &remoteDeviceId, int pid, int uid)
+{
+    if (IsDeviceIdIllegal(remoteDeviceId)) {
+        DBINDER_LOGE("remote device id is error");
+        return false;
+    }
+    std::string sessionName = GetDatabusNameByProxy(proxy);
+    if (sessionName.empty()) {
+        DBINDER_LOGE("get bus name fail");
+        return false;
+    }
+
+    uint32_t featureSet = replyMessage->rpcFeatureSet & GetLocalRpcFeature();
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteUint16(IRemoteObject::DATABUS_TYPE) || !data.WriteString(GetLocalDeviceID()) ||
+        !data.WriteUint32(pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
+        !data.WriteString(sessionName) || !data.WriteUint32(featureSet)) {
+        DBINDER_LOGE("write to parcel fail");
+        return false;
+    }
+    int err = proxy->InvokeListenThread(data, reply);
+    if (err != ERR_NONE) {
+        DBINDER_LOGE("start service listen error = %d", err);
+        return false;
+    }
+    uint64_t stubIndex = reply.ReadUint64();
+    std::string serverSessionName = reply.ReadString();
+    return HandleInvokeListenThread(proxy, stubIndex, serverSessionName, replyMessage);
 }
 
 std::u16string DBinderService::GetRegisterService(binder_uintptr_t binderObject)
@@ -652,8 +660,10 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
     session->seqNumber = replyMessage->seqNumber;
     session->socketFd    = 0;
     session->stubIndex   = replyMessage->stubIndex;
-    session->toPort      = replyMessage->toPort;
-    session->fromPort    = replyMessage->fromPort;
+    session->rpcFeatureSet = 0;
+    if (IsFeatureAck(replyMessage->rpcFeatureSet) == true) {
+        session->rpcFeatureSet = replyMessage->rpcFeatureSet & GetLocalRpcFeature();
+    }
     session->type        = replyMessage->transType;
     session->serviceName = replyMessage->serviceName;
 

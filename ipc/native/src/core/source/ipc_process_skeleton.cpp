@@ -1200,7 +1200,8 @@ bool IPCProcessSkeleton::IsSameRemoteObject(int pid, int uid, const std::string 
     }
 }
 
-bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId)
+bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid,
+    const std::string &deviceId, std::shared_ptr<FeatureSetData> featureSet)
 {
     auto check = [&stub, &pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
         return IsSameRemoteObject(stub, pid, uid, deviceId, auth);
@@ -1213,7 +1214,7 @@ bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int ui
         return true;
     }
 
-    std::shared_ptr<CommAuthInfo> authObject = std::make_shared<CommAuthInfo>(stub, pid, uid, deviceId);
+    std::shared_ptr<CommAuthInfo> authObject = std::make_shared<CommAuthInfo>(stub, pid, uid, deviceId, featureSet);
     commAuth_.push_front(authObject);
     return true;
 }
@@ -1228,7 +1229,7 @@ void IPCProcessSkeleton::DetachCommAuthInfo(IRemoteObject *stub, int pid, int ui
     commAuth_.remove_if(check);
 }
 
-bool IPCProcessSkeleton::QueryIsAuth(int pid, int uid, const std::string &deviceId)
+std::shared_ptr<FeatureSetData> IPCProcessSkeleton::QueryIsAuth(int pid, int uid, const std::string &deviceId)
 {
     auto check = [&pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
         return IsSameRemoteObject(pid, uid, deviceId, auth);
@@ -1237,10 +1238,10 @@ bool IPCProcessSkeleton::QueryIsAuth(int pid, int uid, const std::string &device
     std::shared_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
     if (it != commAuth_.end()) {
-        return true;
+        return (*it)->GetFeatureSet();
     }
     DBINDER_LOGE("Query Comm Auth Fail");
-    return false;
+    return nullptr;
 }
 
 void IPCProcessSkeleton::DetachCommAuthInfoByStub(IRemoteObject *stub)

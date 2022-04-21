@@ -100,8 +100,10 @@ public:
     virtual void SetCallerUid(pid_t uid) = 0;
     virtual void SetStatus(uint32_t status) = 0;
     virtual void SetCallerDeviceID(const std::string &deviceId) = 0;
+    virtual void SetCallerTokenID(const uint32_t tokenId) = 0;
     virtual int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) = 0;
     virtual int OnSendRawData(std::shared_ptr<T> session, const void *data, size_t size) = 0;
+    virtual bool SetTokenId(const dbinder_transaction_data *tr, uint32_t listenFd) = 0;
     bool CheckTransactionData(const dbinder_transaction_data *tr) const;
 
 private:
@@ -447,6 +449,14 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
     uint32_t sendSize = ((data.GetDataSize() > 0) ? data.GetDataSize() : sizeof(binder_size_t)) +
         sizeof(struct dbinder_transaction_data) + data.GetOffsetsSize() * T::GetFlatSessionLen() +
         data.GetOffsetsSize() * sizeof(binder_size_t);
+    std::shared_ptr<FeatureSetData> feature = sessionObject->GetFeatureSet();
+    if (feature == nullptr) {
+        DBINDER_BASE_LOGE("process normal data feature is null");
+        return nullptr;
+    }
+    if (IsATEnable(feature->featureSet) == true) {
+        sendSize += GetTokenIdSize();
+    }
 
     std::shared_ptr<dbinder_transaction_data> transData = nullptr;
     transData.reset(reinterpret_cast<dbinder_transaction_data *>(::operator new(sendSize)));
@@ -463,6 +473,11 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
     if (MoveMessageParcel2TransData(data, sessionObject, transData, socketId, status) != true) {
         DBINDER_BASE_LOGE("move parcel to transData failed, handle = %{public}d", handle);
         return nullptr;
+    }
+    if (IsATEnable(feature->featureSet) == true) {
+        uint32_t bufferUseSize = transData->buffer_size + transData->offsets_size;
+        uint32_t *tokenIdAddr = (uint32_t *)(transData->buffer + bufferUseSize);
+        *tokenIdAddr = feature->tokenId;
     }
     return transData;
 }
@@ -493,7 +508,7 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
         DBINDER_BASE_LOGE("sender's data is large than idle buffer");
         return false;
     }
-    if (memcpy_s(sendBuffer + writeCursor, sendSize, transData.get(), sendSize)) {
+    if (memcpy_s(sendBuffer + writeCursor, sendSize, transData.get(), sendSize) != EOK) {
         sessionBuff->ReleaseSendBufferLock();
         DBINDER_BASE_LOGE("fail to copy from tr to sendBuffer, parcelSize = %{public}u", sendSize);
         return false;
@@ -841,8 +856,13 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     const auto oldUid = static_cast<const uid_t>(GetCallerUid());
     const std::string oldDeviceId = GetCallerDeviceID();
     uint32_t oldStatus = GetStatus();
+    const uint32_t oldTokenId = GetCallerTokenID();
     if (CheckAndSetCallerInfo(listenFd, tr->cookie) != ERR_NONE) {
         DBINDER_BASE_LOGE("set user info error, maybe cookie is NOT belong to current caller");
+        return;
+    }
+    if (SetTokenId(tr, listenFd) != true) {
+        DBINDER_BASE_LOGE("set tokenid failed");
         return;
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
@@ -889,6 +909,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     SetCallerUid(oldUid);
     SetCallerDeviceID(oldDeviceId);
     SetStatus(oldStatus);
+    SetCallerTokenID(oldTokenId);
 }
 
 template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_data *tr, uint32_t listenFd)
@@ -1001,7 +1022,7 @@ template <class T> bool DBinderBaseInvoker<T>::CheckTransactionData(const dbinde
         }
         binder_size_t sessionSize =
             tr->sizeOfSelf - tr->buffer_size - sizeof(dbinder_transaction_data) - tr->offsets_size;
-        if (sessionSize * sizeof(binder_size_t) != tr->offsets_size * T::GetFlatSessionLen()) {
+        if (sessionSize * sizeof(binder_size_t) < tr->offsets_size * T::GetFlatSessionLen()) {
             return false;
         }
     }
