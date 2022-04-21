@@ -54,8 +54,7 @@ struct DHandleEntryTxRx {
     struct DHandleEntryHead head;
     uint32_t transType;
     uint32_t dBinderCode;
-    uint16_t fromPort;
-    uint16_t toPort;
+    uint32_t rpcFeatureSet;
     uint64_t stubIndex;
     uint32_t seqNumber;
     binder_uintptr_t binderObject;
@@ -70,8 +69,7 @@ struct DHandleEntryTxRx {
 struct SessionInfo {
     uint32_t seqNumber;
     uint32_t type;
-    uint16_t toPort;
-    uint16_t fromPort;
+    uint32_t rpcFeatureSet;
     uint64_t stubIndex;
     uint32_t socketFd;
     std::string serviceName;
@@ -165,6 +163,8 @@ private:
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool CheckSystemAbilityId(int32_t systemAbilityId);
     bool IsSameSession(std::shared_ptr<struct SessionInfo> oldSession, std::shared_ptr<struct SessionInfo> nowSession);
+    bool HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t stubIndex, std::string serverSessionName,
+        struct DHandleEntryTxRx *replyMessage);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
