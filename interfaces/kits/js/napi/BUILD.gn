@@ -23,7 +23,7 @@ config("rpc_public_config") {
 ohos_shared_library("rpc") {
   include_dirs = [
     "$SUBSYSTEM_DIR/utils/include",
-    "//foundation/ace/napi/interfaces/kits",
+    "//foundation/arkui/napi/interfaces/kits",
     "//utils/system/safwk/native/include",
     "$SUBSYSTEM_DIR/ipc/native/c/adapter/bytrace/include",
     "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
@@ -42,7 +42,7 @@ ohos_shared_library("rpc") {
   ]
 
   deps = [
-    "//foundation/ace/napi:ace_napi",
+    "//foundation/arkui/napi:ace_napi",
     "//third_party/libuv:uv",
     "//utils/native/base:utils",
   ]
