@@ -19,43 +19,29 @@
 #include "iservice_registry.h"
 #include "ipc_skeleton.h"
 #include "rpc_test.h"
-#include "log_tags.h"
 
 namespace OHOS {
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 using namespace testing::ext;
 using namespace OHOS;
-using namespace OHOS::HiviewDFX;
 
-static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "RPCServerTest" };
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-
-class RPCServerTest : public testing::Test {
+class RpcServerTest : public testing::Test {
 public:
-    static constexpr int saId = RPC_TEST_SERVICE;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
 };
 
-void RPCServerTest::SetUpTestCase() {}
+void RpcServerTest::SetUpTestCase() {}
 
-void RPCServerTest::TearDownTestCase() {}
+void RpcServerTest::TearDownTestCase() {}
 
-HWTEST_F(RPCServerTest, function_test_001, TestSize.Level1)
+HWTEST_F(RpcServerTest, function_test_001, TestSize.Level1)
 {
-    DBINDER_LOGI("Start RPCServer Testcase001");
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    EXPECT_TRUE(saMgr != nullptr);
+    ASSERT_TRUE(saMgr != nullptr);
 
     ISystemAbilityManager::SAExtraProp saExtra;
-    saExtra.isDistributed = true; // 设置为分布式SA
-    int result = saMgr->AddSystemAbility(saId, new FooStub(), saExtra);
+    saExtra.isDistributed = true;
+    int result = saMgr->AddSystemAbility(RPC_TEST_SERVICE, new RpcFooStub(), saExtra);
     ASSERT_EQ(result, 0);
 
     IPCSkeleton::JoinWorkThread();

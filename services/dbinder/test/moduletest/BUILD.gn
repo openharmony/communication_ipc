@@ -24,6 +24,7 @@ ohos_moduletest("RPCCLIENTTEST") {
     "include",
     "${SUBSYSTEM_DIR}/utils/include",
     "${SUBSYSTEM_DIR}/ipc/native/c/adapter/access_token/include",
+    "${SUBSYSTEM_DIR}/ipc/native/c/rpc/include",
   ]
   sources = [
     "src/rpc_client_test.cpp",
@@ -37,7 +38,6 @@ ohos_moduletest("RPCCLIENTTEST") {
 
   external_deps = [
     "dsoftbus_standard:softbus_client",
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
   ]
@@ -61,7 +61,6 @@ ohos_moduletest("RPCSERVERTEST") {
 
   external_deps = [
     "dsoftbus_standard:softbus_client",
-    "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
   ]

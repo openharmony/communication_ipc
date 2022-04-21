@@ -15,14 +15,14 @@
 
 #include "rpc_feature_set.h"
 
-#define RPC_FEATURE_LAST (43)
+#define RPC_FEATURE_LAST 43
 #define RPC_ACCESS_TOKEN_FLAG 0x1
 
 static const uint32_t RPC_FEATURE_MAGIC_NUM = ('R' << 24) | ('F' << 16) | ('S' << 8) | RPC_FEATURE_LAST;
 static const uint32_t RPC_ACCESS_TOKEN = 0;
-static const uint32_t RpcFeatureFlag = 0x1;
-static const uint32_t TokenIdSize = 4;
-static const uint32_t RpcFeatureAck = 0x80000000;
+static const uint32_t RPC_FEATURE_FLAG = 0x1;
+static const uint32_t TOKEN_ID_SIZE = 4;
+static const uint32_t RPC_FEATURE_ACK = 0x80000000;
 
 uint32_t GetFeatureMagicNumber(void)
 {
@@ -36,12 +36,12 @@ uint32_t GetFeatureATTag(void)
 
 uint32_t GetLocalRpcFeature(void)
 {
-    return RpcFeatureFlag;
+    return RPC_FEATURE_FLAG;
 }
 
 uint32_t GetRpcFeatureAck(void)
 {
-    return RpcFeatureAck;
+    return RPC_FEATURE_ACK;
 }
 
 bool IsATEnable(uint32_t featureSet)
@@ -51,7 +51,7 @@ bool IsATEnable(uint32_t featureSet)
 
 bool IsFeatureAck(uint32_t featureSet)
 {
-    return (featureSet & RpcFeatureAck) > 0;
+    return (featureSet & RPC_FEATURE_ACK) > 0;
 }
 
 size_t GetATSize(uint32_t featureSet)
@@ -65,5 +65,5 @@ size_t GetATSize(uint32_t featureSet)
 
 uint32_t GetTokenIdSize(void)
 {
-    return TokenIdSize;
+    return TOKEN_ID_SIZE;
 }

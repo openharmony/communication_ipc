@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,31 +15,23 @@
 
 #include "rpc_test.h"
 #include "ipc_skeleton.h"
-#include "ipc_debug.h"
 #include "ipc_types.h"
 
 namespace OHOS {
-std::mutex FooStub::decTimeMutex_;
-int FooStub::decTimes_ = 0;
+std::string IRpcFooTest::GetFooName()
+{
+    return fooName_;
+}
 
-int FooStub::OnRemoteRequest(uint32_t code,
+int RpcFooStub::OnRemoteRequest(uint32_t code,
     MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     int result = ERR_NONE;
 
     switch (code) {
         case GET_FOO_NAME: {
-            ZLOGI(LABEL, "%{public}s:called\n", __func__);
-            reply.WriteString(GetFooName());
+            reply.WriteString(TestGetFooName());
             break;
-        }
-        case SEND_ASYNC_REPLY: {
-            int32_t replyData = data.ReadInt32();
-            SendAsyncReply(replyData);
-            break;
-        }
-        case SEND_WRONG_REPLY: {
-            return TestNestingSend(data.ReadInt32());
         }
         case GET_TOKENID: {
             uint32_t tokenId = TestAccessToken();
@@ -53,99 +45,39 @@ int FooStub::OnRemoteRequest(uint32_t code,
     return result;
 }
 
-std::string FooStub::GetFooName()
+std::string RpcFooStub::TestGetFooName(void)
 {
-    return "ReallFoo";
+    return GetFooName();
 }
 
-int FooStub::WaitForAsyncReply(int timeout)
-{
-    asyncReply_ = 0;
-    std::unique_lock<std::mutex> lck(mutex_);
-    cv_.wait_for(lck, std::chrono::milliseconds(timeout), [&]() {
-        return asyncReply_ != 0;
-    });
-    return asyncReply_;
-}
-
-void FooStub::SendAsyncReply(int &replyValue)
-{
-    std::unique_lock<std::mutex> lck(mutex_);
-    asyncReply_ = replyValue;
-    cv_.notify_all();
-}
-
-FooStub::~FooStub()
-{
-    std::unique_lock<std::mutex> lck(decTimeMutex_);
-    decTimes_++;
-}
-
-void FooStub::CleanDecTimes()
-{
-    std::unique_lock<std::mutex> lck(decTimeMutex_);
-    decTimes_ = 0;
-}
-
-int FooStub::GetDecTimes()
-{
-    std::unique_lock<std::mutex> lck(decTimeMutex_);
-    return decTimes_;
-}
-
-int FooStub::TestNestingSend(int sendCode)
-{
-    return sendCode;
-}
-
-uint32_t FooStub::TestAccessToken(void)
+uint32_t RpcFooStub::TestAccessToken(void)
 {
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     return tokenId;
 }
 
-FooProxy::FooProxy(const sptr<IRemoteObject> &impl)
-    : IRemoteProxy<IFoo>(impl)
+RpcFooProxy::RpcFooProxy(const sptr<IRemoteObject> &impl)
+    : IRemoteProxy<IRpcFooTest>(impl)
 {
 }
 
-std::string FooProxy::GetFooName()
-{
-    ZLOGI(LABEL, "%{public}s:called\n", __func__);
-    MessageParcel data, reply;
-    MessageOption option;
-    Remote()->SendRequest(GET_FOO_NAME, data, reply, option);
-    return reply.ReadString();
-}
-
-void FooProxy::SendAsyncReply(int &replyValue)
-{
-    ZLOGI(LABEL, "%{public}s:called\n", __func__);
-    MessageParcel data, reply;
-    MessageOption option = { MessageOption::TF_ASYNC };
-    data.WriteInt32(replyValue);
-    Remote()->SendRequest(SEND_ASYNC_REPLY, data, reply, option);
-}
-
-int FooProxy::TestNestingSend(int sendCode)
+std::string RpcFooProxy::TestGetFooName(void)
 {
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    if (!dataParcel.WriteInt32(sendCode)) {
-        return -1;
+    int err = Remote()->SendRequest(GET_FOO_NAME, dataParcel, replyParcel, option);
+    if (err != 0) {
+        return "";
     }
-    int error = Remote()->SendRequest(SEND_WRONG_REPLY, dataParcel, replyParcel, option);
-    ZLOGE(LABEL, "send foo result = %{public}d", error);
-    return error;
+    return replyParcel.ReadString();
 }
 
-uint32_t FooProxy::TestAccessToken(void)
+uint32_t RpcFooProxy::TestAccessToken(void)
 {
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     int err = Remote()->SendRequest(GET_TOKENID, dataParcel, replyParcel, option);
     if (err != 0) {
-        ZLOGE(LABEL, "get tokenid failed %{public}d", err);
         return 0;
     }
     return replyParcel.ReadUint32();

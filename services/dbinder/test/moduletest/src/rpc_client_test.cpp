@@ -22,67 +22,62 @@
 #include "ipc_object_proxy.h"
 #include "rpc_test.h"
 #include "access_token_adapter.h"
-#include "log_tags.h"
+#include "rpc_feature_set.h"
 
 namespace OHOS {
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 using namespace testing::ext;
 using namespace OHOS;
-using namespace OHOS::HiviewDFX;
-
-static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "RPCClientTest" };
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 static std::string g_deviceId;
-class RPCClientTest : public testing::Test {
+static sptr<IRpcFooTest> g_rpcTestProxy;
+class RpcClientTest : public testing::Test {
 public:
-    static constexpr int saId = RPC_TEST_SERVICE;
     static constexpr char DBINDER_PKG_NAME[] = "DBinderService";
     static constexpr int NODE_NUM = 4;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
 };
 
-void RPCClientTest::SetUpTestCase()
+void RpcClientTest::SetUpTestCase()
 {
     NodeBasicInfo *nodeInfo[NODE_NUM];
     int32_t infoNum = NODE_NUM;
     int32_t ret = GetAllNodeDeviceInfo(DBINDER_PKG_NAME, nodeInfo, &infoNum);
-    if (ret != 0) {
-        DBINDER_LOGE("get local node ret %{public}d", ret);
-        return;
-    }
-    if (infoNum == 0) {
-        DBINDER_LOGE("get no online nodes");
-        return;
-    }
+    ASSERT_EQ(ret, 0);
+    ASSERT_NE(infoNum, 0);
+
     g_deviceId = nodeInfo[0]->networkId;
-    DBINDER_LOGI("get deviceid %{public}s", g_deviceId.c_str());
 }
 
-void RPCClientTest::TearDownTestCase() {}
+void RpcClientTest::TearDownTestCase() {}
 
-HWTEST_F(RPCClientTest, function_test_001, TestSize.Level1)
+HWTEST_F(RpcClientTest, function_test_001, TestSize.Level1)
 {
-    DBINDER_LOGI("Start RPCClient Testcase001");
-    // service instance
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    EXPECT_TRUE(saMgr != nullptr);
+    ASSERT_FALSE(saMgr == nullptr);
 
-    sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE, g_deviceId);
-    ASSERT_TRUE(object != nullptr);
+    sptr<IRemoteObject> object = saMgr->GetSystemAbility(RPC_TEST_SERVICE, g_deviceId);
+    ASSERT_TRUE(object != nullptr) << "deviceid is " << g_deviceId;
 
-    sptr<IFoo> testService = iface_cast<IFoo>(object);
-    ASSERT_TRUE(testService != nullptr);
+    g_rpcTestProxy = iface_cast<IRpcFooTest>(object);
+    ASSERT_TRUE(g_rpcTestProxy != nullptr);
+}
 
+HWTEST_F(RpcClientTest, function_test_002, TestSize.Level1)
+{
+    std::string fooName = g_rpcTestProxy->TestGetFooName();
+    std::string selfFooName = g_rpcTestProxy->GetFooName();
+    ASSERT_TRUE(fooName == selfFooName) << "fooName: " << fooName << " fooName_: " << selfFooName;
+}
+
+HWTEST_F(RpcClientTest, function_test_003, TestSize.Level1)
+{
     uint32_t tokenId = RpcGetSelfTokenID();
-    uint32_t getTokenId = testService->TestAccessToken();
-    ASSERT_EQ(tokenId, getTokenId);
+    uint32_t getTokenId = g_rpcTestProxy->TestAccessToken();
+    if (IsATEnable(GetLocalRpcFeature()) == true) {
+        ASSERT_EQ(tokenId, getTokenId) << "deviceid is " << g_deviceId;
+    } else {
+        ASSERT_EQ(getTokenId, 0) << "deviceid is " << g_deviceId;
+    }
 }
 }
