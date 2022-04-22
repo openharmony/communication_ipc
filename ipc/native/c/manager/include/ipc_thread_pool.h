@@ -24,9 +24,7 @@
 #include "dbinder_types.h"
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif /* __cplusplus */
 
 enum {
@@ -69,8 +67,6 @@ RemoteInvoker *GetRemoteInvoker(void);
 void UpdateMaxThreadNum(ThreadPool *threadPool, int32_t maxThreadNum);
 
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_RPC_THRREAD_H */

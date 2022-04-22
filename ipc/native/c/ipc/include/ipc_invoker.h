@@ -19,16 +19,12 @@
 #include "iremote_invoker.h"
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif /* __cplusplus */
 
 RemoteInvoker *GetIpcInvoker(void);
 void DeinitIpcInvoker(RemoteInvoker *invoker);
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_INVOKER_H */

@@ -19,9 +19,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif
 
 int32_t StartDBinderService(void);
@@ -30,8 +28,6 @@ int32_t MakeRemoteBinder(const void *serviceName, uint32_t nameLen, const char *
     uintptr_t binderObject, uint64_t pid, void *remoteObject);
 
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif /* __cplusplus */
 #endif /* __cplusplus */
 #endif /* DBINDER_SERVICE_H */

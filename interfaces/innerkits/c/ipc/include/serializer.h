@@ -21,9 +21,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif /* __cplusplus */
 #endif /* __cplusplus */
 
 typedef struct {
@@ -128,9 +126,7 @@ float *ReadFloatVector(IpcIo *io, size_t *size);
 double *ReadDoubleVector(IpcIo *io, size_t *size);
 
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif /* __cplusplus */
 #endif /* __cplusplus */
 
 #endif /* OHOS_IPC_RPC_SERIALIZER_H */
