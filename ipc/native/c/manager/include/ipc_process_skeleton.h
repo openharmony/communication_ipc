@@ -24,9 +24,7 @@
 #include "utils_list.h"
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif /* __cplusplus */
 
 typedef struct {
@@ -74,8 +72,6 @@ void WaitForProxyInit(SvcIdentity *svc);
 int32_t DeleteHandle(int32_t handle);
 void ResetIpc(void);
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_RPC_PROCESS_SKELETON_H */

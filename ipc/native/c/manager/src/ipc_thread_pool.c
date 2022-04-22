@@ -150,6 +150,12 @@ int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto)
         RPC_LOG_ERROR("get thread pool lock failed.");
         return ERR_FAILED;
     }
+    if (!(proto == IF_PROT_BINDER && threadPool->idleThreadNum > 0) &&
+        !(proto == IF_PROT_DATABUS && threadPool->idleSocketThreadNum > 0)) {
+        pthread_mutex_unlock(&threadPool->lock);
+        RPC_LOG_ERROR("thread pool is full.");
+        return ERR_INVALID_PARAM;
+    }
     ThreadContext *threadContext = (ThreadContext *)calloc(1, sizeof(ThreadContext));
     if (threadContext == NULL) {
         pthread_mutex_unlock(&threadPool->lock);
@@ -178,13 +184,14 @@ int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto)
 void UpdateMaxThreadNum(ThreadPool *threadPool, int32_t maxThreadNum)
 {
     int32_t totalNum = maxThreadNum + maxThreadNum;
-    int32_t oldThreadNum = threadPool->maxThreadNum;
-    if (totalNum <= oldThreadNum) {
-        RPC_LOG_ERROR("not support set lower max thread num.");
-        return;
-    }
     if (pthread_mutex_lock(&threadPool->lock) != 0) {
         RPC_LOG_ERROR("get thread pool lock failed.");
+        return;
+    }
+    int32_t oldThreadNum = threadPool->maxThreadNum;
+    if (totalNum <= oldThreadNum) {
+        pthread_mutex_unlock(&threadPool->lock);
+        RPC_LOG_ERROR("not support set lower max thread num.");
         return;
     }
     int32_t diff = totalNum - oldThreadNum;
