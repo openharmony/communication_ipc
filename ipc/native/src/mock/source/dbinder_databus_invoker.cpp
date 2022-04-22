@@ -19,6 +19,7 @@
 #include "securec.h"
 #include "sys_binder.h"
 
+#include "access_token_adapter.h"
 #include "ipc_object_stub.h"
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
@@ -699,8 +700,8 @@ bool DBinderDatabusInvoker::SetTokenId(const dbinder_transaction_data *tr, uint3
         return false;
     }
     if (IsATEnable(feature->featureSet) == true) {
-        uint32_t bufferUseSize = tr->buffer_size + tr->offsets_size;
-        uint32_t tokenId = *(uint32_t *)(tr->buffer + bufferUseSize);
+        uint32_t bufferUseSize = tr->sizeOfSelf - sizeof(struct dbinder_transaction_data) - GetFeatureSize();
+        uint32_t tokenId = GetTokenFromData((FeatureTransData *)(tr->buffer + bufferUseSize), GetFeatureSize());
         SetCallerTokenID(tokenId);
     }
     return true;
@@ -893,6 +894,7 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
     callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerDeviceID_ = GetLocalDeviceID();
+    callerTokenID_ = RpcGetSelfTokenID();
     return identity;
 }
 
@@ -902,12 +904,15 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
         return false;
     }
 
-    std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-    uint64_t token = std::stoull(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH).c_str());
+    uint32_t tokenId = std::stoul(identity.substr(0, ACCESS_TOKEN_MAX_LEN));
+    std::string deviceId = identity.substr(ACCESS_TOKEN_MAX_LEN, DEVICEID_LENGTH);
+    uint64_t token = std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN + DEVICEID_LENGTH,
+        identity.length() - ACCESS_TOKEN_MAX_LEN - DEVICEID_LENGTH).c_str());
 
     callerUid_ = static_cast<int>(token >> PID_LEN);
     callerPid_ = static_cast<int>(token);
     callerDeviceID_ = deviceId;
+    callerTokenID_ = tokenId;
 
     return true;
 }

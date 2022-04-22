@@ -18,7 +18,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,21 +27,21 @@ typedef struct {
     uint32_t magicNum;
     uint32_t tag;
     uint32_t tokenId;
-} AccessTokenData;
+} FeatureTransData;
 
 typedef struct {
     uint32_t featureSet;
     uint32_t tokenId;
 } FeatureSetData;
 
-uint32_t GetFeatureMagicNumber(void);
-uint32_t GetFeatureATTag(void);
 uint32_t GetLocalRpcFeature(void);
 uint32_t GetRpcFeatureAck(void);
 bool IsATEnable(uint32_t featureSet);
 bool IsFeatureAck(uint32_t featureSet);
-size_t GetATSize(uint32_t featureSet);
 uint32_t GetTokenIdSize(void);
+uint32_t GetFeatureSize(void);
+bool SetFeatureTransData(FeatureTransData *data, uint32_t size);
+uint32_t GetTokenFromData(FeatureTransData *data, uint32_t size);
 
 #ifdef __cplusplus
 }
