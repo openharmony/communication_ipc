@@ -38,27 +38,33 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
-#define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                          \
-    size_t cap =  napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
-    if (cap < lenToWrite) {                                                                        \
-        DBINDER_LOGI("No enough capacity to write");                                               \
-        napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
-    }
+#define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
+    do {                                                                                               \
+        size_t cap =  napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
+        if (cap < lenToWrite) {                                                                        \
+            DBINDER_LOGI("No enough capacity to write");                                               \
+            napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
+        }                                                                                              \
+    } while (0)
 
-#define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                              \
-    size_t cap = napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
-    if (cap < lenToWrite) {                                                                       \
-        DBINDER_LOGI("No enough capacity to write");                                              \
-        napiParcel->nativeParcel_->RewindWrite(pos);                                              \
-        napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
-    }
+#define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                                  \
+    do {                                                                                              \
+        size_t cap = napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
+        if (cap < lenToWrite) {                                                                       \
+            DBINDER_LOGI("No enough capacity to write");                                              \
+            napiParcel->nativeParcel_->RewindWrite(pos);                                              \
+            napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
+        }                                                                                             \
+    } while (0)
 
-#define CHECK_READ_LENGTH(env, arrayLength, typeSize, napiParcel)                                                \
-    size_t remainSize = napiParcel->nativeParcel_->GetDataSize() - napiParcel->nativeParcel_->GetReadPosition(); \
-    if ((arrayLength < 0) || (arrayLength > remainSize) || ((arrayLength * typeSize) > remainSize)) {            \
-        DBINDER_LOGI("No enough data to read");                                                                  \
-        napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
-    }
+#define CHECK_READ_LENGTH(env, arrayLength, typeSize, napiParcel)                                                    \
+    do {                                                                                                             \
+        size_t remainSize = napiParcel->nativeParcel_->GetDataSize() - napiParcel->nativeParcel_->GetReadPosition(); \
+        if ((arrayLength < 0) || (arrayLength > remainSize) || ((arrayLength * typeSize) > remainSize)) {            \
+            DBINDER_LOGI("No enough data to read");                                                                  \
+            napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
+        }                                                                                                            \
+    } while (0)
 
 NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, MessageParcel *parcel)
 {
@@ -1366,7 +1372,7 @@ napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_inf
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1391,7 +1397,7 @@ napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_inf
         napi_create_array(env, &result);
         return result;
     }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1417,7 +1423,7 @@ napi_value NAPI_MessageParcel::JS_readIntArray(napi_env env, napi_callback_info 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1442,7 +1448,7 @@ napi_value NAPI_MessageParcel::JS_readIntArray(napi_env env, napi_callback_info 
         napi_create_array(env, &result);
         return result;
     }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1468,7 +1474,7 @@ napi_value NAPI_MessageParcel::JS_readLongArray(napi_env env, napi_callback_info
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_64, napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_64, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1493,7 +1499,7 @@ napi_value NAPI_MessageParcel::JS_readLongArray(napi_env env, napi_callback_info
         napi_create_array(env, &result);
         return result;
     }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_64, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_64, napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1519,7 +1525,7 @@ napi_value NAPI_MessageParcel::JS_readFloatArray(napi_env env, napi_callback_inf
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1544,7 +1550,7 @@ napi_value NAPI_MessageParcel::JS_readFloatArray(napi_env env, napi_callback_inf
         napi_create_array(env, &result);
         return result;
     }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1570,7 +1576,7 @@ napi_value NAPI_MessageParcel::JS_readDoubleArray(napi_env env, napi_callback_in
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1595,7 +1601,7 @@ napi_value NAPI_MessageParcel::JS_readDoubleArray(napi_env env, napi_callback_in
         napi_create_array(env, &result);
         return result;
     }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1621,7 +1627,7 @@ napi_value NAPI_MessageParcel::JS_readBooleanArray(napi_env env, napi_callback_i
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1647,7 +1653,7 @@ napi_value NAPI_MessageParcel::JS_readBooleanArray(napi_env env, napi_callback_i
         return result;
     }
 
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1673,7 +1679,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1702,7 +1708,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
         napi_create_array(env, &result);
         return result;
     }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
@@ -1732,7 +1738,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1756,7 +1762,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
         return napiValue;
     }
 
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
     napi_value result = nullptr;
     napi_create_array(env, &result);
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
@@ -1786,7 +1792,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceableArray(napi_env env, napi_callb
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
     // checking here is not accurate, but we can defend some extreme attacking case.
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiParcel)
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiParcel);
 
     bool isArray = false;
     napi_is_array(env, argv[0], &isArray);
