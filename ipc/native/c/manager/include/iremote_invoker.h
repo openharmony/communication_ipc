@@ -21,9 +21,7 @@
 #include "serializer.h"
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif /* __cplusplus */
 
 typedef struct {
@@ -46,8 +44,6 @@ typedef struct {
 RemoteInvoker *InitRemoteInvoker(int32_t proto);
 void DeinitRemoteInvoker(RemoteInvoker *invoker, int32_t proto);
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_RPC_IREMOTTE_INVOKER_H */

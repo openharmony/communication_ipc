@@ -24,9 +24,7 @@
 #include "serializer.h"
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif /* __cplusplus */
 
 enum {
@@ -78,8 +76,6 @@ int32_t MessageOptionInit(MessageOption *option);
 
 int32_t ReleaseSvc(SvcIdentity target);
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_RPC_SKELETON_H */
