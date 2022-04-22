@@ -455,7 +455,7 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
         return nullptr;
     }
     if (IsATEnable(feature->featureSet) == true) {
-        sendSize += GetTokenIdSize();
+        sendSize += GetFeatureSize();
     }
 
     std::shared_ptr<dbinder_transaction_data> transData = nullptr;
@@ -475,9 +475,13 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
         return nullptr;
     }
     if (IsATEnable(feature->featureSet) == true) {
-        uint32_t bufferUseSize = transData->buffer_size + transData->offsets_size;
-        uint32_t *tokenIdAddr = (uint32_t *)(transData->buffer + bufferUseSize);
-        *tokenIdAddr = feature->tokenId;
+        uint32_t bufferUseSize = transData->sizeOfSelf - sizeof(struct dbinder_transaction_data) - GetFeatureSize();
+        FeatureTransData *featureAddr = (FeatureTransData *)(transData->buffer + bufferUseSize);
+        if (SetFeatureTransData(featureAddr, GetFeatureSize()) == false) {
+            DBINDER_BASE_LOGE("set feature trans data failed");
+            return nullptr;
+        }
+        featureAddr->tokenId = feature->tokenId;
     }
     return transData;
 }

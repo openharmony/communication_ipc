@@ -15,23 +15,26 @@
 
 #include "rpc_feature_set.h"
 
+#include <stddef.h>
+
 #define RPC_FEATURE_LAST 43
 #define RPC_ACCESS_TOKEN_FLAG 0x1
+#define INVAL_TOKEN_ID 0x0
 
 static const uint32_t RPC_FEATURE_MAGIC_NUM = ('R' << 24) | ('F' << 16) | ('S' << 8) | RPC_FEATURE_LAST;
-static const uint32_t RPC_ACCESS_TOKEN = 0;
+static const uint32_t RPC_ACCESS_TOKEN_TAG = 0;
 static const uint32_t RPC_FEATURE_FLAG = 0x1;
 static const uint32_t TOKEN_ID_SIZE = 4;
 static const uint32_t RPC_FEATURE_ACK = 0x80000000;
 
-uint32_t GetFeatureMagicNumber(void)
+static uint32_t GetFeatureMagicNumber(void)
 {
     return RPC_FEATURE_MAGIC_NUM;
 }
 
-uint32_t GetFeatureATTag(void)
+static uint32_t GetFeatureATTag(void)
 {
-    return RPC_ACCESS_TOKEN;
+    return RPC_ACCESS_TOKEN_TAG;
 }
 
 uint32_t GetLocalRpcFeature(void)
@@ -54,16 +57,34 @@ bool IsFeatureAck(uint32_t featureSet)
     return (featureSet & RPC_FEATURE_ACK) > 0;
 }
 
-size_t GetATSize(uint32_t featureSet)
-{
-    size_t atSize = 0;
-    if (IsATEnable(featureSet) == true) {
-        atSize += sizeof(AccessTokenData);
-    }
-    return atSize;
-}
-
 uint32_t GetTokenIdSize(void)
 {
     return TOKEN_ID_SIZE;
+}
+
+uint32_t GetFeatureSize(void)
+{
+    return (uint32_t)sizeof(FeatureTransData);
+}
+
+bool SetFeatureTransData(FeatureTransData *data, uint32_t size)
+{
+    if (data == NULL || size < GetFeatureSize()) {
+        return false;
+    }
+    data->magicNum = GetFeatureMagicNumber();
+    data->tag = GetFeatureATTag();
+
+    return true;
+}
+
+uint32_t GetTokenFromData(FeatureTransData *data, uint32_t size)
+{
+    if (data == NULL || size < GetFeatureSize()) {
+        return INVAL_TOKEN_ID;
+    }
+    if (data->magicNum != GetFeatureMagicNumber() || data->tag != GetFeatureATTag()) {
+        return INVAL_TOKEN_ID;
+    }
+    return data->tokenId;
 }

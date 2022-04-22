@@ -136,7 +136,7 @@ void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
 
 void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
 {
-    if (data == nullptr || len != static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx))) {
+    if (data == nullptr || len < static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx))) {
         DBINDER_LOGE("session has wrong input, peer session name = %s, data length = %zd",
             session->GetPeerSessionName().c_str(), len);
         // ignore the package
