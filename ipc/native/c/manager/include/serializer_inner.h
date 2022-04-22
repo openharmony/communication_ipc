@@ -19,18 +19,14 @@
 #include "serializer.h"
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif /* __cplusplus */
 #endif /* __cplusplus */
 
 void *IoPush(IpcIo *io, size_t size);
 void *IoPop(IpcIo *io, size_t size);
 
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif /* __cplusplus */
 #endif /* __cplusplus */
 
 #endif /* OHOS_IPC_RPC_SERIALIZER_INNER_H */

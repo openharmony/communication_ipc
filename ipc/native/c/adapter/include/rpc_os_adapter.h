@@ -19,17 +19,14 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif /* __cplusplus */
 
 int32_t RpcGetPid(void);
 
 int32_t RpcGetUid(void);
+
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_RPC_OS_ADAPTER_H */

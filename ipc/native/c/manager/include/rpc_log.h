@@ -29,9 +29,7 @@
 #endif
 
 #ifdef __cplusplus
-#if __cplusplus
 extern "C" {
-#endif
 #endif
 
 #ifndef IPCRPC_DEBUG
@@ -110,8 +108,6 @@ typedef enum {
 void RpcLog(RpcLogModule module, RpcLogLevel level, const char *fmt, ...);
 
 #ifdef __cplusplus
-#if __cplusplus
 }
-#endif
 #endif /* __cplusplus */
 #endif /* OHOS_IPC_RPC_LOG_H */
