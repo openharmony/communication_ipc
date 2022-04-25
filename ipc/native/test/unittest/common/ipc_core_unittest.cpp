@@ -193,35 +193,6 @@ HWTEST_F(IPCNativeUnitTest, MaxWorkThread001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AccessTokenid001
- * @tc.desc: Test IPC AccessTokenid transport
- * @tc.type: FUNC
- */
-HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    // test get service and call it
-    sptr<IRemoteObject> service = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    sptr<ITestService> testService = iface_cast<ITestService>(service);
-    ASSERT_TRUE(testService != nullptr);
-
-    if (service->IsProxyObject()) {
-        ZLOGI(LABEL, "Got Proxy node");
-        TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
-        int ret = proxy->TestAccessTokenID(3571);
-        EXPECT_EQ(ret, 0);
-    } else {
-        ZLOGE(LABEL, "Got Stub node");
-    }
-}
-
-/**
  * @tc.name: SyncTransaction001
  * @tc.desc: Test IPC data transaction.
  * @tc.type: FUNC
@@ -514,4 +485,33 @@ HWTEST_F(IPCNativeUnitTest, MessageOptionTest001, TestSize.Level1)
     ASSERT_EQ(messageOption.GetWaitTime(), MessageOption::TF_WAIT_TIME);
     messageOption.SetWaitTime(-1);
     ASSERT_EQ(messageOption.GetWaitTime(), MessageOption::TF_WAIT_TIME);
+}
+
+/**
+ * @tc.name: AccessTokenid001
+ * @tc.desc: Test IPC AccessTokenid transport
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_TRUE(saMgr != nullptr);
+
+    // test get service and call it
+    sptr<IRemoteObject> service = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    sptr<ITestService> testService = iface_cast<ITestService>(service);
+    ASSERT_TRUE(testService != nullptr);
+
+    if (service->IsProxyObject()) {
+        ZLOGI(LABEL, "Got Proxy node");
+        TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
+        int ret = proxy->TestAccessTokenID(3571);
+        EXPECT_EQ(ret, 0);
+    } else {
+        ZLOGE(LABEL, "Got Stub node");
+    }
 }
