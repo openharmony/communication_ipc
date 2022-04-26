@@ -23,11 +23,13 @@ config("libipc_core_private_config") {
 ohos_shared_library("ipc_core") {
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
     "$SUBSYSTEM_DIR/utils/include",
     "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
   ]
   sources = [
     "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
+    "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
     "$IPC_CORE_ROOT/src/core/source/buffer_object.cpp",
     "$IPC_CORE_ROOT/src/core/source/comm_auth_info.cpp",
     "$IPC_CORE_ROOT/src/core/source/databus_session_callback.cpp",

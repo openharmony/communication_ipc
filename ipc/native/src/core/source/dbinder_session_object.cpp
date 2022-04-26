@@ -87,9 +87,19 @@ void DBinderSessionObject::SetDeviceId(const std::string &serverDeviceId)
     serverDeviceId_ = serverDeviceId;
 }
 
+void DBinderSessionObject::SetFeatureSet(std::shared_ptr<FeatureSetData> rpcFeatureSet)
+{
+    rpcFeatureSet_ = rpcFeatureSet;
+}
+
 std::string DBinderSessionObject::GetDeviceId() const
 {
     return serverDeviceId_;
+}
+
+std::shared_ptr<FeatureSetData> DBinderSessionObject::GetFeatureSet() const
+{
+    return rpcFeatureSet_;
 }
 
 uint32_t DBinderSessionObject::GetFlatSessionLen()

@@ -39,7 +39,10 @@ config("libdbinder_private_config") {
 }
 
 ohos_shared_library("libdbinder") {
-  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
+  include_dirs = [
+    "$SUBSYSTEM_DIR/ipc/native/c/rpc/include",
+    "$SUBSYSTEM_DIR/utils/include",
+  ]
   sources = [
     "$DBINDER_ROOT/dbinder_service/src/dbinder_death_recipient.cpp",
     "$DBINDER_ROOT/dbinder_service/src/dbinder_sa_death_recipient.cpp",

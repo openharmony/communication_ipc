@@ -38,13 +38,14 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC,
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
-    const std::string &localDevice, uint64_t stubIndex, uint32_t handle)
+    const std::string &localDevice, uint64_t stubIndex, uint32_t handle, std::shared_ptr<FeatureSetData> feature)
     : IPCObjectStub(Str8ToStr16("DBinderCallback" + device + service)),
       serviceName_(service),
       deviceID_(device),
       localDeviceID_(localDevice),
       stubIndex_(stubIndex),
-      handle_(handle)
+      handle_(handle),
+      rpcFeatureSet_(feature)
 {
     DBINDER_LOGI("serviceName:%{public}s, deviceId:%{public}s, handle:%{public}u, stubIndex_:%{public}" PRIu64 "",
         serviceName_.c_str(), deviceID_.c_str(), handle_, stubIndex_);
@@ -70,6 +71,11 @@ uint64_t DBinderCallbackStub::GetStubIndex() const
     return stubIndex_;
 }
 
+std::shared_ptr<FeatureSetData> DBinderCallbackStub::GetFeatureSet() const
+{
+    return rpcFeatureSet_;
+}
+
 int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
@@ -93,8 +99,9 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
 
     MessageParcel authData, authReply;
     MessageOption authOption;
+    uint32_t featureSet = rpcFeatureSet_->featureSet;
     if (!authData.WriteUint32(pid) || !authData.WriteUint32(uid) || !authData.WriteString(localDeviceID_) ||
-        !authData.WriteUint64(stubIndex_)) {
+        !authData.WriteUint32(featureSet) || !authData.WriteUint64(stubIndex_)) {
         DBINDER_LOGE("write to MessageParcel fail");
         return ERR_INVALID_DATA;
     }

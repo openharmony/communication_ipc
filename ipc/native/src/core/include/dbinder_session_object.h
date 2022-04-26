@@ -21,6 +21,7 @@
 #include "nocopyable.h"
 #include "buffer_object.h"
 
+#include "rpc_feature_set.h"
 #include "Session.h"
 #include "ISessionService.h"
 
@@ -51,10 +52,12 @@ public:
     void SetBusSession(std::shared_ptr<Session> session);
     void SetServiceName(const std::string &serviceName);
     void SetDeviceId(const std::string &serverDeviceId);
+    void SetFeatureSet(std::shared_ptr<FeatureSetData> rpcFeatureSet);
     std::shared_ptr<BufferObject> GetSessionBuff();
     std::shared_ptr<Session> GetBusSession() const;
     std::string GetServiceName() const;
     std::string GetDeviceId() const;
+    std::shared_ptr<FeatureSetData> GetFeatureSet() const;
     uint32_t GetSessionHandle() const;
     void CloseDatabusSession();
 
@@ -66,6 +69,7 @@ private:
     std::shared_ptr<BufferObject> buff_;
     std::string serviceName_;
     std::string serverDeviceId_;
+    std::shared_ptr<FeatureSetData> rpcFeatureSet_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_SESSION_OBJECT_H

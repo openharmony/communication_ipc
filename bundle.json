@@ -12,7 +12,7 @@
     "component": {
       "name": "ipc",
       "subsystem": "communication",
-      "adapted_system_type": [ 
+      "adapted_system_type": [
         "standard"
       ],
       "features": [],
