@@ -49,36 +49,9 @@ static void CallAnonymosFunc(const char *str)
     RPC_LOG_INFO("server Async call res = %d", ret);
 }
 
-static int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static void ServerDead1(void)
 {
-    int32_t result = ERR_NONE;
-    RPC_LOG_INFO("server OnRemoteRequestTwo called....");
-    int a = 0;
-    int b = 0;
-    switch (code) {
-        case SERVER_OP_ADD: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a + b);
-            break;
-        }
-        case SERVER_OP_SUB: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a - b);
-            break;
-        }
-        case SERVER_OP_MULTI: {
-            ReadInt32(data, &a);
-            ReadInt32(data, &b);
-            WriteInt32(reply, a * b);
-            break;
-        }
-        default:
-            RPC_LOG_ERROR("unknown code %d", code);
-            break;
-    }
-    return result;
+    RPC_LOG_INFO("#### server dead callback11 called ... ");
 }
 
 static void ThreadHandler()
@@ -90,17 +63,6 @@ static void ThreadHandler()
 
 static MessageOption g_option;
 
-static IpcObjectStub objectStubTwo = {
-    .func = RemoteRequestTwo,
-    .isRemote = false
-};
-
-static SvcIdentity svcTwo = {
-    .handle = -1,
-    .token  = (uintptr_t)&objectStubTwo,
-    .cookie = (uintptr_t)&objectStubTwo
-};
-
 class Ability {
 public:
     explicit Ability(int32_t data) : data_(data)
@@ -110,7 +72,7 @@ public:
         objectStub_->func = Ability::MsgHandleInner;
         objectStub_->args = this;
         sid_->handle = -1;
-        sid_->token  = (uintptr_t)objectStub_;
+        sid_->token  = 1;
         sid_->cookie = (uintptr_t)objectStub_;
     }
 
@@ -149,6 +111,9 @@ public:
                 sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
                 ReadRemoteObject(data, sid);
                 const char *str = "server call anonymos service one.";
+                WriteInt32(reply, ERR_NONE);
+                uint32_t cbId1 = -1;
+                int ret = AddDeathRecipient(*sid, (OnRemoteDead)ServerDead1, (void *)NULL, (uint32_t *)&cbId1);
                 break;
             }
             default:
@@ -187,31 +152,11 @@ static void AddSaOne(void)
     sleep(1);
 }
 
-static void AddSaTwo(void)
-{
-    IpcIo dataTwo;
-    uint8_t tmpData2[IPC_MAX_SIZE];
-    IpcIoInit(&dataTwo, tmpData2, IPC_MAX_SIZE, 1);
-    WriteInt32(&dataTwo, SERVER_SA_ID2);
-    WriteRemoteObject(&dataTwo, &svcTwo);
-    IpcIo reply;
-    uintptr_t ptr = 0;
-    RPC_LOG_INFO("====== add ability two to samgr ======");
-    int ret = SendRequest(g_samgr, ADD_SYSTEM_ABILITY_TRANSACTION, &dataTwo, &reply, g_option, &ptr);
-    int res = -1;
-    ReadInt32(&reply, &res);
-    FreeBuffer((void *)ptr);
-    EXPECT_EQ(ret, ERR_NONE);
-    EXPECT_EQ(res, ERR_NONE);
-    sleep(1);
-}
-
 int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Server .... ");
     MessageOptionInit(&g_option);
     AddSaOne();
-    AddSaTwo();
 
     IpcIo reply;
     uintptr_t ptr = 0;
@@ -226,21 +171,6 @@ int main(int argc, char *argv[])
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
     sleep(1);
-
-    RPC_LOG_INFO("====== call serverone OP_MULTI ======");
-    IpcIo data2;
-    uint8_t dataMulti[IPC_MAX_SIZE];
-    IpcIoInit(&data2, dataMulti, IPC_MAX_SIZE, 0);
-    WriteInt32(&data2, OP_A);
-    WriteInt32(&data2, OP_B);
-    ret = SendRequest(sidOne, SERVER_OP_MULTI, &data2, &reply, g_option, &ptr);
-    int res = -1;
-    ReadInt32(&reply, &res);
-    RPC_LOG_INFO(" 12 * 17 = %d", res);
-    FreeBuffer((void *)ptr);
-    EXPECT_EQ(ret, ERR_NONE);
-    int tmpMul = OP_A * OP_B;
-    EXPECT_EQ(res, tmpMul);
 
     std::thread task(ThreadHandler);
     task.detach();

@@ -40,6 +40,11 @@ typedef struct {
     uintptr_t cookie;
 } SvcIdentity;
 
+typedef enum {
+    SERVICE_TYPE_ANONYMOUS,
+    SERVICE_TYPE_NORMAL
+} ServiceType;
+
 #define IPC_INVALID_HANDLE (-1)
 #define IPC_IO_INITIALIZED 0x01 /* ipc flag indicates whether io is initialized */
 #define IPC_IO_OVERFLOW    0x02 /* ipc flag indicates whether io is running out of space */

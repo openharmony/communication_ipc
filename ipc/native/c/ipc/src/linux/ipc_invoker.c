@@ -393,8 +393,9 @@ static int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
     return ret;
 }
 
-static int32_t IpcSetRegistryObject(void)
+static int32_t IpcSetRegistryObject(SvcIdentity target)
 {
+    (void)target;
     if (g_connector == NULL) {
         RPC_LOG_ERROR("ipc driver not init");
         return ERR_FAILED;

@@ -70,6 +70,7 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
+    RPC_LOG_INFO("calling pid = %d, uid = %d", GetCallingPid(), GetCallingUid());
     switch (code) {
         case ADD_SYSTEM_ABILITY_TRANSACTION: {
             int32_t saId;
@@ -78,6 +79,10 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
             SvcIdentity *sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
             ReadRemoteObject(data, sid);
             result = AddSystemAbility(saId, sid);
+            if (result != ERR_NONE) {
+                return result;
+            }
+            WriteInt32(reply, result);
             break;
         }
         case GET_SYSTEM_ABILITY_TRANSACTION: {
@@ -100,6 +105,10 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
 
 int32_t mainFunc(void)
 {
+    pid_t pid = fork();
+    if (pid != 0) {
+        exit(0);
+    }
     RPC_LOG_INFO("Enter System Ability Manager .... ");
 
     g_saList = (UTILS_DL_LIST *)calloc(1, sizeof(UTILS_DL_LIST));
@@ -143,6 +152,7 @@ HWTEST_F(IpcSamgrTest, IpcSamgrTest001, TestSize.Level0)
 
     int ret = SetContextObject(target);
     EXPECT_EQ(ret, ERR_NONE);
+
     JoinWorkThread();
 }
 }  // namespace OHOS

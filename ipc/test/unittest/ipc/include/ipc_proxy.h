@@ -37,8 +37,7 @@ enum {
 #define IPC_MAX_SIZE 128
 
 enum {
-    SERVER_SA_ID1 = 15,
-    SERVER_SA_ID2 = 18,
+    SERVER_SA_ID1 = 15
 };
 
 #define OP_A 12
