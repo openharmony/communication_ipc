@@ -24,7 +24,6 @@ ohos_moduletest("RPCCLIENTTEST") {
     "include",
     "${SUBSYSTEM_DIR}/utils/include",
     "${SUBSYSTEM_DIR}/ipc/native/c/adapter/access_token/include",
-    "${SUBSYSTEM_DIR}/ipc/native/c/rpc/include",
   ]
   sources = [
     "src/rpc_client_test.cpp",

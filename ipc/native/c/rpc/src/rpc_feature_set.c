@@ -18,8 +18,11 @@
 #include <stddef.h>
 
 #define RPC_FEATURE_LAST 43
-#define RPC_ACCESS_TOKEN_FLAG 0x1
 #define INVAL_TOKEN_ID 0x0
+
+enum {
+    ACCESS_TOKEN_FLAG = 0x1,
+};
 
 static const uint32_t RPC_FEATURE_MAGIC_NUM = ('R' << 24) | ('F' << 16) | ('S' << 8) | RPC_FEATURE_LAST;
 static const uint32_t RPC_ACCESS_TOKEN_TAG = 0;
@@ -49,7 +52,7 @@ uint32_t GetRpcFeatureAck(void)
 
 bool IsATEnable(uint32_t featureSet)
 {
-    return (featureSet & RPC_ACCESS_TOKEN_FLAG) > 0;
+    return (featureSet & ACCESS_TOKEN_FLAG) > 0;
 }
 
 bool IsFeatureAck(uint32_t featureSet)

@@ -19,8 +19,11 @@
 #include "iremote_broker.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
+#include "message_parcel.h"
 
 namespace OHOS {
+#define RPC_ACCESS_TOKEN_FLAG 0x1
+#define INVAL_TOKEN_ID 0x0
 class IRpcFooTest : public IRemoteBroker {
 public:
     enum FooInterFaceId {
@@ -31,7 +34,7 @@ public:
     };
     std::string GetFooName(void);
     virtual std::string TestGetFooName(void) = 0;
-    virtual uint32_t TestAccessToken(void) = 0;
+    virtual int32_t TestAccessToken(MessageParcel &data, MessageParcel &reply) = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.rpc.IRpcFooTest");
 private:
@@ -43,7 +46,7 @@ public:
     int OnRemoteRequest(uint32_t code,
         MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     std::string TestGetFooName(void) override;
-    uint32_t TestAccessToken(void) override;
+    int32_t TestAccessToken(MessageParcel &data, MessageParcel &reply) override;
 };
 
 class RpcFooProxy : public IRemoteProxy<IRpcFooTest> {
@@ -51,7 +54,7 @@ public:
     explicit RpcFooProxy(const sptr<IRemoteObject> &impl);
     ~RpcFooProxy() = default;
     std::string TestGetFooName(void) override;
-    uint32_t TestAccessToken(void) override;
+    int32_t TestAccessToken(MessageParcel &data, MessageParcel &reply) override;
 private:
     static inline BrokerDelegator<RpcFooProxy> delegator_;
 };
