@@ -49,6 +49,11 @@ void CallAnonymosFunc(const char *str)
     SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
 }
 
+void ServerDead1(void)
+{
+    RPC_LOG_INFO("#### server dead callback11 called ... ");
+}
+
 int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
@@ -81,46 +86,13 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
             sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
             ReadRemoteObject(data, sid);
             const char *str = "server call anonymos service one.";
+            WriteInt32(reply, ERR_NONE);
+            uint32_t cbId1 = -1;
+            int ret = AddDeathRecipient(*sid, (OnRemoteDead)ServerDead1, (void *)NULL, (uint32_t *)&cbId1);
             break;
         }
         default:
             RPC_LOG_ERROR("unknown code %d", code);
-            break;
-    }
-    return result;
-}
-
-int32_t RemoteRequestTwo(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
-{
-    int32_t result = ERR_NONE;
-    RPC_LOG_INFO("server OnRemoteRequestTwo called....");
-    switch (code) {
-        case SERVER_OP_ADD: {
-            int32_t a;
-            ReadInt32(data, &a);
-            int32_t b;
-            ReadInt32(data, &b);
-            WriteInt32(reply, a + b);
-            break;
-        }
-        case SERVER_OP_SUB: {
-            int32_t a;
-            ReadInt32(data, &a);
-            int32_t b;
-            ReadInt32(data, &b);
-            WriteInt32(reply, a - b);
-            break;
-        }
-        case SERVER_OP_MULTI: {
-            int32_t a;
-            ReadInt32(data, &a);
-            int32_t b;
-            ReadInt32(data, &b);
-            WriteInt32(reply, a * b);
-            break;
-        }
-        default:
-            RPC_LOG_ERROR("unknown code %u", code);
             break;
     }
     return result;
@@ -139,21 +111,10 @@ IpcObjectStub objectStubOne = {
     .isRemote = false
 };
 
-IpcObjectStub objectStubTwo = {
-    .func = RemoteRequestTwo,
-    .isRemote = false
-};
-
 SvcIdentity svcOne = {
     .handle = -1,
-    .token  = (uintptr_t)&objectStubOne,
+    .token  = 1,
     .cookie = (uintptr_t)&objectStubOne
-};
-
-SvcIdentity svcTwo = {
-    .handle = -1,
-    .token  = (uintptr_t)&objectStubTwo,
-    .cookie = (uintptr_t)&objectStubTwo
 };
 
 SvcIdentity sidOne;
@@ -167,6 +128,10 @@ public:
     static void SetUpTestCase()
     {
         RPC_LOG_INFO("----------test case for ipc server start-------------\n");
+        pid_t pid = fork();
+        if (pid != 0) {
+            exit(0);
+        }
     }
     static void TearDownTestCase() {}
 
@@ -222,11 +187,12 @@ HWTEST_F(IpcServerTest, IpcServerTest003, TestSize.Level0)
 
 HWTEST_F(IpcServerTest, IpcServerTest004, TestSize.Level0)
 {
+#ifdef __LINUX__
     IpcIo data;
     uint8_t tmpData2[IPC_MAX_SIZE];
     IpcIoInit(&data, tmpData2, IPC_MAX_SIZE, 1);
-    WriteInt32(&data, SERVER_SA_ID2);
-    WriteRemoteObject(&data, &svcTwo);
+    WriteInt32(&data, SERVER_SA_ID1);
+    WriteRemoteObject(&data, &svcOne);
     RPC_LOG_INFO("====== add ability two to samgr ======");
     uintptr_t ptr = 0;
     IpcIo reply;
@@ -239,6 +205,7 @@ HWTEST_F(IpcServerTest, IpcServerTest004, TestSize.Level0)
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
     EXPECT_EQ(res, ERR_NONE);
+#endif
 }
 
 HWTEST_F(IpcServerTest, IpcServerTest005, TestSize.Level0)
@@ -247,7 +214,7 @@ HWTEST_F(IpcServerTest, IpcServerTest005, TestSize.Level0)
     IpcIo data1;
     uint8_t dataGet[IPC_MAX_SIZE];
     IpcIoInit(&data1, dataGet, IPC_MAX_SIZE, 0);
-    WriteInt32(&data1, SERVER_SA_ID2);
+    WriteInt32(&data1, SERVER_SA_ID1);
     uintptr_t ptr = 0;
     IpcIo reply;
     const SvcIdentity *target = GetContextObject();
@@ -258,26 +225,6 @@ HWTEST_F(IpcServerTest, IpcServerTest005, TestSize.Level0)
 }
 
 HWTEST_F(IpcServerTest, IpcServerTest006, TestSize.Level0)
-{
-    RPC_LOG_INFO("====== call serverone OP_MULTI ======");
-    IpcIo data2;
-    uint8_t dataMulti[IPC_MAX_SIZE];
-    IpcIoInit(&data2, dataMulti, IPC_MAX_SIZE, 0);
-    WriteInt32(&data2, OP_A);
-    WriteInt32(&data2, OP_B);
-    uintptr_t ptr = 0;
-    IpcIo reply;
-    int ret = SendRequest(sidOne, SERVER_OP_MULTI, &data2, &reply, g_option, &ptr);
-    int res;
-    ReadInt32(&reply, &res);
-    RPC_LOG_INFO(" 12 * 17 = %d", res);
-    FreeBuffer((void *)ptr);
-    EXPECT_EQ(ret, ERR_NONE);
-    int tmpMul = OP_A * OP_B;
-    EXPECT_EQ(res, tmpMul);
-}
-
-HWTEST_F(IpcServerTest, IpcServerTest007, TestSize.Level0)
 {
     pthread_t pid;
     pthread_create(&pid, nullptr, ThreadHandler, nullptr);

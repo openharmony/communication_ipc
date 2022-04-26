@@ -75,6 +75,10 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
             SvcIdentity *sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
             ReadRemoteObject(data, sid);
             result = AddSystemAbility(saId, sid);
+            if (result != ERR_NONE) {
+                return result;
+            }
+            WriteInt32(reply, result);
             break;
         }
         case GET_SYSTEM_ABILITY_TRANSACTION: {

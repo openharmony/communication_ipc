@@ -93,6 +93,10 @@ class IpcClientTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
+        pid_t pid = fork();
+        if (pid != 0) {
+            exit(0);
+        }
         RPC_LOG_INFO("----------test case for ipc client start-------------\n");
     }
     static void TearDownTestCase() {}
@@ -106,12 +110,10 @@ HWTEST_F(IpcClientTest, IpcClientTest001, TestSize.Level1)
     uint8_t tmpData1[IPC_MAX_SIZE];
     IpcIoInit(&data1, tmpData1, IPC_MAX_SIZE, 0);
     WriteInt32(&data1, SERVER_SA_ID1);
-
-    IpcIo reply1;
-
     SvcIdentity target = {
         .handle = 0
     };
+    IpcIo reply1;
     uintptr_t ptr = 0;
     int ret = SendRequest(target, GET_SYSTEM_ABILITY_TRANSACTION, &data1, &reply1, g_option, &ptr);
     ReadRemoteObject(&reply1, &sidServer);
@@ -130,13 +132,33 @@ HWTEST_F(IpcClientTest, IpcClientTest002, TestSize.Level1)
     IpcIo reply2;
     uintptr_t ptr2 = 0;
     int ret = SendRequest(sidServer, SERVER_OP_ADD, &data2, &reply2, g_option, &ptr2);
-    int res;
+    int res = -1;
     ReadInt32(&reply2, &res);
     RPC_LOG_INFO(" 12 + 17 = %d", res);
     FreeBuffer((void *)ptr2);
     EXPECT_EQ(ret, ERR_NONE);
     int tmpSum = OP_A + OP_B;
     EXPECT_EQ(res, tmpSum);
+}
+
+HWTEST_F(IpcClientTest, IpcServerTest002_01, TestSize.Level1)
+{
+    RPC_LOG_INFO("====== call serverone OP_MULTI ======");
+    IpcIo data2;
+    uint8_t dataMulti[IPC_MAX_SIZE];
+    IpcIoInit(&data2, dataMulti, IPC_MAX_SIZE, 0);
+    WriteInt32(&data2, OP_A);
+    WriteInt32(&data2, OP_B);
+    IpcIo reply;
+    uintptr_t ptr = 0;
+    int ret = SendRequest(sidServer, SERVER_OP_MULTI, &data2, &reply, g_option, &ptr);
+    int res = -1;
+    ReadInt32(&reply, &res);
+    RPC_LOG_INFO(" 12 * 17 = %d", res);
+    FreeBuffer((void *)ptr);
+    EXPECT_EQ(ret, ERR_NONE);
+    int tmpMul = OP_A * OP_B;
+    EXPECT_EQ(res, tmpMul);
 }
 
 static IpcObjectStub objectStub = {
@@ -146,7 +168,7 @@ static IpcObjectStub objectStub = {
 
 static SvcIdentity clientSvc = {
     .handle = -1,
-    .token = (uintptr_t)&objectStub,
+    .token = 0,
     .cookie = (uintptr_t)&objectStub
 };
 
@@ -207,7 +229,7 @@ HWTEST_F(IpcClientTest, IpcClientTest006, TestSize.Level1)
     --sidServer.handle;
 }
 
-HWTEST_F(IpcClientTest, IpcClientTest007, TestSize.Level2) // 同步性能测试
+HWTEST_F(IpcClientTest, IpcClientTest007, TestSize.Level2)
 {
     IpcIo data2;
     uint8_t tmpData2[IPC_MAX_SIZE];
@@ -234,7 +256,7 @@ HWTEST_F(IpcClientTest, IpcClientTest007, TestSize.Level2) // 同步性能测试
     RPC_LOG_INFO("############ sync time with 100 times = %f ms", time);
 }
 
-HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)   // 异步性能测试
+HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)
 {
     IpcIo data2;
     uint8_t tmpData2[IPC_MAX_SIZE];
@@ -265,6 +287,6 @@ HWTEST_F(IpcClientTest, IpcClientTest009, TestSize.Level0)
     EXPECT_EQ(ret, ERR_NONE);
     ret = AddDeathRecipient(sidServer, (OnRemoteDead)ServerDead2, nullptr, &cbId2);
     EXPECT_EQ(ret, ERR_NONE);
-    JoinWorkThread();
+    while (1) {}
 }
 }  // namespace OHOS

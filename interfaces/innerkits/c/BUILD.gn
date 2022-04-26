@@ -28,6 +28,7 @@ lite_component("rpc") {
 
   if (enable_ipc_test == true) {
     features += [
+      "//foundation/communication/ipc/ipc/test/ipc:ipc_test",
       "//foundation/communication/ipc/ipc/test/unittest/ipc:ipc_test_gtest",
       "//foundation/communication/ipc/ipc/test/unittest/rpc:rpc_test_gtest",
     ]

@@ -22,7 +22,6 @@
 #include "serializer.h"
 
 static SvcIdentity g_serverSid;
-
 static MessageOption g_option;
 
 int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
@@ -110,6 +109,26 @@ static void CallServerAdd(void)
     EXPECT_EQ(res, tmpSum);
 }
 
+static void CallServerMulti(void)
+{
+    RPC_LOG_INFO("====== call serverone OP_MULTI ======");
+    IpcIo data2;
+    uint8_t dataMulti[IPC_MAX_SIZE];
+    IpcIoInit(&data2, dataMulti, IPC_MAX_SIZE, 0);
+    WriteInt32(&data2, OP_A);
+    WriteInt32(&data2, OP_B);
+    IpcIo reply;
+    uintptr_t ptr = 0;
+    int ret = SendRequest(g_serverSid, SERVER_OP_MULTI, &data2, &reply, g_option, &ptr);
+    int res = -1;
+    ReadInt32(&reply, &res);
+    RPC_LOG_INFO(" 12 * 17 = %d", res);
+    FreeBuffer((void *)ptr);
+    EXPECT_EQ(ret, ERR_NONE);
+    int tmpMul = OP_A * OP_B;
+    EXPECT_EQ(res, tmpMul);
+}
+
 static IpcObjectStub g_objectStub = {
     .func = RemoteRequest,
     .isRemote = false
@@ -117,7 +136,7 @@ static IpcObjectStub g_objectStub = {
 
 static SvcIdentity g_clientSvc = {
     .handle = -1,
-    .token = &g_objectStub,
+    .token = 0,
     .cookie = &g_objectStub
 };
 
@@ -187,6 +206,7 @@ int main(int argc, char *argv[])
     MessageOptionInit(&g_option);
     GetServerOne();
     CallServerAdd();
+    CallServerMulti();
     AnonymousTest();
     DeathCallbackTest();
     while (1) {}
