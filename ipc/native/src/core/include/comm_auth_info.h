@@ -18,22 +18,26 @@
 
 #include "iremote_object.h"
 #include "ipc_object_stub.h"
+#include "rpc_feature_set.h"
 
 namespace OHOS {
 class CommAuthInfo {
 public:
-    CommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId);
+    CommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId,
+        std::shared_ptr<FeatureSetData> featureSet);
     virtual ~CommAuthInfo();
     const IRemoteObject *GetStubObject() const;
     int GetRemotePid() const;
     int GetRemoteUid() const;
     std::string GetRemoteDeviceId() const;
+    std::shared_ptr<FeatureSetData> GetFeatureSet() const;
 
 private:
     IRemoteObject *stub_;
     int remotePid_;
     int remoteUid_;
     std::string deviceId_;
+    std::shared_ptr<FeatureSetData> featureSet_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_COMMAUTHINFO_H

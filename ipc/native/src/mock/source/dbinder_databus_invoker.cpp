@@ -19,6 +19,7 @@
 #include "securec.h"
 #include "sys_binder.h"
 
+#include "access_token_adapter.h"
 #include "ipc_object_stub.h"
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
@@ -26,6 +27,7 @@
 #include "ipc_debug.h"
 #include "log_tags.h"
 #include "databus_session_callback.h"
+#include "rpc_feature_set.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -153,11 +155,17 @@ bool DBinderDatabusInvoker::AuthSession2Proxy(uint32_t handle,
         return false;
     }
 
+    std::shared_ptr<FeatureSetData> feature = databusSession->GetFeatureSet();
+    if (feature == nullptr) {
+        DBINDER_LOGE("get feature fail");
+        return false;
+    }
+
     MessageParcel data, reply;
     MessageOption option;
 
     if (!data.WriteUint32((uint32_t)(session->GetPeerPid())) || !data.WriteUint32(session->GetPeerUid()) ||
-        !data.WriteString(session->GetPeerDeviceId())) {
+        !data.WriteString(session->GetPeerDeviceId()) || !data.WriteUint32(feature->featureSet)) {
         DBINDER_LOGE("write to MessageParcel fail");
         return false;
     }
@@ -225,13 +233,16 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(std::shared_ptr<Session> sess
         return false;
     }
 
-    if (!current->QueryIsAuth(session->GetPeerPid(), (int32_t)(session->GetPeerUid()), session->GetPeerDeviceId())) {
-        DBINDER_LOGE("remote device is not auth");
+    auto featureSet = current->QueryIsAuth(session->GetPeerPid(), (int32_t)(session->GetPeerUid()),
+        session->GetPeerDeviceId());
+    if (featureSet == nullptr) {
+        DBINDER_LOGE("query auth failed, remote device featureSet is null");
         return false;
     }
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
         std::make_shared<DBinderSessionObject>(session, session->GetPeerSessionName(), session->GetPeerDeviceId());
+    sessionObject->SetFeatureSet(featureSet);
 
     if (!current->StubAttachDBinderSession(handle, sessionObject)) {
         DBINDER_LOGE("attach session to process skeleton failed, handle =%u", handle);
@@ -662,9 +673,38 @@ void DBinderDatabusInvoker::SetCallerDeviceID(const std::string &deviceId)
     callerDeviceID_ = deviceId;
 }
 
+void DBinderDatabusInvoker::SetCallerTokenID(const uint32_t tokenId)
+{
+    callerTokenID_ = tokenId;
+}
+
 bool DBinderDatabusInvoker::IsLocalCalling()
 {
     return false;
+}
+
+bool DBinderDatabusInvoker::SetTokenId(const dbinder_transaction_data *tr, uint32_t listenFd)
+{
+    if (tr == nullptr) {
+        DBINDER_LOGE("set tokenid tr is null");
+        return false;
+    }
+    std::shared_ptr<DBinderSessionObject> sessionObject = QueryClientSessionObject(listenFd);
+    if (sessionObject == nullptr) {
+        DBINDER_LOGE("session is not exist for listenFd = %u", listenFd);
+        return false;
+    }
+    std::shared_ptr<FeatureSetData> feature = sessionObject->GetFeatureSet();
+    if (feature == nullptr) {
+        DBINDER_LOGE("feature is null");
+        return false;
+    }
+    if (IsATEnable(feature->featureSet) == true) {
+        uint32_t bufferUseSize = tr->sizeOfSelf - sizeof(struct dbinder_transaction_data) - GetFeatureSize();
+        uint32_t tokenId = GetTokenFromData((FeatureTransData *)(tr->buffer + bufferUseSize), GetFeatureSize());
+        SetCallerTokenID(tokenId);
+    }
+    return true;
 }
 
 int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex)
@@ -788,7 +828,8 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
         DBINDER_LOGI("fail to attach appinfo to stub index, when proxy call we check appinfo");
         // attempt attach again, if failed, do nothing
     }
-    if (!current->AttachCommAuthInfo(stubObject, peerPid, peerUid, deviceId)) {
+
+    if (!current->AttachCommAuthInfo(stubObject, peerPid, peerUid, deviceId, sessionObject->GetFeatureSet())) {
         DBINDER_LOGI("fail to attach comm auth info, maybe attached already");
         // attempt attach again, if failed, do nothing
     }
@@ -850,10 +891,18 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
     std::string token = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
         | static_cast<uint64_t>(callerPid_)));
     std::string identity = callerDeviceID_ + token;
+    char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010u", callerTokenID_);
+    if (ret < 0) {
+        DBINDER_LOGE("sprintf callerTokenID_ %u failed", callerTokenID_);
+        return "";
+    }
+    std::string accessToken(buf);
     callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerDeviceID_ = GetLocalDeviceID();
-    return identity;
+    callerTokenID_ = RpcGetSelfTokenID();
+    return accessToken + identity;
 }
 
 bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
@@ -862,12 +911,15 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
         return false;
     }
 
-    std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-    uint64_t token = std::stoull(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH).c_str());
+    uint32_t tokenId = std::stoul(identity.substr(0, ACCESS_TOKEN_MAX_LEN));
+    std::string deviceId = identity.substr(ACCESS_TOKEN_MAX_LEN, DEVICEID_LENGTH);
+    uint64_t token = std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN + DEVICEID_LENGTH,
+        identity.length() - ACCESS_TOKEN_MAX_LEN - DEVICEID_LENGTH).c_str());
 
     callerUid_ = static_cast<int>(token >> PID_LEN);
     callerPid_ = static_cast<int>(token);
     callerDeviceID_ = deviceId;
+    callerTokenID_ = tokenId;
 
     return true;
 }

@@ -22,6 +22,7 @@
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
+#include "rpc_feature_set.h"
 #endif
 #include "ipc_debug.h"
 #include "ipc_file_descriptor.h"
@@ -108,10 +109,16 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     std::string peerName = sessionOfPeer->GetServiceName();
     std::string peerId = sessionOfPeer->GetDeviceId();
     std::string localId = current->GetLocalDeviceID();
+    std::shared_ptr<FeatureSetData> feature = sessionOfPeer->GetFeatureSet();
+    if (feature == nullptr) {
+        DBINDER_LOGE("feature is nullptr");
+        return false;
+    }
+
     sptr<DBinderCallbackStub> fakeStub = current->QueryDBinderCallbackStub(object);
     if (fakeStub == nullptr) {
         // note that cannot use this proxy's descriptor
-        fakeStub = new DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle);
+        fakeStub = new DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle, feature);
         if (!current->AttachDBinderCallbackStub(object, fakeStub)) {
             DBINDER_LOGE("save callback of fake stub failed");
             return false;

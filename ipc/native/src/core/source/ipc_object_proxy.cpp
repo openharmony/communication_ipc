@@ -24,7 +24,9 @@
 #include "securec.h"
 
 #ifndef CONFIG_IPC_SINGLE
+#include "access_token_adapter.h"
 #include "dbinder_databus_invoker.h"
+#include "rpc_feature_set.h"
 #endif
 
 namespace OHOS {
@@ -602,6 +604,19 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
     std::string peerID = reply.ReadString();
     std::string localID = reply.ReadString();
     std::string localBusName = reply.ReadString();
+    uint32_t rpcFeatureSet = reply.ReadUint32();
+    uint32_t tokenId = 0;
+    if (IsATEnable(rpcFeatureSet) == true) {
+        tokenId = RpcGetSelfTokenID();
+    }
+    std::shared_ptr<FeatureSetData> featureSet = nullptr;
+    featureSet.reset(reinterpret_cast<FeatureSetData *>(::operator new(sizeof(FeatureSetData))));
+    if (featureSet == nullptr) {
+        ZLOGE(LABEL, "%s: featureSet null", __func__);
+        return false;
+    }
+    featureSet->featureSet = rpcFeatureSet;
+    featureSet->tokenId = tokenId;
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
@@ -617,6 +632,7 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
             return false;
         }
     }
+    connectSession->SetFeatureSet(featureSet);
 
     if (!current->AttachHandleToIndex((uint32_t)handle, stubIndex)) {
         ZLOGE(LABEL, "add stub index err stubIndex = %" PRIu64 ", handle = %d", stubIndex, handle);
@@ -629,12 +645,7 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
     }
 
     bool result = invoker->UpdateClientSession(handle, connectSession);
-    if (!result) {
-        ZLOGE(LABEL, "update server session object fail!");
-        return false;
-    }
-
-    return true;
+    return result;
 }
 
 void IPCObjectProxy::ReleaseDatabusProto()
