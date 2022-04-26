@@ -34,8 +34,7 @@ int RpcFooStub::OnRemoteRequest(uint32_t code,
             break;
         }
         case GET_TOKENID: {
-            uint32_t tokenId = TestAccessToken();
-            reply.WriteUint32(tokenId);
+            result = TestAccessToken(data, reply);
             break;
         }
         default:
@@ -50,10 +49,16 @@ std::string RpcFooStub::TestGetFooName(void)
     return GetFooName();
 }
 
-uint32_t RpcFooStub::TestAccessToken(void)
+int32_t RpcFooStub::TestAccessToken(MessageParcel &data, MessageParcel &reply)
 {
+    uint32_t featureSet = 0;
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    return tokenId;
+    if (tokenId != INVAL_TOKEN_ID) {
+        featureSet = RPC_ACCESS_TOKEN_FLAG;
+    }
+    reply.WriteUint32(featureSet);
+    reply.WriteUint32(tokenId);
+    return ERR_NONE;
 }
 
 RpcFooProxy::RpcFooProxy(const sptr<IRemoteObject> &impl)
@@ -72,14 +77,10 @@ std::string RpcFooProxy::TestGetFooName(void)
     return replyParcel.ReadString();
 }
 
-uint32_t RpcFooProxy::TestAccessToken(void)
+int32_t RpcFooProxy::TestAccessToken(MessageParcel &data, MessageParcel &reply)
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
-    int err = Remote()->SendRequest(GET_TOKENID, dataParcel, replyParcel, option);
-    if (err != 0) {
-        return 0;
-    }
-    return replyParcel.ReadUint32();
+    int32_t err = Remote()->SendRequest(GET_TOKENID, data, reply, option);
+    return err;
 }
 } // namespace OHOS

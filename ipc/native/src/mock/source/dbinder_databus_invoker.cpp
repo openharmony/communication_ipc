@@ -891,11 +891,18 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
     std::string token = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
         | static_cast<uint64_t>(callerPid_)));
     std::string identity = callerDeviceID_ + token;
+    char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010u", callerTokenID_);
+    if (ret < 0) {
+        DBINDER_LOGE("sprintf callerTokenID_ %u failed", callerTokenID_);
+        return "";
+    }
+    std::string accessToken(buf);
     callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerDeviceID_ = GetLocalDeviceID();
     callerTokenID_ = RpcGetSelfTokenID();
-    return identity;
+    return accessToken + identity;
 }
 
 bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)

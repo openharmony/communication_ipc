@@ -22,12 +22,12 @@
 #include "ipc_object_proxy.h"
 #include "rpc_test.h"
 #include "access_token_adapter.h"
-#include "rpc_feature_set.h"
 
 namespace OHOS {
 using namespace testing::ext;
 using namespace OHOS;
 
+#define TEST_NUMS 1000
 static std::string g_deviceId;
 static sptr<IRpcFooTest> g_rpcTestProxy;
 class RpcClientTest : public testing::Test {
@@ -73,11 +73,36 @@ HWTEST_F(RpcClientTest, function_test_002, TestSize.Level1)
 HWTEST_F(RpcClientTest, function_test_003, TestSize.Level1)
 {
     uint32_t tokenId = RpcGetSelfTokenID();
-    uint32_t getTokenId = g_rpcTestProxy->TestAccessToken();
-    if (IsATEnable(GetLocalRpcFeature()) == true) {
+
+    MessageParcel dataParcel, replyParcel;
+    int32_t err = g_rpcTestProxy->TestAccessToken(dataParcel, replyParcel);
+    ASSERT_EQ(err, ERR_NONE);
+
+    uint32_t featureSet = replyParcel.ReadUint32();
+    uint32_t getTokenId = replyParcel.ReadUint32();
+    if ((featureSet & RPC_ACCESS_TOKEN_FLAG) > 0) {
         ASSERT_EQ(tokenId, getTokenId) << "deviceid is " << g_deviceId;
     } else {
         ASSERT_EQ(getTokenId, 0) << "deviceid is " << g_deviceId;
+    }
+}
+
+HWTEST_F(RpcClientTest, function_test_004, TestSize.Level1)
+{
+    uint32_t tokenId = RpcGetSelfTokenID();
+
+    MessageParcel dataParcel, replyParcel;
+    for (int i = 0; i < TEST_NUMS; i++) {
+        int32_t err = g_rpcTestProxy->TestAccessToken(dataParcel, replyParcel);
+        ASSERT_EQ(err, ERR_NONE);
+
+        uint32_t featureSet = replyParcel.ReadUint32();
+        uint32_t getTokenId = replyParcel.ReadUint32();
+        if ((featureSet & RPC_ACCESS_TOKEN_FLAG) > 0) {
+            ASSERT_EQ(tokenId, getTokenId) << "deviceid is " << g_deviceId;
+        } else {
+            ASSERT_EQ(getTokenId, 0) << "deviceid is " << g_deviceId;
+        }
     }
 }
 }
