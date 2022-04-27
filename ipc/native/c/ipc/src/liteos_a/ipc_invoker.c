@@ -529,9 +529,10 @@ static int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
     return ERR_NONE;
 }
 
-static int32_t IpcSetRegistryObject(SvcIdentity target)
+static int32_t IpcSetRegistryObject(SvcIdentity target, SvcIdentity *samgr)
 {
     (void)target;
+    (void)samgr;
     if (g_connector == NULL) {
         RPC_LOG_ERROR("liteipc driver not init");
         return ERR_IPC_SKELETON_NOT_INIT;

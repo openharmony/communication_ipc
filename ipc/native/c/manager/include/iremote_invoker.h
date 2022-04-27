@@ -35,7 +35,7 @@ typedef struct {
     void (*JoinThread)(bool initiative);
     void (*ExitCurrentThread)(void);
     void (*JoinProcessThread)(bool initiative);
-    int32_t (*SetRegistryObject)(SvcIdentity target);
+    int32_t (*SetRegistryObject)(SvcIdentity target, SvcIdentity *samgr);
     int32_t (*AddDeathRecipient)(int32_t handle, void *cookie);
     int32_t (*RemoveDeathRecipient)(int32_t handle, void *cookie);
     void (*InvokerResetIpc)(void);

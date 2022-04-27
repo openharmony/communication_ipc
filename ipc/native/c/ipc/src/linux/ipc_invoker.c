@@ -393,15 +393,16 @@ static int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
     return ret;
 }
 
-static int32_t IpcSetRegistryObject(SvcIdentity target)
+static int32_t IpcSetRegistryObject(SvcIdentity target, SvcIdentity *samgr)
 {
-    (void)target;
     if (g_connector == NULL) {
         RPC_LOG_ERROR("ipc driver not init");
         return ERR_FAILED;
     }
     int32_t ret = ioctl(g_connector->fd, BINDER_SET_CONTEXT_MGR, 0);
     if (ret == ERR_NONE) {
+        samgr->handle = -1;
+        samgr->cookie = target.cookie;
         RPC_LOG_INFO("set samgr success!!");
         return ERR_NONE;
     }
