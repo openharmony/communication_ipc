@@ -20,7 +20,7 @@
       "ram": "100KB",
       "deps": {
         "components": [
-            "//foundation/ace/napi:ace_napi",
+            "//foundation/arkui/napi:ace_napi",
             "//third_party/libuv:uv",
             "//utils/native/base:utils"
         ],
