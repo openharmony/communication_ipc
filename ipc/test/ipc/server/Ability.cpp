@@ -25,9 +25,7 @@
 
 static SvcIdentity *sid = nullptr;
 
-static SvcIdentity g_samgr = {
-    .handle = 0
-};
+static const SvcIdentity *g_samgr;
 
 static void CallAnonymosFunc(const char *str)
 {
@@ -143,7 +141,7 @@ static void AddSaOne(void)
     IpcIo reply;
     uintptr_t ptr = 0;
     RPC_LOG_INFO("====== add ability one to samgr ======");
-    int ret = SendRequest(g_samgr, ADD_SYSTEM_ABILITY_TRANSACTION, &data, &reply, g_option, &ptr);
+    int ret = SendRequest(*g_samgr, ADD_SYSTEM_ABILITY_TRANSACTION, &data, &reply, g_option, &ptr);
     int res = -1;
     ReadInt32(&reply, &res);
     FreeBuffer((void *)ptr);
@@ -155,6 +153,7 @@ static void AddSaOne(void)
 int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Server .... ");
+    g_samgr = GetContextObject();
     MessageOptionInit(&g_option);
     AddSaOne();
 
@@ -165,7 +164,7 @@ int main(int argc, char *argv[])
     uint8_t dataGet[IPC_MAX_SIZE];
     IpcIoInit(&data1, dataGet, IPC_MAX_SIZE, 0);
     WriteInt32(&data1, SERVER_SA_ID1);
-    int ret = SendRequest(g_samgr, GET_SYSTEM_ABILITY_TRANSACTION, &data1, &reply, g_option, &ptr);
+    int ret = SendRequest(*g_samgr, GET_SYSTEM_ABILITY_TRANSACTION, &data1, &reply, g_option, &ptr);
     SvcIdentity sidOne;
     ReadRemoteObject(&reply, &sidOne);
     FreeBuffer((void *)ptr);

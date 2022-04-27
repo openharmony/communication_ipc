@@ -71,9 +71,7 @@ void ServerDead3(void)
     RPC_LOG_INFO("#### server dead callback33 called ... ");
 }
 
-static SvcIdentity g_samgr = {
-    .handle = 0
-};
+static SvcIdentity *g_samgr = NULL;
 
 static void GetServerOne(void)
 {
@@ -83,7 +81,7 @@ static void GetServerOne(void)
     WriteInt32(&data1, SERVER_SA_ID1);
     IpcIo reply1;
     uintptr_t ptr = 0;
-    int ret = SendRequest(g_samgr, GET_SYSTEM_ABILITY_TRANSACTION, &data1, &reply1, g_option, &ptr);
+    int ret = SendRequest(*g_samgr, GET_SYSTEM_ABILITY_TRANSACTION, &data1, &reply1, g_option, &ptr);
     ReadRemoteObject(&reply1, &g_serverSid);
     FreeBuffer((void *)ptr);
     EXPECT_EQ(ret, ERR_NONE);
@@ -203,6 +201,7 @@ static void DeathCallbackTest(void)
 int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Client .... ");
+    g_samgr = GetContextObject();
     MessageOptionInit(&g_option);
     GetServerOne();
     CallServerAdd();
