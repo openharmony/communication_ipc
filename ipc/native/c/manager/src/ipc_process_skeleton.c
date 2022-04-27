@@ -162,10 +162,12 @@ int32_t SetRegistryObject(SvcIdentity target)
     int32_t ret = ERR_THREAD_INVOKER_NOT_INIT;
     RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL) {
-        ret = (invoker->SetRegistryObject)();
+        ret = (invoker->SetRegistryObject)(target);
     }
     if (ret == ERR_NONE) {
+#ifdef __LINUX__
         g_samgrSvc.handle = -1;
+#endif
         g_samgrSvc.cookie = target.cookie;
     }
     return ret;

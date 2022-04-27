@@ -105,9 +105,20 @@ if (ohos_kernel_type == "liteos_m") {
 
   shared_library("ipc_single") {
     sources = ipc_common_src
-    sources += [ "$IPC_CORE_ROOT/ipc/src/liteos_a/ipc_invoker.c" ]
+    sources += [
+      "$IPC_CORE_ROOT/ipc/src/liteos_a/ipc_invoker.c",
+      "$IPC_CORE_ROOT/ipc/src/liteos_a/serializer_inner.c",
+      "$IPC_CORE_ROOT/rpc/src/rpc_process_skeleton_virtual.c",
+    ]
     public_configs = [ ":ipc_rpc_interface" ]
     include_dirs = ipc_common_include
+    include_dirs += [
+      "$IPC_CORE_ROOT/rpc/include",
+      "$IPC_CORE_ROOT/ipc/src/liteos_a/include",
+      "$IPC_CORE_ROOT/rpc/trans_adapter/include",
+      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/utils/include",
+    ]
     ldflags = [
       "-lstdc++",
       "-lpthread",
