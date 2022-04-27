@@ -41,7 +41,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
     do {                                                                                               \
         size_t cap =  napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
-        if (cap < lenToWrite) {                                                                        \
+        if (cap < (lenToWrite)) {                                                                        \
             DBINDER_LOGI("No enough capacity to write");                                               \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
         }                                                                                              \
@@ -50,7 +50,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                                  \
     do {                                                                                              \
         size_t cap = napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
-        if (cap < lenToWrite) {                                                                       \
+        if (cap < (lenToWrite)) {                                                                       \
             DBINDER_LOGI("No enough capacity to write");                                              \
             napiParcel->nativeParcel_->RewindWrite(pos);                                              \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
@@ -60,7 +60,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #define CHECK_READ_LENGTH(env, arrayLength, typeSize, napiParcel)                                                    \
     do {                                                                                                             \
         size_t remainSize = napiParcel->nativeParcel_->GetDataSize() - napiParcel->nativeParcel_->GetReadPosition(); \
-        if ((arrayLength < 0) || (arrayLength > remainSize) || ((arrayLength * typeSize) > remainSize)) {            \
+        if (((arrayLength) < 0) || ((arrayLength) > remainSize) || (((arrayLength) * (typeSize)) > remainSize)) {    \
             DBINDER_LOGI("No enough data to read");                                                                  \
             napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
         }                                                                                                            \
