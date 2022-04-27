@@ -772,8 +772,9 @@ void RpcStopWorkThread(void)
     threadContext->stopWorkThread = true;
 }
 
-int32_t RpcSetRegistryObject(void)
+int32_t RpcSetRegistryObject(SvcIdentity target)
 {
+    (void)target;
     return ERR_NONE;
 }
 
