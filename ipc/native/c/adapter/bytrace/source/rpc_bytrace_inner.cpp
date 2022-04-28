@@ -16,7 +16,7 @@
 #include "rpc_bytrace_inner.h"
 #include <cstddef>
 #include <cstdint>
-#include "bytrace.h"
+#include "hitrace_meter.h"
 using namespace std;
 
 void RpcStartTraceInner(uint64_t label, const char *value)

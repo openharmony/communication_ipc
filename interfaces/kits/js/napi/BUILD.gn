@@ -48,7 +48,7 @@ ohos_shared_library("rpc") {
   ]
 
   external_deps = [
-    "bytrace_standard:bytrace_core",
+    "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
