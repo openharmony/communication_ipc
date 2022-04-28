@@ -16,9 +16,12 @@
 #include "dbinder_sa_death_recipient.h"
 #include "dbinder_service.h"
 #include "dbinder_log.h"
+#include "ISessionService.h"
 #include "log_tags.h"
 
 namespace OHOS {
+using Communication::SoftBus::ISessionService;
+
 #ifndef TITLE
 #define TITLE __PRETTY_FUNCTION__
 #endif
@@ -51,5 +54,17 @@ void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
     (void)dBinderService->DetachBusNameObject(proxy);
     (void)dBinderService->DetachProxyObject(binderObject_);
+
+    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
+    if (softbusManager == nullptr) {
+        DBINDER_LOGE("fail to get softbus service");
+        return;
+    }
+    std::string sessionName = dBinderService->QueryBusNameObject(proxy);
+    if (sessionName.empty()) {
+        DBINDER_LOGE("proxy sessionName not found");
+        return;
+    }
+    softbusManager->RemovePermission(sessionName);
 }
 } // namespace OHOS
