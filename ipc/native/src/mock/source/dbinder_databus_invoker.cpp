@@ -683,15 +683,11 @@ bool DBinderDatabusInvoker::IsLocalCalling()
     return false;
 }
 
-bool DBinderDatabusInvoker::SetTokenId(const dbinder_transaction_data *tr, uint32_t listenFd)
+bool DBinderDatabusInvoker::SetTokenId(const dbinder_transaction_data *tr,
+    std::shared_ptr<DBinderSessionObject> sessionObject)
 {
-    if (tr == nullptr) {
-        DBINDER_LOGE("set tokenid tr is null");
-        return false;
-    }
-    std::shared_ptr<DBinderSessionObject> sessionObject = QueryClientSessionObject(listenFd);
     if (sessionObject == nullptr) {
-        DBINDER_LOGE("session is not exist for listenFd = %u", listenFd);
+        DBINDER_LOGE("sessionObject is null");
         return false;
     }
     std::shared_ptr<FeatureSetData> feature = sessionObject->GetFeatureSet();
