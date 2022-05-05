@@ -75,8 +75,6 @@ int32_t RemoveDeathRecipient(SvcIdentity target, uint32_t cbId);
 int32_t MessageOptionInit(MessageOption *option);
 
 int32_t ReleaseSvc(SvcIdentity target);
-
-void ResetIpc(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

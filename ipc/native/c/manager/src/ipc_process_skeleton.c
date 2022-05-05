@@ -15,6 +15,7 @@
 
 #include "ipc_process_skeleton.h"
 #include "ipc_skeleton.h"
+#include "ipc_skeleton_pri.h"
 #include "ipc_thread_pool.h"
 #include "iremote_invoker.h"
 #include "rpc_errno.h"
