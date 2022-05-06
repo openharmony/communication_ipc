@@ -71,8 +71,14 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
             DBINDER_LOGI("SpawnThread, now idleSocketThreadNum_ =%d", idleSocketThreadNum_);
         }
 
-        newThread->Start(policy, proto, threadName);
-        return true;
+        bool ret = true;
+        try {
+            newThread->Start(policy, proto, threadName);
+        } catch (const std::exception& e) {
+            DBINDER_LOGI("get exception:%{public}s", e.what());
+            ret = false;
+        }
+        return ret;
     }
     return false;
 }

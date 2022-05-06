@@ -20,6 +20,7 @@ config("libipc_single_private_config") {
   cflags_cc = [
     "-DCONFIG_IPC_SINGLE",
     "-O2",
+    "-fexceptions",
   ]
 }
 ohos_shared_library("ipc_single") {
