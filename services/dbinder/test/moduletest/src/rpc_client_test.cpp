@@ -30,6 +30,7 @@ using namespace OHOS;
 #define TEST_NUMS 1000
 static std::string g_deviceId;
 static sptr<IRpcFooTest> g_rpcTestProxy;
+static sptr<IRpcFooTest> g_ipcTestProxy;
 class RpcClientTest : public testing::Test {
 public:
     static constexpr char DBINDER_PKG_NAME[] = "DBinderService";
@@ -104,5 +105,26 @@ HWTEST_F(RpcClientTest, function_test_004, TestSize.Level1)
             ASSERT_EQ(getTokenId, 0) << "deviceid is " << g_deviceId;
         }
     }
+}
+
+HWTEST_F(RpcClientTest, function_test_005, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_FALSE(saMgr == nullptr);
+
+    sptr<IRemoteObject> object = saMgr->GetSystemAbility(RPC_TEST_SERVICE2);
+    ASSERT_TRUE(object != nullptr);
+
+    MessageParcel dataParcel, replyParcel;
+    dataParcel.WriteRemoteObject(object);
+    dataParcel.WriteInt32(1);
+    dataParcel.WriteInt32(1);
+    dataParcel.WriteInt32(1);
+    dataParcel.WriteInt32(1);
+    dataParcel.WriteInt32(1);
+    int32_t err = g_rpcTestProxy->TestRemoteObject(dataParcel, replyParcel);
+    ASSERT_EQ(err, ERR_NONE);
+    err = replyParcel.ReadInt32();
+    ASSERT_EQ(err, ERR_NONE);
 }
 }

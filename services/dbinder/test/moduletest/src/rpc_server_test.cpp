@@ -32,7 +32,10 @@ public:
 
 void RpcServerTest::SetUpTestCase() {}
 
-void RpcServerTest::TearDownTestCase() {}
+void RpcServerTest::TearDownTestCase()
+{
+    IPCSkeleton::JoinWorkThread();
+}
 
 HWTEST_F(RpcServerTest, function_test_001, TestSize.Level1)
 {
@@ -43,7 +46,14 @@ HWTEST_F(RpcServerTest, function_test_001, TestSize.Level1)
     saExtra.isDistributed = true;
     int result = saMgr->AddSystemAbility(RPC_TEST_SERVICE, new RpcFooStub(), saExtra);
     ASSERT_EQ(result, 0);
+}
 
-    IPCSkeleton::JoinWorkThread();
+HWTEST_F(RpcServerTest, function_test_002, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_TRUE(saMgr != nullptr);
+
+    int result = saMgr->AddSystemAbility(RPC_TEST_SERVICE2, new RpcFooStub());
+    ASSERT_EQ(result, 0);
 }
 }

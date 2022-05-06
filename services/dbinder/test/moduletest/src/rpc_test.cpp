@@ -14,6 +14,7 @@
  */
 
 #include "rpc_test.h"
+#include "iremote_object.h"
 #include "ipc_skeleton.h"
 #include "ipc_types.h"
 
@@ -35,6 +36,14 @@ int RpcFooStub::OnRemoteRequest(uint32_t code,
         }
         case GET_TOKENID: {
             result = TestAccessToken(data, reply);
+            break;
+        }
+        case TEST_REMOTE_OBJECT: {
+            result = TestRemoteObject(data, reply);
+            break;
+        }
+        case TEST_ADD: {
+            result = TestAdd(data, reply);
             break;
         }
         default:
@@ -61,6 +70,27 @@ int32_t RpcFooStub::TestAccessToken(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
+int32_t RpcFooStub::TestRemoteObject(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<RpcFooProxy> rpcProxy = iface_cast<RpcFooProxy>(data.ReadRemoteObject());
+    if (rpcProxy == nullptr) {
+        reply.WriteInt32(ERR_NULL_OBJECT);
+        return ERR_NULL_OBJECT;
+    }
+    MessageParcel dataParcel, replyParcel;
+    int32_t err = rpcProxy->TestAdd(dataParcel, replyParcel);
+    reply.WriteInt32(err);
+    return err;
+}
+
+int32_t RpcFooStub::TestAdd(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t a = data.ReadInt32();
+    int32_t b = data.ReadInt32();
+    reply.WriteInt32(a + b);
+    return ERR_NONE;
+}
+
 RpcFooProxy::RpcFooProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<IRpcFooTest>(impl)
 {
@@ -82,5 +112,26 @@ int32_t RpcFooProxy::TestAccessToken(MessageParcel &data, MessageParcel &reply)
     MessageOption option;
     int32_t err = Remote()->SendRequest(GET_TOKENID, data, reply, option);
     return err;
+}
+
+int32_t RpcFooProxy::TestRemoteObject(MessageParcel &data, MessageParcel &reply)
+{
+    MessageOption option;
+    int32_t err = Remote()->SendRequest(TEST_REMOTE_OBJECT, data, reply, option);
+    return err;
+}
+
+int32_t RpcFooProxy::TestAdd(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t a = 223;
+    int32_t b = 513;
+    data.WriteInt32(a);
+    data.WriteInt32(b);
+    MessageOption option;
+    int32_t err = Remote()->SendRequest(TEST_ADD, data, reply, option);
+    if (err != ERR_NONE) {
+        return err;
+    }
+    return reply.ReadInt32() == (a + b) ? ERR_NONE : ERR_INVALID_DATA;
 }
 } // namespace OHOS

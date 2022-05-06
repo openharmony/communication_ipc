@@ -31,10 +31,14 @@ public:
         SEND_ASYNC_REPLY = 1,
         SEND_WRONG_REPLY = 2,
         GET_TOKENID = 3,
+        TEST_REMOTE_OBJECT = 4,
+        TEST_ADD = 5,
     };
     std::string GetFooName(void);
     virtual std::string TestGetFooName(void) = 0;
     virtual int32_t TestAccessToken(MessageParcel &data, MessageParcel &reply) = 0;
+    virtual int32_t TestRemoteObject(MessageParcel &data, MessageParcel &reply) = 0;
+    virtual int32_t TestAdd(MessageParcel &data, MessageParcel &reply) = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.rpc.IRpcFooTest");
 private:
@@ -47,6 +51,8 @@ public:
         MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     std::string TestGetFooName(void) override;
     int32_t TestAccessToken(MessageParcel &data, MessageParcel &reply) override;
+    int32_t TestRemoteObject(MessageParcel &data, MessageParcel &reply) override;
+    int32_t TestAdd(MessageParcel &data, MessageParcel &reply) override;
 };
 
 class RpcFooProxy : public IRemoteProxy<IRpcFooTest> {
@@ -55,6 +61,8 @@ public:
     ~RpcFooProxy() = default;
     std::string TestGetFooName(void) override;
     int32_t TestAccessToken(MessageParcel &data, MessageParcel &reply) override;
+    int32_t TestRemoteObject(MessageParcel &data, MessageParcel &reply) override;
+    int32_t TestAdd(MessageParcel &data, MessageParcel &reply) override;
 private:
     static inline BrokerDelegator<RpcFooProxy> delegator_;
 };
