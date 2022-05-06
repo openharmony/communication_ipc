@@ -103,16 +103,16 @@ public:
     virtual void SetCallerTokenID(const uint32_t tokenId) = 0;
     virtual int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) = 0;
     virtual int OnSendRawData(std::shared_ptr<T> session, const void *data, size_t size) = 0;
-    virtual bool SetTokenId(const dbinder_transaction_data *tr, uint32_t listenFd) = 0;
+    virtual bool SetTokenId(const dbinder_transaction_data *tr, std::shared_ptr<T> sessionObject) = 0;
     bool CheckTransactionData(const dbinder_transaction_data *tr) const;
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
     uint32_t TranslateHandleType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
-    bool TranslateRemoteHandleType(flat_binder_object *binderObject, char *sessionOffset);
-    int HandleReply(uint64_t seqNumber, MessageParcel *reply);
+    bool TranslateRemoteHandleType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
+    int HandleReply(uint64_t seqNumber, MessageParcel *reply, std::shared_ptr<T> sessionObject);
     bool SetSenderStubIndex(std::shared_ptr<dbinder_transaction_data> transData, uint32_t handle);
-    int WaitForReply(uint64_t seqNumber, MessageParcel *reply, uint32_t handle, int userWaitTime);
+    int WaitForReply(uint64_t seqNumber, MessageParcel *reply, std::shared_ptr<T> sessionObject, int userWaitTime);
     void ProcessTransaction(dbinder_transaction_data *tr, uint32_t listenFd);
     void ProcessReply(dbinder_transaction_data *tr, uint32_t listenFd);
     bool IRemoteObjectTranslate(char *dataBuffer, binder_size_t buffer_size, MessageParcel &data, uint32_t socketId,
@@ -201,7 +201,8 @@ template <class T> uint32_t DBinderBaseInvoker<T>::MakeRemoteHandle(std::shared_
 }
 
 template <class T>
-bool DBinderBaseInvoker<T>::TranslateRemoteHandleType(flat_binder_object *binderObject, char *sessionOffset)
+bool DBinderBaseInvoker<T>::TranslateRemoteHandleType(flat_binder_object *binderObject, char *sessionOffset,
+    std::shared_ptr<T> session)
 {
     std::shared_ptr<T> sessionOfPeer = nullptr;
     uint64_t stubIndex = 0;
@@ -214,6 +215,7 @@ bool DBinderBaseInvoker<T>::TranslateRemoteHandleType(flat_binder_object *binder
         DBINDER_BASE_LOGE("send a wrong dbinder object");
         return false;
     }
+    sessionOfPeer->SetFeatureSet(session->GetFeatureSet());
 
     uint32_t handle = QueryHandleBySession(sessionOfPeer, stubIndex);
     if (handle == 0) {
@@ -267,7 +269,8 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size
             }
 
             case BINDER_TYPE_REMOTE_HANDLE: {
-                if (TranslateRemoteHandleType(binderObject, flatOffset + i * T::GetFlatSessionLen()) != true) {
+                if (TranslateRemoteHandleType(binderObject, flatOffset + i * T::GetFlatSessionLen(),
+                    sessionObject) != true) {
                     DBINDER_BASE_LOGE("send a wrong dbinder object");
                     return false;
                 }
@@ -561,7 +564,8 @@ std::shared_ptr<T> DBinderBaseInvoker<T>::WriteTransaction(int cmd, uint32_t fla
     return sessionObject;
 }
 
-template <class T> int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply)
+template <class T> int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
+    std::shared_ptr<T> sessionObject)
 {
     if (reply == nullptr) {
         DBINDER_BASE_LOGE("no need reply, free the buffer");
@@ -606,7 +610,7 @@ template <class T> int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, Me
     }
 
     if (!IRemoteObjectTranslate(reinterpret_cast<char *>(messageInfo->buffer), messageInfo->bufferSize, *reply,
-        messageInfo->socketId, nullptr)) {
+        messageInfo->socketId, sessionObject)) {
         DBINDER_BASE_LOGE("translate object failed");
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
@@ -634,14 +638,15 @@ template <class T> void DBinderBaseInvoker<T>::DBinderRecvAllocator::Dealloc(voi
 }
 
 template <class T>
-int DBinderBaseInvoker<T>::WaitForReply(uint64_t seqNumber, MessageParcel *reply, uint32_t handle, int userWaitTime)
+int DBinderBaseInvoker<T>::WaitForReply(uint64_t seqNumber, MessageParcel *reply,
+    std::shared_ptr<T> sessionObject, int userWaitTime)
 {
     /* if reply == nullptr, this is a one way message */
     if (reply == nullptr) {
         return NO_ERROR;
     }
 
-    std::shared_ptr<ThreadMessageInfo> messageInfo = MakeThreadMessageInfo(handle);
+    std::shared_ptr<ThreadMessageInfo> messageInfo = MakeThreadMessageInfo(sessionObject->GetSessionHandle());
     if (messageInfo == nullptr) {
         DBINDER_BASE_LOGE("make thread message info failed, no memory");
         return RPC_BASE_INVOKER_WAIT_REPLY_ERR;
@@ -658,7 +663,7 @@ int DBinderBaseInvoker<T>::WaitForReply(uint64_t seqNumber, MessageParcel *reply
         return RPC_BASE_INVOKER_WAIT_REPLY_ERR;
     }
 
-    int32_t err = HandleReply(seqNumber, reply);
+    int32_t err = HandleReply(seqNumber, reply, sessionObject);
     current->EraseThreadBySeqNumber(seqNumber);
     messageInfo->buffer = nullptr;
     return err;
@@ -681,7 +686,7 @@ int DBinderBaseInvoker<T>::SendOrWaitForCompletion(int userWaitTime, uint64_t se
         DBINDER_BASE_LOGE("fail to send to remote session with error = %{public}d", returnLen);
         // no return, for msg send failed maybe not mine
     }
-    return WaitForReply(seqNumber, reply, sessionOfPeer->GetSessionHandle(), userWaitTime);
+    return WaitForReply(seqNumber, reply, sessionOfPeer, userWaitTime);
 }
 
 template <class T>
@@ -865,7 +870,12 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         DBINDER_BASE_LOGE("set user info error, maybe cookie is NOT belong to current caller");
         return;
     }
-    if (SetTokenId(tr, listenFd) != true) {
+    std::shared_ptr<T> sessionObject = QueryClientSessionObject(listenFd);
+    if (sessionObject == nullptr) {
+        DBINDER_BASE_LOGE("session is not exist for listenFd = %u", listenFd);
+        return;
+    }
+    if (SetTokenId(tr, sessionObject) != true) {
         DBINDER_BASE_LOGE("set tokenid failed");
         return;
     }
@@ -883,7 +893,8 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         DBINDER_BASE_LOGE("stubIndex is invalid");
         return;
     }
-    if (!IRemoteObjectTranslate(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data, listenFd, nullptr)) {
+    if (!IRemoteObjectTranslate(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data,
+        listenFd, sessionObject)) {
         DBINDER_BASE_LOGE("translate object failed");
         return;
     }

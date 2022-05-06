@@ -98,7 +98,7 @@ private:
     bool ConnectRemoteObject2Session(IRemoteObject *stubObject, uint64_t stubIndex,
         const std::shared_ptr<DBinderSessionObject> sessionObject);
     bool AuthSession2Proxy(uint32_t handle, const std::shared_ptr<DBinderSessionObject> Session);
-    bool SetTokenId(const dbinder_transaction_data *tr, uint32_t listenFd) override;
+    bool SetTokenId(const dbinder_transaction_data *tr, std::shared_ptr<DBinderSessionObject> sessionObject) override;
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderDatabusInvoker);
