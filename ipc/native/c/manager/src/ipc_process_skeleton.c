@@ -426,7 +426,13 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
 void ResetIpc(void)
 {
     RPC_LOG_INFO("ResetIpc called");
+    RemoteInvoker *invoker = GetRemoteInvoker();
+    if (invoker != NULL && invoker->InvokerResetIpc != NULL) {
+        (invoker->InvokerResetIpc)();
+    }
+#ifdef IPC_RESET_SKELETON
     DeleteIpcSkeleton(g_ipcSkeleton);
     g_ipcSkeleton = NULL;
     g_ipcSkeleton = IpcProcessSkeleton();
+#endif 
 }
