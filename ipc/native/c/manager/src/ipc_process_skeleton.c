@@ -434,5 +434,5 @@ void ResetIpc(void)
     DeleteIpcSkeleton(g_ipcSkeleton);
     g_ipcSkeleton = NULL;
     g_ipcSkeleton = IpcProcessSkeleton();
-#endif 
+#endif
 }
