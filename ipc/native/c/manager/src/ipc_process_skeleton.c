@@ -15,6 +15,7 @@
 
 #include "ipc_process_skeleton.h"
 #include "ipc_skeleton.h"
+#include "ipc_skeleton_pri.h"
 #include "ipc_thread_pool.h"
 #include "iremote_invoker.h"
 #include "rpc_errno.h"
@@ -422,10 +423,31 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
     free(deathCallback);
 }
 
+static void DeleteAllNode(void)
+{
+    (void)pthread_mutex_lock(&g_ipcSkeleton->lock);
+    DeathCallback *node = NULL;
+    DeathCallback *next = NULL;
+    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
+    {
+        pthread_mutex_destroy(&node->lock);
+        UtilsListDelete(&node->list);
+        free(node);
+    }
+    pthread_mutex_unlock(&g_ipcSkeleton->lock);
+}
+
 void ResetIpc(void)
 {
+    RPC_LOG_INFO("ResetIpc called");
     RemoteInvoker *invoker = GetRemoteInvoker();
     if (invoker != NULL && invoker->InvokerResetIpc != NULL) {
         (invoker->InvokerResetIpc)();
     }
+    DeleteAllNode();
+#ifdef IPC_RESET_SKELETON
+    DeleteIpcSkeleton(g_ipcSkeleton);
+    g_ipcSkeleton = NULL;
+    g_ipcSkeleton = IpcProcessSkeleton();
+#endif
 }

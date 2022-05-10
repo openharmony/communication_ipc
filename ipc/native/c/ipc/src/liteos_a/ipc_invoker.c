@@ -339,6 +339,7 @@ static void GetDeathCallback(IpcMsg* msg, HdlerArg* arg)
         return;
     }
     arg->msg = msg;
+    arg->num = MAX_DEATH_CALLBACK_NUM;
     (void)pthread_mutex_unlock(&g_ipcCallback.mutex);
 }
 
