@@ -175,6 +175,7 @@ if (ohos_kernel_type == "liteos_m") {
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
     configs -= [ "//build/lite/config:clang_opt" ]
+    defines = [ "IPC_RESET_SKELETON" ]
   }
 
   SYSTEM_LEVEL = "small"
@@ -217,6 +218,7 @@ if (ohos_kernel_type == "liteos_m") {
     ]
     deps = [ "//foundation/communication/dsoftbus/sdk:softbus_client" ]
     defines = [ "RPC_SOFTBUS_TRANS" ]
+    defines += [ "IPC_RESET_SKELETON" ]
 
     if (enable_socket_trans) {
       sources -= [ "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_softbus_trans.c" ]
