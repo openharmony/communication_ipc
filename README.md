@@ -254,9 +254,10 @@ DSoftBus subsystem
 
 **communication\_ipc**
 
-utils
+[utils](https://gitee.com/openharmony/utils)
 
-utils\_native
+[utils\_native](https://gitee.com/openharmony/utils_native)
 
-distributedschedule\_samgr
+[distributedschedule\_samgr](https://gitee.com/openharmony/distributedschedule_samgr)
+
 
