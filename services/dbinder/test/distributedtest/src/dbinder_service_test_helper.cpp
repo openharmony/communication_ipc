@@ -132,11 +132,11 @@ pid_t StartExecutable(std::string name, std::string args)
         return pid;
     }
 
-    std::string cmd1 = "chmod +x /data/test/" + name;
+    std::string cmd1 = "chmod +x /data/" + name;
     int res = system(cmd1.c_str());
     DBINDER_LOGI("%{public}s res = %d, errno = %{public}d %{public}s", cmd1.c_str(), res, errno, strerror(errno));
 
-    std::string cmd2 = "/data/test/" + name + " " + args + "&";
+    std::string cmd2 = "/data/" + name + " " + args + "&";
     res = system(cmd2.c_str());
     DBINDER_LOGI("%{public}s res = %{public}d", cmd2.c_str(), res);
 
