@@ -57,7 +57,7 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
     } else {
-        current = new IPCThreadSkeleton();
+        current = new (std::nothrow) IPCThreadSkeleton();
     }
 
     return current;

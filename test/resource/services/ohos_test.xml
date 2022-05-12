@@ -15,14 +15,14 @@
 <configuration ver="2.0">
   <target name="DbinderTest">
     <preparer>
-      <option name="push" value="communication/ipc/dbinder_test -> /data/test" src="out" />
-      <option name="push" value="communication/ipc/dbinder_send -> /data/test" src="out" />
+      <option name="push" value="communication/ipc/dbinder_test -> /data" src="out" />
+      <option name="push" value="communication/ipc/dbinder_send -> /data" src="out" />
     </preparer>
   </target>
   <target name="DbinderTestAgent">
     <preparer>
-      <option name="push" value="communication/ipc/dbinder_test -> /data/test" src="out" />
-      <option name="push" value="communication/ipc/dbinder_send -> /data/test" src="out" />
+      <option name="push" value="communication/ipc/dbinder_test -> /data" src="out" />
+      <option name="push" value="communication/ipc/dbinder_send -> /data" src="out" />
     </preparer>
   </target>
 </configuration>

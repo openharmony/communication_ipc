@@ -58,7 +58,11 @@ IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> lockGuard(procMutex_);
         if (instance_ == nullptr) {
-            IPCProcessSkeleton *temp = new IPCProcessSkeleton();
+            IPCProcessSkeleton *temp = new (std::nothrow) IPCProcessSkeleton();
+            if (temp == nullptr) {
+                DBINDER_LOGE("create IPCProcessSkeleton object failed");
+                return nullptr;
+            }
             if (temp->SetMaxWorkThread(DEFAULT_WORK_THREAD_NUM)) {
                 temp->SpawnThread(IPCWorkThread::SPAWN_ACTIVE);
             }
@@ -176,9 +180,12 @@ bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
     }
 
     if (threadPool_ == nullptr) {
-        threadPool_ = new IPCWorkThreadPool(maxThreadNum);
+        threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
+        if (threadPool_ == nullptr) {
+            DBINDER_LOGE("create IPCWorkThreadPool object failed");
+            return false;
+        }
     }
-
     threadPool_->UpdateMaxThreadNum(maxThreadNum);
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
     if (invoker != nullptr) {

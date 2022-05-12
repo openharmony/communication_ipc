@@ -348,7 +348,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_008, TestSize.Level1)
     ASSERT_TRUE(object != nullptr);
     ZLOGI(LABEL, "get test.service OK");
 
-    int fd = open("/data/test/dump.txt",
+    int fd = open("/data/dump.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
 
     ASSERT_TRUE(fd > 0);

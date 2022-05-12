@@ -411,7 +411,12 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
 void BinderInvoker::OnTransaction(const uint8_t *buffer)
 {
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
-    auto data = std::make_unique<MessageParcel>(new BinderAllocator());
+    auto binderAllocator = new (std::nothrow) BinderAllocator();
+    if (binderAllocator == nullptr) {
+        ZLOGE(LABEL, "BinderAllocator Creation failed");
+        return;
+    }
+    auto data = std::make_unique<MessageParcel>(binderAllocator);
     data->ParseFrom(tr->data.ptr.buffer, tr->data_size);
     if (tr->offsets_size > 0) {
         data->InjectOffsets(tr->data.ptr.offsets, tr->offsets_size / sizeof(binder_size_t));
@@ -532,7 +537,11 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
     }
 
     if (tr->data_size > 0) {
-        auto allocator = new BinderAllocator();
+        auto allocator = new (std::nothrow) BinderAllocator();
+        if (allocator == nullptr) {
+            ZLOGE(LABEL, "create BinderAllocator object failed");
+            return IPC_INVOKER_INVALID_DATA_ERR;
+        }
         if (!reply->SetAllocator(allocator)) {
             ZLOGI(LABEL, "SetAllocator failed");
             delete allocator;

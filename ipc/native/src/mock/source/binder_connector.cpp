@@ -154,7 +154,11 @@ BinderConnector *BinderConnector::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> lockGuard(skeletonMutex);
         if (instance_ == nullptr) {
-            BinderConnector *temp = new BinderConnector(DRIVER_NAME);
+            auto temp = new (std::nothrow) BinderConnector(DRIVER_NAME);
+            if (temp == nullptr) {
+                ZLOGE(LABEL, "create BinderConnector object failed");
+                return nullptr;
+            }
             if (!temp->OpenDriver()) {
                 delete temp;
                 temp = nullptr;

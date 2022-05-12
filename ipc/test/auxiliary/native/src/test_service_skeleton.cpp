@@ -153,7 +153,7 @@ int TestServiceProxy::TestStringTransaction(const std::string &data)
 void TestServiceProxy::TestDumpService()
 {
     ZLOGI(LABEL, "call StartDumpService");
-    int fd = open("/data/test/dump.txt",
+    int fd = open("/data/dump.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
     if (fd != INVALID_FD) {
         ZLOGI(LABEL, "Start Dump Service");
@@ -166,7 +166,7 @@ void TestServiceProxy::TestDumpService()
 
 void TestServiceProxy::TestAsyncDumpService()
 {
-    int fd = open("/data/test/nonblockingDump.txt",
+    int fd = open("/data/nonblockingDump.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
     if (fd == INVALID_FD) {
         return;
