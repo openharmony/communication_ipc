@@ -27,6 +27,7 @@ namespace IPC_SINGLE {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThreadPool" };
 
 #define DBINDER_LOGI(fmt, args...) (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define DBINDER_LOGE(fmt, args...) (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
     : threadSequence_(0),
@@ -60,7 +61,12 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
     DBINDER_LOGI("SpawnThread Name= %{public}s", threadName.c_str());
 
     if (threads_.find(threadName) == threads_.end()) {
-        sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>(new IPCWorkThread(threadName));
+        auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
+        if (ipcThread == nullptr) {
+            DBINDER_LOGE("create IPCWorkThread object failed");
+            return false;
+        }
+        sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>(ipcThread);
         threads_[threadName] = newThread;
         if (proto == IRemoteObject::IF_PROT_DEFAULT) {
             idleThreadNum_--;

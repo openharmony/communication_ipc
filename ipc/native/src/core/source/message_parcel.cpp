@@ -37,14 +37,11 @@ namespace OHOS {
 #define TITLE __PRETTY_FUNCTION__
 #endif
 
-#ifndef CONFIG_IPC_SINGLE
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "MessageParcel" };
 #define DBINDER_LOGE(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#endif
-
 
 MessageParcel::MessageParcel()
     : Parcel(),
@@ -118,7 +115,11 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     sptr<DBinderCallbackStub> fakeStub = current->QueryDBinderCallbackStub(object);
     if (fakeStub == nullptr) {
         // note that cannot use this proxy's descriptor
-        fakeStub = new DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle, feature);
+        fakeStub = new (std::nothrow) DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle, feature);
+        if (fakeStub == nullptr) {
+            DBINDER_LOGE("create DBinderCallbackStub object failed");
+            return false;
+        }
         if (!current->AttachDBinderCallbackStub(object, fakeStub)) {
             DBINDER_LOGE("save callback of fake stub failed");
             return false;
@@ -184,7 +185,11 @@ bool MessageParcel::WriteFileDescriptor(int fd)
     if (dupFd < 0) {
         return false;
     }
-    sptr<IPCFileDescriptor> descriptor = new IPCFileDescriptor(dupFd);
+    sptr<IPCFileDescriptor> descriptor = new (std::nothrow) IPCFileDescriptor(dupFd);
+    if (descriptor == nullptr) {
+        DBINDER_LOGE("create IPCFileDescriptor object failed");
+        return false;
+    }
     return WriteObject<IPCFileDescriptor>(descriptor);
 }
 
@@ -415,6 +420,6 @@ sptr<Ashmem> MessageParcel::ReadAshmem()
         ::close(fd);
         return nullptr;
     }
-    return new Ashmem(fd, size);
+    return new (std::nothrow) Ashmem(fd, size);
 }
 } // namespace OHOS

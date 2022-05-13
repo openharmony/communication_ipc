@@ -522,7 +522,11 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
         return true;
     }
 
-    sptr<IPCObjectStub> callbackStub = new IPCObjectStub(descriptor_);
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(descriptor_);
+    if (callbackStub == nullptr) {
+        ZLOGE(LABEL, "create IPCObjectStub object failed");
+        return false;
+    }
     if (!current->AttachCallbackStub(this, callbackStub)) {
         ZLOGW(LABEL, "%s: already attach new callback stub", __func__);
         return false;

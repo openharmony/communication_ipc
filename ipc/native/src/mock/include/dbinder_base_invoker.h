@@ -595,7 +595,11 @@ template <class T> int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, Me
         DBINDER_BASE_LOGE("need reply message, but buffer is nullptr");
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
-    auto allocator = new DBinderRecvAllocator();
+    auto allocator = new (std::nothrow) DBinderRecvAllocator();
+    if (allocator == nullptr) {
+        DBINDER_BASE_LOGE("create DBinderRecvAllocator object failed");
+        return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
+    }
     if (!reply->SetAllocator(allocator)) {
         DBINDER_BASE_LOGE("SetAllocator failed");
         delete allocator;
@@ -847,7 +851,11 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         return;
     }
 
-    auto allocator = new DBinderSendAllocator();
+    auto allocator = new (std::nothrow) DBinderSendAllocator();
+    if (allocator == nullptr) {
+        DBINDER_BASE_LOGE("DBinderSendAllocator Creation failed");
+        return;
+    }
     if (!data.SetAllocator(allocator)) {
         DBINDER_BASE_LOGE("SetAllocator failed");
         delete allocator;
