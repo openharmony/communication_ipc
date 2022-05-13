@@ -134,7 +134,7 @@ int TestService::TestGetFileDescriptor()
         close(testFd_);
     }
 
-    testFd_ = open("/data/test/test.txt",
+    testFd_ = open("/data/test.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
 
     if (testFd_ == INVALID_FD) {

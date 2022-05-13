@@ -49,7 +49,7 @@ void IPCFileDescOpsTest::TearDownTestCase() {}
 HWTEST_F(IPCFileDescOpsTest, fd_parcelable_001, TestSize.Level1)
 {
     int testFdNum;
-    testFdNum = open("/data/test/fd_unit_test.txt", O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
+    testFdNum = open("/data/fd_unit_test.txt", O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
 
     if (testFdNum == -1) {
         ZLOGI(LABEL, "%s(%d):open failed.", __func__, __LINE__);

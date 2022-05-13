@@ -56,7 +56,14 @@ private:
 template <typename T> InvokerDelegator<T>::InvokerDelegator(int prot)
 {
     prot_ = prot;
-    InvokerFactory::Get().Register(prot, []() { return static_cast<IRemoteInvoker *>(new T()); });
+    auto invokerObject = []() -> IRemoteInvoker * {
+        auto data = new (std::nothrow) T();
+        if (data == nullptr) {
+            return nullptr;
+        }
+        return static_cast<IRemoteInvoker *>(data);
+    };
+    InvokerFactory::Get().Register(prot, invokerObject);
 }
 
 template <typename T> InvokerDelegator<T>::~InvokerDelegator()

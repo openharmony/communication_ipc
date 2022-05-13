@@ -85,6 +85,6 @@ IPCFileDescriptor *IPCFileDescriptor::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
-    return new IPCFileDescriptor(fd);
+    return new (std::nothrow) IPCFileDescriptor(fd);
 }
 } // namespace OHOS
