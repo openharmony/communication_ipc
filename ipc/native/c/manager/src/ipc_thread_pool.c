@@ -52,7 +52,6 @@ ThreadContext *GetCurrentThreadContext(void)
 
 static void TlsDestructor(void *args)
 {
-    RPC_LOG_INFO("thread exit, call tls destructor");
     ThreadContext *threadContext = (ThreadContext *)args;
     RemoteInvoker *invoker = g_invoker[threadContext->proto];
     free(threadContext);
