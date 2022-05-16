@@ -207,8 +207,9 @@ deps = [
 
    ```
    import rpc from "@ohos.rpc"
-   onConnect(want) {
-       return new Stub("rpcTestAbility")
+   onConnect(want: Want) {
+       var robj:rpc.RemoteObject = new Stub("rpcTestAbility")
+       return robj
    }
    class Stub extends rpc.RemoteObject {
        constructor(descriptor) {
