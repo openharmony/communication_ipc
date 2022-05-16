@@ -208,7 +208,6 @@ deps = [
    ```
    import rpc from "@ohos.rpc"
    onConnect(want: Want) {
-       console.log("ZidlTest ServiceAbility onConnect, want:" + want.abilityName)
        var robj:rpc.RemoteObject = new Stub("rpcTestAbility")
        return robj
    }
