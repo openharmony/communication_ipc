@@ -18,7 +18,6 @@
 
 #include <codecvt>
 #include <locale>
-#include <vector>
 #include <string>
 #include "ipc_types.h"
 #include "message_parcel.h"
