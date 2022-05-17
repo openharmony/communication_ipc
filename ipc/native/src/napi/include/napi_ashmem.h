@@ -31,7 +31,7 @@ public:
         PROT_WRITE = 2,
     };
     explicit NAPIAshmem(sptr<Ashmem> &ashmem);
-    NAPIAshmem():ashmem_(nullptr){}
+    NAPIAshmem():ashmem_(nullptr) {}
     ~NAPIAshmem() = default;
     const sptr<Ashmem> &GetAshmem()
     {
