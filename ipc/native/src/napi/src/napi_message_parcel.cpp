@@ -45,7 +45,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
             DBINDER_LOGI("No enough capacity to write");                                               \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
         }                                                                                              \
-    } while(0)
+    } while (0)
     
 #define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                                  \
     do {                                                                                              \
@@ -55,7 +55,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
             napiParcel->nativeParcel_->RewindWrite(pos);                                              \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
         }                                                                                             \
-    } while(0)
+    } while (0)
     
 #define CHECK_READ_LENGTH(env, arrayLength, typeSize, napiParcel)                                                    \
     do {                                                                                                             \
@@ -64,7 +64,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
             DBINDER_LOGI("No enough data to read");                                                                  \
             napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
         }                                                                                                            \
-    } while(0)
+    } while (0)
     
 NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, MessageParcel *parcel)
 {
