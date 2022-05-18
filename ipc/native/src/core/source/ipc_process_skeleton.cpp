@@ -161,13 +161,12 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 
     sptr<IPCObjectProxy> remoteProxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
     remoteProxy->WaitForInit();
-
+#ifndef CONFIG_IPC_SINGLE
     if (remoteProxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
         DBINDER_LOGE("init rpc proxy:%{public}d failed", handle);
-        remoteProxy->DecStrongRef(this);
         return nullptr;
     }
-
+#endif
     DBINDER_LOGI("handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
     return result;
 }
