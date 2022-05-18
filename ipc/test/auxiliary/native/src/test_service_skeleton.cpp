@@ -426,6 +426,33 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     return 0;
 }
 
+int TestServiceProxy::TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src)
+{
+    bool res = dst.MessageParcelAppend(src);
+    if (!res) {
+        ZLOGE(LABEL, "TestMessageParcelAppend without ipc failed");
+        return -1;
+    }
+    return 0;
+}
+
+int TestServiceProxy::TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src, MessageParcel &reply, bool withObject)
+{
+    bool res = dst.MessageParcelAppend(src);
+    if (!res) {
+        ZLOGE(LABEL, "TestMessageParcelAppend with ipc failed");
+        return -1;
+    }
+    MessageOption option;
+    uint32_t code = TRANS_MESSAGE_PARCEL_ADDPED;
+    if (withObject) {
+        code = TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT;
+    }
+    int ret = Remote()->SendRequest(code, dst, reply, option);
+    ZLOGE(LABEL, "TestMessageParcelAppend with ipc sendrequest ret = %{public}d", ret);
+    return ret;
+}
+
 int TestServiceProxy::TestFlushAsyncCalls(int count, int length)
 {
     int ret;
@@ -644,6 +671,19 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
             ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
             reply.WriteInt32(token);
             reply.WriteInt32(ftoken);
+            break;
+        }
+        case TRANS_MESSAGE_PARCEL_ADDPED: {
+            reply.WriteInt32(data.ReadInt32());
+            reply.WriteInt32(data.ReadInt32());
+            reply.WriteString(data.ReadString());
+            break;
+        }
+        case TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT: {
+            reply.WriteInt32(data.ReadInt32());
+            reply.WriteInt32(data.ReadInt32());
+            reply.WriteString(data.ReadString());
+            reply.WriteRemoteObject(data.ReadRemoteObject());
             break;
         }
         default:
