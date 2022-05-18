@@ -192,6 +192,22 @@ int TestService::TestAccessTokenID(int32_t ftoken_expected)
     return 0;
 }
 
+int TestService::TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src)
+{
+    (void)dst;
+    (void)src;
+    return 0;
+}
+
+int TestService::TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src, MessageParcel &reply, bool withObject)
+{
+    (void)dst;
+    (void)src;
+    (void)reply;
+    (void)withObject;
+    return 0;
+}
+
 int TestService::TestFlushAsyncCalls(int count, int length)
 {
     return 0;
