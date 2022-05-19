@@ -480,7 +480,7 @@ int IPCObjectProxy::GetSessionFromDBinderService()
 
     int32_t err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGI(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
+        ZLOGE(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
         return IRemoteObject::IF_PROT_ERROR;
     }
 
