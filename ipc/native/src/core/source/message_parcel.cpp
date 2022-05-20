@@ -422,43 +422,4 @@ sptr<Ashmem> MessageParcel::ReadAshmem()
     }
     return new (std::nothrow) Ashmem(fd, size);
 }
-
-bool MessageParcel::MessageParcelAppend(MessageParcel &data)
-{
-    size_t dataSize = data.GetDataSize();
-    if (dataSize == 0) {
-        DBINDER_LOGE("no data to append");
-        return true;
-    }
-    uintptr_t dataPtr = data.GetData();
-    size_t writeCursorOld = this->GetWritePosition();
-    if (!WriteBuffer(reinterpret_cast<void *>(dataPtr), dataSize)) {
-        DBINDER_LOGE("data append write buffer failed");
-        return false;
-    }
-    size_t objectSize = data.GetOffsetsSize();
-    if (objectSize == 0) {
-        return true;
-    }
-    binder_size_t objectOffsets = data.GetObjectOffsets();
-    auto *newObjectOffsets = reinterpret_cast<binder_size_t *>(objectOffsets);
-    for (size_t index = 0; index < objectSize; index++) {
-        if (EnsureObjectsCapacity()) {
-            size_t offset = writeCursorOld + newObjectOffsets[index];
-            bool res = WriteObjectOffset(offset);
-            if (!res) {
-                DBINDER_LOGE("parcel append write offsets failed");
-                return false;
-            }
-            flat_binder_object *flat = reinterpret_cast<flat_binder_object *>(this->GetData() + offset);
-            if (flat->hdr.type == BINDER_TYPE_FD) {
-                flat->handle = dup(flat->handle);
-            }
-        } else {
-            DBINDER_LOGE("Failed to ensure parcel capacity");
-            return false;
-        }
-    }
-    return true;
-}
 } // namespace OHOS
