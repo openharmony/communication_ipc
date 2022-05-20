@@ -428,7 +428,7 @@ bool MessageParcel::MessageParcelAppend(MessageParcel &data)
     size_t dataSize = data.GetDataSize();
     if (dataSize == 0) {
         DBINDER_LOGE("no data to append");
-        return false;
+        return true;
     }
     uintptr_t dataPtr = data.GetData();
     size_t writeCursorOld = this->GetWritePosition();
@@ -444,10 +444,15 @@ bool MessageParcel::MessageParcelAppend(MessageParcel &data)
     auto *newObjectOffsets = reinterpret_cast<binder_size_t *>(objectOffsets);
     for (size_t index = 0; index < objectSize; index++) {
         if (EnsureObjectsCapacity()) {
-            bool res = WriteObjectOffset(writeCursorOld + newObjectOffsets[index]);
+            size_t offset = writeCursorOld + newObjectOffsets[index];
+            bool res = WriteObjectOffset(offset);
             if (!res) {
                 DBINDER_LOGE("parcel append write offsets failed");
                 return false;
+            }
+            flat_binder_object *flat = reinterpret_cast<flat_binder_object *>(this->GetData() + offset);
+            if (flat->hdr.type == BINDER_TYPE_FD) {
+                flat->handle = dup(flat->handle);
             }
         } else {
             DBINDER_LOGE("Failed to ensure parcel capacity");
