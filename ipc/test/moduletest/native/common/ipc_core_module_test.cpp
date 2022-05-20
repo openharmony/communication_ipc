@@ -565,7 +565,6 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_018, TestSize.Level1)
     }
 }
 
-
 #ifndef CONFIG_STANDARD_SYSTEM
 /**
  * @tc.name: function_test_019
