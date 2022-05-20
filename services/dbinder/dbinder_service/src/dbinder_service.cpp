@@ -14,11 +14,6 @@
  */
 
 #include "dbinder_service.h"
-
-#include <cinttypes>
-#include <condition_variable>
-#include <sys/types.h>
-#include <arpa/inet.h>
 #include "securec.h"
 #include "string_ex.h"
 #include "ipc_skeleton.h"

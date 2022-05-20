@@ -14,7 +14,6 @@
  */
 
 #include "dbinder_remote_listener.h"
-#include <cinttypes>
 #include "securec.h"
 #include "ipc_types.h"
 #include "dbinder_log.h"
