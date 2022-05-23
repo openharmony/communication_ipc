@@ -428,7 +428,7 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
 
 int TestServiceProxy::TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src)
 {
-    bool res = dst.ParcelAppend(src);
+    bool res = dst.MessageParcelAppend(src);
     if (!res) {
         ZLOGE(LABEL, "TestMessageParcelAppend without ipc failed");
         return -1;
@@ -439,7 +439,7 @@ int TestServiceProxy::TestMessageParcelAppend(MessageParcel &dst, MessageParcel 
 int TestServiceProxy::TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
     MessageParcel &reply, bool withObject)
 {
-    bool res = dst.ParcelAppend(src);
+    bool res = dst.MessageParcelAppend(src);
     if (!res) {
         ZLOGE(LABEL, "TestMessageParcelAppend with ipc failed");
         return -1;
