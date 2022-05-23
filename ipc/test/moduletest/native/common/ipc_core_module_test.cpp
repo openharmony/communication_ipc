@@ -784,6 +784,15 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_025, TestSize.Level1)
     EXPECT_EQ(strwrite1, dstParcel.ReadString());
     res = dstParcel.ReadRemoteObject();
     ASSERT_TRUE(res);
+
+    ret = testService->TestMessageParcelAppend(srcParcel, dstParcel);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(num, srcParcel.ReadInt32());
+    EXPECT_EQ(strwrite1, srcParcel.ReadString());
+    res = srcParcel.ReadRemoteObject();
+    ASSERT_TRUE(res);
+    EXPECT_EQ(num, srcParcel.ReadInt32());
+    EXPECT_EQ(strwrite1, srcParcel.ReadString());
 }
 
 /**
