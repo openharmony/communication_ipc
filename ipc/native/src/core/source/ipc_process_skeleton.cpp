@@ -157,7 +157,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 
     sptr<IPCObjectProxy> remoteProxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
     remoteProxy->WaitForInit();
-    return remoteObject;
+    return result;
 }
 
 bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
