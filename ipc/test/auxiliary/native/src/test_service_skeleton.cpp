@@ -428,7 +428,7 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
 
 int TestServiceProxy::TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src)
 {
-    bool res = dst.MessageParcelAppend(src);
+    bool res = dst.ParcelAppend(src);
     if (!res) {
         ZLOGE(LABEL, "TestMessageParcelAppend without ipc failed");
         return -1;
@@ -439,7 +439,7 @@ int TestServiceProxy::TestMessageParcelAppend(MessageParcel &dst, MessageParcel 
 int TestServiceProxy::TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
     MessageParcel &reply, bool withObject)
 {
-    bool res = dst.MessageParcelAppend(src);
+    bool res = dst.ParcelAppend(src);
     if (!res) {
         ZLOGE(LABEL, "TestMessageParcelAppend with ipc failed");
         return -1;
@@ -685,6 +685,7 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
             reply.WriteInt32(data.ReadInt32());
             reply.WriteString(data.ReadString());
             reply.WriteRemoteObject(data.ReadRemoteObject());
+            reply.WriteFileDescriptor(data.ReadFileDescriptor());
             break;
         }
         default:
