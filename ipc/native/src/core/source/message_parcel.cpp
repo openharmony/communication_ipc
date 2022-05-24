@@ -37,11 +37,43 @@ namespace OHOS {
 #define TITLE __PRETTY_FUNCTION__
 #endif
 
+#ifdef CONFIG_IPC_SINGLE
+using namespace IPC_SINGLE;
+#endif
+
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "MessageParcel" };
 #define DBINDER_LOGE(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+
+void AcquireObject(flat_binder_object *flat, const void *cookie)
+{
+    switch (flat->hdr.type) {
+        case BINDER_TYPE_BINDER:
+            if (flat->binder) {
+                reinterpret_cast<IRemoteObject *>(flat->cookie)->IncStrongRef(cookie);
+            }
+            break;
+        case BINDER_TYPE_HANDLE: {
+            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+            IRemoteObject *remoteObject = nullptr;
+            if (current != nullptr) {
+                remoteObject = current->QueryObject(current->MakeHandleDescriptor(flat->handle));
+            }
+            if (remoteObject != nullptr) {
+                remoteObject->IncStrongRef(cookie);
+            }
+            break;
+        }
+        case BINDER_TYPE_FD:
+            flat->handle = dup(flat->handle);
+            break;
+        default:
+            DBINDER_LOGE("binder object type is invalid.");
+            break;
+    }
+}
 
 MessageParcel::MessageParcel()
     : Parcel(),
@@ -421,5 +453,45 @@ sptr<Ashmem> MessageParcel::ReadAshmem()
         return nullptr;
     }
     return new (std::nothrow) Ashmem(fd, size);
+}
+
+bool MessageParcel::Append(MessageParcel &data)
+{
+    size_t dataSize = data.GetDataSize();
+    if (dataSize == 0) {
+        DBINDER_LOGE("no data to append");
+        return true;
+    }
+    uintptr_t dataPtr = data.GetData();
+    size_t writeCursorOld = this->GetWritePosition();
+    if (!WriteBuffer(reinterpret_cast<void *>(dataPtr), dataSize)) {
+        DBINDER_LOGE("failed to append data with writebuffer.");
+        return false;
+    }
+    size_t objectSize = data.GetOffsetsSize();
+    if (objectSize == 0) {
+        return true;
+    }
+    binder_size_t objectOffsets = data.GetObjectOffsets();
+    auto *newObjectOffsets = reinterpret_cast<binder_size_t *>(objectOffsets);
+    for (size_t index = 0; index < objectSize; index++) {
+        if (EnsureObjectsCapacity()) {
+            size_t offset = writeCursorOld + newObjectOffsets[index];
+            if (!WriteObjectOffset(offset)) {
+                DBINDER_LOGE("failed to write object offset");
+                return false;
+            }
+            flat_binder_object *flat = reinterpret_cast<flat_binder_object *>(this->GetData() + offset);
+            if (flat == nullptr) {
+                DBINDER_LOGE("flat binder object is nullptr");
+                return false;
+            }
+            AcquireObject(flat, this);
+        } else {
+            DBINDER_LOGE("Failed to ensure parcel capacity");
+            return false;
+        }
+    }
+    return true;
 }
 } // namespace OHOS

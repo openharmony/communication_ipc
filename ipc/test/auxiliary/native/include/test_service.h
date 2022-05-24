@@ -46,6 +46,9 @@ public:
     void TestAsyncDumpService() override;
     int TestNestingSend(int sendCode, int &replyCode) override;
     int TestAccessTokenID(int32_t ftoken_expected) override;
+    int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) override;
+    int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
+        MessageParcel &reply, bool withObject) override;
 private:
     int testFd_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestService" };
