@@ -23,6 +23,8 @@
 #include "ipc_skeleton.h"
 
 #ifndef CONFIG_IPC_SINGLE
+#include "accesstoken_kit.h"
+#include "access_token_adapter.h"
 #include "dbinder_databus_invoker.h"
 #include "dbinder_error_code.h"
 #include "rpc_feature_set.h"
@@ -37,10 +39,11 @@ using namespace IPC_SINGLE;
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectStub" };
 #ifndef CONFIG_IPC_SINGLE
+using namespace OHOS::Security;
 // Authentication information can be added only for processes with system permission.
 static constexpr pid_t ALLOWED_UID = 10000;
 // Only the samgr can obtain the UID and PID.
-static constexpr pid_t SYSTEM_SERVER_UID = SAMGR_PROCESS_UID;
+static const std::string SAMGR_PROCESS_NAME = "samgr";
 #endif
 static constexpr pid_t SHELL_UID = 2000;
 
@@ -91,7 +94,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     switch (code) {
 #ifndef CONFIG_IPC_SINGLE
         case DBINDER_OBITUARY_TRANSACTION: {
-            if (IPCSkeleton::GetCallingUid() != SYSTEM_SERVER_UID) {
+            if (!IsSamgrCall(IPCSkeleton::GetCallingTokenID())) {
                 ZLOGE(LABEL, "%s: DBINDER_OBITUARY_TRANSACTION unauthenticated user ", __func__);
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
@@ -227,7 +230,7 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             break;
         }
         case GRANT_DATABUS_NAME: {
-            if (!IPCSkeleton::IsLocalCalling() || getuid() != SYSTEM_SERVER_UID) {
+            if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall((uint32_t)RpcGetSelfTokenID())) {
                 ZLOGE(LABEL, "GRANT_DATABUS_NAME message is excluded in sa manager");
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
@@ -236,7 +239,7 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             break;
         }
         case TRANS_DATABUS_NAME: {
-            if (!IPCSkeleton::IsLocalCalling() || getuid() != SYSTEM_SERVER_UID) {
+            if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall((uint32_t)RpcGetSelfTokenID())) {
                 ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
@@ -573,6 +576,22 @@ std::string IPCObjectStub::CreateDatabusName(int uid, int pid)
     }
 
     return sessionName;
+}
+
+bool IPCObjectStub::IsSamgrCall(uint32_t accessToken)
+{
+    auto tokenType = AccessToken::AccessTokenKit::GetTokenTypeFlag(accessToken);
+    if (tokenType != AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        ZLOGE(LABEL, "not native call");
+        return false;
+    }
+    AccessToken::NativeTokenInfo nativeTokenInfo;
+    int32_t result = AccessToken::AccessTokenKit::GetNativeTokenInfo(accessToken, nativeTokenInfo);
+    if (result == ERR_NONE && nativeTokenInfo.processName == SAMGR_PROCESS_NAME) {
+        return true;
+    }
+    ZLOGE(LABEL, "not samgr called, processName:%{private}s", nativeTokenInfo.processName.c_str());
+    return false;
 }
 #endif
 } // namespace OHOS
