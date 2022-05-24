@@ -455,7 +455,7 @@ sptr<Ashmem> MessageParcel::ReadAshmem()
     return new (std::nothrow) Ashmem(fd, size);
 }
 
-bool MessageParcel::MessageParcelAppend(MessageParcel &data)
+bool MessageParcel::Append(MessageParcel &data)
 {
     size_t dataSize = data.GetDataSize();
     if (dataSize == 0) {
