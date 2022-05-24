@@ -47,6 +47,8 @@ public:
         TRANS_ID_ASYNC_DUMP_SERVICE = 16,
         TRANS_ID_NESTING_SEND = 17,
         TRANS_ID_ACCESS_TOKENID = 18,
+        TRANS_MESSAGE_PARCEL_ADDPED = 19,
+        TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT = 20,
     };
 public:
     virtual int TestSyncTransaction(int data, int &reply, int delayTime = 0) = 0;
@@ -67,6 +69,9 @@ public:
     virtual void TestAsyncDumpService() = 0;
     virtual int TestNestingSend(int sendCode, int &replyCode) = 0;
     virtual int TestAccessTokenID(int32_t ftoken_expected) = 0;
+    virtual int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) = 0;
+    virtual int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
+        MessageParcel &reply, bool withObject) = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");
 };
@@ -105,6 +110,9 @@ public:
     void TestAsyncDumpService() override;
     int TestNestingSend(int sendCode, int &replyCode) override;
     int TestAccessTokenID(int32_t ftoken_expected) override;
+    int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) override;
+    int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
+        MessageParcel &reply, bool withObject) override;
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceProxy" };

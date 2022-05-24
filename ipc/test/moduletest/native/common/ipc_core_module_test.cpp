@@ -27,6 +27,9 @@
 #include "system_ability_definition.h"
 #include "ipc_object_proxy.h"
 
+#include "directory_ex.h"
+#include "foo_service.h"
+
 #include "log_tags.h"
 
 using namespace testing::ext;
@@ -737,4 +740,146 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_024, TestSize.Level1)
     for (auto &thread : threads) {
         thread->join();
     }
+}
+
+/**
+ * @tc.name: function_test_025
+ * @tc.desc: Test messageparcel append in same process
+ * @tc.type: FUNC
+ * @tc.require: AR000H0FUK
+ */
+HWTEST_F(IPCNativeFrameworkTest, function_test_025, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_TRUE(saMgr != nullptr);
+
+    sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    ASSERT_TRUE(object != nullptr);
+
+    sptr<ITestService> testService = iface_cast<ITestService>(object);
+    ASSERT_TRUE(testService != nullptr);
+
+    MessageParcel dstParcel, srcParcel;
+    int ret = testService->TestMessageParcelAppend(dstParcel, srcParcel);
+    EXPECT_EQ(ret, 0);
+
+    const int32_t num = 5767168;
+    const std::string strwrite1 =
+        "test for write string padded**********************************************************##################";
+    dstParcel.WriteInt32(num);
+    dstParcel.WriteString(strwrite1);
+    srcParcel.WriteInt32(num);
+    srcParcel.WriteString(strwrite1);
+    sptr<FooStub> fooCallback = new FooStub();
+    srcParcel.WriteRemoteObject(fooCallback->AsObject());
+    ret = testService->TestMessageParcelAppend(dstParcel, srcParcel);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(num, dstParcel.ReadInt32());
+    EXPECT_EQ(strwrite1, dstParcel.ReadString());
+    EXPECT_EQ(num, dstParcel.ReadInt32());
+    EXPECT_EQ(strwrite1, dstParcel.ReadString());
+    res = dstParcel.ReadRemoteObject();
+    ASSERT_TRUE(res);
+
+    ret = testService->TestMessageParcelAppend(srcParcel, dstParcel);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(num, srcParcel.ReadInt32());
+    EXPECT_EQ(strwrite1, srcParcel.ReadString());
+    res = srcParcel.ReadRemoteObject();
+    ASSERT_TRUE(res);
+    EXPECT_EQ(num, srcParcel.ReadInt32());
+    EXPECT_EQ(strwrite1, srcParcel.ReadString());
+}
+
+/**
+ * @tc.name: function_test_026
+ * @tc.desc: Test messageparcel append with ipc
+ * @tc.type: FUNC
+ * @tc.require: AR000H0FUK
+ */
+HWTEST_F(IPCNativeFrameworkTest, function_test_026, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_TRUE(saMgr != nullptr);
+
+    sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    ASSERT_TRUE(object != nullptr);
+
+    sptr<ITestService> testService = iface_cast<ITestService>(object);
+    ASSERT_TRUE(testService != nullptr);
+
+    MessageParcel dstParcel, srcParcel, reply;
+    const int32_t num = 5767168;
+    dstParcel.WriteInt32(num);
+    srcParcel.WriteInt32(num);
+    const std::string strwrite1 =
+        "test for write string padded**********************************************************##################";
+    srcParcel.WriteString(strwrite1);
+    int ret = testService->TestMessageParcelAppendWithIpc(dstParcel, srcParcel, reply, false);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(num, reply.ReadInt32());
+    EXPECT_EQ(num, reply.ReadInt32());
+    EXPECT_EQ(strwrite1, reply.ReadString());
+}
+
+/**
+ * @tc.name: function_test_027
+ * @tc.desc: Test messageparcel append with ipc
+ * @tc.type: FUNC
+ * @tc.require: AR000H0FUK
+ */
+HWTEST_F(IPCNativeFrameworkTest, function_test_027, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_TRUE(saMgr != nullptr);
+
+    sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    ASSERT_TRUE(object != nullptr);
+
+    sptr<ITestService> testService = iface_cast<ITestService>(object);
+    ASSERT_TRUE(testService != nullptr);
+
+    MessageParcel dstParcel, srcParcel, reply;
+    const int32_t num = 5767168;
+    dstParcel.WriteInt32(num);
+    srcParcel.WriteInt32(num);
+    const std::string strwrite1 =
+        "test for write string padded**********************************************************##################";
+    srcParcel.WriteString(strwrite1);
+    sptr<FooStub> fooCallback = new FooStub();
+    srcParcel.WriteRemoteObject(fooCallback->AsObject());
+
+    const std::string dirpath = "/data/test_dir";
+    res = ForceCreateDirectory(dirpath);
+    ASSERT_TRUE(res);
+    string filename = dirpath + "/test.txt";
+    int fd = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    EXPECT_GT(fd, 0);
+    res = srcParcel.WriteFileDescriptor(fd);  // write fd
+    ASSERT_TRUE(res);
+
+    int ret = testService->TestMessageParcelAppendWithIpc(dstParcel, srcParcel, reply, true);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(num, reply.ReadInt32());
+    EXPECT_EQ(num, reply.ReadInt32());
+    EXPECT_EQ(strwrite1, reply.ReadString());
+    res = reply.ReadRemoteObject();
+    ASSERT_TRUE(res);
+    res = reply.ReadFileDescriptor();
+    ASSERT_TRUE(res);
+
+    RemoveFile(filename);
+    ForceRemoveDirectory(dirpath);
 }

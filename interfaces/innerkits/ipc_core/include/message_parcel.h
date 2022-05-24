@@ -50,6 +50,7 @@ public:
     {
         needCloseFd_ = true;
     };
+    bool Append(MessageParcel &data);
 
 private:
 #ifndef CONFIG_IPC_SINGLE
