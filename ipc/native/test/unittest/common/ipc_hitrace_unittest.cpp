@@ -72,7 +72,7 @@ void BinderTraceTest::TearDownTestCase()
 static std::string HitraceLongToString(unsigned long data)
 {
     std::string result;
-    constexpr int BUFFER_SIZE = 16;
+    constexpr int BUFFER_SIZE = 21;
     char str[BUFFER_SIZE] = {0};
 
     if (sprintf_s(str, sizeof(str), "%lu", data) <= 0) {
