@@ -82,7 +82,7 @@ public:
 
     virtual bool FlattenObject(Parcel &parcel, const IRemoteObject *object) const = 0;
 
-    virtual IRemoteObject *UnflattenObject(Parcel &parcel) = 0;
+    virtual sptr<IRemoteObject> UnflattenObject(Parcel &parcel) = 0;
 
     virtual int ReadFileDescriptor(Parcel &parcel) = 0;
 
