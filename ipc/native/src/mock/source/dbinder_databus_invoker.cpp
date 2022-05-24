@@ -78,7 +78,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         return nullptr;
     }
 
-    IPCObjectProxy *ipcProxy = reinterpret_cast<IPCObjectProxy *>(current->FindOrNewObject(handle));
+    sptr<IPCObjectProxy> ipcProxy = reinterpret_cast<IPCObjectProxy *>(current->FindOrNewObject(handle).GetRefPtr());
     if (ipcProxy == nullptr) {
         DBINDER_LOGE("attempt to send a invalid handle = %u", handle);
         return nullptr;
@@ -480,7 +480,7 @@ bool DBinderDatabusInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *o
     return true;
 }
 
-IRemoteObject *DBinderDatabusInvoker::UnflattenObject(Parcel &parcel)
+sptr<IRemoteObject> DBinderDatabusInvoker::UnflattenObject(Parcel &parcel)
 {
     return nullptr;
 }

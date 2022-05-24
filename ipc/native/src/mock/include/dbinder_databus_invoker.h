@@ -41,7 +41,7 @@ public:
     void JoinProcessThread(bool initiative) override;
     void StopWorkThread() override;
     bool FlattenObject(Parcel &parcel, const IRemoteObject *object) const override;
-    IRemoteObject *UnflattenObject(Parcel &parcel) override;
+    sptr<IRemoteObject> UnflattenObject(Parcel &parcel) override;
     int ReadFileDescriptor(Parcel &parcel) override;
     bool WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnership) override;
     pid_t GetCallerPid() const override;
