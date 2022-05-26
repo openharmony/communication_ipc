@@ -85,6 +85,7 @@ private:
     int32_t TransDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     std::string CreateDatabusName(int uid, int pid);
     std::string GetDataBusName();
+    bool IsSamgrCall(uint32_t accessToken);
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
