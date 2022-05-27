@@ -1606,7 +1606,7 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
     napi_get_value_int32(env, argv[0], &code);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_unwrap(env, thisVar, (void **)&proxyHolder);
     NAPI_ASSERT(env, proxyHolder != nullptr, "failed to get proxy holder");
     sptr<IRemoteObject> target = proxyHolder->object_;
     NAPI_ASSERT(env, target != nullptr, "invalid proxy object");
