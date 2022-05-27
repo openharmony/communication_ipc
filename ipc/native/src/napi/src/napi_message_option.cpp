@@ -27,11 +27,11 @@ napi_value NapiOhosRpcMessageOptionGetFlags(napi_env env, napi_callback_info inf
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     MessageOption *option = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, (void **)&option);
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     int flags = option->GetFlags();
     napi_value result = nullptr;
-    status = napi_create_int32(env, flags, &result);
+    napi_status status = napi_create_int32(env, flags, &result);
     NAPI_ASSERT(env, status == napi_ok, "failed to create int32 value");
     return result;
 }
@@ -53,7 +53,7 @@ napi_value NapiOhosRpcMessageOptionSetFlags(napi_env env, napi_callback_info inf
     napi_status status = napi_get_value_int32(env, argv[0], &flags);
     NAPI_ASSERT(env, status == napi_ok, "failed to get int32 value");
     MessageOption *option = nullptr;
-    status = napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, (void **)&option);
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     option->SetFlags(flags);
     napi_value result = nullptr;
@@ -70,11 +70,11 @@ napi_value NapiOhosRpcMessageOptionGetWaittime(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     MessageOption *option = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, (void **)&option);
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     int flags = option->GetWaitTime();
     napi_value result = nullptr;
-    status = napi_create_int32(env, flags, &result);
+    napi_status status = napi_create_int32(env, flags, &result);
     NAPI_ASSERT(env, status == napi_ok, "failed to create int32 value");
     return result;
 }
@@ -96,7 +96,7 @@ napi_value NapiOhosRpcMessageOptionSetWaittime(napi_env env, napi_callback_info 
     napi_status status = napi_get_value_int32(env, argv[0], &waittime);
     NAPI_ASSERT(env, status == napi_ok, "failed to get int32 value");
     MessageOption *option = nullptr;
-    status = napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, (void **)&option);
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     option->SetWaitTime(waittime);
     napi_value result = nullptr;
