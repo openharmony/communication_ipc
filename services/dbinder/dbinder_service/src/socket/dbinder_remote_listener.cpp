@@ -39,6 +39,13 @@ bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener>
         DBINDER_LOGE("fail to get softbus service");
         return false;
     }
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    if (softbusManager_->GrantPermission(uid, pid, OWN_SESSION_NAME) != ERR_NONE) {
+        DBINDER_LOGE("fail to Grant Permission softbus name %{public}s", OWN_SESSION_NAME.c_str());
+        return false;
+    }
+
     int ret = softbusManager_->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, listener);
     if (ret != 0) {
         DBINDER_LOGE("fail to create softbus server with ret = %{public}d", ret);
