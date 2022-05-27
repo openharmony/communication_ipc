@@ -117,6 +117,7 @@ public:
     bool DetachBusNameObject(IPCObjectProxy *proxy);
     std::string CreateDatabusName(int uid, int pid);
     bool DetachProxyObject(binder_uintptr_t binderObject);
+    std::string QueryBusNameObject(IPCObjectProxy *proxy);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
@@ -157,7 +158,6 @@ private:
         std::string &remoteDeviceId, int pid, int uid);
     bool IsDeviceIdIllegal(const std::string &deviceID);
     bool AttachBusNameObject(IPCObjectProxy *proxy, const std::string &name);
-    std::string QueryBusNameObject(IPCObjectProxy *proxy);
     std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
     uint32_t GetSeqNumber();
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
