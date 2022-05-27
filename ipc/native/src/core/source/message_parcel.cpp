@@ -67,7 +67,8 @@ void AcquireObject(flat_binder_object *flat, const void *cookie)
             break;
         }
         case BINDER_TYPE_FD:
-            flat->handle = static_cast<unsigned int>(dup(flat->handle));
+            flat->handle = static_cast<uint32_t>(dup(flat->handle));
+            flat->cookie = 1;
             break;
         default:
             DBINDER_LOGE("binder object type is invalid.");
