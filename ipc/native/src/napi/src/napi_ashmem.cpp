@@ -268,23 +268,32 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 3, "requires 1 parameter");
-    bool isTypedArray = false;
-    napi_is_typedarray(env, argv[0], &isTypedArray);
-    NAPI_ASSERT(env, isTypedArray == true, "type mismatch for parameter 1");
+    bool isArray = false;
+    napi_is_array(env, argv[0], &isArray);
+    NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
     napi_typeof(env, argv[2], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 3");
-    napi_typedarray_type typedarrayType = napi_uint8_array;
-    size_t typedarrayLength = 0;
-    void *typedarrayBufferPtr = nullptr;
-    napi_value tmpArrayBuffer = nullptr;
-    size_t byteOffset = 0;
-    napi_get_typedarray_info(env, argv[0], &typedarrayType, &typedarrayLength, &typedarrayBufferPtr,
-        &tmpArrayBuffer, &byteOffset);
-    NAPI_ASSERT(env, typedarrayType == napi_int8_array, "array type mismatch for parameter 1");
-    DBINDER_LOGI("ashmem WriteBuffer typedarrayLength = %{public}d", (int)(typedarrayLength));
+
+    std::vector<int32_t> array;
+    uint32_t arrayLength = 0;
+    napi_get_array_length(env, argv[0], &arrayLength);
+
+    for (size_t i = 0; i < arrayLength; i++) {
+        bool hasElement = false;
+        napi_has_element(env, argv[0], i, &hasElement);
+        NAPI_ASSERT(env, hasElement == true, "parameter check error");
+
+        napi_value element = nullptr;
+        napi_get_element(env, argv[0], i, &element);
+
+        int32_t value = 0;
+        napi_get_value_int32(env, element, &value);
+        array.push_back(value);
+    }
+
     uint32_t size = 0;
     napi_get_value_uint32(env, argv[1], &size);
     uint32_t offset = 0;
@@ -293,7 +302,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     // need check size offset and capacity
-    bool result = napiAshmem->GetAshmem()->WriteToAshmem(typedarrayBufferPtr, size, offset);
+    bool result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size, offset);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
