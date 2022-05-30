@@ -282,24 +282,16 @@ napi_value NAPI_MessageParcel::JS_writeChar(napi_env env, napi_callback_info inf
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
-    NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
+    NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
 
-    size_t bufferSize = 0;
-    size_t strLength = 0;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
-    DBINDER_LOGI("messageparcel writeChar bufferSize = %{public}d", (int)bufferSize);
-    char buffer[bufferSize + 1];
-    napi_get_value_string_utf8(env, argv[0], buffer, bufferSize + 1, &strLength);
+    uint32_t value = 0;
+    napi_get_value_uint32(env, argv[0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiParcel);
-    std::string parcelString = buffer;
-    std::u16string tmp = to_utf16(parcelString);
-    auto value = reinterpret_cast<uint16_t *>(tmp.data());
-    bool result = napiParcel->nativeParcel_->WriteUint16(*value);
-
+    bool result = napiParcel->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
@@ -313,29 +305,38 @@ napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_inf
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
-    bool isTypedArray = false;
-    napi_is_typedarray(env, argv[0], &isTypedArray);
-    NAPI_ASSERT(env, isTypedArray == true, "type mismatch for parameter 1");
+    bool isArray = false;
+    napi_is_array(env, argv[0], &isArray);
+    NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-    napi_typedarray_type typedarrayType = napi_uint8_array;
-    size_t typedarrayLength = 0;
-    void *typedarrayBufferPtr = nullptr;
-    napi_value tmpArrayBuffer = nullptr;
-    size_t byteOffset = 0;
-    napi_get_typedarray_info(env, argv[0], &typedarrayType, &typedarrayLength, &typedarrayBufferPtr,
-        &tmpArrayBuffer, &byteOffset);
-
-    NAPI_ASSERT(env, typedarrayType == napi_int8_array, "array type mismatch for parameter 1");
-    DBINDER_LOGI("messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(typedarrayLength));
+    uint32_t arrayLength = 0;
+    napi_get_array_length(env, argv[0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
-    size_t len = (typedarrayLength / BYTE_SIZE_32) + ((typedarrayLength % BYTE_SIZE_32) == 0 ? 0 : 1);
-    DBINDER_LOGI("messageparcel WriteBuffer len = %{public}d", (int)(len));
-    CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32  * (len + 1), napiParcel);
-    napiParcel->nativeParcel_->WriteUint32(typedarrayLength);
-    bool result = napiParcel->nativeParcel_->WriteBuffer(typedarrayBufferPtr, typedarrayLength);
+
+    CHECK_WRITE_CAPACITY(env, BYTE_SIZE_8 * (arrayLength + 1), napiParcel);
+    size_t pos = napiParcel->nativeParcel_->GetWritePosition();
+    napiParcel->nativeParcel_->WriteUint32(arrayLength);
+    bool result = false;
+    for (size_t i = 0; i < arrayLength; i++) {
+        bool hasElement = false;
+        napi_has_element(env, argv[0], i, &hasElement);
+        NAPI_ASSERT(env, hasElement == true, "parameter check error");
+
+        napi_value element = nullptr;
+        napi_get_element(env, argv[0], i, &element);
+
+        uint32_t value = 0;
+        napi_get_value_uint32(env, element, &value);
+        result = napiParcel->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
+        if (!result) {
+            napiParcel->nativeParcel_->RewindWrite(pos);
+            break;
+        }
+    }
+
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
@@ -657,18 +658,10 @@ napi_value NAPI_MessageParcel::JS_writeCharArray(napi_env env, napi_callback_inf
 
         napi_value element = nullptr;
         napi_get_element(env, argv[0], i, &element);
-        size_t bufferSize = 0;
-        size_t strLength = 0;
-        napi_get_value_string_utf8(env, element, nullptr, 0, &bufferSize);
-        DBINDER_LOGI("messageparcel writeChar bufferSize = %{public}d", (int)bufferSize);
-        char buffer[bufferSize + 1];
-        napi_get_value_string_utf8(env, element, buffer, bufferSize + 1, &strLength);
-        DBINDER_LOGI("messageparcel writeChar strLength = %{public}d", (int)strLength);
+        uint32_t value = 0;
+        napi_get_value_uint32(env, element, &value);
 
-        std::string parcelString = buffer;
-        std::u16string tmp = to_utf16(parcelString);
-        auto value = reinterpret_cast<uint16_t *>(tmp.data());
-        result = napiParcel->nativeParcel_->WriteUint16(*value);
+        result = napiParcel->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
         if (!result) {
             napiParcel->nativeParcel_->RewindWrite(pos);
             break;
@@ -1034,13 +1027,9 @@ napi_value NAPI_MessageParcel::JS_readChar(napi_env env, napi_callback_info info
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", 0);
 
-    uint16_t value = napiParcel->nativeParcel_->ReadUint16();
-    char ch[2] = { 0 };
-    if (sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", value) < 0) {
-        return nullptr;
-    }
+    uint8_t value = napiParcel->nativeParcel_->ReadUint8();
     napi_value result = nullptr;
-    napi_create_string_utf8(env, ch, 1, &result);
+    napi_create_uint32(env, static_cast<uint32_t>(value), &result);
     return result;
 }
 
@@ -1308,55 +1297,48 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
     uint32_t maxBytesLen = 40960;
     uint32_t arrayBufferLength = napiParcel->nativeParcel_->ReadUint32();
     NAPI_ASSERT(env, arrayBufferLength < maxBytesLen, "byte array length too large");
-    size_t len = (arrayBufferLength / BYTE_SIZE_32) + ((arrayBufferLength % BYTE_SIZE_32) == 0 ? 0 : 1);
+    size_t len = (arrayBufferLength / BYTE_SIZE_8) + ((arrayBufferLength % BYTE_SIZE_8) == 0 ? 0 : 1);
     DBINDER_LOGI("messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(len));
 
+    uint32_t arrayLength = napiParcel->nativeParcel_->ReadUint32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, len, BYTE_SIZE_32, napiParcel);
+        CHECK_READ_LENGTH(env, len, BYTE_SIZE_8, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
-        bool isTypedArray = false;
-        napi_is_typedarray(env, argv[0], &isTypedArray);
-        NAPI_ASSERT(env, isTypedArray == true, "type mismatch for parameter 1");
+        bool isArray = false;
+        napi_is_array(env, argv[0], &isArray);
+        NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
-        napi_typedarray_type arrayType;
-        size_t arrayLength = 0;
-        void *arrayBufferPtr = nullptr;
-        napi_value tmpArrayBuffer = nullptr;
-        size_t byteOffset = 0;
-        napi_get_typedarray_info(env, argv[0], &arrayType, &arrayLength, &arrayBufferPtr,
-            &tmpArrayBuffer, &byteOffset);
-        NAPI_ASSERT(env, arrayType == napi_int8_array, "array type mismatch for parameter 1");
-        NAPI_ASSERT(env, arrayLength == arrayBufferLength, "array size mismatch for length");
-
-        const uint8_t *arrayAddr = napiParcel->nativeParcel_->ReadUnpadBuffer(arrayBufferLength);
-        NAPI_ASSERT(env, arrayAddr != nullptr, "buffer is nullptr");
-        errno_t status = memcpy_s(arrayBufferPtr, arrayBufferLength, arrayAddr, arrayBufferLength);
-        NAPI_ASSERT(env, status == EOK, "memcpy_s is failed");
-
+        for (uint32_t i = 0; i < arrayLength; i++) {
+            uint8_t val = napiParcel->nativeParcel_->ReadUint8();
+            napi_value num = nullptr;
+            napi_create_uint32(env, val, &num);
+            napi_set_element(env, argv[0], i, num);
+        }
         napi_value napiValue = nullptr;
         NAPI_CALL(env, napi_get_boolean(env, true, &napiValue));
         return napiValue;
     }
 
-    CHECK_READ_LENGTH(env, len, BYTE_SIZE_32, napiParcel);
-    napi_value arrayBuffer = nullptr;
-    void *arrayBufferPtr = nullptr;
-    napi_create_arraybuffer(env, arrayBufferLength, &arrayBufferPtr, &arrayBuffer);
-    napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int8_array, arrayBufferLength, arrayBuffer, 0, &typedarray);
-    if (arrayBufferLength == 0) {
-        return typedarray;
+    if (arrayLength <= 0) {
+        napi_value result = nullptr;
+        napi_create_array(env, &result);
+        return result;
     }
+    CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiParcel);
+    napi_value result = nullptr;
+    napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    const uint8_t *arrayAddr = napiParcel->nativeParcel_->ReadUnpadBuffer(arrayBufferLength);
-    NAPI_ASSERT(env, arrayAddr != nullptr, "buffer is nullptr");
-    errno_t status = memcpy_s(arrayBufferPtr, arrayBufferLength, arrayAddr, arrayBufferLength);
-    NAPI_ASSERT(env, status == EOK, "memcpy_s is failed");
-    return typedarray;
+    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        uint8_t val = napiParcel->nativeParcel_->ReadUint8();
+        napi_value num = nullptr;
+        napi_create_int32(env, val, &num);
+        napi_set_element(env, result, i, num);
+    }
+    return result;
 }
 
 napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_info info)
@@ -1676,7 +1658,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
-    int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiParcel->nativeParcel_->ReadUint32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
@@ -1689,13 +1671,9 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
         for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
-            uint16_t val = napiParcel->nativeParcel_->ReadUint16();
-            char ch[2] = { 0 };
-            if (sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val) < 0) {
-                return nullptr;
-            }
+            uint8_t val = napiParcel->nativeParcel_->ReadUint8();
             napi_value num = nullptr;
-            napi_create_string_utf8(env, ch, 1, &num);
+            napi_create_uint32(env, static_cast<uint32_t>(val), &num);
             napi_set_element(env, argv[0], i, num);
         }
         napi_value napiValue = nullptr;
@@ -1713,13 +1691,9 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
-        uint16_t val = napiParcel->nativeParcel_->ReadUint16();
-        char ch[2] = { 0 };
-        if (sprintf_s(ch, sizeof(ch) / sizeof(ch[0]), "%c", val) < 0) {
-            return nullptr;
-        }
+        uint8_t val = napiParcel->nativeParcel_->ReadUint8();
         napi_value num = nullptr;
-        napi_create_string_utf8(env, ch, 1, &num);
+        napi_create_uint32(env, static_cast<uint32_t>(val), &num);
         napi_set_element(env, result, i, num);
     }
     return result;
@@ -2190,18 +2164,27 @@ napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info 
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
-    bool isTypedArray = false;
-    napi_is_typedarray(env, argv[0], &isTypedArray);
-    NAPI_ASSERT(env, isTypedArray == true, "type mismatch for parameter 1");
-    napi_typedarray_type typedarrayType = napi_uint8_array;
-    size_t typedarrayLength = 0;
-    void *typedarrayBufferPtr = nullptr;
-    napi_value tmpArrayBuffer = nullptr;
-    size_t byteOffset = 0;
-    napi_get_typedarray_info(env, argv[0], &typedarrayType, &typedarrayLength, &typedarrayBufferPtr,
-        &tmpArrayBuffer, &byteOffset);
-    NAPI_ASSERT(env, typedarrayType == napi_int8_array, "array type mismatch for parameter 1");
-    // get Array size
+    bool isArray = false;
+    napi_is_array(env, argv[0], &isArray);
+    NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
+
+    std::vector<int32_t> array;
+    uint32_t arrayLength = 0;
+    napi_get_array_length(env, argv[0], &arrayLength);
+
+    for (size_t i = 0; i < arrayLength; i++) {
+        bool hasElement = false;
+        napi_has_element(env, argv[0], i, &hasElement);
+        NAPI_ASSERT(env, hasElement == true, "parameter check error");
+
+        napi_value element = nullptr;
+        napi_get_element(env, argv[0], i, &element);
+
+        int32_t value = 0;
+        napi_get_value_int32(env, element, &value);
+        array.push_back(value);
+    }
+
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
@@ -2210,7 +2193,7 @@ napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", 0);
-    bool result = napiParcel->nativeParcel_->WriteRawData(typedarrayBufferPtr, size);
+    bool result = napiParcel->nativeParcel_->WriteRawData(array.data(), size);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
