@@ -17,6 +17,7 @@
 #define OHOS_RPC_FOO_TEST_H
 
 #include "iremote_broker.h"
+#include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
 #include "message_parcel.h"
@@ -65,6 +66,13 @@ public:
     int32_t TestAdd(MessageParcel &data, MessageParcel &reply) override;
 private:
     static inline BrokerDelegator<RpcFooProxy> delegator_;
+};
+
+class RpcDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    RpcDeathRecipient();
+    virtual ~RpcDeathRecipient();
 };
 } // namespace OHOS
 #endif // OHOS_RPC_FOO_TEST_H
