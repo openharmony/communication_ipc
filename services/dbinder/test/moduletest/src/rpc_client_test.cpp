@@ -31,6 +31,7 @@ using namespace OHOS;
 static std::string g_deviceId;
 static sptr<IRpcFooTest> g_rpcTestProxy;
 static sptr<IRpcFooTest> g_ipcTestProxy;
+static IPCObjectProxy *g_proxy;
 class RpcClientTest : public testing::Test {
 public:
     static constexpr char DBINDER_PKG_NAME[] = "DBinderService";
@@ -62,6 +63,9 @@ HWTEST_F(RpcClientTest, function_test_001, TestSize.Level1)
 
     g_rpcTestProxy = iface_cast<IRpcFooTest>(object);
     ASSERT_TRUE(g_rpcTestProxy != nullptr);
+
+    g_proxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
+    ASSERT_EQ(g_proxy->GetProto(), IRemoteObject::IF_PROT_DATABUS);
 }
 
 HWTEST_F(RpcClientTest, function_test_002, TestSize.Level1)
@@ -126,5 +130,12 @@ HWTEST_F(RpcClientTest, function_test_005, TestSize.Level1)
     ASSERT_EQ(err, ERR_NONE);
     err = replyParcel.ReadInt32();
     ASSERT_EQ(err, ERR_NONE);
+}
+
+HWTEST_F(RpcClientTest, function_test_006, TestSize.Level1)
+{
+    sptr<IRemoteObject::DeathRecipient> death(new RpcDeathRecipient());
+    ASSERT_EQ(g_proxy->GetProto(), IRemoteObject::IF_PROT_DATABUS);
+    g_proxy->AddDeathRecipient(death.GetRefPtr());
 }
 }
