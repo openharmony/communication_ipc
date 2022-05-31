@@ -38,6 +38,7 @@ DbinderSaDeathRecipient::DbinderSaDeathRecipient(binder_uintptr_t binderObject) 
 
 void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
+    DBINDER_LOGE("DbinderSaDeathRecipient OnRemoteDied");
     if (remote == nullptr) {
         DBINDER_LOGE("remote object is null");
         return;
@@ -52,9 +53,6 @@ void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         return;
     }
 
-    (void)dBinderService->DetachBusNameObject(proxy);
-    (void)dBinderService->DetachProxyObject(binderObject_);
-
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
         DBINDER_LOGE("fail to get softbus service");
@@ -66,5 +64,8 @@ void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         return;
     }
     softbusManager->RemovePermission(sessionName);
+
+    (void)dBinderService->DetachBusNameObject(proxy);
+    (void)dBinderService->DetachProxyObject(binderObject_);
 }
 } // namespace OHOS

@@ -16,9 +16,12 @@
 #include "dbinder_death_recipient.h"
 #include "dbinder_service.h"
 #include "dbinder_log.h"
+#include "ISessionService.h"
 #include "log_tags.h"
 
 namespace OHOS {
+using Communication::SoftBus::ISessionService;
+
 #ifndef TITLE
 #define TITLE __PRETTY_FUNCTION__
 #endif
@@ -31,6 +34,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC,
 
 void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
+    DBINDER_LOGE("DbinderDeathRecipient OnRemoteDied");
     if (remote == nullptr) {
         DBINDER_LOGE("remote object is null");
         return;
@@ -44,6 +48,18 @@ void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         DBINDER_LOGE("dBinderService is null");
         return;
     }
+
+    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
+    if (softbusManager == nullptr) {
+        DBINDER_LOGE("fail to get softbus service");
+        return;
+    }
+    std::string sessionName = dBinderService->QueryBusNameObject(callbackProxy);
+    if (sessionName.empty()) {
+        DBINDER_LOGE("proxy sessionName not found");
+        return;
+    }
+    softbusManager->RemovePermission(sessionName);
 
     sptr<IRemoteObject::DeathRecipient> death = dBinderService->QueryDeathRecipient(object);
     if (death != nullptr) {

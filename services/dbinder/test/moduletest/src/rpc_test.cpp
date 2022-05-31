@@ -134,4 +134,17 @@ int32_t RpcFooProxy::TestAdd(MessageParcel &data, MessageParcel &reply)
     }
     return reply.ReadInt32() == (a + b) ? ERR_NONE : ERR_INVALID_DATA;
 }
+
+RpcDeathRecipient::RpcDeathRecipient()
+{
+}
+
+RpcDeathRecipient::~RpcDeathRecipient()
+{
+}
+
+void RpcDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    return;
+}
 } // namespace OHOS
