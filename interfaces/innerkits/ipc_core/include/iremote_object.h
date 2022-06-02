@@ -81,6 +81,7 @@ public:
 
 protected:
     explicit IRemoteObject(std::u16string descriptor = nullptr);
+    virtual ~IRemoteObject() = default;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IREMOTE_OBJECT_H
