@@ -29,6 +29,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 static constexpr int MMAP_PROT_MAX = NAPIAshmem::PROT_EXEC | NAPIAshmem::PROT_READ | NAPIAshmem::PROT_WRITE;
+constexpr size_t BYTE_SIZE_32 = 4;
 
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
@@ -201,6 +202,7 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     uint32_t size = 0;
     uint32_t offset = 0;
     napi_get_value_uint32(env, argv[0], &size);
+    size *= BYTE_SIZE_32;
     napi_get_value_uint32(env, argv[1], &offset);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
@@ -215,7 +217,7 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     void *arrayBufferPtr = nullptr;
     napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
     napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int8_array, size, arrayBuffer, 0, &typedarray);
+    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedarray);
     bool isTypedArray = false;
     napi_is_typedarray(env, typedarray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
@@ -302,7 +304,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     // need check size offset and capacity
-    bool result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size, offset);
+    bool result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
