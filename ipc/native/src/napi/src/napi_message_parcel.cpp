@@ -1295,15 +1295,11 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     uint32_t maxBytesLen = 40960;
-    uint32_t arrayBufferLength = napiParcel->nativeParcel_->ReadUint32();
-    NAPI_ASSERT(env, arrayBufferLength < maxBytesLen, "byte array length too large");
-    size_t len = (arrayBufferLength / BYTE_SIZE_8) + ((arrayBufferLength % BYTE_SIZE_8) == 0 ? 0 : 1);
-    DBINDER_LOGI("messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(len));
-
     uint32_t arrayLength = napiParcel->nativeParcel_->ReadUint32();
+    NAPI_ASSERT(env, arrayLength < maxBytesLen, "byte array length too large");
+
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        CHECK_READ_LENGTH(env, len, BYTE_SIZE_8, napiParcel);
         napi_value argv[1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -2193,7 +2189,7 @@ napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", 0);
-    bool result = napiParcel->nativeParcel_->WriteRawData(array.data(), size);
+    bool result = napiParcel->nativeParcel_->WriteRawData(array.data(), size * BYTE_SIZE_32);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
@@ -2211,6 +2207,7 @@ napi_value NAPI_MessageParcel::JS_ReadRawData(napi_env env, napi_callback_info i
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
     int32_t size = 0;
     napi_get_value_int32(env, argv[0], &size);
+    size *= BYTE_SIZE_32;
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", 0);
@@ -2221,7 +2218,7 @@ napi_value NAPI_MessageParcel::JS_ReadRawData(napi_env env, napi_callback_info i
     void *arrayBufferPtr = nullptr;
     napi_create_arraybuffer(env, (int32_t)size, &arrayBufferPtr, &arrayBuffer);
     napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int8_array, (int32_t)size, arrayBuffer, 0, &typedarray);
+    napi_create_typedarray(env, napi_int32_array, (int32_t)(size / BYTE_SIZE_32), arrayBuffer, 0, &typedarray);
     bool isTypedArray = false;
     napi_is_typedarray(env, typedarray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
