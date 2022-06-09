@@ -45,6 +45,7 @@ static constexpr pid_t ALLOWED_UID = 10000;
 // Only the samgr can obtain the UID and PID.
 static const std::string SAMGR_PROCESS_NAME = "samgr";
 #endif
+static constexpr pid_t HIDUMPER_SERVICE_UID = 1212;
 static constexpr pid_t SHELL_UID = 2000;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor) {}
@@ -161,7 +162,7 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
         }
         case DUMP_TRANSACTION: {
             pid_t uid = IPCSkeleton::GetCallingUid();
-            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID)) {
+            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && uid != HIDUMPER_SERVICE_UID)) {
                 ZLOGE(LABEL, "do not allow dump");
                 break;
             }
