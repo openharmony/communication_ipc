@@ -33,15 +33,6 @@
         }                                                                        \
     } while (0)
 
-static bool IpcIoAvailable(IpcIo* io)
-{
-    bool ret = false;
-    if (io != NULL) {
-        ret = (io->flag & IPC_IO_INITIALIZED) && !(io->flag & IPC_IO_OVERFLOW);
-    }
-    return ret;
-}
-
 static SpecialObj* IoPushSpecObj(IpcIo* io)
 {
     IPC_IO_RETURN_IF_FAIL(io != NULL);
