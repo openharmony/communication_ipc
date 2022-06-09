@@ -63,6 +63,10 @@ ohos_shared_library("ipc_single") {
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
   ]
+
+  install_images = [ system_base_dir ]
+  relative_install_dir = "chipset-pub-sdk"
+
   subsystem_name = "communication"
   part_name = "ipc"
 }
