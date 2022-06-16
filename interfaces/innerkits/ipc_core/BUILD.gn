@@ -70,7 +70,7 @@ ohos_shared_library("ipc_core") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "dsoftbus_standard:softbus_client",
+    "dsoftbus:softbus_client",
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
   ]
