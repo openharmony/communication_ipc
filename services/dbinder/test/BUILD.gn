@@ -87,7 +87,7 @@ ohos_distributedtest("DbinderTestAgent") {
   ]
 
   external_deps = [
-    "dsoftbus_standard:softbus_client",
+    "dsoftbus:softbus_client",
     "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]

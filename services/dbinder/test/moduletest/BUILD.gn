@@ -36,7 +36,7 @@ ohos_moduletest("RPCCLIENTTEST") {
   ]
 
   external_deps = [
-    "dsoftbus_standard:softbus_client",
+    "dsoftbus:softbus_client",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
   ]
@@ -59,7 +59,7 @@ ohos_moduletest("RPCSERVERTEST") {
   ]
 
   external_deps = [
-    "dsoftbus_standard:softbus_client",
+    "dsoftbus:softbus_client",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
   ]

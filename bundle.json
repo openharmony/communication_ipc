@@ -21,7 +21,7 @@
       "deps": {
         "components": [
           "utils_base",
-          "dsoftbus_standard:softbus_client",
+          "dsoftbus:softbus_client",
           "hitrace_native:libhitrace",
           "hiviewdfx_hilog_native:libhilog"
         ],
