@@ -114,6 +114,7 @@ public:
     bool AttachCallbackProxy(sptr<IRemoteObject> object, DBinderServiceStub *dbStub);
     int32_t NoticeServiceDie(const std::u16string &serviceName, const std::string &deviceID);
     int32_t NoticeDeviceDie(const std::string &deviceID);
+    bool AttachBusNameObject(IPCObjectProxy *proxy, const std::string &name);
     bool DetachBusNameObject(IPCObjectProxy *proxy);
     std::string CreateDatabusName(int uid, int pid);
     bool DetachProxyObject(binder_uintptr_t binderObject);
@@ -157,7 +158,6 @@ private:
     bool OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
         std::string &remoteDeviceId, int pid, int uid);
     bool IsDeviceIdIllegal(const std::string &deviceID);
-    bool AttachBusNameObject(IPCObjectProxy *proxy, const std::string &name);
     std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
     uint32_t GetSeqNumber();
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
@@ -165,6 +165,8 @@ private:
     bool IsSameSession(std::shared_ptr<struct SessionInfo> oldSession, std::shared_ptr<struct SessionInfo> nowSession);
     bool HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t stubIndex, std::string serverSessionName,
         struct DHandleEntryTxRx *replyMessage);
+    bool ReStartRemoteListener();
+    bool ReGrantPermission(const std::string &sessionName);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);

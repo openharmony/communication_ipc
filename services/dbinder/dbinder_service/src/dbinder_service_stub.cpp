@@ -146,6 +146,12 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
+    std::string sessionName = data.ReadString();
+    if (sessionName.empty()) {
+        DBINDER_LOGE("received sessionName is null");
+        return DBINDER_SERVICE_INVALID_DATA_ERR;
+    }
+
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     sptr<IRemoteObject::DeathRecipient> death(new DbinderDeathRecipient());
 
@@ -168,6 +174,11 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
 
     if (!dBinderService->AttachCallbackProxy(object, this)) {
         DBINDER_LOGE("fail to attach callback proxy");
+        return DBINDER_SERVICE_ADD_DEATH_ERR;
+    }
+
+    if (!dBinderService->AttachBusNameObject(callbackProxy, sessionName)) {
+        DBINDER_LOGE("fail to attach sessionName for callback proxy");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
@@ -204,6 +215,11 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     if (!dBinderService->DetachCallbackProxy(object)) {
         DBINDER_LOGE("fail to detach callback proxy");
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
+    }
+
+    if (!dBinderService->DetachBusNameObject(callbackProxy)) {
+        DBINDER_LOGE("fail to deatch sessionName for callback proxy");
+        return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     return ERR_NONE;
