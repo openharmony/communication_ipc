@@ -561,7 +561,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     int error = ERR_NONE;
-    ZLOGW(LABEL, "HandleCommands:cmd:%{public}s\n", BinderDebug::ToString((int32_t)cmd).c_str());
+    ZLOGI(LABEL, "HandleCommands:cmd:%{public}s\n", BinderDebug::ToString((int32_t)cmd).c_str());
     switch (cmd) {
         case BR_ERROR:
             error = input_.ReadInt32();
