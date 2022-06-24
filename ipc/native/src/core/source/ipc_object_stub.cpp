@@ -52,7 +52,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descript
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "IPCObjectStub destroyed");
+    ZLOGW(LABEL, "IPCObjectStub destroyed, desc: %{public}s", Str16ToStr8(descriptor_.c_str()));
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
