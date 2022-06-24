@@ -37,12 +37,13 @@ using namespace IPC_SINGLE;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectProxy" };
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
-{}
+{
+    ZLOGW(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
+}
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGW(LABEL, "handle: %{public}u, desc: %{public}s destroyed",
-        handle_, Str16ToStr8(descriptor_).c_str());
+    ZLOGW(LABEL, "destroy, desc: %{public}s", Str16ToStr8(descriptor_).c_str());
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
