@@ -48,11 +48,14 @@ static const std::string SAMGR_PROCESS_NAME = "samgr";
 static constexpr pid_t HIDUMPER_SERVICE_UID = 1212;
 static constexpr pid_t SHELL_UID = 2000;
 
-IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor) {}
+IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
+{
+    ZLOGW(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
+}
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "IPCObjectStub destroyed");
+    ZLOGW(LABEL, "destroy, desc: %{public}s", Str16ToStr8(descriptor_).c_str());
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)

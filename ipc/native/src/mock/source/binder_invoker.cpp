@@ -121,7 +121,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
-    ZLOGI(LABEL, "%{public}s: handle=%d result = %{public}d", __func__, handle, error);
+    ZLOGI(LABEL, "%{public}s: handle=%{public}d result = %{public}d", __func__, handle, error);
     return error;
 }
 
@@ -561,7 +561,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     int error = ERR_NONE;
-    ZLOGI(LABEL, "HandleCommands:cmd=[%u]:%{public}s\n", cmd, BinderDebug::ToString((int32_t)cmd).c_str());
+    ZLOGI(LABEL, "HandleCommands:cmd:%{public}s\n", BinderDebug::ToString((int32_t)cmd).c_str());
     switch (cmd) {
         case BR_ERROR:
             error = input_.ReadInt32();
