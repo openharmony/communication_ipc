@@ -537,6 +537,7 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     MessageOption option(MessageOption::TF_SYNC);
     data.WriteInt32(IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT);
     data.WriteRemoteObject(callbackStub);
+    data.WriteString(current->GetDatabusName());
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {

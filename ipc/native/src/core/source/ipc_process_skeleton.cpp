@@ -952,10 +952,6 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
 {
     std::lock_guard<std::mutex> lockGuard(sessionNameMutex_);
 
-    if (!sessionName_.empty()) {
-        return true;
-    }
-
     if (name.empty()) {
         DBINDER_LOGE("get wrong session name = %s", name.c_str());
         return false;

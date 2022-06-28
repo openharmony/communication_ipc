@@ -34,6 +34,7 @@ sptr<DBinderService> DBinderService::instance_ = nullptr;
 bool DBinderService::mainThreadCreated_ = false;
 std::mutex DBinderService::instanceMutex_;
 std::shared_ptr<DBinderRemoteListener> DBinderService::remoteListener_ = nullptr;
+constexpr int32_t DBINDER_UID_START_INDEX = 7;
 
 DBinderService::DBinderService()
 {
@@ -72,7 +73,7 @@ std::string DBinderService::GetLocalDeviceID()
 bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallback> &callbackImpl)
 {
     if (mainThreadCreated_) {
-        return true;
+        return ReStartRemoteListener();
     }
 
     bool result = StartRemoteListener();
@@ -104,6 +105,29 @@ bool DBinderService::StartRemoteListener()
     }
 
     DBINDER_LOGI("start remote listener ok");
+    return true;
+}
+
+bool DBinderService::ReStartRemoteListener()
+{
+    if (remoteListener_ == nullptr) {
+        DBINDER_LOGE("restart remote listener got null");
+        return false;
+    }
+    if (remoteListener_->StartListener(remoteListener_) != true) {
+        DBINDER_LOGE("restart dbinder server failed");
+        StopRemoteListener();
+        return false;
+    }
+
+    auto it = busNameObject_.begin();
+    while (it != busNameObject_.end()) {
+        std::string sessionName = it->second;
+        if (ReGrantPermission(sessionName) != true) {
+            DBINDER_LOGE("%s grant permission failed", sessionName.c_str());
+        }
+        ++it;
+    }
     return true;
 }
 
@@ -988,5 +1012,31 @@ std::string DBinderService::ConvertToSecureDeviceID(const std::string &deviceID)
         return "****";
     }
     return deviceID.substr(0, ENCRYPT_LENGTH) + "****" + deviceID.substr(strlen(deviceID.c_str()) - ENCRYPT_LENGTH);
+}
+
+bool DBinderService::ReGrantPermission(const std::string &sessionName)
+{
+    if (sessionName.empty()) {
+        return false;
+    }
+    std::string::size_type splitIndex = sessionName.find('_');
+    if (splitIndex == std::string::npos) {
+        DBINDER_LOGE("grant permission not found _");
+        return false;
+    }
+    int32_t uidLength = static_cast<int32_t>(splitIndex) - DBINDER_UID_START_INDEX;
+    std::string uidString = sessionName.substr(DBINDER_UID_START_INDEX, uidLength);
+    std::string pidString = sessionName.substr(splitIndex + 1);
+    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
+    if (softbusManager == nullptr) {
+        DBINDER_LOGE("fail to get softbus service");
+        return false;
+    }
+
+    if (softbusManager->GrantPermission(std::stoi(uidString), std::stoi(pidString), sessionName) != ERR_NONE) {
+        DBINDER_LOGE("fail to Grant Permission softbus name");
+        return false;
+    }
+    return true;
 }
 } // namespace OHOS
