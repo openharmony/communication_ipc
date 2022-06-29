@@ -2153,6 +2153,7 @@ napi_value NAPI_MessageParcel::JS_ReadAshmem(napi_env env, napi_callback_info in
     napiAshmem->SetAshmem(nativeAshmem);
     return jsAshmem;
 }
+
 napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
@@ -2205,29 +2206,27 @@ napi_value NAPI_MessageParcel::JS_ReadRawData(napi_env env, napi_callback_info i
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-    int32_t size = 0;
-    napi_get_value_int32(env, argv[0], &size);
-    size *= BYTE_SIZE_32;
+    int32_t arraySize = 0;
+    napi_get_value_int32(env, argv[0], &arraySize);
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", 0);
-    const void *rawData = napiParcel->nativeParcel_->ReadRawData(size);
+    const void *rawData = napiParcel->nativeParcel_->ReadRawData(arraySize * BYTE_SIZE_32);
     NAPI_ASSERT_BASE(env, rawData != nullptr, "rawData is null", 0);
     // [c++] rawData -> byteBuffer()[js]
-    napi_value arrayBuffer = nullptr;
-    void *arrayBufferPtr = nullptr;
-    napi_create_arraybuffer(env, (int32_t)size, &arrayBufferPtr, &arrayBuffer);
-    napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int32_array, (int32_t)(size / BYTE_SIZE_32), arrayBuffer, 0, &typedarray);
-    bool isTypedArray = false;
-    napi_is_typedarray(env, typedarray, &isTypedArray);
-    NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
-    if (size == 0) {
-        return typedarray;
+    napi_value result = nullptr;
+    if (arraySize <= 0) {
+        napi_create_array(env, &result);
+        return result;
     }
-    errno_t status = memcpy_s(arrayBufferPtr, size, rawData, size);
-    NAPI_ASSERT(env, status == EOK, "memcpy_s is failed");
-    return typedarray;
+    napi_create_array_with_length(env, (size_t)arraySize, &result);
+    const int32_t *ptr = static_cast<const int32_t *>(rawData);
+    for (uint32_t i = 0; i < (uint32_t)arraySize; i++) {
+        napi_value num = nullptr;
+        napi_create_int32(env, ptr[i], &num);
+        napi_set_element(env, result, i, num);
+    }
+    return result;
 }
 
 napi_value NAPI_MessageParcel::JS_GetRawDataCapacity(napi_env env, napi_callback_info info)
