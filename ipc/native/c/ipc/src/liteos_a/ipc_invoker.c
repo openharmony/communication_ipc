@@ -471,6 +471,7 @@ int32_t StartCallbackDispatch(void)
         }
         return ERR_NONE;
     }
+    return ERR_NONE;
 }
 
 static void IpcJoinThreadLoop(void)
