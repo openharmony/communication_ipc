@@ -966,7 +966,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
     flat.handle = (uint32_t)fd;
     flat.cookie = takeOwnership ? 1 : 0;
 
-    ZLOGW(LABEL, "%s(%d) write fd : %d", __func__, __LINE__, fd);
+    ZLOGI(LABEL, "%s(%d) write fd : %d", __func__, __LINE__, fd);
     return parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
 }
 
