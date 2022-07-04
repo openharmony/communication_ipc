@@ -949,7 +949,7 @@ int BinderInvoker::ReadFileDescriptor(Parcel &parcel)
     auto *flat = reinterpret_cast<const flat_binder_object *>(buffer);
     if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
         fd = flat->handle;
-        ZLOGW(LABEL, "%s:%d : fd = %d", __func__, __LINE__, fd);
+        ZLOGI(LABEL, "%s:%d : fd = %d", __func__, __LINE__, fd);
     } else {
         ZLOGE(LABEL, "%s: unknown binder type %u", __func__, flat->hdr.type);
     }
