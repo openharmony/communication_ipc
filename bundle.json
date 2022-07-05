@@ -20,10 +20,12 @@
       "ram": "100KB",
       "deps": {
         "components": [
+          "samgr_standard",
+          "hitrace_native",
+          "hiviewdfx_hilog_native",
           "utils_base",
-          "dsoftbus:softbus_client",
-          "hitrace_native:libhitrace",
-          "hiviewdfx_hilog_native:libhilog"
+          "access_token",
+          "dsoftbus"
         ],
         "third_party": [
           "bounds_checking_function"
