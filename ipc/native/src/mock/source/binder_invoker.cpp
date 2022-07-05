@@ -949,7 +949,7 @@ int BinderInvoker::ReadFileDescriptor(Parcel &parcel)
     auto *flat = reinterpret_cast<const flat_binder_object *>(buffer);
     if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
         fd = flat->handle;
-        ZLOGW(LABEL, "%s:%d : fd = %d", __func__, __LINE__, fd);
+        ZLOGI(LABEL, "%s:%d : fd = %d", __func__, __LINE__, fd);
     } else {
         ZLOGE(LABEL, "%s: unknown binder type %u", __func__, flat->hdr.type);
     }
@@ -966,7 +966,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
     flat.handle = (uint32_t)fd;
     flat.cookie = takeOwnership ? 1 : 0;
 
-    ZLOGW(LABEL, "%s(%d) write fd : %d", __func__, __LINE__, fd);
+    ZLOGI(LABEL, "%s(%d) write fd : %d", __func__, __LINE__, fd);
     return parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
 }
 
