@@ -44,7 +44,7 @@ enum {
 
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()),
-    firstTokenID_(-1), status_(0)
+    firstTokenID_(0), status_(0)
 {
     callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
@@ -838,7 +838,7 @@ uint32_t BinderInvoker::GetCallerTokenID() const
 
 uint32_t BinderInvoker::GetFirstTokenID() const
 {
-    if (firstTokenID_ == -1) {
+    if (firstTokenID_ == 0) {
         return (uint32_t)RpcGetFirstCallerTokenID();
     }
     return firstTokenID_;
