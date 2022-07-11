@@ -22,6 +22,9 @@ namespace OHOS {
 class RpcSystemAbilityCallback {
 public:
     virtual sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) = 0;
+    bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, int32_t systemAbilityId, <IRemoteObject> callback);
+
+    void OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId, const sptr<IRemoteObject>& remoteObject) override;
     RpcSystemAbilityCallback() = default;
     virtual ~RpcSystemAbilityCallback() = default;
 };
