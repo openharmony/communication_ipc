@@ -24,12 +24,9 @@ public:
     using OnLoadSystemAbilityComplete = std::func<void(const std::string& srcNetworkId, 
         int32_t systemAbilityId, const sptr<IRemoteObject>& remoteObject)>;
 
-        
     virtual bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, int32_t systemAbilityId, OnLoadSystemAbilityComplete callback){ return false; }
     virtual sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) = 0;
 
-
-    
     RpcSystemAbilityCallback() = default;
     virtual ~RpcSystemAbilityCallback() = default;
 };
