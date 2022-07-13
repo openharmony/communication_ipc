@@ -42,11 +42,11 @@ static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectStub" };
 using namespace OHOS::Security;
 // Authentication information can be added only for processes with system permission.
 static constexpr pid_t ALLOWED_UID = 10000;
+static constexpr pid_t SHELL_UID = 2000;
+static constexpr int APL_BASIC = 2;
 // Only the samgr can obtain the UID and PID.
 static const std::string SAMGR_PROCESS_NAME = "samgr";
 #endif
-static constexpr pid_t HIDUMPER_SERVICE_UID = 1212;
-static constexpr pid_t SHELL_UID = 2000;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
@@ -163,15 +163,19 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             reply.WriteInt32(refCount);
             break;
         }
+#ifndef CONFIG_IPC_SINGLE
         case DUMP_TRANSACTION: {
             pid_t uid = IPCSkeleton::GetCallingUid();
-            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && uid != HIDUMPER_SERVICE_UID)) {
+            uint32_t calllingTokenID = IPCSkeleton::GetFirstTokenID();
+            calllingTokenID = calllingTokenID == 0 ? IPCSkeleton::GetCallingTokenID() : calllingTokenID;
+            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && !HasDumpPermission(calllingTokenID))) {
                 ZLOGE(LABEL, "do not allow dump");
                 break;
             }
             result = OnRemoteDump(code, data, reply, option);
             break;
         }
+#endif
         case GET_PROTO_INFO: {
             result = ProcessProto(code, data, reply, option);
             break;
@@ -596,6 +600,29 @@ bool IPCObjectStub::IsSamgrCall(uint32_t accessToken)
     }
     ZLOGE(LABEL, "not samgr called, processName:%{private}s", nativeTokenInfo.processName.c_str());
     return false;
+}
+
+bool IPCObjectStub::HasDumpPermission(uint32_t accessToken) const
+{
+    int res = AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, "ohos.permission.DUMP");
+    if (res == AccessToken::PermissionState::PERMISSION_GRANTED) {
+        return true;
+    }
+    bool ret = false;
+    auto tokenType = AccessToken::AccessTokenKit::GetTokenTypeFlag(accessToken);
+    if (tokenType == AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        AccessToken::NativeTokenInfo nativeTokenInfo;
+        int32_t result = AccessToken::AccessTokenKit::GetNativeTokenInfo(accessToken, nativeTokenInfo);
+        ret =  (result == ERR_NONE && nativeTokenInfo.apl >= APL_BASIC);
+    } else if (tokenType == AccessToken::ATokenTypeEnum::TOKEN_HAP) {
+        AccessToken::HapTokenInfo hapTokenInfo;
+        int32_t result = AccessToken::AccessTokenKit::GetHapTokenInfo(accessToken, hapTokenInfo);
+        ret =  (result == ERR_NONE && hapTokenInfo.apl >= APL_BASIC);
+    }
+    if (!ret) {
+        ZLOGI(LABEL, "No dump permission, please check!");
+    }
+    return ret;
 }
 #endif
 } // namespace OHOS
