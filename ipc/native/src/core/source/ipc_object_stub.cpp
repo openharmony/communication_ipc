@@ -168,7 +168,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             pid_t uid = IPCSkeleton::GetCallingUid();
             uint32_t calllingTokenID = IPCSkeleton::GetFirstTokenID();
             calllingTokenID = calllingTokenID == 0 ? IPCSkeleton::GetCallingTokenID() : calllingTokenID;
-            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && !HasDumpPermission(calllingTokenID))) {
+            if (!IPCSkeleton::IsLocalCalling() ||
+                (uid != 0 && uid != SHELL_UID && !HasDumpPermission(calllingTokenID))) {
                 ZLOGE(LABEL, "do not allow dump");
                 break;
             }
