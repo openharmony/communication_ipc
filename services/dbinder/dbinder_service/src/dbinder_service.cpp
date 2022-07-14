@@ -427,9 +427,127 @@ uint16_t DBinderService::AllocFreeSocketPort()
     return 0;
 }
 
+
+
+ 
+void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
+    const sptr<IRemoteObject>& remoteObject)
+{
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
+    std::lock_guard<std::shared_mutex> lockGuard(calledSaMutex_);
+
+    for (auto it = calledSaObject_.begin(); it != calledSaObject_.end();) {
+        if (it->first == systemAbilityId) {
+            if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), it->second, sizeof(DHandleEntryTxRx)) != 0) {
+                DBINDER_LOGE("fail to copy memory");
+                return false;
+            }
+        }
+    }
+
+    binder_uintptr_t binderObject = replyMessage->binderObject;
+    std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
+
+    if (remoteObject != nullptr) {
+        /* When the stub object dies, you need to delete the corresponding busName information */
+        IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject.GetRefPtr());
+        sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
+        if (!saProxy->AddDeathRecipient(death)) {
+            DBINDER_LOGE("fail to add death recipient");
+            return false;
+        }
+        bool ret = AttachProxyObject(remoteObject, binderObject);
+        if (!ret) {
+            DBINDER_LOGE("attach proxy object fail");
+            return false;
+        }
+    } else {
+        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", digitalName);
+    }
+
+
+    if(remoteObject != nullptr) {
+        DBINDER_LOGE("fail to load the remote system ability object");
+    }
+    
+
+    IPCObjectProxy *ipcProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject.GetRefPtr());
+
+    switch (replyMessage->transType) {
+        case IRemoteObject::DATABUS_TYPE: {
+            if (!OnRemoteInvokerDataBusMessage(ipcProxy, replyMessage.get(), deviceId, message->pid, message->uid)) {
+                DBINDER_LOGE("Invoker Databus Message fail");
+                return false;
+            }
+            break;
+        }
+        default: {
+            DBINDER_LOGE("Invalid Message Type");
+            return false;
+        }
+    }
+    std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
+    if (remoteListener == nullptr) {
+        DBINDER_LOGE("remoteListener is null");
+        return false;
+    }
+    bool ret = remoteListener->SendDataToRemote(deviceId, replyMessage.get());
+    if (ret != true) {
+        DBINDER_LOGE("fail to send data from server DBS to client DBS");
+        return false;
+    }
+    DBINDER_LOGI("load system ability succeed!");
+}
+
+
+
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
 {
-    sptr<IRemoteObject> proxy = FindOrNewProxy(message->binderObject, static_cast<int32_t>(message->stubIndex));
+    binder_uintptr_t binderObject = message->binderObject;
+    int32_t systemAbilityId = static_cast<int32_t>(message->stubIndex);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
+    if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
+        DBINDER_LOGE("fail to copy memory");
+        return false;
+    }
+    std::lock_guard<std::shared_mutex> lockGuard(calledSaMutex_);
+    calledSaObject_.insert(std::pair<int32_t, std::shared_ptr<struct DHandleEntryTxRx>>(systemAbilityId,
+        replyMessage));
+
+    sptr<IRemoteObject> proxy = QueryProxyObject(binderObject);
+    if (proxy != nullptr) {
+        DBINDER_LOGI("already have proxy");
+        return true;
+    }
+    if (dbinderCallback_ == nullptr) {
+        DBINDER_LOGE("samgr not initialized get remote sa callback");
+        return false;
+    }
+    /* proxy is null, attempt to get a new proxy */
+    std::u16string serviceName = GetRegisterService(binderObject);
+    if (serviceName.empty() && !CheckSystemAbilityId(systemAbilityId)) {
+        DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
+    }
+
+    std::string localDevId = Message->deviceIdInfo.fromDeviceId;
+    int32_t digitalName = !serviceName.empty() ? std::stoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
+    bool isSaAvailable = LoadSystemAbilityFromRemote(localDevId, systemAbilityId, OnLoadSystemAbilityComplete);
+
+    if(isSaAvailable != true) {
+        DBINDER_LOGE("fail to call the system ability");
+        return false;
+    }
+
+    return true;
+/*
+    if (proxy != true) {
+        DBINDER_LOGI("fail to call the system ability");
+        return false;
+    }
+
+    IPCObjectProxy *ipcProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr())
+    //sptr<IRemoteObject> proxy = FindOrNewProxy(message->binderObject, static_cast<int32_t>(message->stubIndex));
     if (proxy == nullptr) {
         DBINDER_LOGE("find and new proxy fail");
         return false;
@@ -467,6 +585,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     }
 
     return true;
+    */
 }
 
 std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)

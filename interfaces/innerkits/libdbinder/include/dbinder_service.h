@@ -182,6 +182,7 @@ private:
     std::shared_mutex proxyMutex_;
     std::shared_mutex deathRecipientMutex_;
     std::shared_mutex sessionMutex_;
+    std::shared_mutex calledSaMutex_;
 
     std::mutex handleEntryMutex_;
     std::mutex threadLockMutex_;
@@ -197,6 +198,7 @@ private:
     std::map<sptr<IRemoteObject>, DBinderServiceStub *> noticeProxy_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
     std::map<IPCObjectProxy *, std::string> busNameObject_;
+    std::map<int32_t, std::shared_ptr<struct DHandleEntryTxRx>> calledSaObject_;
     static constexpr int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
 
