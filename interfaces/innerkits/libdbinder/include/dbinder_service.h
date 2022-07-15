@@ -119,6 +119,8 @@ public:
     std::string CreateDatabusName(int uid, int pid);
     bool DetachProxyObject(binder_uintptr_t binderObject);
     std::string QueryBusNameObject(IPCObjectProxy *proxy);
+    void OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
+    const sptr<IRemoteObject>& remoteObject);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
@@ -167,6 +169,11 @@ private:
         struct DHandleEntryTxRx *replyMessage);
     bool ReStartRemoteListener();
     bool ReGrantPermission(const std::string &sessionName);
+    bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    DHandleEntryTxRx FindLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    bool DeleteLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    void StubDeathCorresponding(const sptr<IRemoteObject>& remoteObject, binder_uintptr_t binderObject);
+
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
@@ -182,7 +189,7 @@ private:
     std::shared_mutex proxyMutex_;
     std::shared_mutex deathRecipientMutex_;
     std::shared_mutex sessionMutex_;
-    std::shared_mutex calledSaMutex_;
+    std::shared_mutex loadSaMutex_;
 
     std::mutex handleEntryMutex_;
     std::mutex threadLockMutex_;
@@ -198,7 +205,7 @@ private:
     std::map<sptr<IRemoteObject>, DBinderServiceStub *> noticeProxy_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
     std::map<IPCObjectProxy *, std::string> busNameObject_;
-    std::map<int32_t, std::shared_ptr<struct DHandleEntryTxRx>> calledSaObject_;
+    std::list<std::shared_ptr<struct DHandleEntryTxRx>> loadSaReply_;
     static constexpr int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
 
