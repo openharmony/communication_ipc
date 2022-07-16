@@ -439,22 +439,6 @@ bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t s
     return false;
 }
 
-
-sptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId)
-{
-    auto checkSaItem = [](const std::string& srcNetworkId, int32_t systemAbilityId) {
-        return isSameLoadSaItem(srcNetworkId, systemAbilityId);
-    }
-    std::lock_guard<std::mutex> lockGuard(loadSaMutex_);
-    for (auto it = loadSaReply_.begin(); it != loadSaReply_.end();
-        checkSaItem(srcNetworkId, systemAbilityId)) {
-        return it->second;
-    }
-    DBINDER_LOGE("findSaItem failed");
-    return nullptr;
-}
-
-
 void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
     const sptr<IRemoteObject>& remoteObject)
 {
