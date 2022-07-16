@@ -120,7 +120,7 @@ public:
     bool DetachProxyObject(binder_uintptr_t binderObject);
     std::string QueryBusNameObject(IPCObjectProxy *proxy);
     void OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
-    const sptr<IRemoteObject>& remoteObject);
+        const sptr<IRemoteObject>& remoteObject);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
@@ -170,9 +170,8 @@ private:
     bool ReStartRemoteListener();
     bool ReGrantPermission(const std::string &sessionName);
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    DHandleEntryTxRx FindLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    bool DeleteLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    void StubDeathCorresponding(const sptr<IRemoteObject>& remoteObject, binder_uintptr_t binderObject);
+    sptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+
 
 
 private:
