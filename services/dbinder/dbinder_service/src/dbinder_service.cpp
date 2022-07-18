@@ -384,43 +384,44 @@ bool DBinderService::CheckSystemAbilityId(int32_t systemAbilityId)
     return systemAbilityId >= FIRST_SYS_ABILITY_ID && systemAbilityId <= LAST_SYS_ABILITY_ID;
 }
 
-sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject, int32_t systemAbilityId)
-{
-    sptr<IRemoteObject> proxy = QueryProxyObject(binderObject);
-    if (proxy != nullptr) {
-        DBINDER_LOGI("already have proxy");
-        return proxy;
-    }
-    if (dbinderCallback_ == nullptr) {
-        DBINDER_LOGE("samgr not initialized get remote sa callback");
-        return nullptr;
-    }
-    /* proxy is null, attempt to get a new proxy */
-    std::u16string serviceName = GetRegisterService(binderObject);
-    if (serviceName.empty() && !CheckSystemAbilityId(systemAbilityId)) {
-        DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
-        return nullptr;
-    }
-    int32_t digitalName = !serviceName.empty() ? std::stoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
-    proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
-    if (proxy != nullptr) {
-        /* When the stub object dies, you need to delete the corresponding busName information */
-        IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
-        sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
-        if (!saProxy->AddDeathRecipient(death)) {
-            DBINDER_LOGE("fail to add death recipient");
-            return nullptr;
-        }
-        bool ret = AttachProxyObject(proxy, binderObject);
-        if (!ret) {
-            DBINDER_LOGE("attach proxy object fail");
-            return nullptr;
-        }
-    } else {
-        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", digitalName);
-    }
-    return proxy;
-}
+// sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject, int32_t systemAbilityId)
+// {
+//     sptr<IRemoteObject> proxy = QueryProxyObject(binderObject);
+//     if (proxy != nullptr) {
+//         DBINDER_LOGI("already have proxy");
+//         return proxy;
+//     }
+//     if (dbinderCallback_ == nullptr) {
+//         DBINDER_LOGE("samgr not initialized get remote sa callback");
+//         return nullptr;
+//     }
+//     /* proxy is null, attempt to get a new proxy */
+//     std::u16string serviceName = GetRegisterService(binderObject);
+//     if (serviceName.empty() && !CheckSystemAbilityId(systemAbilityId)) {
+//         DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
+//         return nullptr;
+//     }
+//     int32_t digitalName = !serviceName.empty() ? std::stoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
+//     proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
+//     if (proxy != nullptr) {
+//         /* When the stub object dies, you need to delete the corresponding busName information */
+//         IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
+//         sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
+//         if (!saProxy->AddDeathRecipient(death)) {
+//             DBINDER_LOGE("fail to add death recipient");
+//             return nullptr;
+//         }
+//         bool ret = AttachProxyObject(proxy, binderObject);
+//         if (!ret) {
+//             DBINDER_LOGE("attach proxy object fail");
+//             return nullptr;
+//         }
+//     } else {
+//         DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", digitalName);
+//     }
+//     return proxy;
+// }
+
 uint16_t DBinderService::AllocFreeSocketPort()
 {
     /* alloc port by system */
@@ -430,8 +431,8 @@ uint16_t DBinderService::AllocFreeSocketPort()
 bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId)
 {
     for (auto it = loadSaReply_.begin(); it != loadSaReply_.end();) {
-        if (static_cast<int32_t>(it->stubIndex) == systemAbilityId && it->DeviceIdInfo.fromDeviceId) {
-            DBINDER_LOGI("match succeed!")
+        if (static_cast<int32_t>((*it)->stubIndex) == systemAbilityId && (*it)->deviceIdInfo.fromDeviceId == srcNetworkId) {
+            DBINDER_LOGI("match succeed!");
             return true;
         }
     }
@@ -442,22 +443,23 @@ bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t s
 void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
     const sptr<IRemoteObject>& remoteObject)
 {
+
     if(remoteObject == nullptr) {
-        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d, srcDevId:%{public}d",
-            digitalName, srcNetworkId);
+        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d, srcDevId:%{public}s",
+            systemAbilityId, srcNetworkId.c_str());
         return;
     }
-
-    std::lock_guard<std::mutex> lockGuard(loadSaMutex_);
-    sptr<DHandleEntryTxRx> replyMessage = nullptr;
+    
+    std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
+    std::shared_ptr<DHandleEntryTxRx> replyMessage = nullptr;
     // sptr<struct DHandleEntryTxRx> replyMessage = PopLoadSaItem(srcNetworkId, systemAbilityId);
     auto checkSaItem = [](const std::string& srcNetworkId, int32_t systemAbilityId) {
-        return isSameLoadSaItem(srcNetworkId, systemAbilityId);
-    }
-    std::lock_guard<std::mutex> lockGuard(loadSaMutex_);
+        return IsSameLoadSaItem(srcNetworkId, systemAbilityId);
+    };
+    // std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     for (auto it = loadSaReply_.begin(); it != loadSaReply_.end();
         checkSaItem(srcNetworkId, systemAbilityId)) {
-        sptr<DHandleEntryTxRx> replyMessage = (*it);
+        std::shared_ptr<DHandleEntryTxRx> replyMessage = (*it);
         loadSaReply_.erase(it);
         binder_uintptr_t binderObject = replyMessage->binderObject;
         std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
@@ -496,7 +498,7 @@ void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId
             return;
         }
 
-        bool ret = remoteListener->SendDataToRemote(deviceId, replyMessage.get());
+        ret = remoteListener->SendDataToRemote(deviceId, replyMessage.get());
         if (ret != true) {
             DBINDER_LOGE("fail to send data from server DBS to client DBS"); 
             return;
@@ -526,7 +528,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     }    
     
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
-    loadSaReply_.insert(std::shared_ptr<struct DHandleEntryTxRx>(replyMessage));
+    loadSaReply_.push_back(std::shared_ptr<struct DHandleEntryTxRx>(replyMessage));
     return true;
 }
 
