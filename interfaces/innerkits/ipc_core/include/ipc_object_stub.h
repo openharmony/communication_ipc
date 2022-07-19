@@ -86,6 +86,7 @@ private:
     std::string CreateDatabusName(int uid, int pid);
     std::string GetDataBusName();
     bool IsSamgrCall(uint32_t accessToken);
+    bool HasDumpPermission(uint32_t accessToken) const;
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
