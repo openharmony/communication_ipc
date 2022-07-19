@@ -40,8 +40,6 @@ public:
 
     ~IPCWorkThread();
 
-    void ThreadHandler();
-
     void Start(int policy, int proto, std::string threadName);
 
     void StopWorkThread();
@@ -51,6 +49,7 @@ private:
     int policy_ = SPAWN_PASSIVE;
     std::thread thread_;
     const std::string threadName_;
+    static void *ThreadHandler(void *args);
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThread" };
 };
 #ifdef CONFIG_IPC_SINGLE
