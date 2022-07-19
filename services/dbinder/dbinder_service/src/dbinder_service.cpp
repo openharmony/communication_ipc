@@ -511,11 +511,6 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
 {
     int32_t systemAbilityId = static_cast<int32_t>(message->stubIndex);
 
-    if (dbinderCallback_ == nullptr) {
-        DBINDER_LOGE("samgr not initialized get remote sa callback");
-        return false;
-    }
-
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
         DBINDER_LOGE("fail to copy memory");
