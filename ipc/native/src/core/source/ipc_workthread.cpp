@@ -89,7 +89,7 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
     std::string wholeName = threadName + std::to_string(getpid()) + "_" + std::to_string(gettid());
     if (ret != 0) {
         DBINDER_LOGI("create thread failed");
-	}
+    }
     DBINDER_LOGI("create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
     if (pthread_detach(threadId) != 0) {
         DBINDER_LOGI("detach error");
