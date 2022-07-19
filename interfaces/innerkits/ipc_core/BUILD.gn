@@ -17,10 +17,7 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 config("libipc_core_private_config") {
-  cflags_cc = [
-    "-O2",
-    "-fexceptions",
-  ]
+    cflags_cc = ["-O2"]
 }
 
 ohos_shared_library("ipc_core") {
