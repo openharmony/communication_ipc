@@ -119,7 +119,7 @@ public:
     std::string CreateDatabusName(int uid, int pid);
     bool DetachProxyObject(binder_uintptr_t binderObject);
     std::string QueryBusNameObject(IPCObjectProxy *proxy);
-    void OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
+    void LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
         const sptr<IRemoteObject>& remoteObject);
 
 private:
@@ -170,7 +170,7 @@ private:
     bool ReStartRemoteListener();
     bool ReGrantPermission(const std::string &sessionName);
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    sptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    // sptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
 
 
 
