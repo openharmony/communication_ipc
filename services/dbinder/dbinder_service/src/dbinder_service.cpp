@@ -440,10 +440,9 @@ bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t s
     return false;
 }
 
-void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
+void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
     const sptr<IRemoteObject>& remoteObject)
 {
-
     if(remoteObject == nullptr) {
         DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d, srcDevId:%{public}s",
             systemAbilityId, srcNetworkId.c_str());
@@ -453,7 +452,7 @@ void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     std::shared_ptr<DHandleEntryTxRx> replyMessage = nullptr;
     // sptr<struct DHandleEntryTxRx> replyMessage = PopLoadSaItem(srcNetworkId, systemAbilityId);
-    auto checkSaItem = [](const std::string& srcNetworkId, int32_t systemAbilityId) {
+    auto checkSaItem = [this](const std::string& srcNetworkId, int32_t systemAbilityId) {
         return IsSameLoadSaItem(srcNetworkId, systemAbilityId);
     };
     // std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
@@ -510,8 +509,12 @@ void DBinderService::OnLoadSystemAbilityComplete(const std::string& srcNetworkId
 
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
 {
-    binder_uintptr_t binderObject = message->binderObject;
     int32_t systemAbilityId = static_cast<int32_t>(message->stubIndex);
+
+    if (dbinderCallback_ == nullptr) {
+        DBINDER_LOGE("samgr not initialized get remote sa callback");
+        return false;
+    }
 
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
@@ -520,8 +523,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     }
 
 
-    bool isSaAvailable = LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
-        systemAbilityId, OnLoadSystemAbilityComplete);
+    bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,systemAbilityId);
     if(!isSaAvailable) {
         DBINDER_LOGE("fail to call the system ability");
         return false;
