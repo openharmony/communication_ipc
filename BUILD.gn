@@ -38,3 +38,15 @@ config("ipc_util_config") {
     cflags += [ "-DBUILD_PUBLIC_VERSION" ]
   }
 }
+
+group("ipc_components") {
+  if (os_level == "standard") {
+    deps = [
+      "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+      "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+      "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+    ]
+  } else {
+    deps = [ "//foundation/communication/ipc/interfaces/innerkits/c:rpc" ]
+  }
+}
