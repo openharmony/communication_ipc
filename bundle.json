@@ -13,7 +13,9 @@
       "name": "ipc",
       "subsystem": "communication",
       "adapted_system_type": [
-        "standard"
+        "standard",
+        "small",
+        "mini"
       ],
       "features": [],
       "rom": "500KB",
@@ -33,9 +35,7 @@
       },
       "build": {
         "sub_component": [
-          "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-          "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-          "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder"
+          "//foundation/communication/ipc:ipc_components"
         ],
         "inner_kits": [
           {
