@@ -32,10 +32,10 @@ ohos_unittest("IPCNativeUnitTest") {
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
@@ -57,10 +57,10 @@ ohos_unittest("IPCFileDescOpsTest") {
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -84,10 +84,10 @@ ohos_unittest("IPCHiTraceUnitTest") {
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
