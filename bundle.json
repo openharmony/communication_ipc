@@ -20,7 +20,7 @@
       "ram": "100KB",
       "deps": {
         "components": [
-          "samgr_standard",
+          "samgr",
           "hitrace_native",
           "hiviewdfx_hilog_native",
           "utils_base",
