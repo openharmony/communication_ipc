@@ -534,8 +534,6 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
 
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
 {
-    int32_t systemAbilityId = static_cast<int32_t>(message->stubIndex);
-
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
@@ -544,7 +542,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     }
 
     bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
-        systemAbilityId);
+        static_cast<int32_t>(replymessage->stubIndex));
     if(!isSaAvailable) {
         DBINDER_LOGE("fail to call the system ability");
         return false;
