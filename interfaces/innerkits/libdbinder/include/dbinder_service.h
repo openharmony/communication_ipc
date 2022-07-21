@@ -169,8 +169,9 @@ private:
         struct DHandleEntryTxRx *replyMessage);
     bool ReStartRemoteListener();
     bool ReGrantPermission(const std::string &sessionName);
-    bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    // sptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,std::shared_ptr<DHandleEntryTxRx> loadSaItem);
+    std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    void DeleteLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
 
 
 
