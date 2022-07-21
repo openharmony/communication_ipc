@@ -44,10 +44,10 @@ ohos_shared_library("rpc") {
   deps = [
     "//foundation/arkui/napi:ace_napi",
     "//third_party/libuv:uv",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

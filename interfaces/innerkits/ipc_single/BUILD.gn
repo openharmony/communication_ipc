@@ -57,9 +57,9 @@ ohos_shared_library("ipc_single") {
     ":libipc_single_private_config",
   ]
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
-  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
+    "c_utils:utils",
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
   ]
