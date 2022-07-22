@@ -310,7 +310,9 @@ napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_inf
     NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
     uint32_t arrayLength = 0;
+    uint32_t maxBytesLen = 40960;
     napi_get_array_length(env, argv[0], &arrayLength);
+    NAPI_ASSERT(env, arrayLength < maxBytesLen, "write byte array length too large");
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
@@ -328,9 +330,9 @@ napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_inf
         napi_value element = nullptr;
         napi_get_element(env, argv[0], i, &element);
 
-        uint32_t value = 0;
-        napi_get_value_uint32(env, element, &value);
-        result = napiParcel->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
+        int32_t value = 0;
+        napi_get_value_int32(env, element, &value);
+        result = napiParcel->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
         if (!result) {
             napiParcel->nativeParcel_->RewindWrite(pos);
             break;
@@ -1309,9 +1311,9 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
         NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
 
         for (uint32_t i = 0; i < arrayLength; i++) {
-            uint8_t val = napiParcel->nativeParcel_->ReadUint8();
+            int8_t val = napiParcel->nativeParcel_->ReadInt8();
             napi_value num = nullptr;
-            napi_create_uint32(env, val, &num);
+            napi_create_int32(env, val, &num);
             napi_set_element(env, argv[0], i, num);
         }
         napi_value napiValue = nullptr;
@@ -1329,7 +1331,7 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
-        uint8_t val = napiParcel->nativeParcel_->ReadUint8();
+        int8_t val = napiParcel->nativeParcel_->ReadInt8();
         napi_value num = nullptr;
         napi_create_int32(env, val, &num);
         napi_set_element(env, result, i, num);
