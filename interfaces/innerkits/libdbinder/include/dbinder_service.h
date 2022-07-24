@@ -172,7 +172,6 @@ private:
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
         std::shared_ptr<DHandleEntryTxRx> loadSaItem);
     std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    void DeleteLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
 
 
 
