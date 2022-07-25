@@ -28,9 +28,6 @@ config("ipc_test_config") {
 #################################group#########################################
 group("moduletest") {
   testonly = true
-  deps = [
-    "$SUBSYSTEM_DIR/services/dbinder/test:moduletest",
-    "moduletest/native:moduletest",
-  ]
+  deps = [ "moduletest/native:moduletest" ]
 }
 ###############################################################################
