@@ -22,6 +22,7 @@
 #include <uv.h>
 #include "access_token_adapter.h"
 #include "hilog/log.h"
+#include "hitrace_meter.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
@@ -36,6 +37,7 @@
 static std::atomic<int32_t> bytraceId = 1000;
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
+static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 #ifndef TITLE
 #define TITLE __PRETTY_FUNCTION__
 #endif
@@ -1220,7 +1222,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         *(param->data.get()), *(param->reply.get()), param->option);
     DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
     if (param->traceId != 0) {
-        RpcFinishAsyncTrace((param->traceValue).c_str(), param->traceId);
+        FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
@@ -1288,7 +1290,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
         if (!remoteDescriptor.empty()) {
             sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
             sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace((sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
+            StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
@@ -1330,7 +1332,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
         if (!remoteDescriptor.empty()) {
             sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
             sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace((sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
+            StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
@@ -1448,7 +1450,7 @@ void ExecuteSendRequest(napi_env env, void *data)
         *(param->data.get()), *(param->reply.get()), param->option);
     DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
     if (param->traceId != 0) {
-        RpcFinishAsyncTrace((param->traceValue).c_str(), param->traceId);
+        FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
 }
 
@@ -1515,7 +1517,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         if (!remoteDescriptor.empty()) {
             sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
             sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace((sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
+            StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
@@ -1560,7 +1562,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         if (!remoteDescriptor.empty()) {
             sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
             sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
-            RpcStartAsyncTrace((sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
+            StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
