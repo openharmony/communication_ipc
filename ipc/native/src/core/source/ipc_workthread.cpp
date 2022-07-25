@@ -14,6 +14,7 @@
  */
 
 #include "ipc_workthread.h"
+#include <pthread.h>
 #include <sys/prctl.h>
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
@@ -38,13 +39,14 @@ IPCWorkThread::~IPCWorkThread()
     StopWorkThread();
 }
 
-void IPCWorkThread::ThreadHandler()
+void *IPCWorkThread::ThreadHandler(void *args)
 {
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
-    DBINDER_LOGI("proto_=%d", proto_);
+    IPCWorkThread *threadObj = (IPCWorkThread *)args;
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
+    DBINDER_LOGI("proto_=%{public}d,policy_=%{public}d", threadObj->proto_, threadObj->policy_);
 
     if (invoker != nullptr) {
-        switch (policy_) {
+        switch (threadObj->policy_) {
             case SPAWN_PASSIVE:
                 invoker->JoinThread(false);
                 break;
@@ -58,15 +60,16 @@ void IPCWorkThread::ThreadHandler()
                 invoker->JoinProcessThread(true);
                 break;
             default:
-                DBINDER_LOGI("policy_ = %{public}d", policy_);
+                DBINDER_LOGI("policy_ = %{public}d", threadObj->policy_);
                 break;
         }
     }
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
-        current->OnThreadTerminated(threadName_);
+        current->OnThreadTerminated(threadObj->threadName_);
     }
+    return nullptr;
 }
 
 void IPCWorkThread::StopWorkThread()
@@ -81,12 +84,16 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
 {
     policy_ = policy;
     proto_ = proto;
-
-    std::thread t(std::bind(&IPCWorkThread::ThreadHandler, this));
+    pthread_t threadId;
+    int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, this);
     std::string wholeName = threadName + std::to_string(getpid()) + "_" + std::to_string(gettid());
+    if (ret != 0) {
+        DBINDER_LOGI("create thread failed");
+    }
     DBINDER_LOGI("create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
-    thread_ = std::move(t);
-    thread_.detach();
+    if (pthread_detach(threadId) != 0) {
+        DBINDER_LOGI("detach error");
+    }
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
