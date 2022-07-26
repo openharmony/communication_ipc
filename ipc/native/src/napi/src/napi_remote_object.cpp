@@ -250,6 +250,7 @@ napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteProxy_removeDeathRecipient),
         DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteProxy_getInterfaceDescriptor),
         DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteProxy_sendRequest),
+        DECLARE_NAPI_FUNCTION("sendRequestAsync", NAPI_RemoteProxy_sendRequest),
         DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteProxy_isObjectDead),
         DECLARE_NAPI_STATIC_PROPERTY("PING_TRANSACTION", pingTransaction),
         DECLARE_NAPI_STATIC_PROPERTY("DUMP_TRANSACTION", dumpTransaction),
@@ -439,6 +440,7 @@ napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
     const std::string className = "RemoteObject";
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteObject_sendRequest),
+        DECLARE_NAPI_FUNCTION("sendRequestAsync", NAPI_RemoteObject_sendRequest),
         DECLARE_NAPI_FUNCTION("getCallingPid", NAPI_RemoteObject_getCallingPid),
         DECLARE_NAPI_FUNCTION("getCallingUid", NAPI_RemoteObject_getCallingUid),
         DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteObject_getInterfaceDescriptor),
