@@ -14,9 +14,20 @@
  */
 
 #include "ipc_skeleton.h"
+
+#include <cstdint>
+#include <sys/types.h>
+
 #include "access_token_adapter.h"
+#include "iosfwd"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
+#include "ipc_types.h"
+#include "iremote_invoker.h"
+#include "iremote_object.h"
+#include "refbase.h"
+#include "string"
+#include "unistd.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
