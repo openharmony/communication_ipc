@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "iremote_object.h"
+#include "refbase.h"
 #include "peer_holder.h"
 
 namespace OHOS {

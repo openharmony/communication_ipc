@@ -14,6 +14,8 @@
  */
 
 #include "binder_debug.h"
+#include "iosfwd"
+#include "ipc_debug.h"
 #include "sys_binder.h"
 
 namespace OHOS {

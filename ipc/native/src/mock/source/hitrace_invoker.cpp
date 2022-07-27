@@ -15,12 +15,18 @@
 
 #include "hitrace_invoker.h"
 
-#include <sys/types.h>
-#include "hilog/log.h"
-#include "hitrace/trace.h"
-#include "sys_binder.h"
+#include <cstddef>
+#include <cstdint>
+
+#include "hilog/log_c.h"
+#include "hilog/log_cpp.h"
+#include "hitrace/hitrace.h"
+#include "hitrace/hitracec.h"
+#include "hitrace/hitraceid.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
+#include "parcel.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 // the value should be equal to the set of parcel
