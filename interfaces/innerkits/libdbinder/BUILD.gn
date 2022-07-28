@@ -23,7 +23,7 @@ config("libdbinder_config") {
     cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
   }
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
     "$DBINDER_ROOT/dbinder_service/include",
@@ -52,11 +52,9 @@ ohos_shared_library("libdbinder") {
   ]
   public_configs = [ ":libdbinder_config" ]
   configs = [ ":libdbinder_private_config" ]
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
   external_deps = [
+    "c_utils:utils",
     "dsoftbus:softbus_client",
     "hiviewdfx_hilog_native:libhilog",
   ]

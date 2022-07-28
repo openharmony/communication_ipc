@@ -36,9 +36,8 @@ ohos_shared_library("ipc_test_helper") {
     "$SUBSYSTEM_DIR:ipc_util_config",
   ]
 
-  deps = [ "//utils/native/base:utils" ]
-
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
@@ -56,12 +55,10 @@ ohos_executable("ipc_server_test") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    ":ipc_test_helper",
-    "//utils/native/base:utils",
-  ]
+  deps = [ ":ipc_test_helper" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
@@ -79,12 +76,10 @@ ohos_executable("ipc_client_test") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    ":ipc_test_helper",
-    "//utils/native/base:utils",
-  ]
+  deps = [ ":ipc_test_helper" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
@@ -116,9 +111,8 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$SUBSYSTEM_DIR:ipc_util_config",
   ]
 
-  deps = [ "//utils/native/base:utils" ]
-
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
@@ -136,12 +130,10 @@ ohos_executable("ipc_server_test_extra") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    ":ipc_test_helper_extra",
-    "//utils/native/base:utils",
-  ]
+  deps = [ ":ipc_test_helper_extra" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",

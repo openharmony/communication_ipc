@@ -18,7 +18,7 @@ IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 
 config("ipc_test_config") {
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "$IPC_TEST_ROOT/auxiliary/native/include",
     "$SUBSYSTEM_DIR/utils/include",
     "$SUBSYSTEM_DIR/ipc/native/src/mock/include",

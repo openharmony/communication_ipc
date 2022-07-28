@@ -25,7 +25,7 @@ config("libtestdbinder_config") {
     cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
   }
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "//test/developertest/aw/distributed",
     "$SUBSYSTEM_DIR/utils/include",
@@ -52,10 +52,10 @@ ohos_distributedtest("DbinderTest") {
     ":dbinder_test",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
@@ -83,10 +83,10 @@ ohos_distributedtest("DbinderTestAgent") {
     ":dbinder_test",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
     "//third_party/googletest:gtest",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "dsoftbus:softbus_client",
     "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
@@ -107,12 +107,10 @@ ohos_executable("dbinder_test") {
 
   configs = [ ":libtestdbinder_config" ]
 
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]
@@ -132,12 +130,10 @@ ohos_executable("dbinder_send") {
 
   configs = [ ":libtestdbinder_config" ]
 
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "samgr_standard:samgr_proxy",
   ]

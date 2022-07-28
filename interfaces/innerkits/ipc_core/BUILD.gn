@@ -63,10 +63,10 @@ ohos_shared_library("ipc_core") {
     ":libipc_core_private_config",
   ]
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
-  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dsoftbus:softbus_client",
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
