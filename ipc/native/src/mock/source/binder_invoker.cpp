@@ -618,10 +618,6 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
             error = IPC_INVOKER_ON_TRANSACT_ERR;
             break;
     }
-    if (error != ERR_NONE) {
-        ZLOGE(LABEL, "HandleCommands cmd = %{public}u(%{public}s), error = %{public}d", cmd,
-            BinderDebug::ToString((int32_t)cmd).c_str(), error);
-    }
     return error;
 }
 
@@ -629,6 +625,10 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     auto start = std::chrono::steady_clock::now();
     int error = HandleCommandsInner(cmd);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "HandleCommands cmd = %{public}u(%{public}s), error = %{public}d", cmd,
+            BinderDebug::ToString((int32_t)cmd).c_str(), error);
+    }
     if (cmd != BR_TRANSACTION) {
         auto finish = std::chrono::steady_clock::now();
         int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
