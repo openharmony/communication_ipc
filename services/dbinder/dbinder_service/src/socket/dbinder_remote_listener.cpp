@@ -86,8 +86,8 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &deviceId, const 
     }
 
     int ret = session->SendBytes(msg, msg->head.len);
+    DBINDER_LOGI("SendBytes len: %{public}u, ret: %{public}d", msg->head.len, ret);
     if (ret != 0) {
-        DBINDER_LOGE("fail to send bytes, ret = %{public}d", ret);
         return false;
     }
     return true;
@@ -142,6 +142,7 @@ void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
 
 void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
 {
+    DBINDER_LOGI("OnBytesReceived len: %{public}u", static_cast<uint32_t>(len));
     if (data == nullptr || len < static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx))) {
         DBINDER_LOGE("session has wrong input, peer session name = %s, data length = %zd",
             session->GetPeerSessionName().c_str(), len);
