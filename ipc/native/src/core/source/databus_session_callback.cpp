@@ -69,6 +69,7 @@ void DatabusSessionCallback::OnSessionClosed(std::shared_ptr<Session> session)
 
 void DatabusSessionCallback::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
 {
+    DBINDER_LOGI("OnBytesReceived len: %{public}u", static_cast<uint32_t>(len));
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
