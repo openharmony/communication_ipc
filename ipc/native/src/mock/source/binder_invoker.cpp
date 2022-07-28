@@ -15,6 +15,7 @@
 
 #include "binder_invoker.h"
 
+#include <chrono>
 #include <securec.h>
 #include "access_token_adapter.h"
 #include "binder_debug.h"
@@ -467,7 +468,15 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     uint32_t flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
     if (targetObject != nullptr) {
         option.SetFlags(static_cast<int>(flagValue));
+        auto start = std::chrono::steady_clock::now();
         error = targetObject->SendRequest(tr->code, *data, reply, option);
+        auto finish = std::chrono::steady_clock::now();
+        int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            finish - start).count());
+        if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
+            ZLOGW(LABEL, "stub: %{public}s deal request code: %{public}u cost time: %{public}dms",
+                Str16ToStr8(targetObject->descriptor_).c_str(), tr->code, duration);
+        }
     }
     HitraceInvoker::TraceServerSend(tr->target.handle, tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
@@ -558,7 +567,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
     return ERR_NONE;
 }
 
-int BinderInvoker::HandleCommands(uint32_t cmd)
+int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
     ZLOGI(LABEL, "HandleCommands:cmd:%{public}s\n", BinderDebug::ToString((int32_t)cmd).c_str());
@@ -609,11 +618,26 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
             error = IPC_INVOKER_ON_TRANSACT_ERR;
             break;
     }
+    return error;
+}
+
+int BinderInvoker::HandleCommands(uint32_t cmd)
+{
+    auto start = std::chrono::steady_clock::now();
+    int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
         ZLOGE(LABEL, "HandleCommands cmd = %{public}u(%{public}s), error = %{public}d", cmd,
             BinderDebug::ToString((int32_t)cmd).c_str(), error);
     }
-
+    if (cmd != BR_TRANSACTION) {
+        auto finish = std::chrono::steady_clock::now();
+        int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            finish - start).count());
+        if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
+            ZLOGW(LABEL, "HandleCommands cmd: %{public}s cost time: %{public}dms",
+                BinderDebug::ToString((int32_t)cmd).c_str(), duration);
+        }
+    }
     return error;
 }
 
