@@ -149,7 +149,7 @@ private:
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
-    static constexpr int IPC_CMD_PROCESS_WARN_TIME = 100;
+    static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
     Parcel input_;
     Parcel output_;
     BinderConnector *binderConnector_;
