@@ -368,9 +368,8 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
         readCursor += size;
         sessionBuff->SetSendBufferReadCursor(readCursor);
         sessionBuff->SetSendBufferWriteCursor(writeCursor);
-    } else {
-        DBINDER_LOGE("ret = %{public}d, send buffer failed with length = %{public}zu, send in next time", ret, size);
     }
+    DBINDER_LOGI("sendNormalData len: %{public}u, ret: %{public}d", static_cast<uint32_t>(size), ret);
     sessionBuff->ReleaseSendBufferLock();
     return ret;
 }
@@ -389,10 +388,7 @@ int DBinderDatabusInvoker::OnSendRawData(std::shared_ptr<DBinderSessionObject> s
     }
 
     int ret = dataBusSession->SendBytes(data, size);
-    if (ret != 0) {
-        DBINDER_LOGE("ret = %{public}d, send buffer overflow with length = %{public}zu", ret, size);
-    }
-
+    DBINDER_LOGI("sendRawData len: %{public}u, ret: %{public}d", static_cast<uint32_t>(size), ret);
     return ret;
 }
 
