@@ -28,10 +28,10 @@ ohos_moduletest("IPCNativeFrameworksTest") {
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",

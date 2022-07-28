@@ -24,7 +24,7 @@ config("ipc_util_config") {
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/src/core/include",
     "$IPC_CORE_ROOT/src/mock/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 
   cflags = []
