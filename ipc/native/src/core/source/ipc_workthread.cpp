@@ -14,12 +14,19 @@
  */
 
 #include "ipc_workthread.h"
+
+#include <cmath>
+#include <cstddef>
 #include <pthread.h>
-#include <sys/prctl.h>
-#include "ipc_debug.h"
+#include <memory>
+#include "hilog/log_cpp.h"
+#include "iosfwd"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
-#include "log_tags.h"
+#include "iremote_invoker.h"
+#include "string"
+#include "type_traits"
+#include "unistd.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE

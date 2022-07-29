@@ -14,7 +14,14 @@
  */
 
 #include "invoker_factory.h"
+
+#include <memory>
 #include <utility>
+
+#include "__mutex_base"
+#include "functional"
+#include "iremote_invoker.h"
+#include "unordered_map"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
