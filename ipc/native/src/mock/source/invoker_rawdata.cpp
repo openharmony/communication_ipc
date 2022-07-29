@@ -15,6 +15,9 @@
 
 #include "invoker_rawdata.h"
 
+#include "memory"
+#include "new"
+
 namespace OHOS {
 InvokerRawData::InvokerRawData(size_t size)
 {

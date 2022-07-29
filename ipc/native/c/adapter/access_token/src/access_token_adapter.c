@@ -14,11 +14,12 @@
  */
 
 #include "access_token_adapter.h"
+
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+
+#include "bits/ioctl.h"
 
 #define ACCESS_TOKEN_ID_IOCTL_BASE 'A'
 

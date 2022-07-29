@@ -14,9 +14,19 @@
  */
 
 #include "iremote_broker.h"
+
 #include <utility>
-#include "ipc_debug.h"
+
+#include "__mutex_base"
+#include "functional"
+#include "hilog/log_c.h"
+#include "hilog/log_cpp.h"
+#include "iremote_object.h"
 #include "log_tags.h"
+#include "refbase.h"
+#include "string"
+#include "type_traits"
+#include "unordered_map"
 
 namespace OHOS {
 [[maybe_unused]] static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "BrokerRegistration" };

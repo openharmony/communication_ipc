@@ -14,13 +14,29 @@
  */
 
 #include "ipc_object_stub.h"
+
+#include <cstdint>
+#include <ctime>
 #include <string>
-#include "ipc_types.h"
+
+#include "hilog/log_c.h"
+#include "hilog/log_cpp.h"
+#include "iosfwd"
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
-#include "ipc_thread_skeleton.h"
-#include "log_tags.h"
 #include "ipc_skeleton.h"
+#include "ipc_thread_skeleton.h"
+#include "ipc_types.h"
+#include "iremote_invoker.h"
+#include "iremote_object.h"
+#include "log_tags.h"
+#include "message_option.h"
+#include "message_parcel.h"
+#include "refbase.h"
+#include "string_ex.h"
+#include "sys_binder.h"
+#include "unistd.h"
+#include "vector"
 
 #ifndef CONFIG_IPC_SINGLE
 #include "accesstoken_kit.h"
