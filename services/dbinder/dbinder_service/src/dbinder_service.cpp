@@ -299,7 +299,8 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     return dBinderServiceStub;
 }
 
-bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid)
+bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid,
+    uint32_t uid)
 {
     const std::string deviceID = stub->GetDeviceID();
     const std::string localDevID = GetLocalDeviceID();

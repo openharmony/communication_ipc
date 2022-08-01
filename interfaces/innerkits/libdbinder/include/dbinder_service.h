@@ -176,7 +176,7 @@ private:
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
     static std::mutex instanceMutex_;
-    static constexpr int WAIT_FOR_REPLY_MAX_SEC = 4;
+    static constexpr int WAIT_FOR_REPLY_MAX_SEC = 8;
     static constexpr int RETRY_TIMES = 2;
     static std::shared_ptr<DBinderRemoteListener> remoteListener_;
     static bool mainThreadCreated_;
