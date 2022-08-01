@@ -22,7 +22,6 @@
 #include <unistd.h>
 
 #include "__mutex_base"
-#include "bits/errno.h"
 #include "cerrno"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"

@@ -18,7 +18,6 @@
 #include <memory>
 
 #include "binder_invoker.h"
-#include "bits/alltypes.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
 #include "invoker_factory.h"
@@ -29,8 +28,6 @@
 #include "log_tags.h"
 #include "new"
 #include "pthread.h"
-#include "unordered_map"
-#include "utility"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
