@@ -262,7 +262,7 @@ sptr<DBinderServiceStub> DBinderService::FindOrNewDBinderStub(const std::u16stri
 }
 
 sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &serviceName,
-    const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid)
+    const std::string &deviceID, binder_uintptr_t binderObject, uint32_t pid, uint32_t uid)
 {
     if (IsDeviceIdIllegal(deviceID) || serviceName.length() == 0) {
         DBINDER_LOGE("para is wrong device id length = %zu, service name length = %zu", deviceID.length(),
@@ -284,7 +284,7 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     int retryTimes = 0;
     bool ret = false;
     do {
-        ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber());
+        ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber(), pid, uid);
         retryTimes++;
     } while (!ret && (retryTimes < RETRY_TIMES));
 
@@ -299,7 +299,7 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     return dBinderServiceStub;
 }
 
-bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber)
+bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid)
 {
     const std::string deviceID = stub->GetDeviceID();
     const std::string localDevID = GetLocalDeviceID();
@@ -319,8 +319,8 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->binderObject        = stub->GetBinderObject();
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     message->deviceIdInfo.afType = DATABBUS_TYPE;
-    message->pid                 = static_cast<uint32_t>(IPCSkeleton::GetCallingPid());
-    message->uid                 = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    message->pid                 = pid;
+    message->uid                 = uid;
     if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
         memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
         DBINDER_LOGE("fail to copy memory");
@@ -342,13 +342,14 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     return true;
 }
 
-bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber)
+bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber,
+    uint32_t pid, uint32_t uid)
 {
     if (stub == nullptr) {
         DBINDER_LOGE("stub is nullptr");
         return false;
     }
-    bool result = SendEntryToRemote(stub, seqNumber);
+    bool result = SendEntryToRemote(stub, seqNumber, pid, uid);
     if (!result) {
         DBINDER_LOGE("send entry to remote dbinderService fail");
         return false;
@@ -425,7 +426,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
         DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
     }
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
-    while(true) {
+    while (true) {
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage = PopLoadSaItem(srcNetworkId, systemAbilityId);
         if (replyMessage == nullptr) {
             break;
@@ -451,7 +452,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
         if (replyMessage->transType != IRemoteObject::DATABUS_TYPE) {
             DBINDER_LOGE("Invalid Message Type");
         } else {
-            if (!OnRemoteInvokerDataBusMessage(saProxy, replyMessage.get(), deviceId, 
+            if (!OnRemoteInvokerDataBusMessage(saProxy, replyMessage.get(), deviceId,
                 replyMessage->pid, replyMessage->uid)) {
                 continue;
             }
@@ -462,7 +463,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             continue;
         }
         if (!remoteListener->SendDataToRemote(deviceId, replyMessage.get())) {
-            DBINDER_LOGE("fail to send data from server DBS to client DBS"); 
+            DBINDER_LOGE("fail to send data from server DBS to client DBS");
             continue;
         }
     }
@@ -480,7 +481,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
         static_cast<int32_t>(replyMessage->stubIndex));
-    if(!isSaAvailable) {
+    if (!isSaAvailable) {
         DBINDER_LOGE("fail to call the system ability");
         return false;
     }
