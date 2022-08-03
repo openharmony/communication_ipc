@@ -21,6 +21,7 @@
 #include <memory>
 #include "hilog/log_cpp.h"
 #include "iosfwd"
+#include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
@@ -33,11 +34,7 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThread" };
 
 IPCWorkThread::IPCWorkThread(std::string threadName) : threadName_(std::move(threadName)) {}
 
@@ -50,7 +47,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
 {
     IPCWorkThread *threadObj = (IPCWorkThread *)args;
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
-    DBINDER_LOGI("proto_=%{public}d,policy_=%{public}d", threadObj->proto_, threadObj->policy_);
+    ZLOGD(LOG_LABEL, "proto_=%{public}d,policy_=%{public}d", threadObj->proto_, threadObj->policy_);
 
     if (invoker != nullptr) {
         switch (threadObj->policy_) {
@@ -67,7 +64,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
                 invoker->JoinProcessThread(true);
                 break;
             default:
-                DBINDER_LOGI("policy_ = %{public}d", threadObj->policy_);
+                ZLOGE(LOG_LABEL, "policy_ = %{public}d", threadObj->policy_);
                 break;
         }
     }
@@ -95,11 +92,11 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
     int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, this);
     std::string wholeName = threadName + std::to_string(getpid()) + "_" + std::to_string(gettid());
     if (ret != 0) {
-        DBINDER_LOGI("create thread failed");
+        ZLOGE(LOG_LABEL, "create thread failed");
     }
-    DBINDER_LOGI("create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
+    ZLOGD(LOG_LABEL, "create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
     if (pthread_detach(threadId) != 0) {
-        DBINDER_LOGI("detach error");
+        ZLOGE(LOG_LABEL, "detach error");
     }
 }
 #ifdef CONFIG_IPC_SINGLE

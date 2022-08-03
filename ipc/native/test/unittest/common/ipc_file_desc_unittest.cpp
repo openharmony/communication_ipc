@@ -52,7 +52,7 @@ HWTEST_F(IPCFileDescOpsTest, fd_parcelable_001, TestSize.Level1)
     testFdNum = open("/data/fd_unit_test.txt", O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
 
     if (testFdNum == -1) {
-        ZLOGI(LABEL, "%s(%d):open failed.", __func__, __LINE__);
+        ZLOGD(LABEL, "%s(%d):open failed.", __func__, __LINE__);
     }
     ASSERT_TRUE(testFdNum >= 0);
 

@@ -41,7 +41,7 @@ static int Reverse(int x)
 
 int TestService::Instantiate()
 {
-    ZLOGI(LABEL, "%{public}s call in", __func__);
+    ZLOGD(LABEL, "%{public}s call in", __func__);
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (saMgr == nullptr) {
         ZLOGE(LABEL, "%{public}s:fail to get Registry", __func__);
@@ -51,13 +51,13 @@ int TestService::Instantiate()
     sptr<IRemoteObject> newInstance = new TestService();
 #ifdef IPCSERVERTESTEXTRA
     int result = saMgr->AddSystemAbility(IPC_EXTRA_TEST_SERVICE, newInstance);
-    ZLOGI(LABEL, "%{public}s: IPC_EXTRA_TEST_SERVICE result = %{public}d", __func__, result);
+    ZLOGD(LABEL, "%{public}s: IPC_EXTRA_TEST_SERVICE result = %{public}d", __func__, result);
 #else
     int result = saMgr->AddSystemAbility(IPC_TEST_SERVICE, newInstance);
-    ZLOGI(LABEL, "%{public}s: IPC_TEST_SERVICE result = %{public}d", __func__, result);
+    ZLOGD(LABEL, "%{public}s: IPC_TEST_SERVICE result = %{public}d", __func__, result);
 #endif
 
-    ZLOGI(LABEL, "TestService: strong = %d", newInstance->GetSptrRefCount());
+    ZLOGD(LABEL, "TestService: strong = %d", newInstance->GetSptrRefCount());
     return result;
 }
 
@@ -148,7 +148,7 @@ int TestService::TestGetFileDescriptor()
         close(testFd_);
         return INVALID_FD;
     } else {
-        ZLOGI(LABEL, "%s(%d): server write file success.", __func__, __LINE__);
+        ZLOGD(LABEL, "%s(%d): server write file success.", __func__, __LINE__);
     }
 
     return testFd_;

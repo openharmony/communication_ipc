@@ -50,7 +50,7 @@ int TestServiceClient::ConnectService()
 void TestServiceClient::StartSyncTransaction()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartSyncTransaction");
+        ZLOGD(LABEL, "StartSyncTransaction");
         [[maybe_unused]] int result = 0;
         testService_->TestSyncTransaction(2019, result);
     }
@@ -59,7 +59,7 @@ void TestServiceClient::StartSyncTransaction()
 void TestServiceClient::StartSyncDelayReply()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartSyncDelayReply");
+        ZLOGD(LABEL, "StartSyncDelayReply");
         [[maybe_unused]] int result = 0;
         testService_->TestSyncTransaction(2019, result, 2);
     }
@@ -68,7 +68,7 @@ void TestServiceClient::StartSyncDelayReply()
 void TestServiceClient::StartAsyncTransaction()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartAsyncTransaction");
+        ZLOGD(LABEL, "StartAsyncTransaction");
         [[maybe_unused]] int result = 0;
         testService_->TestAsyncTransaction(2019, result);
     }
@@ -77,7 +77,7 @@ void TestServiceClient::StartAsyncTransaction()
 void TestServiceClient::StartPingService()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartPingService");
+        ZLOGD(LABEL, "StartPingService");
         const std::u16string descriptor = ITestService::GetDescriptor();
         testService_->TestPingService(descriptor);
     }
@@ -86,10 +86,10 @@ void TestServiceClient::StartPingService()
 void TestServiceClient::StartGetFooService()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartGetFooService");
+        ZLOGD(LABEL, "StartGetFooService");
         sptr<IFoo> foo = testService_->TestGetFooService();
         if (foo == nullptr) {
-            ZLOGI(LABEL, "Fail to get foo service");
+            ZLOGD(LABEL, "Fail to get foo service");
         }
     }
 }
@@ -97,7 +97,7 @@ void TestServiceClient::StartGetFooService()
 void TestServiceClient::StartDumpService()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartDumpService");
+        ZLOGD(LABEL, "StartDumpService");
         testService_->TestDumpService();
     }
 }
@@ -105,7 +105,7 @@ void TestServiceClient::StartDumpService()
 void TestServiceClient::StartAsyncDumpService()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartAsyncDumpService");
+        ZLOGD(LABEL, "StartAsyncDumpService");
         testService_->TestAsyncDumpService();
     }
 }
@@ -113,7 +113,7 @@ void TestServiceClient::StartAsyncDumpService()
 void TestServiceClient::StartTestFileDescriptor()
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartTestFileDescriptor");
+        ZLOGD(LABEL, "StartTestFileDescriptor");
         int fd = testService_->TestGetFileDescriptor();
         if (fd != INVALID_FD) {
             if (write(fd, "client write!\n", strlen("client write!\n")) < 0) {
@@ -127,7 +127,7 @@ void TestServiceClient::StartTestFileDescriptor()
 int TestServiceClient::StartLoopTest(int maxCount)
 {
     if (testService_ != nullptr) {
-        ZLOGI(LABEL, "StartLoopTest");
+        ZLOGD(LABEL, "StartLoopTest");
         int count = 0;
         std::string testString;
         // start loop test, test times is 1000

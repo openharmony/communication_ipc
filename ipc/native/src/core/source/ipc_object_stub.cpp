@@ -66,7 +66,7 @@ static const std::string SAMGR_PROCESS_NAME = "samgr";
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
-    ZLOGW(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
+    ZLOGD(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
 }
 
 IPCObjectStub::~IPCObjectStub()
@@ -129,7 +129,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGI(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
+            ZLOGD(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
             break;
     }
 
@@ -346,7 +346,7 @@ int IPCObjectStub::GetObjectType() const
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int result = ERR_NONE;
-    ZLOGE(LABEL, "IPCObjectStub::ProcessProto called, type = 0, normal stub object");
+    ZLOGD(LABEL, "IPCObjectStub::ProcessProto called, type = 0, normal stub object");
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER)) {
         ZLOGE(LABEL, "write to parcel fail");
         result = IPC_STUB_WRITE_PARCEL_ERR;
@@ -637,7 +637,7 @@ bool IPCObjectStub::HasDumpPermission(uint32_t accessToken) const
         ret =  (result == ERR_NONE && hapTokenInfo.apl >= APL_BASIC);
     }
     if (!ret) {
-        ZLOGI(LABEL, "No dump permission, please check!");
+        ZLOGD(LABEL, "No dump permission, please check!");
     }
     return ret;
 }
