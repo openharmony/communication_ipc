@@ -129,7 +129,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGI(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
+            ZLOGD(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
             break;
     }
 
@@ -637,7 +637,7 @@ bool IPCObjectStub::HasDumpPermission(uint32_t accessToken) const
         ret =  (result == ERR_NONE && hapTokenInfo.apl >= APL_BASIC);
     }
     if (!ret) {
-        ZLOGI(LABEL, "No dump permission, please check!");
+        ZLOGD(LABEL, "No dump permission, please check!");
     }
     return ret;
 }

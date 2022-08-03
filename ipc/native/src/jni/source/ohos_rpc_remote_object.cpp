@@ -229,7 +229,7 @@ int JRemoteObject::OnRemoteDump(uint32_t code, MessageParcel &data, MessageParce
         res = JNI_FALSE;
     }
     env->DeleteLocalRef(javaOption);
-    ZLOGI(LABEL, "OnRemoteDump res:%d", res);
+    ZLOGD(LABEL, "OnRemoteDump res:%d", res);
     return res ? ERR_NONE : ERR_UNKNOWN_TRANSACTION;
 }
 
@@ -280,7 +280,7 @@ JDeathRecipient::JDeathRecipient(jobject object)
 
 void JDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
-    ZLOGI(LABEL, "OnRemoteDied called");
+    ZLOGD(LABEL, "OnRemoteDied called");
     if (refObject_ == nullptr) {
         ZLOGE(LABEL, "Object has already removed");
         return;
@@ -379,7 +379,7 @@ JRemoteProxyHolder *Java_ohos_rpc_getRemoteProxyHolder(JNIEnv *env, jobject obje
 
 jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject> target)
 {
-    ZLOGI(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "%s", __func__);
     if (target == nullptr) {
         ZLOGE(LABEL, "RemoteObject is null");
         return nullptr;
@@ -431,7 +431,7 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
 
 sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject object)
 {
-    ZLOGI(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "%s", __func__);
     if (object != nullptr) {
         if (env->IsInstanceOf(object, g_jRemoteStub.klass)) {
             JRemoteObjectHolder *holder =
@@ -455,7 +455,7 @@ sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject obj
  */
 jobject JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetContextObject(JNIEnv *env, jclass clazz)
 {
-    ZLOGI(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "%s", __func__);
     sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
     if (object == nullptr) {
         ZLOGE(LABEL, "fatal error, could not get registry object");
@@ -620,7 +620,7 @@ void JNICALL Java_ohos_rpc_RemoteObject_nativeFreeObjectHolder(JNIEnv *env, jcla
 {
     // Delegate sptr to manage memory,
     // it will automatically release managed memory when the life cycle ends.
-    ZLOGI(LABEL, "Call Free Object Holder");
+    ZLOGD(LABEL, "Call Free Object Holder");
     std::unique_ptr<JRemoteObjectHolder> nativeHolder(reinterpret_cast<JRemoteObjectHolder *>(holder));
 }
 
@@ -634,7 +634,7 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
 {
     // Delegate sptr to manage memory,
     // it will automatically release managed memory when the life cycle ends.
-    ZLOGI(LABEL, "Call Free Proxy Holder");
+    ZLOGD(LABEL, "Call Free Proxy Holder");
     std::unique_ptr<JRemoteProxyHolder> nativeHolder(reinterpret_cast<JRemoteProxyHolder *>(holder));
 }
 
@@ -646,7 +646,7 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
 jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobject object, jint code, jobject data,
     jobject reply, jobject option)
 {
-    ZLOGI(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "%s", __func__);
     MessageParcel *nativeData = JavaOhosRpcMessageParcelGetNative(env, data);
     if (nativeData == nullptr) {
         JniHelperThrowNullPointerException(env, "data field is null");
@@ -678,7 +678,7 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobjec
     }
 
     int result = target->SendRequest(code, *nativeData, *nativeReply, *nativeOption.get());
-    ZLOGI(LABEL, "nativeSendRequest result %d", result);
+    ZLOGD(LABEL, "nativeSendRequest result %d", result);
 
     return (result == ERR_NONE) ? JNI_TRUE : JNI_FALSE;
 }
