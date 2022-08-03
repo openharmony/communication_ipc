@@ -407,7 +407,7 @@ void IPCObjectProxy::SendObituary()
         recipients_.clear();
     }
     for (auto &deathRecipient : deathCallback) {
-        ZLOGW(LABEL, "%s: handle = %{public}u call OnRemoteDied", __func__, handle_);
+        ZLOGW(LABEL, "%{public}s: handle = %{public}u call OnRemoteDied", __func__, handle_);
         if (deathRecipient != nullptr) {
             deathRecipient->OnRemoteDied(this);
         }
