@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
             break;
         }
         default:
-            ZLOGI(LABEL, "main arg error");
+            ZLOGD(LABEL, "main arg error");
             break;
     }
 

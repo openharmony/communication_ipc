@@ -28,7 +28,7 @@ int FooStub::OnRemoteRequest(uint32_t code,
 
     switch (code) {
         case GET_FOO_NAME: {
-            ZLOGI(LABEL, "%{public}s:called\n", __func__);
+            ZLOGD(LABEL, "%{public}s:called\n", __func__);
             reply.WriteString(GetFooName());
             break;
         }
@@ -99,7 +99,7 @@ FooProxy::FooProxy(const sptr<IRemoteObject> &impl)
 
 std::string FooProxy::GetFooName()
 {
-    ZLOGI(LABEL, "%{public}s:called\n", __func__);
+    ZLOGD(LABEL, "%{public}s:called\n", __func__);
     MessageParcel data, reply;
     MessageOption option;
     Remote()->SendRequest(GET_FOO_NAME, data, reply, option);
@@ -108,7 +108,7 @@ std::string FooProxy::GetFooName()
 
 void FooProxy::SendAsyncReply(int &replyValue)
 {
-    ZLOGI(LABEL, "%{public}s:called\n", __func__);
+    ZLOGD(LABEL, "%{public}s:called\n", __func__);
     MessageParcel data, reply;
     MessageOption option = { MessageOption::TF_ASYNC };
     data.WriteInt32(replyValue);
