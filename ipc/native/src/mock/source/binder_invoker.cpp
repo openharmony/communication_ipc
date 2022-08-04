@@ -570,7 +570,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
-    ZLOGD(LABEL, "HandleCommands:cmd:%{public}s\n", BinderDebug::ToString((int32_t)cmd).c_str());
+    ZLOGD(LABEL, "HandleCommands:cmd:%{public}u\n", cmd);
     switch (cmd) {
         case BR_ERROR:
             error = input_.ReadInt32();
@@ -626,16 +626,14 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     auto start = std::chrono::steady_clock::now();
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "HandleCommands cmd = %{public}u(%{public}s), error = %{public}d", cmd,
-            BinderDebug::ToString((int32_t)cmd).c_str(), error);
+        ZLOGE(LABEL, "HandleCommands cmd = %{public}u, error = %{public}d", cmd, error);
     }
     if (cmd != BR_TRANSACTION) {
         auto finish = std::chrono::steady_clock::now();
         int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
             finish - start).count());
         if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-            ZLOGW(LABEL, "HandleCommands cmd: %{public}s cost time: %{public}dms",
-                BinderDebug::ToString((int32_t)cmd).c_str(), duration);
+            ZLOGW(LABEL, "HandleCommands cmd: %{public}u cost time: %{public}dms", cmd, duration);
         }
     }
     return error;
