@@ -53,6 +53,7 @@ DBinderService::~DBinderService()
     noticeProxy_.clear();
     deathRecipients_.clear();
     busNameObject_.clear();
+    loadSaReply_.clear();
     dbinderCallback_ = nullptr;
 
     DBINDER_LOGI("dbinder service died");
@@ -156,7 +157,6 @@ sptr<DBinderService> DBinderService::GetInstance()
             instance_ = temp;
         }
     }
-
     return instance_;
 }
 
@@ -262,7 +262,7 @@ sptr<DBinderServiceStub> DBinderService::FindOrNewDBinderStub(const std::u16stri
 }
 
 sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &serviceName,
-    const std::string &deviceID, binder_uintptr_t binderObject, uint64_t pid)
+    const std::string &deviceID, binder_uintptr_t binderObject, uint32_t pid, uint32_t uid)
 {
     if (IsDeviceIdIllegal(deviceID) || serviceName.length() == 0) {
         DBINDER_LOGE("para is wrong device id length = %zu, service name length = %zu", deviceID.length(),
@@ -284,7 +284,7 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     int retryTimes = 0;
     bool ret = false;
     do {
-        ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber());
+        ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber(), pid, uid);
         retryTimes++;
     } while (!ret && (retryTimes < RETRY_TIMES));
 
@@ -299,7 +299,8 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     return dBinderServiceStub;
 }
 
-bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber)
+bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid,
+    uint32_t uid)
 {
     const std::string deviceID = stub->GetDeviceID();
     const std::string localDevID = GetLocalDeviceID();
@@ -319,8 +320,8 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->binderObject        = stub->GetBinderObject();
     message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     message->deviceIdInfo.afType = DATABBUS_TYPE;
-    message->pid                 = static_cast<uint32_t>(IPCSkeleton::GetCallingPid());
-    message->uid                 = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    message->pid                 = pid;
+    message->uid                 = uid;
     if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
         memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
         DBINDER_LOGE("fail to copy memory");
@@ -342,13 +343,14 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     return true;
 }
 
-bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber)
+bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber,
+    uint32_t pid, uint32_t uid)
 {
     if (stub == nullptr) {
         DBINDER_LOGE("stub is nullptr");
         return false;
     }
-    bool result = SendEntryToRemote(stub, seqNumber);
+    bool result = SendEntryToRemote(stub, seqNumber, pid, uid);
     if (!result) {
         DBINDER_LOGE("send entry to remote dbinderService fail");
         return false;
@@ -384,88 +386,107 @@ bool DBinderService::CheckSystemAbilityId(int32_t systemAbilityId)
     return systemAbilityId >= FIRST_SYS_ABILITY_ID && systemAbilityId <= LAST_SYS_ABILITY_ID;
 }
 
-sptr<IRemoteObject> DBinderService::FindOrNewProxy(binder_uintptr_t binderObject, int32_t systemAbilityId)
-{
-    sptr<IRemoteObject> proxy = QueryProxyObject(binderObject);
-    if (proxy != nullptr) {
-        DBINDER_LOGI("already have proxy");
-        return proxy;
-    }
-    if (dbinderCallback_ == nullptr) {
-        DBINDER_LOGE("samgr not initialized get remote sa callback");
-        return nullptr;
-    }
-    /* proxy is null, attempt to get a new proxy */
-    std::u16string serviceName = GetRegisterService(binderObject);
-    if (serviceName.empty() && !CheckSystemAbilityId(systemAbilityId)) {
-        DBINDER_LOGE("service is not registered in this device, saId:%{public}d", systemAbilityId);
-        return nullptr;
-    }
-    int32_t digitalName = !serviceName.empty() ? std::stoi(Str16ToStr8(serviceName).c_str()) : systemAbilityId;
-    proxy = dbinderCallback_->GetSystemAbilityFromRemote(digitalName);
-    if (proxy != nullptr) {
-        /* When the stub object dies, you need to delete the corresponding busName information */
-        IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
-        sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
-        if (!saProxy->AddDeathRecipient(death)) {
-            DBINDER_LOGE("fail to add death recipient");
-            return nullptr;
-        }
-        bool ret = AttachProxyObject(proxy, binderObject);
-        if (!ret) {
-            DBINDER_LOGE("attach proxy object fail");
-            return nullptr;
-        }
-    } else {
-        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", digitalName);
-    }
-    return proxy;
-}
 uint16_t DBinderService::AllocFreeSocketPort()
 {
     /* alloc port by system */
     return 0;
 }
 
+bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
+    std::shared_ptr<DHandleEntryTxRx> loadSaItem)
+{
+    if (static_cast<int32_t>(loadSaItem->stubIndex) == systemAbilityId &&
+        loadSaItem->deviceIdInfo.fromDeviceId == srcNetworkId) {
+        DBINDER_LOGI("match succeed");
+        return true;
+    }
+    return false;
+}
+
+std::shared_ptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::string& srcNetworkId,
+    int32_t systemAbilityId)
+{
+    auto checkSaItem = [srcNetworkId, systemAbilityId, this](std::shared_ptr<DHandleEntryTxRx> loadSaItem) {
+        return IsSameLoadSaItem(srcNetworkId, systemAbilityId, loadSaItem);
+    };
+
+    auto it = std::find_if(loadSaReply_.begin(), loadSaReply_.end(), checkSaItem);
+    if (it == loadSaReply_.end()) {
+        DBINDER_LOGE("findSaItem failed");
+        return nullptr;
+    }
+    std::shared_ptr<DHandleEntryTxRx> replymsg = (*it);
+    it = loadSaReply_.erase(it);
+    return replymsg;
+}
+
+void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
+    const sptr<IRemoteObject>& remoteObject)
+{
+    if (remoteObject == nullptr) {
+        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
+    }
+    std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
+    while (true) {
+        std::shared_ptr<struct DHandleEntryTxRx> replyMessage = PopLoadSaItem(srcNetworkId, systemAbilityId);
+        if (replyMessage == nullptr) {
+            break;
+        }
+        if (remoteObject == nullptr) {
+            continue;
+        }
+        binder_uintptr_t binderObject = replyMessage->binderObject;
+        IPCObjectProxy *saProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject.GetRefPtr());
+        if (QueryProxyObject(binderObject) == nullptr) {
+            /* When the stub object dies, you need to delete the corresponding busName information */
+            sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
+            if (!saProxy->AddDeathRecipient(death)) {
+                DBINDER_LOGE("fail to add death recipient");
+                continue;
+            }
+            if (!AttachProxyObject(remoteObject, binderObject)) {
+                DBINDER_LOGE("attach proxy object fail");
+                continue;
+            }
+        }
+        std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
+        if (replyMessage->transType != IRemoteObject::DATABUS_TYPE) {
+            DBINDER_LOGE("Invalid Message Type");
+        } else {
+            if (!OnRemoteInvokerDataBusMessage(saProxy, replyMessage.get(), deviceId,
+                replyMessage->pid, replyMessage->uid)) {
+                continue;
+            }
+        }
+        std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
+        if (remoteListener == nullptr) {
+            DBINDER_LOGE("remoteListener is null");
+            continue;
+        }
+        if (!remoteListener->SendDataToRemote(deviceId, replyMessage.get())) {
+            DBINDER_LOGE("fail to send data from server DBS to client DBS");
+            continue;
+        }
+    }
+    DBINDER_LOGI("complete");
+}
+
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
 {
-    sptr<IRemoteObject> proxy = FindOrNewProxy(message->binderObject, static_cast<int32_t>(message->stubIndex));
-    if (proxy == nullptr) {
-        DBINDER_LOGE("find and new proxy fail");
-        return false;
-    }
-    IPCObjectProxy *ipcProxy = reinterpret_cast<IPCObjectProxy *>(proxy.GetRefPtr());
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
         DBINDER_LOGE("fail to copy memory");
         return false;
     }
-    std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
 
-    switch (replyMessage->transType) {
-        case IRemoteObject::DATABUS_TYPE: {
-            if (!OnRemoteInvokerDataBusMessage(ipcProxy, replyMessage.get(), deviceId, message->pid, message->uid)) {
-                DBINDER_LOGE("Invoker Databus Message fail");
-                return false;
-            }
-            break;
-        }
-        default: {
-            DBINDER_LOGE("Invalid Message Type");
-            return false;
-        }
-    }
-    std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
-    if (remoteListener == nullptr) {
-        DBINDER_LOGE("remoteListener is null");
+    std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
+    bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
+        static_cast<int32_t>(replyMessage->stubIndex));
+    if (!isSaAvailable) {
+        DBINDER_LOGE("fail to call the system ability");
         return false;
     }
-    bool ret = remoteListener->SendDataToRemote(deviceId, replyMessage.get());
-    if (ret != true) {
-        DBINDER_LOGE("fail to send data from server DBS to client DBS");
-        return false;
-    }
-
+    loadSaReply_.push_back(replyMessage);
     return true;
 }
 
