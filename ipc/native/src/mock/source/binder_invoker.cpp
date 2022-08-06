@@ -570,7 +570,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
-    ZLOGD(LABEL, "HandleCommands:cmd:%{public}u\n", cmd);
+    ZLOGD(LABEL, "HandleCommands:cmd:%{public}u", cmd);
     switch (cmd) {
         case BR_ERROR:
             error = input_.ReadInt32();
@@ -679,7 +679,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     bwr.write_consumed = 0;
     bwr.read_consumed = 0;
-    ZLOGD(LABEL, "TransactWithDriver write_size:%lld, read_size:%lld\n", bwr.write_size, bwr.read_size);
+    ZLOGD(LABEL, "TransactWithDriver write_size:%lld, read_size:%lld", bwr.write_size, bwr.read_size);
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
@@ -693,7 +693,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
         input_.RewindRead(0);
     }
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "TransactWithDriver result = %{public}d\n", error);
+        ZLOGE(LABEL, "TransactWithDriver result = %{public}d", error);
     }
 
     return error;
@@ -908,6 +908,8 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
         flat.hdr.type = BINDER_TYPE_BINDER;
         flat.binder = reinterpret_cast<uintptr_t>(object);
         flat.cookie = flat.binder;
+        ZLOGD(LABEL, "write stub object: %{public}s",
+            Str16ToStr8(object->GetObjectDescriptor()).c_str());
     }
 
     flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;

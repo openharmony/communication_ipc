@@ -145,11 +145,12 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     return remoteDescriptor_;
 }
 
-std::string IPCObjectProxy::GetPidAndUidInfo()
+std::string IPCObjectProxy::GetPidAndUidInfo(int32_t systemAbilityId)
 {
     MessageParcel data, reply;
     MessageOption option;
 
+    data.WriteInt32(systemAbilityId);
     int32_t err = SendRequestInner(false, GET_UIDPID_INFO, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGE(LABEL, "GetPidAndUidInfo SendRequestInner return error = %{public}d", err);
@@ -158,11 +159,12 @@ std::string IPCObjectProxy::GetPidAndUidInfo()
     return reply.ReadString();
 }
 
-std::string IPCObjectProxy::GetDataBusName()
+std::string IPCObjectProxy::GetDataBusName(int32_t systemAbilityId)
 {
     MessageParcel data, reply;
     MessageOption option;
 
+    data.WriteInt32(systemAbilityId);
     int32_t err = SendRequestInner(false, GRANT_DATABUS_NAME, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGE(LABEL, "GetDataBusName transact return error = %{public}d", err);
@@ -260,21 +262,16 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
         ZLOGE(LABEL, "OnLastStrongRef current is null");
         return;
     }
-#ifndef CONFIG_IPC_SINGLE
-    std::shared_ptr<DBinderSessionObject> session = nullptr;
-#endif
-    {
-        std::lock_guard<std::recursive_mutex> lock(current->mutex_);
-        if (current->DetachObjectInner(this) == false) { // if detach successfully, this proxy will be destroyed
-            return;
-        }
-#ifndef CONFIG_IPC_SINGLE
-        ReleaseProto();
-        session = current->ProxyQueryDBinderSession(handle_);
-        (void)current->ProxyDetachDBinderSession(handle_);
-        (void)current->DetachHandleToIndex(handle_);
-#endif
+    if (current->DetachObject(this) == false) { // if detach successfully, this proxy will be destroyed
+        return;
     }
+#ifndef CONFIG_IPC_SINGLE
+    ReleaseProto();
+    std::shared_ptr<DBinderSessionObject> session = nullptr;
+    session = current->ProxyQueryDBinderSession(handle_);
+    (void)current->ProxyDetachDBinderSession(handle_);
+    (void)current->DetachHandleToIndex(handle_);
+#endif
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
     if (invoker != nullptr) {
         invoker->ReleaseHandle(handle_);

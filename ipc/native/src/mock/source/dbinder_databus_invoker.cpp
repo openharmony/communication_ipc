@@ -79,7 +79,6 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         DBINDER_LOGE("current ipc process skeleton is nullptr");
         return nullptr;
     }
-
     sptr<IPCObjectProxy> ipcProxy = reinterpret_cast<IPCObjectProxy *>(current->FindOrNewObject(handle).GetRefPtr());
     if (ipcProxy == nullptr) {
         DBINDER_LOGE("attempt to send a invalid handle = %u", handle);
@@ -91,7 +90,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         return nullptr;
     }
 
-    std::string sessionName = ipcProxy->GetPidAndUidInfo();
+    std::string sessionName = ipcProxy->GetPidAndUidInfo(0);
     if (sessionName.empty()) {
         DBINDER_LOGE("get bus name error");
         return nullptr;
@@ -324,6 +323,7 @@ void DBinderDatabusInvoker::OnMessageAvailable(std::shared_ptr<Session> session,
             readSize += packageSize;
         } else {
             // If the current is abnormal, the subsequent is no longer processed.
+            DBINDER_LOGE("not complete message");
             break;
         }
     } while (readSize + sizeof(dbinder_transaction_data) < static_cast<uint32_t>(len));

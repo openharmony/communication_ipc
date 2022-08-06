@@ -241,7 +241,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
             }
-            std::string sessionName = GetDataBusName();
+            int32_t systemAbilityId = data.ReadInt32();
+            std::string sessionName = GetDataBusName(systemAbilityId);
             if (sessionName.empty()) {
                 ZLOGE(LABEL, "sessionName is empty");
                 result = IPC_STUB_CREATE_BUS_SERVER_ERR;
@@ -456,7 +457,6 @@ int32_t IPCObjectStub::IncStubRefs(MessageParcel &data, MessageParcel &reply)
         ZLOGE(LABEL, "%s: current is null", __func__);
         return IPC_STUB_CURRENT_NULL_ERR;
     }
-
     std::string deviceId = IPCSkeleton::GetCallingDeviceID();
     if (deviceId.empty()) {
         ZLOGE(LABEL, "%s: calling error", __func__);
@@ -466,11 +466,9 @@ int32_t IPCObjectStub::IncStubRefs(MessageParcel &data, MessageParcel &reply)
         ZLOGE(LABEL, "%s: attach stub ref info err, already in", __func__);
         return ERR_NONE;
     }
-
     if (!current->DecStubRefTimes(this)) {
         this->IncStrongRef(this);
     }
-
     return ERR_NONE;
 }
 
@@ -531,7 +529,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
     return ERR_NONE;
 }
 
-std::string IPCObjectStub::GetDataBusName()
+std::string IPCObjectStub::GetDataBusName(int32_t systemAbilityId)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
@@ -545,14 +543,15 @@ std::string IPCObjectStub::GetDataBusName()
     }
 
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-    return samgr->GetDataBusName();
+    return samgr->GetDataBusName(systemAbilityId);
 }
 
 int32_t IPCObjectStub::GrantDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int pid = IPCSkeleton::GetCallingPid();
     int uid = IPCSkeleton::GetCallingUid();
-    std::string sessionName = CreateDatabusName(uid, pid);
+    int systemAbilityId = data.ReadInt32();
+    std::string sessionName = CreateDatabusName(uid, pid, systemAbilityId);
     if (sessionName.empty()) {
         ZLOGE(LABEL, "pid/uid is invalid, pid = {public}%d, uid = {public}%d", pid, uid);
         return IPC_STUB_INVALID_DATA_ERR;
@@ -573,7 +572,7 @@ int32_t IPCObjectStub::TransDataBusName(uint32_t code, MessageParcel &data, Mess
         ZLOGE(LABEL, "pid/uid is invalid, pid = {public}%d, uid = {public}%d", remotePid, remoteUid);
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    std::string sessionName = CreateDatabusName(remoteUid, remotePid);
+    std::string sessionName = CreateDatabusName(remoteUid, remotePid, 0);
     if (sessionName.empty()) {
         ZLOGE(LABEL, "pid/uid is invalid, pid = {public}%d, uid = {public}%d", remotePid, remoteUid);
         return IPC_STUB_INVALID_DATA_ERR;
@@ -586,7 +585,7 @@ int32_t IPCObjectStub::TransDataBusName(uint32_t code, MessageParcel &data, Mess
     return ERR_NONE;
 }
 
-std::string IPCObjectStub::CreateDatabusName(int uid, int pid)
+std::string IPCObjectStub::CreateDatabusName(int uid, int pid, int systemAbilityId)
 {
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
@@ -595,6 +594,9 @@ std::string IPCObjectStub::CreateDatabusName(int uid, int pid)
     }
 
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
+    if (systemAbilityId > 0) {
+        sessionName += std::string("_") + std::to_string(systemAbilityId);
+    }
     if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
         ZLOGE(LABEL, "fail to Grant Permission softbus name");
         return "";

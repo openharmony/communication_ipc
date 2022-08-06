@@ -66,9 +66,8 @@ public:
 
     int InvokeListenThread(MessageParcel &data, MessageParcel &reply);
     int32_t NoticeServiceDie();
-    std::string GetPidAndUidInfo();
-
-    std::string GetDataBusName();
+    std::string GetPidAndUidInfo(int32_t systemAbilityId);
+    std::string GetDataBusName(int32_t systemAbilityId);
     std::string TransDataBusName(uint32_t uid, uint32_t pid);
     int GetProto() const;
     void WaitForInit();
