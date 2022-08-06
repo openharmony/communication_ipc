@@ -908,8 +908,8 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
         flat.hdr.type = BINDER_TYPE_BINDER;
         flat.binder = reinterpret_cast<uintptr_t>(object);
         flat.cookie = flat.binder;
-        ZLOGD(LABEL, "write stub object: %{public}s, ptr=%{public}p",
-            Str16ToStr8(object->GetObjectDescriptor()).c_str(), object);
+        ZLOGD(LABEL, "write stub object: %{public}s",
+            Str16ToStr8(object->GetObjectDescriptor()).c_str());
     }
 
     flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
