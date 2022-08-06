@@ -120,7 +120,7 @@ pid_t IPCTestHelper::GetPidByName(std::string task_name)
 bool IPCTestHelper::GetChildPids(std::vector<pid_t> &childPids)
 {
     pid_t current = getpid();
-    ZLOGI(LABEL, "current pid %d\n", current);
+    ZLOGD(LABEL, "current pid %d\n", current);
     const std::string taskPath = "/proc/" + std::to_string(current) + "/task";
     DIR *dir = opendir(taskPath.c_str());
     if (dir == nullptr) {
@@ -147,7 +147,7 @@ bool IPCTestHelper::GetChildPids(std::vector<pid_t> &childPids)
         }
 
         childPids.push_back(child);
-        ZLOGI(LABEL, "child pid %d", child);
+        ZLOGD(LABEL, "child pid %d", child);
     }
 
     closedir(dir);
@@ -167,7 +167,7 @@ pid_t IPCTestHelper::StartExecutable(std::string name, std::string args)
 
     std::string cmd1 = "chmod +x /system/bin/" + name;
     int res = system(cmd1.c_str());
-    ZLOGI(LABEL, "%s, res = %d\n", cmd1.c_str(), res);
+    ZLOGD(LABEL, "%s, res = %d\n", cmd1.c_str(), res);
 
     // kill the program if the program is already exist.
     execPid = GetPidByName(name);
@@ -180,7 +180,7 @@ pid_t IPCTestHelper::StartExecutable(std::string name, std::string args)
         setenv("LD_LIBRARY_PATH", ld_library_path, 1);
     }
 
-    ZLOGI(LABEL, "%s res = %d\n", cmd2.c_str(), res);
+    ZLOGD(LABEL, "%s res = %d\n", cmd2.c_str(), res);
 
     do {
         execPid = GetPidByName(name);
@@ -191,14 +191,14 @@ pid_t IPCTestHelper::StartExecutable(std::string name, std::string args)
         }
     } while (checkCount++ < MAX_CHECK_COUNT);
 
-    ZLOGI(LABEL, "start %s done, pid:%d\n", name.c_str(), execPid);
+    ZLOGD(LABEL, "start %s done, pid:%d\n", name.c_str(), execPid);
     return execPid;
 }
 
 bool IPCTestHelper::StopExecutable(pid_t pid)
 {
     if (pid != INVALID_PID) {
-        ZLOGI(LABEL, "kill pid = %d\n", pid);
+        ZLOGD(LABEL, "kill pid = %d\n", pid);
         kill(pid, SIG_KILL);
     }
 
@@ -209,7 +209,7 @@ bool IPCTestHelper::StopExecutable(std::string name)
 {
     pid_t pid = GetPidByName(name);
     if (pid != INVALID_PID) {
-        ZLOGI(LABEL, "%s pid = %d, kill it\n", name.c_str(), pid);
+        ZLOGD(LABEL, "%s pid = %d, kill it\n", name.c_str(), pid);
         kill(pid, SIG_KILL);
     }
 
@@ -222,7 +222,7 @@ bool IPCTestHelper::PrepareTestSuite()
     if (pid == INVALID_PID) {
         usleep(SLEEP_TIME);
         pid = StartTestApp(IPC_TEST_SAMGR);
-        ZLOGI(LABEL, "StartSystemServer done");
+        ZLOGD(LABEL, "StartSystemServer done");
     }
 
     return (pid != INVALID_PID);
@@ -231,7 +231,7 @@ bool IPCTestHelper::PrepareTestSuite()
 bool IPCTestHelper::TearDownTestSuite()
 {
     for (auto it = testPids_.begin(); it != testPids_.end();) {
-        ZLOGI(LABEL, "kill %s", it->first.c_str());
+        ZLOGD(LABEL, "kill %s", it->first.c_str());
         StopExecutable(it->second);
         it = testPids_.erase(it);
     }
@@ -270,7 +270,7 @@ bool IPCTestHelper::StartTestApp(int appId, const int &cmdId)
         AddTestAppPid(appName, pid);
     }
 
-    ZLOGI(LABEL, "StartTestApp:%d cmdId=%d pid = %d", appId, cmdId, pid);
+    ZLOGD(LABEL, "StartTestApp:%d cmdId=%d pid = %d", appId, cmdId, pid);
     return (pid != INVALID_PID);
 }
 
@@ -315,14 +315,14 @@ pid_t IPCTestHelper::GetTestAppPid(int appId)
 pid_t IPCTestHelper::GetPid()
 {
     pid_t pid = getpid();
-    ZLOGI(LABEL, "return pid=%{public}d", pid);
+    ZLOGD(LABEL, "return pid=%{public}d", pid);
     return pid;
 }
 
 uid_t IPCTestHelper::GetUid()
 {
     uid_t uid = getuid();
-    ZLOGI(LABEL, "return uid=%{public}d", uid);
+    ZLOGD(LABEL, "return uid=%{public}d", uid);
     return uid;
 }
 

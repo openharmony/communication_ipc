@@ -1845,7 +1845,7 @@ napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info inf
         napi_typeof(env, argv[0], &valueType);
         NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
         int32_t jsFlags = 0;
-        napi_get_value_int32(env, argv[1], &jsFlags);
+        napi_get_value_int32(env, argv[0], &jsFlags);
         flags = jsFlags;
         waittime = MessageOption::TF_WAIT_TIME;
     } else {

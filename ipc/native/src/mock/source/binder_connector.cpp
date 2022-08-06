@@ -93,7 +93,7 @@ bool BinderConnector::OpenDriver()
         ZLOGE(LABEL, "Get Binder featureSet failed: %d, disable all enhance feature.", errno);
         featureSet = 0;
     }
-    ZLOGI(LABEL, "%s:succ to open, fd=%d", __func__, fd);
+    ZLOGD(LABEL, "%s:succ to open, fd=%d", __func__, fd);
     driverFD_ = fd;
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
     if (vmAddr_ == MAP_FAILED) {
