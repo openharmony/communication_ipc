@@ -50,7 +50,7 @@ static constexpr pid_t SHELL_UID = 2000;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
-    ZLOGW(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
+    ZLOGD(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
 }
 
 IPCObjectStub::~IPCObjectStub()
@@ -113,7 +113,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGI(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
+            ZLOGD(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
             break;
     }
 
@@ -325,7 +325,7 @@ int IPCObjectStub::GetObjectType() const
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int result = ERR_NONE;
-    ZLOGE(LABEL, "IPCObjectStub::ProcessProto called, type = 0, normal stub object");
+    ZLOGD(LABEL, "IPCObjectStub::ProcessProto called, type = 0, normal stub object");
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER)) {
         ZLOGE(LABEL, "write to parcel fail");
         result = IPC_STUB_WRITE_PARCEL_ERR;
@@ -435,7 +435,6 @@ int32_t IPCObjectStub::IncStubRefs(MessageParcel &data, MessageParcel &reply)
         ZLOGE(LABEL, "%s: current is null", __func__);
         return IPC_STUB_CURRENT_NULL_ERR;
     }
-
     std::string deviceId = IPCSkeleton::GetCallingDeviceID();
     if (deviceId.empty()) {
         ZLOGE(LABEL, "%s: calling error", __func__);
@@ -445,11 +444,9 @@ int32_t IPCObjectStub::IncStubRefs(MessageParcel &data, MessageParcel &reply)
         ZLOGE(LABEL, "%s: attach stub ref info err, already in", __func__);
         return ERR_NONE;
     }
-
     if (!current->DecStubRefTimes(this)) {
         this->IncStrongRef(this);
     }
-
     return ERR_NONE;
 }
 

@@ -25,11 +25,7 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThread" };
 
 IPCWorkThread::IPCWorkThread(std::string threadName) : threadName_(std::move(threadName)) {}
 
@@ -41,8 +37,6 @@ IPCWorkThread::~IPCWorkThread()
 void IPCWorkThread::ThreadHandler()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
-    DBINDER_LOGI("proto_=%d", proto_);
-
     if (invoker != nullptr) {
         switch (policy_) {
             case SPAWN_PASSIVE:
@@ -58,7 +52,7 @@ void IPCWorkThread::ThreadHandler()
                 invoker->JoinProcessThread(true);
                 break;
             default:
-                DBINDER_LOGI("policy_ = %{public}d", policy_);
+                ZLOGE(LOG_LABEL, "policy_ = %{public}d", policy_);
                 break;
         }
     }
@@ -84,7 +78,7 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
 
     std::thread t(std::bind(&IPCWorkThread::ThreadHandler, this));
     std::string wholeName = threadName + std::to_string(getpid()) + "_" + std::to_string(gettid());
-    DBINDER_LOGI("create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
+    ZLOGD(LOG_LABEL, "create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
     thread_ = std::move(t);
     thread_.detach();
 }

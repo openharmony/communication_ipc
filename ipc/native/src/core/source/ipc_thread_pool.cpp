@@ -26,9 +26,6 @@ namespace IPC_SINGLE {
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThreadPool" };
 
-#define DBINDER_LOGI(fmt, args...) (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define DBINDER_LOGE(fmt, args...) (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
     : threadSequence_(0),
       maxThreadNum_(maxThreadNum + maxThreadNum),
@@ -58,30 +55,30 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
         return false;
     }
     std::string threadName = MakeThreadName(proto);
-    DBINDER_LOGI("SpawnThread Name= %{public}s", threadName.c_str());
+    ZLOGD(LOG_LABEL, "SpawnThread Name= %{public}s", threadName.c_str());
 
     if (threads_.find(threadName) == threads_.end()) {
         auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
         if (ipcThread == nullptr) {
-            DBINDER_LOGE("create IPCWorkThread object failed");
+            ZLOGE(LOG_LABEL, "create IPCWorkThread object failed");
             return false;
         }
         sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>(ipcThread);
         threads_[threadName] = newThread;
         if (proto == IRemoteObject::IF_PROT_DEFAULT) {
             idleThreadNum_--;
-            DBINDER_LOGI("SpawnThread, now idleThreadNum_ =%d", idleThreadNum_);
+            ZLOGD(LOG_LABEL, "SpawnThread, now idleThreadNum_ =%d", idleThreadNum_);
         }
         if (proto == IRemoteObject::IF_PROT_DATABUS) {
             idleSocketThreadNum_--;
-            DBINDER_LOGI("SpawnThread, now idleSocketThreadNum_ =%d", idleSocketThreadNum_);
+            ZLOGD(LOG_LABEL, "SpawnThread, now idleSocketThreadNum_ =%d", idleSocketThreadNum_);
         }
 
         bool ret = true;
         try {
             newThread->Start(policy, proto, threadName);
         } catch (const std::exception& e) {
-            DBINDER_LOGI("get exception:%{public}s", e.what());
+            ZLOGE(LOG_LABEL, "get exception:%{public}s", e.what());
             ret = false;
         }
         return ret;
@@ -116,7 +113,7 @@ bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
             idleSocketThreadNum_++;
         }
         threads_.erase(it);
-        DBINDER_LOGI("SpawnThread, now idleThreadNum_ =%d", idleSocketThreadNum_);
+        ZLOGD(LOG_LABEL, "SpawnThread, now idleThreadNum_ =%d", idleSocketThreadNum_);
         return true;
     }
     return false;
