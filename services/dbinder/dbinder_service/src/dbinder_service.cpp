@@ -490,7 +490,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     return true;
 }
 
-std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)
+std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy, int32_t systemAbilityId)
 {
     if (proxy == nullptr) {
         DBINDER_LOGE("proxy can not be null");
@@ -501,7 +501,7 @@ std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)
         DBINDER_LOGI("sessionName has been granded");
         return sessionName;
     }
-    sessionName = proxy->GetPidAndUidInfo();
+    sessionName = proxy->GetPidAndUidInfo(systemAbilityId);
     if (sessionName.empty()) {
         DBINDER_LOGE("grand session name failed");
         return "";
@@ -556,7 +556,7 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
         DBINDER_LOGE("remote device id is error");
         return false;
     }
-    std::string sessionName = GetDatabusNameByProxy(proxy);
+    std::string sessionName = GetDatabusNameByProxy(proxy, replyMessage->stubIndex);
     if (sessionName.empty()) {
         DBINDER_LOGE("get bus name fail");
         return false;
