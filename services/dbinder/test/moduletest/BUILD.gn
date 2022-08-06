@@ -36,7 +36,7 @@ ohos_moduletest("RPCCLIENTTEST") {
     "c_utils:utils",
     "dsoftbus:softbus_client",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -57,7 +57,7 @@ ohos_moduletest("RPCSERVERTEST") {
     "c_utils:utils",
     "dsoftbus:softbus_client",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 }
 
