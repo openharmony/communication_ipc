@@ -83,8 +83,8 @@ public:
 private:
     int32_t GrantDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t TransDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-    std::string CreateDatabusName(int uid, int pid);
-    std::string GetDataBusName();
+    std::string CreateDatabusName(int uid, int pid, int systemAbilityId);
+    std::string GetDataBusName(int32_t systemAbilityId);
     bool IsSamgrCall(uint32_t accessToken);
     bool HasDumpPermission(uint32_t accessToken) const;
 #endif

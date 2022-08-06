@@ -160,7 +160,7 @@ private:
     bool OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
         std::string &remoteDeviceId, int pid, int uid);
     bool IsDeviceIdIllegal(const std::string &deviceID);
-    std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
+    std::string GetDatabusNameByProxy(IPCObjectProxy *proxy, int32_t systemAbilityId);
     uint32_t GetSeqNumber();
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool CheckSystemAbilityId(int32_t systemAbilityId);
