@@ -25,12 +25,8 @@ namespace OHOS {
 // if need enable ipc debug log, use '#define CONFIG_IPC_DEBUG'
 #define ZLOGW(TAG, ...) (void)HiviewDFX::HiLog::Warn(TAG, __VA_ARGS__)
 #define ZLOGE(TAG, ...) (void)HiviewDFX::HiLog::Error(TAG, __VA_ARGS__)
-
-#if (defined CONFIG_IPC_DEBUG)
 #define ZLOGI(TAG, ...) (void)HiviewDFX::HiLog::Info(TAG, __VA_ARGS__)
-#else
-#define ZLOGI(TAG, ...)
-#endif /* CONFIG_IPC_DEBUG */
+#define ZLOGD(TAG, ...) (void)HiviewDFX::HiLog::Debug(TAG, __VA_ARGS__)
 
 using ErrorMap = std::map<uint32_t, std::string>;
 class ErrorBase {

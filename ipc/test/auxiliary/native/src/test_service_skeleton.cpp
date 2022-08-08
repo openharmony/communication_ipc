@@ -45,14 +45,14 @@ int TestServiceProxy::TestSyncTransaction(int data, int &reply, int delayTime)
     int error;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "send to server data = %{public}d", data);
+    ZLOGD(LABEL, "send to server data = %{public}d", data);
     if (data > 0) {
         dataParcel.WriteInt32(data);
         dataParcel.WriteInt32(delayTime);
     }
     error = Remote()->SendRequest(TRANS_ID_SYNC_TRANSACTION, dataParcel, replyParcel, option);
     reply = replyParcel.ReadInt32();
-    ZLOGI(LABEL, "get result from server data = %{public}d", reply);
+    ZLOGD(LABEL, "get result from server data = %{public}d", reply);
     return error;
 }
 
@@ -60,7 +60,7 @@ int TestServiceProxy::TestAsyncTransaction(int data, int timeout)
 {
     MessageOption option = { MessageOption::TF_ASYNC };
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "%{public}s:in, data = %{public}d", __func__, data);
+    ZLOGD(LABEL, "%{public}s:in, data = %{public}d", __func__, data);
     dataParcel.WriteInt32(data);
     dataParcel.WriteInt32(timeout);
     dataParcel.WriteBool(false);
@@ -72,7 +72,7 @@ int TestServiceProxy::TestAsyncCallbackTrans(int data, int &reply, int timeout)
     int error;
     MessageOption option = { MessageOption::TF_ASYNC };
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "%{public}s:in, data = %{public}d", __func__, data);
+    ZLOGD(LABEL, "%{public}s:in, data = %{public}d", __func__, data);
     dataParcel.WriteInt32(data);
     dataParcel.WriteInt32(timeout);
     dataParcel.WriteBool(true);
@@ -108,11 +108,11 @@ int TestServiceProxy::TestPingService(const std::u16string &serviceName)
     int error;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "PingService");
+    ZLOGD(LABEL, "PingService");
     dataParcel.WriteString16(serviceName);
     error = Remote()->SendRequest(TRANS_ID_PING_SERVICE, dataParcel, replyParcel, option);
     int result = (error == ERR_NONE) ? replyParcel.ReadInt32() : -1;
-    ZLOGI(LABEL, "PingService result = %d", result);
+    ZLOGD(LABEL, "PingService result = %d", result);
     return result;
 }
 
@@ -152,11 +152,11 @@ int TestServiceProxy::TestStringTransaction(const std::string &data)
 
 void TestServiceProxy::TestDumpService()
 {
-    ZLOGI(LABEL, "call StartDumpService");
+    ZLOGD(LABEL, "call StartDumpService");
     int fd = open("/data/dump.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
     if (fd != INVALID_FD) {
-        ZLOGI(LABEL, "Start Dump Service");
+        ZLOGD(LABEL, "Start Dump Service");
         std::vector<std::u16string> args;
         args.push_back(u"DumpTest");
         Remote()->Dump(fd, args);
@@ -172,7 +172,7 @@ void TestServiceProxy::TestAsyncDumpService()
         return;
     }
 
-    ZLOGI(LABEL, "Start Async Dump Service");
+    ZLOGD(LABEL, "Start Async Dump Service");
     std::vector<std::u16string> args;
     args.push_back(u"NonblockingDumpTest");
     MessageParcel data, reply;
@@ -274,7 +274,7 @@ int TestServiceProxy::TestCallingUidPid()
     IPCTestHelper helper;
     int actualUid = helper.GetUid();
     int actualPid = helper.GetPid();
-    ZLOGI(LABEL, "uid = %{public}d, pid = %{public}d, actualUid = %{public}d, actualPid = %{public}d",
+    ZLOGD(LABEL, "uid = %{public}d, pid = %{public}d, actualUid = %{public}d, actualPid = %{public}d",
         uid, pid, actualUid, actualPid);
 
     if (uid == actualUid && pid == actualPid) {
@@ -478,7 +478,7 @@ int TestServiceProxy::TestMultipleProcesses(int data, int &rep, int delayTime)
     int error;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "send to server data = %{public}d", data);
+    ZLOGD(LABEL, "send to server data = %{public}d", data);
     if (data > 0) {
         dataParcel.WriteInt32(data);
         dataParcel.WriteInt32(delayTime);
@@ -553,7 +553,7 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
 {
     int ret = 0;
     int result = 0;
-    ZLOGI(LABEL, "OnRemoteRequest, cmd = %{public}d, flags= %{public}d", code, option.GetFlags());
+    ZLOGD(LABEL, "OnRemoteRequest, cmd = %{public}d, flags= %{public}d", code, option.GetFlags());
     switch (code) {
         case TRANS_ID_SYNC_TRANSACTION: {
             int32_t reqData = data.ReadInt32();
@@ -580,7 +580,7 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
         case TRANS_ID_PING_SERVICE: {
             std::u16string serviceName = data.ReadString16();
             result = TestPingService(serviceName);
-            ZLOGI(LABEL, "%s:PingService: result=%d", __func__, result);
+            ZLOGD(LABEL, "%s:PingService: result=%d", __func__, result);
             reply.WriteInt32(result);
             break;
         }
@@ -698,7 +698,7 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
 
 int TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
 {
-    ZLOGI(LABEL, "enter transfer raw data");
+    ZLOGD(LABEL, "enter transfer raw data");
     int length = data.ReadInt32();
     if (length <= 1) {
         ZLOGE(LABEL, "%{public}s: length should > 1, length is %{public}d", __func__, length);
@@ -743,7 +743,7 @@ int TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
 
 int TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
 {
-    ZLOGI(LABEL, "enter reply raw data");
+    ZLOGD(LABEL, "enter reply raw data");
     int length = data.ReadInt32();
     if (length <= 1) {
         ZLOGE(LABEL, "%{public}s: length should > 1, length is %{public}d", __func__, length);
@@ -870,7 +870,7 @@ bool TestDeathRecipient::GotDeathRecipient()
 void TestDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     gotDeathRecipient_ = true;
-    ZLOGI(LABEL, "recv death notice");
+    ZLOGD(LABEL, "recv death notice");
 }
 
 TestDeathRecipient::TestDeathRecipient()
