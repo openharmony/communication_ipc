@@ -49,6 +49,8 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 #define DBINDER_LOGI(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+#define DBINDER_LOGD(fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
@@ -167,7 +169,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
         return nullptr;
     }
 #endif
-    DBINDER_LOGI("handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
+    DBINDER_LOGD("handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
     return result;
 }
 
@@ -465,7 +467,6 @@ bool IPCProcessSkeleton::QueryProxyBySessionHandle(uint32_t handle, std::vector<
             proxyHandle.push_back(it->first);
         }
     }
-
     return true;
 }
 
@@ -1205,7 +1206,6 @@ bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int ui
     auto check = [&stub, &pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
         return IsSameRemoteObject(stub, pid, uid, deviceId, auth);
     };
-
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
     if (it != commAuth_.end()) {
@@ -1223,7 +1223,6 @@ void IPCProcessSkeleton::DetachCommAuthInfo(IRemoteObject *stub, int pid, int ui
     auto check = [&stub, &pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
         return IsSameRemoteObject(stub, pid, uid, deviceId, auth);
     };
-
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     commAuth_.remove_if(check);
 }
@@ -1233,7 +1232,6 @@ std::shared_ptr<FeatureSetData> IPCProcessSkeleton::QueryIsAuth(int pid, int uid
     auto check = [&pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
         return IsSameRemoteObject(pid, uid, deviceId, auth);
     };
-
     std::shared_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
     if (it != commAuth_.end()) {

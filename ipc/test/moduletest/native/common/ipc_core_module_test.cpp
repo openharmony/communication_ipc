@@ -87,7 +87,7 @@ void IPCNativeFrameworkTest::RegisterThread()
         if (remoteObject != nullptr) {
             ASSERT_TRUE(remoteObject->IsProxyObject());
         } else {
-            ZLOGI(LABEL, "proxy is null");
+            ZLOGD(LABEL, "proxy is null");
         }
     }
 }
@@ -100,7 +100,7 @@ void IPCNativeFrameworkTest::RegisterThread()
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_001, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase001");
+    ZLOGD(LABEL, "Start IPC Testcase001");
     // service instance
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     EXPECT_TRUE(saMgr != NULL);
@@ -114,7 +114,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_001, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_002, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase002");
+    ZLOGD(LABEL, "Start IPC Testcase002");
     IPCTestHelper helper;
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
@@ -128,14 +128,14 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_002, TestSize.Level1)
     sptr<IRemoteObject::DeathRecipient> death(new TestDeathRecipient());
     int result = object->AddDeathRecipient(death.GetRefPtr());
 
-    ZLOGI(LABEL, "AddDeathRecipient result = %d", result);
+    ZLOGD(LABEL, "AddDeathRecipient result = %d", result);
     EXPECT_TRUE(result != ERR_INVALID_OPERATION);
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
 
     int reply = 0;
     result = testService->TestSyncTransaction(2019, reply);
-    ZLOGI(LABEL, "testService ReverseInt result = %d, get reply = %d", result, reply);
+    ZLOGD(LABEL, "testService ReverseInt result = %d, get reply = %d", result, reply);
     EXPECT_EQ(result, 0);
     EXPECT_EQ(reply, 9102);
 
@@ -156,7 +156,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_002, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_003, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase003");
+    ZLOGD(LABEL, "Start IPC Testcase003");
 
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_TRUE(saMgr != nullptr);
@@ -166,7 +166,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_003, TestSize.Level1)
     sptr<IRemoteObject> service = new TestService();
     int result = smp->AddSystemAbility(IPC_EXTRA_TEST_SERVICE, service);
 
-    ZLOGI(LABEL, "Testcase003: Add TestService result=%d", result);
+    ZLOGD(LABEL, "Testcase003: Add TestService result=%d", result);
     EXPECT_EQ(result, 0);
 
     // test get service and call it
@@ -174,12 +174,12 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_003, TestSize.Level1)
 
     sptr<IRemoteObject> object = smp->GetSystemAbility(IPC_EXTRA_TEST_SERVICE);
     ASSERT_TRUE(object != nullptr);
-    ZLOGI(LABEL, "Testcase003: Get test.service OK");
+    ZLOGD(LABEL, "Testcase003: Get test.service OK");
 
     sptr<IRemoteObject::DeathRecipient> death(new TestDeathRecipient());
     bool ret = object->AddDeathRecipient(death.GetRefPtr());
 
-    ZLOGI(LABEL, "Testcase003: AddDeathRecipient result = %d", result);
+    ZLOGD(LABEL, "Testcase003: AddDeathRecipient result = %d", result);
     EXPECT_TRUE(ret == false);
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
@@ -187,7 +187,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_003, TestSize.Level1)
 
     int reply = 0;
     result = testService->TestSyncTransaction(0, reply);
-    ZLOGI(LABEL, "Testcase003: ReverseInt result = %d, get reply = %d", result, reply);
+    ZLOGD(LABEL, "Testcase003: ReverseInt result = %d, get reply = %d", result, reply);
     EXPECT_EQ(result, 0);
     EXPECT_EQ(reply, 0);
 }
@@ -200,7 +200,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_003, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_004, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase004");
+    ZLOGD(LABEL, "Start IPC Testcase004");
     IPCTestHelper helper;
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
@@ -211,7 +211,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_004, TestSize.Level1)
     // test get service and call it
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
     ASSERT_TRUE(object != nullptr);
-    ZLOGI(LABEL, "get test.service OK");
+    ZLOGD(LABEL, "get test.service OK");
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
     ASSERT_TRUE(testService != nullptr);
@@ -220,12 +220,12 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_004, TestSize.Level1)
     int reply = 0;
     int result = 0;
     result = testService->TestSyncTransaction(2019, reply, 2);
-    ZLOGI(LABEL, "testService ReverseInt result = %d, get reply = %d", result, reply);
+    ZLOGD(LABEL, "testService ReverseInt result = %d, get reply = %d", result, reply);
     EXPECT_EQ(result, 0);
     EXPECT_EQ(reply, 9102);
 
     long finishTime = helper.GetCurrentTimeMs();
-    ZLOGI(LABEL, "startTime = %ld, finishTime = %ld", startTime, finishTime);
+    ZLOGD(LABEL, "startTime = %ld, finishTime = %ld", startTime, finishTime);
     EXPECT_GE(finishTime - startTime, 2000);
 }
 
@@ -237,7 +237,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_004, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_005, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase005");
+    ZLOGD(LABEL, "Start IPC Testcase005");
     IPCTestHelper helper;
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
@@ -248,7 +248,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_005, TestSize.Level1)
     // test get service and call it
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
     ASSERT_TRUE(object != nullptr);
-    ZLOGI(LABEL, "get test.service OK");
+    ZLOGD(LABEL, "get test.service OK");
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
     ASSERT_TRUE(testService != nullptr);
@@ -256,10 +256,10 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_005, TestSize.Level1)
     long startTime = helper.GetCurrentTimeMs();
     int result = 0;
     result = testService->TestAsyncTransaction(2019, 0);
-    ZLOGI(LABEL, "testService ReverseInt result = %d", result);
+    ZLOGD(LABEL, "testService ReverseInt result = %d", result);
     EXPECT_EQ(result, 0);
     long finishTime = helper.GetCurrentTimeMs();
-    ZLOGI(LABEL, "startTime = %ld, finishTime = %ld", startTime, finishTime);
+    ZLOGD(LABEL, "startTime = %ld, finishTime = %ld", startTime, finishTime);
     EXPECT_LT(finishTime - startTime, 100);
 }
 
@@ -271,7 +271,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_005, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_006, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase006");
+    ZLOGD(LABEL, "Start IPC Testcase006");
     IPCTestHelper helper;
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
@@ -282,7 +282,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_006, TestSize.Level1)
     // test get service and call it
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
     ASSERT_TRUE(object != nullptr);
-    ZLOGI(LABEL, "get test.service OK");
+    ZLOGD(LABEL, "get test.service OK");
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
     ASSERT_TRUE(testService != nullptr);
@@ -307,7 +307,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_006, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_007, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase007");
+    ZLOGD(LABEL, "Start IPC Testcase007");
     IPCTestHelper helper;
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
@@ -318,7 +318,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_007, TestSize.Level1)
     // test get service and call it
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
     ASSERT_TRUE(object != nullptr);
-    ZLOGI(LABEL, "get test.service OK");
+    ZLOGD(LABEL, "get test.service OK");
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
     ASSERT_TRUE(testService != nullptr);
@@ -338,7 +338,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_007, TestSize.Level1)
  */
 HWTEST_F(IPCNativeFrameworkTest, function_test_008, TestSize.Level1)
 {
-    ZLOGI(LABEL, "Start IPC Testcase008");
+    ZLOGD(LABEL, "Start IPC Testcase008");
     IPCTestHelper helper;
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
@@ -349,7 +349,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_008, TestSize.Level1)
     // test get service and call it
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
     ASSERT_TRUE(object != nullptr);
-    ZLOGI(LABEL, "get test.service OK");
+    ZLOGD(LABEL, "get test.service OK");
 
     int fd = open("/data/dump.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
@@ -734,7 +734,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_024, TestSize.Level1)
         threads.emplace_back(std::make_unique<std::thread>(&IPCNativeFrameworkTest::RegisterThread));
     }
 
-    ZLOGI(LABEL, "Sleep IPC Testcase024");
+    ZLOGD(LABEL, "Sleep IPC Testcase024");
     sleep(10);
     std::cout << "ok\n" << std::endl;
     for (auto &thread : threads) {

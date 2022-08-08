@@ -213,13 +213,13 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction001, TestSize.Level1)
 
     if (service->IsProxyObject()) {
         int reply = 0;
-        ZLOGI(LABEL, "Got Proxy node");
+        ZLOGD(LABEL, "Got Proxy node");
         TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
         int ret = proxy->TestSyncTransaction(2019, reply);
         EXPECT_EQ(ret, 0);
         EXPECT_EQ(reply, 9102);
     } else {
-        ZLOGI(LABEL, "Got Stub node");
+        ZLOGD(LABEL, "Got Stub node");
     }
 }
 
@@ -242,15 +242,15 @@ HWTEST_F(IPCNativeUnitTest, AsyncTransaction001, TestSize.Level1)
     sptr<ITestService> testService = iface_cast<ITestService>(service);
     ASSERT_TRUE(testService != nullptr);
 
-    ZLOGI(LABEL, "Get test.service OK\n");
+    ZLOGD(LABEL, "Get test.service OK\n");
     if (service->IsProxyObject()) {
-        ZLOGI(LABEL,  "Got Proxy node\n");
+        ZLOGD(LABEL,  "Got Proxy node\n");
         TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
         int reply = 0;
         int ret = proxy->TestAsyncTransaction(2019, reply);
         EXPECT_EQ(ret, ERR_NONE);
     } else {
-        ZLOGI(LABEL, "Got Stub node\n");
+        ZLOGD(LABEL, "Got Stub node\n");
     }
 }
 
@@ -448,15 +448,15 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction009, TestSize.Level1)
     sptr<ITestService> testService = iface_cast<ITestService>(service);
     ASSERT_TRUE(testService != nullptr);
 
-    ZLOGI(LABEL, "Get test.service OK\n");
+    ZLOGD(LABEL, "Get test.service OK\n");
     if (service->IsProxyObject()) {
-        ZLOGI(LABEL,  "Got Proxy node\n");
+        ZLOGD(LABEL,  "Got Proxy node\n");
         TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
         int reply = 0;
         int ret = proxy->TestAsyncTransaction(2019, reply);
         EXPECT_EQ(ret, ERR_NONE);
     } else {
-        ZLOGI(LABEL, "Got Stub node\n");
+        ZLOGD(LABEL, "Got Stub node\n");
     }
 }
 
@@ -507,7 +507,7 @@ HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
     ASSERT_TRUE(testService != nullptr);
 
     if (service->IsProxyObject()) {
-        ZLOGI(LABEL, "Got Proxy node");
+        ZLOGD(LABEL, "Got Proxy node");
         TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
         int ret = proxy->TestAccessTokenID(3571);
         EXPECT_EQ(ret, 0);

@@ -26,6 +26,6 @@ using namespace OHOS::HiviewDFX;
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {
     TestService::Instantiate();
-    ZLOGI(LABEL, "call  StartThreadPool");
+    ZLOGD(LABEL, "call  StartThreadPool");
     IPCSkeleton::JoinWorkThread();
 }
