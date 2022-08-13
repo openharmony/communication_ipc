@@ -21,6 +21,7 @@
 #include "napi_ashmem.h"
 #include "napi_remote_object.h"
 #include "string_ex.h"
+#include "ipc_debug.h"
 
 
 namespace OHOS {
