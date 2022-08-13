@@ -44,19 +44,11 @@
 #endif
 
 namespace OHOS {
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "MessageParcel" };
-#define ZLOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define ZLOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 void AcquireObject(flat_binder_object *flat, const void *cookie)
 {

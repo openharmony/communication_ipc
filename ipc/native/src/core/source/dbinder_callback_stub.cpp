@@ -32,10 +32,6 @@ namespace OHOS {
 #endif
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderCallbackStub" };
-#define ZLOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define ZLOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
     const std::string &localDevice, uint64_t stubIndex, uint32_t handle, std::shared_ptr<FeatureSetData> feature)
@@ -115,9 +111,9 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         ZLOGE(LOG_LABEL, "send auth info to remote fail");
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
-    ZLOGI(LOG_LABEL, "send to stub ok!stubIndex:%{public}" PRIu64 ",
-        peerDevice = %{public}s, localDeviceID_ = %{public}s,"
-        "serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, sessionName = %{public}s",
+    ZLOGI(LOG_LABEL, "send to stub ok!stubIndex:%{public}" PRIu64 ",                          \
+        peerDevice = %{public}s, localDeviceID_ = %{public}s,"                                \
+        "serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, sessionName = %{public}s",\
         stubIndex_, deviceID_.c_str(), localDeviceID_.c_str(), serviceName_.c_str(), uid, pid, sessionName.c_str());
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(stubIndex_) ||
         !reply.WriteString(serviceName_) || !reply.WriteString(deviceID_) || !reply.WriteString(localDeviceID_) ||

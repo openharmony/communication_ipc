@@ -21,9 +21,6 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_ashmem" };
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
 
 static constexpr int MMAP_PROT_MAX = NAPIAshmem::PROT_EXEC | NAPIAshmem::PROT_READ | NAPIAshmem::PROT_WRITE;
 constexpr size_t BYTE_SIZE_32 = 4;
