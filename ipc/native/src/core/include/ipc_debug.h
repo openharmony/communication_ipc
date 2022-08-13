@@ -22,11 +22,14 @@
 #include "string_ex.h"
 
 namespace OHOS {
-// if need enable ipc debug log, use '#define CONFIG_IPC_DEBUG'
-#define ZLOGW(TAG, ...) (void)HiviewDFX::HiLog::Warn(TAG, __VA_ARGS__)
-#define ZLOGE(TAG, ...) (void)HiviewDFX::HiLog::Error(TAG, __VA_ARGS__)
-#define ZLOGI(TAG, ...) (void)HiviewDFX::HiLog::Info(TAG, __VA_ARGS__)
-#define ZLOGD(TAG, ...) (void)HiviewDFX::HiLog::Debug(TAG, __VA_ARGS__)
+#define ZLOGE(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define ZLOGW(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define ZLOGI(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define ZLOGD(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 using ErrorMap = std::map<uint32_t, std::string>;
 class ErrorBase {

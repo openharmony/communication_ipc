@@ -32,10 +32,10 @@ namespace OHOS {
 #endif
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderCallbackStub" };
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+#define ZLOGE(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define ZLOGI(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
     const std::string &localDevice, uint64_t stubIndex, uint32_t handle, std::shared_ptr<FeatureSetData> feature)
@@ -47,13 +47,13 @@ DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::
       handle_(handle),
       rpcFeatureSet_(feature)
 {
-    DBINDER_LOGI("serviceName:%{public}s, deviceId:%{public}s, handle:%{public}u, stubIndex_:%{public}" PRIu64 "",
+    ZLOGI(LOG_LABEL, "serviceName:%{public}s, deviceId:%{public}s, handle:%{public}u, stubIndex_:%{public}" PRIu64 "",
         serviceName_.c_str(), deviceID_.c_str(), handle_, stubIndex_);
 }
 
 DBinderCallbackStub::~DBinderCallbackStub()
 {
-    DBINDER_LOGI("DBinderCallbackStub delete");
+    ZLOGI(LOG_LABEL, "DBinderCallbackStub delete");
 }
 
 const std::string &DBinderCallbackStub::GetServiceName()
@@ -82,18 +82,18 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
     int uid = IPCSkeleton::GetCallingUid();
     int pid = IPCSkeleton::GetCallingPid();
     if (uid < 0 || pid < 0) {
-        DBINDER_LOGE("uid or pid err");
+        ZLOGE(LOG_LABEL, "uid or pid err");
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
     sptr<IRemoteObject> object = IPCProcessSkeleton::GetCurrent()->GetSAMgrObject();
     if (object == nullptr) {
-        DBINDER_LOGE("get sa object is null");
+        ZLOGE(LOG_LABEL, "get sa object is null");
         return DBINDER_CALLBACK_READ_OBJECT_ERR;
     }
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     std::string sessionName = samgr->TransDataBusName(uid, pid);
     if (sessionName.empty()) {
-        DBINDER_LOGE("grans session name failed");
+        ZLOGE(LOG_LABEL,"grans session name failed");
         return DBINDER_SERVICE_WRONG_SESSION;
     }
 
@@ -102,26 +102,26 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
     uint32_t featureSet = rpcFeatureSet_->featureSet;
     if (!authData.WriteUint32(pid) || !authData.WriteUint32(uid) || !authData.WriteString(localDeviceID_) ||
         !authData.WriteUint32(featureSet) || !authData.WriteUint64(stubIndex_)) {
-        DBINDER_LOGE("write to MessageParcel fail");
+        ZLOGE(LOG_LABEL, "write to MessageParcel fail");
         return ERR_INVALID_DATA;
     }
     IRemoteInvoker *dbinderInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
     if (dbinderInvoker == nullptr) {
-        DBINDER_LOGE("no databus thread and invoker");
+        ZLOGE(LOG_LABEL, "no databus thread and invoker");
         return RPC_DATABUS_INVOKER_ERR;
     }
     int err = dbinderInvoker->SendRequest(handle_, DBINDER_TRANS_COMMAUTH, authData, authReply, authOption);
     if (err != ERR_NONE) {
-        DBINDER_LOGE("send auth info to remote fail");
+        ZLOGE(LOG_LABEL, "send auth info to remote fail");
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
-    DBINDER_LOGI("send to stub ok!stubIndex:%{public}" PRIu64 ", peerDevice = %{public}s, localDeviceID_ = %{public}s,"
+    ZLOGI(LOG_LABEL, "send to stub ok!stubIndex:%{public}" PRIu64 ", peerDevice = %{public}s, localDeviceID_ = %{public}s,"
         "serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, sessionName = %{public}s",
         stubIndex_, deviceID_.c_str(), localDeviceID_.c_str(), serviceName_.c_str(), uid, pid, sessionName.c_str());
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(stubIndex_) ||
         !reply.WriteString(serviceName_) || !reply.WriteString(deviceID_) || !reply.WriteString(localDeviceID_) ||
         !reply.WriteString(sessionName)) {
-        DBINDER_LOGE("write to parcel fail");
+        ZLOGE(LOG_LABEL, "write to parcel fail");
         return ERR_INVALID_DATA;
     }
     return 0;
@@ -131,14 +131,14 @@ int32_t DBinderCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageOption &option)
 {
     int32_t result = ERR_NONE;
-    DBINDER_LOGI("code = %{public}u", code);
+    ZLOGI(LOG_LABEL, "code = %{public}u", code);
     switch (code) {
         case GET_PROTO_INFO: {
             result = ProcessProto(code, data, reply, option);
             break;
         }
         default: {
-            DBINDER_LOGI("unknown code = %{public}u", code);
+            ZLOGI(LOG_LABEL, "unknown code = %{public}u", code);
             result = DBINDER_CALLBACK_ERR;
             break;
         }

@@ -26,8 +26,6 @@ namespace OHOS {
 #endif
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "dbinder_session_object" };
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 DBinderSessionObject::DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,
     const std::string &serverDeviceId)
@@ -44,7 +42,7 @@ void DBinderSessionObject::CloseDatabusSession()
 {
     std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (session_ != nullptr && manager != nullptr) {
-        DBINDER_LOGI("close softbus session:%{public}" PRIu64 "", session_->GetChannelId());
+        ZLOGI(LOG_LABEL, "close softbus session:%{public}" PRIu64 "", session_->GetChannelId());
         (void)manager->CloseSession(session_);
     }
 }

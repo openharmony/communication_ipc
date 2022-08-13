@@ -22,6 +22,7 @@
 #include "napi_remote_object.h"
 #include "string_ex.h"
 
+
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
 constexpr size_t MAX_CAPACITY_TO_WRITE = 200 * 1024;
@@ -30,19 +31,21 @@ constexpr size_t BYTE_SIZE_32 = 4;
 constexpr size_t BYTE_SIZE_64 = 8;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_messageParcel" };
+
+#define ZLOGE(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define ZLOGI(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+
 #ifndef TITLE
 #define TITLE __PRETTY_FUNCTION__
 #endif
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
     do {                                                                                               \
         size_t cap =  napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
         if (cap < (lenToWrite)) {                                                                        \
-            DBINDER_LOGI("No enough capacity to write");                                               \
+            ZLOGI(LOG_LABEL, "No enough capacity to write");                                               \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
         }                                                                                              \
     } while (0)
@@ -51,7 +54,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
     do {                                                                                              \
         size_t cap = napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
         if (cap < (lenToWrite)) {                                                                       \
-            DBINDER_LOGI("No enough capacity to write");                                              \
+            ZLOGI(LOG_LABEL, "No enough capacity to write");                                              \
             napiParcel->nativeParcel_->RewindWrite(pos);                                              \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
         }                                                                                             \
@@ -61,7 +64,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
     do {                                                                                                             \
         size_t remainSize = napiParcel->nativeParcel_->GetDataSize() - napiParcel->nativeParcel_->GetReadPosition(); \
         if (((arrayLength) < 0) || ((arrayLength) > remainSize) || (((arrayLength) * (typeSize)) > remainSize)) {    \
-            DBINDER_LOGI("No enough data to read");                                                                  \
+            ZLOGI(LOG_LABEL, "No enough data to read");                                                                  \
             napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
         }                                                                                                            \
     } while (0)
@@ -82,14 +85,14 @@ NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, Message
 
 NAPI_MessageParcel::~NAPI_MessageParcel()
 {
-    DBINDER_LOGI("NAPI_MessageParcel::Destructor");
+    ZLOGI(LOG_LABEL, "NAPI_MessageParcel::Destructor");
     nativeParcel_ = nullptr;
     env_ = nullptr;
 }
 
 void NAPI_MessageParcel::release(MessageParcel *parcel)
 {
-    DBINDER_LOGI("message parcel is created by others, do nothing");
+    ZLOGI(LOG_LABEL, "message parcel is created by others, do nothing");
 }
 
 std::shared_ptr<MessageParcel> NAPI_MessageParcel::GetMessageParcel()
@@ -455,7 +458,7 @@ napi_value NAPI_MessageParcel::JS_writeLongArray(napi_env env, napi_callback_inf
 
     uint32_t arrayLength = 0;
     napi_get_array_length(env, argv[0], &arrayLength);
-    DBINDER_LOGI("messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(arrayLength));
+    ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(arrayLength));
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
@@ -805,7 +808,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
     if (callResult != nullptr) {
         return callResult;
     }
-    DBINDER_LOGE("call mashalling failed");
+    ZLOGE(LOG_LABEL, "call mashalling failed");
     napiParcel->nativeParcel_->RewindWrite(pos);
     return result;
 }
@@ -858,7 +861,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
         napi_value callResult = nullptr;
         napi_call_function(env, element, prop, 1, funcArg, &callResult);
         if (callResult == nullptr) {
-            DBINDER_LOGE("call mashalling failed, element index: %{public}zu", i);
+            ZLOGE(LOG_LABEL, "call mashalling failed, element index: %{public}zu", i);
             napiParcel->nativeParcel_->RewindWrite(pos);
             return retValue;
         }
@@ -1797,7 +1800,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceableArray(napi_env env, napi_callb
             napi_value callResult = nullptr;
             napi_call_function(env, element, prop, 1, funcArg, &callResult);
             if (callResult == nullptr) {
-                DBINDER_LOGE("call unmarshalling failed, element index: %{public}d", i);
+                ZLOGE(LOG_LABEL, "call unmarshalling failed, element index: %{public}d", i);
                 break;
             }
         }
@@ -1880,7 +1883,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_i
         if (callResult != nullptr) {
             return callResult;
         }
-        DBINDER_LOGI("call unmarshalling failed");
+        ZLOGI(LOG_LABEL, "call unmarshalling failed");
     }
 
     napi_value napiValue = nullptr;

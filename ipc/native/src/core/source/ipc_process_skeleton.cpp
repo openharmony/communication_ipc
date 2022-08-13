@@ -45,12 +45,6 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #ifndef TITLE
 #define TITLE __PRETTY_FUNCTION__
 #endif
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGD(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
@@ -62,7 +56,7 @@ IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
         if (instance_ == nullptr) {
             IPCProcessSkeleton *temp = new (std::nothrow) IPCProcessSkeleton();
             if (temp == nullptr) {
-                DBINDER_LOGE("create IPCProcessSkeleton object failed");
+                ZLOGE(LOG_LABEL, "create IPCProcessSkeleton object failed");
                 return nullptr;
             }
             if (temp->SetMaxWorkThread(DEFAULT_WORK_THREAD_NUM)) {
@@ -139,11 +133,11 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
             if (handle == REGISTRY_HANDLE) {
                 IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
                 if (invoker == nullptr) {
-                    DBINDER_LOGE("failed to get invoker");
+                    ZLOGE(LOG_LABEL, "failed to get invoker");
                     return nullptr;
                 }
                 if (!invoker->PingService(REGISTRY_HANDLE)) {
-                    DBINDER_LOGE("Registry is not exist");
+                    ZLOGE(LOG_LABEL, "Registry is not exist");
                     return nullptr;
                 }
             }
@@ -165,25 +159,25 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     remoteProxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
     if (remoteProxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
-        DBINDER_LOGE("init rpc proxy:%{public}d failed", handle);
+        ZLOGE(LOG_LABEL, "init rpc proxy:%{public}d failed", handle);
         return nullptr;
     }
 #endif
-    DBINDER_LOGD("handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
+    ZLOGD(LOG_LABEL, "handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
     return result;
 }
 
 bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
 {
     if (maxThreadNum <= 0) {
-        DBINDER_LOGE("Set Invalid thread Number %d", maxThreadNum);
+        ZLOGE(LOG_LABEL, "Set Invalid thread Number %d", maxThreadNum);
         return false;
     }
 
     if (threadPool_ == nullptr) {
         threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
         if (threadPool_ == nullptr) {
-            DBINDER_LOGE("create IPCWorkThreadPool object failed");
+            ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
             return false;
         }
     }
@@ -199,13 +193,13 @@ bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
 bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
 {
     if (object == nullptr) {
-        DBINDER_LOGE("object is null");
+        ZLOGE(LOG_LABEL, "object is null");
         return false;
     }
 
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
     if (invoker == nullptr) {
-        DBINDER_LOGE("fail to get invoker");
+        ZLOGE(LOG_LABEL, "fail to get invoker");
         return false;
     }
 
@@ -257,7 +251,7 @@ bool IPCProcessSkeleton::DetachObjectInner(IRemoteObject *object)
 {
     int strongRef = object->GetSptrRefCount();
     if (strongRef > 0) {
-        DBINDER_LOGI("proxy is still strong referenced:%{public}d", strongRef);
+        ZLOGI(LOG_LABEL, "proxy is still strong referenced:%{public}d", strongRef);
         return false;
     }
 
@@ -344,7 +338,7 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
     std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        DBINDER_LOGE("Get local node device info failed");
+        ZLOGE(LOG_LABEL, "Get local node device info failed");
         return "";
     }
     std::string networkId(nodeBasicInfo.networkId);
@@ -354,7 +348,7 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
 bool IPCProcessSkeleton::IsHandleMadeByUser(uint32_t handle)
 {
     if (handle > DBINDER_HANDLE_BASE && handle < (DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE)) {
-        DBINDER_LOGE("handle = %{public}u is make by user, not kernel", handle);
+        ZLOGE(LOG_LABEL, "handle = %{public}u is make by user, not kernel", handle);
         return true;
     }
     return false;
@@ -459,7 +453,7 @@ bool IPCProcessSkeleton::QueryProxyBySessionHandle(uint32_t handle, std::vector<
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
         std::shared_ptr<Session> session = it->second->GetBusSession();
         if (session == nullptr) {
-            DBINDER_LOGE("session is null, handle = %{public}u", handle);
+            ZLOGE(LOG_LABEL, "session is null, handle = %{public}u", handle);
             return false;
         }
         uint32_t sessionHandle = IPCProcessSkeleton::ConvertChannelID2Int(session->GetChannelId());
@@ -661,7 +655,7 @@ void IPCProcessSkeleton::AddDataThreadInWait(const std::thread::id &threadId)
     if (threadLockInfo == nullptr) {
         threadLockInfo = std::make_shared<struct SocketThreadLockInfo>();
         if (!AttachThreadLockInfo(threadLockInfo, threadId)) {
-            DBINDER_LOGE("thread has added lock info");
+            ZLOGE(LOG_LABEL, "thread has added lock info");
             return;
         }
     }
@@ -719,12 +713,12 @@ void IPCProcessSkeleton::WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t ha
 
     messageInfo = QueryThreadBySeqNumber(seqNumber);
     if (messageInfo == nullptr) {
-        DBINDER_LOGE("error! messageInfo is nullptr");
+        ZLOGE(LOG_LABEL, "error! messageInfo is nullptr");
         return;
     }
 
     if (handle != messageInfo->socketId) {
-        DBINDER_LOGE("error! handle is not equal messageInfo, handle = %{public}d, messageFd = %{public}u", handle,
+        ZLOGE(LOG_LABEL, "error! handle is not equal messageInfo, handle = %{public}d, messageFd = %{public}u", handle,
             messageInfo->socketId);
         return;
     }
@@ -748,7 +742,7 @@ bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr
     std::shared_ptr<SocketThreadLockInfo> threadLockInfo;
 
     if (!AddThreadBySeqNumber(seqNumber, messageInfo)) {
-        DBINDER_LOGE("add seqNumber = %" PRIu64 " failed", seqNumber);
+        ZLOGE(LOG_LABEL, "add seqNumber = %" PRIu64 " failed", seqNumber);
         return false;
     }
 
@@ -757,7 +751,7 @@ bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr
         threadLockInfo = std::make_shared<struct SocketThreadLockInfo>();
         bool ret = AttachThreadLockInfo(threadLockInfo, messageInfo->threadId);
         if (!ret) {
-            DBINDER_LOGE("AttachThreadLockInfo fail");
+            ZLOGE(LOG_LABEL, "AttachThreadLockInfo fail");
             return false;
         }
     }
@@ -766,7 +760,7 @@ bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr
     if (threadLockInfo->condition.wait_for(lock_unique, std::chrono::seconds(userWaitTime),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
         threadLockInfo->ready = false;
-        DBINDER_LOGE("socket thread timeout, seqNumber = %{public}" PRIu64 ", ipc wait time = %{public}d", seqNumber,
+        ZLOGE(LOG_LABEL, "socket thread timeout, seqNumber = %{public}" PRIu64 ", ipc wait time = %{public}d", seqNumber,
             userWaitTime);
         return false;
     }
@@ -954,25 +948,25 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
     std::lock_guard<std::mutex> lockGuard(sessionNameMutex_);
 
     if (name.empty()) {
-        DBINDER_LOGE("get wrong session name = %s", name.c_str());
+        ZLOGE(LOG_LABEL, "get wrong session name = %s", name.c_str());
         return false;
     }
 
     std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (manager == nullptr) {
-        DBINDER_LOGE("fail to get softbus manager");
+        ZLOGE(LOG_LABEL, "fail to get softbus manager");
         return false;
     }
 
     std::shared_ptr<DatabusSessionCallback> callback = std::make_shared<DatabusSessionCallback>();
     if (callback == nullptr) {
-        DBINDER_LOGE("fail to create softbus callbacks");
+        ZLOGE(LOG_LABEL, "fail to create softbus callbacks");
         return false;
     }
     std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
     int ret = manager->CreateSessionServer(pkgName, name, callback);
     if (ret != 0) {
-        DBINDER_LOGE("fail to create softbus server");
+        ZLOGE(LOG_LABEL, "fail to create softbus server");
         return false;
     }
 
@@ -1017,7 +1011,7 @@ bool IPCProcessSkeleton::AttachStubRecvRefInfo(IRemoteObject *stub, int pid, con
     std::unique_lock<std::shared_mutex> lockGuard(stubRecvRefMutex_);
     auto it = std::find_if(stubRecvRefs_.begin(), stubRecvRefs_.end(), check);
     if (it != stubRecvRefs_.end()) {
-        DBINDER_LOGE("fail to attach stub recv ref info, already in");
+        ZLOGE(LOG_LABEL, "fail to attach stub recv ref info, already in");
         return false;
     }
 
@@ -1138,7 +1132,7 @@ bool IPCProcessSkeleton::AttachStubSendRefInfo(IRemoteObject *stub, int pid, con
     std::lock_guard<std::mutex> lockGuard(stubSendRefMutex_);
     auto it = std::find_if(stubSendRefs_.begin(), stubSendRefs_.end(), check);
     if (it != stubSendRefs_.end()) {
-        DBINDER_LOGE("fail to attach stub sender ref info, already in");
+        ZLOGE(LOG_LABEL, "fail to attach stub sender ref info, already in");
         return false;
     }
     std::shared_ptr<StubRefCountObject> refCount = std::make_shared<StubRefCountObject>(stub, pid, deviceId);
@@ -1209,7 +1203,7 @@ bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int ui
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
     if (it != commAuth_.end()) {
-        DBINDER_LOGI("AttachCommAuthInfo already");
+        ZLOGI(LOG_LABEL, "AttachCommAuthInfo already");
         return true;
     }
 
@@ -1237,7 +1231,7 @@ std::shared_ptr<FeatureSetData> IPCProcessSkeleton::QueryIsAuth(int pid, int uid
     if (it != commAuth_.end()) {
         return (*it)->GetFeatureSet();
     }
-    DBINDER_LOGE("Query Comm Auth Fail");
+    ZLOGE(LOG_LABEL, "Query Comm Auth Fail");
     return nullptr;
 }
 
