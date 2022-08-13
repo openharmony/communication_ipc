@@ -75,7 +75,7 @@ void AcquireObject(flat_binder_object *flat, const void *cookie)
             flat->cookie = 1;
             break;
         default:
-            ZLOGE("binder object type is invalid.");
+            ZLOGE(LOG_LABEL, "binder object type is invalid.");
             break;
     }
 }
