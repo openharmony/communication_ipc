@@ -32,20 +32,11 @@ constexpr size_t BYTE_SIZE_64 = 8;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_messageParcel" };
 
-#define ZLOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define ZLOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
     do {                                                                                               \
         size_t cap =  napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
-        if (cap < (lenToWrite)) {                                                                        \
-            ZLOGI(LOG_LABEL, "No enough capacity to write");                                               \
+        if (cap < (lenToWrite)) {                                                                      \
+            ZLOGI(LOG_LABEL, "No enough capacity to write");                                           \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
         }                                                                                              \
     } while (0)
@@ -53,8 +44,8 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 #define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                                  \
     do {                                                                                              \
         size_t cap = napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
-        if (cap < (lenToWrite)) {                                                                       \
-            ZLOGI(LOG_LABEL, "No enough capacity to write");                                              \
+        if (cap < (lenToWrite)) {                                                                     \
+            ZLOGI(LOG_LABEL, "No enough capacity to write");                                          \
             napiParcel->nativeParcel_->RewindWrite(pos);                                              \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
         }                                                                                             \

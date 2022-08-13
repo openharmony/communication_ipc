@@ -37,16 +37,9 @@
 static std::atomic<int32_t> bytraceId = 1000;
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
-#define ZLOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define ZLOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
+w
 /*
  * The native DeathRecipient container.
  * As an recipient of obituary of service death,

@@ -22,15 +22,7 @@
 #include "log_tags.h"
 
 namespace OHOS {
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DatabusSessionCallback" };
-#define ZLOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define ZLOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 int DatabusSessionCallback::OnSessionOpened(std::shared_ptr<Session> session)
 {
