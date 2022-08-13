@@ -37,14 +37,15 @@
 static std::atomic<int32_t> bytraceId = 1000;
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
+#define ZLOGE(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+#define ZLOGI(LOG_LABEL, fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 #ifndef TITLE
 #define TITLE __PRETTY_FUNCTION__
 #endif
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 /*
  * The native DeathRecipient container.
@@ -92,7 +93,7 @@ NAPIDeathRecipient::~NAPIDeathRecipient()
 void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
     if (deathRecipientRef_ == nullptr) {
-        DBINDER_LOGE("js death recipient has already removed");
+        ZLOGE(LOG_LABEL, "js death recipient has already removed");
         return;
     }
 
@@ -100,7 +101,7 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     napi_get_uv_event_loop(env_, &loop);
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
-        DBINDER_LOGE("failed to new uv_work_t");
+        ZLOGE(LOG_LABEL, "failed to new uv_work_t");
         return;
     }
     OnRemoteDiedParam *param = new OnRemoteDiedParam {
@@ -108,9 +109,9 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         .deathRecipientRef = deathRecipientRef_
     };
     work->data = reinterpret_cast<void *>(param);
-    DBINDER_LOGI("start to queue");
+    ZLOGI(LOG_LABEL, "start to queue");
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
-        DBINDER_LOGI("start to call onRmeoteDied");
+        ZLOGI(LOG_LABEL, "start to call onRmeoteDied");
         OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
         napi_value jsDeathRecipient = nullptr;
         napi_get_reference_value(param->env, param->deathRecipientRef, &jsDeathRecipient);
@@ -121,7 +122,7 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         napi_value return_val = nullptr;
         napi_call_function(param->env, jsDeathRecipient, onRemoteDied, 0, nullptr, &return_val);
         if (return_val == nullptr) {
-            DBINDER_LOGE("failed to call function onRemoteDied");
+            ZLOGE(LOG_LABEL, "failed to call function onRemoteDied");
         }
         delete param;
         delete work;
@@ -137,7 +138,7 @@ bool NAPIDeathRecipient::Matches(napi_value object)
             napi_get_reference_value(env_, deathRecipientRef_, &jsDeathRecipient);
             napi_status status = napi_strict_equals(env_, object, jsDeathRecipient, &result);
             if (status != napi_ok) {
-                DBINDER_LOGI("compares death recipients failed");
+                ZLOGI(LOG_LABEL, "compares death recipients failed");
             }
         }
     }
@@ -221,7 +222,7 @@ napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
     napi_status status = napi_wrap(
         env, thisVar, proxyHolder,
         [](napi_env env, void *data, void *hint) {
-            DBINDER_LOGI("proxy holder destructed by js callback");
+            ZLOGI(LOG_LABEL, "proxy holder destructed by js callback");
             delete (reinterpret_cast<NAPIRemoteProxyHolder *>(data));
         },
         nullptr, nullptr);
@@ -425,7 +426,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     napi_status status = napi_wrap(
         env, thisVar, holder,
         [](napi_env env, void *data, void *hint) {
-            DBINDER_LOGI("NAPIRemoteObjectHolder destructed by js callback");
+            ZLOGI(LOG_LABEL, "NAPIRemoteObjectHolder destructed by js callback");
             delete (reinterpret_cast<NAPIRemoteObjectHolder *>(data));
         },
         nullptr, nullptr);
@@ -478,7 +479,7 @@ NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    DBINDER_LOGI("NAPIRemoteObject Destructor");
+    ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
     if (thisVarRef_ != nullptr) {
         napi_status status = napi_delete_reference(env_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
@@ -503,9 +504,9 @@ napi_ref NAPIRemoteObject::GetJsObjectRef() const
 
 int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    DBINDER_LOGI("enter OnRemoteRequest");
+    ZLOGI(LOG_LABEL, "enter OnRemoteRequest");
     if (code == DUMP_TRANSACTION) {
-        DBINDER_LOGE("DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
+        ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
     }
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     pid_t callingUid = IPCSkeleton::GetCallingUid();
@@ -513,7 +514,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     std::string callingDeviceID = IPCSkeleton::GetCallingDeviceID();
     std::string localDeviceID = IPCSkeleton::GetLocalDeviceID();
     bool isLocalCalling = IPCSkeleton::IsLocalCalling();
-    DBINDER_LOGI("callingPid:%{public}u, callingUid:%{public}u, callingDeviceID:%{public}s,\
+    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u, callingDeviceID:%{public}s,\
         localDeviceId:%{public}s, localCalling:%{public}d",
         callingPid, callingUid, callingDeviceID.c_str(), localDeviceID.c_str(), isLocalCalling);
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
@@ -535,7 +536,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         .result = 0
     };
     int ret = OnJsRemoteRequest(param);
-    DBINDER_LOGI("OnJsRemoteRequest done, ret:%{public}d", ret);
+    ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
     return ret;
 }
 
@@ -546,20 +547,20 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
-        DBINDER_LOGE("failed to new uv_work_t");
+        ZLOGE(LOG_LABEL, "failed to new uv_work_t");
         delete jsParam;
         return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
-    DBINDER_LOGI("start nv queue work loop");
+    ZLOGI(LOG_LABEL, "start nv queue work loop");
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
-        DBINDER_LOGI("enter thread pool");
+        ZLOGI(LOG_LABEL, "enter thread pool");
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
         napi_value onRemoteRequest = nullptr;
         napi_value thisVar = nullptr;
         napi_get_reference_value(param->env, param->thisVarRef, &thisVar);
         if (thisVar == nullptr) {
-            DBINDER_LOGE("thisVar is null");
+            ZLOGE(LOG_LABEL, "thisVar is null");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -568,7 +569,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         }
         napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
         if (onRemoteRequest == nullptr) {
-            DBINDER_LOGE("get founction onRemoteRequest failed");
+            ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -581,7 +582,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value global = nullptr;
         napi_get_global(param->env, &global);
         if (global == nullptr) {
-            DBINDER_LOGE("get napi global failed");
+            ZLOGE(LOG_LABEL, "get napi global failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -591,7 +592,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value jsOptionConstructor = nullptr;
         napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
         if (jsOptionConstructor == nullptr) {
-            DBINDER_LOGE("jsOption constructor is null");
+            ZLOGE(LOG_LABEL, "jsOption constructor is null");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -607,7 +608,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value argv[2] = { flags, waittime };
         napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
         if (jsOption == nullptr) {
-            DBINDER_LOGE("new jsOption failed");
+            ZLOGE(LOG_LABEL, "new jsOption failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -617,7 +618,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value jsParcelConstructor = nullptr;
         napi_get_named_property(param->env, global, "IPCParcelConstructor_", &jsParcelConstructor);
         if (jsParcelConstructor == nullptr) {
-            DBINDER_LOGE("jsParcel constructor is null");
+            ZLOGE(LOG_LABEL, "jsParcel constructor is null");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -628,7 +629,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value dataParcel;
         napi_create_int64(param->env, reinterpret_cast<int64_t>(param->data), &dataParcel);
         if (dataParcel == nullptr) {
-            DBINDER_LOGE("create js object for data parcel address failed");
+            ZLOGE(LOG_LABEL, "create js object for data parcel address failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -639,7 +640,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value argv3[1] = { dataParcel };
         napi_new_instance(param->env, jsParcelConstructor, argc3, argv3, &jsData);
         if (jsData == nullptr) {
-            DBINDER_LOGE("create js data parcel failed");
+            ZLOGE(LOG_LABEL, "create js data parcel failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -650,7 +651,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value replyParcel;
         napi_create_int64(param->env, reinterpret_cast<int64_t>(param->reply), &replyParcel);
         if (replyParcel == nullptr) {
-            DBINDER_LOGE("create js object for reply parcel address failed");
+            ZLOGE(LOG_LABEL, "create js object for reply parcel address failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -661,7 +662,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value argv4[1] = { replyParcel };
         napi_new_instance(param->env, jsParcelConstructor, argc4, argv4, &jsReply);
         if (jsReply == nullptr) {
-            DBINDER_LOGE("create js reply parcel failed");
+            ZLOGE(LOG_LABEL, "create js reply parcel failed");
             param->result = -1;
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -713,15 +714,15 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_value argv2[] = { jsCode, jsData, jsReply, jsOption };
         napi_value return_val;
         napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc2, argv2, &return_val);
-        DBINDER_LOGI("call js onRemoteRequest done");
+        ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
         if (ret != napi_ok) {
-            DBINDER_LOGE("OnRemoteRequest got exception");
+            ZLOGE(LOG_LABEL, "OnRemoteRequest got exception");
             param->result = ERR_UNKNOWN_TRANSACTION;
         } else {
             bool result = false;
             napi_get_value_bool(param->env, return_val, &result);
             if (!result) {
-                DBINDER_LOGE("OnRemoteRequest res:%{public}s", result ? "true" : "false");
+                ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
                 param->result = ERR_UNKNOWN_TRANSACTION;
             } else {
                 param->result = ERR_NONE;
@@ -758,15 +759,15 @@ NAPIRemoteProxyHolder *NAPI_ohos_rpc_getRemoteProxyHolder(napi_env env, napi_val
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
-        DBINDER_LOGE("RemoteObject is null");
+        ZLOGE(LOG_LABEL, "RemoteObject is null");
         return nullptr;
     }
 
     if (target->CheckObjectLegality()) {
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
-        DBINDER_LOGI("object type:%{public}d", tmp->GetObjectType());
+        ZLOGI(LOG_LABEL, "object type:%{public}d", tmp->GetObjectType());
         if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
-            DBINDER_LOGI("napi create js remote object");
+            ZLOGI(LOG_LABEL, "napi create js remote object");
             sptr<NAPIRemoteObject> object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
             // retrieve js remote object constructor
             napi_value global = nullptr;
@@ -849,7 +850,7 @@ napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info in
 {
     sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
     if (object == nullptr) {
-        DBINDER_LOGE("fatal error, could not get registry object");
+        ZLOGE(LOG_LABEL, "fatal error, could not get registry object");
         return nullptr;
     }
     return NAPI_ohos_rpc_CreateJsRemoteObject(env, object);
@@ -1222,7 +1223,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
 {
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
-    DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
+    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);
     if (param->traceId != 0) {
         FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
@@ -1233,7 +1234,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     uv_after_work_cb afterWorkCb = nullptr;
     if (param->callback != nullptr) {
         afterWorkCb = [](uv_work_t *work, int status) {
-            DBINDER_LOGI("callback started");
+            ZLOGI(LOG_LABEL, "callback started");
             SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
             napi_value result = MakeSendRequestResult(param);
             napi_value callback = nullptr;
@@ -1249,7 +1250,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         };
     } else {
         afterWorkCb = [](uv_work_t *work, int status) {
-            DBINDER_LOGI("promise fullfilled");
+            ZLOGI(LOG_LABEL, "promise fullfilled");
             SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
             napi_value result = MakeSendRequestResult(param);
             if (param->errCode == 0) {
@@ -1450,7 +1451,7 @@ void ExecuteSendRequest(napi_env env, void *data)
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
-    DBINDER_LOGI("sendRequest done, errCode:%{public}d", param->errCode);
+    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);
     if (param->traceId != 0) {
         FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
@@ -1460,7 +1461,7 @@ void ExecuteSendRequest(napi_env env, void *data)
 void SendRequestCbComplete(napi_env env, napi_status status, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
-    DBINDER_LOGI("sendRequestCallback completed, errCode:%{public}d", param->errCode);
+    ZLOGI(LOG_LABEL, "sendRequestCallback completed, errCode:%{public}d", param->errCode);
     napi_value result = MakeSendRequestResult(param);
     napi_value callback = nullptr;
     napi_get_reference_value(env, param->callback, &callback);
@@ -1478,7 +1479,7 @@ void SendRequestCbComplete(napi_env env, napi_status status, void *data)
 void SendRequestPromiseComplete(napi_env env, napi_status status, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
-    DBINDER_LOGI("sendRequestPromise completed, errCode:%{public}d", param->errCode);
+    ZLOGI(LOG_LABEL, "sendRequestPromise completed, errCode:%{public}d", param->errCode);
     napi_value result = MakeSendRequestResult(param);
     if (param->errCode == 0) {
         napi_resolve_deferred(env, param->deferred, result);
@@ -1636,7 +1637,7 @@ napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info
 
 napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info info)
 {
-    DBINDER_LOGI("add death recipient");
+    ZLOGI(LOG_LABEL, "add death recipient");
     size_t argc = 2;
     size_t expectedArgc = 2;
     napi_value argv[2] = { 0 };
@@ -1667,7 +1668,7 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
     }
     sptr<IRemoteObject> target = proxyHolder->object_;
     if ((target == nullptr) || !target->IsProxyObject()) {
-        DBINDER_LOGE("could not add recipient from invalid target");
+        ZLOGE(LOG_LABEL, "could not add recipient from invalid target");
         napi_get_boolean(env, false, &result);
         return result;
     }
@@ -1686,7 +1687,7 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
 
 napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_info info)
 {
-    DBINDER_LOGI("remove death recipient");
+    ZLOGI(LOG_LABEL, "remove death recipient");
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_value thisVar = nullptr;
@@ -1716,14 +1717,14 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
     }
     sptr<IRemoteObject> target = proxyHolder->object_;
     if ((target == nullptr) || !target->IsProxyObject()) {
-        DBINDER_LOGE("could not remove recipient from invalid target");
+        ZLOGE(LOG_LABEL, "could not remove recipient from invalid target");
         napi_get_boolean(env, false, &result);
         return result;
     }
     sptr<NAPIDeathRecipientList> list = proxyHolder->list_;
     sptr<NAPIDeathRecipient> nativeRecipient = list->Find(argv[0]);
     if (nativeRecipient == nullptr) {
-        DBINDER_LOGE("recipient not found");
+        ZLOGE(LOG_LABEL, "recipient not found");
         napi_get_boolean(env, false, &result);
         return result;
     }
@@ -1751,7 +1752,7 @@ napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_i
     }
     IPCObjectProxy *target = reinterpret_cast<IPCObjectProxy *>(holder->object_.GetRefPtr());
     if (target == nullptr) {
-        DBINDER_LOGE("Invalid proxy object");
+        ZLOGE(LOG_LABEL, "Invalid proxy object");
         napi_create_string_utf8(env, "", 0, &result);
         return result;
     }
@@ -1762,7 +1763,7 @@ napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_i
 
 napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
 {
-    DBINDER_LOGI("call isObjectDead");
+    ZLOGI(LOG_LABEL, "call isObjectDead");
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, 0, 0, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
@@ -1775,7 +1776,7 @@ napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
     }
     IPCObjectProxy *target = reinterpret_cast<IPCObjectProxy *>(holder->object_.GetRefPtr());
     if (target == nullptr) {
-        DBINDER_LOGE("Invalid proxy object");
+        ZLOGE(LOG_LABEL, "Invalid proxy object");
         napi_get_boolean(env, false, &result);
         return result;
     }
@@ -1805,7 +1806,7 @@ EXTERN_C_START
  */
 napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports)
 {
-    DBINDER_LOGI("napi_moudule IPCSkeleton Init start...");
+    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init start...");
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getContextObject", NAPI_IPCSkeleton_getContextObject),
         DECLARE_NAPI_STATIC_FUNCTION("getCallingPid", NAPI_IPCSkeleton_getCallingPid),
@@ -1824,7 +1825,7 @@ napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports)
         sizeof(desc) / sizeof(desc[0]), desc, &result);
     napi_status status = napi_set_named_property(env, exports, "IPCSkeleton", result);
     NAPI_ASSERT(env, status == napi_ok, "create ref to js RemoteObject constructor failed");
-    DBINDER_LOGI("napi_moudule IPCSkeleton Init end...");
+    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init end...");
     return exports;
 }
 EXTERN_C_END
@@ -1869,7 +1870,7 @@ napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info inf
     napi_status status = napi_wrap(
         env, thisVar, messageOption,
         [](napi_env env, void *data, void *hint) {
-            DBINDER_LOGI("NAPIMessageOption destructed by js callback");
+            ZLOGI(LOG_LABEL, "NAPIMessageOption destructed by js callback");
             delete (reinterpret_cast<MessageOption *>(data));
         },
         nullptr, nullptr);
