@@ -36,6 +36,7 @@
 #include "string"
 #include "sys_binder.h"
 #include "vector"
+#include "ipc_debug.h"
 
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_callback_stub.h"

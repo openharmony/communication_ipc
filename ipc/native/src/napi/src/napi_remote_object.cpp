@@ -27,6 +27,7 @@
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
+#include "ipc_debug.h"
 #include "ipc_types.h"
 #include "log_tags.h"
 #include "napi_message_option.h"
@@ -39,7 +40,7 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
 
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
-w
+
 /*
  * The native DeathRecipient container.
  * As an recipient of obituary of service death,
