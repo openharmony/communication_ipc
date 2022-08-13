@@ -132,12 +132,12 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE("current is nullptr");
+        ZLOGE(LOG_LABEL, "current is nullptr");
         return false;
     }
     std::shared_ptr<DBinderSessionObject> sessionOfPeer = current->ProxyQueryDBinderSession(handle);
     if (sessionOfPeer == nullptr) {
-        ZLOGE("sessionOfPeer is nullptr");
+        ZLOGE(LOG_LABEL, "sessionOfPeer is nullptr");
         return false;
     }
     std::string peerName = sessionOfPeer->GetServiceName();
@@ -145,7 +145,7 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     std::string localId = current->GetLocalDeviceID();
     std::shared_ptr<FeatureSetData> feature = sessionOfPeer->GetFeatureSet();
     if (feature == nullptr) {
-        ZLOGE("feature is nullptr");
+        ZLOGE(LOG_LABEL, "feature is nullptr");
         return false;
     }
 
@@ -154,11 +154,11 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
         // note that cannot use this proxy's descriptor
         fakeStub = new (std::nothrow) DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle, feature);
         if (fakeStub == nullptr) {
-            ZLOGE("create DBinderCallbackStub object failed");
+            ZLOGE(LOG_LABEL, "create DBinderCallbackStub object failed");
             return false;
         }
         if (!current->AttachDBinderCallbackStub(object, fakeStub)) {
-            ZLOGE("save callback of fake stub failed");
+            ZLOGE(LOG_LABEL, "save callback of fake stub failed");
             return false;
         }
     }
@@ -178,11 +178,11 @@ bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
         const uint32_t handle = proxy ? proxy->GetHandle() : 0;
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (IPCProcessSkeleton::IsHandleMadeByUser(handle) && current != nullptr) {
-            ZLOGI("send dbinder object to local devices");
+            ZLOGI(LOG_LABEL, "send dbinder object to local devices");
             /* this is a fake proxy which handle get by MakeRemoteHandle(), Not binder driver of kernel */
             uint64_t stubIndex = current->QueryHandleToIndex(handle);
             if (stubIndex > 0) {
-                ZLOGI("this is dbinder proxy want to send anthor process in this device");
+                ZLOGI(LOG_LABEL, "this is dbinder proxy want to send anthor process in this device");
                 return WriteDBinderProxy(object, handle, stubIndex);
             }
         }
@@ -224,7 +224,7 @@ bool MessageParcel::WriteFileDescriptor(int fd)
     }
     sptr<IPCFileDescriptor> descriptor = new (std::nothrow) IPCFileDescriptor(dupFd);
     if (descriptor == nullptr) {
-        ZLOGE("create IPCFileDescriptor object failed");
+        ZLOGE(LOG_LABEL, "create IPCFileDescriptor object failed");
         return false;
     }
     return WriteObject<IPCFileDescriptor>(descriptor);
@@ -464,13 +464,13 @@ bool MessageParcel::Append(MessageParcel &data)
 {
     size_t dataSize = data.GetDataSize();
     if (dataSize == 0) {
-        ZLOGE("no data to append");
+        ZLOGE(LOG_LABEL, "no data to append");
         return true;
     }
     uintptr_t dataPtr = data.GetData();
     size_t writeCursorOld = this->GetWritePosition();
     if (!WriteBuffer(reinterpret_cast<void *>(dataPtr), dataSize)) {
-        ZLOGE("failed to append data with writebuffer.");
+        ZLOGE(LOG_LABEL, "failed to append data with writebuffer.");
         return false;
     }
     size_t objectSize = data.GetOffsetsSize();
@@ -483,17 +483,17 @@ bool MessageParcel::Append(MessageParcel &data)
         if (EnsureObjectsCapacity()) {
             size_t offset = writeCursorOld + newObjectOffsets[index];
             if (!WriteObjectOffset(offset)) {
-                ZLOGE("failed to write object offset");
+                ZLOGE(LOG_LABEL, "failed to write object offset");
                 return false;
             }
             flat_binder_object *flat = reinterpret_cast<flat_binder_object *>(this->GetData() + offset);
             if (flat == nullptr) {
-                ZLOGE("flat binder object is nullptr");
+                ZLOGE(LOG_LABEL, "flat binder object is nullptr");
                 return false;
             }
             AcquireObject(flat, this);
         } else {
-            ZLOGE("Failed to ensure parcel capacity");
+            ZLOGE(LOG_LABEL, "Failed to ensure parcel capacity");
             return false;
         }
     }
