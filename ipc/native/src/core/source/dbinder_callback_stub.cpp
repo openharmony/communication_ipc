@@ -93,7 +93,7 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     std::string sessionName = samgr->TransDataBusName(uid, pid);
     if (sessionName.empty()) {
-        ZLOGE(LOG_LABEL,"grans session name failed");
+        ZLOGE(LOG_LABEL, "grans session name failed");
         return DBINDER_SERVICE_WRONG_SESSION;
     }
 
@@ -115,7 +115,8 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         ZLOGE(LOG_LABEL, "send auth info to remote fail");
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
-    ZLOGI(LOG_LABEL, "send to stub ok!stubIndex:%{public}" PRIu64 ", peerDevice = %{public}s, localDeviceID_ = %{public}s,"
+    ZLOGI(LOG_LABEL, "send to stub ok!stubIndex:%{public}" PRIu64 ",
+        peerDevice = %{public}s, localDeviceID_ = %{public}s,"
         "serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, sessionName = %{public}s",
         stubIndex_, deviceID_.c_str(), localDeviceID_.c_str(), serviceName_.c_str(), uid, pid, sessionName.c_str());
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(stubIndex_) ||

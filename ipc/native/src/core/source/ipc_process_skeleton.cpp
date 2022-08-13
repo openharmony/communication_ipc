@@ -760,8 +760,8 @@ bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr
     if (threadLockInfo->condition.wait_for(lock_unique, std::chrono::seconds(userWaitTime),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
         threadLockInfo->ready = false;
-        ZLOGE(LOG_LABEL, "socket thread timeout, seqNumber = %{public}" PRIu64 ", ipc wait time = %{public}d", seqNumber,
-            userWaitTime);
+        ZLOGE(LOG_LABEL, "socket thread timeout, seqNumber = %{public}" PRIu64
+            ", ipc wait time = %{public}d", seqNumber, userWaitTime);
         return false;
     }
     threadLockInfo->ready = false;
