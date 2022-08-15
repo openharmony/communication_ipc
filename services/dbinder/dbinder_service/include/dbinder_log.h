@@ -16,9 +16,6 @@
 #ifndef OHOS_IPC_SERVICES_DBINDER_DBINDRR_LOG_H
 #define OHOS_IPC_SERVICES_DBINDER_DBINDRR_LOG_H
 
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
 #include "hilog/log.h"
 #include "log_tags.h"
 
