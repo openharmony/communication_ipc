@@ -83,13 +83,13 @@ char DbinderTest::serverId_[DEVICEID_LENGTH + 1];
 
 void DbinderTest::SetUpTestCase()
 {
-    DBINDER_LOGI("enter SetUpTestCase");
+    DBINDER_LOGI(LOG_LABEL, "enter SetUpTestCase");
     StartDBinderServiceTestService();
 }
 
 void DbinderTest::TearDownTestCase()
 {
-    DBINDER_LOGI("enter TearDownTestCase");
+    DBINDER_LOGI(LOG_LABEL, "enter TearDownTestCase");
     StopDBinderServiceTestService();
 }
 
@@ -110,7 +110,7 @@ bool DbinderTest::GetRemoteDeviceId()
     std::string msg = "Ask Device ID";
     int ret = SendMessage(AGENT_NO::ONE, msg, strlen(msg.c_str()), [&](const std::string &retId, int retLen) -> bool {
         if (memcpy_s(serverId_, DEVICEID_LENGTH, retId.c_str(), DEVICEID_LENGTH) != 0 || retLen != DEVICEID_LENGTH) {
-            DBINDER_LOGE("fail to copy string");
+            DBINDER_LOGE(LOG_LABEL, "fail to copy string");
             return false;
         }
         serverId_[DEVICEID_LENGTH] = '\0';
@@ -130,7 +130,7 @@ bool DbinderTest::GetRemoteDeviceId()
 HWTEST_F(DbinderTest, DbinderRemoteCall001, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_001);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -162,7 +162,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall001, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall002, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_002);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get an unregistered System Ability from remote server.
@@ -183,7 +183,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall002, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall003, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_003);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -250,7 +250,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall003, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall004, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_004);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -285,7 +285,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall004, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall005, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_005);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -322,7 +322,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall005, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall006, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_006);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     vector<sptr<IRemoteObject>> objects;
     vector<sptr<IDBinderTestService>> testServices;
@@ -356,7 +356,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall006, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall007, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_007);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -394,7 +394,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall007, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall008, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_008);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -440,7 +440,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall008, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall009, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_009);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -482,7 +482,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall009, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall011, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_011);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -521,7 +521,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall011, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall012, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_012);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -562,7 +562,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall012, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall014, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_DEATH_RECIPIENT_001);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -610,7 +610,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall014, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall015, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_DEATH_RECIPIENT_002);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -662,7 +662,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall015, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall016, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_DEATH_RECIPIENT_003);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -718,7 +718,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall016, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall017, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_DEATH_RECIPIENT_004);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -812,7 +812,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall017, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall018, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_RAW_DATA_001);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -846,7 +846,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall018, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall019, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_RAW_DATA_002);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -911,7 +911,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall019, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall020, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_RAW_DATA_003);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -945,7 +945,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall020, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall021, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_RAW_DATA_004);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
      * @tc.expected: step1.Get the proxy successfully, and the proxy points to remote stub.
@@ -979,7 +979,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall021, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall022, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_RAW_DATA_005);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -1044,7 +1044,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall022, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall023, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_RAW_DATA_006);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -1077,7 +1077,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall023, TestSize.Level3)
  */
 HWTEST_F(DbinderTest, DbinderRemoteCall024, TestSize.Level3)
 {
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
     SetCurrentTestCase(DBINDER_TEST_TRACE_001);
     HiTraceId traceId = HiTrace::Begin("rpc hitrace", 0);
 
@@ -1112,7 +1112,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall024, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall025, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_TRANS_STUB_001);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -1149,7 +1149,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall025, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall026, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_FLUSH_COMMAND_001);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.
@@ -1182,7 +1182,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall026, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_DEATH_RECIPIENT_007);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -1311,7 +1311,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall028, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_015);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -1377,7 +1377,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall028, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall029, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_016);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
@@ -1443,7 +1443,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall029, TestSize.Level3)
 HWTEST_F(DbinderTest, DbinderRemoteCall030, TestSize.Level3)
 {
     SetCurrentTestCase(DBINDER_TEST_REMOTE_CALL_011);
-    DBINDER_LOGI("");
+    DBINDER_LOGI(LOG_LABEL, "");
 
     /*
      * @tc.steps: step1.Get a local binder object and a proxy pointing to remote stub.

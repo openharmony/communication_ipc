@@ -54,7 +54,7 @@ pid_t GetPidByName(std::string taskName)
         }
 
         if (sprintf_s(filepath, sizeof(filepath), "/proc/%s/status", ptr->d_name) <= EOK) {
-            DBINDER_LOGI("sprintf_s fail");
+            DBINDER_LOGI(LOG_LABEL, "sprintf_s fail");
             closedir(dir);
             return INVALID_PID;
         }
@@ -66,12 +66,12 @@ pid_t GetPidByName(std::string taskName)
                 continue;
             }
             if (sscanf_s(buf, "%*s %s", curTaskName, sizeof(curTaskName)) <= EOK) {
-                DBINDER_LOGI("sscanf fail");
+                DBINDER_LOGI(LOG_LABEL, "sscanf fail");
             }
 
             if (!strcmp(taskName.c_str(), curTaskName)) {
                 if (sscanf_s(ptr->d_name, "%d", &pid) <= EOK) {
-                    DBINDER_LOGI("sscanf fail");
+                    DBINDER_LOGI(LOG_LABEL, "sscanf fail");
                 }
             }
             fclose(fp);
@@ -84,7 +84,7 @@ pid_t GetPidByName(std::string taskName)
 int GetChildPids(std::vector<pid_t> &childPids)
 {
     pid_t current = getpid();
-    DBINDER_LOGI("current pid %{public}d", current);
+    DBINDER_LOGI(LOG_LABEL, "current pid %{public}d", current);
     const std::string TASK_PATH = "/proc/" + std::to_string(current) + "/task";
     DIR *dir = nullptr;
     struct dirent *ptr = nullptr;
@@ -104,7 +104,7 @@ int GetChildPids(std::vector<pid_t> &childPids)
                 continue;
             }
             childPids.push_back(child);
-            DBINDER_LOGI("child pid %{public}d", child);
+            DBINDER_LOGI(LOG_LABEL, "child pid %{public}d", child);
         }
         closedir(dir);
     }
@@ -120,17 +120,17 @@ pid_t StartExecutable(std::string name, std::string args)
     }
     pid_t pid = GetPidByName(name);
     if (pid != INVALID_PID) {
-        DBINDER_LOGI("test.service is already started, do nothing");
+        DBINDER_LOGI(LOG_LABEL, "test.service is already started, do nothing");
         return pid;
     }
 
     std::string cmd1 = "chmod +x /data/" + name;
     int res = system(cmd1.c_str());
-    DBINDER_LOGI("%{public}s res = %d, errno = %{public}d %{public}s", cmd1.c_str(), res, errno, strerror(errno));
+    DBINDER_LOGI(LOG_LABEL, "%{public}s res = %d, errno = %{public}d %{public}s", cmd1.c_str(), res, errno, strerror(errno));
 
     std::string cmd2 = "/data/" + name + " " + args + "&";
     res = system(cmd2.c_str());
-    DBINDER_LOGI("%{public}s res = %{public}d", cmd2.c_str(), res);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s res = %{public}d", cmd2.c_str(), res);
 
     if (ldLibraryPath != nullptr) {
         setenv("LD_LIBRARY_PATH", ldLibraryPath, 1);
@@ -138,12 +138,12 @@ pid_t StartExecutable(std::string name, std::string args)
     res = 0;
     while (pid == INVALID_PID && res < 10) { // 10:try-time to wait for exe start
         pid = GetPidByName(name);
-        DBINDER_LOGI("StartExecutable pid = %{public}d && name = %{public}s", pid, name.c_str());
+        DBINDER_LOGI(LOG_LABEL, "StartExecutable pid = %{public}d && name = %{public}s", pid, name.c_str());
         usleep(100 * 1000); // 100:time-length 1000:time-unit
         res++;
     }
 
-    DBINDER_LOGI("start %{public}s done", name.c_str());
+    DBINDER_LOGI(LOG_LABEL, "start %{public}s done", name.c_str());
     return GetPidByName(name);
 }
 
@@ -155,10 +155,10 @@ void StopExecutable(pid_t pid)
 void StopExecutable(std::string name)
 {
     pid_t pid = GetPidByName(name);
-    DBINDER_LOGI("StopExecutable %{public}s pid = %{public}d, prepare to kill it", name.c_str(), pid);
+    DBINDER_LOGI(LOG_LABEL, "StopExecutable %{public}s pid = %{public}d, prepare to kill it", name.c_str(), pid);
 
     if (pid != INVALID_PID) {
-        DBINDER_LOGI("%{public}s pid = %{public}d, kill it", name.c_str(), pid);
+        DBINDER_LOGI(LOG_LABEL, "%{public}s pid = %{public}d, kill it", name.c_str(), pid);
         kill(pid, SIGKILL);
     }
 }
@@ -167,12 +167,12 @@ int StartDBinderServiceSARegistry(void)
 {
     pid_t registryPid = GetPidByName(SYSTEM_ABILITY_MANAGER_NAME);
     if (registryPid != -1) {
-        DBINDER_LOGI("SYSTEM_ABILITY_MANAGER_NAME Already Started pid=%{public}d", registryPid);
+        DBINDER_LOGI(LOG_LABEL, "SYSTEM_ABILITY_MANAGER_NAME Already Started pid=%{public}d", registryPid);
         return registryPid;
     }
     StartExecutable(SYSTEM_ABILITY_MANAGER_NAME);
     usleep(200 * 1000); // 100:200-length 1000:time-unit
-    DBINDER_LOGI("Start SYSTEM_ABILITY_MANAGER_NAME done");
+    DBINDER_LOGI(LOG_LABEL, "Start SYSTEM_ABILITY_MANAGER_NAME done");
     return ERR_NONE;
 }
 
@@ -184,19 +184,19 @@ void StopDBinderServiceSARegistry(void)
 void StartDBinderServiceTestService(void)
 {
     pid_t pid = StartExecutable(DBINDER_TEST_SERVICE_NAME);
-    DBINDER_LOGE("DBINDER_TEST_SERVICE_NAME pid : %{public}d", pid);
+    DBINDER_LOGE(LOG_LABEL, "DBINDER_TEST_SERVICE_NAME pid : %{public}d", pid);
 
     pid = StartExecutable(DBINDER_TEST_SERVICE_NAME_SECOND);
-    DBINDER_LOGE("DBINDER_TEST_SERVICE_NAME_SECOND pid : %{public}d", pid);
+    DBINDER_LOGE(LOG_LABEL, "DBINDER_TEST_SERVICE_NAME_SECOND pid : %{public}d", pid);
 }
 
 void StopDBinderServiceTestService(void)
 {
     StopExecutable(DBINDER_TEST_SERVICE_NAME);
-    DBINDER_LOGE("Stop DBINDER_TEST_SERVICE_NAME");
+    DBINDER_LOGE(LOG_LABEL, "Stop DBINDER_TEST_SERVICE_NAME");
 
     StopExecutable(DBINDER_TEST_SERVICE_NAME_SECOND);
-    DBINDER_LOGE("Stop DBINDER_TEST_SERVICE_NAME_SECOND");
+    DBINDER_LOGE(LOG_LABEL, "Stop DBINDER_TEST_SERVICE_NAME_SECOND");
 }
 
 int SetCurrentTestCase(int caseNum)

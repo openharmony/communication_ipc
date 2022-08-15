@@ -24,15 +24,15 @@
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_RPC, LOG_TAG };
 
-#define DBINDER_LOGF(fmt, args...) \
+#define DBINDER_LOGF(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define DBINDER_LOGE(fmt, args...) \
+#define DBINDER_LOGE(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define DBINDER_LOGW(fmt, args...) \
+#define DBINDER_LOGW(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
+#define DBINDER_LOGI(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define DBINDER_LOGD(fmt, args...) \
+#define DBINDER_LOGD(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 
 

@@ -30,9 +30,9 @@ DbinderSaDeathRecipient::DbinderSaDeathRecipient(binder_uintptr_t binderObject) 
 
 void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    DBINDER_LOGE("DbinderSaDeathRecipient OnRemoteDied");
+    DBINDER_LOGE(LOG_LABEL, "DbinderSaDeathRecipient OnRemoteDied");
     if (remote == nullptr) {
-        DBINDER_LOGE("remote object is null");
+        DBINDER_LOGE(LOG_LABEL, "remote object is null");
         return;
     }
 
@@ -41,18 +41,18 @@ void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
-        DBINDER_LOGE("dBinderService is null");
+        DBINDER_LOGE(LOG_LABEL, "dBinderService is null");
         return;
     }
 
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
-        DBINDER_LOGE("fail to get softbus service");
+        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
         return;
     }
     std::string sessionName = dBinderService->QueryBusNameObject(proxy);
     if (sessionName.empty()) {
-        DBINDER_LOGE("proxy sessionName not found");
+        DBINDER_LOGE(LOG_LABEL, "proxy sessionName not found");
         return;
     }
     softbusManager->RemovePermission(sessionName);
