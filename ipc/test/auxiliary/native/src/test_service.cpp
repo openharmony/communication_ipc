@@ -25,6 +25,7 @@
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestService" };
 
 static int Reverse(int x)
 {
