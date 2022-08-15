@@ -825,7 +825,7 @@ template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(uint32_t handle,
         if (!result) {
             int socketThreadNum = current->GetSocketTotalThreadNum();
             ZLOGE(LOG_LABEL,
-            "create IO thread failed, current socket thread num=%d", socketThreadNum);
+                "create IO thread failed, current socket thread num=%d", socketThreadNum);
             /* thread create too much, wait some thread be idle */
         }
         do {
