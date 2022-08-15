@@ -276,7 +276,8 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
 
     sptr<DBinderServiceStub> dBinderServiceStub = FindOrNewDBinderStub(serviceName, deviceID, binderObject);
     if (dBinderServiceStub == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to find or new service, service name = %{public}s", Str16ToStr8(serviceName).c_str());
+        DBINDER_LOGE(LOG_LABEL, "fail to find or new service, service name = %{public}s",
+            Str16ToStr8(serviceName).c_str());
         return nullptr;
     }
 
@@ -954,7 +955,8 @@ void DBinderService::ProcessCallbackProxy(sptr<DBinderServiceStub> dbStub)
 int32_t DBinderService::NoticeServiceDieInner(const std::u16string &serviceName, const std::string &deviceID)
 {
     if (serviceName.empty() || IsDeviceIdIllegal(deviceID)) {
-        DBINDER_LOGE(LOG_LABEL, "service name length = %zu, deviceID length = %zu", serviceName.length(), deviceID.length());
+        DBINDER_LOGE(LOG_LABEL, "service name length = %zu, deviceID length = %zu",
+            serviceName.length(), deviceID.length());
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
@@ -983,7 +985,8 @@ int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
         DBINDER_LOGE(LOG_LABEL, "deviceID length = %zu", deviceID.length());
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
-    DBINDER_LOGI(LOG_LABEL, "remote device is dead, device = %s", DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
+    DBINDER_LOGI(LOG_LABEL, "remote device is dead, device = %s",
+        DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
 
     if (remoteListener_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remote listener is null");
