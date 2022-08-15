@@ -474,7 +474,7 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 int DBinderTestServiceStub::ReverseIntDelayAsync(int data, int &rep)
 {
     (void)data;
-    HiLog::Error(LABEL, "%{public}s: not valid operate", __func__);
+    HiLog::Error(LOG_LABEL, "%{public}s: not valid operate", __func__);
     return 0;
 }
 
@@ -483,9 +483,9 @@ int DBinderTestServiceStub::OnReverseInt(MessageParcel &data, MessageParcel &rep
     int result;
     int32_t reqData = data.ReadInt32();
     int ret = ReverseInt(reqData, result);
-    DBINDER_LOGI(LABEL, "ReverseInt result = %{public}d", result);
+    DBINDER_LOGI(LOG_LABEL, "ReverseInt result = %{public}d", result);
     if (!reply.WriteInt32(result)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         ret = ERR_INVALID_STATE;
     }
 
@@ -500,19 +500,19 @@ int DBinderTestServiceStub::OnGetChildId(MessageParcel &data, MessageParcel &rep
         return ERR_INVALID_STATE;
     }
 
-    DBINDER_LOGE("before reset uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
+    DBINDER_LOGE(LOG_LABEL, "before reset uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingDeviceID().c_str(),
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     std::string token = IPCSkeleton::ResetCallingIdentity();
 
-    DBINDER_LOGE("before set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
+    DBINDER_LOGE(LOG_LABEL, "before set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingDeviceID().c_str(),
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     if (!IPCSkeleton::SetCallingIdentity(token)) {
-        DBINDER_LOGE("Set Calling Identity fail");
+        DBINDER_LOGE(LOG_LABEL, "Set Calling Identity fail");
     }
 
-    DBINDER_LOGE("after set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
+    DBINDER_LOGE(LOG_LABEL, "after set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingDeviceID().c_str(),
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     return ERR_NONE;
@@ -524,7 +524,7 @@ int DBinderTestServiceStub::OnReverseIntDelay(MessageParcel &data, MessageParcel
     int32_t reqData = data.ReadInt32();
     int ret = ReverseIntDelay(reqData, result);
     if (!reply.WriteInt32(result)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         ret = ERR_INVALID_STATE;
     }
 
@@ -535,9 +535,9 @@ int DBinderTestServiceStub::OnPingService(MessageParcel &data, MessageParcel &re
 {
     std::u16string serviceName = data.ReadString16();
     int ret = PingService(serviceName);
-    DBINDER_LOGI(LABEL, "%s:PingService: ret=%d", __func__, ret);
+    DBINDER_LOGI(LOG_LABEL, "%s:PingService: ret=%d", __func__, ret);
     if (!reply.WriteInt32(ret)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         ret = ERR_INVALID_STATE;
     }
 
@@ -550,7 +550,7 @@ int DBinderTestServiceStub::OnDelay(MessageParcel &data, MessageParcel &reply)
     int32_t reqData = data.ReadInt32();
     int ret = Delay(reqData, result);
     if (!reply.WriteInt32(result)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         ret = ERR_INVALID_STATE;
     }
 
