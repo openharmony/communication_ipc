@@ -39,11 +39,6 @@ using namespace OHOS::HiviewDFX;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderBaseInvoker" };
 
-#define ZLOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-#define ZLOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
-
 template <class T> class DBinderBaseInvoker : public IRemoteInvoker {
 public:
     class DBinderSendAllocator : public DefaultAllocator {
