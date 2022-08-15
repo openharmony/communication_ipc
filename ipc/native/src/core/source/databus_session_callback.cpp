@@ -22,8 +22,7 @@
 #include "log_tags.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DatabusSessionCallback" };
-
+    
 int DatabusSessionCallback::OnSessionOpened(std::shared_ptr<Session> session)
 {
     if (session->GetChannelId() < 0) {
