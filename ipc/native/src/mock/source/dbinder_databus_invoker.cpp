@@ -31,7 +31,6 @@
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderDatabusInvoker" };
 
 DBinderDatabusInvoker::DBinderDatabusInvoker()

@@ -39,18 +39,18 @@ DBinderTestServiceProxy::DBinderTestServiceProxy(const sptr<IRemoteObject> &impl
 
 int DBinderTestServiceProxy::ReverseInt(int data, int &rep)
 {
-    DBINDER_LOGE("data = %{public}d", data);
+    DBINDER_LOGE(LOG_LABEL, "data = %{public}d", data);
     int error;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
 
     rep = replyParcel.ReadInt32();
-    DBINDER_LOGE("rep = %{public}d, error = %{public}d", rep, error);
+    DBINDER_LOGE(LOG_LABEL, "rep = %{public}d, error = %{public}d", rep, error);
     return error;
 }
 
@@ -62,7 +62,7 @@ int DBinderTestServiceProxy::GetChildId(uint64_t &rep)
     error = Remote()->SendRequest(TRANS_TRACE_ID, dataParcel, replyParcel, option);
 
     rep = replyParcel.ReadUint64();
-    DBINDER_LOGE("rep = %{public}" PRIu64 ", error = %{public}d", rep, error);
+    DBINDER_LOGE(LOG_LABEL, "rep = %{public}" PRIu64 ", error = %{public}d", rep, error);
     return error;
 }
 
@@ -74,7 +74,7 @@ int DBinderTestServiceProxy::TransProxyObject(int data, sptr<IRemoteObject> &tra
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data) || !dataParcel.WriteInt32(operation) ||
         !dataParcel.WriteRemoteObject(transObject)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(TRANS_OBJECT, dataParcel, replyParcel, option);
@@ -92,7 +92,7 @@ int DBinderTestServiceProxy::TransProxyObjectAgain(int data, sptr<IRemoteObject>
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data) || !dataParcel.WriteInt32(operation) ||
         !dataParcel.WriteRemoteObject(transObject)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS, dataParcel, replyParcel, option);
@@ -108,13 +108,13 @@ int DBinderTestServiceProxy::TransStubObject(int data, sptr<IRemoteObject> &tran
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data) || !dataParcel.WriteRemoteObject(transObject)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
     error = Remote()->SendRequest(TRANS_STUB_OBJECT, dataParcel, replyParcel, option);
     if (error != ERR_NONE) {
-        DBINDER_LOGE("fail to send stub object");
+        DBINDER_LOGE(LOG_LABEL, "fail to send stub object");
         return ERR_INVALID_STATE;
     }
 
@@ -122,19 +122,19 @@ int DBinderTestServiceProxy::TransStubObject(int data, sptr<IRemoteObject> &tran
 
     sptr<IRemoteObject> proxy = replyParcel.ReadRemoteObject();
     if (proxy == nullptr) {
-        DBINDER_LOGE("fail to get remote stub object");
+        DBINDER_LOGE(LOG_LABEL, "fail to get remote stub object");
         return ERR_INVALID_STATE;
     }
 
     MessageParcel dataStubParcel, replyStubParcel;
     if (!dataStubParcel.WriteInt32(rep)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
     error = proxy->SendRequest(REVERSEINT, dataStubParcel, replyStubParcel, option);
     if (error != ERR_NONE) {
-        DBINDER_LOGE("fail to send data info");
+        DBINDER_LOGE(LOG_LABEL, "fail to send data info");
         return ERR_INVALID_STATE;
     }
 
@@ -147,19 +147,19 @@ sptr<IRemoteObject> DBinderTestServiceProxy::GetRemoteObject(int type)
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(type)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return nullptr;
     }
 
     int error = Remote()->SendRequest(GET_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
     if (error != ERR_NONE) {
-        DBINDER_LOGE("fail to send data info");
+        DBINDER_LOGE(LOG_LABEL, "fail to send data info");
         return nullptr;
     }
 
     sptr<IRemoteObject> proxy = replyParcel.ReadRemoteObject();
     if (proxy == nullptr) {
-        DBINDER_LOGE("fail to get remote stub object");
+        DBINDER_LOGE(LOG_LABEL, "fail to get remote stub object");
         return nullptr;
     }
     return proxy;
@@ -172,7 +172,7 @@ int DBinderTestServiceProxy::GetRemoteDecTimes()
 
     int error = Remote()->SendRequest(GET_REMOTE_DES_TIMES, dataParcel, replyParcel, option);
     if (error != ERR_NONE) {
-        DBINDER_LOGE("fail to send data info");
+        DBINDER_LOGE(LOG_LABEL, "fail to send data info");
         return 0;
     }
 
@@ -186,7 +186,7 @@ void DBinderTestServiceProxy::ClearRemoteDecTimes()
 
     int error = Remote()->SendRequest(CLEAR_REMOTE_DES_TIMES, dataParcel, replyParcel, option);
     if (error != ERR_NONE) {
-        DBINDER_LOGE("fail to send data info");
+        DBINDER_LOGE(LOG_LABEL, "fail to send data info");
     }
 }
 
@@ -196,7 +196,7 @@ int DBinderTestServiceProxy::TransOversizedPkt(const std::string &dataStr, std::
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteString(dataStr)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(TRANS_OVERSIZED_PKT, dataParcel, replyParcel, option);
@@ -212,32 +212,32 @@ int DBinderTestServiceProxy::ProxyTransRawData(int length)
     MessageOption option;
     option.SetWaitTime(RAW_DATA_TIMEOUT);
     int waitTime = option.GetWaitTime();
-    DBINDER_LOGE("data length = %{public}d, wait time = %{public}d", length, waitTime);
+    DBINDER_LOGE(LOG_LABEL, "data length = %{public}d, wait time = %{public}d", length, waitTime);
 
     if (length <= 1) {
-        DBINDER_LOGE("length should > 1, length is %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "length should > 1, length is %{public}d", length);
         return ERR_INVALID_STATE;
     }
     unsigned char *buffer = new (std::nothrow) unsigned char[length];
     if (buffer == nullptr) {
-        DBINDER_LOGE("new buffer failed of length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "new buffer failed of length = %{public}d", length);
         return ERR_INVALID_STATE;
     }
     buffer[0] = 'a';
     buffer[length - 1] = 'z';
     if (!dataParcel.WriteInt32(length) || !dataParcel.WriteRawData(buffer, length) || !dataParcel.WriteInt32(length)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         delete[] buffer;
         return ERR_INVALID_STATE;
     }
     delete[] buffer;
     int ret = Remote()->SendRequest(TRANS_RAW_DATA, dataParcel, replyParcel, option);
     if (ret != ERR_NONE) {
-        DBINDER_LOGE("fail to send request, ret = %{public}d", ret);
+        DBINDER_LOGE(LOG_LABEL, "fail to send request, ret = %{public}d", ret);
         return ret;
     }
     if (length != replyParcel.ReadInt32()) {
-        DBINDER_LOGE("reply wrong length");
+        DBINDER_LOGE(LOG_LABEL, "reply wrong length");
         ret += ERR_TRANSACTION_FAILED;
     }
     return ret;
@@ -250,41 +250,41 @@ int DBinderTestServiceProxy::StubTransRawData(int length)
     MessageOption option;
     option.SetWaitTime(RAW_DATA_TIMEOUT);
     int waitTime = option.GetWaitTime();
-    DBINDER_LOGE("data length = %{public}d, wait time = %{public}d", length, waitTime);
+    DBINDER_LOGE(LOG_LABEL, "data length = %{public}d, wait time = %{public}d", length, waitTime);
 
     if (length <= 1) {
-        DBINDER_LOGE("length should > 1, length is %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "length should > 1, length is %{public}d", length);
         return ERR_INVALID_STATE;
     }
 
     if (!dataParcel.WriteInt32(length)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
     int ret = Remote()->SendRequest(RECEIVE_RAW_DATA, dataParcel, replyParcel, option);
     if (ret != ERR_NONE) {
-        DBINDER_LOGE("fail to send request, ret = %{public}d", ret);
+        DBINDER_LOGE(LOG_LABEL, "fail to send request, ret = %{public}d", ret);
         return ret;
     }
 
     if (replyParcel.ReadInt32() != length) {
-        DBINDER_LOGE("reply false data");
+        DBINDER_LOGE(LOG_LABEL, "reply false data");
         return ERR_INVALID_DATA;
     }
 
     const char *buffer = nullptr;
     if ((buffer = reinterpret_cast<const char *>(replyParcel.ReadRawData(length))) == nullptr) {
-        DBINDER_LOGE("fail to read raw data, length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "fail to read raw data, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
     if (buffer[0] != 'a' || buffer[length - 1] != 'z') {
-        DBINDER_LOGE("received raw data is wrong, length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "received raw data is wrong, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
 
     if (replyParcel.ReadInt32() != length) {
-        DBINDER_LOGE("fail to read length after raw data, length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "fail to read length after raw data, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
 
@@ -298,13 +298,13 @@ int DBinderTestServiceProxy::FlushAsyncCommands(int count, int length)
     MessageParcel dataParcel, replyParcel;
     std::string dataStr(length, 'a');
     if (!dataParcel.WriteString(dataStr)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     for (int i = 0; i < count; i++) {
         ret = Remote()->SendRequest(TRANS_OVERSIZED_PKT, dataParcel, replyParcel, option);
         if (ret != ERR_NONE) {
-            DBINDER_LOGE("fail to send request when count = %{public}d ret = %{public}d", i, ret);
+            DBINDER_LOGE(LOG_LABEL, "fail to send request when count = %{public}d ret = %{public}d", i, ret);
             return ret;
         }
     }
@@ -318,7 +318,7 @@ int DBinderTestServiceProxy::ReverseIntNullReply(int data, int &rep)
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
@@ -345,7 +345,7 @@ int DBinderTestServiceProxy::ReverseIntDelay(int data, int &rep)
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(REVERSEINTDELAY, dataParcel, replyParcel, option);
@@ -360,7 +360,7 @@ int DBinderTestServiceProxy::Delay(int data, int &rep)
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(data)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(ONLY_DELAY, dataParcel, replyParcel, option);
@@ -377,7 +377,7 @@ int DBinderTestServiceProxy::ReverseIntDelayAsync(int data, int &rep)
     if (!dataParcel.WriteInt32(data) ||
         // 2:for data update check, only in test case
         !replyParcel.WriteInt32(data * 2)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(REVERSEINTDELAY, dataParcel, replyParcel, option);
@@ -391,9 +391,9 @@ int DBinderTestServiceProxy::PingService(std::u16string &serviceName)
     int error;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    DBINDER_LOGE("TestServiceProxy:PingService");
+    DBINDER_LOGE(LOG_LABEL, "TestServiceProxy:PingService");
     if (!dataParcel.WriteString16(serviceName.data())) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     error = Remote()->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
@@ -417,7 +417,7 @@ uid_t DBinderTestServiceStub::GetLastCallingUid()
 int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    DBINDER_LOGE("TestServiceStub::OnReceived, cmd = %{public}d", code);
+    DBINDER_LOGE(LOG_LABEL, "TestServiceStub::OnReceived, cmd = %{public}d", code);
     g_lastCallingPid = IPCSkeleton::GetCallingPid();
     g_lastCallinguid = IPCSkeleton::GetCallingUid();
     switch (code) {
@@ -435,7 +435,7 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
         }
         case TRANS_OBJECT:
         case TRANS_RPC_OBJECT_TO_LOCAL: {
-            DBINDER_LOGE("TestServiceStub::TRANS_RPC_OBJECT_TO_LOCAL?, cmd = %{public}d", code);
+            DBINDER_LOGE(LOG_LABEL, "TestServiceStub::TRANS_RPC_OBJECT_TO_LOCAL?, cmd = %{public}d", code);
             return OnReceivedObject(data, reply);
         }
         case TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS: {
@@ -483,7 +483,7 @@ int DBinderTestServiceStub::OnReverseInt(MessageParcel &data, MessageParcel &rep
     int result;
     int32_t reqData = data.ReadInt32();
     int ret = ReverseInt(reqData, result);
-    HiLog::Info(LABEL, "ReverseInt result = %{public}d", result);
+    DBINDER_LOGI(LABEL, "ReverseInt result = %{public}d", result);
     if (!reply.WriteInt32(result)) {
         DBINDER_LOGE("fail to write parcel");
         ret = ERR_INVALID_STATE;
@@ -496,7 +496,7 @@ int DBinderTestServiceStub::OnGetChildId(MessageParcel &data, MessageParcel &rep
 {
     uint64_t reqData = HiTrace::GetId().GetChainId();
     if (!reply.WriteUint64(reqData)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
@@ -535,7 +535,7 @@ int DBinderTestServiceStub::OnPingService(MessageParcel &data, MessageParcel &re
 {
     std::u16string serviceName = data.ReadString16();
     int ret = PingService(serviceName);
-    HiLog::Info(LABEL, "%s:PingService: ret=%d", __func__, ret);
+    DBINDER_LOGI(LABEL, "%s:PingService: ret=%d", __func__, ret);
     if (!reply.WriteInt32(ret)) {
         DBINDER_LOGE("fail to write parcel");
         ret = ERR_INVALID_STATE;
@@ -563,7 +563,7 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
     int32_t operation = data.ReadInt32();
     sptr<IRemoteObject> proxy = data.ReadRemoteObject();
     if (proxy == nullptr) {
-        DBINDER_LOGE("null proxy");
+        DBINDER_LOGE(LOG_LABEL, "null proxy");
         return ERR_INVALID_STATE;
     }
 
@@ -571,16 +571,16 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(reqData)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    HiLog::Info(LABEL, "%{public}s:TRANSOBJECT: reqData=%{public}d", __func__, reqData);
+    DBINNDER_LOGI(LOG_LABEL, "%{public}s:TRANSOBJECT: reqData=%{public}d", __func__, reqData);
     int ret = proxy->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
     int reqResult = replyParcel.ReadInt32();
-    HiLog::Info(LABEL, "%{public}s:TRANSOBJECT: result=%{public}d", __func__, reqResult);
+    DBINDER_LOGI(LOG_LABEL, , "%{public}s:TRANSOBJECT: result=%{public}d", __func__, reqResult);
 
     if (!reply.WriteInt32(reqResult)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
@@ -591,14 +591,14 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
     // received proxy is different from that of last time
     if ((operation == WITHDRAW) && (recvProxy_ != proxy)) {
         if (!reply.WriteInt32(1)) {
-            DBINDER_LOGE("fail to write parcel");
+            DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
             ret = ERR_INVALID_STATE;
         }
         return ret;
     }
 
     if (!reply.WriteInt32(0)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
     return ret;
@@ -610,19 +610,19 @@ int DBinderTestServiceStub::OnReceivedObjectTransAgain(MessageParcel &data, Mess
     int32_t operation = data.ReadInt32();
     sptr<IRemoteObject> proxy = data.ReadRemoteObject();
     if (proxy == nullptr) {
-        DBINDER_LOGE("null proxy");
+        DBINDER_LOGE(LOG_LABEL, "null proxy");
         return ERR_INVALID_STATE;
     }
     sptr<ISystemAbilityManager> manager_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (manager_ == nullptr) {
-        DBINDER_LOGE("null manager_");
+        DBINDER_LOGE(LOG_LABEL, "null manager_");
         return ERR_INVALID_STATE;
     }
-    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-1: reqData=%{public}d", __func__, reqData);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:OnReceivedObjectTransAgain-1: reqData=%{public}d", __func__, reqData);
 
     sptr<IRemoteObject> object = manager_->GetSystemAbility(RPC_TEST_SERVICE2);
     if (object == nullptr) {
-        DBINDER_LOGE("null object of RPC_TEST_SERVICE2");
+        DBINDER_LOGE(LOG_LABEL, "null object of RPC_TEST_SERVICE2");
         return ERR_INVALID_STATE;
     }
 
@@ -630,25 +630,25 @@ int DBinderTestServiceStub::OnReceivedObjectTransAgain(MessageParcel &data, Mess
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(reqData) || !dataParcel.WriteInt32(operation) ||
         !dataParcel.WriteRemoteObject(proxy)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-2: reqData=%{public}d", __func__, reqData);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:OnReceivedObjectTransAgain-2: reqData=%{public}d", __func__, reqData);
     int ret = object->SendRequest(TRANS_RPC_OBJECT_TO_LOCAL, dataParcel, replyParcel, option);
 
     int reqResult = replyParcel.ReadInt32();
-    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-3: result=%{public}d", __func__, reqResult);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:OnReceivedObjectTransAgain-3: result=%{public}d", __func__, reqResult);
 
     if (!reply.WriteInt32(reqResult)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-4: result=%{public}d", __func__, reqResult);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:OnReceivedObjectTransAgain-4: result=%{public}d", __func__, reqResult);
     if (!reply.WriteInt32(0)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    HiLog::Info(LABEL, "%{public}s:OnReceivedObjectTransAgain-5: result=%{public}d", __func__, reqResult);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:OnReceivedObjectTransAgain-5: result=%{public}d", __func__, reqResult);
     return ret;
 }
 
@@ -657,30 +657,30 @@ int DBinderTestServiceStub::OnReceivedStubObject(MessageParcel &data, MessagePar
     int32_t reqData = data.ReadInt32();
     sptr<IRemoteObject> proxy = data.ReadRemoteObject();
     if (proxy == nullptr) {
-        DBINDER_LOGE("fail to get proxy");
+        DBINDER_LOGE(LOG_LABEL, "fail to get proxy");
         return ERR_INVALID_STATE;
     }
 
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (!dataParcel.WriteInt32(reqData)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
     int error = proxy->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
     if (error != ERR_NONE) {
-        DBINDER_LOGE("fail to send data info");
+        DBINDER_LOGE(LOG_LABEL, "fail to send data info");
         return ERR_INVALID_STATE;
     }
     int reqResult = replyParcel.ReadInt32();
     if (!reply.WriteInt32(reqResult)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
     if (!reply.WriteRemoteObject(this)) {
-        DBINDER_LOGE("fail to write parcel stub");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel stub");
         return ERR_INVALID_STATE;
     }
 
@@ -690,7 +690,7 @@ int DBinderTestServiceStub::OnReceivedStubObject(MessageParcel &data, MessagePar
 int DBinderTestServiceStub::OnReceivedGetStubObject(MessageParcel &data, MessageParcel &reply)
 {
     if (!reply.WriteRemoteObject(GetRemoteObject(data.ReadInt32()))) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
@@ -700,7 +700,7 @@ int DBinderTestServiceStub::OnReceivedGetStubObject(MessageParcel &data, Message
 int DBinderTestServiceStub::OnReceivedGetDecTimes(MessageParcel &data, MessageParcel &reply)
 {
     if (!reply.WriteInt32(GetRemoteDecTimes())) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
@@ -709,7 +709,7 @@ int DBinderTestServiceStub::OnReceivedGetDecTimes(MessageParcel &data, MessagePa
 
 int DBinderTestServiceStub::OnReceivedClearDecTimes(MessageParcel &data, MessageParcel &reply)
 {
-    DBINDER_LOGE("OnReceivedClearDecTimes");
+    DBINDER_LOGE(LOG_LABEL, "OnReceivedClearDecTimes");
 
     ClearRemoteDecTimes();
     return ERR_NONE;
@@ -720,7 +720,7 @@ int DBinderTestServiceStub::OnReceivedOversizedPkt(MessageParcel &data, MessageP
     std::string reqStr = data.ReadString();
     std::string resultStr = reqStr;
     if (!reply.WriteString(resultStr)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
@@ -731,36 +731,36 @@ int DBinderTestServiceStub::OnReceivedRawData(MessageParcel &data, MessageParcel
 {
     int length = data.ReadInt32();
     if (length <= 1) {
-        DBINDER_LOGE("length should > 1, length is %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "length should > 1, length is %{public}d", length);
         if (!reply.WriteInt32(length)) {
-            DBINDER_LOGE("fail to write parcel");
+            DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
     const char *buffer = nullptr;
     if ((buffer = reinterpret_cast<const char *>(data.ReadRawData(length))) == nullptr) {
         if (!reply.WriteInt32(0)) {
-            DBINDER_LOGE("fail to write parcel");
+            DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         }
-        DBINDER_LOGE("read raw data failed, length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "read raw data failed, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
     if (buffer[0] != 'a' || buffer[length - 1] != 'z') {
         if (!reply.WriteInt32(0)) {
-            DBINDER_LOGE("fail to write parcel");
+            DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         }
-        DBINDER_LOGE("buffer error, length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "buffer error, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
     if (data.ReadInt32() != length) {
         if (!reply.WriteInt32(0)) {
-            DBINDER_LOGE("fail to write parcel");
+            DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         }
-        DBINDER_LOGE("read raw data after failed, length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "read raw data after failed, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
     if (!reply.WriteInt32(length)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
 
@@ -771,22 +771,22 @@ int DBinderTestServiceStub::OnSentRawData(MessageParcel &data, MessageParcel &re
 {
     int length = data.ReadInt32();
     if (length <= 1) {
-        DBINDER_LOGE("length should > 1, length is %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "length should > 1, length is %{public}d", length);
         if (!reply.WriteInt32(length)) {
-            DBINDER_LOGE("fail to write parcel");
+            DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
 
     unsigned char *buffer = new (std::nothrow) unsigned char[length];
     if (buffer == nullptr) {
-        DBINDER_LOGE("new buffer failed of length = %{public}d", length);
+        DBINDER_LOGE(LOG_LABEL, "new buffer failed of length = %{public}d", length);
         return ERR_INVALID_STATE;
     }
     buffer[0] = 'a';
     buffer[length - 1] = 'z';
     if (!reply.WriteInt32(length) || !reply.WriteRawData(buffer, length) || !reply.WriteInt32(length)) {
-        DBINDER_LOGE("fail to write parcel");
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         delete[] buffer;
         return ERR_INVALID_STATE;
     }
@@ -809,7 +809,7 @@ void DBinderTestDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     g_gotDeathRecipient = true;
     printf("Succ! Remote Died!\n");
-    DBINDER_LOGE("recv death notification");
+    DBINDER_LOGE(LOG_LABEL, "recv death notification");
 }
 
 DBinderTestDeathRecipient::DBinderTestDeathRecipient() {}

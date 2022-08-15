@@ -30,6 +30,8 @@
 namespace OHOS {
 using namespace Communication;
 
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderService" };
+
 sptr<DBinderService> DBinderService::instance_ = nullptr;
 bool DBinderService::mainThreadCreated_ = false;
 std::mutex DBinderService::instanceMutex_;
@@ -38,7 +40,7 @@ constexpr int32_t DBINDER_UID_START_INDEX = 7;
 
 DBinderService::DBinderService()
 {
-    DBINDER_LOGI("create dbinder service");
+    DBINDER_LOGI(LOG_LABEL, "create dbinder service");
 }
 
 DBinderService::~DBinderService()
@@ -56,7 +58,7 @@ DBinderService::~DBinderService()
     loadSaReply_.clear();
     dbinderCallback_ = nullptr;
 
-    DBINDER_LOGI("dbinder service died");
+    DBINDER_LOGI(LOG_LABEL, "dbinder service died");
 }
 
 std::string DBinderService::GetLocalDeviceID()
@@ -64,7 +66,7 @@ std::string DBinderService::GetLocalDeviceID()
     std::string pkgName = "DBinderService";
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        DBINDER_LOGE("Get local node device info failed");
+        DBINDER_LOGE(LOG_LABEL, "Get local node device info failed");
         return "";
     }
     std::string networkId(nodeBasicInfo.networkId);
@@ -90,13 +92,13 @@ bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallbac
 bool DBinderService::StartRemoteListener()
 {
     if (remoteListener_ != nullptr) {
-        DBINDER_LOGI("remote listener started");
+        DBINDER_LOGI(LOG_LABEL, "remote listener started");
         return true;
     }
 
     remoteListener_ = std::make_shared<DBinderRemoteListener>(GetInstance());
     if (remoteListener_ == nullptr) {
-        DBINDER_LOGE("failed to create remote listener");
+        DBINDER_LOGE(LOG_LABEL, "failed to create remote listener");
         return false;
     }
 
@@ -105,18 +107,18 @@ bool DBinderService::StartRemoteListener()
         return false;
     }
 
-    DBINDER_LOGI("start remote listener ok");
+    DBINDER_LOGI(LOG_LABEL, "start remote listener ok");
     return true;
 }
 
 bool DBinderService::ReStartRemoteListener()
 {
     if (remoteListener_ == nullptr) {
-        DBINDER_LOGE("restart remote listener got null");
+        DBINDER_LOGE(LOG_LABEL, "restart remote listener got null");
         return false;
     }
     if (remoteListener_->StartListener(remoteListener_) != true) {
-        DBINDER_LOGE("restart dbinder server failed");
+        DBINDER_LOGE(LOG_LABEL, "restart dbinder server failed");
         StopRemoteListener();
         return false;
     }
@@ -125,7 +127,7 @@ bool DBinderService::ReStartRemoteListener()
     while (it != busNameObject_.end()) {
         std::string sessionName = it->second;
         if (ReGrantPermission(sessionName) != true) {
-            DBINDER_LOGE("%s grant permission failed", sessionName.c_str());
+            DBINDER_LOGE(LOG_LABEL, "%s grant permission failed", sessionName.c_str());
         }
         ++it;
     }
@@ -182,7 +184,7 @@ bool DBinderService::CheckBinderObject(const sptr<DBinderServiceStub> &stub, bin
     }
 
     if (stub->GetBinderObject() == binderObject) {
-        DBINDER_LOGI("found registered stub");
+        DBINDER_LOGI(LOG_LABEL, "found registered stub");
         return true;
     }
     return false;
@@ -209,7 +211,7 @@ bool DBinderService::IsSameStubObject(const sptr<DBinderServiceStub> &stub, cons
         return false;
     }
     if (IsSameTextStr(stub->GetServiceName(), Str16ToStr8(service)) && IsSameTextStr(stub->GetDeviceID(), device)) {
-        DBINDER_LOGI("found registered service with name = %s", Str16ToStr8(service).c_str());
+        DBINDER_LOGI(LOG_LABEL, "found registered service with name = %s", Str16ToStr8(service).c_str());
         return true;
     }
     return false;
@@ -265,16 +267,16 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     const std::string &deviceID, binder_uintptr_t binderObject, uint32_t pid, uint32_t uid)
 {
     if (IsDeviceIdIllegal(deviceID) || serviceName.length() == 0) {
-        DBINDER_LOGE("para is wrong device id length = %zu, service name length = %zu", deviceID.length(),
+        DBINDER_LOGE(LOG_LABEL, "para is wrong device id length = %zu, service name length = %zu", deviceID.length(),
             serviceName.length());
         return nullptr;
     }
-    DBINDER_LOGI("name = %{public}s, deviceID = %{public}s", Str16ToStr8(serviceName).c_str(),
+    DBINDER_LOGI(LOG_LABEL, "name = %{public}s, deviceID = %{public}s", Str16ToStr8(serviceName).c_str(),
         DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
 
     sptr<DBinderServiceStub> dBinderServiceStub = FindOrNewDBinderStub(serviceName, deviceID, binderObject);
     if (dBinderServiceStub == nullptr) {
-        DBINDER_LOGE("fail to find or new service, service name = %{public}s", Str16ToStr8(serviceName).c_str());
+        DBINDER_LOGE(LOG_LABEL, "fail to find or new service, service name = %{public}s", Str16ToStr8(serviceName).c_str());
         return nullptr;
     }
 
@@ -289,7 +291,7 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     } while (!ret && (retryTimes < RETRY_TIMES));
 
     if (!ret) {
-        DBINDER_LOGE("fail to invoke service, service name = %{public}s", Str16ToStr8(serviceName).c_str());
+        DBINDER_LOGE(LOG_LABEL, "fail to invoke service, service name = %{public}s", Str16ToStr8(serviceName).c_str());
         /* invoke fail, delete dbinder stub info */
         (void)DeleteDBinderStub(serviceName, deviceID);
         (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
@@ -305,7 +307,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     const std::string deviceID = stub->GetDeviceID();
     const std::string localDevID = GetLocalDeviceID();
     if (IsDeviceIdIllegal(deviceID) || IsDeviceIdIllegal(localDevID)) {
-        DBINDER_LOGE("wrong device ID");
+        DBINDER_LOGE(LOG_LABEL, "wrong device ID");
         return false;
     }
 
@@ -324,7 +326,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->uid                 = uid;
     if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
         memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
-        DBINDER_LOGE("fail to copy memory");
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
         return false;
     }
     message->deviceIdInfo.fromDeviceId[localDevID.length()] = '\0';
@@ -332,12 +334,12 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
 
     std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
     if (remoteListener == nullptr) {
-        DBINDER_LOGE("remoteListener is null");
+        DBINDER_LOGE(LOG_LABEL, "remoteListener is null");
         return false;
     }
     bool result = remoteListener->SendDataToRemote(deviceID, message.get());
     if (result != true) {
-        DBINDER_LOGE("send to remote dbinderService failed");
+        DBINDER_LOGE(LOG_LABEL, "send to remote dbinderService failed");
         return false;
     }
     return true;
@@ -347,12 +349,12 @@ bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, u
     uint32_t pid, uint32_t uid)
 {
     if (stub == nullptr) {
-        DBINDER_LOGE("stub is nullptr");
+        DBINDER_LOGE(LOG_LABEL, "stub is nullptr");
         return false;
     }
     bool result = SendEntryToRemote(stub, seqNumber, pid, uid);
     if (!result) {
-        DBINDER_LOGE("send entry to remote dbinderService fail");
+        DBINDER_LOGE(LOG_LABEL, "send entry to remote dbinderService fail");
         return false;
     }
 
@@ -360,14 +362,14 @@ bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, u
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     result = AttachThreadLockInfo(seqNumber, threadLockInfo);
     if (result != true) {
-        DBINDER_LOGE("attach lock info fail");
+        DBINDER_LOGE(LOG_LABEL, "attach lock info fail");
         return false;
     }
 
     std::unique_lock<std::mutex> lock(threadLockInfo->mutex);
     if (threadLockInfo->condition.wait_for(lock, std::chrono::seconds(WAIT_FOR_REPLY_MAX_SEC),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
-        DBINDER_LOGE("get remote data failed");
+        DBINDER_LOGE(LOG_LABEL, "get remote data failed");
         DetachThreadLockInfo(seqNumber);
         threadLockInfo->ready = false;
         return false;
@@ -375,7 +377,7 @@ bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, u
     /* if can not find session, means invoke failed or nothing in OnRemoteReplyMessage() */
     auto session = QuerySessionObject(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
     if (session == nullptr) {
-        DBINDER_LOGE("client find session is null");
+        DBINDER_LOGE(LOG_LABEL, "client find session is null");
         return false;
     }
     return true;
@@ -397,7 +399,7 @@ bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t s
 {
     if (static_cast<int32_t>(loadSaItem->stubIndex) == systemAbilityId &&
         loadSaItem->deviceIdInfo.fromDeviceId == srcNetworkId) {
-        DBINDER_LOGI("match succeed");
+        DBINDER_LOGI(LOG_LABEL, "match succeed");
         return true;
     }
     return false;
@@ -412,7 +414,7 @@ std::shared_ptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::strin
 
     auto it = std::find_if(loadSaReply_.begin(), loadSaReply_.end(), checkSaItem);
     if (it == loadSaReply_.end()) {
-        DBINDER_LOGE("findSaItem failed");
+        DBINDER_LOGE(LOG_LABEL, "findSaItem failed");
         return nullptr;
     }
     std::shared_ptr<DHandleEntryTxRx> replymsg = (*it);
@@ -424,7 +426,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
     const sptr<IRemoteObject>& remoteObject)
 {
     if (remoteObject == nullptr) {
-        DBINDER_LOGW("GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
+        DBINDER_LOGW(LOG_LABEL, "GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
     }
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     while (true) {
@@ -441,17 +443,17 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             /* When the stub object dies, you need to delete the corresponding busName information */
             sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
             if (!saProxy->AddDeathRecipient(death)) {
-                DBINDER_LOGE("fail to add death recipient");
+                DBINDER_LOGE(LOG_LABEL, "fail to add death recipient");
                 continue;
             }
             if (!AttachProxyObject(remoteObject, binderObject)) {
-                DBINDER_LOGE("attach proxy object fail");
+                DBINDER_LOGE(LOG_LABEL, "attach proxy object fail");
                 continue;
             }
         }
         std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
         if (replyMessage->transType != IRemoteObject::DATABUS_TYPE) {
-            DBINDER_LOGE("Invalid Message Type");
+            DBINDER_LOGE(LOG_LABEL, "Invalid Message Type");
         } else {
             if (!OnRemoteInvokerDataBusMessage(saProxy, replyMessage.get(), deviceId,
                 replyMessage->pid, replyMessage->uid)) {
@@ -460,22 +462,22 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
         }
         std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
         if (remoteListener == nullptr) {
-            DBINDER_LOGE("remoteListener is null");
+            DBINDER_LOGE(LOG_LABEL, "remoteListener is null");
             continue;
         }
         if (!remoteListener->SendDataToRemote(deviceId, replyMessage.get())) {
-            DBINDER_LOGE("fail to send data from server DBS to client DBS");
+            DBINDER_LOGE(LOG_LABEL, "fail to send data from server DBS to client DBS");
             continue;
         }
     }
-    DBINDER_LOGI("complete");
+    DBINDER_LOGI(LOG_LABEL, "LoadSystemAbility complete");
 }
 
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
 {
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
-        DBINDER_LOGE("fail to copy memory");
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
         return false;
     }
 
@@ -483,7 +485,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
         static_cast<int32_t>(replyMessage->stubIndex));
     if (!isSaAvailable) {
-        DBINDER_LOGE("fail to call the system ability");
+        DBINDER_LOGE(LOG_LABEL, "fail to call the system ability");
         return false;
     }
     loadSaReply_.push_back(replyMessage);
@@ -493,17 +495,17 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
 std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy, int32_t systemAbilityId)
 {
     if (proxy == nullptr) {
-        DBINDER_LOGE("proxy can not be null");
+        DBINDER_LOGE(LOG_LABEL, "proxy can not be null");
         return "";
     }
     std::string sessionName = QueryBusNameObject(proxy);
     if (!sessionName.empty()) {
-        DBINDER_LOGI("sessionName has been granded");
+        DBINDER_LOGI(LOG_LABEL, "sessionName has been granded");
         return sessionName;
     }
     sessionName = proxy->GetPidAndUidInfo(systemAbilityId);
     if (sessionName.empty()) {
-        DBINDER_LOGE("grand session name failed");
+        DBINDER_LOGE(LOG_LABEL, "grand session name failed");
         return "";
     }
     return sessionName;
@@ -513,13 +515,13 @@ std::string DBinderService::CreateDatabusName(int uid, int pid)
 {
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
-        DBINDER_LOGE("fail to get softbus service");
+        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
         return "";
     }
 
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
     if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
-        DBINDER_LOGE("fail to Grant Permission softbus name");
+        DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name");
         return "";
     }
 
@@ -530,7 +532,7 @@ bool DBinderService::HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t st
     std::string serverSessionName, struct DHandleEntryTxRx *replyMessage)
 {
     if (stubIndex == 0 || serverSessionName.empty() || serverSessionName.length() > SERVICENAME_LENGTH) {
-        DBINDER_LOGE("stubindex or session name invalid");
+        DBINDER_LOGE(LOG_LABEL, "stubindex or session name invalid");
         return false;
     }
 
@@ -539,7 +541,7 @@ bool DBinderService::HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t st
     replyMessage->serviceNameLength = serverSessionName.length();
     if (memcpy_s(replyMessage->serviceName, SERVICENAME_LENGTH, serverSessionName.data(),
         replyMessage->serviceNameLength) != 0) {
-        DBINDER_LOGE("fail to copy memory");
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
         return false;
     }
     replyMessage->serviceName[replyMessage->serviceNameLength] = '\0';
@@ -553,12 +555,12 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
     std::string &remoteDeviceId, int pid, int uid)
 {
     if (IsDeviceIdIllegal(remoteDeviceId)) {
-        DBINDER_LOGE("remote device id is error");
+        DBINDER_LOGE(LOG_LABEL, "remote device id is error");
         return false;
     }
     std::string sessionName = GetDatabusNameByProxy(proxy, replyMessage->stubIndex);
     if (sessionName.empty()) {
-        DBINDER_LOGE("get bus name fail");
+        DBINDER_LOGE(LOG_LABEL, "get bus name fail");
         return false;
     }
 
@@ -568,12 +570,12 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
     if (!data.WriteUint16(IRemoteObject::DATABUS_TYPE) || !data.WriteString(GetLocalDeviceID()) ||
         !data.WriteUint32(pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
         !data.WriteString(sessionName) || !data.WriteUint32(featureSet)) {
-        DBINDER_LOGE("write to parcel fail");
+        DBINDER_LOGE(LOG_LABEL, "write to parcel fail");
         return false;
     }
     int err = proxy->InvokeListenThread(data, reply);
     if (err != ERR_NONE) {
-        DBINDER_LOGE("start service listen error = %d", err);
+        DBINDER_LOGE(LOG_LABEL, "start service listen error = %d", err);
         return false;
     }
     uint64_t stubIndex = reply.ReadUint64();
@@ -583,7 +585,7 @@ bool DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct
 
 std::u16string DBinderService::GetRegisterService(binder_uintptr_t binderObject)
 {
-    DBINDER_LOGI("get service binderObject");
+    DBINDER_LOGI(LOG_LABEL, "get service binderObject");
     std::shared_lock<std::shared_mutex> lockGuard(remoteBinderMutex_);
     for (auto it = mapRemoteBinderObjects_.begin(); it != mapRemoteBinderObjects_.end(); it++) {
         if (it->second == binderObject) {
@@ -596,24 +598,24 @@ std::u16string DBinderService::GetRegisterService(binder_uintptr_t binderObject)
 
 bool DBinderService::RegisterRemoteProxy(std::u16string serviceName, sptr<IRemoteObject> binderObject)
 {
-    DBINDER_LOGI("register remote proxy, service name = %{public}s", Str16ToStr8(serviceName).c_str());
+    DBINDER_LOGI(LOG_LABEL, "register remote proxy, service name = %{public}s", Str16ToStr8(serviceName).c_str());
 
     if (serviceName.length() == 0 || binderObject == nullptr) {
-        DBINDER_LOGE("serviceName.length() = %zu", serviceName.length());
+        DBINDER_LOGE(LOG_LABEL, "serviceName.length() = %zu", serviceName.length());
         return false;
     }
 
     binder_uintptr_t binder = (binder_uintptr_t)binderObject.GetRefPtr();
-    DBINDER_LOGI("register remote proxy");
+    DBINDER_LOGI(LOG_LABEL, "register remote proxy");
     return RegisterRemoteProxyInner(serviceName, binder);
 }
 
 bool DBinderService::RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId)
 {
-    DBINDER_LOGI("register remote proxy, service name = %{public}s", Str16ToStr8(serviceName).c_str());
+    DBINDER_LOGI(LOG_LABEL, "register remote proxy, service name = %{public}s", Str16ToStr8(serviceName).c_str());
 
     if (serviceName.length() == 0 || systemAbilityId <= 0) {
-        DBINDER_LOGE("serviceName.length() = %zu", serviceName.length());
+        DBINDER_LOGE(LOG_LABEL, "serviceName.length() = %zu", serviceName.length());
         return false;
     }
 
@@ -633,7 +635,7 @@ bool DBinderService::RegisterRemoteProxyInner(std::u16string serviceName, binder
 bool DBinderService::OnRemoteMessageTask(const struct DHandleEntryTxRx *message)
 {
     if (message == nullptr) {
-        DBINDER_LOGE("message is null ");
+        DBINDER_LOGE(LOG_LABEL, "message is null ");
         return false;
     }
 
@@ -648,7 +650,7 @@ bool DBinderService::OnRemoteMessageTask(const struct DHandleEntryTxRx *message)
             break;
         }
         default: {
-            DBINDER_LOGE("ERROR! DbinderCode is wrong value, code =%u", message->dBinderCode);
+            DBINDER_LOGE(LOG_LABEL, "ERROR! DbinderCode is wrong value, code =%u", message->dBinderCode);
             result = false;
             break;
         }
@@ -682,19 +684,19 @@ bool DBinderService::IsSameSession(std::shared_ptr<struct SessionInfo> oldSessio
 void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
 {
     if (HasDBinderStub(replyMessage->binderObject) == false) {
-        DBINDER_LOGE("invalid stub object");
+        DBINDER_LOGE(LOG_LABEL, "invalid stub object");
         return;
     }
 
     std::shared_ptr<struct SessionInfo> session = std::make_shared<struct SessionInfo>();
     if (session == nullptr) {
-        DBINDER_LOGE("new SessionInfo fail");
+        DBINDER_LOGE(LOG_LABEL, "new SessionInfo fail");
         return;
     }
 
     if (memcpy_s(&session->deviceIdInfo, sizeof(struct DeviceIdInfo), &replyMessage->deviceIdInfo,
         sizeof(struct DeviceIdInfo)) != 0) {
-        DBINDER_LOGE("fail to copy memory");
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
         return;
     }
     session->seqNumber = replyMessage->seqNumber;
@@ -708,27 +710,27 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
     session->serviceName = replyMessage->serviceName;
 
     if (session->stubIndex == 0) {
-        DBINDER_LOGE("get stub index == 0, it is invalid");
+        DBINDER_LOGE(LOG_LABEL, "get stub index == 0, it is invalid");
         return;
     }
 
     std::shared_ptr<struct SessionInfo> oldSession = QuerySessionObject(replyMessage->stub);
     if (oldSession != nullptr) {
         if (IsSameSession(oldSession, session)) {
-            DBINDER_LOGI("invoker remote session already, do nothing");
+            DBINDER_LOGI(LOG_LABEL, "invoker remote session already, do nothing");
             return;
         }
         if (oldSession->seqNumber < session->seqNumber) {
-            DBINDER_LOGI("replace oldsession %{public}s with newsession %{public}s",
+            DBINDER_LOGI(LOG_LABEL, "replace oldsession %{public}s with newsession %{public}s",
                 oldSession->serviceName.c_str(), session->serviceName.c_str());
             if (!DetachSessionObject(replyMessage->stub)) {
-                DBINDER_LOGE("failed to detach session object");
+                DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
             }
         }
     }
 
     if (!AttachSessionObject(session, replyMessage->stub)) {
-        DBINDER_LOGE("attach SessionInfo fail");
+        DBINDER_LOGE(LOG_LABEL, "attach SessionInfo fail");
         return;
     }
 }
@@ -737,7 +739,7 @@ void DBinderService::WakeupThreadByStub(uint32_t seqNumber)
 {
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = QueryThreadLockInfo(seqNumber);
     if (threadLockInfo == nullptr) {
-        DBINDER_LOGE("threadLockInfo is not exist");
+        DBINDER_LOGE(LOG_LABEL, "threadLockInfo is not exist");
         return;
     }
     /* Wake up the client processing thread */
@@ -905,12 +907,12 @@ bool DBinderService::NoticeCallbackProxy(sptr<DBinderServiceStub> dbStub)
     bool status = true;
     const binder_uintptr_t binderObject = reinterpret_cast<binder_uintptr_t>(dbStub.GetRefPtr());
     if (!DetachSessionObject(binderObject)) {
-        DBINDER_LOGE("fail to detach session object");
+        DBINDER_LOGE(LOG_LABEL, "fail to detach session object");
         status = false;
     }
 
     if (!DeleteDBinderStub(Str8ToStr16(dbStub->GetServiceName()), dbStub->GetDeviceID())) {
-        DBINDER_LOGE("fail to delete DBinder stub");
+        DBINDER_LOGE(LOG_LABEL, "fail to delete DBinder stub");
         status = false;
     }
 
@@ -928,7 +930,7 @@ void DBinderService::ProcessCallbackProxy(sptr<DBinderServiceStub> dbStub)
             IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>((it->first).GetRefPtr());
             int status = callbackProxy->NoticeServiceDie();
             if (status != ERR_NONE) {
-                DBINDER_LOGE("fail to notice service");
+                DBINDER_LOGE(LOG_LABEL, "fail to notice service");
                 // do nothing, Continue to clear subsequent data
             }
 
@@ -939,7 +941,7 @@ void DBinderService::ProcessCallbackProxy(sptr<DBinderServiceStub> dbStub)
             }
 
             if (!DetachDeathRecipient((it->first))) {
-                DBINDER_LOGE("detaching death recipient is failed");
+                DBINDER_LOGE(LOG_LABEL, "detaching death recipient is failed");
             }
 
             it = noticeProxy_.erase(it);
@@ -952,18 +954,18 @@ void DBinderService::ProcessCallbackProxy(sptr<DBinderServiceStub> dbStub)
 int32_t DBinderService::NoticeServiceDieInner(const std::u16string &serviceName, const std::string &deviceID)
 {
     if (serviceName.empty() || IsDeviceIdIllegal(deviceID)) {
-        DBINDER_LOGE("service name length = %zu, deviceID length = %zu", serviceName.length(), deviceID.length());
+        DBINDER_LOGE(LOG_LABEL, "service name length = %zu, deviceID length = %zu", serviceName.length(), deviceID.length());
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
     sptr<DBinderServiceStub> dbStub = FindDBinderStub(serviceName, deviceID);
     if (dbStub == nullptr) {
-        DBINDER_LOGE("find null stub, do not need notice death");
+        DBINDER_LOGE(LOG_LABEL, "find null stub, do not need notice death");
         return ERR_NONE;
     }
 
     if (!NoticeCallbackProxy(dbStub)) {
-        DBINDER_LOGE("find null proxy");
+        DBINDER_LOGE(LOG_LABEL, "find null proxy");
         return DBINDER_SERVICE_NOTICE_DIE_ERR;
     }
     return ERR_NONE;
@@ -978,24 +980,24 @@ int32_t DBinderService::NoticeServiceDie(const std::u16string &serviceName, cons
 int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
 {
     if (IsDeviceIdIllegal(deviceID)) {
-        DBINDER_LOGE("deviceID length = %zu", deviceID.length());
+        DBINDER_LOGE(LOG_LABEL, "deviceID length = %zu", deviceID.length());
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
-    DBINDER_LOGI("remote device is dead, device = %s", DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
+    DBINDER_LOGI(LOG_LABEL, "remote device is dead, device = %s", DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
 
     if (remoteListener_ == nullptr) {
-        DBINDER_LOGE("remote listener is null");
+        DBINDER_LOGE(LOG_LABEL, "remote listener is null");
         return DBINDER_SERVICE_NOTICE_DIE_ERR;
     }
 
     if (!remoteListener_->CloseDatabusSession(deviceID)) {
-        DBINDER_LOGE("close databus session fail");
+        DBINDER_LOGE(LOG_LABEL, "close databus session fail");
         // do nothing
     }
 
     std::list<std::u16string> serviceNames = FindServicesByDeviceID(deviceID);
     if (serviceNames.empty()) {
-        DBINDER_LOGE("the device does not have any registered service");
+        DBINDER_LOGE(LOG_LABEL, "the device does not have any registered service");
         return ERR_NONE;
     }
 
@@ -1042,7 +1044,7 @@ bool DBinderService::ReGrantPermission(const std::string &sessionName)
     }
     std::string::size_type splitIndex = sessionName.find('_');
     if (splitIndex == std::string::npos) {
-        DBINDER_LOGE("grant permission not found _");
+        DBINDER_LOGE(LOG_LABEL, "grant permission not found _");
         return false;
     }
     int32_t uidLength = static_cast<int32_t>(splitIndex) - DBINDER_UID_START_INDEX;
@@ -1050,12 +1052,12 @@ bool DBinderService::ReGrantPermission(const std::string &sessionName)
     std::string pidString = sessionName.substr(splitIndex + 1);
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
-        DBINDER_LOGE("fail to get softbus service");
+        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
         return false;
     }
 
     if (softbusManager->GrantPermission(std::stoi(uidString), std::stoi(pidString), sessionName) != ERR_NONE) {
-        DBINDER_LOGE("fail to Grant Permission softbus name");
+        DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name");
         return false;
     }
     return true;
