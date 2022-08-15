@@ -118,8 +118,8 @@ private:
     bool TranslateRawData(char *dataBuffer, MessageParcel &data, uint32_t socketId);
     std::shared_ptr<T> GetSessionObject(uint32_t handle, uint32_t socketId);
     uint64_t GetUniqueSeqNumber(int cmd);
-    void ConstructTransData(dbinder_transaction_data &TransData, size_t totalSize, uint64_t seqNum, int cmd, __u32 code,
-        __u32 flags);
+    void ConstructTransData(dbinder_transaction_data &TransData, size_t totalSize, uint64_t seqNum,
+        int cmd, __u32 code, __u32 flags);
     bool ProcessRawData(std::shared_ptr<T> sessionObject, MessageParcel &data, uint64_t seqNum);
     std::shared_ptr<dbinder_transaction_data> ProcessNormalData(std::shared_ptr<T> sessionObject, MessageParcel &data,
         int32_t handle, int32_t socketId, uint64_t seqNum, int cmd, __u32 code, __u32 flags, int status);
@@ -188,7 +188,8 @@ template <class T> uint32_t DBinderBaseInvoker<T>::MakeRemoteHandle(std::shared_
     uint32_t handle = current->GetDBinderIdleHandle(stubIndex);
     DBINDER_BASE_LOGI(LOG_BASE_INVOKER_LABEL, "create new handle = %{public}d", handle);
     if (handle == 0) {
-        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "add stub index err stubIndex = %" PRIu64 ", handle = %d", stubIndex, handle);
+        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "add stub index err stubIndex = %" PRIu64 ",\
+            handle = %d", stubIndex, handle);
         return 0;
     }
     if (!UpdateClientSession(handle, session)) {
@@ -515,7 +516,8 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
     }
     if (memcpy_s(sendBuffer + writeCursor, sendSize, transData.get(), sendSize) != EOK) {
         sessionBuff->ReleaseSendBufferLock();
-        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "fail to copy from tr to sendBuffer, parcelSize = %{public}u", sendSize);
+        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL,
+            "fail to copy from tr to sendBuffer, parcelSize = %{public}u", sendSize);
         return false;
     }
 
@@ -532,7 +534,8 @@ std::shared_ptr<T> DBinderBaseInvoker<T>::WriteTransaction(int cmd, uint32_t fla
 {
     std::shared_ptr<T> sessionObject = GetSessionObject(handle, socketId);
     if (sessionObject == nullptr) {
-        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "session is not exist for listenFd = %d, handle = %d", socketId, handle);
+        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL,
+            "session is not exist for listenFd = %d, handle = %d", socketId, handle);
         return nullptr;
     }
 
@@ -685,7 +688,8 @@ int DBinderBaseInvoker<T>::SendOrWaitForCompletion(int userWaitTime, uint64_t se
     }
     int returnLen = OnSendMessage(sessionOfPeer);
     if (returnLen != 0) {
-        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "fail to send to remote session with error = %{public}d", returnLen);
+        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL,
+            "fail to send to remote session with error = %{public}d", returnLen);
         // no return, for msg send failed maybe not mine
     }
     return WaitForReply(seqNumber, reply, sessionOfPeer, userWaitTime);
@@ -750,7 +754,8 @@ template <class T> bool DBinderBaseInvoker<T>::SetMaxWorkThread(int maxThreadNum
 template <class T> int DBinderBaseInvoker<T>::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
 {
     uint64_t seqNumber = 0;
-    std::shared_ptr<T> sessionObject = WriteTransaction(BC_REPLY, flags, 0, GetClientFd(), 0, reply, seqNumber, result);
+    std::shared_ptr<T> sessionObject = WriteTransaction(BC_REPLY, flags, 0,
+        GetClientFd(), 0, reply, seqNumber, result);
 
     if (seqNumber == 0) {
         DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "seqNumber can not be zero");
@@ -824,7 +829,8 @@ template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(uint32_t handle,
         bool result = CreateProcessThread();
         if (!result) {
             int socketThreadNum = current->GetSocketTotalThreadNum();
-            DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "create IO thread failed, current socket thread num=%d", socketThreadNum);
+            DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL,
+                "create IO thread failed, current socket thread num=%d", socketThreadNum);
             /* thread create too much, wait some thread be idle */
         }
         do {
@@ -873,7 +879,8 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     uint32_t oldStatus = GetStatus();
     const uint32_t oldTokenId = GetCallerTokenID();
     if (CheckAndSetCallerInfo(listenFd, tr->cookie) != ERR_NONE) {
-        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL, "set user info error, maybe cookie is NOT belong to current caller");
+        DBINDER_BASE_LOGE(LOG_BASE_INVOKER_LABEL,
+            "set user info error, maybe cookie is NOT belong to current caller");
         return;
     }
     std::shared_ptr<T> sessionObject = QueryClientSessionObject(listenFd);
