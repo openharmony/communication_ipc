@@ -14,14 +14,12 @@
  */
 
 #include "dbinder_session_object.h"
-
 #include "ipc_process_skeleton.h"
 #include "ISessionService.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 
 namespace OHOS {
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "dbinder_session_object" };
 
 DBinderSessionObject::DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,

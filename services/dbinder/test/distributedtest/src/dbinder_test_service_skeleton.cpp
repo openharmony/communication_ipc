@@ -500,19 +500,22 @@ int DBinderTestServiceStub::OnGetChildId(MessageParcel &data, MessageParcel &rep
         return ERR_INVALID_STATE;
     }
 
-    DBINDER_LOGE(LOG_LABEL, "before reset uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
+    DBINDER_LOGE(LOG_LABEL,
+        "before reset uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingDeviceID().c_str(),
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     std::string token = IPCSkeleton::ResetCallingIdentity();
 
-    DBINDER_LOGE(LOG_LABEL, "before set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
+    DBINDER_LOGE(LOG_LABEL,
+        "before set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingDeviceID().c_str(),
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     if (!IPCSkeleton::SetCallingIdentity(token)) {
         DBINDER_LOGE(LOG_LABEL, "Set Calling Identity fail");
     }
 
-    DBINDER_LOGE(LOG_LABEL, "after set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
+    DBINDER_LOGE(LOG_LABEL,
+        "after set uid = %{public}d, callerId = %{public}s, localId = %{public}s, islocal = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingDeviceID().c_str(),
         IPCSkeleton::GetLocalDeviceID().c_str(), IPCSkeleton::IsLocalCalling());
     return ERR_NONE;
@@ -577,7 +580,7 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
     DBINNDER_LOGI(LOG_LABEL, "%{public}s:TRANSOBJECT: reqData=%{public}d", __func__, reqData);
     int ret = proxy->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
     int reqResult = replyParcel.ReadInt32();
-    DBINDER_LOGI(LOG_LABEL, , "%{public}s:TRANSOBJECT: result=%{public}d", __func__, reqResult);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:TRANSOBJECT: result=%{public}d", __func__, reqResult);
 
     if (!reply.WriteInt32(reqResult)) {
         DBINDER_LOGE(LOG_LABEL, "fail to write parcel");

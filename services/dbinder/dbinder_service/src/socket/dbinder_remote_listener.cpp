@@ -131,7 +131,8 @@ int DBinderRemoteListener::OnSessionOpened(std::shared_ptr<Session> session)
 {
     DBINDER_LOGI(LOG_LABEL, "peer session is open");
     if (session->GetPeerSessionName() != PEER_SESSION_NAME) {
-        DBINDER_LOGE(LOG_LABEL, "invalid session name, peer session name = %{public}s", session->GetPeerSessionName().c_str());
+        DBINDER_LOGE(LOG_LABEL, "invalid session name, peer session name = %{public}s",
+            session->GetPeerSessionName().c_str());
         return -DBINDER_SERVICE_WRONG_SESSION;
     }
     return 0;
