@@ -30,9 +30,7 @@
 #include "rpc_feature_set.h"
 
 namespace OHOS {
-using namespace OHOS::HiviewDFX;
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderDatabusInvoker" };
-
+using namespace OHOS::HiviewDFX；
 DBinderDatabusInvoker::DBinderDatabusInvoker()
     : stopWorkThread_(false), callerPid_(getpid()), callerUid_(getuid()), callerDeviceID_(""),
     callerTokenID_(0), firstTokenID_(0), status_(0)

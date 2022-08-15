@@ -22,7 +22,6 @@
 #include "log_tags.h"
 
 namespace OHOS {
-    
 int DatabusSessionCallback::OnSessionOpened(std::shared_ptr<Session> session)
 {
     if (session->GetChannelId() < 0) {
