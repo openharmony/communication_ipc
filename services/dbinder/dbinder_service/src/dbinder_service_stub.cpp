@@ -24,7 +24,7 @@
 #include "ipc_skeleton.h"
 
 namespace OHOS {
-// static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderServiceStub" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderServiceStub" };
 
 DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::string &device, binder_uintptr_t object)
     : IPCObjectStub(Str8ToStr16(device + service)), serviceName_(service), deviceID_(device), binderObject_(object)
@@ -67,7 +67,6 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "stubIndex = %" PRIu64 ", socketFd = %" PRIu32 "", session->stubIndex, session->socketFd);
     DBINDER_LOGI(LOG_LABEL, "serviceName = %s", session->serviceName.c_str());
 
     int uid = IPCSkeleton::GetCallingUid();
