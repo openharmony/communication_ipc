@@ -22,21 +22,13 @@
 namespace OHOS {
 using Communication::SoftBus::ISessionService;
 
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderDeathRecipient" };
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    DBINDER_LOGE("DbinderDeathRecipient OnRemoteDied");
+    DBINDER_LOGE(LOG_LABEL, "DbinderDeathRecipient OnRemoteDied");
     if (remote == nullptr) {
-        DBINDER_LOGE("remote object is null");
+        DBINDER_LOGE(LOG_LABEL, "remote object is null");
         return;
     }
 
@@ -45,18 +37,18 @@ void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
-        DBINDER_LOGE("dBinderService is null");
+        DBINDER_LOGE(LOG_LABEL, "dBinderService is null");
         return;
     }
 
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
-        DBINDER_LOGE("fail to get softbus service");
+        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
         return;
     }
     std::string sessionName = dBinderService->QueryBusNameObject(callbackProxy);
     if (sessionName.empty()) {
-        DBINDER_LOGE("proxy sessionName not found");
+        DBINDER_LOGE(LOG_LABEL, "proxy sessionName not found");
         return;
     }
     softbusManager->RemovePermission(sessionName);
@@ -68,12 +60,12 @@ void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 
     if (!dBinderService->DetachDeathRecipient(object)) {
-        DBINDER_LOGE("detaching death recipient is failed");
+        DBINDER_LOGE(LOG_LABEL, "detaching death recipient is failed");
         return;
     }
 
     if (!dBinderService->DetachCallbackProxy(object)) {
-        DBINDER_LOGE("detaching callback proxy is failed");
+        DBINDER_LOGE(LOG_LABEL, "detaching callback proxy is failed");
         return;
     }
 }

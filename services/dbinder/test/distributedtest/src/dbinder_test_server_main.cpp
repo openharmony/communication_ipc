@@ -27,7 +27,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {
     DBinderTestService::Instantiate();
 
-    HiLog::Info(LG_LABEL, "DBinderTestService-main call StartThreadPool");
+    DBINDER_LOGI(LG_LABEL, "DBinderTestService-main call StartThreadPool");
 
     while (1) {}
 }

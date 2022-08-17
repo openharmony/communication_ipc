@@ -52,6 +52,7 @@ using namespace IPC_SINGLE;
 #endif
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectProxy" };
+
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {

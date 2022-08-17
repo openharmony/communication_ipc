@@ -21,13 +21,7 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_ashmem" };
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
+
 static constexpr int MMAP_PROT_MAX = NAPIAshmem::PROT_EXEC | NAPIAshmem::PROT_READ | NAPIAshmem::PROT_WRITE;
 constexpr size_t BYTE_SIZE_32 = 4;
 
@@ -210,7 +204,7 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
     if (result == nullptr) {
-        DBINDER_LOGE("ashmem->ReadFromAshmem returns null");
+        ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
         return nullptr;
     }
     // c++ byte[] to js []
@@ -389,7 +383,7 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
     napi_status status = napi_wrap(
         env, thisVar, napiAshmem,
         [](napi_env env, void *data, void *hint) {
-            DBINDER_LOGI("Ashmem destructed by js callback");
+            ZLOGI(LOG_LABEL, "Ashmem destructed by js callback");
             delete (reinterpret_cast<NAPIAshmem *>(data));
         },
         nullptr, nullptr);
