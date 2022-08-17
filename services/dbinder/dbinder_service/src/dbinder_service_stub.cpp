@@ -24,15 +24,17 @@
 #include "ipc_skeleton.h"
 
 namespace OHOS {
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderServiceStub" };
+
 DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::string &device, binder_uintptr_t object)
     : IPCObjectStub(Str8ToStr16(device + service)), serviceName_(service), deviceID_(device), binderObject_(object)
 {
-    DBINDER_LOGI("new DBinderServiceStub created");
+    DBINDER_LOGI(LOG_LABEL, "new DBinderServiceStub created");
 }
 
 DBinderServiceStub::~DBinderServiceStub()
 {
-    DBINDER_LOGI("DBinderServiceStub delete");
+    DBINDER_LOGI(LOG_LABEL, "DBinderServiceStub delete");
 }
 
 const std::string &DBinderServiceStub::GetServiceName()
@@ -56,28 +58,27 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
     int result = ERR_NONE;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
-        DBINDER_LOGE("DBinderService is nullptr");
+        DBINDER_LOGE(LOG_LABEL, "DBinderService is nullptr");
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
     auto session = dBinderService->QuerySessionObject(reinterpret_cast<binder_uintptr_t>(this));
     if (session == nullptr) {
-        DBINDER_LOGE("client find session is null");
+        DBINDER_LOGE(LOG_LABEL, "client find session is null");
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
-    DBINDER_LOGI("stubIndex = %" PRIu64 ", socketFd = %" PRIu32 "", session->stubIndex, session->socketFd);
-    DBINDER_LOGI("serviceName = %s", session->serviceName.c_str());
+    DBINDER_LOGI(LOG_LABEL, "serviceName = %s", session->serviceName.c_str());
 
     int uid = IPCSkeleton::GetCallingUid();
     int pid = IPCSkeleton::GetCallingPid();
     if (uid < 0 || pid < 0) {
-        DBINDER_LOGE("uid or pid err");
+        DBINDER_LOGE(LOG_LABEL, "uid or pid err");
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
     std::string localBusName = dBinderService->CreateDatabusName(uid, pid);
     if (localBusName.empty()) {
-        DBINDER_LOGE("local busname nil");
+        DBINDER_LOGE(LOG_LABEL, "local busname nil");
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
@@ -87,13 +88,13 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
                 !reply.WriteString(session->serviceName) || !reply.WriteString(session->deviceIdInfo.toDeviceId) ||
                 !reply.WriteString(session->deviceIdInfo.fromDeviceId) || !reply.WriteString(localBusName) ||
                 !reply.WriteUint32(session->rpcFeatureSet)) {
-                DBINDER_LOGE("write to parcel fail");
+                DBINDER_LOGE(LOG_LABEL, "write to parcel fail");
                 return DBINDER_SERVICE_PROCESS_PROTO_ERR;
             }
             break;
         }
         default: {
-            DBINDER_LOGE("Invalid Type");
+            DBINDER_LOGE(LOG_LABEL, "Invalid Type");
             return DBINDER_SERVICE_PROCESS_PROTO_ERR;
         }
     }
@@ -115,7 +116,7 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
             break;
         }
         default: {
-            DBINDER_LOGI("unknown code = %{public}u", code);
+            DBINDER_LOGI(LOG_LABEL, "unknown code = %{public}u", code);
             result = DBINDER_SERVICE_UNKNOW_TRANS_ERR;
             break;
         }
@@ -142,13 +143,13 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     if (object == nullptr) {
-        DBINDER_LOGE("received proxy is null");
+        DBINDER_LOGE(LOG_LABEL, "received proxy is null");
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
     std::string sessionName = data.ReadString();
     if (sessionName.empty()) {
-        DBINDER_LOGE("received sessionName is null");
+        DBINDER_LOGE(LOG_LABEL, "received sessionName is null");
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
@@ -157,28 +158,28 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
 
     // If the client dies, notify DBS to delete information of callbackProxy
     if (!callbackProxy->AddDeathRecipient(death)) {
-        DBINDER_LOGE("fail to add death recipient");
+        DBINDER_LOGE(LOG_LABEL, "fail to add death recipient");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
-        DBINDER_LOGE("dBinder service is null");
+        DBINDER_LOGE(LOG_LABEL, "dBinder service is null");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     if (!dBinderService->AttachDeathRecipient(object, death)) {
-        DBINDER_LOGE("fail to attach death recipient");
+        DBINDER_LOGE(LOG_LABEL, "fail to attach death recipient");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     if (!dBinderService->AttachCallbackProxy(object, this)) {
-        DBINDER_LOGE("fail to attach callback proxy");
+        DBINDER_LOGE(LOG_LABEL, "fail to attach callback proxy");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     if (!dBinderService->AttachBusNameObject(callbackProxy, sessionName)) {
-        DBINDER_LOGE("fail to attach sessionName for callback proxy");
+        DBINDER_LOGE(LOG_LABEL, "fail to attach sessionName for callback proxy");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
@@ -189,7 +190,7 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     if (object == nullptr) {
-        DBINDER_LOGE("received proxy is null");
+        DBINDER_LOGE(LOG_LABEL, "received proxy is null");
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
@@ -197,7 +198,7 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
 
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
-        DBINDER_LOGE("dBinder service is null");
+        DBINDER_LOGE(LOG_LABEL, "dBinder service is null");
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
@@ -208,17 +209,17 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     }
 
     if (!dBinderService->DetachDeathRecipient(object)) {
-        DBINDER_LOGE("fail to detach death recipient");
+        DBINDER_LOGE(LOG_LABEL, "fail to detach death recipient");
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
     if (!dBinderService->DetachCallbackProxy(object)) {
-        DBINDER_LOGE("fail to detach callback proxy");
+        DBINDER_LOGE(LOG_LABEL, "fail to detach callback proxy");
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
     if (!dBinderService->DetachBusNameObject(callbackProxy)) {
-        DBINDER_LOGE("fail to deatch sessionName for callback proxy");
+        DBINDER_LOGE(LOG_LABEL, "fail to deatch sessionName for callback proxy");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 

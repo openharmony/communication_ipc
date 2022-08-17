@@ -28,15 +28,7 @@ using namespace OHOS;
 using namespace OHOS::DistributeSystemTest;
 using namespace OHOS::HiviewDFX;
 
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderTestAgent" };
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
 
 class DbinderTestAgent : public DistributedAgent {
 public:
@@ -59,7 +51,7 @@ DbinderTestAgent::DbinderTestAgent()
     std::string pkgName = "dbinderService";
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        DBINDER_LOGE("Get local node device info failed");
+        DBINDER_LOGE(LOG_LABEL, "Get local node device info failed");
         return;
     }
     std::string networkId(nodeBasicInfo.networkId);
@@ -70,14 +62,14 @@ DbinderTestAgent::~DbinderTestAgent() {}
 
 bool DbinderTestAgent::SetUp()
 {
-    DBINDER_LOGI("enter SetUp");
+    DBINDER_LOGI(LOG_LABEL, "enter SetUp");
     StartDBinderServiceTestService();
     return true;
 }
 
 bool DbinderTestAgent::TearDown()
 {
-    DBINDER_LOGI("enter TearDown");
+    DBINDER_LOGI(LOG_LABEL, "enter TearDown");
     KillService();
     return true;
 }
@@ -99,12 +91,12 @@ int DbinderTestAgent::OnProcessMsg(const std::string &strMsg, int len, std::stri
 int DbinderTestAgent::OnProcessCmd(const std::string &strCommand, int cmdLen, const std::string &strArgs, int argsLen,
     const std::string &strExpectValue, int expectValueLen)
 {
-    DBINDER_LOGI("enter OnProcessCmd");
+    DBINDER_LOGI(LOG_LABEL, "enter OnProcessCmd");
     if (strCommand == "KILL") {
-        DBINDER_LOGI("strCommand = %{public}s, strArgs = %{public}s", strCommand.c_str(), strArgs.c_str());
+        DBINDER_LOGI(LOG_LABEL, "strCommand = %{public}s, strArgs = %{public}s", strCommand.c_str(), strArgs.c_str());
         KillService();
     } else if (strCommand == "RESTART") {
-        DBINDER_LOGI("strCommand = %{public}s, strArgs = %{public}s", strCommand.c_str(), strArgs.c_str());
+        DBINDER_LOGI(LOG_LABEL, "strCommand = %{public}s, strArgs = %{public}s", strCommand.c_str(), strArgs.c_str());
         RestartService();
     } else {
         return DistributedAgent::OnProcessCmd(strCommand, cmdLen, strArgs, argsLen, strExpectValue, expectValueLen);
@@ -115,13 +107,13 @@ int DbinderTestAgent::OnProcessCmd(const std::string &strCommand, int cmdLen, co
 
 void DbinderTestAgent::KillService() const
 {
-    DBINDER_LOGI("enter KillService");
+    DBINDER_LOGI(LOG_LABEL, "enter KillService");
     StopDBinderServiceTestService();
 }
 
 void DbinderTestAgent::RestartService() const
 {
-    DBINDER_LOGI("enter RestartService");
+    DBINDER_LOGI(LOG_LABEL, "enter RestartService");
     StartDBinderServiceTestService();
 }
 
@@ -133,12 +125,12 @@ int main()
         obj.Start("agent.desc");
         obj.Join();
     } else {
-        DBINDER_LOGE("Init environment failed.");
+        DBINDER_LOGE(LOG_LABEL, "Init environment failed.");
     }
     if (obj.TearDown()) {
         return 0;
     } else {
-        DBINDER_LOGE("Clear environment failed.");
+        DBINDER_LOGE(LOG_LABEL, "Clear environment failed.");
         return -1;
     }
 }

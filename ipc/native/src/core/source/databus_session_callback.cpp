@@ -22,33 +22,23 @@
 #include "log_tags.h"
 
 namespace OHOS {
-#ifndef TITLE
-#define TITLE __PRETTY_FUNCTION__
-#endif
-
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DatabusSessionCallback" };
-#define DBINDER_LOGE(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-#define DBINDER_LOGI(fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, TITLE, __LINE__, ##args)
-
 int DatabusSessionCallback::OnSessionOpened(std::shared_ptr<Session> session)
 {
     if (session->GetChannelId() < 0) {
-        DBINDER_LOGE("fail to open session because of wrong channel ID");
+        ZLOGE(LOG_LABEL, "fail to open session because of wrong channel ID");
         return SESSION_WRONG_FD_ERR;
     }
 
     if (!session->IsServerSide()) {
-        DBINDER_LOGI("active end");
+        ZLOGI(LOG_LABEL, "active end");
         return 0;
     }
 
-    DBINDER_LOGI("passive end");
+    ZLOGI(LOG_LABEL, "passive end");
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
-        DBINDER_LOGE("fail to get invoker");
+        ZLOGE(LOG_LABEL, "fail to get invoker");
         return SESSION_INVOKER_NULL_ERR;
     }
 
@@ -60,7 +50,7 @@ void DatabusSessionCallback::OnSessionClosed(std::shared_ptr<Session> session)
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
-        DBINDER_LOGE("fail to get invoker");
+        ZLOGE(LOG_LABEL, "fail to get invoker");
         return;
     }
 
@@ -69,11 +59,11 @@ void DatabusSessionCallback::OnSessionClosed(std::shared_ptr<Session> session)
 
 void DatabusSessionCallback::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
 {
-    DBINDER_LOGI("OnBytesReceived len: %{public}u", static_cast<uint32_t>(len));
+    ZLOGI(LOG_LABEL, "OnBytesReceived len: %{public}u", static_cast<uint32_t>(len));
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
-        DBINDER_LOGE("fail to get invoker");
+        ZLOGE(LOG_LABEL, "fail to get invoker");
         return;
     }
 
