@@ -125,7 +125,7 @@ bool DbinderTest::GetRemoteDeviceId()
  * @tc.desc: Verify local client can acquire registered system ability
  * and invoke remote function on remote server.
  * @tc.type: FUNC
- * @tc.require: SR000CS1C1/SR000CS1CA/SR000CUFFU
+ * @tc.require: SR000CS1C1 SR000CS1CA SR000CUFFU I5GORX
  */
 HWTEST_F(DbinderTest, DbinderRemoteCall001, TestSize.Level3)
 {
@@ -157,7 +157,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall001, TestSize.Level3)
  * @tc.name: DbinderRemoteCall002
  * @tc.desc: Verify local client cannot acquire unregistered system ability
  * @tc.type: FUNC
- * @tc.require: SR000CS1C1/SR000CS1CA/SR000CUFFU
+ * @tc.require: SR000CS1C1 SR000CS1CA SR000CUFFU I5GORX
  */
 HWTEST_F(DbinderTest, DbinderRemoteCall002, TestSize.Level3)
 {
