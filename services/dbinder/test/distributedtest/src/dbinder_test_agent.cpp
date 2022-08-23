@@ -36,7 +36,7 @@ public:
     ~DbinderTestAgent();
     virtual bool SetUp();
     virtual bool TearDown();
-    virtual int OnProcessMsg(const std::string &strMsg, int len, std::string &strReturnValue, int returnBufLen);
+    virtual int OnProcessMsg(const std::string &strMsg, int len, std::string &strReturnValue, int returnValueLen);
     virtual int OnProcessCmd(const std::string &strCommand, int cmdLen, const std::string &strArgs, int argsLen,
         const std::string &strExpectValue, int expectValueLen);
 
@@ -75,7 +75,8 @@ bool DbinderTestAgent::TearDown()
 }
 
 // from test framework
-int DbinderTestAgent::OnProcessMsg(const std::string &strMsg, int len, std::string &strReturnValue, int returnValueLen)
+int DbinderTestAgent::OnProcessMsg(const std::string &strMsg, int len, std::string &strReturnValue,
+    int returnValueLen)
 {
     std::string msg = "Ask Device ID";
     if (strncmp(msg.c_str(), strMsg.c_str(), len) == 0) {
