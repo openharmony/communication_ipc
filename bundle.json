@@ -18,6 +18,9 @@
         "mini"
       ],
       "features": [],
+      "syscap":[
+        "SystemCapability.Communication.IPC.Core"
+      ],
       "rom": "500KB",
       "ram": "100KB",
       "deps": {
