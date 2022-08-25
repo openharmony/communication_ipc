@@ -208,7 +208,7 @@ int TestAbilityProxy::TestPingService(const std::u16string &dummy) {
 
 Send a request synchronously or asynchronously.
 
-The  **MessageOption**  parameter for the  **sendRequest\(\)**  method can be set to  **TF\_SYNC**,  **TF\_ASYNC**, Using the  **MessageOption**  constructor or  **void SetFlags\(int flags\)**. The default value is  **TF\_SYNC**.
+The  **MessageOption**  parameter for the  **sendRequest\(\)**  method can be set to  **TF\_SYNC**,  **TF\_ASYNC**, using the  **MessageOption**  constructor or  **void SetFlags\(int flags\)**. The default value is  **TF\_SYNC**.
 
 ```
 int SendRequest(uint32_t code, MessageParcel &data,
