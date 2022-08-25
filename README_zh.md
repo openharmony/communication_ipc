@@ -386,12 +386,13 @@ deps = [
 
 5. 同步调用与异步调用
 
-   essageOption作为发送接口（原型如下）的入参，可设定同步（TF\_SYNC）、异步（TF\_ASYNC）、接收FD（TF\_ACCEPT\_FDS），默认情况下设定为同步，其余可通过MessageOption构造方法或void SetFlags\(int flags\)设定。
+   MessageOption作为发送接口（原型如下）的入参，可设定同步（TF\_SYNC）、异步（TF\_ASYNC），默认情况下设定为同步，其余可通过MessageOption构造方法或void SetFlags\(int flags\)设定。
 
    ```
    int SendRequest(uint32_t code, MessageParcel &data,
        MessageParcel &reply, MessageOption &option) override;
-   MessageOption option = { MessageOption::TF_ASYNC };
+   MessageOption option;
+   option.setFlags(option.TF_ASYNC);
    ```
 
    
