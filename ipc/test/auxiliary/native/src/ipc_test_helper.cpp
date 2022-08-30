@@ -20,11 +20,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "ipc_debug.h"
+#include "nativetoken_kit.h"
 #include "test_service_client.h"
-#include "nativetoken.h"
 #include "token_setproc.h"
-#include "softbus_common.h"
-#include "softbus_bus_center.h"
 
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
@@ -41,17 +39,14 @@ void AddPermission()
 {
     if (flag) {
         uint64_t tokenId;
-        const char *perms[2];
-        perms[0] = OHOS_PERMISSION_DISTRIBUTED_DATASYNC;
-        perms[1] = OHOS_PERMISSION_DISTRIBUTED_SOFTBUS_CENTER;
         NativeTokenInfoParams infoInstance = {
             .dcapsNum = 0,
-            .permsNum = 2,
+            .permsNum = 0,
             .aclsNum = 0,
             .dcaps = NULL,
-            .perms = perms,
+            .perms = NULL,
             .acls = NULL,
-            .processName = "com.softbus.test",
+            .processName = "com.ipc.test",
             .aplStr = "normal",
         };
         tokenId = GetAccessTokenId(&infoInstance);
@@ -82,7 +77,6 @@ const std::string &IPCTestHelper::GetTestAppName(int appId)
 IPCTestHelper::IPCTestHelper()
 {
     AddPermission();
-    PrepareTestSuite();
 }
 
 IPCTestHelper::~IPCTestHelper()
