@@ -20,7 +20,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "ipc_debug.h"
+#include "nativetoken_kit.h"
 #include "test_service_client.h"
+#include "token_setproc.h"
 
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
@@ -31,6 +33,27 @@ static const int SECOND_TO_MS = 1000;
 static const int ONE_SECOND = 1; // seconds
 static const int MAX_CHECK_COUNT = 10;
 static const int SIG_KILL = 9;
+static bool flag = true;
+
+void AddPermission()
+{
+    if (flag) {
+        uint64_t tokenId;
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 0,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = NULL,
+            .acls = NULL,
+            .processName = "com.ipc.test",
+            .aplStr = "normal",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        flag = false;
+    }
+}
 
 const std::string &IPCTestHelper::GetTestAppName(int appId)
 {
@@ -49,6 +72,11 @@ const std::string &IPCTestHelper::GetTestAppName(int appId)
     }
 
     return appNames[IPC_TEST_NONE];
+}
+
+IPCTestHelper::IPCTestHelper()
+{
+    AddPermission();
 }
 
 IPCTestHelper::~IPCTestHelper()
