@@ -797,7 +797,8 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
     napi_value funcArg[1] = { thisVar };
     napi_value callResult = nullptr;
     napi_call_function(env, argv[0], prop, 1, funcArg, &callResult);
-    if (callResult != nullptr) {
+    napi_typeof(env, callResult, &valueType);
+    if (callResult != nullptr && valueType != napi_undefined) {
         return callResult;
     }
     ZLOGE(LOG_LABEL, "call mashalling failed");
@@ -852,7 +853,8 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
         napi_value funcArg[1] = { thisVar };
         napi_value callResult = nullptr;
         napi_call_function(env, element, prop, 1, funcArg, &callResult);
-        if (callResult == nullptr) {
+        napi_typeof(env, callResult, &valueType);
+        if (callResult == nullptr || valueType == napi_undefined) {
             ZLOGE(LOG_LABEL, "call mashalling failed, element index: %{public}zu", i);
             napiParcel->nativeParcel_->RewindWrite(pos);
             return retValue;
