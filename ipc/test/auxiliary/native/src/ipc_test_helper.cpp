@@ -21,6 +21,10 @@
 #include <unistd.h>
 #include "ipc_debug.h"
 #include "test_service_client.h"
+#include "nativetoken.h"
+#include "token_setproc.h"
+#include "softbus_common.h"
+#include "softbus_bus_center.h"
 
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
@@ -31,6 +35,30 @@ static const int SECOND_TO_MS = 1000;
 static const int ONE_SECOND = 1; // seconds
 static const int MAX_CHECK_COUNT = 10;
 static const int SIG_KILL = 9;
+static bool flag = true;
+
+void AddPermission()
+{
+    if (flag) {
+        uint64_t tokenId;
+        const char *perms[2];
+        perms[0] = OHOS_PERMISSION_DISTRIBUTED_DATASYNC;
+        perms[1] = OHOS_PERMISSION_DISTRIBUTED_SOFTBUS_CENTER;
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 2,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = perms,
+            .acls = NULL,
+            .processName = "com.softbus.test",
+            .aplStr = "normal",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        flag = false;
+    }
+}
 
 const std::string &IPCTestHelper::GetTestAppName(int appId)
 {
@@ -49,6 +77,12 @@ const std::string &IPCTestHelper::GetTestAppName(int appId)
     }
 
     return appNames[IPC_TEST_NONE];
+}
+
+IPCTestHelper::IPCTestHelper()
+{
+    AddPermission();
+    PrepareTestSuite();
 }
 
 IPCTestHelper::~IPCTestHelper()

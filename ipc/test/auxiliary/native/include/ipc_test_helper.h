@@ -40,7 +40,7 @@ public:
         IPC_TEST_NONE = 0xFF,
     };
 
-    IPCTestHelper() = default;
+    IPCTestHelper();
     ~IPCTestHelper();
     static const std::string &GetTestAppName(int appId);
     pid_t GetPidByName(std::string task_name);
