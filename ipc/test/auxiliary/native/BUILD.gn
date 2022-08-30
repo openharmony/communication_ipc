@@ -20,8 +20,6 @@ ohos_shared_library("ipc_test_helper") {
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "//utils/system/safwk/native/include",
-    "//foudation/communication/dsoftbus/interfaces/kits/common",
-    "//foudation/communication/dsoftbus/interfaces/kits/bus_center",
   ]
 
   sources = [
@@ -101,8 +99,6 @@ ohos_shared_library("ipc_test_helper_extra") {
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "//utils/system/safwk/native/include",
-    "//foudation/communication/dsoftbus/interfaces/kits/common",
-    "//foudation/communication/dsoftbus/interfaces/kits/bus_center",
   ]
 
   sources = [
