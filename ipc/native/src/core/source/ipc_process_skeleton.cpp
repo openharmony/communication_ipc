@@ -124,13 +124,17 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
 std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
 {
     std::string descriptor = "IPCObjectProxy" + std::to_string(handle);
-    return to_utf16(descriptor);
+    return Str8ToStr16(descriptor);
 }
 
 sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 {
     sptr<IRemoteObject> result = nullptr;
     std::u16string descriptor = MakeHandleDescriptor(handle);
+    if (descriptor.length() == 0) {
+        ZLOGE(LOG_LABEL, "make handle descriptor failed");
+        return nullptr;
+    }
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
