@@ -30,6 +30,15 @@ EXTERN_C_START
     napi_value NAPIMessageOptionExport(napi_env env, napi_value exports);
 EXTERN_C_END
 
+    struct CallingInfo {
+        napi_value callingPid;
+        napi_value callingUid;
+        napi_value callingTokenId;
+        napi_value callingDeviceID;
+        napi_value localDeviceID;
+        napi_value isLocalCalling;
+        napi_value activeStatus;
+    };
     // IPCSkeleton napi methods
     napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info info);
 
@@ -70,6 +79,12 @@ EXTERN_C_END
 
     napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info);
 
+    void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, CallingInfo &oldCallingInfo);
+
+    void NAPI_RemoteObject_setNewCallingInfo(napi_env env);
+
+    void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, CallingInfo &oldCallingInfo);  
+
     // RemoteProxy napi methods
     napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info);
 
@@ -104,5 +119,6 @@ EXTERN_C_END
         std::string traceValue;
         int32_t traceId;
     };
+
 } // namespace OHOS
 #endif // NAPI_IPC_OHOS_REMOTE_OBJECT_H
