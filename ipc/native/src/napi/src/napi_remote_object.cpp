@@ -290,6 +290,8 @@ public:
 private:
     napi_env env_ = nullptr;
     napi_value thisVar_ = nullptr;
+    static napi_value ThenCallback(napi_env env, napi_callback_info info);
+    static napi_value CatchCallback(napi_env env, napi_callback_info info);
     napi_ref thisVarRef_ = nullptr;
     struct ThreadLockInfo {
         std::mutex mutex;
@@ -303,13 +305,7 @@ private:
         MessageParcel *data;
         MessageParcel *reply;
         MessageOption *option;
-        pid_t callingPid;
-        pid_t callingUid;
-        uint32_t callingTokenId;
-        std::string callingDeviceID;
-        std::string localDeviceID;
-        bool isLocalCalling;
-        int activeStatus;
+        CallingInfo callingInfo;
         ThreadLockInfo *lockInfo;
         int result;
     };
@@ -496,21 +492,23 @@ napi_ref NAPIRemoteObject::GetJsObjectRef() const
     return thisVarRef_;
 }
 
+void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
+{
+    newCallingInfoParam.callingPid = IPCSkeleton::GetCallingPid();
+    newCallingInfoParam.callingUid = IPCSkeleton::GetCallingUid();
+    newCallingInfoParam.callingTokenId = IPCSkeleton::GetCallingTokenID();
+    newCallingInfoParam.callingDeviceID = IPCSkeleton::GetCallingDeviceID();
+    newCallingInfoParam.localDeviceID = IPCSkeleton::GetLocalDeviceID();
+    newCallingInfoParam.isLocalCalling = IPCSkeleton::IsLocalCalling();
+    newCallingInfoParam.activeStatus = IRemoteInvoker::ACTIVE_INVOKER;
+};
+
 int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ZLOGI(LOG_LABEL, "enter OnRemoteRequest");
     if (code == DUMP_TRANSACTION) {
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
     }
-    pid_t callingPid = IPCSkeleton::GetCallingPid();
-    pid_t callingUid = IPCSkeleton::GetCallingUid();
-    uint32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
-    std::string callingDeviceID = IPCSkeleton::GetCallingDeviceID();
-    std::string localDeviceID = IPCSkeleton::GetLocalDeviceID();
-    bool isLocalCalling = IPCSkeleton::IsLocalCalling();
-    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u, callingDeviceID:%{public}s,\
-        localDeviceId:%{public}s, localCalling:%{public}d",
-        callingPid, callingUid, callingDeviceID.c_str(), localDeviceID.c_str(), isLocalCalling);
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     CallbackParam *param = new CallbackParam {
         .env = env_,
@@ -519,19 +517,114 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         .data = &data,
         .reply = &reply,
         .option = &option,
-        .callingPid = callingPid,
-        .callingUid = callingUid,
-        .callingTokenId = callingTokenId,
-        .callingDeviceID = callingDeviceID,
-        .localDeviceID = localDeviceID,
-        .isLocalCalling = isLocalCalling,
-        .activeStatus = IRemoteInvoker::ACTIVE_INVOKER,
         .lockInfo = lockInfo.get(),
         .result = 0
     };
+
+    NAPI_RemoteObject_getCallingInfo(param->callingInfo);
+    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u,"
+        "callingDeviceID:%{public}s, localDeviceId:%{public}s, localCalling:%{public}d",
+        param->callingInfo.callingPid, param->callingInfo.callingUid,
+        param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
+        param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
     ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
     return ret;
+}
+
+napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
+{
+    ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    void* data = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
+    CallbackParam *param = static_cast<CallbackParam *>(data);
+    bool result = false;
+    napi_get_value_bool(param->env, argv[0], &result);
+    if (!result) {
+        ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
+        param->result = ERR_UNKNOWN_TRANSACTION;
+    } else {
+        param->result = ERR_NONE;
+    }
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->ready = true;
+    param->lockInfo->condition.notify_all();
+    napi_value res;
+    napi_get_undefined(env, &res);
+    return res;
+}
+
+napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info)
+{
+    ZLOGI(LOG_LABEL, "Async onReomteReuqest's return_val is rejected");
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    void* data = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
+    CallbackParam *param = static_cast<CallbackParam *>(data);
+    param->result = ERR_UNKNOWN_TRANSACTION;
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->ready = true;
+    param->lockInfo->condition.notify_all();
+    napi_value res;
+    napi_get_undefined(env, &res);
+    return res;
+}
+
+void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
+{
+    napi_value global = nullptr;
+    napi_get_global(env, &global);
+    napi_get_named_property(env, global, "callingPid_", &oldCallingInfo.callingPid);
+    napi_get_named_property(env, global, "callingUid_", &oldCallingInfo.callingUid);
+    napi_get_named_property(env, global, "callingTokenId_", &oldCallingInfo.callingTokenId);
+    napi_get_named_property(env, global, "callingDeviceID_", &oldCallingInfo.callingDeviceID);
+    napi_get_named_property(env, global, "localDeviceID_", &oldCallingInfo.localDeviceID);
+    napi_get_named_property(env, global, "isLocalCalling_", &oldCallingInfo.isLocalCalling);
+    napi_get_named_property(env, global, "isLocalCalling_", &oldCallingInfo.isLocalCalling);
+    napi_get_named_property(env, global, "activeStatus_", &oldCallingInfo.activeStatus);
+}
+
+void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCallingInfoParam)
+{
+    napi_value global = nullptr;
+    napi_get_global(env, &global);
+    napi_value newPid;
+    napi_create_int32(env, static_cast<int32_t>(newCallingInfoParam.callingPid), &newPid);
+    napi_set_named_property(env, global, "callingPid_", newPid);
+    napi_value newUid;
+    napi_create_int32(env, static_cast<int32_t>(newCallingInfoParam.callingUid), &newUid);
+    napi_set_named_property(env, global, "callingUid_", newUid);
+    napi_value newCallingTokenId;
+    napi_create_uint32(env, newCallingInfoParam.callingTokenId, &newCallingTokenId);
+    napi_set_named_property(env, global, "callingTokenId_", newCallingTokenId);
+    napi_value newDeviceID;
+    napi_create_string_utf8(env, newCallingInfoParam.callingDeviceID.c_str(), NAPI_AUTO_LENGTH, &newDeviceID);
+    napi_set_named_property(env, global, "callingDeviceID_", newDeviceID);
+    napi_value newLocalDeviceID;
+    napi_create_string_utf8(env, newCallingInfoParam.localDeviceID.c_str(), NAPI_AUTO_LENGTH, &newLocalDeviceID);
+    napi_set_named_property(env, global, "localDeviceID_", newLocalDeviceID);
+    napi_value newIsLocalCalling;
+    napi_get_boolean(env, newCallingInfoParam.isLocalCalling, &newIsLocalCalling);
+    napi_set_named_property(env, global, "isLocalCalling_", newIsLocalCalling);
+    napi_value newActiveStatus;
+    napi_create_int32(env, newCallingInfoParam.activeStatus, &newActiveStatus);
+    napi_set_named_property(env, global, "activeStatus_", newActiveStatus);
+}
+
+void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
+{    
+    napi_value global = nullptr;
+    napi_get_global(env, &global);
+    napi_set_named_property(env, global, "callingPid_", oldCallingInfo.callingPid);
+    napi_set_named_property(env, global, "callingUid_", oldCallingInfo.callingUid);
+    napi_set_named_property(env, global, "callingTokenId_", oldCallingInfo.callingTokenId);
+    napi_set_named_property(env, global, "callingDeviceID_", oldCallingInfo.callingDeviceID);
+    napi_set_named_property(env, global, "localDeviceID_", oldCallingInfo.localDeviceID);
+    napi_set_named_property(env, global, "isLocalCalling_", oldCallingInfo.isLocalCalling);
+    napi_set_named_property(env, global, "activeStatus_", oldCallingInfo.activeStatus);
 }
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
@@ -561,7 +654,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->condition.notify_all();
             return;
         }
-        napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
+        napi_get_named_property(param->env, thisVar, "onRemoteRequestEx", &onRemoteRequest);
         if (onRemoteRequest == nullptr) {
             ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
             param->result = -1;
@@ -569,6 +662,19 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             return;
+        }
+        napi_valuetype type = napi_undefined;
+        napi_typeof(param->env, onRemoteRequest, &type);
+        if (type != napi_function) {
+            napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
+            if (onRemoteRequest == nullptr) {
+                ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
+                param->result = -1;
+                std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+                param->lockInfo->ready = true;
+                param->lockInfo->condition.notify_all();
+                return;
+            }
         }
         napi_value jsCode;
         napi_create_uint32(param->env, param->code, &jsCode);
@@ -663,73 +769,91 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->condition.notify_all();
             return;
         }
-        // save old calling pid, uid, device id
-        napi_get_global(param->env, &global);
-        napi_value oldPid;
-        napi_get_named_property(param->env, global, "callingPid_", &oldPid);
-        napi_value oldUid;
-        napi_get_named_property(param->env, global, "callingUid_", &oldUid);
-        napi_value oldCallingTokenId;
-        napi_get_named_property(param->env, global, "callingTokenId_", &oldCallingTokenId);
-        napi_value oldCallingDeviceID;
-        napi_get_named_property(param->env, global, "callingDeviceID_", &oldCallingDeviceID);
-        napi_value oldLocalDeviceID;
-        napi_get_named_property(param->env, global, "localDeviceID_", &oldLocalDeviceID);
-        napi_value oldIsLocalCalling;
-        napi_get_named_property(param->env, global, "isLocalCalling_", &oldIsLocalCalling);
-        napi_value oldActiveStatus;
-        napi_get_named_property(param->env, global, "activeStatus_", &oldActiveStatus);
-
-        // set new calling pid, uid, device id
-        napi_value newPid;
-        napi_create_int32(param->env, static_cast<int32_t>(param->callingPid), &newPid);
-        napi_set_named_property(param->env, global, "callingPid_", newPid);
-        napi_value newUid;
-        napi_create_int32(param->env, static_cast<int32_t>(param->callingUid), &newUid);
-        napi_set_named_property(param->env, global, "callingUid_", newUid);
-        napi_value newCallingTokenId;
-        napi_create_uint32(param->env, param->callingTokenId, &newCallingTokenId);
-        napi_set_named_property(param->env, global, "callingTokenId_", newCallingTokenId);
-        napi_value newDeviceID;
-        napi_create_string_utf8(param->env, param->callingDeviceID.c_str(), NAPI_AUTO_LENGTH, &newDeviceID);
-        napi_set_named_property(param->env, global, "callingDeviceID_", newDeviceID);
-        napi_value newLocalDeviceID;
-        napi_create_string_utf8(param->env, param->localDeviceID.c_str(), NAPI_AUTO_LENGTH, &newLocalDeviceID);
-        napi_set_named_property(param->env, global, "localDeviceID_", newLocalDeviceID);
-        napi_value newIsLocalCalling;
-        napi_get_boolean(param->env, param->isLocalCalling, &newIsLocalCalling);
-        napi_set_named_property(param->env, global, "isLocalCalling_", newIsLocalCalling);
-        napi_value newActiveStatus;
-        napi_create_int32(param->env, param->activeStatus, &newActiveStatus);
-        napi_set_named_property(param->env, global, "activeStatus_", newActiveStatus);
-
+        NAPI_CallingInfo oldCallingInfo;
+        NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
+        NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
         // start to call onRemoteRequest
         size_t argc2 = 4;
         napi_value argv2[] = { jsCode, jsData, jsReply, jsOption };
         napi_value return_val;
         napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc2, argv2, &return_val);
-        ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
-        if (ret != napi_ok) {
-            ZLOGE(LOG_LABEL, "OnRemoteRequest got exception");
-            param->result = ERR_UNKNOWN_TRANSACTION;
-        } else {
-            bool result = false;
-            napi_get_value_bool(param->env, return_val, &result);
-            if (!result) {
-                ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
-                param->result = ERR_UNKNOWN_TRANSACTION;
-            } else {
-                param->result = ERR_NONE;
-            }
-        }
+        // Reset old calling pid, uid, device id
+        NAPI_RemoteObject_resetOldCallingInfo(param->env, oldCallingInfo);
 
-        napi_set_named_property(param->env, global, "callingPid_", oldPid);
-        napi_set_named_property(param->env, global, "callingUid_", oldUid);
-        napi_set_named_property(param->env, global, "callingTokenId_", oldCallingTokenId);
-        napi_set_named_property(param->env, global, "callingDeviceID_", oldCallingDeviceID);
-        napi_set_named_property(param->env, global, "localDeviceID_", oldLocalDeviceID);
-        napi_set_named_property(param->env, global, "isLocalCalling_", oldIsLocalCalling);
-        napi_set_named_property(param->env, global, "activeStatus_", oldActiveStatus);
+        do {
+            if (ret != napi_ok) {
+                ZLOGE(LOG_LABEL, "OnRemoteRequest got exception");
+                param->result = ERR_UNKNOWN_TRANSACTION;
+                break;
+            }
+
+            ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
+            // Check whether return_val is Promise
+            bool returnIsPromise = false;//
+            napi_is_promise(param->env, return_val, &returnIsPromise);
+            if (!returnIsPromise) {
+                ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
+                bool result = false;
+                napi_get_value_bool(param->env, return_val, &result);
+                if (!result) {
+                    ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
+                    param->result = ERR_UNKNOWN_TRANSACTION;
+                } else {
+                    param->result = ERR_NONE;
+                }
+                break;
+            }
+
+            ZLOGD(LOG_LABEL, "onRemoteRequest is asynchronous");
+            // Create promiseThen
+            napi_value promiseThen = nullptr;
+            napi_get_named_property(param->env, return_val, "then", &promiseThen);
+            if (promiseThen == nullptr) {
+                ZLOGE(LOG_LABEL, "get promiseThen failed");
+                param->result = -1;
+                break;
+            }
+            napi_value then_value;
+            ret = napi_create_function(param->env, "thenCallback", NAPI_AUTO_LENGTH, ThenCallback, param, &then_value);
+            if (ret != napi_ok) {
+                ZLOGE(LOG_LABEL, "thenCallback got exception");
+                param->result = ERR_UNKNOWN_TRANSACTION;
+                break;
+            }
+            // Start to call promiseThen
+            napi_value then_return_value;
+            ret = napi_call_function(param->env, return_val, promiseThen, 1, &then_value, &then_return_value);
+            if (ret != napi_ok) {
+                ZLOGE(LOG_LABEL, "PromiseThen got exception");
+                param->result = ERR_UNKNOWN_TRANSACTION;
+                break;
+            }
+            // Create promiseCatch 
+            napi_value promiseCatch = nullptr;
+            napi_get_named_property(param->env, return_val, "catch", &promiseCatch);
+            if (promiseCatch == nullptr) {
+                ZLOGE(LOG_LABEL, "get promiseCatch failed");
+                param->result = -1;
+                break;
+            }
+            napi_value catch_value;
+            ret = napi_create_function(param->env, "catchCallback", NAPI_AUTO_LENGTH, CatchCallback, param, &catch_value);
+            if (ret != napi_ok) {
+                ZLOGE(LOG_LABEL, "catchCallback got exception");
+                param->result = ERR_UNKNOWN_TRANSACTION;
+                break;
+            }
+            // Start to call promiseCatch
+            napi_value catch_return_value;
+            ret = napi_call_function(param->env, return_val, promiseCatch, 1, &catch_value, &catch_return_value);
+            if (ret != napi_ok) {
+                ZLOGE(LOG_LABEL, "PromiseCatch got exception");
+                param->result = ERR_UNKNOWN_TRANSACTION;
+                break;
+            }
+            return;
+        } while (0);
+
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         param->lockInfo->ready = true;
         param->lockInfo->condition.notify_all();
