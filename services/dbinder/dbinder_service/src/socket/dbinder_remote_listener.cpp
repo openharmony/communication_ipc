@@ -140,7 +140,14 @@ int DBinderRemoteListener::OnSessionOpened(std::shared_ptr<Session> session)
 
 void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
 {
-    DBINDER_LOGI(LOG_LABEL, "peer session name = %{public}s is closed", session->GetPeerSessionName().c_str());
+    if (session->IsServerSide()) {
+        DBINDER_LOGI(LOG_LABEL, "server peer session name = %{public}s is closed",
+            session->GetPeerSessionName().c_str());
+        return;
+    }
+    DBINDER_LOGI(LOG_LABEL, "client peer session name = %{public}s is closed",
+        session->GetPeerSessionName().c_str());
+    dBinderService_->ProcessOnSessionClosed(session);
 }
 
 void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)

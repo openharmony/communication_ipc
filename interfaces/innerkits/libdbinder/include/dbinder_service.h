@@ -28,6 +28,9 @@
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "rpc_system_ability_callback.h"
+#include "Session.h"
+
+using Communication::SoftBus::Session;
 
 namespace OHOS {
 class DBinderRemoteListener;
@@ -80,6 +83,7 @@ enum DBinderCode {
     MESSAGE_AS_INVOKER          = 1,
     MESSAGE_AS_REPLY            = 2,
     MESSAGE_AS_OBITUARY         = 3,
+    MESSAGE_AS_REMOTE_ERROR     = 4,
 };
 
 enum AfType {
@@ -90,6 +94,7 @@ enum AfType {
 
 struct ThreadLockInfo {
     std::mutex mutex;
+    std::string networkId;
     std::condition_variable condition;
     bool ready = false;
 };
@@ -121,6 +126,7 @@ public:
     std::string QueryBusNameObject(IPCObjectProxy *proxy);
     void LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
         const sptr<IRemoteObject>& remoteObject);
+    void ProcessOnSessionClosed(std::shared_ptr<Session> session);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
@@ -129,12 +135,13 @@ private:
     static std::string ConvertToSecureDeviceID(const std::string &deviceID);
     std::u16string GetRegisterService(binder_uintptr_t binderObject);
     bool InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
-    bool OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage);
+    void OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage);
     void MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage);
     bool OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message);
     void WakeupThreadByStub(uint32_t seqNumber);
     void DetachThreadLockInfo(uint32_t seqNumber);
-    bool AttachThreadLockInfo(uint32_t seqNumber, std::shared_ptr<struct ThreadLockInfo> object);
+    bool AttachThreadLockInfo(uint32_t seqNumber, const std::string &networkId,
+        std::shared_ptr<struct ThreadLockInfo> object);
     std::shared_ptr<struct ThreadLockInfo> QueryThreadLockInfo(uint32_t seqNumber);
     bool AttachProxyObject(sptr<IRemoteObject> object, binder_uintptr_t binderObject);
     sptr<IRemoteObject> QueryProxyObject(binder_uintptr_t binderObject);
@@ -172,6 +179,8 @@ private:
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
         std::shared_ptr<DHandleEntryTxRx> loadSaItem);
     std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    void OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage);
+    void SendMessageToRemote(uint32_t dBinderCode, std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
