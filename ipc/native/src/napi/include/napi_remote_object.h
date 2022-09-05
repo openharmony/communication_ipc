@@ -31,6 +31,16 @@ EXTERN_C_START
 EXTERN_C_END
 
     struct CallingInfo {
+        pid_t callingPid;
+        pid_t callingUid;
+        uint32_t callingTokenId;
+        std::string callingDeviceID;
+        std::string localDeviceID;
+        bool isLocalCalling;
+        int activeStatus;
+    };
+
+    struct NAPI_CallingInfo {
         napi_value callingPid;
         napi_value callingUid;
         napi_value callingTokenId;
@@ -79,11 +89,13 @@ EXTERN_C_END
 
     napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info);
 
-    void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, CallingInfo &oldCallingInfo);
+    void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam);
 
-    void NAPI_RemoteObject_setNewCallingInfo(napi_env env);
+    void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo);
 
-    void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, CallingInfo &oldCallingInfo);  
+    void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCallingInfoParam);
+
+    void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo);  
 
     // RemoteProxy napi methods
     napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info);
