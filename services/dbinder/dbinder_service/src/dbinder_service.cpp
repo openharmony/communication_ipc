@@ -23,9 +23,9 @@
 #include "dbinder_service_stub.h"
 #include "dbinder_remote_listener.h"
 #include "dbinder_error_code.h"
-#include "softbus_bus_center.h"
 #include "dbinder_sa_death_recipient.h"
 #include "rpc_feature_set.h"
+#include "softbus_bus_center.h"
 
 namespace OHOS {
 using namespace Communication;
@@ -361,7 +361,7 @@ bool DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, u
 
     /* pend to wait reply */
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
-    result = AttachThreadLockInfo(seqNumber, threadLockInfo);
+    result = AttachThreadLockInfo(seqNumber, stub->GetDeviceID(), threadLockInfo);
     if (result != true) {
         DBINDER_LOGE(LOG_LABEL, "attach lock info fail");
         return false;
@@ -426,9 +426,6 @@ std::shared_ptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::strin
 void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
     const sptr<IRemoteObject>& remoteObject)
 {
-    if (remoteObject == nullptr) {
-        DBINDER_LOGW(LOG_LABEL, "GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
-    }
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     while (true) {
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage = PopLoadSaItem(srcNetworkId, systemAbilityId);
@@ -436,6 +433,8 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             break;
         }
         if (remoteObject == nullptr) {
+            SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
+            DBINDER_LOGE(LOG_LABEL, "GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
             continue;
         }
         binder_uintptr_t binderObject = replyMessage->binderObject;
@@ -444,34 +443,43 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             /* When the stub object dies, you need to delete the corresponding busName information */
             sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
             if (!saProxy->AddDeathRecipient(death)) {
+                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
                 DBINDER_LOGE(LOG_LABEL, "fail to add death recipient");
                 continue;
             }
             if (!AttachProxyObject(remoteObject, binderObject)) {
+                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
                 DBINDER_LOGE(LOG_LABEL, "attach proxy object fail");
                 continue;
             }
         }
         std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
         if (replyMessage->transType != IRemoteObject::DATABUS_TYPE) {
+            SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
             DBINDER_LOGE(LOG_LABEL, "Invalid Message Type");
         } else {
             if (!OnRemoteInvokerDataBusMessage(saProxy, replyMessage.get(), deviceId,
                 replyMessage->pid, replyMessage->uid)) {
+                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
                 continue;
             }
-        }
-        std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
-        if (remoteListener == nullptr) {
-            DBINDER_LOGE(LOG_LABEL, "remoteListener is null");
-            continue;
-        }
-        if (!remoteListener->SendDataToRemote(deviceId, replyMessage.get())) {
-            DBINDER_LOGE(LOG_LABEL, "fail to send data from server DBS to client DBS");
-            continue;
+            SendMessageToRemote(MESSAGE_AS_REPLY, replyMessage);
         }
     }
     DBINDER_LOGI(LOG_LABEL, "LoadSystemAbility complete");
+}
+
+void DBinderService::SendMessageToRemote(uint32_t binderCode, std::shared_ptr<struct DHandleEntryTxRx> replyMessage)
+{
+    std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
+    if (remoteListener == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "remoteListener is null");
+        return;
+    }
+    replyMessage->dBinderCode = binderCode;
+    if (!remoteListener->SendDataToRemote(replyMessage->deviceIdInfo.fromDeviceId, replyMessage.get())) {
+        DBINDER_LOGE(LOG_LABEL, "fail to send data from server DBS to client DBS");
+    }
 }
 
 bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message)
@@ -593,7 +601,6 @@ std::u16string DBinderService::GetRegisterService(binder_uintptr_t binderObject)
             return it->first;
         }
     }
-
     return std::u16string();
 }
 
@@ -636,18 +643,22 @@ bool DBinderService::RegisterRemoteProxyInner(std::u16string serviceName, binder
 bool DBinderService::OnRemoteMessageTask(const struct DHandleEntryTxRx *message)
 {
     if (message == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "message is null ");
+        DBINDER_LOGE(LOG_LABEL, "message is null");
         return false;
     }
 
-    bool result = false;
+    bool result = true;
     switch (message->dBinderCode) {
         case MESSAGE_AS_INVOKER: {
             result = OnRemoteInvokerMessage(message);
             break;
         }
         case MESSAGE_AS_REPLY: {
-            result = OnRemoteReplyMessage(message);
+            OnRemoteReplyMessage(message);
+            break;
+        }
+        case MESSAGE_AS_REMOTE_ERROR: {
+            OnRemoteErrorMessage(message);
             break;
         }
         default: {
@@ -659,12 +670,33 @@ bool DBinderService::OnRemoteMessageTask(const struct DHandleEntryTxRx *message)
     return result;
 }
 
-bool DBinderService::OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage)
+void DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
+{
+    std::lock_guard<std::mutex> lock(threadLockMutex_);
+    for (auto it = threadLockInfo_.begin(); it != threadLockInfo_.end();) {
+        if (it->second->networkId != session->GetPeerDeviceId()) {
+            continue;
+        }
+        std::unique_lock<std::mutex> lock(it->second->mutex);
+        it->second->ready = true;
+        it->second->condition.notify_all();
+        it = threadLockInfo_.erase(it);
+    }
+}
+
+void DBinderService::OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage)
+{
+    DBINDER_LOGI(LOG_LABEL, "invoke remote stub = %{public}d error, seq = %{public}u",
+        static_cast<int32_t>(replyMessage->stubIndex), replyMessage->seqNumber);
+    WakeupThreadByStub(replyMessage->seqNumber);
+    DetachThreadLockInfo(replyMessage->seqNumber);
+}
+
+void DBinderService::OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage)
 {
     MakeSessionByReplyMessage(replyMessage);
     WakeupThreadByStub(replyMessage->seqNumber);
     DetachThreadLockInfo(replyMessage->seqNumber);
-    return true;
 }
 
 bool DBinderService::IsSameSession(std::shared_ptr<struct SessionInfo> oldSession,
@@ -755,9 +787,11 @@ void DBinderService::DetachThreadLockInfo(uint32_t seqNumber)
     threadLockInfo_.erase(seqNumber);
 }
 
-bool DBinderService::AttachThreadLockInfo(uint32_t seqNumber, std::shared_ptr<struct ThreadLockInfo> object)
+bool DBinderService::AttachThreadLockInfo(uint32_t seqNumber, const std::string &networkId,
+    std::shared_ptr<struct ThreadLockInfo> object)
 {
     std::lock_guard<std::mutex> lock(threadLockMutex_);
+    object->networkId = networkId;
     auto result =
         threadLockInfo_.insert(std::pair<uint32_t, std::shared_ptr<struct ThreadLockInfo>>(seqNumber, object));
 
@@ -774,7 +808,6 @@ std::shared_ptr<struct ThreadLockInfo> DBinderService::QueryThreadLockInfo(uint3
     }
     return nullptr;
 }
-
 
 bool DBinderService::DetachProxyObject(binder_uintptr_t binderObject)
 {
