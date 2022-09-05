@@ -290,8 +290,8 @@ public:
 private:
     napi_env env_ = nullptr;
     napi_value thisVar_ = nullptr;
-    static napi_value ThenCallBack(napi_env env, napi_callback_info info);
-    static napi_value CatchCallBack(napi_env env, napi_callback_info info);
+    static napi_value ThenCallback(napi_env env, napi_callback_info info);
+    static napi_value CatchCallback(napi_env env, napi_callback_info info);
     napi_ref thisVarRef_ = nullptr;
     struct ThreadLockInfo {
         std::mutex mutex;
@@ -305,13 +305,7 @@ private:
         MessageParcel *data;
         MessageParcel *reply;
         MessageOption *option;
-        pid_t callingPid;
-        pid_t callingUid;
-        uint32_t callingTokenId;
-        std::string callingDeviceID;
-        std::string localDeviceID;
-        bool isLocalCalling;
-        int activeStatus;
+        CallingInfo callingInfo;
         ThreadLockInfo *lockInfo;
         int result;
     };
@@ -498,21 +492,23 @@ napi_ref NAPIRemoteObject::GetJsObjectRef() const
     return thisVarRef_;
 }
 
+void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
+{
+    newCallingInfoParam.callingPid = IPCSkeleton::GetCallingPid();
+    newCallingInfoParam.callingUid = IPCSkeleton::GetCallingUid();
+    newCallingInfoParam.callingTokenId = IPCSkeleton::GetCallingTokenID();
+    newCallingInfoParam.callingDeviceID = IPCSkeleton::GetCallingDeviceID();
+    newCallingInfoParam.localDeviceID = IPCSkeleton::GetLocalDeviceID();
+    newCallingInfoParam.isLocalCalling = IPCSkeleton::IsLocalCalling();
+    newCallingInfoParam.activeStatus = IRemoteInvoker::ACTIVE_INVOKER;
+};
+
 int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ZLOGI(LOG_LABEL, "enter OnRemoteRequest");
     if (code == DUMP_TRANSACTION) {
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
     }
-    pid_t callingPid = IPCSkeleton::GetCallingPid();
-    pid_t callingUid = IPCSkeleton::GetCallingUid();
-    uint32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
-    std::string callingDeviceID = IPCSkeleton::GetCallingDeviceID();
-    std::string localDeviceID = IPCSkeleton::GetLocalDeviceID();
-    bool isLocalCalling = IPCSkeleton::IsLocalCalling();
-    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u, callingDeviceID:%{public}s,\
-        localDeviceId:%{public}s, localCalling:%{public}d",
-        callingPid, callingUid, callingDeviceID.c_str(), localDeviceID.c_str(), isLocalCalling);
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     CallbackParam *param = new CallbackParam {
         .env = env_,
@@ -521,22 +517,20 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         .data = &data,
         .reply = &reply,
         .option = &option,
-        .callingPid = callingPid,
-        .callingUid = callingUid,
-        .callingTokenId = callingTokenId,
-        .callingDeviceID = callingDeviceID,
-        .localDeviceID = localDeviceID,
-        .isLocalCalling = isLocalCalling,
-        .activeStatus = IRemoteInvoker::ACTIVE_INVOKER,
         .lockInfo = lockInfo.get(),
         .result = 0
     };
+
+    NAPI_RemoteObject_getCallingInfo(param->callingInfo);
+    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u, callingDeviceID:%{public}s,\
+        localDeviceId:%{public}s, localCalling:%{public}d",
+        param->callingInfo.callingPid, param->callingInfo.callingUid, param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(), param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
     ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
     return ret;
 }
 
-napi_value NAPIRemoteObject::ThenCallBack(napi_env env, napi_callback_info info)
+napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
 {
     ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
     size_t argc = 1;
@@ -560,7 +554,7 @@ napi_value NAPIRemoteObject::ThenCallBack(napi_env env, napi_callback_info info)
     return res;
 }
 
-napi_value NAPIRemoteObject::CatchCallBack(napi_env env, napi_callback_info info)
+napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info)
 {
     ZLOGI(LOG_LABEL, "Async onReomteReuqest's return_val is rejected");
     size_t argc = 1;
@@ -577,7 +571,7 @@ napi_value NAPIRemoteObject::CatchCallBack(napi_env env, napi_callback_info info
     return res;
 }
 
-void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, CallingInfo &oldCallingInfo)
+void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {
     napi_value global = nullptr;
     napi_get_global(env, &global);
@@ -591,34 +585,34 @@ void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, CallingInfo &oldCallingI
     napi_get_named_property(env, global, "activeStatus_", &oldCallingInfo.activeStatus);
 }
 
-void NAPI_RemoteObject_setNewCallingInfo(napi_env env)
+void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCallingInfoParam)
 {
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_value newPid;
-    napi_create_int32(env, static_cast<int32_t>(IPCSkeleton::GetCallingPid()), &newPid);
+    napi_create_int32(env, static_cast<int32_t>(newCallingInfoParam.callingPid), &newPid);
     napi_set_named_property(env, global, "callingPid_", newPid);
     napi_value newUid;
-    napi_create_int32(env, static_cast<int32_t>(IPCSkeleton::GetCallingUid()), &newUid);
+    napi_create_int32(env, static_cast<int32_t>(newCallingInfoParam.callingUid), &newUid);
     napi_set_named_property(env, global, "callingUid_", newUid);
     napi_value newCallingTokenId;
-    napi_create_uint32(env, IPCSkeleton::GetCallingTokenID(), &newCallingTokenId);
+    napi_create_uint32(env, newCallingInfoParam.callingTokenId, &newCallingTokenId);
     napi_set_named_property(env, global, "callingTokenId_", newCallingTokenId);
     napi_value newDeviceID;
-    napi_create_string_utf8(env, IPCSkeleton::GetCallingDeviceID().c_str(), NAPI_AUTO_LENGTH, &newDeviceID);
+    napi_create_string_utf8(env, newCallingInfoParam.callingDeviceID.c_str(), NAPI_AUTO_LENGTH, &newDeviceID);
     napi_set_named_property(env, global, "callingDeviceID_", newDeviceID);
     napi_value newLocalDeviceID;
-    napi_create_string_utf8(env, IPCSkeleton::GetLocalDeviceID().c_str(), NAPI_AUTO_LENGTH, &newLocalDeviceID);
+    napi_create_string_utf8(env, newCallingInfoParam.localDeviceID.c_str(), NAPI_AUTO_LENGTH, &newLocalDeviceID);
     napi_set_named_property(env, global, "localDeviceID_", newLocalDeviceID);
     napi_value newIsLocalCalling;
-    napi_get_boolean(env, IPCSkeleton::IsLocalCalling(), &newIsLocalCalling);
+    napi_get_boolean(env, newCallingInfoParam.isLocalCalling, &newIsLocalCalling);
     napi_set_named_property(env, global, "isLocalCalling_", newIsLocalCalling);
     napi_value newActiveStatus;
-    napi_create_int32(env, IRemoteInvoker::ACTIVE_INVOKER, &newActiveStatus);
+    napi_create_int32(env, newCallingInfoParam.activeStatus, &newActiveStatus);
     napi_set_named_property(env, global, "activeStatus_", newActiveStatus);
 }
 
-void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, CallingInfo &oldCallingInfo)
+void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {    
     napi_value global = nullptr;
     napi_get_global(env, &global);
@@ -760,9 +754,9 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->condition.notify_all();
             return;
         }
-        CallingInfo oldCallingInfo;
+        NAPI_CallingInfo oldCallingInfo;
         NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
-        NAPI_RemoteObject_setNewCallingInfo(param->env);
+        NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
         // start to call onRemoteRequest
         size_t argc2 = 4;
         napi_value argv2[] = { jsCode, jsData, jsReply, jsOption };
@@ -778,12 +772,12 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
 
-            ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
+            ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
             // Check whether return_val is Promise
             bool returnIsPromise = false;//
             napi_is_promise(param->env, return_val, &returnIsPromise);
             if (!returnIsPromise) {
-                ZLOGI(LOG_LABEL, "onRemoteRequest is synchronous");
+                ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
                 bool result = false;
                 napi_get_value_bool(param->env, return_val, &result);
                 if (!result) {
@@ -795,7 +789,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
 
-            ZLOGI(LOG_LABEL, "onRemoteRequest is asynchronous");
+            ZLOGD(LOG_LABEL, "onRemoteRequest is asynchronous");
             // Create promiseThen
             napi_value promiseThen = nullptr;
             napi_get_named_property(param->env, return_val, "then", &promiseThen);
@@ -805,9 +799,9 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
             napi_value then_value;
-            ret = napi_create_function(param->env, "thenCallBack", NAPI_AUTO_LENGTH, ThenCallBack, param, &then_value);
+            ret = napi_create_function(param->env, "thenCallback", NAPI_AUTO_LENGTH, ThenCallback, param, &then_value);
             if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "thenCallBack got exception");
+                ZLOGE(LOG_LABEL, "thenCallback got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
@@ -828,9 +822,9 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
             napi_value catch_value;
-            ret = napi_create_function(param->env, "catchCallBack", NAPI_AUTO_LENGTH, CatchCallBack, param, &catch_value);
+            ret = napi_create_function(param->env, "catchCallback", NAPI_AUTO_LENGTH, CatchCallback, param, &catch_value);
             if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "catchCallBack got exception");
+                ZLOGE(LOG_LABEL, "catchCallback got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
