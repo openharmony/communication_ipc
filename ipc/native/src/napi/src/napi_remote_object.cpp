@@ -522,9 +522,11 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     };
 
     NAPI_RemoteObject_getCallingInfo(param->callingInfo);
-    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u, callingDeviceID:%{public}s,\
-        localDeviceId:%{public}s, localCalling:%{public}d",
-        param->callingInfo.callingPid, param->callingInfo.callingUid, param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(), param->callingInfo.isLocalCalling);
+    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u,"
+        "callingDeviceID:%{public}s, localDeviceId:%{public}s, localCalling:%{public}d",
+        param->callingInfo.callingPid, param->callingInfo.callingUid,
+        param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
+        param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
     ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
     return ret;
@@ -850,7 +852,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
             return;
-        } while(0);
+        } while (0);
 
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         param->lockInfo->ready = true;
