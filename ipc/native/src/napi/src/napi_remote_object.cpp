@@ -652,7 +652,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->condition.notify_all();
             return;
         }
-        napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
+        napi_get_named_property(param->env, thisVar, "onRemoteRequestEx", &onRemoteRequest);
         if (onRemoteRequest == nullptr) {
             ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
             param->result = -1;
@@ -660,6 +660,19 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             return;
+        }
+        napi_valuetype type = napi_undefined;
+        napi_typeof(param->env, onRemoteRequest, &type);
+        if (type != napi_function) {
+            napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
+            if (onRemoteRequest == nullptr) {
+                ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
+                param->result = -1;
+                std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+                param->lockInfo->ready = true;
+                param->lockInfo->condition.notify_all();
+                return;
+            }
         }
         napi_value jsCode;
         napi_create_uint32(param->env, param->code, &jsCode);
