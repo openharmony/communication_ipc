@@ -615,7 +615,7 @@ void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCal
 }
 
 void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
-{    
+{
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_set_named_property(env, global, "callingPid_", oldCallingInfo.callingPid);
@@ -828,7 +828,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
-            // Create promiseCatch 
+            // Create promiseCatch
             napi_value promiseCatch = nullptr;
             napi_get_named_property(param->env, return_val, "catch", &promiseCatch);
             if (promiseCatch == nullptr) {
@@ -837,7 +837,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
             napi_value catch_value;
-            ret = napi_create_function(param->env, "catchCallback", NAPI_AUTO_LENGTH, CatchCallback, param, &catch_value);
+            ret = napi_create_function(param->env, "catchCallback", 
+                NAPI_AUTO_LENGTH, CatchCallback, param, &catch_value);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "catchCallback got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
