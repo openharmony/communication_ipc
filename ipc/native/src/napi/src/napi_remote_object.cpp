@@ -837,7 +837,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 break;
             }
             napi_value catch_value;
-            ret = napi_create_function(param->env, "catchCallback", 
+            ret = napi_create_function(param->env, "catchCallback",
                 NAPI_AUTO_LENGTH, CatchCallback, param, &catch_value);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "catchCallback got exception");
