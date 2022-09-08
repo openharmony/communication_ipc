@@ -47,8 +47,9 @@ pid_t GetPidByName(std::string taskName)
         return pid;
     }
     while ((ptr = readdir(dir)) != nullptr) {
-        if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0))
+        if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
             continue;
+        }
         if (DT_DIR != ptr->d_type) {
             continue;
         }
