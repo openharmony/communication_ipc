@@ -968,7 +968,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_threshold_001, TestSi
     IpcIo io;
     uint8_t buffer[SMALL_BUFFER_SIZE] = { 0 };
     IpcIoInit(&io, buffer, SMALL_BUFFER_SIZE, 0);
-    const char* strwrite ="test for write string threshold********************************************************\
+    const char* strwrite = "test for write string threshold********************************************************\
     #####################################################";
 
     bool result = WriteString(&io, strwrite);
