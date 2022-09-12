@@ -17,8 +17,11 @@
 
 #include <cmath>
 #include <cstddef>
-#include <pthread.h>
 #include <memory>
+#include <pthread.h>
+#include <sys/prctl.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 #include "hilog/log_cpp.h"
 #include "iosfwd"
 #include "ipc_debug.h"
@@ -47,8 +50,14 @@ void *IPCWorkThread::ThreadHandler(void *args)
 {
     IPCWorkThread *threadObj = (IPCWorkThread *)args;
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
-    ZLOGD(LOG_LABEL, "proto_=%{public}d,policy_=%{public}d", threadObj->proto_, threadObj->policy_);
-
+    threadObj->threadName_ += "_" + std::to_string(syscall(SYS_gettid));
+    int32_t ret = prctl(PR_SET_NAME, threadObj->threadName_.c_str());
+    if (ret != 0) {
+        ZLOGE(LOG_LABEL, "set thread name: %{public}s fail, ret: %{public}d",
+            threadObj->threadName_.c_str(), ret);
+    }
+    ZLOGD(LOG_LABEL, "proto_=%{public}d,policy_=%{public}d, name: %{public}s, ret: %{public}d",
+        threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str(), ret);
     if (invoker != nullptr) {
         switch (threadObj->policy_) {
             case SPAWN_PASSIVE:
@@ -88,13 +97,13 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
 {
     policy_ = policy;
     proto_ = proto;
+    threadName_ = threadName;
     pthread_t threadId;
     int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, this);
-    std::string wholeName = threadName + std::to_string(getpid()) + "_" + std::to_string(gettid());
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "create thread failed");
     }
-    ZLOGD(LOG_LABEL, "create thread = %{public}s, policy=%d, proto=%d", wholeName.c_str(), policy, proto);
+    ZLOGD(LOG_LABEL, "create thread, policy=%d, proto=%d", policy, proto);
     if (pthread_detach(threadId) != 0) {
         ZLOGE(LOG_LABEL, "detach error");
     }
