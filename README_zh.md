@@ -61,11 +61,11 @@ external_deps = [
 ]
 ```
 
-此外， IPC/RPC依赖的refbase实现在公共基础库实现//utils下，请增加对utils的源码依赖：
+此外， IPC/RPC依赖的refbase实现在公共基础库下，请增加对utils的依赖：
 
 ```
-deps = [
-  "//utils/native/base:utils",
+external_deps = [
+  "c_utils:utils",
 ]
 ```
 
@@ -75,7 +75,7 @@ deps = [
 
 1. 获取代理
 
-   使用ohos.ability.featureAbility提供的connectAbility方法绑定Ability，在参数里指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的情况，还需要指定所在设备的ID。用户需要在服务端的onConnect方法里返回一个继承自ohos.rpc.RemoteObject的对象，此对象会在onRemoteRequest方法里接收到请求。
+   使用ohos.ability.featureAbility提供的connectAbility方法绑定Ability，在参数里指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的情况，还需要指定所在设备的NetworkId。用户需要在服务端的onConnect方法里返回一个继承自ohos.rpc.RemoteObject的对象，此对象会在其onRemoteRequestEx方法里接收到请求。
 
 2. 发送请求
 
@@ -101,7 +101,7 @@ deps = [
 
 5. 获取SA
 
-6. 通过SA的标识和设备标识，从SAMgr获取Proxy，通过Proxy实现与Stub的跨进程通信。
+6. 通过SA的标识和设备NetworkId，从SAMgr获取Proxy，通过Proxy实现与Stub的跨进程通信。
 
 ### 接口说明<a name="section1551164914237"></a>
 
@@ -110,8 +110,8 @@ deps = [
 | 模块                        | 方法                                                         | 功能说明                                    |
 | --------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
 | ohos.ability.featureAbility | connectAbility(request: Want, options:ConnectOptions ): number | 绑定指定的Ability，在回调函数里接收代理对象 |
-| ohos.rpc.RemoteObject       | onRemoteRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): boolean | 服务端处理请求，返回结果                    |
-| ohos.rpc.IRemoteObject      | sendRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): Promise<SendRequestResult> | 发送请求，在期约里接收结果                  |
+| ohos.rpc.RemoteObject       | onRemoteRequestEx(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): boolean \| Promise<boolean> | 服务端处理请求，返回结果                    |
+| ohos.rpc.IRemoteObject      | sendRequestAsync(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): Promise<SendRequestResult> | 发送请求，在期约里接收结果                  |
 | ohos.rpc.IRemoteObject      | sendRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption, callback: AsyncCallback<SendRequestResult>): void | 发送请求，在回调函数里接收结果              |
 | ohos.rpc.MessageParcel      | writeRemoteObject(object: IRemoteObject): boolean            | 序列化IRemoteObject对象                     |
 | ohos.rpc.MessageParcel      | readRemoteObject(): IRemoteObject                            | 反序列化IRemoteObject对象                   |
@@ -157,7 +157,7 @@ deps = [
 
 **JS侧使用说明**
 
-1. 客户端构造变量want，指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的场景，还需要目标设备ID。构造变量connect，指定绑定成功、绑定失败、断开连接时的回调函数。使用featureAbility提供的接口绑定Ability。
+1. 客户端构造变量want，指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的场景，还需要目标设备NetworkId。构造变量connect，指定绑定成功、绑定失败、断开连接时的回调函数。使用featureAbility提供的接口绑定Ability。
 
    ```
    import rpc from "@ohos.rpc"
@@ -184,7 +184,7 @@ deps = [
    }
    connectId = featureAbility.connectAbility(want, connect)
    
-   // 如果是跨设备绑定，可以使用deviceManager获取目标设备ID
+   // 如果是跨设备绑定，可以使用deviceManager获取目标设备NetworkId
    import deviceManager from '@ohos.distributedHardware.deviceManager'
    function deviceManagerCallback(deviceManager) {
        let deviceList = deviceManager.getTrustedDeviceListSync()
@@ -203,7 +203,7 @@ deps = [
 
    
 
-2. 服务端被绑定的Ability在onConnect方法里返回继承自rpc.RemoteObject的对象，该对象需要实现onRemoteRequest方法，处理客户端的请求。
+2. 服务端被绑定的Ability在onConnect方法里返回继承自rpc.RemoteObject的对象，该对象需要实现onRemoteRequestEx方法，处理客户端的请求。
 
    ```
    import rpc from "@ohos.rpc"
@@ -215,7 +215,7 @@ deps = [
        constructor(descriptor) {
            super(descriptor)
        }
-       onRemoteRequest(code, data, reply, option) {
+       onRemoteRequestEx(code, data, reply, option) {
            // 根据code处理客户端的请求
            return true
        }
@@ -224,7 +224,7 @@ deps = [
 
    
 
-3. 客户端在onConnect回调里接收到代理对象，调用sendRequest方法发起请求，在期约或者回调函数里接收结果。
+3. 客户端在onConnect回调里接收到代理对象，调用sendRequestAsync方法发起请求，在期约或者回调函数里接收结果。
 
    ```
    import rpc from "@ohos.rpc"
@@ -233,7 +233,7 @@ deps = [
    let data = rpc.MessageParcel.create()
    let reply = rpc.MessageParcel.create()
    // 往data里写入参数
-   proxy.sendRequest(1, data, reply, option)
+   proxy.sendRequestAsync(1, data, reply, option)
        .then(function(result) {
            if (result.errCode != 0) {
                console.error("send request failed, errCode: " + result.errCode)
@@ -304,7 +304,7 @@ deps = [
 
 2. 定义和实现服务端TestAbilityStub
 
-   该类是和IPC框架相关的实现，需要继承 IRemoteStub<ITestAbility\>。Stub端作为接收请求的一端，需重写OnRemoteRequest方法用于接收客户端调用。
+   该类是和IPC框架相关的实现，需要继承自IRemoteStub<ITestAbility\>。Stub端作为接收请求的一端，需重写OnRemoteRequest方法用于接收客户端调用。
 
    ```
    class TestAbilityStub : public IRemoteStub<ITestAbility> {
@@ -351,7 +351,7 @@ deps = [
 
 4. 定义和实现客户端TestAbilityProxy
 
-   该类是Proxy端实现，继承IRemoteProxy<ITestAbility\>，调用SendRequest接口向Stub端发送请求，对外暴露服务端提供的能力。
+   该类是Proxy端实现，继承自IRemoteProxy<ITestAbility\>，调用SendRequest接口向Stub端发送请求，对外暴露服务端提供的能力。
 
    ```
    class TestAbilityProxy : public IRemoteProxy<ITestAbility> {
@@ -439,9 +439,7 @@ deps = [
 
 **communication\_ipc**
 
-[utils](https://gitee.com/openharmony/utils)
-
-[utils\_native](https://gitee.com/openharmony/utils_native)
+[commonlibrary\_c\_utils](https://gitee.com/openharmony/commonlibrary_c_utils)
 
 [distributedschedule\_samgr](https://gitee.com/openharmony/distributedschedule_samgr)
 
