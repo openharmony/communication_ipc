@@ -25,7 +25,7 @@ unittest("rpc_samgr") {
   include_dirs = [
     "${SUBSYSTEM_DIR}/ipc/test/unittest/rpc/include",
     "//third_party/bounds_checking_function/include",
-    "//utils/native/lite/include",
+    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
     "//foundation/communication/ipc/services/dbinder/c/include",

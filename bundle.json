@@ -28,7 +28,7 @@
           "samgr",
           "hitrace_native",
           "hiviewdfx_hilog_native",
-          "utils_base",
+          "c_utils",
           "access_token",
           "dsoftbus"
         ],
