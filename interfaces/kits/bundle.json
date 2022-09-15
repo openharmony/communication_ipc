@@ -22,7 +22,7 @@
         "components": [
             "//foundation/arkui/napi:ace_napi",
             "//third_party/libuv:uv",
-            "//utils/native/base:utils"
+            "//commonlibrary/c_utils/base:utils"
         ],
         "third_party": [
           "bounds_checking_function"
