@@ -69,7 +69,6 @@ bool BinderInvoker::AcquireHandle(int32_t handle)
     if (handle != 0) {
         (void)PingService(handle);
     }
-
     ZLOGD(LABEL, "Acquire Handle %{public}d", handle);
     return true;
 }
@@ -122,7 +121,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
-    ZLOGD(LABEL, "%{public}s: handle=%{public}d result = %{public}d", __func__, handle, error);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "%{public}s: handle=%{public}d result = %{public}d", __func__, handle, error);
+    }
     return error;
 }
 
