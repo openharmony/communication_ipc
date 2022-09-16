@@ -217,7 +217,7 @@ bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
     if (ret) {
         registryObject_ = object;
     }
-
+    ZLOGI(LOG_LABEL, "%{public}s set registry result is %{public}d", __func__, ret);
     return ret;
 }
 
