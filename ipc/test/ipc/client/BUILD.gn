@@ -22,7 +22,7 @@ executable("ipc_client") {
   sources = [ "$SUBSYSTEM_DIR/ipc/client/client.c" ]
   include_dirs = [
     "//third_party/bounds_checking_function/include",
-    "//utils/native/lite/include",
+    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
     "$SUBSYSTEM_DIR/ipc/include",

@@ -35,7 +35,7 @@ ipc_common_include = [
   "$IPC_CORE_ROOT/ipc/include",
   "$IPC_CORE_ROOT/manager/include",
   "//third_party/bounds_checking_function/include",
-  "//utils/native/lite/include",
+  "//commonlibrary/utils_lite/include",
   "$hilog_lite_include_path",
 ]
 

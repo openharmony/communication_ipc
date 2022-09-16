@@ -43,7 +43,7 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
       "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
-      "//utils/native/lite/include",
+      "//commonlibrary/utils_lite/include",
     ]
     ldflags = [
       "-lstdc++",
@@ -76,7 +76,7 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/test/rpc/include",
       "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
-      "//utils/native/lite/include",
+      "//commonlibrary/utils_lite/include",
       "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite",
     ]
     ldflags = [ "-lpthread" ]
