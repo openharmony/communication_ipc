@@ -20,7 +20,7 @@ executable("rpc_client") {
   sources = [ "$SUBSYSTEM_DIR/ipc/test/rpc/client/rpc_client.c" ]
   include_dirs = [
     "//third_party/bounds_checking_function/include",
-    "//utils/native/lite/include",
+    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/rpc/trans_adapter/include",
     "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
