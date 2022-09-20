@@ -460,7 +460,6 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
         if (targetObject == nullptr) {
             ZLOGE(LABEL, "Invalid samgr stub object");
-            abort();
         }
     }
     MessageParcel reply;
