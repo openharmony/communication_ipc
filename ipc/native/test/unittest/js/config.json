@@ -1,0 +1,61 @@
+{
+    "app": {
+      "bundleName": "com.example.myapplication",
+      "vendor": "example",
+      "version": {
+        "code": 1,
+        "name": "1.0"
+      },
+      "apiVersion": {
+        "compatible": 8,
+        "target": 8
+      }
+    },
+    "deviceConfig": {},
+    "module": {
+      "package": "com.example.myapplication",
+      "name": ".MyApplication",
+      "deviceType": [
+        "phone"
+      ],
+      "distro": {
+        "deliveryWithInstall": true,
+        "moduleName": "entry",
+        "moduleType": "entry"
+      },
+      "abilities": [
+        {
+          "visible": true,
+          "skills": [
+            {
+              "entities": [
+                "entity.system.home"
+              ],
+              "actions": [
+                "action.system.home"
+              ]
+            }
+          ],
+          "name": "com.example.myapplication.MainAbility",
+          "icon": "$media:icon",
+          "description": "$string:mainability_description",
+          "label": "MyApplication",
+          "type": "page",
+          "launchType": "standard"
+        }
+      ],
+      "js": [
+        {
+          "pages": [
+            "pages/index/index"
+          ],
+          "name": "default",
+          "window": {
+            "designWidth": 720,
+            "autoDesignWidth": false
+          }
+        }
+      ]
+    }
+  }
+  
