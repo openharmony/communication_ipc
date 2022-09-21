@@ -98,6 +98,33 @@ ohos_unittest("IPCHiTraceUnitTest") {
       "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
+if (support_jsapi) {
+  ohos_unittest("IPCNapiUnitTest") {
+    module_out_path = MODULE_OUTPUT_PATH
+
+    include_dirs = [
+      "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+      "//foundation/arkui/napi/interfaces/kits",
+    ]
+
+    sources = [ "ipc_napi_unittest.cpp" ]
+    configs = []
+
+    deps = [
+      "//foundation/arkui/napi:ace_napi",
+      "//third_party/googletest:gtest_main",
+    ]
+
+    external_deps = [
+      "hiviewdfx_hilog_native:libhilog",
+      "ipc_js:rpc",
+    ]
+
+    resource_config_file =
+        "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  }
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -106,6 +133,9 @@ group("unittest") {
     ":IPCHiTraceUnitTest",
     ":IPCNativeUnitTest",
   ]
+  if (support_jsapi) {
+    deps += [ ":IPCNapiUnitTest" ]
+  }
 }
 
 ###############################################################################
