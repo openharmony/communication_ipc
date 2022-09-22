@@ -126,7 +126,7 @@ public:
     std::string QueryBusNameObject(IPCObjectProxy *proxy);
     void LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
         const sptr<IRemoteObject>& remoteObject);
-    void ProcessOnSessionClosed(std::shared_ptr<Session> session);
+    bool ProcessOnSessionClosed(std::shared_ptr<Session> session);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
