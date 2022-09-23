@@ -163,3 +163,8 @@ group("moduletest") {
   testonly = true
   deps = [ "moduletest" ]
 }
+
+group("unittest") {
+  testonly = true
+  deps = [ "unittest" ]
+}
