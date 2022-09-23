@@ -670,8 +670,12 @@ bool DBinderService::OnRemoteMessageTask(const struct DHandleEntryTxRx *message)
     return result;
 }
 
-void DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
+bool DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
 {
+    if (session == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "ERROR!Session is nullptr!");
+        return false;
+    }
     std::lock_guard<std::mutex> lock(threadLockMutex_);
     for (auto it = threadLockInfo_.begin(); it != threadLockInfo_.end();) {
         if (it->second->networkId != session->GetPeerDeviceId()) {
@@ -682,6 +686,7 @@ void DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
         it->second->condition.notify_all();
         it = threadLockInfo_.erase(it);
     }
+    return true;
 }
 
 void DBinderService::OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage)
