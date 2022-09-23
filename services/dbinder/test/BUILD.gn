@@ -27,7 +27,7 @@ config("libtestdbinder_config") {
   include_dirs = [
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
-    "//test/testfwk/developer_test/aw/distributed",
+    "//test/developertest/aw/distributed",
     "$SUBSYSTEM_DIR/utils/include",
     "$SUBSYSTEM_DIR/services/dbinder/dbinder_service/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
@@ -162,4 +162,9 @@ group("distributedtest") {
 group("moduletest") {
   testonly = true
   deps = [ "moduletest" ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ "unittest" ]
 }
