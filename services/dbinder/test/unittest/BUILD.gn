@@ -13,8 +13,6 @@
 
 import("//build/test.gni")
 
-# SUBSYSTEM_DIR = "//foundation/communication/ipc"
-# IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 MODULE_OUTPUT_PATH = "ipc"
 
 ohos_unittest("RPCDbinderTest") {
@@ -22,16 +20,14 @@ ohos_unittest("RPCDbinderTest") {
 
   include_dirs = [
     "//foundation/communication/ipc/ipc/native/c/manager/include",
-    "//foundation/communication/ipc/utils/include"
+    "//foundation/communication/ipc/utils/include",
   ]
 
   sources = [ "dbinder_service_unittest.cpp" ]
 
-  configs = [ ]
+  configs = []
 
-  deps = [
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "c_utils:utils",
@@ -46,8 +42,6 @@ ohos_unittest("RPCDbinderTest") {
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [
-    ":RPCDbinderTest",
-  ]
+  deps = [ ":RPCDbinderTest" ]
 }
 ###############################################################################
