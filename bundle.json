@@ -96,7 +96,8 @@
         ],
         "test": [
           "//foundation/communication/ipc/ipc/test:moduletest",
-          "//foundation/communication/ipc/ipc/native/test:unittest"
+          "//foundation/communication/ipc/ipc/native/test:unittest",
+          "//foundation/communication/ipc/services/dbinder/test/unittest:unittest"
         ]
       }
     }
