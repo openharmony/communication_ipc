@@ -46,15 +46,20 @@ private:
     static napi_value Ashmem_JS_Constructor(napi_env env, napi_callback_info cbinfo);
     static napi_value CloseAshmem(napi_env env, napi_callback_info info);
     static napi_value CreateAshmem(napi_env env, napi_callback_info info);
+    static napi_value Create(napi_env env, napi_callback_info info);
     static napi_value CreateAshmemFromExisting(napi_env env, napi_callback_info info);
     static napi_value GetAshmemSize(napi_env env, napi_callback_info info);
     static napi_value MapAshmem(napi_env env, napi_callback_info info);
+    static napi_value MapTypedAshmem(napi_env env, napi_callback_info info);
     static napi_value MapReadAndWriteAshmem(napi_env env, napi_callback_info info);
     static napi_value MapReadOnlyAshmem(napi_env env, napi_callback_info info);
     static napi_value ReadFromAshmem(napi_env env, napi_callback_info info);
     static napi_value SetProtection(napi_env env, napi_callback_info info);
     static napi_value UnmapAshmem(napi_env env, napi_callback_info info);
     static napi_value WriteToAshmem(napi_env env, napi_callback_info info);
+    static napi_value GetAshmemFromExisting(napi_env env, napi_callback_info info);
+    static napi_value GetAshmemConstructor(napi_env env, napi_value* info);
+    static napi_value getNewAshmemConstructor(napi_env env, napi_value& info, int32_t fd, uint32_t size);
     sptr<Ashmem> ashmem_;
 };
 } // namespace OHOS
