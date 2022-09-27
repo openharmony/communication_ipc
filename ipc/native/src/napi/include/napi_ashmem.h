@@ -52,14 +52,21 @@ private:
     static napi_value MapAshmem(napi_env env, napi_callback_info info);
     static napi_value MapTypedAshmem(napi_env env, napi_callback_info info);
     static napi_value MapReadAndWriteAshmem(napi_env env, napi_callback_info info);
+    static napi_value MapReadWriteAshmem(napi_env env, napi_callback_info info);
     static napi_value MapReadOnlyAshmem(napi_env env, napi_callback_info info);
+    static napi_value MapReadonlyAshmem(napi_env env, napi_callback_info info);
     static napi_value ReadFromAshmem(napi_env env, napi_callback_info info);
+    static napi_value ReadAshmem(napi_env env, napi_callback_info info);
     static napi_value SetProtection(napi_env env, napi_callback_info info);
+    static napi_value SetProtectionType(napi_env env, napi_callback_info info);
     static napi_value UnmapAshmem(napi_env env, napi_callback_info info);
     static napi_value WriteToAshmem(napi_env env, napi_callback_info info);
+    static napi_value WriteAshmem(napi_env env, napi_callback_info info);
     static napi_value GetAshmemFromExisting(napi_env env, napi_callback_info info);
     static napi_value GetAshmemConstructor(napi_env env, napi_value* info);
     static napi_value getNewAshmemConstructor(napi_env env, napi_value& info, int32_t fd, uint32_t size);
+    static napi_value CheckWriteAshmemParams(napi_env env, size_t argc, napi_value* info);
+    static napi_value TransferByteToJsData(napi_env env, uint32_t size, const void *result);
     sptr<Ashmem> ashmem_;
 };
 } // namespace OHOS
