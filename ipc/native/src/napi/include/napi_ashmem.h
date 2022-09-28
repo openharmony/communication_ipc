@@ -20,6 +20,7 @@
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "ashmem.h"
+#include "napi_rpc_error.h"
 
 namespace OHOS {
 class NAPIAshmem {
@@ -61,6 +62,8 @@ private:
     static napi_value GetAshmemConstructor(napi_env env, napi_value* info);
     static napi_value getNewAshmemConstructor(napi_env env, napi_value& info, int32_t fd, uint32_t size);
     sptr<Ashmem> ashmem_;
+
+    static NapiError napiErr;
 };
 } // namespace OHOS
 #endif

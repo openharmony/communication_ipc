@@ -35,6 +35,7 @@ ohos_shared_library("rpc") {
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_parcel.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_object.cpp",
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_proxy.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_error.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
   ]
