@@ -318,15 +318,10 @@ napi_value NAPIAshmem::MapTypedAshmem(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::OS_MMAP_ERROR);
     }
-    bool result = napiAshmem->GetAshmem()->MapAshmem(mapType);
-    napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
-    if (result == false) {
-        ZLOGE(LOG_LABEL, "get os mmap failed");
-        return napiErr.ThrowError(env, OHOS::errorDesc::OS_MMAP_ERROR);
-    }
-
-    return napiValue;
+    napiAshmem->GetAshmem()->MapAshmem(mapType);
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
 }
 
 napi_value NAPIAshmem::MapReadAndWriteAshmem(napi_env env, napi_callback_info info)
@@ -342,6 +337,22 @@ napi_value NAPIAshmem::MapReadAndWriteAshmem(napi_env env, napi_callback_info in
     return napiValue;
 }
 
+napi_value NAPIAshmem::MapReadWriteAshmem(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    NAPIAshmem *napiAshmem = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiAshmem);
+    if (napiAshmem == nullptr) {
+        ZLOGE(LOG_LABEL, "napiAshmem is null");
+        return napiErr.ThrowError(env, OHOS::errorDesc::OS_MMAP_ERROR);
+    }
+    napiAshmem->GetAshmem()->MapReadAndWriteAshmem();
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
 napi_value NAPIAshmem::MapReadOnlyAshmem(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
@@ -353,6 +364,22 @@ napi_value NAPIAshmem::MapReadOnlyAshmem(napi_env env, napi_callback_info info)
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
+}
+
+napi_value NAPIAshmem::MapReadonlyAshmem(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    NAPIAshmem *napiAshmem = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiAshmem);
+    if (napiAshmem == nullptr) {
+        ZLOGE(LOG_LABEL, "napiAshmem is null");
+        return napiErr.ThrowError(env, OHOS::errorDesc::OS_MMAP_ERROR);
+    }
+    napiAshmem->GetAshmem()->MapReadOnlyAshmem();
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
 }
 
 napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
@@ -398,6 +425,74 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     return typedarray;
 }
 
+napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    size_t argc = 2;
+    size_t argNum = 2;
+    napi_value argv[2] = {0};
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if (argc != argNum) {
+        ZLOGE(LOG_LABEL, "requires 2 parameter");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    napi_valuetype valueType = napi_null;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    napi_typeof(env, argv[1], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    uint32_t size = 0;
+    uint32_t offset = 0;
+    napi_get_value_uint32(env, argv[0], &size);
+    size *= BYTE_SIZE_32;
+    napi_get_value_uint32(env, argv[1], &offset);
+    offset *= BYTE_SIZE_32;
+    NAPIAshmem *napiAshmem = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiAshmem);
+    if (napiAshmem == nullptr) {
+        ZLOGE(LOG_LABEL, "napiAshmem is null");
+        return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
+    }
+    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
+    if (result == nullptr) {
+        ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
+        return nullptr;
+    }
+    // c++ byte[] to js []
+    return TransferByteToJsData(env, size, result);
+}
+
+napi_value NAPIAshmem::TransferByteToJsData(napi_env env, uint32_t size, const void *result)
+{
+    napi_value arrayBuffer = nullptr;
+    void *arrayBufferPtr = nullptr;
+    napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
+    napi_value typedarray = nullptr;
+    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedarray);
+    bool isTypedArray = false;
+    napi_is_typedarray(env, typedarray, &isTypedArray);
+    NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
+    if (isTypedArray == false) {
+        ZLOGE(LOG_LABEL, "napiAshmem is null");
+        return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
+    }
+    if (size == 0) {
+        return typedarray;
+    }
+    errno_t status = memcpy_s(arrayBufferPtr, size, result, size);
+    if (status != EOK) {
+        ZLOGE(LOG_LABEL, "memcpy_s is failed");
+        return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
+    }
+    return typedarray;
+}
+
 napi_value NAPIAshmem::SetProtection(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
@@ -417,6 +512,37 @@ napi_value NAPIAshmem::SetProtection(napi_env env, napi_callback_info info)
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
+}
+
+napi_value NAPIAshmem::SetProtectionType(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    size_t argc = 1;
+    size_t argNum = 1;
+    napi_value argv[1] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if (argc != argNum) {
+        ZLOGE(LOG_LABEL, "requires 1 parameter");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    napi_valuetype valueType = napi_null;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    uint32_t protectionType = 0;
+    napi_get_value_uint32(env, argv[0], &protectionType);
+    NAPIAshmem *napiAshmem = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiAshmem);
+    if (napiAshmem == nullptr) {
+        ZLOGE(LOG_LABEL, "napiAshmem is null");
+        return napiErr.ThrowError(env, OHOS::errorDesc::OS_IOCTL_ERROR);
+    }
+    napiAshmem->GetAshmem()->SetProtection(protectionType);
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
 }
 
 napi_value NAPIAshmem::UnmapAshmem(napi_env env, napi_callback_info info)
@@ -479,6 +605,81 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     return napiValue;
 }
 
+napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
+{
+    size_t argc = 3;
+    napi_value argv[3] = {0};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    napi_value checkArgsResult = CheckWriteAshmemParams(env, argc, argv);
+    if (checkArgsResult != nullptr) {
+        return checkArgsResult;
+    }
+
+    std::vector<int32_t> array;
+    uint32_t arrayLength = 0;
+    napi_get_array_length(env, argv[0], &arrayLength);
+
+    for (size_t i = 0; i < arrayLength; i++) {
+        bool hasElement = false;
+        napi_has_element(env, argv[0], i, &hasElement);
+        if (hasElement == false) {
+            ZLOGE(LOG_LABEL, "parameter check error");
+            return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        }
+
+        napi_value element = nullptr;
+        napi_get_element(env, argv[0], i, &element);
+
+        int32_t value = 0;
+        napi_get_value_int32(env, element, &value);
+        array.push_back(value);
+    }
+
+    uint32_t size = 0;
+    napi_get_value_uint32(env, argv[1], &size);
+    uint32_t offset = 0;
+    napi_get_value_uint32(env, argv[2], &offset);
+    NAPIAshmem *napiAshmem = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiAshmem);
+    if (napiAshmem == nullptr) {
+        ZLOGE(LOG_LABEL, "napiAshmem is null");
+        return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
+    }
+    // need check size offset and capacity
+    napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_value* argv)
+{
+    size_t argNum = 3;
+    if (argc != argNum) {
+        ZLOGE(LOG_LABEL, "requires 3 parameter");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    bool isArray = false;
+    napi_is_array(env, argv[0], &isArray);
+    if (isArray == false) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    napi_valuetype valueType = napi_null;
+    napi_typeof(env, argv[1], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    napi_typeof(env, argv[2], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 4");
+        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+    }
+    return nullptr;
+}
+
 napi_value NAPIAshmem::AshmemExport(napi_env env, napi_value exports)
 {
     const std::string className = "Ashmem";
@@ -499,11 +700,16 @@ napi_value NAPIAshmem::AshmemExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("mapAshmem", NAPIAshmem::MapAshmem),
         DECLARE_NAPI_FUNCTION("mapTypedAshmem", NAPIAshmem::MapTypedAshmem),
         DECLARE_NAPI_FUNCTION("mapReadAndWriteAshmem", NAPIAshmem::MapReadAndWriteAshmem),
+        DECLARE_NAPI_FUNCTION("mapReadWriteAshmem", NAPIAshmem::MapReadWriteAshmem),
         DECLARE_NAPI_FUNCTION("mapReadOnlyAshmem", NAPIAshmem::MapReadOnlyAshmem),
+        DECLARE_NAPI_FUNCTION("mapReadonlyAshmem", NAPIAshmem::MapReadonlyAshmem),
         DECLARE_NAPI_FUNCTION("readFromAshmem", NAPIAshmem::ReadFromAshmem),
+        DECLARE_NAPI_FUNCTION("readAshmem", NAPIAshmem::ReadAshmem),
         DECLARE_NAPI_FUNCTION("setProtection", NAPIAshmem::SetProtection),
+        DECLARE_NAPI_FUNCTION("setProtectionType", NAPIAshmem::SetProtectionType),
         DECLARE_NAPI_FUNCTION("unmapAshmem", NAPIAshmem::UnmapAshmem),
         DECLARE_NAPI_FUNCTION("writeToAshmem", NAPIAshmem::WriteToAshmem),
+        DECLARE_NAPI_FUNCTION("writeAshmem", NAPIAshmem::WriteAshmem),
         DECLARE_NAPI_STATIC_PROPERTY("PROT_EXEC", exec),
         DECLARE_NAPI_STATIC_PROPERTY("PROT_NONE", none),
         DECLARE_NAPI_STATIC_PROPERTY("PROT_READ", read),
