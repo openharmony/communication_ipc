@@ -26,7 +26,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 static constexpr int MMAP_PROT_MAX = NAPIAshmem::PROT_EXEC | NAPIAshmem::PROT_READ | NAPIAshmem::PROT_WRITE;
 constexpr size_t BYTE_SIZE_32 = 4;
 
-OHOS::NapiError napiErr;
+NapiError NAPIAshmem::napiErr;
 
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
