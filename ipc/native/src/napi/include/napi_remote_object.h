@@ -118,9 +118,13 @@ public:
 
     napi_value NAPI_IPCSkeleton_flushCommands(napi_env env, napi_callback_info info);
 
+    napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info);
+
     napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_info info);
 
     napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_IPCSkeleton_restoreCallingIdentity(napi_env env, napi_callback_info info);
 
     napi_value NAPI_IPCSkeleton_getCallingTokenId(napi_env env, napi_callback_info info);
 
