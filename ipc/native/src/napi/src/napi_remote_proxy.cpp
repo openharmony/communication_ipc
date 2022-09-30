@@ -31,6 +31,7 @@
 #include "log_tags.h"
 #include "napi_message_option.h"
 #include "napi_message_parcel.h"
+#include "napi_message_sequence.h"
 #include "napi_rpc_error.h"
 #include "rpc_bytrace.h"
 #include "string_ex.h"
@@ -43,10 +44,10 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static NapiError napiErr;
 
-static const int ARGV_INDEX_0 = 0;
-static const int ARGV_INDEX_1 = 1;
-static const int ARGV_INDEX_2 = 2;
-static const int ARGV_INDEX_3 = 3;
+static const size_t ARGV_INDEX_0 = 0;
+static const size_t ARGV_INDEX_1 = 1;
+static const size_t ARGV_INDEX_2 = 2;
+static const size_t ARGV_INDEX_3 = 3;
 
 NAPIDeathRecipient::NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient)
 {
@@ -415,8 +416,8 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
 
 napi_value NAPI_RemoteProxy_checkSendMessageRequestArgs(napi_env env,
                                                         napi_value* argv,
-                                                        NAPI_MessageParcel* &data,
-                                                        NAPI_MessageParcel* &reply,
+                                                        NAPI_MessageSequence* &data,
+                                                        NAPI_MessageSequence* &reply,
                                                         MessageOption* &option)
 {
     napi_valuetype valueType = napi_null;
@@ -473,8 +474,8 @@ napi_value NAPI_RemoteProxy_sendMessageRequest(napi_env env, napi_callback_info 
         ZLOGE(LOG_LABEL, "requires 4 or 5 parameters");
         return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
     }
-    NAPI_MessageParcel *data = nullptr;
-    NAPI_MessageParcel *reply = nullptr;
+    NAPI_MessageSequence *data = nullptr;
+    NAPI_MessageSequence *reply = nullptr;
     MessageOption *option = nullptr;
     napi_value checkArgsResult = NAPI_RemoteProxy_checkSendMessageRequestArgs(env, argv, data, reply, option);
     if (checkArgsResult == nullptr) {

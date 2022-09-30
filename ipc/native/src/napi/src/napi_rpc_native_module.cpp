@@ -18,6 +18,7 @@
 #include "log_tags.h"
 #include "napi_ashmem.h"
 #include "napi_message_parcel.h"
+#include "napi_message_sequence.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_remote_object.h"
@@ -27,6 +28,7 @@ EXTERN_C_START
 static napi_value rpcExport(napi_env env, napi_value exports)
 {
     NAPI_MessageParcel::Export(env, exports);
+    NAPI_MessageSequence::Export(env, exports);
     NAPIAshmem::AshmemExport(env, exports);
     NAPIIPCSkeletonExport(env, exports);
     NAPIRemoteObjectExport(env, exports);
