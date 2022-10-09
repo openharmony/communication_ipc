@@ -133,7 +133,7 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (!(argc == argcExistingAshmem || argc == argcAshmem)) {
         ZLOGE(LOG_LABEL, "requires 1 or 2 parameter");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
     if (argc == argcExistingAshmem) {
@@ -144,26 +144,26 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
     napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
     if (bufferSize <= 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem name");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
     int32_t ashmemSize = 0;
     napi_get_value_int32(env, argv[1], &ashmemSize);
     if (ashmemSize <= 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem size");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
     return GetAshmemConstructor(env, argv);
@@ -213,13 +213,13 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
     napi_instanceof(env, argv[0], constructor, &isAshmem);
     if (isAshmem == false) {
         ZLOGE(LOG_LABEL, "parameter is not instanceof Ashmem");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, argv[0], (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
@@ -236,7 +236,7 @@ napi_value NAPIAshmem::getNewAshmemConstructor(napi_env env, napi_value& constru
     sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
     if (newAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "newAshmem is null");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_value jsAshmem = nullptr;
@@ -298,19 +298,19 @@ napi_value NAPIAshmem::MapTypedAshmem(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t mapType = 0;
     napi_get_value_uint32(env, argv[0], &mapType);
     if (mapType > MMAP_PROT_MAX) {
         ZLOGE(LOG_LABEL, "napiAshmem mapType error");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
@@ -434,18 +434,18 @@ napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argNum) {
         ZLOGE(LOG_LABEL, "requires 2 parameter");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t size = 0;
     uint32_t offset = 0;
@@ -523,13 +523,13 @@ napi_value NAPIAshmem::SetProtectionType(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argNum) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t protectionType = 0;
     napi_get_value_uint32(env, argv[0], &protectionType);
@@ -625,7 +625,7 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
         napi_has_element(env, argv[0], i, &hasElement);
         if (hasElement == false) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -658,24 +658,24 @@ napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_va
     size_t argNum = 3;
     if (argc != argNum) {
         ZLOGE(LOG_LABEL, "requires 3 parameter");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     bool isArray = false;
     napi_is_array(env, argv[0], &isArray);
     if (isArray == false) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[2], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 4");
-        return napiErr.ThrowError(env, OHOS::errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     return nullptr;
 }
