@@ -315,7 +315,6 @@ napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
     const std::string className = "RemoteObject";
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteObject_sendRequest),
-        DECLARE_NAPI_FUNCTION("sendRequestAsync", NAPI_RemoteObject_sendRequest),
         DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteObject_sendMessageRequest),
         DECLARE_NAPI_FUNCTION("getCallingPid", NAPI_RemoteObject_getCallingPid),
         DECLARE_NAPI_FUNCTION("getCallingUid", NAPI_RemoteObject_getCallingUid),
@@ -1032,14 +1031,14 @@ napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
@@ -1274,27 +1273,27 @@ napi_value NAPI_IPCSkeleton_restoreCallingIdentity(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
     size_t maxLen = 40960;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     return NAPI_IPCSkeleton_restoreCallingIdentitySetProperty(env, global, stringValue);
@@ -1336,27 +1335,27 @@ napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
     size_t maxLen = 40960;
     napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
     napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     std::string descriptor = stringValue;
     NAPIRemoteObjectHolder *holder = nullptr;
@@ -1604,28 +1603,28 @@ napi_value NAPI_RemoteObject_checkSendMessageRequestArgs(napi_env env,
 {
     if (argc != argcPromise && argc != argcCallback) {
         ZLOGE(LOG_LABEL, "requires 4 or 5 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_2], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 3");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_3], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 4");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -1649,19 +1648,19 @@ napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callback_info
     napi_status status = napi_unwrap(env, argv[1], (void **)&data);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get data message sequence");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     NAPI_MessageSequence *reply = nullptr;
     status = napi_unwrap(env, argv[2], (void **)&reply);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get data message sequence");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     MessageOption *option = nullptr;
     status = napi_unwrap(env, argv[3], (void **)&option);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get message option");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t code = 0;
     napi_get_value_int32(env, argv[0], &code);
@@ -1719,18 +1718,18 @@ napi_value NAPI_RemoteObject_checkModifyLocalInterfaceArgs(napi_env env, size_t 
 
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 2 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -1752,14 +1751,14 @@ napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_callback_in
     napi_get_value_string_utf8(env, argv[1], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
     napi_get_value_string_utf8(env, argv[1], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     std::string descriptor = stringValue;
 

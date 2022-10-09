@@ -21,17 +21,17 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_rpc_error" };
 
 std::map<int, errorInfo> NapiError::napiErrMap_ {
-    {VERIFY_PARAM_FAILED, errorInfo{401, "verify param failed"}},
+    {CHECK_PARAM_ERROR, errorInfo{401, "check param error"}},
     {OS_MMAP_ERROR, errorInfo{1900001, "os mmap function failed"}},
     {OS_IOCTL_ERROR, errorInfo{1900002, "os ioctl function failed"}},
     {WRITE_TO_ASHMEM_ERROR, errorInfo{1900003, "write to ashmem failed"}},
     {READ_FROM_ASHMEM_ERROR, errorInfo{1900004, "read from ashmem failed"}},
-    {JUST_PROXY_OBJECT_PERMITTED_ERROR, errorInfo{1900005, "just proxy object permitted"}},
-    {JUST_REMOTE_OBJECT_PERMITTED_ERROR, errorInfo{1900006, "os mmap function failed"}},
+    {ONLY_PROXY_OBJECT_PERMITTED_ERROR, errorInfo{1900005, "just proxy object permitted"}},
+    {ONLY_REMOTE_OBJECT_PERMITTED_ERROR, errorInfo{1900006, "just remote object permitted"}},
     {COMMUNICATION_ERROR, errorInfo{1900007, "communication failed"}},
     {PROXY_OR_REMOTE_OBJECT_INVALID_ERROR, errorInfo{1900008, "proxy or remote object is invalid"}},
-    {WRITE_DATA_TO_MESSAGE_PARCEL_ERROR, errorInfo{1900009, "write data to message parcel failed"}},
-    {READ_DATA_FROM_MESSAGE_PARCEL_ERROR, errorInfo{1900010, "read data from message parcel failed"}},
+    {WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR, errorInfo{1900009, "write data to message parcel failed"}},
+    {READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, errorInfo{1900010, "read data from message parcel failed"}},
     {PARCEL_MEMORY_ALLOC_ERROR, errorInfo{1900011, "parcel memory alloc failed"}},
     {CALL_JS_METHOD_ERROR, errorInfo{1900012, "call js method failed"}},
     {OS_DUP_ERROR, errorInfo{1900013, "os dup function failed"}}
