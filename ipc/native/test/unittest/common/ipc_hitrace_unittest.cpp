@@ -154,9 +154,9 @@ static std::string PrintTagLog(const std::string &tag)
 
 HWTEST_F(BinderTraceTest, Sync001, TestSize.Level1)
 {
-    HiTraceId getId = HiTrace::GetId();
+    HiTraceId getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
-    HiTraceId traceId = HiTrace::Begin("ipc hitrace", 0);
+    HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
     std::string chainId = HitraceLongToString(traceId.GetChainId());
     EXPECT_NE(0UL, chainId.size());
     IPCTestHelper helper;
@@ -185,10 +185,10 @@ HWTEST_F(BinderTraceTest, Sync001, TestSize.Level1)
         HiLog::Info(LOG_LABEL, "Got Stub node\n");
     }
 
-    getId = HiTrace::GetId();
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(1, getId.IsValid());
-    HiTrace::End(traceId);
-    getId = HiTrace::GetId();
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
     std::string remainLogMsgs = BinderTraceGetRemainLog(logTag);
     EXPECT_EQ(0, BinderTraceCheckLog(remainLogMsgs, "HITRACE_TP_CS", chainId));
@@ -207,9 +207,9 @@ HWTEST_F(BinderTraceTest, Sync002, TestSize.Level1)
         "\\[[a-f0-9]{1,16}, [a-f0-9]{1,16}, 0\\] <HITRACE_TP_SS,chain=[0-9a-f]{1,16},span=[0-9a-f]{1,16},pspan=";
     const std::string HITRACE_TP_CR_LOG =
         "\\[[a-f0-9]{1,16}, 0, 0\\] <HITRACE_TP_CR,chain=[0-9a-f]{1,16},span=[0-9a-f]{1,16},pspan=";
-    HiTraceId getId = HiTrace::GetId();
+    HiTraceId getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
-    HiTraceId traceId = HiTrace::Begin("ipc hitrace", HITRACE_FLAG_TP_INFO);
+    HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", HITRACE_FLAG_TP_INFO);
     std::string chainId = HitraceLongToString(traceId.GetChainId());
     EXPECT_NE(0UL, chainId.size());
     IPCTestHelper helper;
@@ -238,10 +238,10 @@ HWTEST_F(BinderTraceTest, Sync002, TestSize.Level1)
         HiLog::Info(LOG_LABEL, "Got Stub node\n");
     }
 
-    getId = HiTrace::GetId();
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(1, getId.IsValid());
-    HiTrace::End(traceId);
-    getId = HiTrace::GetId();
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
 }
 
@@ -251,9 +251,9 @@ HWTEST_F(BinderTraceTest, Sync003, TestSize.Level1)
     const std::string HITRACE_TP_SR_LOG = "\\[[a-f0-9]{1,16}\\] <HITRACE_TP_SR,chain=[0-9a-f]{1,16},span=0,pspan=";
     const std::string HITRACE_TP_SS_LOG = "\\[[a-f0-9]{1,16}\\] <HITRACE_TP_SS,chain=[0-9a-f]{1,16},span=0,pspan=";
     const std::string HITRACE_TP_CR_LOG = "\\[[a-f0-9]{1,16}\\] <HITRACE_TP_CR,chain=[0-9a-f]{1,16},span=0,pspan=";
-    HiTraceId getId = HiTrace::GetId();
+    HiTraceId getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
-    HiTraceId traceId = HiTrace::Begin("ipc hitrace", HITRACE_FLAG_TP_INFO | HITRACE_FLAG_DONOT_CREATE_SPAN);
+    HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", HITRACE_FLAG_TP_INFO | HITRACE_FLAG_DONOT_CREATE_SPAN);
     std::string chainId = HitraceLongToString(traceId.GetChainId());
     EXPECT_NE(0UL, chainId.size());
     IPCTestHelper helper;
@@ -280,18 +280,18 @@ HWTEST_F(BinderTraceTest, Sync003, TestSize.Level1)
         HiLog::Info(LOG_LABEL, "Got Stub node\n");
     }
 
-    getId = HiTrace::GetId();
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(1, getId.IsValid());
-    HiTrace::End(traceId);
-    getId = HiTrace::GetId();
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
 }
 
 HWTEST_F(BinderTraceTest, Async001, TestSize.Level1)
 {
-    HiTraceId getId = HiTrace::GetId();
+    HiTraceId getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
-    HiTraceId traceId = HiTrace::Begin("ipc hitrace", HITRACE_FLAG_INCLUDE_ASYNC);
+    HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", HITRACE_FLAG_INCLUDE_ASYNC);
     std::string chainId = HitraceLongToString(traceId.GetChainId());
     EXPECT_NE(0UL, chainId.size());
     IPCTestHelper helper;
@@ -318,10 +318,10 @@ HWTEST_F(BinderTraceTest, Async001, TestSize.Level1)
         HiLog::Info(LOG_LABEL, "Got Stub node\n");
     }
 
-    getId = HiTrace::GetId();
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(1, getId.IsValid());
-    HiTrace::End(traceId);
-    getId = HiTrace::GetId();
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
     std::string remainLogMsgs = BinderTraceGetRemainLog(logTag);
     EXPECT_EQ(0, BinderTraceCheckLog(remainLogMsgs, "HITRACE_TP_CS", chainId));
@@ -336,9 +336,9 @@ HWTEST_F(BinderTraceTest, Async002, TestSize.Level1)
         "\\[[a-f0-9]{1,16}, 0, 0\\] <HITRACE_TP_CS,chain=[0-9a-f]{1,16},span=[0-9a-f]{1,16},pspan=";
     const std::string HITRACE_TP_SR_LOG =
         "\\[[a-f0-9]{1,16}, [a-f0-9]{1,16}, 0\\] <HITRACE_TP_SR,chain=[0-9a-f]{1,16},span=[0-9a-f]{1,16},pspan=";
-    HiTraceId getId = HiTrace::GetId();
+    HiTraceId getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
-    HiTraceId traceId = HiTrace::Begin("ipc hitrace", HITRACE_FLAG_TP_INFO | HITRACE_FLAG_INCLUDE_ASYNC);
+    HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", HITRACE_FLAG_TP_INFO | HITRACE_FLAG_INCLUDE_ASYNC);
     std::string chainId = HitraceLongToString(traceId.GetChainId());
     EXPECT_NE(0UL, chainId.size());
     IPCTestHelper helper;
@@ -365,10 +365,10 @@ HWTEST_F(BinderTraceTest, Async002, TestSize.Level1)
         HiLog::Info(LOG_LABEL, "Got Stub node\n");
     }
 
-    getId = HiTrace::GetId();
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(1, getId.IsValid());
-    HiTrace::End(traceId);
-    getId = HiTrace::GetId();
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
 }
 
@@ -376,9 +376,9 @@ HWTEST_F(BinderTraceTest, Async003, TestSize.Level1)
 {
     const std::string HITRACE_TP_CS_LOG = "\\[[a-f0-9]{1,16}\\] <HITRACE_TP_CS,chain=[0-9a-f]{1,16},span=0,pspan=";
     const std::string HITRACE_TP_SR_LOG = "\\[[a-f0-9]{1,16}\\] <HITRACE_TP_SR,chain=[0-9a-f]{1,16},span=0,pspan=";
-    HiTraceId getId = HiTrace::GetId();
+    HiTraceId getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
-    HiTraceId traceId = HiTrace::Begin("ipc hitrace",
+    HiTraceId traceId = HiTraceChain::Begin("ipc hitrace",
         HITRACE_FLAG_TP_INFO | HITRACE_FLAG_INCLUDE_ASYNC | HITRACE_FLAG_DONOT_CREATE_SPAN);
     std::string chainId = HitraceLongToString(traceId.GetChainId());
     EXPECT_NE(0UL, chainId.size());
@@ -406,9 +406,9 @@ HWTEST_F(BinderTraceTest, Async003, TestSize.Level1)
         HiLog::Info(LOG_LABEL, "Got Stub node\n");
     }
 
-    getId = HiTrace::GetId();
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(1, getId.IsValid());
-    HiTrace::End(traceId);
-    getId = HiTrace::GetId();
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
 }
