@@ -199,7 +199,7 @@ napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
     napi_create_int32(env, MAX_TRANSACTION_ID, &maxTransactionId);
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("queryLocalInterface", NAPI_RemoteProxy_queryLocalInterface),
-        DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteProxy_queryLocalInterface),
+        DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteProxy_getLocalInterface),
         DECLARE_NAPI_FUNCTION("addDeathRecipient", NAPI_RemoteProxy_addDeathRecipient),
         DECLARE_NAPI_FUNCTION("registerDeathRecipient", NAPI_RemoteProxy_registerDeathRecipient),
         DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteProxy_removeDeathRecipient),
@@ -207,7 +207,6 @@ napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteProxy_getInterfaceDescriptor),
         DECLARE_NAPI_FUNCTION("getDescriptor", NAPI_RemoteProxy_getDescriptor),
         DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteProxy_sendRequest),
-        DECLARE_NAPI_FUNCTION("sendRequestAsync", NAPI_RemoteProxy_sendRequest),
         DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteProxy_sendMessageRequest),
         DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteProxy_isObjectDead),
         DECLARE_NAPI_STATIC_PROPERTY("PING_TRANSACTION", pingTransaction),
@@ -424,38 +423,38 @@ napi_value NAPI_RemoteProxy_checkSendMessageRequestArgs(napi_env env,
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_2], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 3");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_3], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 4");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], (void **)&data);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get data message parcel");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     status = napi_unwrap(env, argv[ARGV_INDEX_2], (void **)&reply);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get reply message parcel");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     status = napi_unwrap(env, argv[ARGV_INDEX_3], (void **)&option);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get message option");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -472,7 +471,7 @@ napi_value NAPI_RemoteProxy_sendMessageRequest(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argcPromise && argc != argcCallback) {
         ZLOGE(LOG_LABEL, "requires 4 or 5 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     NAPI_MessageSequence *data = nullptr;
     NAPI_MessageSequence *reply = nullptr;
@@ -515,6 +514,12 @@ napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
+}
+
+napi_value NAPI_RemoteProxy_getLocalInterface(napi_env env, napi_callback_info info)
+{
+    ZLOGE(LOG_LABEL, "only remote object permitted");
+    return napiErr.ThrowError(env, errorDesc::ONLY_REMOTE_OBJECT_PERMITTED_ERROR);
 }
 
 napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info info)
@@ -573,18 +578,18 @@ napi_value NAPI_RemoteProxy_checkRegisterDeathRecipientArgs(napi_env env, size_t
 
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 2 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -608,7 +613,7 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
 
     if (argv[0] == nullptr) {
         ZLOGE(LOG_LABEL, "invalid parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
@@ -697,22 +702,22 @@ napi_value NAPI_RemoteProxy_checkUnregisterDeathRecipientArgs(napi_env env, size
     size_t expectedArgc = 2;
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 2 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     if (argv[ARGV_INDEX_0] == nullptr) {
         ZLOGE(LOG_LABEL, "invalid parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);

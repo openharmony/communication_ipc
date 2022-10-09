@@ -106,14 +106,14 @@ napi_value NAPI_MessageSequence::JS_writeByte(napi_env env, napi_callback_info i
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     int32_t value = 0;
@@ -123,13 +123,13 @@ napi_value NAPI_MessageSequence::JS_writeByte(napi_env env, napi_callback_info i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiSequence);
     bool result = napiSequence->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
     if (!result) {
         ZLOGE(LOG_LABEL, "write int8 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -144,14 +144,14 @@ napi_value NAPI_MessageSequence::JS_writeShort(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     int32_t value = 0;
@@ -161,13 +161,13 @@ napi_value NAPI_MessageSequence::JS_writeShort(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiSequence);
     bool result = napiSequence->nativeParcel_->WriteInt16(static_cast<int16_t>(value));
     if (!result) {
         ZLOGE(LOG_LABEL, "write int16 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -182,14 +182,14 @@ napi_value NAPI_MessageSequence::JS_writeInt(napi_env env, napi_callback_info in
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     int32_t value = 0;
@@ -199,13 +199,13 @@ napi_value NAPI_MessageSequence::JS_writeInt(napi_env env, napi_callback_info in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiSequence);
     bool result = napiSequence->nativeParcel_->WriteInt32(value);
     if (!result) {
         ZLOGE(LOG_LABEL, "write int32 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -220,14 +220,14 @@ napi_value NAPI_MessageSequence::JS_writeLong(napi_env env, napi_callback_info i
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     int64_t value = 0;
@@ -237,13 +237,13 @@ napi_value NAPI_MessageSequence::JS_writeLong(napi_env env, napi_callback_info i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_64, napiSequence);
     bool result = napiSequence->nativeParcel_->WriteInt64(value);
     if (!result) {
         ZLOGE(LOG_LABEL, "write int64 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -258,14 +258,14 @@ napi_value NAPI_MessageSequence::JS_writeFloat(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     double value = 0;
@@ -275,13 +275,13 @@ napi_value NAPI_MessageSequence::JS_writeFloat(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, sizeof(double), napiSequence);
     bool result = napiSequence->nativeParcel_->WriteDouble(value);
     if (!result) {
         ZLOGE(LOG_LABEL, "write double failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -296,14 +296,14 @@ napi_value NAPI_MessageSequence::JS_writeDouble(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     double value = 0;
@@ -313,13 +313,13 @@ napi_value NAPI_MessageSequence::JS_writeDouble(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, sizeof(double), napiSequence);
     bool result = napiSequence->nativeParcel_->WriteDouble(value);
     if (!result) {
         ZLOGE(LOG_LABEL, "write double failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -334,14 +334,14 @@ napi_value NAPI_MessageSequence::JS_writeBoolean(napi_env env, napi_callback_inf
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_boolean) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     bool value = 0;
@@ -351,13 +351,13 @@ napi_value NAPI_MessageSequence::JS_writeBoolean(napi_env env, napi_callback_inf
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiSequence);
     bool result = napiSequence->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
     if (!result) {
         ZLOGE(LOG_LABEL, "write int8 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -372,14 +372,14 @@ napi_value NAPI_MessageSequence::JS_writeChar(napi_env env, napi_callback_info i
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     uint32_t value = 0;
@@ -389,13 +389,13 @@ napi_value NAPI_MessageSequence::JS_writeChar(napi_env env, napi_callback_info i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiSequence);
     bool result = napiSequence->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
     if (!result) {
         ZLOGE(LOG_LABEL, "write uint8 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -409,19 +409,19 @@ napi_value NAPI_MessageSequence::JS_checkWriteByteArrayArgs(napi_env env,
 {
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (!isArray) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t maxBytesLen = 40960;
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
     if (arrayLength >= maxBytesLen) {
         ZLOGE(LOG_LABEL, "write byte array length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -444,7 +444,7 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_8 * (arrayLength + 1), napiSequence);
@@ -456,7 +456,7 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -468,7 +468,7 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write int8 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -484,14 +484,14 @@ napi_value NAPI_MessageSequence::JS_checkWriteArrayArgs(napi_env env,
 {
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (!isArray) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
@@ -517,7 +517,7 @@ napi_value NAPI_MessageSequence::JS_writeShortArray(napi_env env, napi_callback_
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiSequence);
@@ -529,7 +529,7 @@ napi_value NAPI_MessageSequence::JS_writeShortArray(napi_env env, napi_callback_
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -541,7 +541,7 @@ napi_value NAPI_MessageSequence::JS_writeShortArray(napi_env env, napi_callback_
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write int16 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -567,7 +567,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiSequence);
@@ -579,7 +579,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
@@ -587,7 +587,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
         napi_typeof(env, element, &valueType);
         if (valueType != napi_number) {
             ZLOGE(LOG_LABEL, "type mismatch element");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         int32_t value = 0;
@@ -596,7 +596,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write int32 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
     napi_value napiValue = nullptr;
@@ -622,7 +622,7 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 + BYTE_SIZE_64 * arrayLength, napiSequence);
@@ -634,7 +634,7 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -647,7 +647,7 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write int64 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -673,7 +673,7 @@ napi_value NAPI_MessageSequence::JS_writeFloatArray(napi_env env, napi_callback_
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 + sizeof(double) * arrayLength, napiSequence);
@@ -685,7 +685,7 @@ napi_value NAPI_MessageSequence::JS_writeFloatArray(napi_env env, napi_callback_
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -698,7 +698,7 @@ napi_value NAPI_MessageSequence::JS_writeFloatArray(napi_env env, napi_callback_
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write double failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -724,7 +724,7 @@ napi_value NAPI_MessageSequence::JS_writeDoubleArray(napi_env env, napi_callback
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 + sizeof(double) * arrayLength, napiSequence);
@@ -736,7 +736,7 @@ napi_value NAPI_MessageSequence::JS_writeDoubleArray(napi_env env, napi_callback
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -749,7 +749,7 @@ napi_value NAPI_MessageSequence::JS_writeDoubleArray(napi_env env, napi_callback
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write double failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -775,7 +775,7 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiSequence);
@@ -787,7 +787,7 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -800,7 +800,7 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write int8 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -826,7 +826,7 @@ napi_value NAPI_MessageSequence::JS_writeCharArray(napi_env env, napi_callback_i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiSequence);
@@ -838,7 +838,7 @@ napi_value NAPI_MessageSequence::JS_writeCharArray(napi_env env, napi_callback_i
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -850,7 +850,7 @@ napi_value NAPI_MessageSequence::JS_writeCharArray(napi_env env, napi_callback_i
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write uint8 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -868,34 +868,34 @@ napi_value NAPI_MessageSequence::JS_writeString(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
     size_t maxLen = 40960;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * bufferSize, napiSequence);
@@ -903,7 +903,7 @@ napi_value NAPI_MessageSequence::JS_writeString(napi_env env, napi_callback_info
     bool result = napiSequence->nativeParcel_->WriteString16(to_utf16(parcelString));
     if (!result) {
         ZLOGE(LOG_LABEL, "write string16 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -921,7 +921,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteStringArrayElement(napi_env env,
     napi_has_element(env, argv[ARGV_INDEX_0], index, &hasElement);
     if (!hasElement) {
         ZLOGE(LOG_LABEL, "parameter check error");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_get_element(env, argv[ARGV_INDEX_0], index, &element);
@@ -929,13 +929,13 @@ napi_value NAPI_MessageSequence::JS_checkWriteStringArrayElement(napi_env env,
     napi_typeof(env, element, &valuetype);
     if (valuetype != napi_string) {
         ZLOGE(LOG_LABEL, "Parameter type error");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_get_value_string_utf8(env, element, nullptr, 0, &bufferSize);
     if (bufferSize >= maxSize) {
         ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -959,7 +959,7 @@ napi_value NAPI_MessageSequence::JS_writeStringArray(napi_env env, napi_callback
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     size_t pos = napiSequence->nativeParcel_->GetWritePosition();
@@ -977,7 +977,7 @@ napi_value NAPI_MessageSequence::JS_writeStringArray(napi_env env, napi_callback
         napi_get_value_string_utf8(env, element, stringValue, bufferSize + 1, &jsStringLength);
         if (jsStringLength != bufferSize) {
             ZLOGE(LOG_LABEL, "string length wrong");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         REWIND_IF_WRITE_CHECK_FAIL(env, BYTE_SIZE_32 * bufferSize, pos, napiSequence);
@@ -986,7 +986,7 @@ napi_value NAPI_MessageSequence::JS_writeStringArray(napi_env env, napi_callback
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write string16 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
 
@@ -1007,21 +1007,21 @@ napi_value NAPI_MessageSequence::JS_writeSequenceable(napi_env env, napi_callbac
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType == napi_null || valueType == napi_undefined) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t pos = napiSequence->nativeParcel_->GetWritePosition();
     napiSequence->nativeParcel_->WriteInt32(1);
@@ -1040,7 +1040,7 @@ napi_value NAPI_MessageSequence::JS_writeSequenceable(napi_env env, napi_callbac
     }
     ZLOGE(LOG_LABEL, "call mashalling failed");
     napiSequence->nativeParcel_->RewindWrite(pos);
-    return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+    return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
 }
 
 napi_value NAPI_MessageSequence::JS_writeSequenceableArrayCallJsFunc(napi_env env,
@@ -1059,7 +1059,7 @@ napi_value NAPI_MessageSequence::JS_writeSequenceableArrayCallJsFunc(napi_env en
     napi_valuetype valueType = napi_null;
     napi_typeof(env, callResult, &valueType);
     if (callResult == nullptr || valueType == napi_undefined) {
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     napi_value retValue = nullptr;
@@ -1083,21 +1083,21 @@ napi_value NAPI_MessageSequence::JS_writeSequenceableArray(napi_env env, napi_ca
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     size_t pos = napiSequence->nativeParcel_->GetWritePosition();
     bool result = napiSequence->nativeParcel_->WriteUint32(arrayLength);
     if (!result) {
         ZLOGE(LOG_LABEL, "write uint32 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -1138,14 +1138,14 @@ napi_value NAPI_MessageSequence::JS_writeRemoteObjectArray(napi_env env, napi_ca
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType == napi_null || valueType == napi_undefined) {
         napiSequence->nativeParcel_->WriteInt32(-1);
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t pos = napiSequence->nativeParcel_->GetWritePosition();
     bool result =  napiSequence->nativeParcel_->WriteInt32(arrayLength);
@@ -1154,20 +1154,20 @@ napi_value NAPI_MessageSequence::JS_writeRemoteObjectArray(napi_env env, napi_ca
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
         sptr<IRemoteObject> remoteObject = NAPI_ohos_rpc_getNativeRemoteObject(env, element);
         if (remoteObject == nullptr) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
         result = napiSequence->nativeParcel_->WriteRemoteObject(remoteObject);
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write string16 failed");
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
     napi_value retValue = nullptr;
@@ -1184,7 +1184,7 @@ napi_value NAPI_MessageSequence::JS_readByte(napi_env env, napi_callback_info in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int8_t value = napiSequence->nativeParcel_->ReadInt8();
@@ -1202,7 +1202,7 @@ napi_value NAPI_MessageSequence::JS_readShort(napi_env env, napi_callback_info i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int16_t value = napiSequence->nativeParcel_->ReadInt16();
@@ -1220,7 +1220,7 @@ napi_value NAPI_MessageSequence::JS_readInt(napi_env env, napi_callback_info inf
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t value = napiSequence->nativeParcel_->ReadInt32();
@@ -1238,7 +1238,7 @@ napi_value NAPI_MessageSequence::JS_readLong(napi_env env, napi_callback_info in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int64_t value = napiSequence->nativeParcel_->ReadInt64();
@@ -1256,7 +1256,7 @@ napi_value NAPI_MessageSequence::JS_readFloat(napi_env env, napi_callback_info i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     double value = napiSequence->nativeParcel_->ReadDouble();
@@ -1274,7 +1274,7 @@ napi_value NAPI_MessageSequence::JS_readDouble(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     double value = napiSequence->nativeParcel_->ReadDouble();
@@ -1292,7 +1292,7 @@ napi_value NAPI_MessageSequence::JS_readBoolean(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int8_t value = napiSequence->nativeParcel_->ReadInt8();
@@ -1310,7 +1310,7 @@ napi_value NAPI_MessageSequence::JS_readChar(napi_env env, napi_callback_info in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     uint8_t value = napiSequence->nativeParcel_->ReadUint8();
@@ -1328,7 +1328,7 @@ napi_value NAPI_MessageSequence::JS_readString(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
@@ -1379,14 +1379,14 @@ napi_value NAPI_MessageSequence::JS_setSize(napi_env env, napi_callback_info inf
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     uint32_t value = 0;
@@ -1396,7 +1396,7 @@ napi_value NAPI_MessageSequence::JS_setSize(napi_env env, napi_callback_info inf
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->SetDataSize(static_cast<size_t>(value));
@@ -1417,14 +1417,14 @@ napi_value NAPI_MessageSequence::JS_setCapacity(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     uint32_t value = 0;
@@ -1434,7 +1434,7 @@ napi_value NAPI_MessageSequence::JS_setCapacity(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->SetDataCapacity(static_cast<size_t>(value));
@@ -1506,14 +1506,14 @@ napi_value NAPI_MessageSequence::JS_rewindRead(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     uint32_t pos = 0;
@@ -1523,7 +1523,7 @@ napi_value NAPI_MessageSequence::JS_rewindRead(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->RewindRead(static_cast<size_t>(pos));
@@ -1560,14 +1560,14 @@ napi_value NAPI_MessageSequence::JS_rewindWrite(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     uint32_t pos = 0;
@@ -1577,7 +1577,7 @@ napi_value NAPI_MessageSequence::JS_rewindWrite(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->RewindWrite(static_cast<size_t>(pos));
@@ -1597,12 +1597,12 @@ napi_value NAPI_MessageSequence::JS_writeNoException(napi_env env, napi_callback
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     bool writeResult = napiSequence->nativeParcel_->WriteInt32(0);
     if (writeResult == false) {
         ZLOGE(LOG_LABEL, "write int32 failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -1619,7 +1619,7 @@ napi_value NAPI_MessageSequence::JS_readException(napi_env env, napi_callback_in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t code = napiSequence->nativeParcel_->ReadInt32();
@@ -1639,7 +1639,7 @@ napi_value NAPI_MessageSequence::JS_checkReadArrayArgs(napi_env env,
 {
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1648,7 +1648,7 @@ napi_value NAPI_MessageSequence::JS_checkReadArrayArgs(napi_env env,
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (!isArray) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_value napiValue = nullptr;
@@ -1665,13 +1665,13 @@ napi_value NAPI_MessageSequence::JS_readByteArray(napi_env env, napi_callback_in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     uint32_t maxBytesLen = 40960;
     uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (arrayLength >= maxBytesLen) {
         ZLOGE(LOG_LABEL, "byte array length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     if (argc > 0) {
@@ -1719,7 +1719,7 @@ napi_value NAPI_MessageSequence::JS_readShortArray(napi_env env, napi_callback_i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -1770,7 +1770,7 @@ napi_value NAPI_MessageSequence::JS_readIntArray(napi_env env, napi_callback_inf
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -1821,7 +1821,7 @@ napi_value NAPI_MessageSequence::JS_readLongArray(napi_env env, napi_callback_in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -1872,7 +1872,7 @@ napi_value NAPI_MessageSequence::JS_readFloatArray(napi_env env, napi_callback_i
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -1923,7 +1923,7 @@ napi_value NAPI_MessageSequence::JS_readDoubleArray(napi_env env, napi_callback_
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -1974,7 +1974,7 @@ napi_value NAPI_MessageSequence::JS_readBooleanArray(napi_env env, napi_callback
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -2026,7 +2026,7 @@ napi_value NAPI_MessageSequence::JS_readCharArray(napi_env env, napi_callback_in
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
@@ -2077,7 +2077,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -2156,7 +2156,7 @@ napi_value NAPI_MessageSequence::JS_readSequenceableArray(napi_env env, napi_cal
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -2167,7 +2167,7 @@ napi_value NAPI_MessageSequence::JS_readSequenceableArray(napi_env env, napi_cal
     napi_get_array_length(env, argv[ARGV_INDEX_0], &length);
     if (static_cast<int32_t>(length) != arrayLength) {
         ZLOGE(LOG_LABEL, "Bad length while reading Sequenceable array");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
@@ -2177,7 +2177,7 @@ napi_value NAPI_MessageSequence::JS_readSequenceableArray(napi_env env, napi_cal
             napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
             if (!hasElement) {
                 ZLOGE(LOG_LABEL, "parameter check error");
-                return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+                return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
             }
             napi_value element = nullptr;
             napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
@@ -2207,7 +2207,7 @@ napi_value NAPI_MessageSequence::JS_readRemoteObjectArray(napi_env env, napi_cal
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
@@ -2220,7 +2220,7 @@ napi_value NAPI_MessageSequence::JS_readRemoteObjectArray(napi_env env, napi_cal
         napi_get_array_length(env, argv[ARGV_INDEX_0], &length);
         if (static_cast<int32_t>(length) != arrayLength) {
             ZLOGE(LOG_LABEL, "Bad length while reading RemoteObject array");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
         for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             sptr<IRemoteObject> value = napiSequence->nativeParcel_->ReadRemoteObject();
@@ -2251,14 +2251,14 @@ napi_value NAPI_MessageSequence::JS_readSequenceable(napi_env env, napi_callback
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     int32_t len = napiSequence->nativeParcel_->ReadInt32();
@@ -2321,13 +2321,13 @@ napi_value NAPI_MessageSequence::JS_writeRemoteObject(napi_env env, napi_callbac
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     sptr<IRemoteObject> remoteObject = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
     if (remoteObject == nullptr) {
@@ -2338,12 +2338,12 @@ napi_value NAPI_MessageSequence::JS_writeRemoteObject(napi_env env, napi_callbac
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     bool writeResult = napiSequence->nativeParcel_->WriteRemoteObject(remoteObject);
     if (writeResult == false) {
         ZLOGE(LOG_LABEL, "write remote object failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -2360,7 +2360,7 @@ napi_value NAPI_MessageSequence::JS_readRemoteObject(napi_env env, napi_callback
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     sptr<IRemoteObject> value = napiSequence->nativeParcel_->ReadRemoteObject();
@@ -2381,41 +2381,41 @@ napi_value NAPI_MessageSequence::JS_writeInterfaceToken(napi_env env, napi_callb
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
     size_t maxSize = 40960;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxSize) {
         ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     std::string parcelString = stringValue;
     bool writeResult = napiSequence->nativeParcel_->WriteInterfaceToken(to_utf16(parcelString));
     if (writeResult == false) {
         ZLOGE(LOG_LABEL, "write interface token failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -2432,7 +2432,7 @@ napi_value NAPI_MessageSequence::JS_readInterfaceToken(napi_env env, napi_callba
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     std::u16string parcelString = napiSequence->nativeParcel_->ReadInterfaceToken();
@@ -2450,13 +2450,13 @@ napi_value NAPI_MessageSequence::JS_CloseFileDescriptor(napi_env env, napi_callb
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
@@ -2474,13 +2474,13 @@ napi_value NAPI_MessageSequence::JS_DupFileDescriptor(napi_env env, napi_callbac
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
@@ -2512,13 +2512,13 @@ napi_value NAPI_MessageSequence::JS_WriteFileDescriptor(napi_env env, napi_callb
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
@@ -2526,12 +2526,12 @@ napi_value NAPI_MessageSequence::JS_WriteFileDescriptor(napi_env env, napi_callb
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     bool result = napiSequence->nativeParcel_->WriteFileDescriptor(fd);
     if (!result) {
         ZLOGE(LOG_LABEL, "write file descriptor failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -2547,12 +2547,12 @@ napi_value NAPI_MessageSequence::JS_ReadFileDescriptor(napi_env env, napi_callba
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     int32_t result = napiSequence->nativeParcel_->ReadFileDescriptor();
     if (result == -1) {
         ZLOGE(LOG_LABEL, "read file descriptor failed");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue;
     napi_create_int32(env, result, &napiValue);
@@ -2568,7 +2568,7 @@ napi_value NAPI_MessageSequence::JS_WriteAshmem(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     // check type is Ashmem
     napi_value global = nullptr;
@@ -2589,25 +2589,25 @@ napi_value NAPI_MessageSequence::JS_WriteAshmem(napi_env env, napi_callback_info
     napi_instanceof(env, argv[ARGV_INDEX_0], constructor, &isAshmem);
     if (!isAshmem) {
         ZLOGE(LOG_LABEL, "parameter is not instanceof Ashmem");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     sptr<Ashmem> nativeAshmem = napiAshmem->GetAshmem();
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     bool result = napiSequence->nativeParcel_->WriteAshmem(nativeAshmem);
     if (!result) {
         ZLOGE(LOG_LABEL, "write ashmem failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     return napiValue;
 }
@@ -2622,12 +2622,12 @@ napi_value NAPI_MessageSequence::JS_ReadAshmem(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     sptr<Ashmem> nativeAshmem = napiSequence->nativeParcel_->ReadAshmem();
     if (nativeAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "nativeAshmem is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value global = nullptr;
     napi_value napiValue = nullptr;
@@ -2653,7 +2653,7 @@ napi_value NAPI_MessageSequence::JS_ReadAshmem(napi_env env, napi_callback_info 
     napi_unwrap(env, jsAshmem, (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     napiAshmem->SetAshmem(nativeAshmem);
     return jsAshmem;
@@ -2664,20 +2664,20 @@ napi_value NAPI_MessageSequence::JS_checkWriteRawDataArgs(napi_env env, size_t a
     size_t expectedArgc = 2;
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 2 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (!isArray) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_value napiValue = nullptr;
@@ -2704,7 +2704,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
-            return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
@@ -2721,12 +2721,12 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     bool result = napiSequence->nativeParcel_->WriteRawData(array.data(), size * BYTE_SIZE_32);
     if (!result) {
         ZLOGE(LOG_LABEL, "write raw data failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -2741,13 +2741,13 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::VERIFY_PARAM_FAILED);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
@@ -2755,12 +2755,12 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     const void *rawData = napiSequence->nativeParcel_->ReadRawData(arraySize * BYTE_SIZE_32);
     if (rawData == nullptr) {
         ZLOGE(LOG_LABEL, "rawData is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_PARCEL_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     // [c++] rawData -> byteBuffer()[js]
     napi_value result = nullptr;
