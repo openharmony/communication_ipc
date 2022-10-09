@@ -15,6 +15,7 @@
 
 #include "napi_remote_object.h"
 #include <mutex>
+#include <native_value.h>
 #include <cstring>
 #include <thread>
 #include <unistd.h>
@@ -41,6 +42,12 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
 
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
+
+template<class T>
+inline T *ConvertNativeValueTo(NativeValue *value)
+{
+    return (value != nullptr) ? static_cast<T *>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
+}
 
 static NapiError napiErr;
 
@@ -104,16 +111,45 @@ public:
     void Set(sptr<NAPIRemoteObject> object);
     void attachLocalInterface(napi_value localInterface, std::string &descriptor);
     napi_value queryLocalInterface(std::string &descriptor);
+    void Lock()
+    {
+        mutex_.lock();
+    };
+
+    void Unlock()
+    {
+        mutex_.unlock();
+    };
+
+    void IncAttachCount()
+    {
+        ++attachCount_;
+    };
+
+    int32_t DecAttachCount()
+    {
+        if (attachCount_ > 0) {
+            --attachCount_;
+        }
+        return attachCount_;
+    };
+
+    std::u16string GetDescriptor()
+    {
+        return descriptor_;
+    };
+
 private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
     std::u16string descriptor_;
     sptr<NAPIRemoteObject> cachedObject_;
     napi_ref localInterfaceRef_;
+    int32_t attachCount_;
 };
 
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
-    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr)
+    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
 {}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
@@ -169,6 +205,68 @@ napi_value NAPIRemoteObjectHolder::queryLocalInterface(std::string &descriptor)
     return result;
 }
 
+static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
+{
+    NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
+    if (holder == nullptr) {
+        ZLOGW(LOG_LABEL, "RemoteObjectHolderFinalizeCb null holder");
+        return;
+    }
+    holder->Lock();
+    int32_t curAttachCount = holder->DecAttachCount();
+    if (curAttachCount == 0) {
+        delete holder;
+    }
+}
+
+static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
+{
+    (void)engine;
+    (void)hint;
+    return value;
+}
+
+static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void *hint)
+{
+    (void)hint;
+    NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(value);
+    if (holder == nullptr) {
+        ZLOGE(LOG_LABEL, "holder is nullptr when attach");
+        return nullptr;
+    }
+    holder->Lock();
+    ZLOGI(LOG_LABEL, "create js remote object when attach");
+    napi_env env = reinterpret_cast<napi_env>(engine);
+    // retrieve js remote object constructor
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "get stub constructor failed");
+    NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
+    // retrieve descriptor and it's length
+    std::u16string descriptor = holder->GetDescriptor();
+    std::string desc = Str16ToStr8(descriptor);
+    napi_value jsDesc = nullptr;
+    napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
+    // create a new js remote object
+    size_t argc = 1;
+    napi_value argv[1] = { jsDesc };
+    napi_value jsRemoteObject = nullptr;
+    status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
+    NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject when attach");
+    // retrieve and remove create holder
+    NAPIRemoteObjectHolder *createHolder = nullptr;
+    status = napi_remove_wrap(env, jsRemoteObject, (void **)&createHolder);
+    NAPI_ASSERT(env, status == napi_ok && createHolder != nullptr, "failed to remove create holder when attach");
+    status = napi_wrap(env, jsRemoteObject, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
+    NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed when attach");
+    holder->IncAttachCount();
+    holder->Unlock();
+    return reinterpret_cast<NativeValue *>(jsRemoteObject);
+}
+
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
     // new napi remote object
@@ -191,15 +289,20 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
     auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor));
+    auto nativeObj = ConvertNativeValueTo<NativeObject>(reinterpret_cast<NativeValue *>(thisVar));
+    if (nativeObj == nullptr) {
+        ZLOGE(LOG_LABEL, "Failed to get RemoteObject native object");
+        delete holder;
+        return nullptr;
+    }
+    nativeObj->ConvertToNativeBindingObject(env, RemoteObjectDetachCb, RemoteObjectAttachCb, holder, nullptr);
     // connect native object to js thisVar
-    napi_status status = napi_wrap(
-        env, thisVar, holder,
-        [](napi_env env, void *data, void *hint) {
-            ZLOGI(LOG_LABEL, "NAPIRemoteObjectHolder destructed by js callback");
-            delete (reinterpret_cast<NAPIRemoteObjectHolder *>(data));
-        },
-        nullptr, nullptr);
+    napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
+    if (NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar) == nullptr) {
+        ZLOGE(LOG_LABEL, "RemoteObject_JS_Constructor create native object failed");
+        return nullptr;
+    }
     return thisVar;
 }
 
