@@ -115,7 +115,7 @@ describe("NapiRemoteObjectTest", function () {
 
     /*
      * @tc.name:napiRemoteObjectTest002
-     * @tc.desc:The case where only onRemoteRequestEx is called when the callback function is synchronous.
+     * @tc.desc:The case where only onRemoteMessageRequest is called when the callback function is synchronous.
      * @tc.type: FUNC
      * @tc.require: issueNumber
      */
@@ -151,7 +151,7 @@ describe("NapiRemoteObjectTest", function () {
 
     /*
      * @tc.name:napiRemoteObjectTest003
-     * @tc.desc:The case where only onRemoteRequestEx is called when the callback function is asynchronous.
+     * @tc.desc:The case where only onRemoteMessageRequest is called when the callback function is asynchronous.
      * @tc.type: FUNC
      * @tc.require: issueNumber
      */
@@ -187,7 +187,7 @@ describe("NapiRemoteObjectTest", function () {
 
     /*
      * @tc.name:napiRemoteObjectTest004
-     * @tc.desc:The case where both onRemoteRequestEx and onRemoteRequest are called 
+     * @tc.desc:The case where both onRemoteMessageRequest and onRemoteRequest are called 
      *          when the callbacks are synchronized.
      * @tc.type: FUNC
      * @tc.require: issueNumber
@@ -225,7 +225,7 @@ describe("NapiRemoteObjectTest", function () {
     /*
      * @tc.name:napiRemoteObjectTest005
      * @tc.desc:The case in which onRemoteRequest is called when the callback is synchronous and 
-     *          onRemoteRequestEx is called asynchronously.
+     *          onRemoteMessageRequest is called asynchronously.
      * @tc.type: FUNC
      * @tc.require: issueNumber
      */

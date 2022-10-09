@@ -170,6 +170,8 @@ public:
 
     napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info info);
 
+    napi_value NAPI_RemoteProxy_getLocalInterface(napi_env env, napi_callback_info info);
+
     napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_info info);

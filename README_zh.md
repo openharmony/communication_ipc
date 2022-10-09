@@ -75,7 +75,7 @@ external_deps = [
 
 1. 获取代理
 
-   使用ohos.ability.featureAbility提供的connectAbility方法绑定Ability，在参数里指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的情况，还需要指定所在设备的NetworkId。用户需要在服务端的onConnect方法里返回一个继承自ohos.rpc.RemoteObject的对象，此对象会在其onRemoteRequestEx方法里接收到请求。
+   使用ohos.ability.featureAbility提供的connectAbility方法绑定Ability，在参数里指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的情况，还需要指定所在设备的NetworkId。用户需要在服务端的onConnect方法里返回一个继承自ohos.rpc.RemoteObject的对象，此对象会在其onRemoteMessageRequest方法里接收到请求。
 
 2. 发送请求
 
@@ -110,7 +110,7 @@ external_deps = [
 | 模块                        | 方法                                                         | 功能说明                                    |
 | --------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
 | ohos.ability.featureAbility | connectAbility(request: Want, options:ConnectOptions ): number | 绑定指定的Ability，在回调函数里接收代理对象 |
-| ohos.rpc.RemoteObject       | onRemoteRequestEx(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): boolean \| Promise<boolean> | 服务端处理请求，返回结果                    |
+| ohos.rpc.RemoteObject       | onRemoteMessageRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): boolean \| Promise<boolean> | 服务端处理请求，返回结果                    |
 | ohos.rpc.IRemoteObject      | sendRequestAsync(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): Promise<SendRequestResult> | 发送请求，在期约里接收结果                  |
 | ohos.rpc.IRemoteObject      | sendRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption, callback: AsyncCallback<SendRequestResult>): void | 发送请求，在回调函数里接收结果              |
 | ohos.rpc.MessageParcel      | writeRemoteObject(object: IRemoteObject): boolean            | 序列化IRemoteObject对象                     |
@@ -203,7 +203,7 @@ external_deps = [
 
    
 
-2. 服务端被绑定的Ability在onConnect方法里返回继承自rpc.RemoteObject的对象，该对象需要实现onRemoteRequestEx方法，处理客户端的请求。
+2. 服务端被绑定的Ability在onConnect方法里返回继承自rpc.RemoteObject的对象，该对象需要实现onRemoteMessageRequest方法，处理客户端的请求。
 
    ```
    import rpc from "@ohos.rpc"
@@ -215,7 +215,7 @@ external_deps = [
        constructor(descriptor) {
            super(descriptor)
        }
-       onRemoteRequestEx(code, data, reply, option) {
+       onRemoteMessageRequest(code, data, reply, option) {
            // 根据code处理客户端的请求
            return true
        }
