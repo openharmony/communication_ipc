@@ -1079,7 +1079,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall024, TestSize.Level3)
 {
     DBINDER_LOGI(LOG_LABEL, "");
     SetCurrentTestCase(DBINDER_TEST_TRACE_001);
-    HiTraceId traceId = HiTrace::Begin("rpc hitrace", 0);
+    HiTraceId traceId = HiTraceChain::Begin("rpc hitrace", 0);
 
     /*
      * @tc.steps: step1.Get a proxy (called testService) from remote server.

@@ -701,7 +701,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     int userWaitTime = option.GetWaitTime();
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
-    HiTraceId traceId = HiTrace::GetId();
+    HiTraceId traceId = HiTraceChain::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     std::shared_ptr<T> session = WriteTransaction(BC_TRANSACTION, flags, handle, 0, code, data, seqNumber, 0);
