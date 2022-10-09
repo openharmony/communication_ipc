@@ -494,7 +494,7 @@ int DBinderTestServiceStub::OnReverseInt(MessageParcel &data, MessageParcel &rep
 
 int DBinderTestServiceStub::OnGetChildId(MessageParcel &data, MessageParcel &reply)
 {
-    uint64_t reqData = HiTrace::GetId().GetChainId();
+    uint64_t reqData = HiTraceChain::GetId().GetChainId();
     if (!reply.WriteUint64(reqData)) {
         DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;

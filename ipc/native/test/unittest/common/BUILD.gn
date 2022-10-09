@@ -88,7 +88,7 @@ ohos_unittest("IPCHiTraceUnitTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitrace",
+    "hitrace_native:libhitracechain",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",

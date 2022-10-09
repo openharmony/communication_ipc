@@ -59,7 +59,7 @@ ohos_shared_library("ipc_single") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitrace",
+    "hitrace_native:libhitracechain",
     "hiviewdfx_hilog_native:libhilog",
   ]
 

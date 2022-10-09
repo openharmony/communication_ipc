@@ -100,7 +100,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     ZLOGD(LABEL, "%{public}s: handle=%d ,flags:%u", __func__, handle, flags);
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
-    HiTraceId traceId = HiTrace::GetId();
+    HiTraceId traceId = HiTraceChain::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
