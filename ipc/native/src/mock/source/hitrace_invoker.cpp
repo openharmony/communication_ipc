@@ -20,9 +20,7 @@
 
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
-#include "hitrace/hitrace.h"
-#include "hitrace/hitracec.h"
-#include "hitrace/hitraceid.h"
+#include "hitrace/trace.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 #include "parcel.h"
@@ -45,7 +43,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
     HiTraceId childId = traceId;
     bool isClientTraced = IsClientTraced(handle, flags, traceId);
     if (isClientTraced) {
-        childId = HiTrace::CreateSpan();
+        childId = HiTraceChain::CreateSpan();
         // add childid to parcel data
         uint8_t idBytes[HITRACE_ID_LEN];
         size_t idLen = (size_t)(childId.ToBytes(idBytes, HITRACE_ID_LEN));
@@ -70,7 +68,8 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
             return childId;
         }
         // tracepoint: CS(Client Send)
-        HiTrace::Tracepoint(HITRACE_TP_CS, childId, "%s handle=%d,code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
+        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%s handle=%d,code=%u",
+            (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
             handle, code);
         flags |= TF_HITRACE;
     }
@@ -87,9 +86,9 @@ void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t
     if (isClientTraced) {
         if (!(flags & TF_ONE_WAY)) {
             // restore thread trace id
-            HiTrace::SetId(traceId);
+            HiTraceChain::SetId(traceId);
             // tracepoint: CR(Client Receive)
-            HiTrace::Tracepoint(HITRACE_TP_CR, childId, "%s handle=%d,code=%u", "SYNC", handle, code);
+            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "%s handle=%d,code=%u", "SYNC", handle, code);
         }
     }
 }
@@ -123,9 +122,10 @@ bool HitraceInvoker::TraceServerReceieve(int32_t handle, uint32_t code, Parcel &
                 return isServerTraced;
             }
             HiTraceId traceId(idBytes, sizeof(HiTraceIdStruct));
-            HiTrace::SetId(traceId);
+            HiTraceChain::SetId(traceId);
             // tracepoint: SR(Server Receive)
-            HiTrace::Tracepoint(HITRACE_TP_SR, traceId, "%s handle=%d,code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
+            HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
+                "%s handle=%d,code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
                 handle, code);
         }
 
@@ -138,9 +138,9 @@ void HitraceInvoker::TraceServerSend(int32_t handle, uint32_t code, bool isServe
 {
     if (isServerTraced) {
         // tracepoint: SS(Server Send)
-        HiTrace::Tracepoint(HITRACE_TP_SS, HiTrace::GetId(), "%s handle=%d,code=%u",
+        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%d,code=%u",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
     }
-    HiTrace::ClearId();
+    HiTraceChain::ClearId();
 }
 } // namespace OHOS
