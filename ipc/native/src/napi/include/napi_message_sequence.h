@@ -61,7 +61,7 @@ private:
     static napi_value JS_writeBoolean(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeChar(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeString(napi_env env, napi_callback_info cbinfo);
-    static napi_value JS_writeSequenceable(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_writeParcelable(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeByteArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeShortArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeIntArray(napi_env env, napi_callback_info cbinfo);
@@ -71,7 +71,7 @@ private:
     static napi_value JS_writeBooleanArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeCharArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeStringArray(napi_env env, napi_callback_info cbinfo);
-    static napi_value JS_writeSequenceableArray(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_writeParcelableArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_writeRemoteObjectArray(napi_env env, napi_callback_info cbinfo);
 
     static napi_value JS_readByte(napi_env env, napi_callback_info cbinfo);
@@ -83,7 +83,7 @@ private:
     static napi_value JS_readBoolean(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readChar(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readString(napi_env env, napi_callback_info cbinfo);
-    static napi_value JS_readSequenceable(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_readParcelable(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readByteArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readShortArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readIntArray(napi_env env, napi_callback_info cbinfo);
@@ -93,7 +93,7 @@ private:
     static napi_value JS_readBooleanArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readCharArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readStringArray(napi_env env, napi_callback_info cbinfo);
-    static napi_value JS_readSequenceableArray(napi_env env, napi_callback_info cbinfo);
+    static napi_value JS_readParcelableArray(napi_env env, napi_callback_info cbinfo);
     static napi_value JS_readRemoteObjectArray(napi_env env, napi_callback_info cbinfo);
 
     static napi_value JS_CloseFileDescriptor(napi_env env, napi_callback_info info);
@@ -114,10 +114,10 @@ private:
     static napi_value JS_checkWriteArrayArgs(napi_env env, size_t argc, napi_value* argv, uint32_t &arrayLength);
     static napi_value JS_checkWriteStringArrayElement(napi_env env, napi_value* argv, size_t &index,
                                                       size_t &bufferSize, napi_value &element);
-    static napi_value JS_writeSequenceableArrayCallJsFunc(napi_env env, napi_value &element, napi_value &thisVar);
+    static napi_value JS_writeParcelableArrayCallJsFunc(napi_env env, napi_value &element, napi_value &thisVar);
     static napi_value JS_checkReadArrayArgs(napi_env env, napi_callback_info info, size_t &argc,
                                             napi_value &thisVar, napi_value* argv);
-    static napi_value JS_readSequenceableArrayCallJsFunc(napi_env env, napi_value &element, napi_value &thisVar);
+    static napi_value JS_readParcelableArrayCallJsFunc(napi_env env, napi_value &element, napi_value &thisVar);
     static napi_value JS_checkWriteRawDataArgs(napi_env env, size_t argc, napi_value* argv);
 
     napi_env env_ = nullptr;
