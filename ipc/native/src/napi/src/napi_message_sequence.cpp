@@ -995,7 +995,7 @@ napi_value NAPI_MessageSequence::JS_writeStringArray(napi_env env, napi_callback
     return napiValue;
 }
 
-napi_value NAPI_MessageSequence::JS_writeSequenceable(napi_env env, napi_callback_info info)
+napi_value NAPI_MessageSequence::JS_writeParcelable(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -1043,7 +1043,7 @@ napi_value NAPI_MessageSequence::JS_writeSequenceable(napi_env env, napi_callbac
     return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
 }
 
-napi_value NAPI_MessageSequence::JS_writeSequenceableArrayCallJsFunc(napi_env env,
+napi_value NAPI_MessageSequence::JS_writeParcelableArrayCallJsFunc(napi_env env,
                                                                      napi_value &element,
                                                                      napi_value &thisVar)
 {
@@ -1067,7 +1067,7 @@ napi_value NAPI_MessageSequence::JS_writeSequenceableArrayCallJsFunc(napi_env en
     return retValue;
 }
 
-napi_value NAPI_MessageSequence::JS_writeSequenceableArray(napi_env env, napi_callback_info info)
+napi_value NAPI_MessageSequence::JS_writeParcelableArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value argv[ARGV_INDEX_1] = { 0 };
@@ -1110,7 +1110,7 @@ napi_value NAPI_MessageSequence::JS_writeSequenceableArray(napi_env env, napi_ca
         } else {
             napiSequence->nativeParcel_->WriteInt32(1);
         }
-        napi_value callResult = JS_writeSequenceableArrayCallJsFunc(env, element, thisVar);
+        napi_value callResult = JS_writeParcelableArrayCallJsFunc(env, element, thisVar);
         if (callResult == nullptr) {
             ZLOGE(LOG_LABEL, "call mashalling failed, element index: %{public}zu", i);
             napiSequence->nativeParcel_->RewindWrite(pos);
@@ -2120,7 +2120,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
     return result;
 }
 
-napi_value NAPI_MessageSequence::JS_readSequenceableArrayCallJsFunc(napi_env env,
+napi_value NAPI_MessageSequence::JS_readParcelableArrayCallJsFunc(napi_env env,
                                                                     napi_value &element,
                                                                     napi_value &thisVar)
 {
@@ -2142,7 +2142,7 @@ napi_value NAPI_MessageSequence::JS_readSequenceableArrayCallJsFunc(napi_env env
     return retValue;
 }
 
-napi_value NAPI_MessageSequence::JS_readSequenceableArray(napi_env env, napi_callback_info info)
+napi_value NAPI_MessageSequence::JS_readParcelableArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value thisVar = nullptr;
@@ -2181,7 +2181,7 @@ napi_value NAPI_MessageSequence::JS_readSequenceableArray(napi_env env, napi_cal
             }
             napi_value element = nullptr;
             napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
-            napi_value callJsFuncResult = JS_readSequenceableArrayCallJsFunc(env, element, thisVar);
+            napi_value callJsFuncResult = JS_readParcelableArrayCallJsFunc(env, element, thisVar);
             if (callJsFuncResult == nullptr) {
                 ZLOGE(LOG_LABEL, "call unmarshalling failed, element index: %{public}d", i);
                 return callJsFuncResult;
@@ -2243,7 +2243,7 @@ napi_value NAPI_MessageSequence::JS_readRemoteObjectArray(napi_env env, napi_cal
     return result;
 }
 
-napi_value NAPI_MessageSequence::JS_readSequenceable(napi_env env, napi_callback_info info)
+napi_value NAPI_MessageSequence::JS_readParcelable(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value argv[ARGV_INDEX_1] = {0};
@@ -2823,7 +2823,7 @@ napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("writeBoolean", NAPI_MessageSequence::JS_writeBoolean),
         DECLARE_NAPI_FUNCTION("writeChar", NAPI_MessageSequence::JS_writeChar),
         DECLARE_NAPI_FUNCTION("writeString", NAPI_MessageSequence::JS_writeString),
-        DECLARE_NAPI_FUNCTION("writeSequenceable", NAPI_MessageSequence::JS_writeSequenceable),
+        DECLARE_NAPI_FUNCTION("writeParcelable", NAPI_MessageSequence::JS_writeParcelable),
         DECLARE_NAPI_FUNCTION("writeByteArray", NAPI_MessageSequence::JS_writeByteArray),
         DECLARE_NAPI_FUNCTION("writeShortArray", NAPI_MessageSequence::JS_writeShortArray),
         DECLARE_NAPI_FUNCTION("writeIntArray", NAPI_MessageSequence::JS_writeIntArray),
@@ -2833,7 +2833,7 @@ napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("writeBooleanArray", NAPI_MessageSequence::JS_writeBooleanArray),
         DECLARE_NAPI_FUNCTION("writeCharArray", NAPI_MessageSequence::JS_writeCharArray),
         DECLARE_NAPI_FUNCTION("writeStringArray", NAPI_MessageSequence::JS_writeStringArray),
-        DECLARE_NAPI_FUNCTION("writeSequenceableArray", NAPI_MessageSequence::JS_writeSequenceableArray),
+        DECLARE_NAPI_FUNCTION("writeParcelableArray", NAPI_MessageSequence::JS_writeParcelableArray),
         DECLARE_NAPI_FUNCTION("writeRemoteObjectArray", NAPI_MessageSequence::JS_writeRemoteObjectArray),
         DECLARE_NAPI_FUNCTION("readByte", NAPI_MessageSequence::JS_readByte),
         DECLARE_NAPI_FUNCTION("readShort", NAPI_MessageSequence::JS_readShort),
@@ -2844,7 +2844,7 @@ napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("readBoolean", NAPI_MessageSequence::JS_readBoolean),
         DECLARE_NAPI_FUNCTION("readChar", NAPI_MessageSequence::JS_readChar),
         DECLARE_NAPI_FUNCTION("readString", NAPI_MessageSequence::JS_readString),
-        DECLARE_NAPI_FUNCTION("readSequenceable", NAPI_MessageSequence::JS_readSequenceable),
+        DECLARE_NAPI_FUNCTION("readParcelable", NAPI_MessageSequence::JS_readParcelable),
         DECLARE_NAPI_FUNCTION("readByteArray", NAPI_MessageSequence::JS_readByteArray),
         DECLARE_NAPI_FUNCTION("readShortArray", NAPI_MessageSequence::JS_readShortArray),
         DECLARE_NAPI_FUNCTION("readIntArray", NAPI_MessageSequence::JS_readIntArray),
@@ -2854,7 +2854,7 @@ napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("readBooleanArray", NAPI_MessageSequence::JS_readBooleanArray),
         DECLARE_NAPI_FUNCTION("readCharArray", NAPI_MessageSequence::JS_readCharArray),
         DECLARE_NAPI_FUNCTION("readStringArray", NAPI_MessageSequence::JS_readStringArray),
-        DECLARE_NAPI_FUNCTION("readSequenceableArray", NAPI_MessageSequence::JS_readSequenceableArray),
+        DECLARE_NAPI_FUNCTION("readParcelableArray", NAPI_MessageSequence::JS_readParcelableArray),
         DECLARE_NAPI_FUNCTION("readRemoteObjectArray", NAPI_MessageSequence::JS_readRemoteObjectArray),
         DECLARE_NAPI_STATIC_FUNCTION("closeFileDescriptor", NAPI_MessageSequence::JS_CloseFileDescriptor),
         DECLARE_NAPI_STATIC_FUNCTION("dupFileDescriptor", NAPI_MessageSequence::JS_DupFileDescriptor),
