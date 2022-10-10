@@ -1854,10 +1854,16 @@ napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info inf
     } else if (argc == 1) {
         napi_valuetype valueType;
         napi_typeof(env, argv[0], &valueType);
-        NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-        int32_t jsFlags = 0;
-        napi_get_value_int32(env, argv[0], &jsFlags);
-        flags = jsFlags;
+        NAPI_ASSERT(env, valueType == napi_number || valueType == napi_boolean, "type mismatch for parameter 1");
+        if (valueType == napi_boolean) {
+            bool jsBoolFlags = false;
+            napi_get_value_bool(env, argv[0], &jsBoolFlags);
+            flags = jsBoolFlags ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC;
+        } else {
+            int32_t jsFlags = 0;
+            napi_get_value_int32(env, argv[0], &jsFlags);
+            flags = jsFlags == 0 ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC;
+        }
         waittime = MessageOption::TF_WAIT_TIME;
     } else {
         napi_valuetype valueType = napi_null;
@@ -1869,7 +1875,7 @@ napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info inf
         napi_get_value_int32(env, argv[0], &jsFlags);
         int32_t jsWaittime = 0;
         napi_get_value_int32(env, argv[1], &jsWaittime);
-        flags = jsFlags;
+        flags = jsFlags == 0 ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC;
         waittime = jsWaittime;
     }
 
@@ -1904,6 +1910,8 @@ napi_value NAPIMessageOptionExport(napi_env env, napi_value exports)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getFlags", NapiOhosRpcMessageOptionGetFlags),
         DECLARE_NAPI_FUNCTION("setFlags", NapiOhosRpcMessageOptionSetFlags),
+        DECLARE_NAPI_FUNCTION("isAsync", NapiOhosRpcMessageOptionIsAsync),
+        DECLARE_NAPI_FUNCTION("setAsync", NapiOhosRpcMessageOptionSetAsync),
         DECLARE_NAPI_FUNCTION("getWaitTime", NapiOhosRpcMessageOptionGetWaittime),
         DECLARE_NAPI_FUNCTION("setWaitTime", NapiOhosRpcMessageOptionSetWaittime),
         DECLARE_NAPI_STATIC_PROPERTY("TF_SYNC", tfSync),

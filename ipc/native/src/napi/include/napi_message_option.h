@@ -33,6 +33,16 @@ napi_value NapiOhosRpcMessageOptionGetFlags(napi_env env, napi_callback_info inf
 napi_value NapiOhosRpcMessageOptionSetFlags(napi_env env, napi_callback_info info);
 
 /*
+ * Get async to ohos.rpc.MessageOption
+ */
+napi_value NapiOhosRpcMessageOptionIsAsync(napi_env env, napi_callback_info info);
+
+/*
+ * Set async to ohos.rpc.MessageOption
+ */
+napi_value NapiOhosRpcMessageOptionSetAsync(napi_env env, napi_callback_info info);
+
+/*
  * Get wait time field from ohos.rpc.MessageOption.
  */
 napi_value NapiOhosRpcMessageOptionGetWaittime(napi_env env, napi_callback_info info);
