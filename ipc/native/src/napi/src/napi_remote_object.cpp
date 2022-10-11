@@ -95,7 +95,7 @@ private:
         ThreadLockInfo *lockInfo;
         int result;
     };
-    int OnJsRemoteRequest(CallbackParam *param);
+    int OnJsRemoteRequest(CallbackParam *jsParam);
 };
 
 /*
