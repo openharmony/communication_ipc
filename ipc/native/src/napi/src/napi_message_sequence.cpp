@@ -41,7 +41,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
     do {                                                                                               \
-        size_t cap =  napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
+        size_t cap =  (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition(); \
         if (cap < (lenToWrite)) {                                                                      \
             ZLOGI(LOG_LABEL, "No enough capacity to write");                                           \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                       \
@@ -50,17 +50,17 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 
 #define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                                  \
     do {                                                                                              \
-        size_t cap = napiParcel->maxCapacityToWrite_ - napiParcel->nativeParcel_->GetWritePosition(); \
+        size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition(); \
         if (cap < (lenToWrite)) {                                                                     \
             ZLOGI(LOG_LABEL, "No enough capacity to write");                                          \
-            napiParcel->nativeParcel_->RewindWrite(pos);                                              \
+            (napiParcel)->nativeParcel_->RewindWrite(pos);                                              \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                      \
         }                                                                                             \
     } while (0)
 
 #define CHECK_READ_LENGTH(env, arrayLength, typeSize, napiParcel)                                                    \
     do {                                                                                                             \
-        size_t remainSize = napiParcel->nativeParcel_->GetDataSize() - napiParcel->nativeParcel_->GetReadPosition(); \
+        size_t remainSize = (napiParcel)->nativeParcel_->GetDataSize() - (napiParcel)->nativeParcel_->GetReadPosition(); \
         if (((arrayLength) < 0) || ((arrayLength) > remainSize) || (((arrayLength) * (typeSize)) > remainSize)) {    \
             ZLOGI(LOG_LABEL, "No enough data to read");                                                              \
             napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
@@ -73,7 +73,7 @@ NAPI_MessageSequence::NAPI_MessageSequence(napi_env env, napi_value thisVar, Mes
     maxCapacityToWrite_ = MAX_CAPACITY_TO_WRITE;
     // do NOT reference js parcel here
     if (parcel == nullptr) {
-        nativeParcel_ = std::shared_ptr<MessageParcel>(new MessageParcel());
+        nativeParcel_ = std::make_shared<MessageParcel>();
         owner = true;
     } else {
         nativeParcel_ = std::shared_ptr<MessageParcel>(parcel, release);
@@ -1044,8 +1044,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelable(napi_env env, napi_callback_
 }
 
 napi_value NAPI_MessageSequence::JS_writeParcelableArrayCallJsFunc(napi_env env,
-                                                                     napi_value &element,
-                                                                     napi_value &thisVar)
+    napi_value &element, napi_value &thisVar)
 {
     napi_value propKey = nullptr;
     const char *propKeyStr = "marshalling";
@@ -2121,8 +2120,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
 }
 
 napi_value NAPI_MessageSequence::JS_readParcelableArrayCallJsFunc(napi_env env,
-                                                                    napi_value &element,
-                                                                    napi_value &thisVar)
+    napi_value &element, napi_value &thisVar)
 {
     napi_value propKey = nullptr;
     const char *propKeyStr = "unmarshalling";
