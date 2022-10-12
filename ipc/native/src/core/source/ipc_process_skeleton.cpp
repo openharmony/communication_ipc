@@ -234,6 +234,7 @@ bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
 bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     /* don't care mutex result even object is deleted */
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = isContainStub_.find(object);
     if (it != isContainStub_.end()) {
         return it->second;
