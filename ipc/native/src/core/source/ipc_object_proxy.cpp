@@ -56,12 +56,10 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjec
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
-    ZLOGD(LABEL, "create handle: %{public}d", handle);
 }
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGD(LABEL, "destroy handle: %{public}u", handle_);
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
@@ -306,7 +304,6 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
     recipients_.push_back(recipient);
 
     if (!registerRecipient || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-        ZLOGD(LABEL, "%s: death recipient is already registered", __func__);
         return true;
     }
 
@@ -503,7 +500,6 @@ int IPCObjectProxy::GetSessionFromDBinderService()
 
     switch (reply.ReadUint32()) {
         case IRemoteObject::IF_PROT_BINDER: {
-            ZLOGD(LABEL, "it is normal binder, not dbinder");
             break;
         }
         case IRemoteObject::IF_PROT_DATABUS: {
@@ -605,7 +601,6 @@ bool IPCObjectProxy::CheckHaveSession()
 
     std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(handle_);
     if (session == nullptr) {
-        ZLOGD(LABEL, "no databus session attach to this handle, maybe need update");
         return false;
     }
 
@@ -678,7 +673,6 @@ void IPCObjectProxy::ReleaseDatabusProto()
     }
 
     if (proto_ != IRemoteObject::IF_PROT_DATABUS) {
-        ZLOGD(LABEL, "not databus dbinder, need do nothing");
         return;
     }
 

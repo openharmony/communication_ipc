@@ -66,7 +66,6 @@ static const std::string SAMGR_PROCESS_NAME = "samgr";
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
-    ZLOGD(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor).c_str());
 }
 
 IPCObjectStub::~IPCObjectStub()
