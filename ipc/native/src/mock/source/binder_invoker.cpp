@@ -69,7 +69,6 @@ bool BinderInvoker::AcquireHandle(int32_t handle)
     if (handle != 0) {
         (void)PingService(handle);
     }
-    ZLOGD(LABEL, "Acquire Handle %{public}d", handle);
     return true;
 }
 
@@ -87,7 +86,6 @@ bool BinderInvoker::ReleaseHandle(int32_t handle)
         return false;
     }
 
-    ZLOGD(LABEL, "Release Handle %{public}d", handle);
     FlushCommands(nullptr);
     return true;
 }
@@ -97,7 +95,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 {
     int error = ERR_NONE;
     uint32_t flags = (uint32_t)option.GetFlags();
-    ZLOGD(LABEL, "%{public}s: handle=%d ,flags:%u", __func__, handle, flags);
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
     HiTraceId traceId = HiTrace::GetId();
@@ -129,7 +126,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 
 bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
 {
-    ZLOGD(LABEL, "BinderInvoker::AddDeathRecipient for handle:%d", handle);
     size_t rewindPos = output_.GetWritePosition();
     if (!output_.WriteInt32(BC_REQUEST_DEATH_NOTIFICATION)) {
         ZLOGE(LABEL, "fail to write command field:%d", handle);
@@ -219,7 +215,6 @@ int BinderInvoker::TranslateProxy(uint32_t handle, uint32_t flag)
     }
     info.has_strong_ref = handle;
     info.has_weak_ref = flag;
-    ZLOGD(LABEL, "TranslateProxy input handle = %{public}u", info.has_strong_ref);
     int error = binderConnector_->WriteBinder(BINDER_TRANSLATE_HANDLE, &info);
     if (error == ERR_NONE && info.has_strong_ref > 0) {
         ZLOGD(LABEL, "TranslateProxy get new handle = %{public}u", info.has_strong_ref);
@@ -241,7 +236,6 @@ int BinderInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, 
     info.has_strong_ref = flag;
     int error = binderConnector_->WriteBinder(BINDER_TRANSLATE_HANDLE, &info);
     if (error == ERR_NONE && info.has_strong_ref > 0) {
-        ZLOGD(LABEL, "TranslateStub get new handle = %{public}u", info.has_strong_ref);
         return info.has_strong_ref;
     }
     ZLOGE(LABEL, "failed to TranslateStub");
@@ -533,14 +527,12 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
 
     if (reply == nullptr) {
-        ZLOGD(LABEL, "no need reply, free the buffer");
         FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
         return IPC_INVOKER_INVALID_REPLY_ERR;
     }
 
     if (tr->flags & TF_STATUS_CODE) {
         int32_t status = *reinterpret_cast<const int32_t *>(tr->data.ptr.buffer);
-        ZLOGD(LABEL, "received status code:%{public}d, free the buffer", status);
         FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
         return status;
     }
@@ -570,7 +562,6 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
-    ZLOGD(LABEL, "HandleCommands:cmd:%{public}u", cmd);
     switch (cmd) {
         case BR_ERROR:
             error = input_.ReadInt32();
@@ -679,7 +670,6 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     bwr.write_consumed = 0;
     bwr.read_consumed = 0;
-    ZLOGD(LABEL, "TransactWithDriver write_size:%lld, read_size:%lld", bwr.write_size, bwr.read_size);
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
