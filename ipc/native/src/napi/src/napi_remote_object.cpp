@@ -539,7 +539,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->condition.notify_all();
             return;
         }
-        napi_get_named_property(param->env, thisVar, "onRemoteRequestEx", &onRemoteRequest);
+        napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
         if (onRemoteRequest == nullptr) {
             ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
             param->result = -1;
@@ -550,21 +550,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         }
         napi_valuetype type = napi_undefined;
         napi_typeof(param->env, onRemoteRequest, &type);
-        bool isOnRemoteMessageRequest = false;
-        if (type != napi_function) {
-            napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
-            if (onRemoteRequest == nullptr) {
-                ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
-                param->result = -1;
-                std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-                param->lockInfo->ready = true;
-                param->lockInfo->condition.notify_all();
-                return;
-            }
-            isOnRemoteMessageRequest = true;
-        }
-        type = napi_undefined;
-        napi_typeof(param->env, onRemoteRequest, &type);
+        bool isOnRemoteMessageRequest = true;
         if (type != napi_function) {
             napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
             if (onRemoteRequest == nullptr) {
@@ -575,6 +561,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->lockInfo->condition.notify_all();
                 return;
             }
+            isOnRemoteMessageRequest = false;
         }
         napi_value jsCode;
         napi_create_uint32(param->env, param->code, &jsCode);
@@ -1837,7 +1824,6 @@ napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports)
     return exports;
 }
 EXTERN_C_END
-
 
 napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info info)
 {
