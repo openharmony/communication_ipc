@@ -45,7 +45,6 @@ describe("NapiRemoteObjectTest", function () {
     let temp1 = 0
     let temp2 = 0
     function myTestSendRequest(){
-        console.info("myTestSendRequest in chen")
         let option = new rpc.MessageOption()
         let data = rpc.MessageParcel.create()
         let reply = rpc.MessageParcel.create()
@@ -80,7 +79,6 @@ describe("NapiRemoteObjectTest", function () {
      * @tc.require: issueNumber
      */
     it("napiRemoteObjectTest001", 0, async function (){
-        console.info("chen 123")
         let connectId = null
         let want = {
             "bundleName": "com.example.syncre",
@@ -107,7 +105,6 @@ describe("NapiRemoteObjectTest", function () {
                 console.info("after connectid")
             })
             myTestSendRequest()
-            console.info("myTestSendRequest out chen")
             expect(temp1).assertEqual(-128)
             expect(temp2).assertEqual(2)
         }

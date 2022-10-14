@@ -164,7 +164,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
         return nullptr;
     }
 #endif
-    ZLOGD(LOG_LABEL, "handle:%{public}d, proto:%{public}d", handle, remoteProxy->GetProto());
     return result;
 }
 
