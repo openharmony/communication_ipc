@@ -17,7 +17,7 @@ import("//build/ohos_var.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
-config("ipc_util_config"   ) {
+config("ipc_util_config") {
   # header file path
 
   include_dirs = [
