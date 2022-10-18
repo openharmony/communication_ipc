@@ -148,7 +148,7 @@ static void *OpenTcpServerSocket(void *args)
     if (args == NULL) {
         return NULL;
     }
-    printf("OpenTcpServerSocket %d\n", strlen((char *)args));
+    printf("OpenTcpServerSocket %lu\n", strlen((char *)args));
     sleep(1);
 
     char *ip = (char *)SOCKET_SERVER_ADDR;
