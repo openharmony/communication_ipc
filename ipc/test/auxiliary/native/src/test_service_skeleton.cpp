@@ -573,7 +573,7 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
                     fooProxy->SendAsyncReply(result);
                 }
             } else {
-                result = TestAsyncTransaction(reqData, timeout);
+                (void)TestAsyncTransaction(reqData, timeout);
             }
             break;
         }
