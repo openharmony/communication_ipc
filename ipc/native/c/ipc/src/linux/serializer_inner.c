@@ -40,7 +40,7 @@ static struct flat_binder_object *IoPushBinderObj(IpcIo *io)
     }
 }
 
-static bool IpcIoPushObject(IpcIo *io, uint32_t token, uint32_t cookie)
+static bool IpcIoPushObject(IpcIo *io, uint32_t token, uintptr_t cookie)
 {
     struct flat_binder_object *ptr = IoPushBinderObj(io);
     if (ptr == NULL) {
@@ -54,7 +54,7 @@ static bool IpcIoPushObject(IpcIo *io, uint32_t token, uint32_t cookie)
     return true;
 }
 
-static bool IpcIoPushRef(IpcIo *io, uint32_t handle, uint32_t cookie)
+static bool IpcIoPushRef(IpcIo *io, uint32_t handle, uintptr_t cookie)
 {
     struct flat_binder_object *ptr = IoPushBinderObj(io);
     if (ptr == NULL) {
