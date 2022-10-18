@@ -108,10 +108,9 @@ public:
             case SERVER_OP_ADD_SERVICE: {
                 sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
                 ReadRemoteObject(data, sid);
-                const char *str = "server call anonymos service one.";
                 WriteInt32(reply, ERR_NONE);
                 uint32_t cbId1 = -1;
-                int ret = AddDeathRecipient(*sid, (OnRemoteDead)ServerDead1, (void *)NULL, (uint32_t *)&cbId1);
+                (void)AddDeathRecipient(*sid, (OnRemoteDead)ServerDead1, (void *)NULL, (uint32_t *)&cbId1);
                 break;
             }
             default:
