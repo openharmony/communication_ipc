@@ -91,7 +91,7 @@ napi_value NapiOhosRpcMessageOptionSetAsync(napi_env env, napi_callback_info inf
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
-    NAPI_ASSERT(env, valueType == napi_boolean, "type mismatch for parameter 1");;
+    NAPI_ASSERT(env, valueType == napi_boolean, "type mismatch for parameter 1");
     bool flags = false;
     napi_status status = napi_get_value_bool(env, argv[0], &flags);
     NAPI_ASSERT(env, status == napi_ok, "failed to get boolean value");
