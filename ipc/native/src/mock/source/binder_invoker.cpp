@@ -308,7 +308,7 @@ void BinderInvoker::StartWorkLoop()
         error = TransactWithDriver();
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
             ZLOGE(LABEL, "returned unexpected error %d, aborting", error);
-            abort();
+            break;
         }
         uint32_t cmd = input_.ReadUint32();
         int userError = HandleCommands(cmd);
