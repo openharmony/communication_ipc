@@ -2484,6 +2484,10 @@ napi_value NAPI_MessageSequence::JS_DupFileDescriptor(napi_env env, napi_callbac
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
     int32_t dupResult = dup(fd);
+    if (dupResult < 0) {
+        ZLOGE(LOG_LABEL, "os dup function failed");
+        return napiErr.ThrowError(env, errorDesc::OS_DUP_ERROR);
+    }
     napi_value napiValue;
     napi_create_int32(env, dupResult, &napiValue);
     return napiValue;
