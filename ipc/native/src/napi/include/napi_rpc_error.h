@@ -44,7 +44,6 @@ typedef struct errorInfo {
     std::string errorMsg;
 } errorInfo;
 
-
 class NapiError {
 public:
     NapiError() {};
@@ -59,6 +58,8 @@ public:
     {
         return errorCode_ != -1;
     };
+
+    static napi_value NAPIRpcErrorEnumExport(napi_env env, napi_value exports);
 private:
     int32_t errorCode_{-1};
     static std::map<int32_t, errorInfo> napiErrMap_;
