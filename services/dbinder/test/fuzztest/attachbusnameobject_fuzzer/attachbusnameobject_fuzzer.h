@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef ATTACHBUSNAMEOBJECT_FUZZER_H
+#define ATTACHBUSNAMEOBJECT_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -23,3 +25,4 @@
 #define FUZZ_PROJECT_NAME "attachbusnameobject_fuzzer"
 #define SESSION_NAME_SIZE_MAX 256
 
+#endif
