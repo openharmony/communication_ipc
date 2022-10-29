@@ -34,11 +34,12 @@ namespace OHOS {
             return false;
         }
         std::string srcNetworkId = tmp;
-        int32_t systemAbilityId = (int32_t)size;
+        int32_t systemAbilityId = *(reinterpret_cast<const int32_t*>(data));
         sptr<DBinderService> dBinderService = DBinderService::GetInstance();
         if (dBinderService == nullptr) {
             return false;
         }
+
         dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject);
         return true;
     }
