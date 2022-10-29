@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef ISFEATUREACK_FUZZER_H
+#define ISFEATUREACK_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -22,3 +24,4 @@
 
 #define FUZZ_PROJECT_NAME "isfeatureack_fuzzer"
 
+#endif
