@@ -26,7 +26,7 @@ namespace OHOS {
     {
         #define VERSION_NUM 1
         #define MESSAGE_INVALID 5
-        if ((data == nullptr) || (size <= 0)) {
+        if ((data == nullptr) || (size == 0)) {
             return;
         }
 
@@ -42,7 +42,7 @@ namespace OHOS {
     void QuerySessionObjectTest(const uint8_t* data, size_t size)
     {
         #define INVALID 0
-        if ((data == nullptr) || (size <= 0)) {
+        if ((data == nullptr) || (size == 0)) {
             return;
         }
         OHOS::DBinderService dBinderService;
@@ -51,7 +51,7 @@ namespace OHOS {
 
     void RegisterRemoteProxy1Test(const uint8_t* data, size_t size)
     {
-        if ((data == nullptr) || (size <= 0)) {
+        if ((data == nullptr) || (size == 0)) {
             return;
         }
 
@@ -64,7 +64,7 @@ namespace OHOS {
 
     void RegisterRemoteProxy2Test(const uint8_t* data, size_t size)
     {
-        if ((data == nullptr) || (size <= 0)) {
+        if ((data == nullptr) || (size == 0)) {
             return;
         }
         OHOS::DBinderService dBinderService;

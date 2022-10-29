@@ -26,7 +26,12 @@ namespace OHOS {
             return false;
         }
 
-        uint32_t tokenId = GetTokenFromData((FeatureTransData *)data, (uint32_t)size);
+        FeatureTransData featureAddr;
+        featureAddr.magicNum = *(reinterpret_cast<const uint32_t*>(data));
+        featureAddr.tag = *(reinterpret_cast<const uint32_t*>(data));
+        featureAddr.tokenId = *(reinterpret_cast<const uint32_t*>(data));
+
+        uint32_t tokenId = GetTokenFromData(&featureAddr, sizeof(FeatureTransData));
         if (tokenId == 0) {
             return false;
         }
