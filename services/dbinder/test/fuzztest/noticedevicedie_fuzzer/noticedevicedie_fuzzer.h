@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef NOTICEDEVICEDIE_FUZZER_H
+#define NOTICEDEVICEDIE_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -23,3 +25,4 @@
 #define FUZZ_PROJECT_NAME "noticedevicedie_fuzzer"
 #define SESSION_NAME_SIZE_MAX 256
 
+#endif

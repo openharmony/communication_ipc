@@ -28,7 +28,8 @@ namespace OHOS {
             return false;
         }
 
-        return IsATEnable((uint32_t)size);
+        uint32_t featureSet = *(reinterpret_cast<const uint32_t*>(data));
+        return IsATEnable(featureSet);
     }
 }
 
