@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef GETTOKENFROMDATA_FUZZER_H
+#define GETTOKENFROMDATA_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -22,3 +24,4 @@
 
 #define FUZZ_PROJECT_NAME "gettokenfromdata_fuzzer"
 
+#endif

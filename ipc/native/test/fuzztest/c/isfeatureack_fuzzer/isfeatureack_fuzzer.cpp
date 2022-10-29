@@ -27,7 +27,8 @@ namespace OHOS {
             return false;
         }
 
-        return IsFeatureAck((uint32_t)size);
+        uint32_t featureSet = *(reinterpret_cast<const uint32_t*>(data));
+        return IsFeatureAck(featureSet);
     }
 }
 

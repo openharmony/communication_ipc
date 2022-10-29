@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef LOADSYSTEMABILITYCOMPLETE_FUZZER_H
+#define LOADSYSTEMABILITYCOMPLETE_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -23,3 +25,4 @@
 #define FUZZ_PROJECT_NAME "loadsystemabilitycomplete_fuzzer"
 #define SESSION_NAME_SIZE_MAX 256
 
+#endif
