@@ -70,8 +70,8 @@ namespace OHOS {
         OHOS::DBinderService dBinderService;
         std::string sessionNameTmp(reinterpret_cast<const char*>(data), size);
         std::u16string serviceName = Str8ToStr16(sessionNameTmp);
-        int32_t tmp = (int32_t)size;
-        dBinderService.RegisterRemoteProxy(serviceName, tmp);
+        int32_t abilityId = *(reinterpret_cast<const int32_t*>(data));
+        dBinderService.RegisterRemoteProxy(serviceName, abilityId);
     }
 }
 
