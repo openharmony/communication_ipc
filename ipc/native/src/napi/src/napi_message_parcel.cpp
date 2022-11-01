@@ -1704,7 +1704,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
-    int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
+    int32_t arrayLength = napiParcel->nativeParcel_->ReadUint32();
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
@@ -2340,9 +2340,7 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     MessageParcel *parcel = nullptr;
     if (argv[0] != nullptr) {
-        int64_t tmp = 0;
-        napi_get_value_int64(env, argv[0], &tmp);
-        parcel = reinterpret_cast<MessageParcel *>(tmp);
+        napi_unwrap(env, argv[0], (void **)&parcel);
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }
     // new native parcel object
