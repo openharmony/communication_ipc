@@ -12,31 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef GETTOKENIDSIZE_FUZZER_H
+#define GETTOKENIDSIZE_FUZZER_H
 
-#include "isatenable_fuzzer.h"
-
-#include <cstddef>
 #include <cstdint>
-#include <cstring>
-#include "rpc_feature_set.h"
+#include <unistd.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
 
-namespace OHOS {
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
+#define FUZZ_PROJECT_NAME "gettokenidsize_fuzzer"
 
-        uint32_t featureSet = *(reinterpret_cast<const uint32_t*>(data));
-        return IsATEnable(featureSet);
-    }
-}
-
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-{
-    /* Run your code on data */
-    OHOS::DoSomethingInterestingWithMyAPI(data, size);
-    return 0;
-}
-
+#endif
