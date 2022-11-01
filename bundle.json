@@ -111,9 +111,15 @@
           "//foundation/communication/ipc/services/dbinder/test/fuzztest/closedatabussession_fuzzer:fuzztest",
           "//foundation/communication/ipc/services/dbinder/test/fuzztest/dbinderservice_fuzzer:fuzztest",
           "//foundation/communication/ipc/ipc/native/test/fuzztest/c:fuzztest",
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/c/getfeaturesize_fuzzer:fuzztest",
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/c/getrpcfeatureack_fuzzer:fuzztest",
           "//foundation/communication/ipc/ipc/native/test/fuzztest/c/gettokenfromdata_fuzzer:fuzztest",
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/c/gettokenidsize_fuzzer:fuzztest",
           "//foundation/communication/ipc/ipc/native/test/fuzztest/c/isatenable_fuzzer:fuzztest",
-          "//foundation/communication/ipc/ipc/native/test/fuzztest/c/isfeatureack_fuzzer:fuzztest"
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/c/isfeatureack_fuzzer:fuzztest",
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/c/setfeaturetransdata_fuzzer:fuzztest",
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/core:fuzztest",
+          "//foundation/communication/ipc/ipc/native/test/fuzztest/core/bufferobject_fuzzer:fuzztest"
         ]
       }
     }

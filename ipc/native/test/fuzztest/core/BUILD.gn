@@ -13,13 +13,5 @@
 
 group("fuzztest") {
   testonly = true
-  deps = [
-    "getfeaturesize_fuzzer:fuzztest",
-    "getrpcfeatureack_fuzzer:fuzztest",
-    "gettokenfromdata_fuzzer:fuzztest",
-    "gettokenidsize_fuzzer:fuzztest",
-    "isatenable_fuzzer:fuzztest",
-    "isfeatureack_fuzzer:fuzztest",
-    "setfeaturetransdata_fuzzer:fuzztest",
-  ]
+  deps = [ "bufferobject_fuzzer:fuzztest" ]
 }
