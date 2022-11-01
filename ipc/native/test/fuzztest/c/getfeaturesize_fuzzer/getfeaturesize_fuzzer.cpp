@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "isatenable_fuzzer.h"
+#include "getfeaturesize_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -21,14 +21,12 @@
 #include "rpc_feature_set.h"
 
 namespace OHOS {
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    void DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size == 0) {
-            return false;
+            return;
         }
-
-        uint32_t featureSet = *(reinterpret_cast<const uint32_t*>(data));
-        return IsATEnable(featureSet);
+        GetFeatureSize();
     }
 }
 
