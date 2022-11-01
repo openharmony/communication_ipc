@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "isatenable_fuzzer.h"
+#include "setfeaturetransdata_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -26,9 +26,11 @@ namespace OHOS {
         if (data == nullptr || size == 0) {
             return false;
         }
-
-        uint32_t featureSet = *(reinterpret_cast<const uint32_t*>(data));
-        return IsATEnable(featureSet);
+        FeatureTransData featureAddr;
+        featureAddr.magicNum = *(reinterpret_cast<const uint32_t*>(data));
+        featureAddr.tag = *(reinterpret_cast<const uint32_t*>(data));
+        featureAddr.tokenId = *(reinterpret_cast<const uint32_t*>(data));
+        return SetFeatureTransData(&featureAddr, sizeof(FeatureTransData));
     }
 }
 

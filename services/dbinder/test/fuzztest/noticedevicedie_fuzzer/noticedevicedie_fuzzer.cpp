@@ -26,7 +26,6 @@ namespace OHOS {
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size == 0) {
-            printf("noticedevicedie.");
             return true;
         }
         char tmp[SESSION_NAME_SIZE_MAX] = {0};
