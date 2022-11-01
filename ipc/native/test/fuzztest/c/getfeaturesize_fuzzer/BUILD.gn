@@ -16,9 +16,9 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IsFeatureAck") {
+ohos_fuzztest("GetFeatureSize") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/c/isfeatureack_fuzzer"
+  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/c/getfeaturesize_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
     "//foundation/communication/ipc/ipc/native/c/rpc/include",
@@ -30,8 +30,7 @@ ohos_fuzztest("IsFeatureAck") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-
-  sources = [ "isfeatureack_fuzzer.cpp" ]
+  sources = [ "getfeaturesize_fuzzer.cpp" ]
 
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
@@ -51,7 +50,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":IsFeatureAck",
+    ":GetFeatureSize",
   ]
 }
 

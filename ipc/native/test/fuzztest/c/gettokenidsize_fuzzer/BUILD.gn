@@ -16,9 +16,9 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IsFeatureAck") {
+ohos_fuzztest("GetTokenIdSize") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/c/isfeatureack_fuzzer"
+  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/c/gettokenidsize_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
     "//foundation/communication/ipc/ipc/native/c/rpc/include",
@@ -31,7 +31,7 @@ ohos_fuzztest("IsFeatureAck") {
     "-fstack-protector-strong",
   ]
 
-  sources = [ "isfeatureack_fuzzer.cpp" ]
+  sources = [ "gettokenidsize_fuzzer.cpp" ]
 
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
@@ -51,7 +51,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":IsFeatureAck",
+    ":GetTokenIdSize",
   ]
 }
 
