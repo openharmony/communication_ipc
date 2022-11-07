@@ -16,7 +16,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NoticeServiceDie") {
+ohos_fuzztest("NoticeServiceDieFuzzTest") {
   module_out_path = "ipc/service"
   fuzz_config_file = "//foundation/communication/ipc/services/dbinder/test/fuzztest/noticeservicedie_fuzzer"
   include_dirs = [
@@ -45,7 +45,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":NoticeServiceDie",
+    ":NoticeServiceDieFuzzTest",
   ]
 }
 ###############################################################################
