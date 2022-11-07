@@ -618,9 +618,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         }
         napi_value jsData;
         napi_value dataParcel;
-        napi_create_object(param->env, &dataParcel);
-        napi_wrap(param->env, dataParcel, param->data,
-            [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
+        napi_create_int64(param->env, reinterpret_cast<int64_t>(param->data), &dataParcel);
         if (dataParcel == nullptr) {
             ZLOGE(LOG_LABEL, "create js object for data parcel address failed");
             param->result = -1;
@@ -642,9 +640,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         }
         napi_value jsReply;
         napi_value replyParcel;
-        napi_create_object(param->env, &replyParcel);
-        napi_wrap(param->env, replyParcel, param->reply,
-            [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
+        napi_create_int64(param->env, reinterpret_cast<int64_t>(param->reply), &replyParcel);
         if (replyParcel == nullptr) {
             ZLOGE(LOG_LABEL, "create js object for reply parcel address failed");
             param->result = -1;
