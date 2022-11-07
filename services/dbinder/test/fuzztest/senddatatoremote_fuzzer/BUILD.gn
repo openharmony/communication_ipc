@@ -16,7 +16,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SendDataToRemote") {
+ohos_fuzztest("SendDataToRemoteFuzzTest") {
   module_out_path = "ipc/service"
   fuzz_config_file = "//foundation/communication/ipc/services/dbinder/test/fuzztest/senddatatoremote_fuzzer"
   include_dirs = [
@@ -44,7 +44,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":SendDataToRemote",
+    ":SendDataToRemoteFuzzTest",
   ]
 }
 ###############################################################################

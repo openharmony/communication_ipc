@@ -23,7 +23,7 @@
 namespace OHOS {
     bool GetSendBufferAndLockTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(uint32_t)) {
             return false;
         }
 
@@ -38,13 +38,13 @@ namespace OHOS {
 
     bool GetReceiveBufferAndLockTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(uint32_t)) {
             return false;
         }
 
         BufferObject object;
         uint32_t sendSize = *(reinterpret_cast<const uint32_t*>(data));
-        char *sendBuffer = object.GetSendBufferAndLock(sendSize);
+        char *sendBuffer = object.GetReceiveBufferAndLock(sendSize);
         if (sendBuffer == nullptr) {
             return false;
         }
@@ -86,7 +86,7 @@ namespace OHOS {
 
     bool SetReceiveBufferWriteCursorTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(ssize_t)) {
             return false;
         }
         ssize_t cursor =  *(reinterpret_cast<const ssize_t*>(data));
@@ -110,7 +110,7 @@ namespace OHOS {
 
     bool SetReceiveBufferReadCursorTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(ssize_t)) {
             return false;
         }
         BufferObject object;
@@ -134,7 +134,7 @@ namespace OHOS {
 
     bool SetSendBufferWriteCursorTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(ssize_t)) {
             return false;
         }
         BufferObject object;
@@ -158,7 +158,7 @@ namespace OHOS {
 
     bool SetSendBufferReadCursorTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(ssize_t)) {
             return false;
         }
         BufferObject object;
@@ -169,7 +169,7 @@ namespace OHOS {
 
     bool GetNeedBufferSizeTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(uint32_t)) {
             return false;
         }
         BufferObject object;
@@ -196,7 +196,7 @@ namespace OHOS {
 
     bool GetRecvBufferSizeTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(uint32_t)) {
             return false;
         }
         BufferObject object;
