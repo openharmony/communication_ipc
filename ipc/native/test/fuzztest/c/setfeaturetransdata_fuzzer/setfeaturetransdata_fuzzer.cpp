@@ -23,7 +23,7 @@
 namespace OHOS {
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(uint32_t)) {
             return false;
         }
         FeatureTransData featureAddr;
