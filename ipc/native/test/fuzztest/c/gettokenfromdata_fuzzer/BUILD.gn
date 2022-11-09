@@ -16,7 +16,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("GetTokenFromData") {
+ohos_fuzztest("GetTokenFromDataFuzzTest") {
   module_out_path = "ipc/native"
   fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/c/gettokenfromdata_fuzzer"
   include_dirs = [
@@ -50,7 +50,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":GetTokenFromData",
+    ":GetTokenFromDataFuzzTest",
   ]
 }
 
