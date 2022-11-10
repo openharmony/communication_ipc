@@ -325,7 +325,9 @@ napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("queryLocalInterface", NAPI_RemoteObject_queryLocalInterface),
         DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteObject_getLocalInterface),
         DECLARE_NAPI_FUNCTION("addDeathRecipient", NAPI_RemoteObject_addDeathRecipient),
+        DECLARE_NAPI_FUNCTION("registerDeathRecipient", NAPI_RemoteObject_registerDeathRecipient),
         DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteObject_removeDeathRecipient),
+        DECLARE_NAPI_FUNCTION("unregisterDeathRecipient", NAPI_RemoteObject_unregisterDeathRecipient),
         DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteObject_isObjectDead),
     };
     napi_value constructor = nullptr;
@@ -1769,11 +1771,23 @@ napi_value NAPI_RemoteObject_addDeathRecipient(napi_env env, napi_callback_info 
     return result;
 }
 
+napi_value NAPI_RemoteObject_registerDeathRecipient(napi_env env, napi_callback_info info)
+{
+    ZLOGE(LOG_LABEL, "only proxy object permitted");
+    return napiErr.ThrowError(env, errorDesc::ONLY_PROXY_OBJECT_PERMITTED_ERROR);
+}
+
 napi_value NAPI_RemoteObject_removeDeathRecipient(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_boolean(env, false, &result);
     return result;
+}
+
+napi_value NAPI_RemoteObject_unregisterDeathRecipient(napi_env env, napi_callback_info info)
+{
+    ZLOGE(LOG_LABEL, "only proxy object permitted");
+    return napiErr.ThrowError(env, errorDesc::ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
 napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info)
