@@ -108,12 +108,12 @@ private:
     int WaitForReply(uint64_t seqNumber, MessageParcel *reply, std::shared_ptr<T> sessionObject, int userWaitTime);
     void ProcessTransaction(dbinder_transaction_data *tr, uint32_t listenFd);
     void ProcessReply(dbinder_transaction_data *tr, uint32_t listenFd);
-    bool IRemoteObjectTranslate(char *dataBuffer, binder_size_t buffer_size, MessageParcel &data, uint32_t socketId,
+    bool IRemoteObjectTranslate(char *dataBuffer, binder_size_t bufferSize, MessageParcel &data, uint32_t socketId,
         std::shared_ptr<T> sessionObject);
     bool TranslateRawData(char *dataBuffer, MessageParcel &data, uint32_t socketId);
     std::shared_ptr<T> GetSessionObject(uint32_t handle, uint32_t socketId);
     uint64_t GetUniqueSeqNumber(int cmd);
-    void ConstructTransData(dbinder_transaction_data &TransData, size_t totalSize, uint64_t seqNum, int cmd, __u32 code,
+    void ConstructTransData(dbinder_transaction_data &transData, size_t totalSize, uint64_t seqNum, int cmd, __u32 code,
         __u32 flags);
     bool ProcessRawData(std::shared_ptr<T> sessionObject, MessageParcel &data, uint64_t seqNum);
     std::shared_ptr<dbinder_transaction_data> ProcessNormalData(std::shared_ptr<T> sessionObject, MessageParcel &data,
@@ -227,7 +227,7 @@ bool DBinderBaseInvoker<T>::TranslateRemoteHandleType(flat_binder_object *binder
 
 /* check data parcel contains object, if yes, get its session as payload of socket packet */
 template <class T>
-bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size_t buffer_size, MessageParcel &data,
+bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size_t bufferSize, MessageParcel &data,
     uint32_t socketId, std::shared_ptr<T> sessionObject)
 {
     if (data.GetOffsetsSize() <= 0 || dataBuffer == nullptr) {
@@ -236,7 +236,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size
 
     uint32_t totalSize = 0;
     binder_size_t *binderObjectsOffsets = reinterpret_cast<binder_size_t *>(data.GetObjectOffsets());
-    uint32_t offsetOfSession = buffer_size + data.GetOffsetsSize() * sizeof(binder_size_t);
+    uint32_t offsetOfSession = bufferSize + data.GetOffsetsSize() * sizeof(binder_size_t);
     char *flatOffset = dataBuffer + offsetOfSession;
 
     for (size_t i = 0; i < data.GetOffsetsSize(); i++) {
@@ -353,20 +353,20 @@ template <class T> uint64_t DBinderBaseInvoker<T>::GetUniqueSeqNumber(int cmd)
 }
 
 template <class T>
-void DBinderBaseInvoker<T>::ConstructTransData(dbinder_transaction_data &TransData, size_t totalSize, uint64_t seqNum,
+void DBinderBaseInvoker<T>::ConstructTransData(dbinder_transaction_data &transData, size_t totalSize, uint64_t seqNum,
     int cmd, __u32 code, __u32 flags)
 {
-    TransData.sizeOfSelf = totalSize;
-    TransData.magic = DBINDER_MAGICWORD;
-    TransData.version = VERSION_NUM;
-    TransData.cmd = cmd;
-    TransData.code = code;
-    TransData.flags = flags;
-    TransData.cookie = 0;
-    TransData.seqNumber = seqNum;
-    TransData.buffer_size = 0;
-    TransData.offsets_size = 0;
-    TransData.offsets = 0;
+    transData.sizeOfSelf = totalSize;
+    transData.magic = DBINDER_MAGICWORD;
+    transData.version = VERSION_NUM;
+    transData.cmd = cmd;
+    transData.code = code;
+    transData.flags = flags;
+    transData.cookie = 0;
+    transData.seqNumber = seqNum;
+    transData.buffer_size = 0;
+    transData.offsets_size = 0;
+    transData.offsets = 0;
 }
 
 template <class T>

@@ -445,7 +445,7 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
 
 napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "Async onReomteReuqest's return_val is rejected");
+    ZLOGI(LOG_LABEL, "Async onReomteReuqest's returnVal is rejected");
     size_t argc = 1;
     napi_value argv[1] = {nullptr};
     void* data = nullptr;
@@ -668,8 +668,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         // start to call onRemoteRequest
         size_t argc2 = 4;
         napi_value argv2[] = { jsCode, jsData, jsReply, jsOption };
-        napi_value return_val;
-        napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc2, argv2, &return_val);
+        napi_value returnVal;
+        napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc2, argv2, &returnVal);
         // Reset old calling pid, uid, device id
         NAPI_RemoteObject_resetOldCallingInfo(param->env, oldCallingInfo);
 
@@ -683,11 +683,11 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
             // Check whether return_val is Promise
             bool returnIsPromise = false;//
-            napi_is_promise(param->env, return_val, &returnIsPromise);
+            napi_is_promise(param->env, returnVal, &returnIsPromise);
             if (!returnIsPromise) {
                 ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
                 bool result = false;
-                napi_get_value_bool(param->env, return_val, &result);
+                napi_get_value_bool(param->env, returnVal, &result);
                 if (!result) {
                     ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
                     param->result = ERR_UNKNOWN_TRANSACTION;
@@ -700,22 +700,22 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             ZLOGD(LOG_LABEL, "onRemoteRequest is asynchronous");
             // Create promiseThen
             napi_value promiseThen = nullptr;
-            napi_get_named_property(param->env, return_val, "then", &promiseThen);
+            napi_get_named_property(param->env, returnVal, "then", &promiseThen);
             if (promiseThen == nullptr) {
                 ZLOGE(LOG_LABEL, "get promiseThen failed");
                 param->result = -1;
                 break;
             }
-            napi_value then_value;
-            ret = napi_create_function(param->env, "thenCallback", NAPI_AUTO_LENGTH, ThenCallback, param, &then_value);
+            napi_value thenValue;
+            ret = napi_create_function(param->env, "thenCallback", NAPI_AUTO_LENGTH, ThenCallback, param, &thenValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "thenCallback got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
             // Start to call promiseThen
-            napi_value then_return_value;
-            ret = napi_call_function(param->env, return_val, promiseThen, 1, &then_value, &then_return_value);
+            napi_value thenReturnValue;
+            ret = napi_call_function(param->env, returnVal, promiseThen, 1, &thenValue, &thenReturnValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "PromiseThen got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
@@ -723,23 +723,23 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             }
             // Create promiseCatch
             napi_value promiseCatch = nullptr;
-            napi_get_named_property(param->env, return_val, "catch", &promiseCatch);
+            napi_get_named_property(param->env, returnVal, "catch", &promiseCatch);
             if (promiseCatch == nullptr) {
                 ZLOGE(LOG_LABEL, "get promiseCatch failed");
                 param->result = -1;
                 break;
             }
-            napi_value catch_value;
+            napi_value catchValue;
             ret = napi_create_function(param->env, "catchCallback",
-                NAPI_AUTO_LENGTH, CatchCallback, param, &catch_value);
+                NAPI_AUTO_LENGTH, CatchCallback, param, &catchValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "catchCallback got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
             // Start to call promiseCatch
-            napi_value catch_return_value;
-            ret = napi_call_function(param->env, return_val, promiseCatch, 1, &catch_value, &catch_return_value);
+            napi_value catchReturnValue;
+            ret = napi_call_function(param->env, returnVal, promiseCatch, 1, &catchValue, &catchReturnValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "PromiseCatch got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
@@ -1361,7 +1361,7 @@ napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_
 {
     napi_value result = nullptr;
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, nullptr, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     sptr<IRemoteObject> nativeObject = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
     std::u16string descriptor = nativeObject->GetObjectDescriptor();
     napi_create_string_utf8(env, Str16ToStr8(descriptor).c_str(), NAPI_AUTO_LENGTH, &result);
@@ -1372,7 +1372,7 @@ napi_value NAPI_RemoteObject_getDescriptor(napi_env env, napi_callback_info info
 {
     napi_value result = nullptr;
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, nullptr, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     sptr<IRemoteObject> nativeObject = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
     if (nativeObject == nullptr) {
         ZLOGE(LOG_LABEL, "native stub object is nullptr");

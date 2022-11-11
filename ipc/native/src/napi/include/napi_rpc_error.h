@@ -49,7 +49,7 @@ public:
     NapiError() {};
     NapiError(int32_t errorCode) : errorCode_(errorCode) {};
     napi_value GetError(napi_env& env) const;
-    napi_value ThrowError(napi_env& env, int32_t errorCode = -1);
+    napi_value ThrowError(napi_env& env, int32_t code = -1);
     inline void Error(int32_t errorCode)
     {
         errorCode_ = (errorCode != -1) ? errorCode : errorCode_;
