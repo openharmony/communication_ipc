@@ -38,11 +38,11 @@ EXTERN_C_END
  */
 class NAPIDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    explicit NAPIDeathRecipient(napi_env env, napi_value jsRecipient);
+    explicit NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient);
 
     void OnRemoteDied(const wptr<IRemoteObject> &object) override;
 
-    bool Matches(napi_value jsRecipient);
+    bool Matches(napi_value object);
 
 protected:
     virtual ~NAPIDeathRecipient();

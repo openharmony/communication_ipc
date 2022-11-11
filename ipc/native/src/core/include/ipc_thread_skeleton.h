@@ -47,9 +47,9 @@ public:
     static IRemoteInvoker *GetProxyInvoker(IRemoteObject *object);
 
     // Joint Current thread into IPC Work Group
-    void JoinWorkThread(int proto);
+    void JoinWorkThread(int prot);
     // Quit current thread from IPC work group.
-    void StopWorkThread(int proto);
+    void StopWorkThread(int prot);
 
 private:
     static pthread_key_t TLSKey_;
