@@ -151,7 +151,11 @@ public:
 
     napi_value NAPI_RemoteObject_addDeathRecipient(napi_env env, napi_callback_info info);
 
+    napi_value NAPI_RemoteObject_registerDeathRecipient(napi_env env, napi_callback_info info);
+
     napi_value NAPI_RemoteObject_removeDeathRecipient(napi_env env, napi_callback_info info);
+
+    napi_value NAPI_RemoteObject_unregisterDeathRecipient(napi_env env, napi_callback_info info);
 
     napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info);
 
