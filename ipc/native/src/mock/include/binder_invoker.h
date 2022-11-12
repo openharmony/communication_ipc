@@ -49,8 +49,6 @@ public:
 
     bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
 
-    int GetObjectRefCount(const IRemoteObject *object) override;
-
     bool SetMaxWorkThread(int maxThreadNum) override;
 
     void JoinThread(bool initiative) override;
