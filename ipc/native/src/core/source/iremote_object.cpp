@@ -78,7 +78,6 @@ bool IRemoteObject::IsProxyObject() const
 
 IRemoteObject::IRemoteObject(std::u16string descriptor) : descriptor_(descriptor)
 {
-    ExtendObjectLifetime();
     asRemote_ = true;
 }
 } // namespace OHOS
