@@ -147,17 +147,17 @@ IRemoteInvoker *IPCThreadSkeleton::GetDefaultInvoker()
     return GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
 }
 
-void IPCThreadSkeleton::JoinWorkThread(int prot)
+void IPCThreadSkeleton::JoinWorkThread(int proto)
 {
-    IRemoteInvoker *invoker = GetRemoteInvoker(prot);
+    IRemoteInvoker *invoker = GetRemoteInvoker(proto);
     if (invoker != nullptr) {
         invoker->JoinThread(true);
     }
 }
 
-void IPCThreadSkeleton::StopWorkThread(int prot)
+void IPCThreadSkeleton::StopWorkThread(int proto)
 {
-    IRemoteInvoker *invoker = GetRemoteInvoker(prot);
+    IRemoteInvoker *invoker = GetRemoteInvoker(proto);
     if (invoker != nullptr) {
         invoker->StopWorkThread();
     }
