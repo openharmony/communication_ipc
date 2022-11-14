@@ -65,7 +65,7 @@ private:
     static napi_value WriteAshmem(napi_env env, napi_callback_info info);
     static napi_value GetAshmemFromExisting(napi_env env, napi_callback_info info);
     static napi_value GetAshmemConstructor(napi_env env, napi_value* argv);
-    static napi_value getNewAshmemConstructor(napi_env env, napi_value& constructor, int32_t fd, uint32_t size);
+    static napi_value getNewAshmemConstructor(napi_env env, napi_value &constructor, int32_t fd, uint32_t size);
     static napi_value CheckWriteAshmemParams(napi_env env, size_t argc, napi_value* argv);
     static napi_value TransferByteToJsData(napi_env env, uint32_t size, const void *result);
     sptr<Ashmem> ashmem_;
