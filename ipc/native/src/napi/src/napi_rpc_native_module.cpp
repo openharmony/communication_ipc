@@ -26,7 +26,7 @@
 
 namespace OHOS {
 EXTERN_C_START
-static napi_value rpcExport(napi_env env, napi_value exports)
+static napi_value RpcExport(napi_env env, napi_value exports)
 {
     NAPI_MessageParcel::Export(env, exports);
     NAPI_MessageSequence::Export(env, exports);
@@ -43,5 +43,5 @@ EXTERN_C_END
 /*
  * Module register function
  */
-NAPI_MODULE(rpc, rpcExport)
+NAPI_MODULE(rpc, RpcExport)
 } // namesapce OHOS

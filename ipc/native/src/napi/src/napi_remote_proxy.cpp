@@ -96,9 +96,9 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         napi_value onRemoteDied = nullptr;
         napi_get_named_property(param->env, jsDeathRecipient, "onRemoteDied", &onRemoteDied);
         NAPI_ASSERT_RETURN_VOID(param->env, onRemoteDied != nullptr, "failed to get property onRemoteDied");
-        napi_value return_val = nullptr;
-        napi_call_function(param->env, jsDeathRecipient, onRemoteDied, 0, nullptr, &return_val);
-        if (return_val == nullptr) {
+        napi_value returnVal = nullptr;
+        napi_call_function(param->env, jsDeathRecipient, onRemoteDied, 0, nullptr, &returnVal);
+        if (returnVal == nullptr) {
             ZLOGE(LOG_LABEL, "failed to call function onRemoteDied");
         }
         delete param;
@@ -775,7 +775,7 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
 napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, 0, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
     napi_status status = napi_unwrap(env, thisVar, (void **)&holder);
     NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
@@ -798,7 +798,7 @@ napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_i
 napi_value NAPI_RemoteProxy_getDescriptor(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, 0, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
     napi_status status = napi_unwrap(env, thisVar, (void **)&holder);
     if (status != napi_ok) {
@@ -828,7 +828,7 @@ napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
 {
     ZLOGI(LOG_LABEL, "call isObjectDead");
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, 0, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
     napi_status status = napi_unwrap(env, thisVar, (void **)&holder);
     NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
