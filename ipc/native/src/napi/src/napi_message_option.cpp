@@ -98,7 +98,7 @@ napi_value NapiOhosRpcMessageOptionSetAsync(napi_env env, napi_callback_info inf
     MessageOption *option = nullptr;
     napi_unwrap(env, thisVar, (void **)&option);
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
-    option->SetFlags(static_cast<int32_t> (flags));
+    option->SetFlags(static_cast<int32_t>(flags));
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;

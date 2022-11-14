@@ -350,7 +350,7 @@ void BinderInvoker::OnBinderDied()
 
 void BinderInvoker::OnAcquireObject(uint32_t cmd)
 {
-    bool ParcelResult = false;
+    bool parcelResult = false;
     uintptr_t refsPointer = input_.ReadPointer();
     uintptr_t objectPointer = input_.ReadPointer();
     RefBase *refs = reinterpret_cast<IRemoteObject *>(refsPointer);
@@ -362,13 +362,13 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     size_t rewindPos = output_.GetWritePosition();
     if (cmd == BR_ACQUIRE) {
         refs->IncStrongRef(this);
-        ParcelResult = output_.WriteInt32(BC_ACQUIRE_DONE);
+        parcelResult = output_.WriteInt32(BC_ACQUIRE_DONE);
     } else {
         refs->IncWeakRef(this);
-        ParcelResult = output_.WriteInt32(BC_INCREFS_DONE);
+        parcelResult = output_.WriteInt32(BC_INCREFS_DONE);
     }
 
-    if (!ParcelResult || !output_.WritePointer(refsPointer)) {
+    if (!parcelResult || !output_.WritePointer(refsPointer)) {
         if (!output_.RewindWrite(rewindPos)) {
             output_.FlushBuffer();
         }
