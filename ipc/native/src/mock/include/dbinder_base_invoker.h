@@ -61,7 +61,6 @@ public:
         MessageOption &option) override;
     bool AddDeathRecipient(int32_t handle, void *cookie) override;
     bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
-    int GetObjectRefCount(const IRemoteObject *object) override;
     bool SetMaxWorkThread(int maxThreadNum) override;
     int SendReply(MessageParcel &reply, uint32_t flags, int32_t result) override;
     bool PingService(int32_t handle) override;
@@ -734,11 +733,6 @@ template <class T> bool DBinderBaseInvoker<T>::AddDeathRecipient(int32_t handle,
 template <class T> bool DBinderBaseInvoker<T>::RemoveDeathRecipient(int32_t handle, void *cookie)
 {
     return true;
-}
-
-template <class T> int DBinderBaseInvoker<T>::GetObjectRefCount(const IRemoteObject *object)
-{
-    return 0;
 }
 
 template <class T> bool DBinderBaseInvoker<T>::SetMaxWorkThread(int maxThreadNum)

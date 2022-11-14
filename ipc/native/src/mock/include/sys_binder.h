@@ -135,10 +135,9 @@ struct access_token {
 #define BINDER_GET_NODE_DEBUG_INFO _IOWR('b', 11, struct binder_node_debug_info)
 #define BINDER_GET_NODE_INFO_FOR_REF _IOWR('b', 12, struct binder_node_info_for_ref)
 #define BINDER_SET_CONTEXT_MGR_EXT _IOW('b', 13, struct flat_binder_object)
-#define BINDER_GET_NODE_REFCOUNT _IOWR('b', 17, struct binder_ptr_count)
 #define BINDER_TRANSLATE_HANDLE _IOWR('b', 18, __u32)
-#define BINDER_FEATURE_SET	_IOWR('b', 30, struct binder_feature_set)
-#define BINDER_GET_ACCESS_TOKEN	_IOWR('b', 31, struct access_token)
+#define BINDER_FEATURE_SET _IOWR('b', 30, struct binder_feature_set)
+#define BINDER_GET_ACCESS_TOKEN _IOWR('b', 31, struct access_token)
 
 enum transaction_flags {
     TF_ONE_WAY = 0x01,
@@ -167,6 +166,17 @@ struct binder_transaction_data {
         __u8 buf[8];
     } data;
 };
+
+struct binder_transaction_data_secctx {
+    struct binder_transaction_data transaction_data;
+    binder_uintptr_t secctx;
+};
+
+struct binder_transaction_data_sg {
+    struct binder_transaction_data transaction_data;
+    binder_size_t buffers_size;
+};
+
 struct binder_ptr_cookie {
     binder_uintptr_t ptr;
     binder_uintptr_t cookie;
@@ -187,6 +197,7 @@ struct binder_pri_ptr_cookie {
 enum binder_driver_return_protocol {
     BR_ERROR = _IOR('r', 0, __s32),
     BR_OK = _IO('r', 1),
+    BR_TRANSACTION_SEC_CTX = _IOR('r', 2, struct binder_transaction_data_secctx),
     BR_TRANSACTION = _IOR('r', 2, struct binder_transaction_data),
     BR_REPLY = _IOR('r', 3, struct binder_transaction_data),
     BR_ACQUIRE_RESULT = _IOR('r', 4, __s32),
@@ -204,6 +215,7 @@ enum binder_driver_return_protocol {
     BR_CLEAR_DEATH_NOTIFICATION_DONE = _IOR('r', 16, binder_uintptr_t),
     BR_FAILED_REPLY = _IO('r', 17),
     BR_RELEASE_NODE = _IO('r', 18),
+    BR_TRANSLATION_COMPLETE = _IOR('r', 20, __u32),
 };
 enum binder_driver_command_protocol {
     BC_TRANSACTION = _IOW('c', 0, struct binder_transaction_data),
@@ -223,7 +235,10 @@ enum binder_driver_command_protocol {
     BC_REQUEST_DEATH_NOTIFICATION = _IOW('c', 14, struct binder_handle_cookie),
     BC_CLEAR_DEATH_NOTIFICATION = _IOW('c', 15, struct binder_handle_cookie),
     BC_DEAD_BINDER_DONE = _IOW('c', 16, binder_uintptr_t),
+    BC_TRANSACTION_SG = _IOW('c', 17, struct binder_transaction_data_sg),
+    BC_REPLY_SG = _IOW('c', 18, struct binder_transaction_data_sg),
     BC_SEND_RAWDATA = _IOW('c', 20, __u32),
+    BC_TRANSLATION = _IOW('c', 21, struct flat_binder_object),
 };
 #endif /* * _UAPI_LINUX_BINDER_H * */
 
@@ -239,6 +254,8 @@ enum {
     ZBINDER_TYPE_REMOTE_NODE = B_PACK_CHARS('r', 'n', '*', B_TYPE_LARGE),
     ZBINDER_TYPE_NODE = B_PACK_CHARS('s', 'n', '*', B_TYPE_LARGE),
     BINDER_TYPE_FDR = B_PACK_CHARS('f', 'd', 'r', B_TYPE_LARGE),
+    BINDER_TYPE_INVALID_HANDLE = B_PACK_CHARS('r', 'h', 'e', B_TYPE_LARGE),
+    BINDER_TYPE_INVALID_BINDER = B_PACK_CHARS('r', 'b', 'e', B_TYPE_LARGE),
 };
 
 struct binder_ptr_count {

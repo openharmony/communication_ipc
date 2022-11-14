@@ -48,8 +48,6 @@ public:
 
     virtual bool AddDeathRecipient(int32_t handle, void *cookie) = 0;
 
-    virtual int GetObjectRefCount(const IRemoteObject *object) = 0;
-
     virtual bool RemoveDeathRecipient(int32_t handle, void *cookie) = 0;
 
     virtual bool SetMaxWorkThread(int maxThreadNum) = 0;

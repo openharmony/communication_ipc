@@ -102,7 +102,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         InvokerFactory &factory = InvokerFactory::Get();
         invoker = factory.newInstance(proto);
         if (invoker == nullptr) {
-            ZLOGE(LABEL, "invoker is NULL proto = %d", proto);
+            ZLOGE(LABEL, "invoker is NULL proto = %{public}d", proto);
             return nullptr;
         }
 
