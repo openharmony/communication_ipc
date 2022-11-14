@@ -65,7 +65,7 @@ public:
 
     virtual bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) = 0;
 
-    bool Marshalling(Parcel &parcel) const override;
+    virtual bool Marshalling(Parcel &parcel) const override;
 
     static sptr<IRemoteObject> Unmarshalling(Parcel &parcel);
 
