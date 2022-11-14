@@ -90,23 +90,23 @@ char *BufferObject::GetSendBufferAndLock(uint32_t size)
     }
     sendMutex_.lock();
     if (needSize > sendBuffSize_) {
-        char *newBuffer_ = new (std::nothrow) char[needSize];
-        if (newBuffer_ == nullptr) {
+        char *newBuffer = new (std::nothrow) char[needSize];
+        if (newBuffer == nullptr) {
             sendMutex_.unlock();
             return nullptr;
         }
 
         if ((sendBuffer_ != nullptr) && (sendBuffSize_ != 0)) {
-            int memcpyResult = memcpy_s(newBuffer_, needSize, sendBuffer_, sendBuffSize_);
+            int memcpyResult = memcpy_s(newBuffer, needSize, sendBuffer_, sendBuffSize_);
             if (memcpyResult != 0) {
-                delete[] newBuffer_;
+                delete[] newBuffer;
                 sendMutex_.unlock();
                 return nullptr;
             }
         }
 
         delete[] sendBuffer_;
-        sendBuffer_ = newBuffer_;
+        sendBuffer_ = newBuffer;
         sendBuffSize_ = needSize;
     }
 
@@ -122,23 +122,23 @@ char *BufferObject::GetReceiveBufferAndLock(uint32_t size)
     }
     recvMutex_.lock();
     if (needSize > recvBuffSize_) {
-        char *newBuffer_ = new (std::nothrow) char[needSize];
-        if (newBuffer_ == nullptr) {
+        char *newBuffer = new (std::nothrow) char[needSize];
+        if (newBuffer == nullptr) {
             recvMutex_.unlock();
             return nullptr;
         }
 
         if ((receiveBuffer_ != nullptr) && (recvBuffSize_ != 0)) {
-            int memcpyResult = memcpy_s(newBuffer_, needSize, receiveBuffer_, recvBuffSize_);
+            int memcpyResult = memcpy_s(newBuffer, needSize, receiveBuffer_, recvBuffSize_);
             if (memcpyResult != 0) {
-                delete[] newBuffer_;
+                delete[] newBuffer;
                 recvMutex_.unlock();
                 return nullptr;
             }
         }
 
         delete[] receiveBuffer_;
-        receiveBuffer_ = newBuffer_;
+        receiveBuffer_ = newBuffer;
         recvBuffSize_ = needSize;
     }
 

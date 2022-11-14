@@ -1346,7 +1346,7 @@ napi_value NAPI_MessageSequence::JS_getSize(napi_env env, napi_callback_info inf
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
 
     size_t value = napiSequence->nativeParcel_->GetDataSize();
     napi_value napiValue = nullptr;
@@ -1362,7 +1362,7 @@ napi_value NAPI_MessageSequence::JS_getCapacity(napi_env env, napi_callback_info
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
 
     size_t value = napiSequence->nativeParcel_->GetDataCapacity();
     napi_value napiValue = nullptr;
@@ -1457,7 +1457,7 @@ napi_value NAPI_MessageSequence::JS_getWritableBytes(napi_env env, napi_callback
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
 
     size_t value = napiSequence->nativeParcel_->GetWritableBytes();
     napi_value napiValue = nullptr;
@@ -1473,7 +1473,7 @@ napi_value NAPI_MessageSequence::JS_getReadableBytes(napi_env env, napi_callback
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
 
     size_t value = napiSequence->nativeParcel_->GetReadableBytes();
     napi_value napiValue = nullptr;
@@ -1489,7 +1489,7 @@ napi_value NAPI_MessageSequence::JS_getReadPosition(napi_env env, napi_callback_
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
 
     size_t value = napiSequence->nativeParcel_->GetReadPosition();
     napi_value napiValue = nullptr;
@@ -1543,7 +1543,7 @@ napi_value NAPI_MessageSequence::JS_getWritePosition(napi_env env, napi_callback
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
 
     size_t value = napiSequence->nativeParcel_->GetWritePosition();
     napi_value napiValue = nullptr;
@@ -2500,7 +2500,7 @@ napi_value NAPI_MessageSequence::JS_ContainFileDescriptors(napi_env env, napi_ca
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
     bool result = napiSequence->nativeParcel_->ContainFileDescriptors();
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
@@ -2788,7 +2788,7 @@ napi_value NAPI_MessageSequence::JS_GetRawDataCapacity(napi_env env, napi_callba
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
-    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", 0);
+    NAPI_ASSERT_BASE(env, napiSequence != nullptr, "napiSequence is null", nullptr);
     uint32_t result = napiSequence->nativeParcel_->GetRawDataCapacity();
     napi_value napiValue;
     napi_create_uint32(env, result, &napiValue);
