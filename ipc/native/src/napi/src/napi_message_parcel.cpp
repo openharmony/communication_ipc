@@ -1254,7 +1254,7 @@ napi_value NAPI_MessageParcel::JS_rewindWrite(napi_env env, napi_callback_info i
 napi_value NAPI_MessageParcel::JS_writeNoException(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, nullptr, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
@@ -1269,7 +1269,7 @@ napi_value NAPI_MessageParcel::JS_readException(napi_env env, napi_callback_info
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, 0, nullptr, &thisVar, nullptr);
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
