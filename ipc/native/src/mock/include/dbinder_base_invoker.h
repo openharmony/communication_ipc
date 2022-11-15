@@ -130,7 +130,7 @@ uint32_t DBinderBaseInvoker<T>::TranslateBinderType(flat_binder_object *binderOb
     std::shared_ptr<T> session)
 {
     uint64_t stubIndex = 0;
-    std::shared_ptr<T> sessionOfPeer = CreateServerSessionObject(binderObject->binder, stubIndex, session);
+    std::shared_ptr<T> sessionOfPeer = CreateServerSessionObject(binderObject->cookie, stubIndex, session);
     if (sessionOfPeer == nullptr) {
         ZLOGE(LOG_LABEL, "send an wrong stub object");
         return 0;
