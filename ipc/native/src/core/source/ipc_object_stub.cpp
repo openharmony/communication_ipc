@@ -321,9 +321,19 @@ uint32_t IPCObjectStub::GetCallingTokenID()
     return IPCSkeleton::GetCallingTokenID();
 }
 
+uint64_t IPCObjectStub::GetCallingFullTokenID()
+{
+    return IPCSkeleton::GetCallingFullTokenID();
+}
+
 uint32_t IPCObjectStub::GetFirstTokenID()
 {
     return IPCSkeleton::GetFirstTokenID();
+}
+
+uint64_t IPCObjectStub::GetFirstFullTokenID()
+{
+    return IPCSkeleton::GetFirstFullTokenID();
 }
 
 int IPCObjectStub::GetObjectType() const
