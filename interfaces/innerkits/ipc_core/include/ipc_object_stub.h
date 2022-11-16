@@ -64,7 +64,11 @@ public:
 
     uint32_t GetCallingTokenID();
 
+    uint64_t GetCallingFullTokenID();
+
     uint32_t GetFirstTokenID();
+
+    uint64_t GetFirstFullTokenID();
 
     virtual int OnRemoteDump(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 

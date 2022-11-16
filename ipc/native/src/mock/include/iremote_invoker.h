@@ -66,9 +66,9 @@ public:
 
     virtual uid_t GetCallerUid() const = 0;
 
-    virtual uint32_t GetCallerTokenID() const = 0;
+    virtual uint64_t GetCallerTokenID() const = 0;
 
-    virtual uint32_t GetFirstTokenID() const = 0;
+    virtual uint64_t GetFirstTokenID() const = 0;
 
     virtual uint32_t GetStatus() const = 0;
 
