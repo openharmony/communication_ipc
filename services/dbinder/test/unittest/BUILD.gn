@@ -41,8 +41,39 @@ ohos_unittest("RPCDbinderTest") {
       "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
+ohos_unittest("DbinderServiceStubTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [
+    "//foundation/communication/ipc/ipc/native/c/manager/include",
+    "//foundation/communication/ipc/utils/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+  ]
+
+  sources = [ "dbinder_service_stub_unittest.cpp" ]
+
+  configs = []
+
+  deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:libdbinder",
+  ]
+
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [ ":RPCDbinderTest" ]
+  deps = [
+    ":DbinderServiceStubTest",
+    ":RPCDbinderTest",
+  ]
 }

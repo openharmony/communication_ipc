@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,9 +14,15 @@
  */
 
 #include <gtest/gtest.h>
+
+#define private public
+#include "comm_auth_info.h"
+#include "databus_session_callback.h"
+#include "dbinder_session_object.h"
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
+#include "ipc_object_stub.h"
 #include "test_service_skeleton.h"
 #include "test_service.h"
 #include "test_service_command.h"
@@ -24,8 +30,12 @@
 #include "ipc_test_helper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
+#include "dbinder_session_object.h"
+#include "message_option.h"
+#include "stub_refcount_object.h"
 #include "system_ability_definition.h"
 #include "log_tags.h"
+#undef private
 #ifndef CONFIG_STANDARD_SYSTEM
 #include "jni_help.h"
 #endif
@@ -34,8 +44,12 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
-static constexpr int MAX_TEST_COUNT = 1000;
-static constexpr bool SUPPORT_ZBINDER = false;
+namespace {
+constexpr int MAX_TEST_COUNT = 1000;
+constexpr bool SUPPORT_ZBINDER = false;
+constexpr uint32_t INVAL_TOKEN_ID = 0x0;
+constexpr int MAX_WAIT_TIME = 3000;
+}
 
 class IPCNativeUnitTest : public testing::Test {
 public:
@@ -91,6 +105,18 @@ HWTEST_F(IPCNativeUnitTest, DeathRecipient002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetObjectRefCountTest001
+ * @tc.desc: Verify the GetObjectRefCount function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetObjectRefCountTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    int count = testStub->GetObjectRefCount();
+    EXPECT_GE(count, 0);
+}
+
+/**
  * @tc.name: DumpTest001
  * @tc.desc: The Stub should not support Dump
  * @tc.type: FUNC
@@ -105,6 +131,230 @@ HWTEST_F(IPCNativeUnitTest, DumpTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnRemoteDumpTest001
+ * @tc.desc: Verify the OnRemoteDump function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, OnRemoteDumpTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->OnRemoteDump(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest001
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = INTERFACE_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+/**
+ * @tc.name: SendRequestTest002
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = SYNCHRONIZE_REFERENCE;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+/**
+ * @tc.name: SendRequestTest003
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest003, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DUMP_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest004
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest004, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = GET_PROTO_INFO;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+/**
+ * @tc.name: SendRequestTest005
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest005, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = INVOKE_LISTEN_THREAD;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVOKE_THREAD_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest007
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest007, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_INCREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest008
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest008, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_DECREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest009
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest009, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_DECREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest010
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest010, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_ADD_COMMAUTH;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest011
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest011, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_TRANS_COMMAUTH;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest012
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest012, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = GET_UIDPID_INFO;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+/**
+ * @tc.name: SendRequestTest013
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest013, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = GRANT_DATABUS_NAME;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest014
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest014, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = TRANS_DATABUS_NAME;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
  * @tc.name: ProxyJudgment001
  * @tc.desc: act as stub role, should return false
  * @tc.type: FUNC
@@ -114,6 +364,120 @@ HWTEST_F(IPCNativeUnitTest, ProxyJudgment001, TestSize.Level1)
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
     bool res = testStub->IsProxyObject();
     EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: GetCallingPidTest001
+ * @tc.desc: Verify the GetCallingPid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetCallingPidTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    pid_t id = testStub->GetCallingPid();
+    EXPECT_NE(id, -1);
+}
+
+/**
+ * @tc.name: GetCallingUidTest001
+ * @tc.desc: Verify the GetCallingUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetCallingUidTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    pid_t id = testStub->GetCallingUid();
+    EXPECT_NE(id, -1);
+}
+
+/**
+ * @tc.name: GetCallingTokenIDTest001
+ * @tc.desc: Verify the GetCallingTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetCallingTokenIDTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t token = testStub->GetCallingTokenID();
+    EXPECT_NE(token, INVAL_TOKEN_ID);
+}
+
+/**
+ * @tc.name: GetFirstTokenIDTest001
+ * @tc.desc: Verify the GetFirstTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetFirstTokenIDTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t token = testStub->GetFirstTokenID();
+    EXPECT_EQ(token, INVAL_TOKEN_ID);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest001
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    MessageParcel reply;
+    uint32_t code = 0;
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: GetObjectTypeTest001
+ * @tc.desc: Verify the GetObjectType function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetObjectTypeTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    int ret = testStub->GetObjectType();
+    EXPECT_EQ(ret, IPCObjectStub::OBJECT_TYPE_NATIVE);
+}
+
+/**
+ * @tc.name: IsDeviceIdIllegalTest001
+ * @tc.desc: Verify the IsDeviceIdIllegal function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, IsDeviceIdIllegalTest001, TestSize.Level1)
+{
+    std::string deviceID = "test";
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    bool ret = testStub->IsDeviceIdIllegal(deviceID);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsDeviceIdIllegalTest002
+ * @tc.desc: Verify the IsDeviceIdIllegal function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, IsDeviceIdIllegalTest002, TestSize.Level1)
+{
+    std::string deviceID = "";
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    bool ret = testStub->IsDeviceIdIllegal(deviceID);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsDeviceIdIllegalTest003
+ * @tc.desc: Verify the IsDeviceIdIllegal function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, IsDeviceIdIllegalTest003, TestSize.Level1)
+{
+    std::string deviceID(DEVICEID_LENGTH + 1, '1');
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    bool ret = testStub->IsDeviceIdIllegal(deviceID);
+    EXPECT_EQ(ret, true);
 }
 
 #ifndef CONFIG_STANDARD_SYSTEM
@@ -429,7 +793,6 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction008, TestSize.Level1)
     ASSERT_EQ(readDescriptor, descriptor);
 }
 
-
 /**
  * @tc.name: SyncTransaction009
  * @tc.desc: Test IPC stub data Normal release.
@@ -474,6 +837,33 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction010, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRawDataCapacityTest001
+ * @tc.desc: Verify the GetRawDataCapacity function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetRawDataCapacityTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    size_t ret = parcel.GetRawDataCapacity();
+    EXPECT_EQ(ret, MAX_RAWDATA_SIZE);
+}
+
+/**
+ * @tc.name: GetRawDataCapacityTest002
+ * @tc.desc: Verify the GetRawDataCapacity function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetRawDataCapacityTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    uint8_t bytes[8] = {0};
+    data.WriteBuffer(bytes, 8);
+    MessageParcel parcel;
+    bool ret = parcel.Append(data);
+    EXPECT_EQ(ret, true);
+}
+
+/**
  * @tc.name: MessageOptionTest001
  * @tc.desc: Test set waiting time.
  * @tc.type: FUNC
@@ -485,6 +875,32 @@ HWTEST_F(IPCNativeUnitTest, MessageOptionTest001, TestSize.Level1)
     ASSERT_EQ(messageOption.GetWaitTime(), MessageOption::TF_WAIT_TIME);
     messageOption.SetWaitTime(-1);
     ASSERT_EQ(messageOption.GetWaitTime(), MessageOption::TF_WAIT_TIME);
+}
+
+/**
+ * @tc.name: MessageOptionTest002
+ * @tc.desc:  Verify the SetWaitTime function
+ * @tc.type: FUNC
+ * @tc.require: AR000ER7PF
+ */
+HWTEST_F(IPCNativeUnitTest, MessageOptionTest002, TestSize.Level1)
+{
+    MessageOption messageOption;
+    messageOption.SetWaitTime(MAX_WAIT_TIME + 1);
+    ASSERT_EQ(messageOption.GetWaitTime(), MAX_WAIT_TIME);
+}
+
+/**
+ * @tc.name: MessageOptionTest003
+ * @tc.desc:  Verify the SetWaitTime function
+ * @tc.type: FUNC
+ * @tc.require: AR000ER7PF
+ */
+HWTEST_F(IPCNativeUnitTest, MessageOptionTest003, TestSize.Level1)
+{
+    MessageOption messageOption;
+    messageOption.SetWaitTime(MessageOption::TF_ASYNC);
+    ASSERT_EQ(messageOption.GetWaitTime(), MessageOption::TF_ASYNC);
 }
 
 /**
@@ -514,4 +930,151 @@ HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
     } else {
         ZLOGE(LABEL, "Got Stub node");
     }
+}
+
+/**
+ * @tc.name: GetStubObjectTest001
+ * @tc.desc: Verify the StubRefCountObject class
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetStubObjectTest001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    IRemoteObject *stub = remoteObj.GetRefPtr();
+    int remotePid = 1;
+    std::string deviceId = "test";
+    StubRefCountObject object(stub, remotePid, deviceId);
+    EXPECT_NE(object.GetStubObject(), nullptr);
+}
+
+/**
+ * @tc.name: GetRemotePidTest002
+ * @tc.desc: Verify the StubRefCountObject::GetRemotePid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetRemotePidTest002, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    IRemoteObject *stub = remoteObj.GetRefPtr();
+    int remotePid = 1;
+    std::string deviceId = "test";
+    StubRefCountObject object(stub, remotePid, deviceId);
+    int pid = object.GetRemotePid();
+    EXPECT_EQ(pid, 1);
+}
+
+/**
+ * @tc.name: GetDeviceIdTest003
+ * @tc.desc: Verify the StubRefCountObject::GetDeviceId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetDeviceIdTest003, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    IRemoteObject *stub = remoteObj.GetRefPtr();
+    int remotePid = 1;
+    std::string deviceId = "test";
+    StubRefCountObject object(stub, remotePid, deviceId);
+    std::string res = object.GetDeviceId();
+    EXPECT_STREQ(res.c_str(), deviceId.c_str());
+}
+
+/**
+ * @tc.name: FlushCommandsTest001
+ * @tc.desc: Verify the StubRefCountObject class
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, FlushCommandsTest001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    int ret = IPCSkeleton::FlushCommands(remoteObj);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetStubObjectTest001
+ * @tc.desc: Verify the CommAuthInfo::GetStubObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetStubObjectTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    ASSERT_TRUE(commAuthInfo.GetStubObject() != nullptr);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetRemotePidTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemotePid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemotePidTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_EQ(commAuthInfo.GetRemotePid(), 1);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetRemoteUidTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteUidTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_EQ(commAuthInfo.GetRemoteUid(), 1);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetRemoteDeviceIdTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteDeviceId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteDeviceIdTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_STREQ(commAuthInfo.GetRemoteDeviceId().c_str(), deviceId.c_str());
+}
+
+/**
+ * @tc.name: CommAuthInfoGetFeatureSetTest001
+ * @tc.desc: Verify the CommAuthInfo::GetFeatureSet function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetFeatureSetTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_NE(commAuthInfo.GetFeatureSet(), nullptr);
 }
