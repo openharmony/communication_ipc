@@ -2893,9 +2893,7 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     MessageParcel *parcel = nullptr;
     if (argv[ARGV_INDEX_0] != nullptr) {
-        int64_t tmp = 0;
-        napi_get_value_int64(env, argv[ARGV_INDEX_0], &tmp);
-        parcel = reinterpret_cast<MessageParcel *>(tmp);
+        napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&parcel);
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }
     // new native parcel object
