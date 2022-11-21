@@ -47,7 +47,7 @@ BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()),
     firstTokenID_(0), status_(0)
 {
-    callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
+    callerTokenID_ = RpcGetSelfTokenID();
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
 }
@@ -401,8 +401,8 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     int isServerTraced = HitraceInvoker::TraceServerReceieve(tr->target.handle, tr->code, *data, newflags);
     const pid_t oldPid = callerPid_;
     const auto oldUid = static_cast<const uid_t>(callerUid_);
-    const uint32_t oldToken = callerTokenID_;
-    const uint32_t oldFirstToken = firstTokenID_;
+    const uint64_t oldToken = callerTokenID_;
+    const uint64_t oldFirstToken = firstTokenID_;
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
@@ -833,15 +833,15 @@ uid_t BinderInvoker::GetCallerUid() const
     return callerUid_;
 }
 
-uint32_t BinderInvoker::GetCallerTokenID() const
+uint64_t BinderInvoker::GetCallerTokenID() const
 {
     return callerTokenID_;
 }
 
-uint32_t BinderInvoker::GetFirstTokenID() const
+uint64_t BinderInvoker::GetFirstTokenID() const
 {
     if (firstTokenID_ == 0) {
-        return (uint32_t)RpcGetFirstCallerTokenID();
+        return RpcGetFirstCallerTokenID();
     }
     return firstTokenID_;
 }
@@ -973,9 +973,9 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
 std::string BinderInvoker::ResetCallingIdentity()
 {
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
-    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010u", callerTokenID_);
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, callerTokenID_);
     if (ret < 0) {
-        ZLOGE(LABEL, "%s: sprintf callerTokenID_ %u failed", __func__, callerTokenID_);
+        ZLOGE(LABEL, "%{public}s: sprintf callerTokenID_ %{public}" PRIu64 " failed", __func__, callerTokenID_);
         return "";
     }
     std::string accessToken(buf);
@@ -983,7 +983,7 @@ std::string BinderInvoker::ResetCallingIdentity()
         | static_cast<uint64_t>(callerPid_)));
     callerUid_ = static_cast<pid_t>(getuid());
     callerPid_ = getpid();
-    callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
+    callerTokenID_ = RpcGetSelfTokenID();
     return accessToken + pidUid;
 }
 
@@ -997,7 +997,7 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
         std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN, identity.length() - ACCESS_TOKEN_MAX_LEN).c_str());
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
-    callerTokenID_ = static_cast<uint32_t>(std::atoi(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str()));
+    callerTokenID_ = std::stoull(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str());
     return true;
 }
 #ifdef CONFIG_IPC_SINGLE

@@ -39,7 +39,11 @@ public:
 
     static uint32_t GetCallingTokenID();
 
+    static uint64_t GetCallingFullTokenID();
+
     static uint32_t GetFirstTokenID();
+
+    static uint64_t GetFirstFullTokenID();
 
     static std::string GetLocalDeviceID();
 
