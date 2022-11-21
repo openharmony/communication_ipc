@@ -77,7 +77,6 @@ private:
     void MarkObjectDied();
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-    void ClearDeathRecipients();
 
 #ifndef CONFIG_IPC_SINGLE
     void SetProto(int proto);

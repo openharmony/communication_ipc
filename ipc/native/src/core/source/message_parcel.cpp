@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -171,8 +171,6 @@ bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
     if (object == nullptr) {
         return false;
     }
-    // Increase object's refcount temporarily in case of premature deallocation,
-    // object's refcount will be decreased when this MessageParcel destroyed.
     holders_.push_back(object);
 #ifndef CONFIG_IPC_SINGLE
     if (object->IsProxyObject()) {
@@ -242,6 +240,7 @@ int MessageParcel::ReadFileDescriptor()
     if (fd < 0) {
         return -1;
     }
+    holders_.push_back(descriptor);
     return dup(fd);
 }
 
@@ -294,8 +293,8 @@ bool MessageParcel::WriteInterfaceToken(std::u16string name)
 
 std::u16string MessageParcel::ReadInterfaceToken()
 {
-    [[maybe_unused]] int32_t strictModePolicy = ReadInt32();
-    [[maybe_unused]] int32_t workSource = ReadInt32();
+    [[maybe_unused]] int strictModePolicy = ReadInt32();
+    [[maybe_unused]] int workSource = ReadInt32();
     return ReadString16();
 }
 
@@ -321,21 +320,17 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
 
     int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
     if (result < 0) {
-        // Do not close fd here, which will be closed in MessageParcel's destructor.
         return false;
     }
     void *ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
-        // Do not close fd here, which will be closed in MessageParcel's destructor.
         return false;
     }
     if (!WriteFileDescriptor(fd)) {
-        // Do not close fd here, which will be closed in MessageParcel's destructor.
         ::munmap(ptr, size);
         return false;
     }
     if (memcpy_s(ptr, size, data, size) != EOK) {
-        // Do not close fd here, which will be closed in MessageParcel's destructor.
         ::munmap(ptr, size);
         return false;
     }
@@ -366,7 +361,8 @@ const void *MessageParcel::ReadRawData(size_t size)
         return ReadUnpadBuffer(size);
     }
 
-    /* if rawDataFd_ == 0 means rawData is received from remote */
+    /* if rawDataFd_ == 0 means rawData is received from remote
+     */
     if (rawData_ != nullptr && writeRawDataFd_ == 0) {
         /* should read fd for move readCursor of parcel */
         if (ReadFileDescriptor()) {
@@ -385,12 +381,12 @@ const void *MessageParcel::ReadRawData(size_t size)
 
     int ashmemSize = AshmemGetSize(fd);
     if (ashmemSize < 0 || size_t(ashmemSize) < size) {
-        // Do not close fd here, which will be closed in MessageParcel's destructor.
+        // do not close fd here. fd will be closed in FileDescriptor, ::close(fd)
         return nullptr;
     }
     void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
-        // Do not close fd here, which will be closed in MessageParcel's destructor.
+        // do not close fd here. fd will be closed in FileDescriptor, ::close(fd)
         return nullptr;
     }
     kernelMappedRead_ = ptr;
