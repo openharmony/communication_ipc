@@ -61,6 +61,7 @@ public:
         MessageOption &option) override;
     bool AddDeathRecipient(int32_t handle, void *cookie) override;
     bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
+    int GetObjectRefCount(const IRemoteObject *object) override;
     bool SetMaxWorkThread(int maxThreadNum) override;
     int SendReply(MessageParcel &reply, uint32_t flags, int32_t result) override;
     bool PingService(int32_t handle) override;
@@ -107,12 +108,12 @@ private:
     int WaitForReply(uint64_t seqNumber, MessageParcel *reply, std::shared_ptr<T> sessionObject, int userWaitTime);
     void ProcessTransaction(dbinder_transaction_data *tr, uint32_t listenFd);
     void ProcessReply(dbinder_transaction_data *tr, uint32_t listenFd);
-    bool IRemoteObjectTranslate(char *dataBuffer, binder_size_t bufferSize, MessageParcel &data, uint32_t socketId,
+    bool IRemoteObjectTranslate(char *dataBuffer, binder_size_t buffer_size, MessageParcel &data, uint32_t socketId,
         std::shared_ptr<T> sessionObject);
     bool TranslateRawData(char *dataBuffer, MessageParcel &data, uint32_t socketId);
     std::shared_ptr<T> GetSessionObject(uint32_t handle, uint32_t socketId);
     uint64_t GetUniqueSeqNumber(int cmd);
-    void ConstructTransData(dbinder_transaction_data &transData, size_t totalSize, uint64_t seqNum, int cmd, __u32 code,
+    void ConstructTransData(dbinder_transaction_data &TransData, size_t totalSize, uint64_t seqNum, int cmd, __u32 code,
         __u32 flags);
     bool ProcessRawData(std::shared_ptr<T> sessionObject, MessageParcel &data, uint64_t seqNum);
     std::shared_ptr<dbinder_transaction_data> ProcessNormalData(std::shared_ptr<T> sessionObject, MessageParcel &data,
@@ -226,7 +227,7 @@ bool DBinderBaseInvoker<T>::TranslateRemoteHandleType(flat_binder_object *binder
 
 /* check data parcel contains object, if yes, get its session as payload of socket packet */
 template <class T>
-bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size_t bufferSize, MessageParcel &data,
+bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size_t buffer_size, MessageParcel &data,
     uint32_t socketId, std::shared_ptr<T> sessionObject)
 {
     if (data.GetOffsetsSize() <= 0 || dataBuffer == nullptr) {
@@ -235,7 +236,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslate(char *dataBuffer, binder_size
 
     uint32_t totalSize = 0;
     binder_size_t *binderObjectsOffsets = reinterpret_cast<binder_size_t *>(data.GetObjectOffsets());
-    uint32_t offsetOfSession = bufferSize + data.GetOffsetsSize() * sizeof(binder_size_t);
+    uint32_t offsetOfSession = buffer_size + data.GetOffsetsSize() * sizeof(binder_size_t);
     char *flatOffset = dataBuffer + offsetOfSession;
 
     for (size_t i = 0; i < data.GetOffsetsSize(); i++) {
@@ -733,6 +734,11 @@ template <class T> bool DBinderBaseInvoker<T>::AddDeathRecipient(int32_t handle,
 template <class T> bool DBinderBaseInvoker<T>::RemoveDeathRecipient(int32_t handle, void *cookie)
 {
     return true;
+}
+
+template <class T> int DBinderBaseInvoker<T>::GetObjectRefCount(const IRemoteObject *object)
+{
+    return 0;
 }
 
 template <class T> bool DBinderBaseInvoker<T>::SetMaxWorkThread(int maxThreadNum)

@@ -22,8 +22,6 @@
 #include "string_ex.h"
 
 namespace OHOS {
-#define ZLOGF(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 #define ZLOGE(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
 #define ZLOGW(LOG_LABEL, fmt, args...) \
@@ -56,8 +54,8 @@ class IPCError : public ErrorBase {
 public:
     IPCError() = default;
     ~IPCError() = default;
-    static const std::string &ToString(uint32_t value);
-    virtual ErrorMap &GetErrorMap() override;
+    static const std::string &ToString(int value);
+    ErrorMap &GetErrorMap() override;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_DEBUG_H
