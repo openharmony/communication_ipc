@@ -643,12 +643,12 @@ void DBinderDatabusInvoker::SetCallerUid(pid_t uid)
     callerUid_ = uid;
 }
 
-uint32_t DBinderDatabusInvoker::GetCallerTokenID() const
+uint64_t DBinderDatabusInvoker::GetCallerTokenID() const
 {
     return callerTokenID_;
 }
 
-uint32_t DBinderDatabusInvoker::GetFirstTokenID() const
+uint64_t DBinderDatabusInvoker::GetFirstTokenID() const
 {
     return firstTokenID_;
 }
@@ -873,9 +873,9 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
         | static_cast<uint64_t>(callerPid_)));
     std::string identity = callerDeviceID_ + token;
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
-    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010u", callerTokenID_);
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, callerTokenID_);
     if (ret < 0) {
-        ZLOGE(LOG_LABEL, "sprintf callerTokenID_ %u failed", callerTokenID_);
+        ZLOGE(LOG_LABEL, "sprintf callerTokenID_ %{public}" PRIu64 " failed", callerTokenID_);
         return "";
     }
     std::string accessToken(buf);
@@ -892,7 +892,7 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
         return false;
     }
 
-    uint32_t tokenId = std::stoul(identity.substr(0, ACCESS_TOKEN_MAX_LEN));
+    uint64_t tokenId = std::stoull(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str());
     std::string deviceId = identity.substr(ACCESS_TOKEN_MAX_LEN, DEVICEID_LENGTH);
     uint64_t token = std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN + DEVICEID_LENGTH,
         identity.length() - ACCESS_TOKEN_MAX_LEN - DEVICEID_LENGTH).c_str());

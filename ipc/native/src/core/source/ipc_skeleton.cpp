@@ -100,20 +100,36 @@ uint32_t IPCSkeleton::GetCallingTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
+        return static_cast<uint32_t>(invoker->GetCallerTokenID());
+    }
+    return static_cast<uint32_t>(RpcGetSelfTokenID());
+}
+
+uint64_t IPCSkeleton::GetCallingFullTokenID()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
         return invoker->GetCallerTokenID();
     }
-    uint64_t token = RpcGetSelfTokenID();
-    return (uint32_t)token;
+    return RpcGetSelfTokenID();
 }
 
 uint32_t IPCSkeleton::GetFirstTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
+        return static_cast<uint32_t>(invoker->GetFirstTokenID());
+    }
+    return static_cast<uint32_t>(RpcGetFirstCallerTokenID());
+}
+
+uint64_t IPCSkeleton::GetFirstFullTokenID()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
         return invoker->GetFirstTokenID();
     }
-    uint64_t ftoken = RpcGetFirstCallerTokenID();
-    return (uint32_t)ftoken;
+    return RpcGetFirstCallerTokenID();
 }
 
 std::string IPCSkeleton::GetLocalDeviceID()

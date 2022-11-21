@@ -78,9 +78,9 @@ public:
 
     uid_t GetCallerUid() const override;
 
-    uint32_t GetCallerTokenID() const override;
+    uint64_t GetCallerTokenID() const override;
 
-    uint32_t GetFirstTokenID() const override;
+    uint64_t GetFirstTokenID() const override;
 
     uint32_t GetStatus() const override;
 
@@ -113,8 +113,8 @@ protected:
     bool stopWorkThread;
     pid_t callerPid_;
     pid_t callerUid_;
-    uint32_t callerTokenID_;
-    uint32_t firstTokenID_;
+    uint64_t callerTokenID_;
+    uint64_t firstTokenID_;
 
 private:
     int TransactWithDriver(bool doRead = true);
