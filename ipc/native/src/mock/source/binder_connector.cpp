@@ -72,7 +72,7 @@ bool BinderConnector::OpenDriver()
 {
     int fd = open(deviceName_.c_str(), O_RDWR);
     if (fd < 0) {
-        ZLOGE(LABEL, "%{public}s:fail to open", __func__);
+        ZLOGE(LABEL, "%s:fail to open", __func__);
 #ifndef BUILD_PUBLIC_VERSION
         ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, DbinderErrorCode::ERROR_CODE,
             DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE);
@@ -81,24 +81,28 @@ bool BinderConnector::OpenDriver()
     }
     int32_t version = 0;
     int ret = ioctl(fd, BINDER_VERSION, &version);
-    if (ret != 0 || version != BINDER_CURRENT_PROTOCOL_VERSION) {
-        ZLOGE(LABEL, "Get Binder version failed, error: %{public}d, "
-            "or version not match, driver version:%{public}d, ipc version:%{public}d",
-            errno, version, BINDER_CURRENT_PROTOCOL_VERSION);
+    if (ret != 0) {
+        ZLOGE(LABEL, "Get Binder version failed: %d", errno);
+        close(fd);
+        return false;
+    }
+    if (version != BINDER_CURRENT_PROTOCOL_VERSION) {
+        ZLOGE(LABEL, "Binder version not match! driver version:%d, ipc version:%d",
+            version, BINDER_CURRENT_PROTOCOL_VERSION);
         close(fd);
         return false;
     }
     uint64_t featureSet = 0;
     ret = ioctl(fd, BINDER_FEATURE_SET, &featureSet);
     if (ret != 0) {
-        ZLOGE(LABEL, "Get Binder featureSet failed: %{public}d, disable all enhance feature.", errno);
+        ZLOGE(LABEL, "Get Binder featureSet failed: %d, disable all enhance feature.", errno);
         featureSet = 0;
     }
-    ZLOGI(LABEL, "%{public}s:succ to open, fd=%{public}d", __func__, fd);
+    ZLOGD(LABEL, "%s:succ to open, fd=%d", __func__, fd);
     driverFD_ = fd;
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
     if (vmAddr_ == MAP_FAILED) {
-        ZLOGE(LABEL, "%{public}s:fail to mmap\n", __func__);
+        ZLOGE(LABEL, "%s:fail to mmap\n", __func__);
         close(driverFD_);
         driverFD_ = -1;
 #ifndef BUILD_PUBLIC_VERSION
