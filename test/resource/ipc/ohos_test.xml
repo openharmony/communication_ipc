@@ -45,10 +45,4 @@
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
-    <target name="IPCMockUnitTest">
-        <preparer>
-            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
-            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
-        </preparer>
-    </target>
 </configuration>
