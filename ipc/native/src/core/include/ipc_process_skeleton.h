@@ -82,7 +82,6 @@ public:
     ~IPCProcessSkeleton() override;
 
     static IPCProcessSkeleton *GetCurrent();
-    static std::string ConvertToSecureString(const std::string &deviceId);
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
@@ -98,11 +97,12 @@ public:
 
     sptr<IRemoteObject> FindOrNewObject(int handle);
     bool IsContainsObject(IRemoteObject *object);
-    sptr<IRemoteObject> QueryObject(const std::u16string &descriptor);
+    IRemoteObject *QueryObject(const std::u16string &descriptor);
     IRemoteObject *QueryObjectInner(const std::u16string &descriptor);
     bool AttachObject(IRemoteObject *object);
     bool AttachObjectInner(IRemoteObject *object);
     bool DetachObject(IRemoteObject *object);
+    bool DetachObjectInner(IRemoteObject *object);
 
     bool OnThreadTerminated(const std::string &threadName);
 
@@ -205,19 +205,19 @@ public:
     static constexpr int TRANS_TIME_INIT_VALUE = 1;
     static constexpr int SEC_TO_MS = 1000;
 #endif
-    static constexpr int ENCRYPT_LENGTH = 4;
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
     IPCProcessSkeleton();
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
-    std::shared_mutex mutex_;
+    std::recursive_mutex mutex_;
     std::shared_mutex rawDataMutex_;
     std::map<std::u16string, wptr<IRemoteObject>> objects_;
     std::map<IRemoteObject *, bool> isContainStub_;
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;
     sptr<IRemoteObject> registryObject_ = nullptr;
+    friend void IPCObjectProxy::OnLastStrongRef(const void *objectId);
 
 #ifndef CONFIG_IPC_SINGLE
     std::mutex databusProcMutex_;

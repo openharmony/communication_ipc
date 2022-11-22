@@ -67,7 +67,7 @@ bool BinderInvoker::AcquireHandle(int32_t handle)
     }
     /* invoke remote to receive acquire handle event, don't care ping result */
     if (handle != 0) {
-        (void)FlushCommands(nullptr);
+        (void)PingService(handle);
     }
     return true;
 }
@@ -93,7 +93,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     MessageOption &option)
 {
     int error = ERR_NONE;
-    uint32_t flags = static_cast<uint32_t>(option.GetFlags());
+    uint32_t flags = (uint32_t)option.GetFlags();
     MessageParcel &newData = const_cast<MessageParcel &>(data);
     size_t oldWritePosition = newData.GetWritePosition();
     HiTraceId traceId = HiTraceChain::GetId();
@@ -186,6 +186,23 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
     }
 
     return true;
+}
+
+int BinderInvoker::GetObjectRefCount(const IRemoteObject *object)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return 0;
+    }
+
+    struct binder_ptr_count refs;
+    refs.ptr = reinterpret_cast<uintptr_t>(object);
+
+    int error = binderConnector_->WriteBinder(BINDER_GET_NODE_REFCOUNT, &refs);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "GetSRefCount error = %{public}d", error);
+        return 0;
+    }
+    return refs.count;
 }
 
 #ifndef CONFIG_IPC_SINGLE
@@ -333,26 +350,25 @@ void BinderInvoker::OnBinderDied()
 
 void BinderInvoker::OnAcquireObject(uint32_t cmd)
 {
-    bool result = false;
+    bool ParcelResult = false;
     uintptr_t refsPointer = input_.ReadPointer();
     uintptr_t objectPointer = input_.ReadPointer();
-    RefCounter *refs = reinterpret_cast<RefCounter *>(refsPointer);
-    IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
-    if ((obj == nullptr) || (refs == nullptr)) {
+    RefBase *refs = reinterpret_cast<IRemoteObject *>(refsPointer);
+    if ((refs == nullptr) || (!objectPointer)) {
         ZLOGE(LABEL, "OnAcquireObject FAIL!");
         return;
     }
 
     size_t rewindPos = output_.GetWritePosition();
     if (cmd == BR_ACQUIRE) {
-        obj->IncStrongRef(this);
-        result = output_.WriteInt32(BC_ACQUIRE_DONE);
+        refs->IncStrongRef(this);
+        ParcelResult = output_.WriteInt32(BC_ACQUIRE_DONE);
     } else {
-        refs->IncWeakRefCount(this);
-        result = output_.WriteInt32(BC_INCREFS_DONE);
+        refs->IncWeakRef(this);
+        ParcelResult = output_.WriteInt32(BC_INCREFS_DONE);
     }
 
-    if (!result || !output_.WritePointer(refsPointer)) {
+    if (!ParcelResult || !output_.WritePointer(refsPointer)) {
         if (!output_.RewindWrite(rewindPos)) {
             output_.FlushBuffer();
         }
@@ -370,17 +386,17 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
 {
     uintptr_t refsPointer = input_.ReadPointer();
     uintptr_t objectPointer = input_.ReadPointer();
-    RefCounter *refs = reinterpret_cast<RefCounter *>(refsPointer);
-    IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
-    if ((refs == nullptr) || (obj == nullptr)) {
+    auto *refs = reinterpret_cast<IRemoteObject *>(refsPointer);
+    auto *object = reinterpret_cast<IRemoteObject *>(objectPointer);
+    if ((refs == nullptr) || (object == nullptr)) {
         ZLOGE(LABEL, "OnReleaseObject FAIL!");
         return;
     }
 
     if (cmd == BR_RELEASE) {
-        obj->DecStrongRef(this);
+        refs->DecStrongRef(this);
     } else {
-        refs->DecWeakRefCount(this);
+        refs->DecWeakRef(this);
     }
 }
 
@@ -422,38 +438,35 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
-    option.SetFlags(static_cast<int>(flagValue));
-    std::string service;
-    auto start = std::chrono::steady_clock::now();
+    sptr<IRemoteObject> targetObject;
     if (tr->target.ptr != 0) {
-        auto *refs = reinterpret_cast<RefCounter *>(tr->target.ptr);
-        int count = 0;
-        if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this, count))) {
-            auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
+        auto *refs = reinterpret_cast<IRemoteObject *>(tr->target.ptr);
+        if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this))) {
+            targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
             if (targetObject != nullptr) {
-                error = targetObject->SendRequest(tr->code, *data, reply, option);
-                service = Str16ToStr8(targetObject->descriptor_);
                 targetObject->DecStrongRef(this);
             }
         }
     } else {
-        auto targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
+        targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
         if (targetObject == nullptr) {
             ZLOGE(LABEL, "Invalid samgr stub object");
-        } else {
-            error = targetObject->SendRequest(tr->code, *data, reply, option);
         }
-        service = "samgr";
     }
-    auto finish = std::chrono::steady_clock::now();
-    int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        finish - start).count());
-    if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-        ZLOGW(LABEL, "stub: %{public}s deal request code: %{public}u cost time: %{public}dms",
-            service.c_str(), tr->code, duration);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
+    if (targetObject != nullptr) {
+        option.SetFlags(static_cast<int>(flagValue));
+        auto start = std::chrono::steady_clock::now();
+        error = targetObject->SendRequest(tr->code, *data, reply, option);
+        auto finish = std::chrono::steady_clock::now();
+        int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            finish - start).count());
+        if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
+            ZLOGW(LABEL, "stub: %{public}s deal request code: %{public}u cost time: %{public}dms",
+                Str16ToStr8(targetObject->descriptor_).c_str(), tr->code, duration);
+        }
     }
     HitraceInvoker::TraceServerSend(tr->target.handle, tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
@@ -471,12 +484,11 @@ void BinderInvoker::OnAttemptAcquire()
     bool success = false;
     uintptr_t refsPtr = input_.ReadPointer();
     uintptr_t objectPtr = input_.ReadPointer();
-    auto *refs = reinterpret_cast<RefCounter *>(refsPtr);
+    auto *refs = reinterpret_cast<IRemoteObject *>(refsPtr);
 
     size_t rewindPos = output_.GetWritePosition();
     if ((refs != nullptr) && (!objectPtr)) {
-        int count = 0;
-        success = refs->AttemptIncStrongRef(this, count);
+        success = refs->AttemptIncStrongRef(this);
     }
 
     if (!output_.WriteUint32(BC_ACQUIRE_RESULT)) {
@@ -528,7 +540,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
         }
         if (!reply->SetAllocator(allocator)) {
             delete allocator;
-            FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
+            FreeBuffer(reinterpret_cast<void*>(tr->data.ptr.buffer));
             return IPC_INVOKER_INVALID_DATA_ERR;
         }
         reply->ParseFrom(tr->data.ptr.buffer, tr->data_size);
@@ -723,9 +735,9 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
             }
             case BR_DEAD_REPLY: // fall-through
             case BR_FAILED_REPLY: {
-                error = static_cast<int>(cmd);
+                error = (int)cmd;
                 if (acquireResult != nullptr) {
-                    *acquireResult = cmd;
+                    *acquireResult = (int32_t)cmd;
                 }
                 continueLoop = false;
                 break;
@@ -745,14 +757,6 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
                     break;
                 }
                 error = ERR_NONE;
-                break;
-            }
-            case BR_TRANSLATION_COMPLETE: {
-                uint32_t handle = input_.ReadUint32();
-                if (reply != nullptr) {
-                    reply->WriteUint32(handle);
-                }
-                continueLoop = false;
                 break;
             }
             default: {
@@ -879,15 +883,15 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
     flat_binder_object flat;
     if (object->IsProxyObject()) {
         const IPCObjectProxy *proxy = reinterpret_cast<const IPCObjectProxy *>(object);
-        const int32_t handle = proxy ? static_cast<int32_t>(proxy->GetHandle()) : -1;
+        const int32_t handle = proxy ? (int32_t)(proxy->GetHandle()) : -1;
         flat.hdr.type = BINDER_TYPE_HANDLE;
         flat.binder = 0;
         flat.handle = (uint32_t)handle;
         flat.cookie = proxy ? static_cast<binder_uintptr_t>(proxy->GetProto()) : 0;
     } else {
         flat.hdr.type = BINDER_TYPE_BINDER;
-        flat.binder = reinterpret_cast<uintptr_t>(object->GetRefCounter());
-        flat.cookie = reinterpret_cast<uintptr_t>(object);
+        flat.binder = reinterpret_cast<uintptr_t>(object);
+        flat.cookie = flat.binder;
     }
 
     flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
@@ -964,7 +968,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
     flat.hdr.type = BINDER_TYPE_FD;
     flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
     flat.binder = 0; // Don't pass uninitialized stack data to a remote process
-    flat.handle = static_cast<uint32_t>(fd);
+    flat.handle = (uint32_t)fd;
     flat.cookie = takeOwnership ? 1 : 0;
 
     return parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
@@ -981,7 +985,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     std::string accessToken(buf);
     std::string pidUid = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
         | static_cast<uint64_t>(callerPid_)));
-    callerUid_ = static_cast<pid_t>(getuid());
+    callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerTokenID_ = (uint32_t)RpcGetSelfTokenID();
     return accessToken + pidUid;

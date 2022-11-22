@@ -102,7 +102,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         InvokerFactory &factory = InvokerFactory::Get();
         invoker = factory.newInstance(proto);
         if (invoker == nullptr) {
-            ZLOGE(LABEL, "invoker is NULL proto = %{public}d", proto);
+            ZLOGE(LABEL, "invoker is NULL proto = %d", proto);
             return nullptr;
         }
 
@@ -147,17 +147,17 @@ IRemoteInvoker *IPCThreadSkeleton::GetDefaultInvoker()
     return GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
 }
 
-void IPCThreadSkeleton::JoinWorkThread(int proto)
+void IPCThreadSkeleton::JoinWorkThread(int prot)
 {
-    IRemoteInvoker *invoker = GetRemoteInvoker(proto);
+    IRemoteInvoker *invoker = GetRemoteInvoker(prot);
     if (invoker != nullptr) {
         invoker->JoinThread(true);
     }
 }
 
-void IPCThreadSkeleton::StopWorkThread(int proto)
+void IPCThreadSkeleton::StopWorkThread(int prot)
 {
-    IRemoteInvoker *invoker = GetRemoteInvoker(proto);
+    IRemoteInvoker *invoker = GetRemoteInvoker(prot);
     if (invoker != nullptr) {
         invoker->StopWorkThread();
     }
