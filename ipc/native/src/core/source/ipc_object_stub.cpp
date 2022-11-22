@@ -83,7 +83,21 @@ bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
 
 int32_t IPCObjectStub::GetObjectRefCount()
 {
-    return GetSptrRefCount();
+    int kRefCount = 0;
+    int refCount = GetSptrRefCount();
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+    if (invoker != nullptr) {
+        kRefCount = invoker->GetObjectRefCount(this);
+    }
+
+    /* the kernel has already acquire the reference
+     * on this object, so we need to decrement by 1.
+     */
+    if (kRefCount > 0) {
+        refCount += kRefCount - 1;
+    }
+
+    return refCount;
 }
 
 int IPCObjectStub::Dump(int fd, const std::vector<std::u16string> &args)
@@ -114,10 +128,10 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGE(LABEL, "unknown OnRemoteRequest code = %{public}u, descriptor: %{public}s", code,
-                Str16ToStr8(descriptor_).c_str());
+            ZLOGD(LABEL, "unknown OnRemoteRequest code = %{public}u", code);
             break;
     }
+
     return result;
 }
 
@@ -160,9 +174,7 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             // when handle transaction the invoker would try to acquire
             // the object's reference to defense the object being released
             // so the actual we should decrement the temporary reference.
-            if (IPCSkeleton::IsLocalCalling()) {
-                --refCount;
-            }
+            --refCount;
             reply.WriteInt32(refCount);
             break;
         }

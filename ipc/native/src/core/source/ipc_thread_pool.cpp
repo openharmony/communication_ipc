@@ -73,6 +73,7 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
             idleSocketThreadNum_--;
             ZLOGD(LOG_LABEL, "SpawnThread, now idleSocketThreadNum_ =%d", idleSocketThreadNum_);
         }
+        
         newThread->Start(policy, proto, threadName);
         return true;
     }
