@@ -931,3 +931,150 @@ HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
         ZLOGE(LABEL, "Got Stub node");
     }
 }
+
+/**
+ * @tc.name: GetStubObjectTest001
+ * @tc.desc: Verify the StubRefCountObject class
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetStubObjectTest001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    IRemoteObject *stub = remoteObj.GetRefPtr();
+    int remotePid = 1;
+    std::string deviceId = "test";
+    StubRefCountObject object(stub, remotePid, deviceId);
+    EXPECT_NE(object.GetStubObject(), nullptr);
+}
+
+/**
+ * @tc.name: GetRemotePidTest002
+ * @tc.desc: Verify the StubRefCountObject::GetRemotePid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetRemotePidTest002, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    IRemoteObject *stub = remoteObj.GetRefPtr();
+    int remotePid = 1;
+    std::string deviceId = "test";
+    StubRefCountObject object(stub, remotePid, deviceId);
+    int pid = object.GetRemotePid();
+    EXPECT_EQ(pid, 1);
+}
+
+/**
+ * @tc.name: GetDeviceIdTest003
+ * @tc.desc: Verify the StubRefCountObject::GetDeviceId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetDeviceIdTest003, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    IRemoteObject *stub = remoteObj.GetRefPtr();
+    int remotePid = 1;
+    std::string deviceId = "test";
+    StubRefCountObject object(stub, remotePid, deviceId);
+    std::string res = object.GetDeviceId();
+    EXPECT_STREQ(res.c_str(), deviceId.c_str());
+}
+
+/**
+ * @tc.name: FlushCommandsTest001
+ * @tc.desc: Verify the StubRefCountObject class
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, FlushCommandsTest001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
+    ASSERT_TRUE(remoteObj != nullptr);
+
+    int ret = IPCSkeleton::FlushCommands(remoteObj);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetStubObjectTest001
+ * @tc.desc: Verify the CommAuthInfo::GetStubObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetStubObjectTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    ASSERT_TRUE(commAuthInfo.GetStubObject() != nullptr);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetRemotePidTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemotePid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemotePidTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_EQ(commAuthInfo.GetRemotePid(), 1);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetRemoteUidTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteUidTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_EQ(commAuthInfo.GetRemoteUid(), 1);
+}
+
+/**
+ * @tc.name: CommAuthInfoGetRemoteDeviceIdTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteDeviceId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteDeviceIdTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_STREQ(commAuthInfo.GetRemoteDeviceId().c_str(), deviceId.c_str());
+}
+
+/**
+ * @tc.name: CommAuthInfoGetFeatureSetTest001
+ * @tc.desc: Verify the CommAuthInfo::GetFeatureSet function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetFeatureSetTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    EXPECT_NE(commAuthInfo.GetFeatureSet(), nullptr);
+}
