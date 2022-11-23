@@ -674,7 +674,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, WakeUpThreadBySeqNumberTest001, TestSize.Le
     };
     std::thread thread1(process, EXECUTE_TIME_TEST);
     thread1.detach();
-    std::thread::id t1ID = thread1.get_id(); 
+    std::thread::id t1ID = thread1.get_id();
 
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
@@ -740,7 +740,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, WakeUpThreadBySeqNumberTest003, TestSize.Le
  */
 HWTEST_F(IPCProcessSkeletonUnitTest, WakeUpThreadBySeqNumberTest004, TestSize.Level1)
 {
-    std::thread::id t1ID = std::thread::id(); 
+    std::thread::id t1ID = std::thread::id();
 
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
