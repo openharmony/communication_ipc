@@ -17,6 +17,7 @@
 
 #include <cinttypes>
 
+#include "dbinder_log.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
@@ -77,10 +78,26 @@ int DBinderTestServiceProxy::TransProxyObject(int data, sptr<IRemoteObject> &tra
         DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    error = Remote()->SendRequest(TRANS_OBJECT, dataParcel, replyParcel, option);
+    error = Remote()->SendRequest(TRANS_PROXY_OBJECT, dataParcel, replyParcel, option);
 
     rep = replyParcel.ReadInt32();
     withdrawRes = replyParcel.ReadInt32();
+    return error;
+}
+
+int DBinderTestServiceProxy::TransProxyObjectRefCount(sptr<IRemoteObject> &transObject, int operation)
+{
+    MessageOption option;
+    MessageParcel data, reply;
+    if (!data.WriteInt32(operation) || !data.WriteRemoteObject(transObject)) {
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
+        return ERR_INVALID_STATE;
+    }
+    int error = Remote()->SendRequest(TRANS_PROXY_OBJECT_REFCOUNT, data, reply, option);
+    if (error != ERR_NONE) {
+        DBINDER_LOGE(LOG_LABEL, "fail to send proxy object");
+        return ERR_INVALID_STATE;
+    }
     return error;
 }
 
@@ -139,6 +156,22 @@ int DBinderTestServiceProxy::TransStubObject(int data, sptr<IRemoteObject> &tran
     }
 
     stubRep = replyStubParcel.ReadInt32();
+    return error;
+}
+
+int DBinderTestServiceProxy::TransStubObjectRefCount(sptr<IRemoteObject> &transObject, int operation)
+{
+    MessageOption option;
+    MessageParcel data, reply;
+    if (!data.WriteInt32(operation) || !data.WriteRemoteObject(transObject)) {
+        DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
+        return ERR_INVALID_STATE;
+    }
+    int error = Remote()->SendRequest(TRANS_STUB_OBJECT_REFCOUNT, data, reply, option);
+    if (error != ERR_NONE) {
+        DBINDER_LOGE(LOG_LABEL, "fail to send stub object");
+        return ERR_INVALID_STATE;
+    }
     return error;
 }
 
@@ -433,7 +466,7 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
         case ONLY_DELAY: {
             return OnDelay(data, reply);
         }
-        case TRANS_OBJECT:
+        case TRANS_PROXY_OBJECT:
         case TRANS_RPC_OBJECT_TO_LOCAL: {
             DBINDER_LOGE(LOG_LABEL, "TestServiceStub::TRANS_RPC_OBJECT_TO_LOCAL?, cmd = %{public}d", code);
             return OnReceivedObject(data, reply);
@@ -443,6 +476,12 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
         }
         case TRANS_STUB_OBJECT: {
             return OnReceivedStubObject(data, reply);
+        }
+        case TRANS_STUB_OBJECT_REFCOUNT: {
+            return OnReceivedStubObjectRefCount(data, reply);
+        }
+        case TRANS_PROXY_OBJECT_REFCOUNT: {
+            return OnReceivedProxyObjectRefCount(data, reply);
         }
         case TRANS_OVERSIZED_PKT: {
             return OnReceivedOversizedPkt(data, reply);
@@ -577,7 +616,7 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
         DBINDER_LOGE(LOG_LABEL, "fail to write parcel");
         return ERR_INVALID_STATE;
     }
-    DBINNDER_LOGI(LOG_LABEL, "%{public}s:TRANSOBJECT: reqData=%{public}d", __func__, reqData);
+    DBINDER_LOGI(LOG_LABEL, "%{public}s:TRANSOBJECT: reqData=%{public}d", __func__, reqData);
     int ret = proxy->SendRequest(REVERSEINT, dataParcel, replyParcel, option);
     int reqResult = replyParcel.ReadInt32();
     DBINDER_LOGI(LOG_LABEL, "%{public}s:TRANSOBJECT: result=%{public}d", __func__, reqResult);
@@ -605,6 +644,22 @@ int DBinderTestServiceStub::OnReceivedObject(MessageParcel &data, MessageParcel 
         return ERR_INVALID_STATE;
     }
     return ret;
+}
+
+int DBinderTestServiceStub::OnReceivedProxyObjectRefCount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t operation = data.ReadInt32();
+    sptr<IRemoteObject> proxy = data.ReadRemoteObject();
+    if (proxy == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "fail to get proxy");
+        return ERR_INVALID_STATE;
+    }
+    if (operation == IDBinderTestService::SAVE) {
+        recvProxy_ = proxy;
+    } else if (operation == IDBinderTestService::WITHDRAW) {
+        recvProxy_ = nullptr;
+    }
+    return ERR_NONE;
 }
 
 int DBinderTestServiceStub::OnReceivedObjectTransAgain(MessageParcel &data, MessageParcel &reply)
@@ -688,6 +743,22 @@ int DBinderTestServiceStub::OnReceivedStubObject(MessageParcel &data, MessagePar
     }
 
     return error;
+}
+
+int DBinderTestServiceStub::OnReceivedStubObjectRefCount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t operation = data.ReadInt32();
+    sptr<IRemoteObject> proxy = data.ReadRemoteObject();
+    if (proxy == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "fail to get proxy");
+        return ERR_INVALID_STATE;
+    }
+    if (operation == IDBinderTestService::SAVE) {
+        recvProxy_ = proxy;
+    } else if (operation == IDBinderTestService::WITHDRAW) {
+        recvProxy_ = nullptr;
+    }
+    return ERR_NONE;
 }
 
 int DBinderTestServiceStub::OnReceivedGetStubObject(MessageParcel &data, MessageParcel &reply)

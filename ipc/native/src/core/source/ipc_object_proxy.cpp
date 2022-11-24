@@ -43,7 +43,6 @@
 #ifndef CONFIG_IPC_SINGLE
 #include "access_token_adapter.h"
 #include "dbinder_databus_invoker.h"
-#include "rpc_feature_set.h"
 #endif
 
 namespace OHOS {
@@ -134,7 +133,7 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     MessageParcel data, reply;
     MessageOption option;
 
-    int32_t err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
+    int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGE(LABEL, "send INTERFACE_TRANSACTION cmd failed, error: %{public}d", err);
         return std::u16string();
@@ -144,29 +143,27 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     return remoteDescriptor_;
 }
 
-std::string IPCObjectProxy::GetPidAndUidInfo(int32_t systemAbilityId)
+std::string IPCObjectProxy::GetSessionName()
 {
     MessageParcel data, reply;
     MessageOption option;
 
-    data.WriteInt32(systemAbilityId);
-    int32_t err = SendRequestInner(false, GET_UIDPID_INFO, data, reply, option);
+    int err = SendRequestInner(false, GET_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "GetPidAndUidInfo SendRequestInner return error = %{public}d", err);
+        ZLOGE(LABEL, "send GET_SESSION_NAME failed, error: %{public}d", err);
         return std::string("");
     }
     return reply.ReadString();
 }
 
-std::string IPCObjectProxy::GetDataBusName(int32_t systemAbilityId)
+std::string IPCObjectProxy::GetGrantedSessionName()
 {
     MessageParcel data, reply;
     MessageOption option;
 
-    data.WriteInt32(systemAbilityId);
-    int32_t err = SendRequestInner(false, GRANT_DATABUS_NAME, data, reply, option);
+    int err = SendRequestInner(false, GET_GRANTED_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "GetDataBusName transact return error = %{public}d", err);
+        ZLOGE(LABEL, "send GET_GRANTED_SESSION_NAME failed, error: %{public}d", err);
         return std::string("");
     }
 
@@ -178,7 +175,7 @@ std::string IPCObjectProxy::GetDataBusName(int32_t systemAbilityId)
     return reply.ReadString();
 }
 
-std::string IPCObjectProxy::TransDataBusName(uint32_t uid, uint32_t pid)
+std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
 {
     if (pid == static_cast<uint32_t>(getpid())) {
         ZLOGE(LABEL, "TransDataBusName can't write local pid. my/remotePid = %{public}u/%{public}u", getpid(), pid);
@@ -191,7 +188,7 @@ std::string IPCObjectProxy::TransDataBusName(uint32_t uid, uint32_t pid)
         ZLOGE(LABEL, "TransDataBusName write pid/uid = %{public}u/%{public}u failed", pid, uid);
         return std::string("");
     }
-    int32_t err = SendRequestInner(false, TRANS_DATABUS_NAME, data, reply, option);
+    int err = SendRequestInner(false, GET_SESSION_NAME_PID_UID, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGE(LABEL, "TransDataBusName transact return error = %{public}d", err);
         return std::string("");
@@ -203,6 +200,14 @@ std::string IPCObjectProxy::TransDataBusName(uint32_t uid, uint32_t pid)
     }
 
     return reply.ReadString();
+}
+
+int IPCObjectProxy::GetPidUid(MessageParcel &reply)
+{
+    MessageParcel data;
+    MessageOption option;
+
+    return SendRequestInner(true, GET_PID_UID, data, reply, option);
 }
 
 void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
@@ -228,8 +233,18 @@ void IPCObjectProxy::WaitForInit()
             isFinishInit_ = false;
         }
 
-        if (isFinishInit_) {
+        if (!isFinishInit_) {
 #ifndef CONFIG_IPC_SINGLE
+            if (UpdateProto() == IRemoteObject::IF_PROT_ERROR) {
+                ZLOGE(LABEL, "UpdateProto get IF_PROT_ERROR");
+                isRemoteDead_ = true;
+            }
+#endif
+            isFinishInit_ = true;
+        } else {
+#ifndef CONFIG_IPC_SINGLE
+            // Anoymous rpc proxy need to update proto anyway because ownership of session
+            // corresponding to this handle has been marked as null in TranslateRemoteHandleType
             if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
                 if (!CheckHaveSession()) {
                     SetProto(IRemoteObject::IF_PROT_ERROR);
@@ -237,20 +252,12 @@ void IPCObjectProxy::WaitForInit()
                 }
             }
 #endif
-            return;
         }
-#ifndef CONFIG_IPC_SINGLE
-        if (UpdateProto() == IRemoteObject::IF_PROT_ERROR) {
-            ZLOGE(LABEL, "UpdateProto get IF_PROT_ERROR");
-            isRemoteDead_ = true;
-        }
-#endif
-        isFinishInit_ = true;
+
     }
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
-        int32_t errcode = IncRefToRemote();
-        if (errcode != ERR_NONE) {
+        if (IncRefToRemote() != ERR_NONE) {
             SetProto(IRemoteObject::IF_PROT_ERROR);
             isRemoteDead_ = true;
         }
@@ -269,10 +276,6 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
     }
 #ifndef CONFIG_IPC_SINGLE
     ReleaseProto();
-    std::shared_ptr<DBinderSessionObject> session = nullptr;
-    session = current->ProxyQueryDBinderSession(handle_);
-    (void)current->ProxyDetachDBinderSession(handle_);
-    (void)current->DetachHandleToIndex(handle_);
 #endif
     ClearDeathRecipients();
     // This proxy is going to be destroyed, so we need to decrease refcount of binder_ref.
@@ -367,7 +370,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
         bool dbinderStatus = true;
         bool status = invoker->RemoveDeathRecipient(handle_, this);
 #ifndef CONFIG_IPC_SINGLE
-        if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
+        if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
             dbinderStatus = RemoveDbinderDeathRecipient();
         }
 #endif
@@ -378,6 +381,13 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 void IPCObjectProxy::SendObituary()
 {
+#ifndef CONFIG_IPC_SINGLE
+    if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
+            RemoveDbinderDeathRecipient();
+        }
+    }
+#endif
     std::vector<sptr<DeathRecipient>> toBeReport;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -402,17 +412,6 @@ void IPCObjectProxy::SendObituary()
             recipient->OnRemoteDied(this);
         }
     }
-#ifndef CONFIG_IPC_SINGLE
-    if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            ZLOGE(LABEL, "%s: get current fail", __func__);
-            return;
-        }
-
-        current->DetachCallbackStubByProxy(this);
-    }
-#endif
 }
 
 void IPCObjectProxy::ClearDeathRecipients()
@@ -445,7 +444,7 @@ int32_t IPCObjectProxy::NoticeServiceDie()
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInt32(IRemoteObject::DeathRecipient::NOTICE_DEATH_RECIPIENT);
 
     int status = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
@@ -465,9 +464,9 @@ int IPCObjectProxy::InvokeListenThread(MessageParcel &data, MessageParcel &reply
 #ifndef CONFIG_IPC_SINGLE
 int IPCObjectProxy::UpdateProto()
 {
-    int type = GetSessionFromDBinderService();
-    SetProto(type);
-    return type;
+    int proto = GetProtoInfo();
+    SetProto(proto);
+    return proto;
 }
 
 int32_t IPCObjectProxy::IncRefToRemote()
@@ -486,7 +485,21 @@ int32_t IPCObjectProxy::IncRefToRemote()
 
 void IPCObjectProxy::ReleaseProto()
 {
-    ReleaseDatabusProto();
+    switch (GetProto()) {
+        case IRemoteObject::IF_PROT_BINDER: {
+            ReleaseBinderProto();
+            break;
+        }
+        case IRemoteObject::IF_PROT_DATABUS:
+        case IRemoteObject::IF_PROT_ERROR: {
+            ReleaseDatabusProto();
+            break;
+        }
+        default: {
+            ZLOGE(LABEL, "release invalid proto %{public}d", proto_);
+            break;
+        }
+    }
 }
 
 void IPCObjectProxy::SetProto(int proto)
@@ -494,13 +507,9 @@ void IPCObjectProxy::SetProto(int proto)
     proto_ = proto;
 }
 
-int IPCObjectProxy::GetSessionFromDBinderService()
+int IPCObjectProxy::GetProtoInfo()
 {
-    MessageParcel data, reply;
-    MessageOption option;
-
     if (CheckHaveSession()) {
-        ZLOGE(LABEL, "GetSessionFromDBinderService CheckHaveSession success");
         return IRemoteObject::IF_PROT_DATABUS;
     }
     if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
@@ -508,9 +517,11 @@ int IPCObjectProxy::GetSessionFromDBinderService()
         return IRemoteObject::IF_PROT_ERROR;
     }
 
-    int32_t err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
+    MessageParcel data, reply;
+    MessageOption option;
+    int err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGE(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
+        ZLOGW(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
         return IRemoteObject::IF_PROT_ERROR;
     }
 
@@ -529,7 +540,7 @@ int IPCObjectProxy::GetSessionFromDBinderService()
             break;
         }
         default: {
-            ZLOGE(LABEL, "GetSessionFromDBinderService Invalid Type");
+            ZLOGE(LABEL, "get Invalid proto");
             return IRemoteObject::IF_PROT_ERROR;
             break;
         }
@@ -542,22 +553,23 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "%s: get current fail", __func__);
+        ZLOGE(LABEL, "%{public}s: get current fail", __func__);
         return false;
     }
 
     if (current->QueryCallbackStub(this) != nullptr) {
-        ZLOGW(LABEL, "%s: already attach callback stub", __func__);
+        ZLOGW(LABEL, "%{public}s: already attach callback stub", __func__);
         return true;
     }
 
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(descriptor_);
+    //note that cannot use this proxy's descriptor
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + descriptor_);
     if (callbackStub == nullptr) {
         ZLOGE(LABEL, "create IPCObjectStub object failed");
         return false;
     }
     if (!current->AttachCallbackStub(this, callbackStub)) {
-        ZLOGW(LABEL, "%s: already attach new callback stub", __func__);
+        ZLOGW(LABEL, "%{public}s: already attach new callback stub", __func__);
         return false;
     }
 
@@ -566,12 +578,11 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     MessageOption option(MessageOption::TF_SYNC);
     data.WriteInt32(IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT);
     data.WriteRemoteObject(callbackStub);
-    data.WriteString(current->GetDatabusName());
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
-    if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
-        ZLOGE(LABEL, "%s: send local request fail, err = %d", __func__, err);
-        (void)current->DetachCallbackStubByProxy(this);
+    if (err != ERR_NONE) {
+        ZLOGE(LABEL, "AddDbinderDeathRecipient fail, err = %{public}d", err);
+        current->DetachCallbackStub(this);
         return false;
     }
 
@@ -582,13 +593,13 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "%s: get current fail", __func__);
+        ZLOGE(LABEL, "%{public}s: get current fail", __func__);
         return false;
     }
 
-    sptr<IPCObjectStub> callbackStub = current->QueryCallbackStub(this);
+    sptr<IPCObjectStub> callbackStub = current->DetachCallbackStub(this);
     if (callbackStub == nullptr) {
-        ZLOGE(LABEL, "%s: get callbackStub fail", __func__);
+        ZLOGE(LABEL, "%{public}s: get callbackStub fail", __func__);
         return false;
     }
 
@@ -599,28 +610,22 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
     data.WriteRemoteObject(callbackStub);
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
-    if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
-        ZLOGE(LABEL, "%s: send local request fail, err = %d", __func__, err);
+    if (err != ERR_NONE) {
+        ZLOGE(LABEL, "%{public}s: send local request fail, err = %{public}d", __func__, err);
         // do nothing, even send request failed
     }
-
-    return current->DetachCallbackStubByProxy(this);
+    return err == ERR_NONE;
 }
 
 bool IPCObjectProxy::CheckHaveSession()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "IPCProcessSkeleton is null, set type as binder");
+        ZLOGE(LABEL, "IPCProcessSkeleton is null");
         return false;
     }
 
-    std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(handle_);
-    if (session == nullptr) {
-        return false;
-    }
-
-    return true;
+    return current->ProxyMoveDBinderSession(handle_, this);
 }
 
 bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply)
@@ -628,7 +633,7 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
-        ZLOGE(LABEL, "%s: invoker null", __func__);
+        ZLOGE(LABEL, "%{public}s: invoker is null", __func__);
         return false;
     }
 
@@ -637,79 +642,70 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
     std::string peerID = reply.ReadString();
     std::string localID = reply.ReadString();
     std::string localBusName = reply.ReadString();
-    uint32_t rpcFeatureSet = reply.ReadUint32();
-    uint32_t tokenId = 0;
-    if (IsATEnable(rpcFeatureSet) == true) {
-        tokenId = RpcGetSelfTokenID();
-    }
-    std::shared_ptr<FeatureSetData> featureSet = nullptr;
-    featureSet.reset(reinterpret_cast<FeatureSetData *>(::operator new(sizeof(FeatureSetData))));
-    if (featureSet == nullptr) {
-        ZLOGE(LABEL, "%s: featureSet null", __func__);
-        return false;
-    }
-    featureSet->featureSet = rpcFeatureSet;
-    featureSet->tokenId = tokenId;
+    uint32_t peerTokenId = reply.ReadUint32();
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "%s:current process skeleton is nullptr", __func__);
+        ZLOGE(LABEL, "%{public}s: skeleton is nullptr", __func__);
         return false;
     }
 
-    std::shared_ptr<DBinderSessionObject> connectSession = current->QuerySessionByInfo(serviceName, peerID);
-    if (connectSession == nullptr) {
-        connectSession = std::make_shared<DBinderSessionObject>(nullptr, serviceName, peerID);
-        if (connectSession == nullptr) {
-            ZLOGE(LABEL, "new server session fail!");
-            return false;
-        }
-    }
-    connectSession->SetFeatureSet(featureSet);
-
-    if (!current->AttachHandleToIndex((uint32_t)handle, stubIndex)) {
-        ZLOGE(LABEL, "add stub index err stubIndex = %" PRIu64 ", handle = %d", stubIndex, handle);
+    std::shared_ptr<DBinderSessionObject> dbinderSession = std::make_shared<DBinderSessionObject>(
+        nullptr, serviceName, peerID, stubIndex, this, peerTokenId);
+    if (dbinderSession == nullptr) {
+        ZLOGE(LABEL, "make DBinderSessionObject fail!");
         return false;
     }
 
     if (!current->CreateSoftbusServer(localBusName)) {
-        ZLOGE(LABEL, "create bus server fail name = %s, localID = %s", localBusName.c_str(), localID.c_str());
+        ZLOGE(LABEL, "create softbus server fail, name = %{public}s, localID = %{public}s", localBusName.c_str(),
+            IPCProcessSkeleton::ConvertToSecureString(localID).c_str());
         return false;
     }
 
-    bool result = invoker->UpdateClientSession(handle, connectSession);
-    return result;
+    if (!invoker->UpdateClientSession(dbinderSession)) {
+        // no need to remove softbus server
+        ZLOGE(LABEL, "update server session object fail!");
+        return false;
+    }
+    if (!current->ProxyAttachDBinderSession(handle, dbinderSession)) {
+        // should not get here
+        ZLOGE(LABEL, "fail to attach session, handle: %{public}d", handle);
+        if (current->QuerySessionByInfo(serviceName, peerID) == nullptr) {
+            dbinderSession->CloseDatabusSession();
+        }
+        return false;
+    }
+    return true;
 }
 
 void IPCObjectProxy::ReleaseDatabusProto()
 {
     if (handle_ == 0) {
-        ZLOGD(LABEL, "%s:handle == 0, do nothing", __func__);
-        return;
-    }
-
-    if (proto_ != IRemoteObject::IF_PROT_DATABUS) {
+        ZLOGW(LABEL, "%{public}s: handle == 0, do nothing", __func__);
         return;
     }
 
     MessageParcel data, reply;
     MessageOption option = { MessageOption::TF_ASYNC };
-    int32_t err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
+    int err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        ZLOGW(LABEL, "DBINDER_DECREFS_TRANSACTION transact return error = %{public}d", err);
-        // do nothing
+        ZLOGE(LABEL, "send DBINDER_DECREFS_TRANSACTION cmd failed, error: %{public}d", err);
+        // do nothing, if this cmd failed, stub's refcount will be decreased when OnSessionClosed called
     }
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "release proto current is null");
+        ZLOGE(LABEL, "release databus proto skeleton is null");
         return;
     }
-    std::shared_ptr<DBinderSessionObject> toBeDelete = current->ProxyQueryDBinderSession(handle_);
+    std::shared_ptr<DBinderSessionObject> toBeDelete = current->ProxyDetachDBinderSession(handle_, this);
     if (toBeDelete != nullptr &&
-        current->QuerySessionByInfo(toBeDelete->GetServiceName(), toBeDelete->GetDeviceId()) != nullptr) {
-            toBeDelete->CloseDatabusSession();
-        }
+        // make sure session corresponding to this sessionName and deviceId is no longer used by other proxy
+        current->QuerySessionByInfo(toBeDelete->GetServiceName(), toBeDelete->GetDeviceId()) == nullptr) {
+        // close session in lock
+        toBeDelete->CloseDatabusSession();
+    }
 }
 
 void IPCObjectProxy::ReleaseBinderProto()

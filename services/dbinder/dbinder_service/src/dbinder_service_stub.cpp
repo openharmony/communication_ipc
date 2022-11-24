@@ -67,7 +67,8 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "serviceName = %s", session->serviceName.c_str());
+    DBINDER_LOGI(LOG_LABEL, "serviceName = %{public}s, stubIndex = %{public}" PRIu64 ", tokenId = %{public}u",
+        session->serviceName.c_str(), session->stubIndex, session->deviceIdInfo.tokenId);
 
     int uid = IPCSkeleton::GetCallingUid();
     int pid = IPCSkeleton::GetCallingPid();
@@ -87,7 +88,7 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
             if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(session->stubIndex) ||
                 !reply.WriteString(session->serviceName) || !reply.WriteString(session->deviceIdInfo.toDeviceId) ||
                 !reply.WriteString(session->deviceIdInfo.fromDeviceId) || !reply.WriteString(localBusName) ||
-                !reply.WriteUint32(session->rpcFeatureSet)) {
+                !reply.WriteUint32(session->deviceIdInfo.tokenId)) {
                 DBINDER_LOGE(LOG_LABEL, "write to parcel fail");
                 return DBINDER_SERVICE_PROCESS_PROTO_ERR;
             }
@@ -147,12 +148,6 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
-    std::string sessionName = data.ReadString();
-    if (sessionName.empty()) {
-        DBINDER_LOGE(LOG_LABEL, "received sessionName is null");
-        return DBINDER_SERVICE_INVALID_DATA_ERR;
-    }
-
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     sptr<IRemoteObject::DeathRecipient> death(new DbinderDeathRecipient());
 
@@ -177,12 +172,6 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
         DBINDER_LOGE(LOG_LABEL, "fail to attach callback proxy");
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
-
-    if (!dBinderService->AttachBusNameObject(callbackProxy, sessionName)) {
-        DBINDER_LOGE(LOG_LABEL, "fail to attach sessionName for callback proxy");
-        return DBINDER_SERVICE_ADD_DEATH_ERR;
-    }
-
     return ERR_NONE;
 }
 
@@ -217,12 +206,6 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
         DBINDER_LOGE(LOG_LABEL, "fail to detach callback proxy");
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
-
-    if (!dBinderService->DetachBusNameObject(callbackProxy)) {
-        DBINDER_LOGE(LOG_LABEL, "fail to deatch sessionName for callback proxy");
-        return DBINDER_SERVICE_ADD_DEATH_ERR;
-    }
-
     return ERR_NONE;
 }
 } // namespace OHOS

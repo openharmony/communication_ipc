@@ -21,13 +21,13 @@
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestService" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestService" };
 
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {
     DBinderTestService::Instantiate();
 
-    DBINDER_LOGI(LG_LABEL, "DBinderTestService-main call StartThreadPool");
+    DBINDER_LOGI(LOG_LABEL, "DBinderTestService-main call StartThreadPool");
 
     while (1) {}
 }

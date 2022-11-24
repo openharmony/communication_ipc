@@ -34,6 +34,8 @@ public:
     void ExitCurrentThread(unsigned long request);
     bool IsDriverAlive();
     bool IsAccessTokenSupported();
+    uint64_t GetSelfTokenID();
+    uint64_t GetSelfFirstCallerTokenID();
 private:
     static BinderConnector *instance_;
     static std::mutex skeletonMutex;
@@ -43,6 +45,7 @@ private:
     const std::string deviceName_;
     int32_t version_;
     uint64_t featureSet_;
+    uint64_t selfTokenID_;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

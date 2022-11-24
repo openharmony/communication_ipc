@@ -80,15 +80,14 @@ public:
     int32_t InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t NoticeServiceDie(MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t InvokerDataBusThread(MessageParcel &data, MessageParcel &reply);
-    int32_t IncStubRefs(MessageParcel &data, MessageParcel &reply);
-    int32_t DecStubRefs(MessageParcel &data, MessageParcel &reply);
     int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code);
 
 private:
-    int32_t GrantDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-    int32_t TransDataBusName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-    std::string CreateDatabusName(int uid, int pid, int systemAbilityId);
-    std::string GetDataBusName(int32_t systemAbilityId);
+    int GetPidUid(MessageParcel &data, MessageParcel &reply);
+    std::string GetSessionName();
+    int32_t GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int32_t GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    std::string CreateSessionName(int uid, int pid);
     bool IsSamgrCall(uint32_t accessToken);
     bool HasDumpPermission(uint32_t accessToken) const;
 #endif

@@ -38,6 +38,7 @@
 #include "distributed_major.h"
 #include "log_tags.h"
 #include "dbinder_test_service.h"
+#include "dbinder_log.h"
 
 using namespace OHOS;
 using namespace testing::ext;
@@ -1469,6 +1470,115 @@ HWTEST_F(DbinderTest, DbinderRemoteCall030, TestSize.Level3)
         EXPECT_EQ(result, 0);
         EXPECT_EQ(reply, 1202);
     }
+
+    SetCurrentTestCase(DBINDER_TEST_INIT);
+}
+
+/*
+ * @tc.name: DbinderRemoteCall031
+ * @tc.desc: Test two ways of sending stub object, GetSystemAbility and through message parcel,
+ * and its reference count
+ * @tc.type: FUNC
+ * @tc.require: SR000CQSAB AR000DAPPM
+ */
+HWTEST_F(DbinderTest, DbinderRemoteCall031, TestSize.Level3)
+{
+    SetCurrentTestCase(DBINDER_TEST_TRANS_STUB_001);
+
+    /*
+     * @tc.steps: step1.Get a local stub object and a proxy pointing to remote a remote stub.
+     * @tc.expected: step1.Get both objects successfully.
+     */
+    sptr<IRemoteObject> object = new DBinderTestService();
+    ASSERT_TRUE(object != nullptr);
+    EXPECT_EQ(object->GetSptrRefCount(), 1);
+    sptr<IRemoteObject> remoteObject = manager_->GetSystemAbility(RPC_TEST_SERVICE, serverId_);
+    ASSERT_TRUE(remoteObject != nullptr);
+    // refered by one proxy here, another in samgr process of remote device
+    EXPECT_EQ(remoteObject->GetObjectRefCount(), 2);
+    sptr<IDBinderTestService> proxy = iface_cast<IDBinderTestService>(remoteObject);
+    ASSERT_TRUE(proxy != nullptr);
+    sptr<IRemoteObject> remoteObject2 = manager_->GetSystemAbility(RPC_TEST_SERVICE2, serverId_);
+    ASSERT_TRUE(remoteObject2 != nullptr);
+    EXPECT_EQ(remoteObject2->GetObjectRefCount(), 2);
+    sptr<IDBinderTestService> proxy2 = iface_cast<IDBinderTestService>(remoteObject2);
+    ASSERT_TRUE(proxy2 != nullptr);
+
+    /*
+     * @tc.steps: step2.Use the proxy object to transfer stub object
+     * @tc.expected: step2.Remote call succeeds.
+     */
+    int result = proxy->TransStubObjectRefCount(object, IDBinderTestService::SAVE);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(object->GetSptrRefCount(), 2);
+
+    result = proxy2->TransStubObjectRefCount(object, IDBinderTestService::SAVE);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(object->GetSptrRefCount(), 3);
+
+    result = proxy->TransStubObjectRefCount(object, IDBinderTestService::WITHDRAW);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(object->GetSptrRefCount(), 2);
+
+    result = proxy2->TransStubObjectRefCount(object, IDBinderTestService::WITHDRAW);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(object->GetSptrRefCount(), 1);
+
+    SetCurrentTestCase(DBINDER_TEST_INIT);
+}
+
+/*
+ * @tc.name: DbinderRemoteCall032
+ * @tc.desc: Test sending rpc proxy acquired from GetSystemAbility to another process
+ * in this device, sending ipc proxy acquired from GetSystemAbility to another device,
+ * and their reference count respectively.
+ * @tc.type: FUNC
+ * @tc.require: SR000CQSAB AR000DAPPM
+ */
+HWTEST_F(DbinderTest, DbinderRemoteCall032, TestSize.Level3)
+{
+    SetCurrentTestCase(DBINDER_TEST_TRANS_STUB_001);
+
+    /*
+     * @tc.steps: step1.Get a local proxy and a remote proxy.
+     * @tc.expected: step1.Get both proxy successfully.
+     */
+    sptr<IRemoteObject> remoteObject = manager_->GetSystemAbility(RPC_TEST_SERVICE, serverId_);
+    ASSERT_TRUE(remoteObject != nullptr);
+    // refered by one sptr here, another in samgr process of remote device
+    EXPECT_EQ(remoteObject->GetObjectRefCount(), 2);
+    sptr<IDBinderTestService> proxy = iface_cast<IDBinderTestService>(remoteObject);
+    ASSERT_TRUE(proxy != nullptr);
+    EXPECT_EQ(remoteObject->GetSptrRefCount(), 2);
+    EXPECT_EQ(remoteObject->GetObjectRefCount(), 2);
+
+    sptr<IRemoteObject> remoteObject2 = manager_->GetSystemAbility(RPC_TEST_SERVICE);
+    ASSERT_TRUE(remoteObject2 != nullptr);
+    EXPECT_EQ(remoteObject2->GetObjectRefCount(), 1);
+    sptr<IDBinderTestService> proxy2 = iface_cast<IDBinderTestService>(remoteObject2);
+    ASSERT_TRUE(proxy2 != nullptr);
+    EXPECT_EQ(remoteObject2->GetSptrRefCount(), 2);
+    EXPECT_EQ(remoteObject2->GetObjectRefCount(), 1);
+
+    /*
+     * @tc.steps: step2.Use the local proxy object to transfer remote proxy object
+     * @tc.expected: step2.Remote call succeeds.
+     */
+    int result = proxy2->TransProxyObjectRefCount(remoteObject, IDBinderTestService::SAVE);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(remoteObject->GetObjectRefCount(), 3);
+
+    result = proxy->TransProxyObjectRefCount(remoteObject2, IDBinderTestService::SAVE);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(remoteObject2->GetObjectRefCount(), 2);
+
+    result = proxy2->TransProxyObjectRefCount(remoteObject, IDBinderTestService::WITHDRAW);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(remoteObject->GetObjectRefCount(), 2);
+
+    result = proxy->TransProxyObjectRefCount(remoteObject2, IDBinderTestService::WITHDRAW);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(remoteObject2->GetObjectRefCount(), 1);
 
     SetCurrentTestCase(DBINDER_TEST_INIT);
 }

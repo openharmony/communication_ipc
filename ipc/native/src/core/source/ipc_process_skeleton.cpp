@@ -15,6 +15,7 @@
 
 #include "ipc_process_skeleton.h"
 
+#include <securec.h>
 #include <unistd.h>
 #include <random>
 #include <sys/epoll.h>
@@ -95,14 +96,12 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
     isContainStub_.clear();
     rawData_.clear();
 #ifndef CONFIG_IPC_SINGLE
-    listenThreadReady_.reset();
     threadLockInfo_.clear();
     seqNumberToThread_.clear();
     stubObjects_.clear();
     proxyToSession_.clear();
     dbinderSessionObjects_.clear();
     noticeStub_.clear();
-    transTimes_.clear();
 
     std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (manager != nullptr) {
@@ -153,15 +152,8 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
                 }
             }
             // OnFirstStrongRef will be called.
-            auto proxy = new (std::nothrow) IPCObjectProxy(handle, descriptor);
-            if (proxy == nullptr) {
-                return nullptr;
-            }
-            if (!AttachObjectInner(proxy)) {
-                delete proxy;
-                return nullptr;
-            }
-            result = proxy;
+            result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
+            AttachObjectInner(result.GetRefPtr());
         } else {
             result = remoteObject;
         }
@@ -365,22 +357,18 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
 
 bool IPCProcessSkeleton::IsHandleMadeByUser(uint32_t handle)
 {
-    if (handle > DBINDER_HANDLE_BASE && handle < (DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE)) {
+    if (handle >= DBINDER_HANDLE_BASE && handle <= (DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE)) {
         ZLOGE(LOG_LABEL, "handle = %{public}u is make by user, not kernel", handle);
         return true;
     }
     return false;
 }
 
-uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(uint64_t stubIndex)
+uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(std::shared_ptr<DBinderSessionObject> session)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(handleToIndexMutex_);
-
-    if (dBinderHandle_ < DBINDER_HANDLE_BASE || dBinderHandle_ > DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE) {
-        dBinderHandle_ = DBINDER_HANDLE_BASE;
-    }
+    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     uint32_t tempHandle = dBinderHandle_;
-    uint32_t count = DBINDER_HANDLE_BASE;
+    int count = DBINDER_HANDLE_BASE;
     bool insertResult = false;
     do {
         count--;
@@ -388,7 +376,8 @@ uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(uint64_t stubIndex)
         if (tempHandle > DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE) {
             tempHandle = DBINDER_HANDLE_BASE;
         }
-        insertResult = handleToStubIndex_.insert(std::pair<uint32_t, uint64_t>(tempHandle, stubIndex)).second;
+        insertResult = proxyToSession_.insert(std::pair<uint32_t,
+            std::shared_ptr<DBinderSessionObject>>(tempHandle, session)).second;
     } while (insertResult == false && count > 0);
 
     if (count == 0 && insertResult == false) {
@@ -398,54 +387,27 @@ uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(uint64_t stubIndex)
     return dBinderHandle_;
 }
 
-bool IPCProcessSkeleton::DetachHandleToIndex(uint32_t handle)
-{
-    std::unique_lock<std::shared_mutex> lockGuard(handleToIndexMutex_);
-
-    return (handleToStubIndex_.erase(handle) > 0);
-}
-
-bool IPCProcessSkeleton::AttachHandleToIndex(uint32_t handle, uint64_t stubIndex)
-{
-    std::unique_lock<std::shared_mutex> lockGuard(handleToIndexMutex_);
-    auto result = handleToStubIndex_.insert(std::pair<uint32_t, uint64_t>(handle, stubIndex));
-    return result.second;
-}
-
-uint64_t IPCProcessSkeleton::QueryHandleToIndex(uint32_t handle)
-{
-    std::shared_lock<std::shared_mutex> lockGuard(handleToIndexMutex_);
-
-    auto it = handleToStubIndex_.find(handle);
-    if (it != handleToStubIndex_.end()) {
-        return it->second;
-    }
-
-    return 0;
-}
-
-uint64_t IPCProcessSkeleton::QueryHandleToIndex(std::list<uint32_t> &handleList, uint32_t &handle)
-{
-    std::shared_lock<std::shared_mutex> lockGuard(handleToIndexMutex_);
-    for (auto it = handleList.begin(); it != handleList.end(); it++) {
-        auto mapIndex = handleToStubIndex_.find(*it);
-        if (mapIndex != handleToStubIndex_.end()) {
-            handle = mapIndex->first;
-            return mapIndex->second;
-        }
-    }
-    return 0;
-}
-
-bool IPCProcessSkeleton::ProxyDetachDBinderSession(uint32_t handle)
+std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSession(uint32_t handle,
+    IPCObjectProxy *proxy)
 {
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
-
-    return (proxyToSession_.erase(handle) > 0);
+    std::shared_ptr<DBinderSessionObject> tmp = nullptr;
+    auto it = proxyToSession_.find(handle);
+    if (it != proxyToSession_.end() && it->second->GetProxy() == proxy) {
+        tmp = it->second;
+        proxyToSession_.erase(it);
+    }
+    ZLOGI(LOG_LABEL, "handle = %{public}u erase: %{public}d, not found: %{public}d", handle,
+        tmp != nullptr, it == proxyToSession_.end());
+    return tmp;
 }
 
 bool IPCProcessSkeleton::ProxyAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object)
 {
+    ZLOGI(LOG_LABEL, "attach handle = %{public}u to session: %{public}" PRIu64
+        " service: %{public}s, stubIndex: %{public}" PRIu64 " tokenId: %{public}u",
+        handle, object->GetBusSession()->GetChannelId(), object->GetServiceName().c_str(),
+        object->GetStubIndex(), object->GetTokenId());
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     auto result = proxyToSession_.insert(std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handle, object));
     return result.second;
@@ -461,14 +423,28 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyQueryDBinderSessi
     return nullptr;
 }
 
+bool IPCProcessSkeleton::ProxyMoveDBinderSession(uint32_t handle, IPCObjectProxy *proxy)
+{
+    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    auto it = proxyToSession_.find(handle);
+    if (it != proxyToSession_.end()) {
+        ZLOGI(LOG_LABEL, "found session of handle = %{public}u old==null: %{public}d, old==new: %{public}d", handle,
+            it->second->GetProxy() == nullptr, it->second->GetProxy() == proxy);
+        // moves ownership to this new proxy, so old proxy should not detach this session and stubIndex
+        // see QueryHandleByDatabusSession
+        it->second->SetProxy(proxy);
+        return true;
+    }
+    return false;
+}
+
 bool IPCProcessSkeleton::QueryProxyBySessionHandle(uint32_t handle, std::vector<uint32_t> &proxyHandle)
 {
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
         std::shared_ptr<Session> session = it->second->GetBusSession();
         if (session == nullptr) {
-            ZLOGE(LOG_LABEL, "session is null, handle = %{public}u", handle);
-            return false;
+            continue;
         }
         uint32_t sessionHandle = IPCProcessSkeleton::ConvertChannelID2Int(session->GetChannelId());
         if (sessionHandle == handle) {
@@ -479,24 +455,21 @@ bool IPCProcessSkeleton::QueryProxyBySessionHandle(uint32_t handle, std::vector<
 }
 
 uint32_t IPCProcessSkeleton::QueryHandleByDatabusSession(const std::string &name, const std::string &deviceId,
-    uint64_t index)
+    uint64_t stubIndex)
 {
-    std::list<uint32_t> handleList;
-    bool found = false;
-    {
-        std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
 
-        for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
-            if ((it->second->GetDeviceId().compare(deviceId) == 0) &&
-                (it->second->GetServiceName().compare(name) == 0)) {
-                handleList.push_front(it->first);
-                found = true; // found one at the least
-            }
+    for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
+        if ((it->second->GetStubIndex() == stubIndex) && (it->second->GetDeviceId().compare(deviceId) == 0) &&
+            (it->second->GetServiceName().compare(name) == 0)) {
+            ZLOGI(LOG_LABEL, "found session of handle = %{public}u", it->first);
+            // marks ownership not belong to the original proxy, In FindOrNewObject method,
+            // we will find the original proxy and take ownership again if the original proxy is still existed.
+            // Otherwise, if the original proxy is destroyed, it will not erase the session
+            // because we marks here. Later we will setProxy again with the new proxy in UpdateProto method
+            it->second->SetProxy(nullptr);
+            return it->first;
         }
-    }
-    uint32_t handleFound = 0;
-    if (found == true && QueryHandleToIndex(handleList, handleFound) == index) {
-        return handleFound;
     }
     return 0;
 }
@@ -515,11 +488,18 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::QuerySessionByInfo(con
     return nullptr;
 }
 
-bool IPCProcessSkeleton::StubDetachDBinderSession(uint32_t handle)
+bool IPCProcessSkeleton::StubDetachDBinderSession(uint32_t handle, uint32_t &tokenId)
 {
     std::unique_lock<std::shared_mutex> lockGuard(databusSessionMutex_);
-
-    return (dbinderSessionObjects_.erase(handle) > 0);
+    auto it = dbinderSessionObjects_.find(handle);
+    if (it != dbinderSessionObjects_.end()) {
+        tokenId = it->second->GetTokenId();
+        ZLOGI(LOG_LABEL, "%{public}s: handle=%{public}u, stubIndex=%{public}" PRIu64 " tokenId=%{public}u",
+            __func__, handle, it->second->GetStubIndex(), tokenId);
+        dbinderSessionObjects_.erase(it);
+        return true;
+    }
+    return false;
 }
 
 bool IPCProcessSkeleton::StubAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object)
@@ -527,7 +507,8 @@ bool IPCProcessSkeleton::StubAttachDBinderSession(uint32_t handle, std::shared_p
     std::unique_lock<std::shared_mutex> lockGuard(databusSessionMutex_);
     auto result =
         dbinderSessionObjects_.insert(std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handle, object));
-
+    ZLOGI(LOG_LABEL, "handle=%{public}u, stubIndex=%{public}" PRIu64 " tokenId=%{public}u result=%{public}u",
+        handle, object->GetStubIndex(), object->GetTokenId(), result.second);
     return result.second;
 }
 
@@ -731,58 +712,42 @@ void IPCProcessSkeleton::WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t ha
     }
 
     if (handle != messageInfo->socketId) {
-        ZLOGE(LOG_LABEL, "error! handle is not equal messageInfo, handle = %{public}d, messageFd = %{public}u", handle,
+        ZLOGE(LOG_LABEL, "handle is not equal, handle = %{public}d, socketFd = %{public}u", handle,
             messageInfo->socketId);
         return;
     }
 
-    if (messageInfo->threadId != std::thread::id()) {
-        std::shared_ptr<SocketThreadLockInfo> threadLockInfo = QueryThreadLockInfo(messageInfo->threadId);
-        if (threadLockInfo != nullptr) {
-            /* wake up this IO thread to process socket stream
-             * Wake up the client processing thread
-             */
-            std::unique_lock<std::mutex> lock_unique(threadLockInfo->mutex);
-            threadLockInfo->ready = true;
-            threadLockInfo->condition.notify_one();
-        }
-    }
+    std::unique_lock<std::mutex> lock_unique(messageInfo->mutex);
+    messageInfo->ready = true;
+    messageInfo->condition.notify_one();
 }
 
 bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr<ThreadMessageInfo> messageInfo,
     int userWaitTime)
 {
-    std::shared_ptr<SocketThreadLockInfo> threadLockInfo;
-
     if (!AddThreadBySeqNumber(seqNumber, messageInfo)) {
-        ZLOGE(LOG_LABEL, "add seqNumber = %" PRIu64 " failed", seqNumber);
+        ZLOGE(LOG_LABEL, "add seqNumber = %{public}" PRIu64 " failed", seqNumber);
         return false;
     }
 
-    threadLockInfo = QueryThreadLockInfo(messageInfo->threadId);
-    if (threadLockInfo == nullptr) {
-        threadLockInfo = std::make_shared<struct SocketThreadLockInfo>();
-        bool ret = AttachThreadLockInfo(threadLockInfo, messageInfo->threadId);
-        if (!ret) {
-            ZLOGE(LOG_LABEL, "AttachThreadLockInfo fail");
-            return false;
-        }
-    }
-
-    std::unique_lock<std::mutex> lock_unique(threadLockInfo->mutex);
-    if (threadLockInfo->condition.wait_for(lock_unique, std::chrono::seconds(userWaitTime),
-        [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
-        threadLockInfo->ready = false;
-        ZLOGE(LOG_LABEL, "socket thread timeout, seqNumber = %{public}" PRIu64
-            ", ipc wait time = %{public}d", seqNumber, userWaitTime);
+    std::unique_lock<std::mutex> lock_unique(messageInfo->mutex);
+    if (messageInfo->condition.wait_for(lock_unique, std::chrono::seconds(userWaitTime),
+        [&messageInfo] { return messageInfo->ready; }) == false) {
+        messageInfo->ready = false;
+        ZLOGE(LOG_LABEL, "socket thread timeout, seqNumber = %{public}" PRIu64 ", waittime = %{public}d",
+            seqNumber, userWaitTime);
         return false;
     }
-    threadLockInfo->ready = false;
+    messageInfo->ready = false;
     return true;
 }
 
 IRemoteObject *IPCProcessSkeleton::QueryStubByIndex(uint64_t stubIndex)
 {
+    if (stubIndex == 0) {
+        ZLOGE(LOG_LABEL, "stubIndex invalid");
+        return nullptr;
+    }
     std::shared_lock<std::shared_mutex> lockGuard(stubObjectsMutex_);
 
     auto it = stubObjects_.find(stubIndex);
@@ -812,6 +777,18 @@ uint64_t IPCProcessSkeleton::AddStubByIndex(IRemoteObject *stubObject)
     }
 }
 
+uint64_t IPCProcessSkeleton::QueryStubIndex(IRemoteObject *stubObject)
+{
+    std::unique_lock<std::shared_mutex> lockGuard(stubObjectsMutex_);
+
+    for (auto it = stubObjects_.begin(); it != stubObjects_.end(); it++) {
+        if (it->second == stubObject) {
+            return it->first;
+        }
+    }
+    return 0;
+}
+
 uint64_t IPCProcessSkeleton::EraseStubIndex(IRemoteObject *stubObject)
 {
     std::unique_lock<std::shared_mutex> lockGuard(stubObjectsMutex_);
@@ -826,23 +803,66 @@ uint64_t IPCProcessSkeleton::EraseStubIndex(IRemoteObject *stubObject)
     return 0;
 }
 
-bool IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, const std::string &deviceId,
-    uint64_t stubIndex)
+std::string IPCProcessSkeleton::UIntToString(uint32_t input)
 {
-    std::string appInfo = deviceId + std::to_string(pid) + std::to_string(uid);
+    // 12: convert to fixed string length
+    char str[12] = {0};
+    if (sprintf_s(str, sizeof(str) / sizeof(str[0]), "%011u", input) <= EOK) {
+        ZLOGE(LOG_LABEL, "sprintf_s fail");
+    }
+    return str;
+}
+
+bool IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
+    const std::string &deviceId, uint64_t stubIndex, uint32_t listenFd)
+{
+    std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
-
+    bool result = false;
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        bool result = it->second.erase(stubIndex) > 0;
-        if (it->second.size() == 0) {
+        std::map<uint64_t, uint32_t> indexs = it->second;
+        auto it2 = indexs.find(stubIndex);
+        if (it2 != indexs.end() && it2->second == listenFd) {
+            indexs.erase(it2);
+            result = true;
+        }
+        if (indexs.empty()) {
             appInfoToStubIndex_.erase(it);
         }
-        return result;
     }
+    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s stubIndex %{public}" PRIu64
+        " listenFd %{public}u result %{public}d", pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(),
+        stubIndex, listenFd, result);
+    return result;
+}
 
-    return false;
+std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
+    const std::string &deviceId, uint32_t listenFd)
+{
+    std::list<uint64_t> indexs;
+    std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
+
+    std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
+    auto it = appInfoToStubIndex_.find(appInfo);
+    if (it != appInfoToStubIndex_.end()) {
+        std::map<uint64_t, uint32_t> stubIndexs = it->second;
+        for (auto it2 = stubIndexs.begin(); it2 != stubIndexs.end();) {
+            if (it2->second == listenFd) {
+                indexs.push_back(it2->first);
+                it2 = stubIndexs.erase(it2);
+            } else {
+                it2++;
+            }
+        }
+        if (stubIndexs.empty()) {
+            appInfoToStubIndex_.erase(it);
+        }
+    }
+    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s listenFd %{public}u",
+        pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), listenFd);
+    return indexs;
 }
 
 void IPCProcessSkeleton::DetachAppInfoToStubIndex(uint64_t stubIndex)
@@ -850,7 +870,10 @@ void IPCProcessSkeleton::DetachAppInfoToStubIndex(uint64_t stubIndex)
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
 
     for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end();) {
-        (void)it->second.erase(stubIndex);
+        if (it->second.erase(stubIndex) > 0) {
+            ZLOGI(LOG_LABEL, "appInfo %{public}s stubIndex %{public}" PRIu64,
+                ConvertToSecureString(it->first).c_str(), stubIndex);
+        }
         if (it->second.size() == 0) {
             it = appInfoToStubIndex_.erase(it);
         } else {
@@ -859,45 +882,65 @@ void IPCProcessSkeleton::DetachAppInfoToStubIndex(uint64_t stubIndex)
     }
 }
 
-bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, const std::string &deviceId,
-    uint64_t stubIndex)
+bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
+    const std::string &deviceId, uint64_t stubIndex, uint32_t listenFd)
 {
-    std::string appInfo = deviceId + std::to_string(pid) + std::to_string(uid);
+    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s stubIndex %{public}" PRIu64
+        " listenFd %{public}u", pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), stubIndex, listenFd);
+    std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
 
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        auto result = it->second.insert(std::pair<uint64_t, bool>(stubIndex, true));
+        auto result = it->second.insert_or_assign(stubIndex, listenFd);
         return result.second;
     }
 
-    std::map<uint64_t, bool> mapItem { { stubIndex, true } };
-    auto result = appInfoToStubIndex_.insert(std::pair<std::string, std::map<uint64_t, bool>>(appInfo, mapItem));
+    std::map<uint64_t, uint32_t> mapItem { { stubIndex, listenFd } };
+    auto result = appInfoToStubIndex_.insert(std::pair<std::string, std::map<uint64_t, uint32_t>>(appInfo, mapItem));
     return result.second;
 }
 
-bool IPCProcessSkeleton::QueryAppInfoToStubIndex(uint32_t pid, uint32_t uid, const std::string &deviceId,
-    uint64_t stubIndex)
+bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
+    const std::string &deviceId, uint32_t listenFd)
 {
-    std::string appInfo = deviceId + std::to_string(pid) + std::to_string(uid);
+    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s listenFd %{public}u",
+        pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), listenFd);
+    std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
+
+    std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
+
+    auto it = appInfoToStubIndex_.find(appInfo);
+    if (it != appInfoToStubIndex_.end()) {
+        std::map<uint64_t, uint32_t> indexs = it->second;
+        // OnSessionOpen update listenFd
+        for (auto it2 = indexs.begin(); it2 != indexs.end(); it2++) {
+            it2->second = listenFd;
+        }
+    }
+    return true;
+}
+
+bool IPCProcessSkeleton::QueryAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
+    const std::string &deviceId, uint64_t stubIndex, uint32_t listenFd)
+{
+    std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
     std::shared_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
 
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
         auto it2 = it->second.find(stubIndex);
-        if (it2 != it->second.end()) {
+        // listenFd may be marked as 0
+        if (it2 != it->second.end() && (it2->second == 0 || it2->second == listenFd)) {
+            ZLOGI(LOG_LABEL, "appInfo %{public}s stubIndex %{public}" PRIu64,
+                ConvertToSecureString(appInfo).c_str(), stubIndex);
             return true;
         }
     }
 
     return false;
-}
-
-std::shared_ptr<SocketThreadLockInfo> IPCProcessSkeleton::GetListenThreadLockInfo()
-{
-    return listenThreadReady_;
 }
 
 bool IPCProcessSkeleton::AttachCallbackStub(IPCObjectProxy *ipcProxy, sptr<IPCObjectStub> callbackStub)
@@ -907,23 +950,16 @@ bool IPCProcessSkeleton::AttachCallbackStub(IPCObjectProxy *ipcProxy, sptr<IPCOb
     return result.second;
 }
 
-bool IPCProcessSkeleton::DetachCallbackStub(IPCObjectStub *callbackStub)
+sptr<IPCObjectStub> IPCProcessSkeleton::DetachCallbackStub(IPCObjectProxy *ipcProxy)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(callbackStubMutex_);
-    for (auto it = noticeStub_.begin(); it != noticeStub_.end(); it++) {
-        if (it->second.GetRefPtr() == callbackStub) {
-            noticeStub_.erase(it);
-            return true;
-        }
+    sptr<IPCObjectStub> ret = nullptr;
+    std::shared_lock<std::shared_mutex> lockGuard(callbackStubMutex_);
+    auto it = noticeStub_.find(ipcProxy);
+    if (it != noticeStub_.end()) {
+        ret = it->second;
+        noticeStub_.erase(it);
     }
-    return false;
-}
-
-bool IPCProcessSkeleton::DetachCallbackStubByProxy(IPCObjectProxy *ipcProxy)
-{
-    std::unique_lock<std::shared_mutex> lockGuard(callbackStubMutex_);
-
-    return (noticeStub_.erase(ipcProxy) > 0);
+    return ret;
 }
 
 sptr<IPCObjectStub> IPCProcessSkeleton::QueryCallbackStub(IPCObjectProxy *ipcProxy)
@@ -937,16 +973,17 @@ sptr<IPCObjectStub> IPCProcessSkeleton::QueryCallbackStub(IPCObjectProxy *ipcPro
     return nullptr;
 }
 
-IPCObjectProxy *IPCProcessSkeleton::QueryCallbackProxy(IPCObjectStub *callbackStub)
+sptr<IPCObjectProxy> IPCProcessSkeleton::QueryCallbackProxy(IPCObjectStub *callbackStub)
 {
+    sptr<IPCObjectProxy> ret = nullptr;
     std::shared_lock<std::shared_mutex> lockGuard(callbackStubMutex_);
     for (auto it = noticeStub_.begin(); it != noticeStub_.end(); it++) {
         if (it->second.GetRefPtr() == callbackStub) {
-            return it->first;
+            ret = it->first;
         }
     }
 
-    return nullptr;
+    return ret;
 }
 
 std::string IPCProcessSkeleton::GetDatabusName()
@@ -979,13 +1016,13 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
     std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
     int ret = manager->CreateSessionServer(pkgName, name, callback);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "fail to create softbus server");
-        return false;
+        ZLOGE(LOG_LABEL, "fail to create softbus server, maybe created already");
     }
 
+    if (name != sessionName_) {
+        SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
+    }
     sessionName_ = name;
-    SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
-
     return true;
 }
 
@@ -1014,182 +1051,11 @@ std::shared_ptr<InvokerRawData> IPCProcessSkeleton::QueryRawData(uint32_t fd)
     return nullptr;
 }
 
-bool IPCProcessSkeleton::AttachStubRecvRefInfo(IRemoteObject *stub, int pid, const std::string &deviceId)
-{
-    auto check = [&stub, &pid, &deviceId](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetRemotePid() == pid && stubRef->GetDeviceId().compare(deviceId) == 0 &&
-            stubRef->GetStubObject() == stub;
-    };
-
-    std::unique_lock<std::shared_mutex> lockGuard(stubRecvRefMutex_);
-    auto it = std::find_if(stubRecvRefs_.begin(), stubRecvRefs_.end(), check);
-    if (it != stubRecvRefs_.end()) {
-        ZLOGE(LOG_LABEL, "fail to attach stub recv ref info, already in");
-        return false;
-    }
-
-    std::shared_ptr<StubRefCountObject> refCount = std::make_shared<StubRefCountObject>(stub, pid, deviceId);
-    stubRecvRefs_.push_front(refCount);
-    return true;
-}
-
-void IPCProcessSkeleton::DetachStubRecvRefInfo(int pid, const std::string &deviceId)
-{
-    auto check = [&pid, &deviceId](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetRemotePid() == pid && stubRef->GetDeviceId().compare(deviceId) == 0;
-    };
-
-    std::unique_lock<std::shared_mutex> lockGuard(stubRecvRefMutex_);
-    stubRecvRefs_.remove_if(check);
-}
-
-bool IPCProcessSkeleton::DetachStubRecvRefInfo(const IRemoteObject *stub, int pid, const std::string &deviceId)
-{
-    std::unique_lock<std::shared_mutex> lockGuard(stubRecvRefMutex_);
-    for (auto it = stubRecvRefs_.begin(); it != stubRecvRefs_.end(); it++) {
-        std::shared_ptr<StubRefCountObject> object = (*it);
-        if ((object->GetRemotePid() == pid) && (object->GetDeviceId().compare(deviceId) == 0) &&
-            (object->GetStubObject() == stub)) {
-            stubRecvRefs_.erase(it);
-            return true;
-        }
-    }
-    return false;
-}
-
-void IPCProcessSkeleton::DetachStubRecvRefInfo(const IRemoteObject *stub)
-{
-    auto check = [&stub](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetStubObject() == stub;
-    };
-
-    std::unique_lock<std::shared_mutex> lockGuard(stubRecvRefMutex_);
-    stubRecvRefs_.remove_if(check);
-}
-
-std::list<IRemoteObject *> IPCProcessSkeleton::QueryStubRecvRefInfo(int pid, const std::string &deviceId)
-{
-    std::shared_lock<std::shared_mutex> lockGuard(stubRecvRefMutex_);
-    std::list<IRemoteObject *> stubList;
-    for (auto it = stubRecvRefs_.begin(); it != stubRecvRefs_.end(); it++) {
-        std::shared_ptr<StubRefCountObject> object = (*it);
-        if ((object->GetRemotePid() == pid) && (object->GetDeviceId().compare(deviceId) == 0)) {
-            stubList.push_back(object->GetStubObject());
-        }
-    }
-
-    return stubList;
-}
-
-void IPCProcessSkeleton::DetachStubRefInfo(int pid, const std::string &deviceId)
-{
-    std::list<IRemoteObject *> stubList = QueryStubRecvRefInfo(pid, deviceId);
-    if (!stubList.empty()) {
-        for (auto it = stubList.begin(); it != stubList.end(); it++) {
-            (*it)->DecStrongRef(this);
-        }
-    }
-    DetachStubRecvRefInfo(pid, deviceId);
-    DetachStubSendRefInfo(pid, deviceId);
-}
-
-void IPCProcessSkeleton::DetachStubRefInfo(IRemoteObject *stub, int pid, const std::string &deviceId)
-{
-    if (DetachStubRecvRefInfo(stub, pid, deviceId) == true) {
-        stub->DecStrongRef(this);
-    }
-    DetachStubSendRefInfo(stub, pid, deviceId);
-}
-
-bool IPCProcessSkeleton::IncStubRefTimes(IRemoteObject *stub)
-{
-    std::lock_guard<std::mutex> lockGuard(transTimesMutex_);
-
-    auto it = transTimes_.find(stub);
-    if (it != transTimes_.end()) {
-        it->second++;
-        return true;
-    }
-
-    auto result = transTimes_.insert(std::pair<IRemoteObject *, uint32_t>(stub, TRANS_TIME_INIT_VALUE));
-    return result.second;
-}
-
-bool IPCProcessSkeleton::DecStubRefTimes(IRemoteObject *stub)
-{
-    std::lock_guard<std::mutex> lockGuard(transTimesMutex_);
-
-    auto it = transTimes_.find(stub);
-    if (it != transTimes_.end()) {
-        if (it->second > 0) {
-            it->second--;
-            return true;
-        }
-    }
-    return false;
-}
-
-bool IPCProcessSkeleton::DetachStubRefTimes(IRemoteObject *stub)
-{
-    std::lock_guard<std::mutex> lockGuard(transTimesMutex_);
-    return (transTimes_.erase(stub) > 0);
-}
-
-bool IPCProcessSkeleton::AttachStubSendRefInfo(IRemoteObject *stub, int pid, const std::string &deviceId)
-{
-    auto check = [&stub, &pid, &deviceId](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetRemotePid() == pid && stubRef->GetDeviceId().compare(deviceId) == 0 &&
-            stubRef->GetStubObject() == stub;
-    };
-
-    std::lock_guard<std::mutex> lockGuard(stubSendRefMutex_);
-    auto it = std::find_if(stubSendRefs_.begin(), stubSendRefs_.end(), check);
-    if (it != stubSendRefs_.end()) {
-        ZLOGE(LOG_LABEL, "fail to attach stub sender ref info, already in");
-        return false;
-    }
-    std::shared_ptr<StubRefCountObject> refCount = std::make_shared<StubRefCountObject>(stub, pid, deviceId);
-    stubSendRefs_.push_front(refCount);
-
-    return true;
-}
-
-void IPCProcessSkeleton::DetachStubSendRefInfo(IRemoteObject *stub)
-{
-    auto check = [&stub](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetStubObject() == stub;
-    };
-
-    std::lock_guard<std::mutex> lockGuard(stubSendRefMutex_);
-    stubSendRefs_.remove_if(check);
-}
-
-void IPCProcessSkeleton::DetachStubSendRefInfo(int pid, const std::string &deviceId)
-{
-    auto check = [&pid, &deviceId](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetRemotePid() == pid && stubRef->GetDeviceId().compare(deviceId) == 0;
-    };
-
-    std::lock_guard<std::mutex> lockGuard(stubSendRefMutex_);
-    stubSendRefs_.remove_if(check);
-}
-
-void IPCProcessSkeleton::DetachStubSendRefInfo(IRemoteObject *stub, int pid, const std::string &deviceId)
-{
-    auto check = [&pid, &deviceId, &stub](const std::shared_ptr<StubRefCountObject> &stubRef) {
-        return stubRef->GetRemotePid() == pid && stubRef->GetDeviceId().compare(deviceId) == 0 &&
-            stubRef->GetStubObject() == stub;
-    };
-
-    std::lock_guard<std::mutex> lockGuard(stubSendRefMutex_);
-    stubSendRefs_.remove_if(check);
-}
-
-bool IPCProcessSkeleton::IsSameRemoteObject(IRemoteObject *stub, int pid, int uid, const std::string &deviceId,
-    const std::shared_ptr<CommAuthInfo> &auth)
+bool IPCProcessSkeleton::IsSameRemoteObject(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
+    const std::string &deviceId, const std::shared_ptr<CommAuthInfo> &auth)
 {
     if ((auth->GetStubObject() == stub) && (auth->GetRemotePid() == pid) && (auth->GetRemoteUid() == uid) &&
-        (auth->GetRemoteDeviceId().compare(deviceId) == 0)) {
+        (auth->GetRemoteTokenId() == tokenId) && (auth->GetRemoteDeviceId().compare(deviceId) == 0)) {
         return true;
     } else {
         return false;
@@ -1207,45 +1073,58 @@ bool IPCProcessSkeleton::IsSameRemoteObject(int pid, int uid, const std::string 
     }
 }
 
-bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid,
-    const std::string &deviceId, std::shared_ptr<FeatureSetData> featureSet)
+bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
+    const std::string &deviceId)
 {
-    auto check = [&stub, &pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
-        return IsSameRemoteObject(stub, pid, uid, deviceId, auth);
+    auto check = [&stub, &pid, &uid, &tokenId, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
+        return IsSameRemoteObject(stub, pid, uid, tokenId, deviceId, auth);
     };
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
     if (it != commAuth_.end()) {
-        ZLOGI(LOG_LABEL, "AttachCommAuthInfo already");
-        return true;
+        return false;
     }
 
-    std::shared_ptr<CommAuthInfo> authObject = std::make_shared<CommAuthInfo>(stub, pid, uid, deviceId, featureSet);
+    std::shared_ptr<CommAuthInfo> authObject = std::make_shared<CommAuthInfo>(stub, pid, uid, tokenId, deviceId);
     commAuth_.push_front(authObject);
     return true;
 }
 
-void IPCProcessSkeleton::DetachCommAuthInfo(IRemoteObject *stub, int pid, int uid, const std::string &deviceId)
+bool IPCProcessSkeleton::DetachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
+    const std::string &deviceId)
 {
-    auto check = [&stub, &pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
-        return IsSameRemoteObject(stub, pid, uid, deviceId, auth);
+    auto check = [&stub, &pid, &uid, &tokenId, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
+        return IsSameRemoteObject(stub, pid, uid, tokenId, deviceId, auth);
     };
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
-    commAuth_.remove_if(check);
+    auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
+    if (it != commAuth_.end()) {
+        commAuth_.erase(it);
+        return true;
+    }
+    return false;
 }
 
-std::shared_ptr<FeatureSetData> IPCProcessSkeleton::QueryIsAuth(int pid, int uid, const std::string &deviceId)
+bool IPCProcessSkeleton::QueryCommAuthInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId)
 {
     auto check = [&pid, &uid, &deviceId, this](const std::shared_ptr<CommAuthInfo> &auth) {
         return IsSameRemoteObject(pid, uid, deviceId, auth);
     };
+
     std::shared_lock<std::shared_mutex> lockGuard(commAuthMutex_);
     auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
     if (it != commAuth_.end()) {
-        return (*it)->GetFeatureSet();
+        if ((*it) == nullptr) {
+            tokenId = 0;
+            return false;
+        }
+        tokenId = (*it)->GetRemoteTokenId();
+        return true;
     }
-    ZLOGE(LOG_LABEL, "Query Comm Auth Fail");
-    return nullptr;
+    ZLOGI(LOG_LABEL, "%{public}s: NOT exist, deviceId %{public}s pid %{public}u uid %{public}u",
+        __func__, ConvertToSecureString(deviceId).c_str(), pid, uid);
+    tokenId = 0;
+    return false;
 }
 
 void IPCProcessSkeleton::DetachCommAuthInfoByStub(IRemoteObject *stub)
@@ -1258,7 +1137,7 @@ void IPCProcessSkeleton::DetachCommAuthInfoByStub(IRemoteObject *stub)
 bool IPCProcessSkeleton::AttachDBinderCallbackStub(sptr<IRemoteObject> proxy, sptr<DBinderCallbackStub> stub)
 {
     std::unique_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
-    auto result = dbinderSentCallback.insert(std::pair<sptr<IRemoteObject>, sptr<DBinderCallbackStub>>(proxy, stub));
+    auto result = dbinderSentCallback.insert(std::pair<sptr<IRemoteObject>, wptr<DBinderCallbackStub>>(proxy, stub));
     return result.second;
 }
 
@@ -1269,12 +1148,24 @@ bool IPCProcessSkeleton::DetachDBinderCallbackStubByProxy(sptr<IRemoteObject> pr
     return (dbinderSentCallback.erase(proxy) > 0);
 }
 
+void IPCProcessSkeleton::DetachDBinderCallbackStub(DBinderCallbackStub *stub)
+{
+    std::shared_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
+    for (auto it = dbinderSentCallback.begin(); it != dbinderSentCallback.end(); it++) {
+        if (it->second == stub) {
+            dbinderSentCallback.erase(it);
+            break;
+        }
+    }
+}
+
 sptr<DBinderCallbackStub> IPCProcessSkeleton::QueryDBinderCallbackStub(sptr<IRemoteObject> proxy)
 {
     std::shared_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
     auto it = dbinderSentCallback.find(proxy);
     if (it != dbinderSentCallback.end()) {
-        return it->second;
+        wptr<DBinderCallbackStub> cache = it->second;
+        return cache.promote();
     }
     return nullptr;
 }
@@ -1283,7 +1174,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteOb
 {
     std::shared_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
     for (auto it = dbinderSentCallback.begin(); it != dbinderSentCallback.end(); it++) {
-        if (it->second.GetRefPtr() == stub.GetRefPtr()) {
+        if (it->second.GetRefPtr() == stub.GetRefPtr() && it->second.promote() != nullptr) {
             return it->first;
         }
     }

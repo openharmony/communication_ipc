@@ -30,6 +30,10 @@ using Communication::SoftBus::ISessionService;
 using Communication::SoftBus::Session;
 
 namespace OHOS {
+struct DeviceLock {
+    std::mutex mutex;
+};
+
 class DBinderRemoteListener : public ISessionListener {
 public:
     DBinderRemoteListener(const sptr<DBinderService> &dBinderService);
@@ -40,16 +44,21 @@ public:
     void OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len) override;
     bool OnDataAvailable(std::shared_ptr<Session> session, uint32_t status) override
     {
-        return true;
+        return false;
     };
 
     bool SendDataToRemote(const std::string &deviceId, const struct DHandleEntryTxRx *msg);
+    bool SendDataReply(const std::string &deviceId, const struct DHandleEntryTxRx *msg);
     bool StartListener(std::shared_ptr<DBinderRemoteListener> &listener);
     bool StopListener();
     bool CloseDatabusSession(const std::string &deviceId);
 
 private:
     std::shared_ptr<Session> OpenSoftbusSession(const std::string &deviceId);
+    std::shared_ptr<Session> GetPeerSession(const std::string &peerDeviceId);
+    std::shared_ptr<DeviceLock> QueryOrNewDeviceLock(const std::string &deviceId);
+    void ClearDeviceLock();
+    void EraseDeviceLock(const std::string &deviceId);
 
     const std::string OWN_SESSION_NAME = "DBinderService";
     const std::string PEER_SESSION_NAME = "DBinderService";
@@ -58,7 +67,13 @@ private:
 
     DISALLOW_COPY_AND_MOVE(DBinderRemoteListener);
     std::mutex busManagerMutex_;
+    std::mutex serverSessionMutex_;
+    std::mutex deviceMutex_;
+    std::shared_ptr<ISessionService> softbusManager_;
     sptr<DBinderService> dBinderService_;
+    std::map<std::string, std::shared_ptr<Session>> clientSessionMap_;
+    std::map<std::string, std::shared_ptr<Session>> serverSessionMap_;
+    std::map<std::string, std::shared_ptr<DeviceLock>> deviceLockMap_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_REMOTE_LISTENER_H

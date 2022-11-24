@@ -44,10 +44,11 @@ constexpr int SZ_1_M = 1048576;
 constexpr int DOUBLE = 2;
 static const int IPC_MMAP_SIZE = (SZ_1_M - sysconf(_SC_PAGE_SIZE) * DOUBLE);
 static const std::string DRIVER_NAME = std::string("/dev/binder");
+static const std::string TOKENID_DEVNODE = std::string("/dev/access_token_id");
 BinderConnector *BinderConnector::instance_ = nullptr;
 
 BinderConnector::BinderConnector(const std::string &deviceName)
-    : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName), version_(0), featureSet_(0)
+    : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName), version_(0), featureSet_(0), selfTokenID_(0)
 {}
 
 BinderConnector::~BinderConnector()
@@ -114,10 +115,10 @@ bool BinderConnector::OpenDriver()
 
 bool BinderConnector::IsAccessTokenSupported()
 {
-    if (driverFD_ > 0) {
-        return featureSet_ & ACCESS_TOKEN_FAETURE_MASK;
+    if (IsDriverAlive() != true) {
+        return false;
     }
-    return false;
+    return (featureSet_ & ACCESS_TOKEN_FAETURE_MASK) != 0;
 }
 
 int BinderConnector::WriteBinder(unsigned long request, void *value)
@@ -148,6 +149,46 @@ void BinderConnector::ExitCurrentThread(unsigned long request)
     if (driverFD_ > 0) {
         ioctl(driverFD_, request, 0);
     }
+}
+
+uint64_t BinderConnector::GetSelfTokenID()
+{
+    if (IsAccessTokenSupported() != true) {
+        return 0;
+    }
+    if (selfTokenID_ != 0) {
+        return selfTokenID_;
+    }
+    int fd = open(TOKENID_DEVNODE.c_str(), O_RDWR);
+    if (fd < 0) {
+        ZLOGE(LABEL, "%{public}s: fail to open tokenId node", __func__);
+        return 0;
+    }
+    int ret = ioctl(fd, ACCESS_TOKENID_GET_TOKENID, &selfTokenID_);
+    if (ret != 0) {
+        selfTokenID_ = 0;
+    }
+    close(fd);
+    return selfTokenID_;
+}
+
+uint64_t BinderConnector::GetSelfFirstCallerTokenID()
+{
+    if (IsAccessTokenSupported() != true) {
+        return 0;
+    }
+    int fd = open(TOKENID_DEVNODE.c_str(), O_RDWR);
+    if (fd < 0) {
+        ZLOGE(LABEL, "%{public}s: fail to open tokenId node", __func__);
+        return 0;
+    }
+    uint64_t token = 0;
+    int ret = ioctl(fd, ACCESS_TOKENID_GET_FTOKENID, &token);
+    if (ret != 0) {
+        token = 0;
+    }
+    close(fd);
+    return token;
 }
 
 BinderConnector *BinderConnector::GetInstance()

@@ -68,7 +68,11 @@ public:
 
     virtual uint64_t GetCallerTokenID() const = 0;
 
-    virtual uint64_t GetFirstTokenID() const = 0;
+    virtual uint64_t GetFirstCallerTokenID() const = 0;
+
+    virtual uint64_t GetSelfTokenID() const = 0;
+
+    virtual uint64_t GetSelfFirstCallerTokenID() const = 0;
 
     virtual uint32_t GetStatus() const = 0;
 
@@ -95,9 +99,8 @@ public:
 #ifndef CONFIG_IPC_SINGLE
     virtual sptr<IRemoteObject> GetSAMgrObject() = 0;
 
-    virtual int TranslateProxy(uint32_t handle, uint32_t flag) = 0;
+    virtual int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) = 0;
 
-    virtual int TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd) = 0;
 #endif
 };
 #ifdef CONFIG_IPC_SINGLE

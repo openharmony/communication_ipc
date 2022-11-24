@@ -43,8 +43,13 @@ enum {
     FLAT_BINDER_FLAG_ACCEPTS_FDS = 0x100,
     FLAT_BINDER_FLAG_TXN_SECURITY_CTX = 0x1000,
 };
+#ifdef BINDER_IPC_32BIT
+typedef __u32 binder_size_t;
+typedef __u32 binder_uintptr_t;
+#else
 typedef __u64 binder_size_t;
 typedef __u64 binder_uintptr_t;
+#endif
 struct binder_object_header {
     __u32 type;
 };
@@ -96,13 +101,11 @@ struct binder_write_read {
 struct binder_version {
     __s32 protocol_version;
 };
+#ifdef BINDER_IPC_32BIT
+#define BINDER_CURRENT_PROTOCOL_VERSION 7
+#else
 #define BINDER_CURRENT_PROTOCOL_VERSION 8
-
-struct binder_feature_set {
-    __u64 feature_set;
-};
-#define ACCESS_TOKEN_FAETURE_MASK (1 << 0)
-
+#endif
 struct binder_node_debug_info {
     binder_uintptr_t ptr;
     binder_uintptr_t cookie;
@@ -117,6 +120,14 @@ struct binder_node_info_for_ref {
     __u32 reserved1;
     __u32 reserved2;
     __u32 reserved3;
+};
+
+#define ACCESS_TOKENID_GET_TOKENID _IOR('A', 1, unsigned long long)
+#define ACCESS_TOKENID_GET_FTOKENID _IOR('A', 3, unsigned long long)
+#define ACCESS_TOKEN_FAETURE_MASK (1 << 0)
+
+struct binder_feature_set {
+    __u64 feature_set;
 };
 
 struct access_token {
@@ -135,7 +146,6 @@ struct access_token {
 #define BINDER_GET_NODE_DEBUG_INFO _IOWR('b', 11, struct binder_node_debug_info)
 #define BINDER_GET_NODE_INFO_FOR_REF _IOWR('b', 12, struct binder_node_info_for_ref)
 #define BINDER_SET_CONTEXT_MGR_EXT _IOW('b', 13, struct flat_binder_object)
-#define BINDER_TRANSLATE_HANDLE _IOWR('b', 18, __u32)
 #define BINDER_FEATURE_SET _IOWR('b', 30, struct binder_feature_set)
 #define BINDER_GET_ACCESS_TOKEN _IOWR('b', 31, struct access_token)
 
@@ -242,11 +252,13 @@ enum binder_driver_command_protocol {
 };
 #endif /* * _UAPI_LINUX_BINDER_H * */
 
-static const int DBINDER_MAGICWORD = 0X4442494E;
-static const int ENCRYPT_HEAD_LEN = 28;
-static const int DEVICEID_LENGTH = 64;
-static const int PID_LEN = 32;
-static const int VERSION_NUM = 1;
+static const uint32_t DBINDER_MAGICWORD = 0X4442494E;
+static const uint32_t ENCRYPT_HEAD_LEN = 28;
+static const uint32_t DEVICEID_LENGTH = 64;
+static const uint32_t PID_LEN = 32;
+static const uint32_t RPC_DEFAULT_VERSION_NUM = 1;
+static const uint32_t SUPPORT_TOKENID_VERSION_NUM = 2;
+static const uint32_t TOKENID_MAGIC = 0X544F4B49;
 
 enum {
     BINDER_TYPE_REMOTE_BINDER = B_PACK_CHARS('r', 'b', '*', B_TYPE_LARGE),

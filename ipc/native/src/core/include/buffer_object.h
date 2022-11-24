@@ -27,7 +27,7 @@
 namespace OHOS {
 constexpr int SOCKET_DEFAULT_BUFF_SIZE = 4 * 1024;
 constexpr int SOCKET_MAX_BUFF_SIZE = 1024 * 1024;
-constexpr uint32_t SOCKET_BUFF_RESERVED_SIZE = 256;
+constexpr int SOCKET_BUFF_RESERVED_SIZE = 256;
 constexpr size_t MAX_RAWDATA_SIZE = 128 * 1024 * 1024; // 128M
 
 constexpr uint32_t SOCKET_BUFF_SIZE_USER_S = 4 * 1024;
@@ -42,7 +42,7 @@ public:
     ~BufferObject();
 
     void UpdateReceiveBuffer();
-    void UpdateSendBuffer();
+    void UpdateSendBuffer(uint32_t userDataSize);
     char *GetSendBufferAndLock(uint32_t size);
     char *GetReceiveBufferAndLock(uint32_t size);
     void ReleaseSendBufferLock();
@@ -61,6 +61,7 @@ public:
 
 private:
     DISALLOW_COPY_AND_MOVE(BufferObject);
+    bool ExpandSendBuffer(uint32_t size);
     ssize_t recvBufferCursorW_ = 0;
     ssize_t recvBufferCursorR_ = 0;
     ssize_t sendBufferCursorW_ = 0;

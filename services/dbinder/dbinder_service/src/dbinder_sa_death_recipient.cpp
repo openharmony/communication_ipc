@@ -36,28 +36,11 @@ void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         return;
     }
 
-    sptr<IRemoteObject> object = remote.promote();
-    IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "dBinderService is null");
         return;
     }
-
-    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
-    if (softbusManager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
-        return;
-    }
-    std::string sessionName = dBinderService->QueryBusNameObject(proxy);
-    if (sessionName.empty()) {
-        DBINDER_LOGE(LOG_LABEL, "proxy sessionName not found");
-        return;
-    }
-    softbusManager->RemovePermission(sessionName);
-
-    (void)dBinderService->DetachBusNameObject(proxy);
     (void)dBinderService->DetachProxyObject(binderObject_);
 }
 } // namespace OHOS
