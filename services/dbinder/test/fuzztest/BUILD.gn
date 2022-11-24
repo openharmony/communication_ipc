@@ -14,7 +14,6 @@
 group("fuzztest") {
   testonly = true
   deps = [
-    "attachbusnameobject_fuzzer:fuzztest",
     "closedatabussession_fuzzer:fuzztest",
     "dbinderservice_fuzzer:fuzztest",
     "detachproxyobject_fuzzer:fuzztest",

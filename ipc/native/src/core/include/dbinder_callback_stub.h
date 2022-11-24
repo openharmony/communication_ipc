@@ -17,16 +17,13 @@
 #define OHOS_IPC_DBINDER_CALLBACK_STUB_H
 
 #include <string>
-
 #include "ipc_object_stub.h"
-#include "rpc_feature_set.h"
 
 namespace OHOS {
 class DBinderCallbackStub : public IPCObjectStub {
 public:
     explicit DBinderCallbackStub(const std::string &serviceName, const std::string &peerDeviceID,
-        const std::string &localDeviceID, uint64_t stubIndex, uint32_t handle,
-        std::shared_ptr<FeatureSetData> feature);
+        const std::string &localDeviceID, uint64_t stubIndex, uint32_t handle, uint32_t tokenId);
     ~DBinderCallbackStub();
     int32_t ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
@@ -34,10 +31,7 @@ public:
     const std::string &GetServiceName();
     const std::string &GetDeviceID();
     uint64_t GetStubIndex() const;
-    std::shared_ptr<FeatureSetData> GetFeatureSet() const;
-
-private:
-    uint32_t ConstructAuthData(MessageParcel &authData, uint32_t featureSet);
+    uint32_t GetTokenId() const;
 
 private:
     const std::string serviceName_;
@@ -45,7 +39,7 @@ private:
     const std::string localDeviceID_;
     uint64_t stubIndex_;
     uint32_t handle_;
-    std::shared_ptr<FeatureSetData> rpcFeatureSet_;
+    uint32_t tokenId_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_CALLBACK_STUB_H

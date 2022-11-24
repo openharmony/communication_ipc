@@ -66,6 +66,7 @@ pid_t GetPidByName(std::string taskName)
                 fclose(fp);
                 continue;
             }
+            (void)memset_s(curTaskName, sizeof(curTaskName), 0, sizeof(curTaskName));
             if (sscanf_s(buf, "%*s %s", curTaskName, sizeof(curTaskName)) <= EOK) {
                 DBINDER_LOGI(LOG_LABEL, "sscanf fail");
             }
@@ -127,8 +128,7 @@ pid_t StartExecutable(std::string name, std::string args)
 
     std::string cmd1 = "chmod +x /data/" + name;
     int res = system(cmd1.c_str());
-    DBINDER_LOGI(LOG_LABEL, "%{public}s res = %d, errno = %{public}d %{public}s",
-        cmd1.c_str(), res, errno, strerror(errno));
+    DBINDER_LOGI(LOG_LABEL, "%{public}s res = %d, errno = %{public}d", cmd1.c_str(), res, errno);
 
     std::string cmd2 = "/data/" + name + " " + args + "&";
     res = system(cmd2.c_str());

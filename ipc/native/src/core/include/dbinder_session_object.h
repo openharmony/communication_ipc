@@ -20,8 +20,8 @@
 #include <mutex>
 #include "nocopyable.h"
 #include "buffer_object.h"
+#include "ipc_object_proxy.h"
 
-#include "rpc_feature_set.h"
 #include "Session.h"
 #include "ISessionService.h"
 
@@ -30,7 +30,9 @@ using Communication::SoftBus::Session;
 
 namespace OHOS {
 constexpr int DEVICEID_LENGTH = 64;
-constexpr int SERVICENAME_LENGTH = 200;
+constexpr int NOT_SUPPORT_TOKENID_SERVICENAME_LENGTH = 200;
+constexpr int SUPPORT_TOKENID_SERVICENAME_LENGTH = 64;
+constexpr int RESERVED_FROM_SERVICENAME_LENGTH = 125;
 
 /* struct FlatDBinderSession is for flat DatabusSessionObject to transfer to another device */
 struct FlatDBinderSession {
@@ -38,28 +40,37 @@ struct FlatDBinderSession {
     uint16_t deviceIdLength;
     uint16_t serviceNameLength;
     char deviceId[DEVICEID_LENGTH + 1];
-    char serviceName[SERVICENAME_LENGTH + 1];
+    char serviceName[SUPPORT_TOKENID_SERVICENAME_LENGTH + 1];
+    uint16_t version; // for alignment
+    uint32_t magic;
+    uint32_t tokenId;
+    char reserved[RESERVED_FROM_SERVICENAME_LENGTH];
+    // if not support tokenid, this is end of serviceName, which is '\0', this position equal to
+    // NOT_SUPPORT_TOKENID_SERVICENAME_LENGTH = 200 + 1
+    char canNotUse;
 };
 
 class DBinderSessionObject {
 public:
     static uint32_t GetFlatSessionLen();
     explicit DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,
-        const std::string &serverDeviceId);
+        const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId);
 
     ~DBinderSessionObject();
 
     void SetBusSession(std::shared_ptr<Session> session);
     void SetServiceName(const std::string &serviceName);
     void SetDeviceId(const std::string &serverDeviceId);
-    void SetFeatureSet(std::shared_ptr<FeatureSetData> rpcFeatureSet);
+    void SetProxy(IPCObjectProxy *proxy);
     std::shared_ptr<BufferObject> GetSessionBuff();
     std::shared_ptr<Session> GetBusSession() const;
     std::string GetServiceName() const;
     std::string GetDeviceId() const;
-    std::shared_ptr<FeatureSetData> GetFeatureSet() const;
+    IPCObjectProxy *GetProxy() const;
+    uint64_t GetStubIndex() const;
     uint32_t GetSessionHandle() const;
     void CloseDatabusSession();
+    uint32_t GetTokenId() const;
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderSessionObject);
@@ -69,7 +80,9 @@ private:
     std::shared_ptr<BufferObject> buff_;
     std::string serviceName_;
     std::string serverDeviceId_;
-    std::shared_ptr<FeatureSetData> rpcFeatureSet_;
+    uint64_t stubIndex_;
+    IPCObjectProxy *proxy_;
+    uint32_t tokenId_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_SESSION_OBJECT_H

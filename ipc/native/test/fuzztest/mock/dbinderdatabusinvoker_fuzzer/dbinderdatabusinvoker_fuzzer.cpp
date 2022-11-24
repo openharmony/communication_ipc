@@ -186,7 +186,7 @@ namespace OHOS {
         }
 
         DBinderDatabusInvoker invoker;
-        invoker.GetFirstTokenID();
+        invoker.GetFirstCallerTokenID();
         return true;
     }
 
@@ -230,21 +230,6 @@ namespace OHOS {
         }
         return true;
     }
-
-    bool TranslateProxyTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(int32_t)) {
-            return false;
-        }
-
-        DBinderDatabusInvoker invoker;
-        int32_t testHandle = *(reinterpret_cast<const int32_t*>(data));
-        uint32_t flag = 0;
-        if (invoker.TranslateProxy(testHandle, flag) == 0) {
-            return false;
-        }
-        return true;
-    }
 }
 
 /* Fuzzer entry point */
@@ -267,6 +252,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::IsLocalCallingTest(data, size);
     OHOS::FlushCommandsTest(data, size);
     OHOS::ResetCallingIdentityTest(data, size);
-    OHOS::TranslateProxyTest(data, size);
     return 0;
 }

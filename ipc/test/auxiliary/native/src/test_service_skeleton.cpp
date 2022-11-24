@@ -272,8 +272,8 @@ int TestServiceProxy::TestCallingUidPid()
     int pid  = replyParcel.ReadInt32();
 
     IPCTestHelper helper;
-    int actualUid = helper.GetUid();
-    int actualPid = helper.GetPid();
+    int actualUid = static_cast<int>(helper.GetUid());
+    int actualPid = static_cast<int>(helper.GetPid());
     ZLOGD(LABEL, "uid = %{public}d, pid = %{public}d, actualUid = %{public}d, actualPid = %{public}d",
         uid, pid, actualUid, actualPid);
 

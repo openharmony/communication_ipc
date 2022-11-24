@@ -31,12 +31,12 @@ namespace OHOS {
         }
 
         OHOS::DBinderService dBinderService;
-        OHOS::DHandleEntryTxRx handleEntry;
-        handleEntry.head.len = sizeof(DHandleEntryTxRx);
-        handleEntry.head.version = VERSION_NUM;
-        handleEntry.dBinderCode = MESSAGE_INVALID;
+        std::shared_ptr<struct DHandleEntryTxRx> handleEntry = std::make_shared<struct DHandleEntryTxRx>();
+        handleEntry->head.len = sizeof(DHandleEntryTxRx);
+        handleEntry->head.version = VERSION_NUM;
+        handleEntry->dBinderCode = MESSAGE_INVALID;
 
-        dBinderService.OnRemoteMessageTask(&handleEntry);
+        dBinderService.OnRemoteMessageTask(handleEntry);
     }
     
     void QuerySessionObjectTest(const uint8_t* data, size_t size)

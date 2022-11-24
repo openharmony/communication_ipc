@@ -24,6 +24,10 @@
 namespace OHOS {
 int DatabusSessionCallback::OnSessionOpened(std::shared_ptr<Session> session)
 {
+    if (session == nullptr) {
+        ZLOGE(LOG_LABEL, "OnSessionOpened session is nullptr");
+        return ERR_INVALID_DATA;
+    }
     if (session->GetChannelId() < 0) {
         ZLOGE(LOG_LABEL, "fail to open session because of wrong channel ID");
         return SESSION_WRONG_FD_ERR;
@@ -55,6 +59,7 @@ void DatabusSessionCallback::OnSessionClosed(std::shared_ptr<Session> session)
     }
 
     invoker->OnDatabusSessionClosed(session);
+    ZLOGI(LOG_LABEL, "end, channelId: %{public}" PRIu64, session->GetChannelId());
 }
 
 void DatabusSessionCallback::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)

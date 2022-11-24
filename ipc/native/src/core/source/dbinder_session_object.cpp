@@ -14,6 +14,7 @@
  */
 
 #include "dbinder_session_object.h"
+
 #include "ipc_process_skeleton.h"
 #include "ISessionService.h"
 #include "ipc_debug.h"
@@ -23,8 +24,9 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "dbinder_session_object" };
 
 DBinderSessionObject::DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,
-    const std::string &serverDeviceId)
-    : session_(session), serviceName_(serviceName), serverDeviceId_(serverDeviceId)
+    const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId)
+    : session_(session), serviceName_(serviceName), serverDeviceId_(serverDeviceId),
+    stubIndex_(stubIndex), proxy_(proxy), tokenId_(tokenId)
 {}
 
 DBinderSessionObject::~DBinderSessionObject()
@@ -80,19 +82,24 @@ void DBinderSessionObject::SetDeviceId(const std::string &serverDeviceId)
     serverDeviceId_ = serverDeviceId;
 }
 
-void DBinderSessionObject::SetFeatureSet(std::shared_ptr<FeatureSetData> rpcFeatureSet)
-{
-    rpcFeatureSet_ = rpcFeatureSet;
-}
-
 std::string DBinderSessionObject::GetDeviceId() const
 {
     return serverDeviceId_;
 }
 
-std::shared_ptr<FeatureSetData> DBinderSessionObject::GetFeatureSet() const
+void DBinderSessionObject::SetProxy(IPCObjectProxy *proxy)
 {
-    return rpcFeatureSet_;
+    proxy_ = proxy;
+}
+
+IPCObjectProxy *DBinderSessionObject::GetProxy() const
+{
+    return proxy_;
+}
+
+uint64_t DBinderSessionObject::GetStubIndex() const
+{
+    return stubIndex_;
 }
 
 uint32_t DBinderSessionObject::GetFlatSessionLen()
@@ -106,5 +113,10 @@ uint32_t DBinderSessionObject::GetSessionHandle() const
         return IPCProcessSkeleton::ConvertChannelID2Int(session_->GetChannelId());
     }
     return 0;
+}
+
+uint32_t DBinderSessionObject::GetTokenId() const
+{
+    return tokenId_;
 }
 } // namespace OHOS

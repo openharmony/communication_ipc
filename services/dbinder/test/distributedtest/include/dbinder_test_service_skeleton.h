@@ -34,7 +34,7 @@ public:
         PING_SERVICE = 2,
         GET_FOO_SERVICE = 3,
         ONLY_DELAY = 4,
-        TRANS_OBJECT = 5,
+        TRANS_PROXY_OBJECT = 5,
         TRANS_OVERSIZED_PKT = 6,
         TRANS_RAW_DATA = 7,
         RECEIVE_RAW_DATA = 8,
@@ -45,6 +45,8 @@ public:
         CLEAR_REMOTE_DES_TIMES = 13,
         TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS = 14,
         TRANS_RPC_OBJECT_TO_LOCAL = 15,
+        TRANS_STUB_OBJECT_REFCOUNT = 16,
+        TRANS_PROXY_OBJECT_REFCOUNT = 17,
     };
 
     enum {
@@ -66,9 +68,11 @@ public:
     virtual int ReverseIntDelayAsync(int data, int &rep) = 0;
     virtual int TransProxyObject(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
         int &withdrawRes) = 0;
+    virtual int TransProxyObjectRefCount(sptr<IRemoteObject> &transObject, int operation) = 0;
     virtual int TransProxyObjectAgain(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
         int &withdrawRes) = 0;
     virtual int TransStubObject(int data, sptr<IRemoteObject> &transObject, int &rep, int &stubRep) = 0;
+    virtual int TransStubObjectRefCount(sptr<IRemoteObject> &transObject, int operation) = 0;
     virtual int TransOversizedPkt(const std::string &dataStr, std::string &repStr) = 0;
     virtual int ProxyTransRawData(int lengths) = 0;
     virtual int StubTransRawData(int length) = 0;
@@ -100,8 +104,10 @@ private:
     int OnPingService(MessageParcel &data, MessageParcel &reply);
     int OnDelay(MessageParcel &data, MessageParcel &reply);
     int OnReceivedObject(MessageParcel &data, MessageParcel &reply);
+    int OnReceivedProxyObjectRefCount(MessageParcel &data, MessageParcel &reply);
     int OnReceivedObjectTransAgain(MessageParcel &data, MessageParcel &reply);
     int OnReceivedStubObject(MessageParcel &data, MessageParcel &reply);
+    int OnReceivedStubObjectRefCount(MessageParcel &data, MessageParcel &reply);
     int OnReceivedOversizedPkt(MessageParcel &data, MessageParcel &reply);
     int OnReceivedRawData(MessageParcel &data, MessageParcel &reply);
     int OnGetChildId(MessageParcel &data, MessageParcel &reply);
@@ -127,8 +133,10 @@ public:
         int &withdrawRes) override;
     int TransProxyObjectAgain(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
         int &withdrawRes) override;
+    int TransProxyObjectRefCount(sptr<IRemoteObject> &transObject, int operation) override;
     int TransStubObject(int data, sptr<IRemoteObject> &transObject, int &rep, int &stubRep) override;
     int TransOversizedPkt(const std::string &dataStr, std::string &repStr) override;
+    int TransStubObjectRefCount(sptr<IRemoteObject> &transObject, int operation) override;
     int ProxyTransRawData(int length) override;
     int StubTransRawData(int length) override;
     int GetChildId(uint64_t &rep) override;
