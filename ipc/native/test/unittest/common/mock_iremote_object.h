@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_IREMOTE_OBJECT_H
-#define OHOS_IREMOTE_OBJECT_H
+#ifndef OHOS_DEATH_RECIPIENT_H
+#define OHOS_DEATH_RECIPIENT_H
 
 #include <string>
 
@@ -34,4 +34,4 @@ public:
     }
 }; // namespace OHOS
 }
-#endif // OHOS_IREMOTE_OBJECT_H
+#endif // OHOS_DEATH_RECIPIENT_H
