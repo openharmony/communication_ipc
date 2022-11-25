@@ -30,10 +30,12 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace {
 const std::string DEVICE_ID_TEST = "deviceidTest";
 const std::string SESSION_NAME_TEST = "sessionNameTest";
-const std::string PEER_SESSION_NAME_TEST = "PeersessionNameTest";
-const std::string SERVICE_NAME_TEST = "ServiceNameTest";
+const std::string PEER_SESSION_NAME_TEST = "peerSessionNameTest";
+const std::string SERVICE_NAME_TEST = "serviceNameTest";
+}
 
 class IPCDbinderDataBusInvokerTest : public testing::Test {
 public:
