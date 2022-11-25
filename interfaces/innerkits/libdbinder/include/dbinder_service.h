@@ -29,6 +29,7 @@
 #include "ipc_object_stub.h"
 #include "rpc_system_ability_callback.h"
 #include "Session.h"
+#include "thread_pool.h"
 
 using Communication::SoftBus::Session;
 
@@ -37,13 +38,16 @@ class DBinderRemoteListener;
 
 constexpr int DEVICEID_LENGTH = 64;
 constexpr int SERVICENAME_LENGTH = 200;
-constexpr int VERSION_NUM = 1;
+
+/* version change history
+ * a) 1 --> 2, support transfer tokenid to peer device
+ */
+constexpr int RPC_TOKENID_SUPPORT_VERSION = 2;
 constexpr int ENCRYPT_HEAD_LEN = 28;
 constexpr int ENCRYPT_LENGTH = 4;
 
 struct DeviceIdInfo {
-    uint16_t afType;
-    uint16_t reserved;
+    uint32_t tokenId;
     char fromDeviceId[DEVICEID_LENGTH + 1];
     char toDeviceId[DEVICEID_LENGTH + 1];
 };
@@ -57,7 +61,8 @@ struct DHandleEntryTxRx {
     struct DHandleEntryHead head;
     uint32_t transType;
     uint32_t dBinderCode;
-    uint32_t rpcFeatureSet;
+    uint16_t fromPort;
+    uint16_t toPort;
     uint64_t stubIndex;
     uint32_t seqNumber;
     binder_uintptr_t binderObject;
@@ -72,7 +77,8 @@ struct DHandleEntryTxRx {
 struct SessionInfo {
     uint32_t seqNumber;
     uint32_t type;
-    uint32_t rpcFeatureSet;
+    uint16_t toPort;
+    uint16_t fromPort;
     uint64_t stubIndex;
     uint32_t socketFd;
     std::string serviceName;
@@ -84,12 +90,23 @@ enum DBinderCode {
     MESSAGE_AS_REPLY            = 2,
     MESSAGE_AS_OBITUARY         = 3,
     MESSAGE_AS_REMOTE_ERROR     = 4,
+    MESSAGE_AS_REPLY_TOKENID    = 5,
 };
 
-enum AfType {
-    IPV4_TYPE          = 1,
-    IPV6_TYPE          = 2,
-    DATABBUS_TYPE      = 3,
+enum DBinderErrorCode {
+    DBINDER_OK                  = 100,
+    STUB_INVALID                = 101,
+    SEND_MESSAGE_FAILED         = 102,
+    MAKE_THREADLOCK_FAILED      = 103,
+    WAIT_REPLY_TIMEOUT          = 104,
+    QUERY_REPLY_SESSION_FAILED  = 105,
+    SA_NOT_FOUND                = 106,
+    SA_INVOKE_FAILED            = 107,
+    DEVICEID_INVALID            = 108,
+    SESSION_NAME_NOT_FOUND      = 109,
+    WRITE_PARCEL_FAILED         = 110,
+    INVOKE_STUB_THREAD_FAILED   = 111,
+    SESSION_NAME_INVALID        = 112,
 };
 
 struct ThreadLockInfo {
@@ -105,12 +122,14 @@ public:
     virtual ~DBinderService();
 public:
     static sptr<DBinderService> GetInstance();
+    static std::string ConvertToSecureDeviceID(const std::string &deviceID);
     bool StartDBinderService(std::shared_ptr<RpcSystemAbilityCallback> &callbackImpl);
     sptr<DBinderServiceStub> MakeRemoteBinder(const std::u16string &serviceName,
-        const std::string &deviceID, binder_uintptr_t binderObject, uint32_t pid = 0, uint32_t uid = 0);
+        const std::string &deviceID, int32_t binderObject, uint32_t pid = 0, uint32_t uid = 0);
     bool RegisterRemoteProxy(std::u16string serviceName, sptr<IRemoteObject> binderObject);
     bool RegisterRemoteProxy(std::u16string serviceName, int32_t systemAbilityId);
-    bool OnRemoteMessageTask(const struct DHandleEntryTxRx *message);
+    bool OnRemoteMessageTask(std::shared_ptr<struct DHandleEntryTxRx> message);
+    void AddAsynMessageTask(std::shared_ptr<struct DHandleEntryTxRx> message);
     std::shared_ptr<struct SessionInfo> QuerySessionObject(binder_uintptr_t stub);
     bool DetachDeathRecipient(sptr<IRemoteObject> object);
     bool AttachDeathRecipient(sptr<IRemoteObject> object, sptr<IRemoteObject::DeathRecipient> deathRecipient);
@@ -119,11 +138,8 @@ public:
     bool AttachCallbackProxy(sptr<IRemoteObject> object, DBinderServiceStub *dbStub);
     int32_t NoticeServiceDie(const std::u16string &serviceName, const std::string &deviceID);
     int32_t NoticeDeviceDie(const std::string &deviceID);
-    bool AttachBusNameObject(IPCObjectProxy *proxy, const std::string &name);
-    bool DetachBusNameObject(IPCObjectProxy *proxy);
     std::string CreateDatabusName(int uid, int pid);
     bool DetachProxyObject(binder_uintptr_t binderObject);
-    std::string QueryBusNameObject(IPCObjectProxy *proxy);
     void LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
         const sptr<IRemoteObject>& remoteObject);
     bool ProcessOnSessionClosed(std::shared_ptr<Session> session);
@@ -132,10 +148,10 @@ private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
     static bool StartRemoteListener();
     static void StopRemoteListener();
-    static std::string ConvertToSecureDeviceID(const std::string &deviceID);
     std::u16string GetRegisterService(binder_uintptr_t binderObject);
-    bool InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
-    void OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage);
+    int32_t InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
+    bool OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage);
+    bool OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage);
     void MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage);
     bool OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message);
     void WakeupThreadByStub(uint32_t seqNumber);
@@ -164,23 +180,25 @@ private:
     std::list<std::u16string> FindServicesByDeviceID(const std::string &deviceID);
     int32_t NoticeServiceDieInner(const std::u16string &serviceName, const std::string &deviceID);
     uint32_t GetRemoteTransType();
-    bool OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
-        std::string &remoteDeviceId, int pid, int uid);
+    uint32_t OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
+        std::string &remoteDeviceId, int pid, int uid, uint32_t tokenId);
     bool IsDeviceIdIllegal(const std::string &deviceID);
-    std::string GetDatabusNameByProxy(IPCObjectProxy *proxy, int32_t systemAbilityId);
+    std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
     uint32_t GetSeqNumber();
+    bool StartThreadPool();
+    bool StopThreadPool();
+    bool AddAsynTask(const ThreadPool::Task &f);
+    bool IsSameSession(std::shared_ptr<struct SessionInfo> oldSession, std::shared_ptr<struct SessionInfo> newSession);
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool CheckSystemAbilityId(int32_t systemAbilityId);
-    bool IsSameSession(std::shared_ptr<struct SessionInfo> oldSession, std::shared_ptr<struct SessionInfo> nowSession);
     bool HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t stubIndex, std::string serverSessionName,
         struct DHandleEntryTxRx *replyMessage);
     bool ReStartRemoteListener();
-    bool ReGrantPermission(const std::string &sessionName);
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
         std::shared_ptr<DHandleEntryTxRx> loadSaItem);
     std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    void OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage);
-    void SendMessageToRemote(uint32_t dBinderCode, std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
+    void SendMessageToRemote(uint32_t dBinderCode, uint32_t reason,
+        std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
@@ -192,7 +210,6 @@ private:
     static sptr<DBinderService> instance_;
 
     std::shared_mutex remoteBinderMutex_;
-    std::shared_mutex busNameMutex_;
     std::shared_mutex proxyMutex_;
     std::shared_mutex deathRecipientMutex_;
     std::shared_mutex sessionMutex_;
@@ -202,6 +219,7 @@ private:
     std::mutex threadLockMutex_;
     std::mutex callbackProxyMutex_;
     std::mutex deathNotificationMutex_;
+    std::mutex threadPoolMutex_;
 
     uint32_t seqNumber_ = 0; /* indicate make remote binder message sequence number, and can be overflow */
     std::list<sptr<DBinderServiceStub>> DBinderStubRegisted_;
@@ -211,7 +229,9 @@ private:
     std::map<binder_uintptr_t, std::shared_ptr<struct SessionInfo>> sessionObject_;
     std::map<sptr<IRemoteObject>, DBinderServiceStub *> noticeProxy_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
-    std::map<IPCObjectProxy *, std::string> busNameObject_;
+    bool threadPoolStarted_ = false;
+    int32_t threadPoolNumber_ = 4;
+    std::unique_ptr<ThreadPool> threadPool_ = nullptr;
     std::list<std::shared_ptr<struct DHandleEntryTxRx>> loadSaReply_;
     static constexpr int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;

@@ -16,34 +16,37 @@
 #include "comm_auth_info.h"
 
 namespace OHOS {
-CommAuthInfo::CommAuthInfo(IRemoteObject *stub, int pid, int uid,
-    const std::string &deviceId, std::shared_ptr<FeatureSetData> featureSet)
-    : stub_(stub), remotePid_(pid), remoteUid_(uid), deviceId_(deviceId), featureSet_(featureSet)
+CommAuthInfo::CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId)
+    : stub_(stub), remotePid_(pid), remoteUid_(uid), tokenId_(tokenId), deviceId_(deviceId)
 {}
 
 CommAuthInfo::~CommAuthInfo()
 {
     stub_ = nullptr;
 }
-const IRemoteObject *CommAuthInfo::GetStubObject() const
+
+IRemoteObject *CommAuthInfo::GetStubObject() const
 {
     return stub_;
 }
+
 int CommAuthInfo::GetRemotePid() const
 {
     return remotePid_;
 }
+
 int CommAuthInfo::GetRemoteUid() const
 {
     return remoteUid_;
 }
+
+uint32_t CommAuthInfo::GetRemoteTokenId() const
+{
+    return tokenId_;
+}
+
 std::string CommAuthInfo::GetRemoteDeviceId() const
 {
     return deviceId_;
-}
-
-std::shared_ptr<FeatureSetData> CommAuthInfo::GetFeatureSet() const
-{
-    return featureSet_;
 }
 } // namespace OHOS

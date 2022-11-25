@@ -45,9 +45,8 @@ enum {
 
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()),
-    firstTokenID_(0), status_(0)
+    callerTokenID_(0), firstTokenID_(0), status_(0)
 {
-    callerTokenID_ = RpcGetSelfTokenID();
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
 }
@@ -99,6 +98,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HiTraceId traceId = HiTraceChain::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
+    if (!TranslateDBinderProxy(handle, data)) {
+        return IPC_INVOKER_WRITE_TRANS_ERR;
+    }
     if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LABEL, "WriteTransaction ERROR");
@@ -121,6 +123,54 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ZLOGE(LABEL, "%{public}s: handle=%{public}d result = %{public}d", __func__, handle, error);
     }
     return error;
+}
+
+bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
+{
+    uintptr_t dataOffset = parcel.GetData();
+    binder_size_t *objOffset = reinterpret_cast<binder_size_t *>(parcel.GetObjectOffsets());
+    for (size_t i = 0; i < parcel.GetOffsetsSize(); i++) {
+        auto flat = reinterpret_cast<flat_binder_object *>(dataOffset + *(objOffset + i));
+#ifdef CONFIG_IPC_SINGLE
+        if (flat->hdr.type == BINDER_TYPE_HANDLE && flat->cookie != IRemoteObject::IF_PROT_BINDER) {
+            ZLOGE(LABEL, "sending a dbinder proxy in ipc_single.z.so is not allowed");
+            return false;
+        }
+#else
+        if (flat->hdr.type == BINDER_TYPE_HANDLE && flat->cookie == IRemoteObject::IF_PROT_DATABUS
+            && flat->handle < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+            MessageParcel data, reply;
+            MessageOption option;
+            if (SendRequest(handle, GET_PID_UID, data, reply, option) != ERR_NONE) {
+                ZLOGE(LABEL, "get pid and uid failed");
+                return false;
+            }
+            MessageParcel data2, reply2;
+            MessageOption option2;
+            data2.WriteUint32(reply.ReadUint32()); // pid
+            data2.WriteUint32(reply.ReadUint32()); // uid
+            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+            data2.WriteString(current->GetLocalDeviceID()); // deviceId
+            std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
+            if (session == nullptr) {
+                ZLOGE(LABEL, "no session found for handle: %{public}d", flat->handle);
+                return false;
+            }
+            data2.WriteUint64(session->GetStubIndex()); // stubIndex
+            data2.WriteUint32(session->GetTokenId()); // tokenId
+            IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
+            if (invoker == nullptr) {
+                ZLOGE(LABEL, "%{public}s: invoker is null", __func__);
+                return false;
+            }
+            if (invoker->SendRequest(flat->handle, DBINDER_ADD_COMMAUTH, data2, reply2, option2) != ERR_NONE) {
+                ZLOGE(LABEL, "dbinder add auth info failed");
+                return false;
+            }
+        }
+#endif
+    }
+    return true;
 }
 
 bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
@@ -189,40 +239,33 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
 }
 
 #ifndef CONFIG_IPC_SINGLE
-int BinderInvoker::TranslateProxy(uint32_t handle, uint32_t flag)
+int BinderInvoker::TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj)
 {
-    binder_node_debug_info info {};
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
         return -IPC_INVOKER_CONNECT_ERR;
     }
-    info.has_strong_ref = handle;
-    info.has_weak_ref = flag;
-    ZLOGD(LABEL, "TranslateProxy input handle = %{public}u", info.has_strong_ref);
-    int error = binderConnector_->WriteBinder(BINDER_TRANSLATE_HANDLE, &info);
-    if (error == ERR_NONE && info.has_strong_ref > 0) {
-        ZLOGD(LABEL, "TranslateProxy get new handle = %{public}u", info.has_strong_ref);
-        return info.has_strong_ref;
+    size_t rewindPos = output_.GetWritePosition();
+    if (!output_.WriteInt32(cmd)) {
+        if (!output_.RewindWrite(rewindPos)) {
+            output_.FlushBuffer();
+        }
+        return -IPC_INVOKER_TRANSLATE_ERR;
     }
-    ZLOGE(LABEL, "failed to translateProxy input handle = %{public}u", info.has_strong_ref);
-    return -IPC_INVOKER_TRANSLATE_ERR;
-}
-
-int BinderInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd)
-{
-    binder_node_debug_info info {};
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        return -IPC_INVOKER_CONNECT_ERR;
+    if (!FlattenObject(output_, obj.GetRefPtr())) {
+        if (!output_.RewindWrite(rewindPos)) {
+            output_.FlushBuffer();
+        }
+        return -IPC_INVOKER_TRANSLATE_ERR;
     }
-    info.cookie = cookie;
-    info.ptr = ptr;
-    info.has_weak_ref = (uint32_t)cmd;
-    info.has_strong_ref = flag;
-    int error = binderConnector_->WriteBinder(BINDER_TRANSLATE_HANDLE, &info);
-    if (error == ERR_NONE && info.has_strong_ref > 0) {
-        ZLOGD(LABEL, "TranslateStub get new handle = %{public}u", info.has_strong_ref);
-        return info.has_strong_ref;
+    MessageParcel reply;
+    int error = WaitForCompletion(&reply);
+    if (error == ERR_NONE) {
+        uint32_t handle = reply.ReadUint32();
+        if (handle > 0) {
+            return handle;
+        }
     }
-    ZLOGE(LABEL, "failed to TranslateStub");
+    ZLOGE(LABEL, "failed to TranslateIRemoteObject");
     return -IPC_INVOKER_TRANSLATE_ERR;
 }
 
@@ -384,6 +427,18 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     }
 }
 
+void BinderInvoker::GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID)
+{
+    struct access_token token{};
+    int error = binderConnector_->WriteBinder(BINDER_GET_ACCESS_TOKEN, &token);
+    if (error != ERR_NONE) {
+        token.sender_tokenid = 0;
+        token.first_tokenid = 0;
+    }
+    callerTokenID = token.sender_tokenid;
+    firstTokenID = token.first_tokenid;
+}
+
 void BinderInvoker::OnTransaction(const uint8_t *buffer)
 {
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
@@ -406,19 +461,8 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
-    if (binderConnector_->IsAccessTokenSupported()) {
-        struct access_token tmp;
-        int error = binderConnector_->WriteBinder(BINDER_GET_ACCESS_TOKEN, &tmp);
-        if (error != ERR_NONE) {
-            callerTokenID_ = 0;
-            firstTokenID_ = 0;
-        } else {
-            callerTokenID_ = tmp.sender_tokenid;
-            firstTokenID_ = tmp.first_tokenid;
-        }
-    } else {
-        callerTokenID_ = 0;
-        firstTokenID_ = 0;
+    if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
+        GetAccessToken(callerTokenID_, firstTokenID_);
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
@@ -435,7 +479,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
             if (targetObject != nullptr) {
                 error = targetObject->SendRequest(tr->code, *data, reply, option);
-                service = Str16ToStr8(targetObject->descriptor_);
+                service = Str16ToStr8(targetObject->GetObjectDescriptor());
                 targetObject->DecStrongRef(this);
             }
         }
@@ -510,6 +554,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
 
     if (reply == nullptr) {
+        ZLOGD(LABEL, "no need reply, free the buffer");
         FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
         return IPC_INVOKER_INVALID_REPLY_ERR;
     }
@@ -527,6 +572,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
             return IPC_INVOKER_INVALID_DATA_ERR;
         }
         if (!reply->SetAllocator(allocator)) {
+            ZLOGD(LABEL, "SetAllocator failed");
             delete allocator;
             FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
             return IPC_INVOKER_INVALID_DATA_ERR;
@@ -835,15 +881,34 @@ uid_t BinderInvoker::GetCallerUid() const
 
 uint64_t BinderInvoker::GetCallerTokenID() const
 {
+    // If a process does NOT have a tokenid, the UID should be returned accordingly.
+    if (callerTokenID_ == 0) {
+        return callerUid_;
+    }
     return callerTokenID_;
 }
 
-uint64_t BinderInvoker::GetFirstTokenID() const
+uint64_t BinderInvoker::GetFirstCallerTokenID() const
 {
-    if (firstTokenID_ == 0) {
-        return RpcGetFirstCallerTokenID();
-    }
     return firstTokenID_;
+}
+
+uint64_t BinderInvoker::GetSelfTokenID() const
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return 0;
+    }
+    uint64_t selfTokenId = binderConnector_->GetSelfTokenID();
+    return (selfTokenId == 0) ? static_cast<uint64_t>(getuid()) : selfTokenId;
+}
+
+uint64_t BinderInvoker::GetSelfFirstCallerTokenID() const
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return 0;
+    }
+    uint64_t selfFirstCallerTokenId = binderConnector_->GetSelfFirstCallerTokenID();
+    return (selfFirstCallerTokenId == 0) ? static_cast<uint32_t>(getuid()) : selfFirstCallerTokenId;
 }
 
 uint32_t BinderInvoker::GetStatus() const
@@ -925,7 +990,6 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
             }
             break;
         }
-        case BINDER_TYPE_REMOTE_HANDLE:
         case BINDER_TYPE_HANDLE: {
             remoteObject = current->FindOrNewObject(flat->handle);
             break;
@@ -964,7 +1028,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
     flat.hdr.type = BINDER_TYPE_FD;
     flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
     flat.binder = 0; // Don't pass uninitialized stack data to a remote process
-    flat.handle = static_cast<uint32_t>(fd);
+    flat.handle = static_cast<__u32>(fd);
     flat.cookie = takeOwnership ? 1 : 0;
 
     return parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
@@ -983,7 +1047,7 @@ std::string BinderInvoker::ResetCallingIdentity()
         | static_cast<uint64_t>(callerPid_)));
     callerUid_ = static_cast<pid_t>(getuid());
     callerPid_ = getpid();
-    callerTokenID_ = RpcGetSelfTokenID();
+    callerTokenID_ = GetSelfTokenID();
     return accessToken + pidUid;
 }
 

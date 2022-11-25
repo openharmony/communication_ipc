@@ -16,7 +16,7 @@
 #ifndef OHOS_IPC_DBINDER_ERROR_CODE_H
 #define OHOS_IPC_DBINDER_ERROR_CODE_H
 
-#include<string>
+#include <string>
 #ifndef BUILD_PUBLIC_VERSION
 #include "hiview.h"
 #include "hievent.h"

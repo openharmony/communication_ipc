@@ -102,7 +102,7 @@ uint32_t IPCSkeleton::GetCallingTokenID()
     if (invoker != nullptr) {
         return static_cast<uint32_t>(invoker->GetCallerTokenID());
     }
-    return static_cast<uint32_t>(RpcGetSelfTokenID());
+    return static_cast<uint32_t>(GetSelfTokenID());
 }
 
 uint64_t IPCSkeleton::GetCallingFullTokenID()
@@ -111,25 +111,42 @@ uint64_t IPCSkeleton::GetCallingFullTokenID()
     if (invoker != nullptr) {
         return invoker->GetCallerTokenID();
     }
-    return RpcGetSelfTokenID();
+    return GetSelfTokenID();
+}
+
+uint64_t IPCSkeleton::GetSelfTokenID()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetSelfTokenID();
+    }
+    return 0;
 }
 
 uint32_t IPCSkeleton::GetFirstTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
-        return static_cast<uint32_t>(invoker->GetFirstTokenID());
+        return static_cast<uint32_t>(invoker->GetFirstCallerTokenID());
     }
-    return static_cast<uint32_t>(RpcGetFirstCallerTokenID());
+    invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return static_cast<uint32_t>(invoker->GetSelfFirstCallerTokenID());
+    }
+    return 0;
 }
 
 uint64_t IPCSkeleton::GetFirstFullTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
-        return invoker->GetFirstTokenID();
+        return invoker->GetFirstCallerTokenID();
     }
-    return RpcGetFirstCallerTokenID();
+    invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetSelfFirstCallerTokenID();
+    }
+    return 0;
 }
 
 std::string IPCSkeleton::GetLocalDeviceID()

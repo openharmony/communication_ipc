@@ -66,9 +66,10 @@ public:
 
     int InvokeListenThread(MessageParcel &data, MessageParcel &reply);
     int32_t NoticeServiceDie();
-    std::string GetPidAndUidInfo(int32_t systemAbilityId);
-    std::string GetDataBusName(int32_t systemAbilityId);
-    std::string TransDataBusName(uint32_t uid, uint32_t pid);
+    int GetPidUid(MessageParcel &reply);
+    std::string GetSessionName();
+    std::string GetSessionNameForPidUid(uint32_t uid, uint32_t pid);
+    std::string GetGrantedSessionName();
     int GetProto() const;
     void WaitForInit();
     std::u16string GetInterfaceDescriptor();
@@ -88,7 +89,7 @@ private:
 
     int32_t IncRefToRemote();
 
-    int GetSessionFromDBinderService();
+    int GetProtoInfo();
 
     bool AddDbinderDeathRecipient();
 

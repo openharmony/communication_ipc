@@ -30,14 +30,14 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderCallbackStub" };
 
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
-    const std::string &localDevice, uint64_t stubIndex, uint32_t handle, std::shared_ptr<FeatureSetData> feature)
+    const std::string &localDevice, uint64_t stubIndex, uint32_t handle, uint32_t tokenId)
     : IPCObjectStub(Str8ToStr16("DBinderCallback" + device + service)),
       serviceName_(service),
       deviceID_(device),
       localDeviceID_(localDevice),
       stubIndex_(stubIndex),
       handle_(handle),
-      rpcFeatureSet_(feature)
+      tokenId_(tokenId)
 {
     ZLOGI(LOG_LABEL, "serviceName:%{public}s, deviceId:%{public}s, handle:%{public}u, stubIndex_:%{public}" PRIu64 "",
         serviceName_.c_str(), deviceID_.c_str(), handle_, stubIndex_);
@@ -46,6 +46,7 @@ DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::
 DBinderCallbackStub::~DBinderCallbackStub()
 {
     ZLOGI(LOG_LABEL, "DBinderCallbackStub delete");
+    IPCProcessSkeleton::GetCurrent()->DetachDBinderCallbackStub(this);
 }
 
 const std::string &DBinderCallbackStub::GetServiceName()
@@ -63,9 +64,9 @@ uint64_t DBinderCallbackStub::GetStubIndex() const
     return stubIndex_;
 }
 
-std::shared_ptr<FeatureSetData> DBinderCallbackStub::GetFeatureSet() const
+uint32_t DBinderCallbackStub::GetTokenId() const
 {
-    return rpcFeatureSet_;
+    return tokenId_;
 }
 
 int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -83,7 +84,7 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         return DBINDER_CALLBACK_READ_OBJECT_ERR;
     }
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-    std::string sessionName = samgr->TransDataBusName(uid, pid);
+    std::string sessionName = samgr->GetSessionNameForPidUid(uid, pid);
     if (sessionName.empty()) {
         ZLOGE(LOG_LABEL, "grans session name failed");
         return DBINDER_SERVICE_WRONG_SESSION;
@@ -91,9 +92,8 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
 
     MessageParcel authData, authReply;
     MessageOption authOption;
-    uint32_t featureSet = rpcFeatureSet_->featureSet;
     if (!authData.WriteUint32(pid) || !authData.WriteUint32(uid) || !authData.WriteString(localDeviceID_) ||
-        !authData.WriteUint32(featureSet) || !authData.WriteUint64(stubIndex_)) {
+        !authData.WriteUint64(stubIndex_) || !authData.WriteUint32(tokenId_)) {
         ZLOGE(LOG_LABEL, "write to MessageParcel fail");
         return ERR_INVALID_DATA;
     }
@@ -102,18 +102,20 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         ZLOGE(LOG_LABEL, "no databus thread and invoker");
         return RPC_DATABUS_INVOKER_ERR;
     }
-    int err = dbinderInvoker->SendRequest(handle_, DBINDER_TRANS_COMMAUTH, authData, authReply, authOption);
+    int err = dbinderInvoker->SendRequest(handle_, DBINDER_ADD_COMMAUTH, authData, authReply, authOption);
     if (err != ERR_NONE) {
         ZLOGE(LOG_LABEL, "send auth info to remote fail");
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
-    ZLOGI(LOG_LABEL, "send to stub ok!stubIndex:%{public}" PRIu64 ",                          \
-        peerDevice = %{public}s, localDeviceID_ = %{public}s,"                                \
-        "serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, sessionName = %{public}s",\
-        stubIndex_, deviceID_.c_str(), localDeviceID_.c_str(), serviceName_.c_str(), uid, pid, sessionName.c_str());
+    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 ", peerDevice = %{public}s, "
+         "localDeviceID_ = %{public}s, serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, "
+         "tokenId: %{public}u, sessionName = %{public}s",
+        stubIndex_, IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(),
+        IPCProcessSkeleton::ConvertToSecureString(localDeviceID_).c_str(), serviceName_.c_str(), uid, pid, tokenId_,
+        sessionName.c_str());
     if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(stubIndex_) ||
         !reply.WriteString(serviceName_) || !reply.WriteString(deviceID_) || !reply.WriteString(localDeviceID_) ||
-        !reply.WriteString(sessionName)) {
+        !reply.WriteString(sessionName) || !reply.WriteUint32(tokenId_)) {
         ZLOGE(LOG_LABEL, "write to parcel fail");
         return ERR_INVALID_DATA;
     }

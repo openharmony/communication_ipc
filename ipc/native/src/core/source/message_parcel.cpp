@@ -41,14 +41,12 @@
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
-#include "rpc_feature_set.h"
 #endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "MessageParcel" };
 
 void AcquireObject(flat_binder_object *flat, const void *cookie)
@@ -137,22 +135,20 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     }
     std::shared_ptr<DBinderSessionObject> sessionOfPeer = current->ProxyQueryDBinderSession(handle);
     if (sessionOfPeer == nullptr) {
-        ZLOGE(LOG_LABEL, "sessionOfPeer is nullptr");
+        ZLOGE(LOG_LABEL, "sessionOfPeer is null, handle: %{public}u, stubIndex: %{public}" PRIu64, handle, stubIndex);
         return false;
     }
     std::string peerName = sessionOfPeer->GetServiceName();
     std::string peerId = sessionOfPeer->GetDeviceId();
     std::string localId = current->GetLocalDeviceID();
-    std::shared_ptr<FeatureSetData> feature = sessionOfPeer->GetFeatureSet();
-    if (feature == nullptr) {
-        ZLOGE(LOG_LABEL, "feature is nullptr");
-        return false;
-    }
+    uint32_t tokenId = sessionOfPeer->GetTokenId();
 
     sptr<DBinderCallbackStub> fakeStub = current->QueryDBinderCallbackStub(object);
     if (fakeStub == nullptr) {
-        // note that cannot use this proxy's descriptor
-        fakeStub = new (std::nothrow) DBinderCallbackStub(peerName, peerId, localId, stubIndex, handle, feature);
+        // note that cannot use this proxy's descriptor, this stub is now stored and strong refered
+        // and need to be erased in an approprite time
+        fakeStub = new (std::nothrow) DBinderCallbackStub(peerName, peerId, localId, sessionOfPeer->GetStubIndex(),
+            handle, tokenId);
         if (fakeStub == nullptr) {
             ZLOGE(LOG_LABEL, "create DBinderCallbackStub object failed");
             return false;
@@ -178,15 +174,10 @@ bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
     if (object->IsProxyObject()) {
         const IPCObjectProxy *proxy = reinterpret_cast<const IPCObjectProxy *>(object.GetRefPtr());
         const uint32_t handle = proxy ? proxy->GetHandle() : 0;
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (IPCProcessSkeleton::IsHandleMadeByUser(handle) && current != nullptr) {
-            ZLOGI(LOG_LABEL, "send dbinder object to local devices");
+        if (IPCProcessSkeleton::IsHandleMadeByUser(handle)) {
             /* this is a fake proxy which handle get by MakeRemoteHandle(), Not binder driver of kernel */
-            uint64_t stubIndex = current->QueryHandleToIndex(handle);
-            if (stubIndex > 0) {
-                ZLOGI(LOG_LABEL, "this is dbinder proxy want to send anthor process in this device");
-                return WriteDBinderProxy(object, handle, stubIndex);
-            }
+            ZLOGI(LOG_LABEL, "send a dbinder proxy to another process in this device");
+            return WriteDBinderProxy(object, handle, 0);
         }
     }
 #endif
