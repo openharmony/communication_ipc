@@ -41,18 +41,6 @@ void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         return;
     }
 
-    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
-    if (softbusManager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
-        return;
-    }
-    std::string sessionName = dBinderService->QueryBusNameObject(callbackProxy);
-    if (sessionName.empty()) {
-        DBINDER_LOGE(LOG_LABEL, "proxy sessionName not found");
-        return;
-    }
-    softbusManager->RemovePermission(sessionName);
-
     sptr<IRemoteObject::DeathRecipient> death = dBinderService->QueryDeathRecipient(object);
     if (death != nullptr) {
         // Continue to clear subsequent data

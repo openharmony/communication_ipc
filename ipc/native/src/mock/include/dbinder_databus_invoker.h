@@ -47,16 +47,19 @@ public:
     pid_t GetCallerPid() const override;
     uid_t GetCallerUid() const override;
     uint64_t GetCallerTokenID() const override;
-    uint64_t GetFirstTokenID() const override;
+    uint64_t GetFirstCallerTokenID() const override;
+    uint64_t GetSelfTokenID() const override;
+    uint64_t GetSelfFirstCallerTokenID() const override;
     uint32_t GetStatus() const override;
+    virtual uint32_t GetClientFd() const override;
     bool IsLocalCalling() override;
     std::string GetLocalDeviceID() override;
     std::string GetCallerDeviceID() const override;
 
-    bool UpdateClientSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> sessionObject) override;
+    bool UpdateClientSession(std::shared_ptr<DBinderSessionObject> sessionObject) override;
     std::shared_ptr<DBinderSessionObject> QueryClientSessionObject(uint32_t databusHandle) override;
     std::shared_ptr<DBinderSessionObject> QueryServerSessionObject(uint32_t handle) override;
-    std::shared_ptr<DBinderSessionObject> CreateServerSessionObject(binder_uintptr_t binder, uint64_t &stubIndex,
+    std::shared_ptr<DBinderSessionObject> CreateServerSessionObject(binder_uintptr_t binder,
         std::shared_ptr<DBinderSessionObject> sessionObject) override;
     int FlushCommands(IRemoteObject *object) override;
 
@@ -64,8 +67,7 @@ public:
     bool OnReceiveNewConnection(std::shared_ptr<Session> session);
     std::string ResetCallingIdentity() override;
     bool SetCallingIdentity(std::string &identity) override;
-    int TranslateProxy(uint32_t handle, uint32_t flag) override;
-    int TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd) override;
+    int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
     void OnMessageAvailable(std::shared_ptr<Session> session, const char *data, ssize_t len);
 
 private:
@@ -77,28 +79,29 @@ private:
     std::shared_ptr<DBinderSessionObject> QuerySessionOfBinderProxy(uint32_t handle,
         std::shared_ptr<DBinderSessionObject> session) override;
     uint32_t FlattenSession(char *sessionOffset, const std::shared_ptr<DBinderSessionObject> connectSession,
-        uint64_t stubIndex) override;
-    std::shared_ptr<DBinderSessionObject> UnFlattenSession(char *sessionOffset, uint64_t &stubIndex) override;
-    uint32_t QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session, uint64_t stubIndex) override;
-    uint64_t GetSeqNum() const override;
-    void SetSeqNum(uint64_t seq) override;
-    uint32_t GetClientFd() const override;
-    void SetClientFd(uint32_t fd) override;
-    void SetCallerPid(pid_t pid) override;
-    void SetCallerUid(pid_t uid) override;
-    void SetStatus(uint32_t status) override;
-    void SetCallerDeviceID(const std::string &deviceId) override;
-    void SetCallerTokenID(const uint32_t tokenId) override;
-    int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) override;
+        uint32_t binderVersion) override;
+    std::shared_ptr<DBinderSessionObject> UnFlattenSession(char *sessionOffset, uint32_t binderVersion) override;
+    uint32_t QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session) override;
+    virtual uint64_t GetSeqNum() const override;
+    virtual void SetSeqNum(uint64_t seq) override;
+    virtual void SetClientFd(uint32_t fd) override;
+    virtual void SetCallerPid(pid_t pid) override;
+    virtual void SetCallerUid(pid_t uid) override;
+    virtual void SetStatus(uint32_t status) override;
+    virtual void SetCallerDeviceID(const std::string &deviceId) override;
+    virtual void SetCallerTokenID(const uint32_t tokenId) override;
+    virtual int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) override;
     uint32_t HasRawDataPackage(const char *data, ssize_t len);
     uint32_t HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len);
     void OnRawDataAvailable(std::shared_ptr<Session> session, const char *data, uint32_t dataSize);
     uint64_t MakeStubIndexByRemoteObject(IRemoteObject *stubObject);
-    std::shared_ptr<DBinderSessionObject> MakeDefaultServerSessionObject();
+    std::shared_ptr<DBinderSessionObject> MakeDefaultServerSessionObject(uint64_t stubIndex,
+        const std::shared_ptr<DBinderSessionObject> sessionObject);
     bool ConnectRemoteObject2Session(IRemoteObject *stubObject, uint64_t stubIndex,
         const std::shared_ptr<DBinderSessionObject> sessionObject);
     bool AuthSession2Proxy(uint32_t handle, const std::shared_ptr<DBinderSessionObject> Session);
-    bool SetTokenId(const dbinder_transaction_data *tr, std::shared_ptr<DBinderSessionObject> sessionObject) override;
+    bool OnDatabusSessionServerSideClosed(std::shared_ptr<Session> session);
+    bool OnDatabusSessionClientSideClosed(std::shared_ptr<Session> session);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderDatabusInvoker);
@@ -111,6 +114,7 @@ private:
     uint64_t seqNumber_ = 0;
     uint32_t clientFd_ = 0;
     uint32_t status_;
+    static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
     static inline InvokerDelegator<DBinderDatabusInvoker> DBinderDatabusDelegator_ = { IRemoteObject::IF_PROT_DATABUS };
 };
 } // namespace OHOS

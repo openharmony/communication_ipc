@@ -16,6 +16,8 @@
 #include "buffer_object.h"
 #include "securec.h"
 #include "sys_binder.h"
+#include "ipc_debug.h"
+#include "log_tags.h"
 
 namespace OHOS {
 BufferObject::BufferObject()
@@ -35,15 +37,19 @@ BufferObject::~BufferObject()
 }
 
 /* update buffer need get mutex first */
-void BufferObject::UpdateSendBuffer()
+void BufferObject::UpdateSendBuffer(uint32_t userDataSize)
 {
     if (sendBufferCursorW_ <= sendBufferCursorR_) {
         sendBufferCursorW_ = 0;
         sendBufferCursorR_ = 0;
         return;
     }
+    /* buffer is not enough, means need expand buffer */
+    if (sendBuffSize_ - sendBufferCursorW_ <= userDataSize) {
+        ExpandSendBuffer(sendBuffSize_ + sendBuffSize_);
+    }
     /* check whether buffer size is enough, if not, move write/read cursor to head */
-    if (sendBuffSize_ - static_cast<uint32_t>(sendBufferCursorW_) < SOCKET_BUFF_RESERVED_SIZE) {
+    if (sendBuffSize_ - sendBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE) {
         /* writeCursor always bigger than readCursor */
         if (sendBufferCursorW_ - sendBufferCursorR_ < sendBufferCursorR_) {
             auto memcpyResult = memmove_s(sendBuffer_, sendBufferCursorW_ - sendBufferCursorR_,
@@ -67,7 +73,7 @@ void BufferObject::UpdateReceiveBuffer()
         return;
     }
     /* check whether buffer size is enough, if not, move write/read cursor to head */
-    if (recvBuffSize_ - static_cast<uint32_t>(recvBufferCursorW_) < SOCKET_BUFF_RESERVED_SIZE) {
+    if (recvBuffSize_ - recvBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE) {
         /* writeCursor always bigger than readCursor */
         if (recvBufferCursorW_ - recvBufferCursorR_ < recvBufferCursorR_) {
             auto memcpyResult = memmove_s(receiveBuffer_, recvBufferCursorW_ - recvBufferCursorR_,
@@ -89,29 +95,41 @@ char *BufferObject::GetSendBufferAndLock(uint32_t size)
         return nullptr;
     }
     sendMutex_.lock();
-    if (needSize > sendBuffSize_) {
-        char *newBuffer = new (std::nothrow) char[needSize];
-        if (newBuffer == nullptr) {
-            sendMutex_.unlock();
-            return nullptr;
-        }
-
-        if ((sendBuffer_ != nullptr) && (sendBuffSize_ != 0)) {
-            int memcpyResult = memcpy_s(newBuffer, needSize, sendBuffer_, sendBuffSize_);
-            if (memcpyResult != 0) {
-                delete[] newBuffer;
-                sendMutex_.unlock();
-                return nullptr;
-            }
-        }
-
-        delete[] sendBuffer_;
-        sendBuffer_ = newBuffer;
-        sendBuffSize_ = needSize;
+    if (!ExpandSendBuffer(size)) {
+        sendMutex_.unlock();
+        return nullptr;
     }
 
     /* attention: need unlock mutex by caller */
     return sendBuffer_;
+}
+
+/* this function should be call in mutex locked */
+bool BufferObject::ExpandSendBuffer(uint32_t size)
+{
+    uint32_t needSize = GetNeedBufferSize(size);
+    if (needSize == 0) {
+        return true;
+    }
+    if (needSize > sendBuffSize_) {
+        char *newBuffer_ = new (std::nothrow) char[needSize];
+        if (newBuffer_ == nullptr) {
+            return false;
+        }
+
+        if ((sendBuffer_ != nullptr) && (sendBuffSize_ != 0)) {
+            int memcpyResult = memcpy_s(newBuffer_, needSize, sendBuffer_, sendBuffSize_);
+            if (memcpyResult != 0) {
+                delete[] newBuffer_;
+                return false;
+            }
+        }
+
+        delete[] sendBuffer_;
+        sendBuffer_ = newBuffer_;
+        sendBuffSize_ = needSize;
+    }
+    return true;
 }
 
 char *BufferObject::GetReceiveBufferAndLock(uint32_t size)
@@ -122,23 +140,23 @@ char *BufferObject::GetReceiveBufferAndLock(uint32_t size)
     }
     recvMutex_.lock();
     if (needSize > recvBuffSize_) {
-        char *newBuffer = new (std::nothrow) char[needSize];
-        if (newBuffer == nullptr) {
+        char *newBuffer_ = new (std::nothrow) char[needSize];
+        if (newBuffer_ == nullptr) {
             recvMutex_.unlock();
             return nullptr;
         }
 
         if ((receiveBuffer_ != nullptr) && (recvBuffSize_ != 0)) {
-            int memcpyResult = memcpy_s(newBuffer, needSize, receiveBuffer_, recvBuffSize_);
+            int memcpyResult = memcpy_s(newBuffer_, needSize, receiveBuffer_, recvBuffSize_);
             if (memcpyResult != 0) {
-                delete[] newBuffer;
+                delete[] newBuffer_;
                 recvMutex_.unlock();
                 return nullptr;
             }
         }
 
         delete[] receiveBuffer_;
-        receiveBuffer_ = newBuffer;
+        receiveBuffer_ = newBuffer_;
         recvBuffSize_ = needSize;
     }
 

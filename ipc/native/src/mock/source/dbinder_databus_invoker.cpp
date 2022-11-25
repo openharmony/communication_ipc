@@ -19,7 +19,6 @@
 #include "securec.h"
 #include "sys_binder.h"
 
-#include "access_token_adapter.h"
 #include "ipc_object_stub.h"
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
@@ -27,7 +26,6 @@
 #include "ipc_debug.h"
 #include "log_tags.h"
 #include "databus_session_callback.h"
-#include "rpc_feature_set.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -79,7 +77,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         return nullptr;
     }
 
-    std::string sessionName = ipcProxy->GetPidAndUidInfo(0);
+    std::string sessionName = ipcProxy->GetSessionName();
     if (sessionName.empty()) {
         ZLOGE(LOG_LABEL, "get bus name error");
         return nullptr;
@@ -93,8 +91,9 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
 
     MessageParcel data, reply;
     if (!data.WriteUint32(IRemoteObject::DATABUS_TYPE) || !data.WriteString(current->GetLocalDeviceID()) ||
-        !data.WriteUint32((uint32_t)(session->GetPeerPid())) || !data.WriteUint32(session->GetPeerUid()) ||
-        !data.WriteString(session->GetPeerDeviceId()) || !data.WriteString(sessionName)) {
+        !data.WriteUint32(session->GetPeerPid()) || !data.WriteUint32(session->GetPeerUid()) ||
+        !data.WriteString(session->GetPeerDeviceId()) || !data.WriteString(sessionName) ||
+        !data.WriteUint32(remoteSession->GetTokenId())) {
         ZLOGE(LOG_LABEL, "write to parcel fail");
         return nullptr;
     }
@@ -105,22 +104,16 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
     }
 
     uint64_t stubIndex = reply.ReadUint64();
+    std::string serverName = reply.ReadString();
+    std::string deviceId = reply.ReadString();
+    uint32_t peerTokenId = reply.ReadUint32();
     if (stubIndex == 0) {
         ZLOGE(LOG_LABEL, "stubindex error = %" PRIu64 "", stubIndex);
         return nullptr;
     }
-
-    if (!current->AttachHandleToIndex(handle, stubIndex)) {
-        ZLOGE(LOG_LABEL, "add stub index err stubIndex = %" PRIu64 ", handle = %u", stubIndex, handle);
-        // do nothing, Sending an object repeatedly
-    }
-
-    std::string serverName = reply.ReadString();
-    std::string deviceId = reply.ReadString();
-    ZLOGI(LOG_LABEL, "NewSessionOfBinderProxy serverName= %s", serverName.c_str());
-
+    ZLOGI(LOG_LABEL, "serverName = %{public}s, peerTokenId = %{public}u", serverName.c_str(), peerTokenId);
     std::shared_ptr<DBinderSessionObject> connectSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId);
+        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId, stubIndex, nullptr, peerTokenId);
     if (connectSession == nullptr) {
         ZLOGE(LOG_LABEL, "new server session fail!");
         return nullptr;
@@ -143,22 +136,17 @@ bool DBinderDatabusInvoker::AuthSession2Proxy(uint32_t handle,
         return false;
     }
 
-    std::shared_ptr<FeatureSetData> feature = databusSession->GetFeatureSet();
-    if (feature == nullptr) {
-        ZLOGE(LOG_LABEL, "get feature fail");
-        return false;
-    }
-
     MessageParcel data, reply;
     MessageOption option;
 
-    if (!data.WriteUint32((uint32_t)(session->GetPeerPid())) || !data.WriteUint32(session->GetPeerUid()) ||
-        !data.WriteString(session->GetPeerDeviceId()) || !data.WriteUint32(feature->featureSet)) {
+    if (!data.WriteUint32(session->GetPeerPid()) || !data.WriteUint32(session->GetPeerUid()) ||
+        !data.WriteString(session->GetPeerDeviceId()) || !data.WriteUint64(databusSession->GetStubIndex()) ||
+        !data.WriteUint32(databusSession->GetTokenId())) {
         ZLOGE(LOG_LABEL, "write to MessageParcel fail");
         return false;
     }
 
-    int32_t err = SendRequest(handle, DBINDER_ADD_COMMAUTH, data, reply, option);
+    int err = SendRequest(handle, DBINDER_ADD_COMMAUTH, data, reply, option);
     if (err != ERR_NONE) {
         ZLOGE(LOG_LABEL, "send auth info to remote fail");
         return false;
@@ -220,21 +208,30 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(std::shared_ptr<Session> sess
         ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
         return false;
     }
-
-    auto featureSet = current->QueryIsAuth(session->GetPeerPid(), (int32_t)(session->GetPeerUid()),
-        session->GetPeerDeviceId());
-    if (featureSet == nullptr) {
-        ZLOGE(LOG_LABEL, "query auth failed, remote device featureSet is null");
+    uint32_t peerTokenId = 0;
+    if (!current->QueryCommAuthInfo(session->GetPeerPid(), session->GetPeerUid(), peerTokenId,
+        session->GetPeerDeviceId())) {
+        ZLOGE(LOG_LABEL, "remote device is not auth");
         return false;
     }
-
-    std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(session, session->GetPeerSessionName(), session->GetPeerDeviceId());
-    sessionObject->SetFeatureSet(featureSet);
-
-    if (!current->StubAttachDBinderSession(handle, sessionObject)) {
-        ZLOGE(LOG_LABEL, "attach session to process skeleton failed, handle =%u", handle);
+    uint32_t oldTokenId = 0;
+    if (current->StubDetachDBinderSession(handle, oldTokenId) == true) {
+        ZLOGI(LOG_LABEL, "delete left session: %{public}u, device: %{public}s, oldTokenId: %{public}u", handle,
+            IPCProcessSkeleton::ConvertToSecureString(session->GetPeerDeviceId()).c_str(), oldTokenId);
     }
+    std::shared_ptr<DBinderSessionObject> sessionObject = std::make_shared<DBinderSessionObject>(session,
+        session->GetPeerSessionName(), session->GetPeerDeviceId(), 0, nullptr, peerTokenId);
+    if (!current->StubAttachDBinderSession(handle, sessionObject)) {
+        ZLOGE(LOG_LABEL, "attach session to process skeleton failed, handle = %{public}u", handle);
+        return false;
+    }
+    ZLOGE(LOG_LABEL, "pid %{public}u uid %{public}u deviceId %{public}s tokenId %{public}u "
+        "oldTokenId %{public}u, listendFd %{public}u", session->GetPeerPid(), session->GetPeerUid(),
+        IPCProcessSkeleton::ConvertToSecureString(session->GetPeerDeviceId()).c_str(),
+        peerTokenId, oldTokenId, handle);
+    // update listen fd
+    current->AttachAppInfoToStubIndex(session->GetPeerPid(), session->GetPeerUid(), peerTokenId,
+        session->GetPeerDeviceId(), handle);
     return true;
 }
 
@@ -343,22 +340,33 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
         ZLOGE(LOG_LABEL, "buffer alloc failed in session");
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
-    sessionBuff->UpdateSendBuffer();
+    sessionBuff->UpdateSendBuffer(0); // 0 means do not expand buffer when send it
     ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
-    if (writeCursor <= readCursor) {
+    if (writeCursor < readCursor) {
+        ZLOGE(LOG_LABEL, "no data to send, write cursor: %{public}zu, read cursor: %{public}zu",
+            writeCursor, readCursor);
         sessionBuff->ReleaseSendBufferLock();
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
-
+    if (writeCursor == readCursor) {
+        ZLOGE(LOG_LABEL, "no data to send, write cursor: %{public}zu, read cursor: %{public}zu",
+            writeCursor, readCursor);
+        sessionBuff->ReleaseSendBufferLock();
+        return ERR_NONE;
+    }
     ssize_t size = writeCursor - readCursor;
     int ret = session->SendBytes(static_cast<const void *>(sendBuffer + readCursor), size);
     if (ret == 0) {
         readCursor += size;
         sessionBuff->SetSendBufferReadCursor(readCursor);
         sessionBuff->SetSendBufferWriteCursor(writeCursor);
+        ZLOGE(LOG_LABEL, "SendBytes succ, buffer length = %{public}zd, session: %{public}" PRIu64 "",
+            size, session->GetChannelId());
+    } else {
+        ZLOGE(LOG_LABEL, "ret = %{public}d, send buffer failed with length = %{public}zd, session: %{public}" PRIu64 "",
+            ret, size, session->GetChannelId());
     }
-    ZLOGI(LOG_LABEL, "sendNormalData len: %{public}u, ret: %{public}d", static_cast<uint32_t>(size), ret);
     sessionBuff->ReleaseSendBufferLock();
     return ret;
 }
@@ -407,11 +415,15 @@ void DBinderDatabusInvoker::StopWorkThread()
 }
 
 uint32_t DBinderDatabusInvoker::FlattenSession(char *sessionOffset,
-    const std::shared_ptr<DBinderSessionObject> connectSession, uint64_t stubIndex)
+    const std::shared_ptr<DBinderSessionObject> connectSession, uint32_t binderVersion)
 {
     FlatDBinderSession *flatSession = reinterpret_cast<FlatDBinderSession *>(sessionOffset);
-    flatSession->stubIndex = stubIndex;
+    (void)memset_s(flatSession, sizeof(struct FlatDBinderSession), 0, sizeof(struct FlatDBinderSession));
 
+    flatSession->stubIndex = connectSession->GetStubIndex();
+    flatSession->version = binderVersion;
+    flatSession->magic = TOKENID_MAGIC;
+    flatSession->tokenId = connectSession->GetTokenId();
     flatSession->deviceIdLength = connectSession->GetDeviceId().length();
     if (flatSession->deviceIdLength == 0 || flatSession->deviceIdLength > DEVICEID_LENGTH) {
         ZLOGE(LOG_LABEL, "wrong devices id");
@@ -426,49 +438,46 @@ uint32_t DBinderDatabusInvoker::FlattenSession(char *sessionOffset,
     flatSession->deviceId[flatSession->deviceIdLength] = '\0';
 
     flatSession->serviceNameLength = connectSession->GetServiceName().length();
-    if (flatSession->serviceNameLength == 0 || flatSession->serviceNameLength > SERVICENAME_LENGTH) {
+    if (flatSession->serviceNameLength == 0 || flatSession->serviceNameLength > SUPPORT_TOKENID_SERVICENAME_LENGTH) {
         ZLOGE(LOG_LABEL, "wrong service name");
         return 0;
     }
-    memcpyResult = memcpy_s(flatSession->serviceName, SERVICENAME_LENGTH, connectSession->GetServiceName().data(),
-        flatSession->serviceNameLength);
+    memcpyResult = memcpy_s(flatSession->serviceName, SUPPORT_TOKENID_SERVICENAME_LENGTH,
+        connectSession->GetServiceName().data(), flatSession->serviceNameLength);
     if (memcpyResult != 0) {
         ZLOGE(LOG_LABEL, "memcpy_s failed , name Size = %hu", flatSession->serviceNameLength);
         return 0;
     }
     flatSession->serviceName[flatSession->serviceNameLength] = '\0';
 
-    ZLOGI(LOG_LABEL, "serviceName = %s, stubIndex = %" PRIu64 "", flatSession->serviceName, flatSession->stubIndex);
+    ZLOGI(LOG_LABEL, "serviceName = %{public}s, stubIndex = %{public}" PRIu64 ", tokenId = %{public}u",
+        flatSession->serviceName, flatSession->stubIndex, flatSession->tokenId);
 
     return sizeof(struct FlatDBinderSession);
 }
 
-std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::UnFlattenSession(char *sessionOffset, uint64_t &stubIndex)
+std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::UnFlattenSession(char *sessionOffset,
+    uint32_t binderVersion)
 {
     FlatDBinderSession *flatSession = reinterpret_cast<FlatDBinderSession *>(sessionOffset);
-    /* force end true string length */
-    flatSession->deviceId[DEVICEID_LENGTH] = '\0';
-    flatSession->serviceName[SERVICENAME_LENGTH] = '\0';
-
-    ZLOGI(LOG_LABEL, "serviceName = %s, stubIndex = %" PRIu64 "", flatSession->serviceName, flatSession->stubIndex);
-    stubIndex = flatSession->stubIndex;
-    if (stubIndex == 0) {
+    if (flatSession->stubIndex == 0) {
         ZLOGE(LOG_LABEL, "stubIndex err");
         return nullptr;
     }
 
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current process skeleton is nullptr");
-        return nullptr;
+    uint32_t tokenId = 0;
+    if (binderVersion >= SUPPORT_TOKENID_VERSION_NUM && flatSession->version >= SUPPORT_TOKENID_VERSION_NUM &&
+        flatSession->magic == TOKENID_MAGIC) {
+        tokenId = flatSession->tokenId;
     }
+    /* makes sure end with a null terminator */
+    flatSession->deviceId[DEVICEID_LENGTH] = '\0';
+    flatSession->serviceName[SUPPORT_TOKENID_SERVICENAME_LENGTH] = '\0';
+    ZLOGI(LOG_LABEL, "serviceName = %{public}s, stubIndex = %{public}" PRIu64 "tokenId = %{public}u",
+        flatSession->serviceName, flatSession->stubIndex, tokenId);
 
-    std::shared_ptr<DBinderSessionObject> sessionObject =
-        current->QuerySessionByInfo(flatSession->serviceName, flatSession->deviceId);
-    if (sessionObject != nullptr) {
-        return sessionObject;
-    }
-    return std::make_shared<DBinderSessionObject>(nullptr, flatSession->serviceName, flatSession->deviceId);
+    return std::make_shared<DBinderSessionObject>(nullptr,
+        flatSession->serviceName, flatSession->deviceId, flatSession->stubIndex, nullptr, tokenId);
 }
 
 bool DBinderDatabusInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) const
@@ -491,7 +500,7 @@ bool DBinderDatabusInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool tak
     return true;
 }
 
-bool DBinderDatabusInvoker::UpdateClientSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> sessionObject)
+bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionObject> sessionObject)
 {
     ZLOGI(LOG_LABEL, "update client session enter");
 
@@ -512,85 +521,116 @@ bool DBinderDatabusInvoker::UpdateClientSession(uint32_t handle, std::shared_ptr
         ZLOGE(LOG_LABEL, "fail to get session name");
         return false;
     }
-
     std::shared_ptr<Session> session = manager->OpenSession(sessionName, sessionObject->GetServiceName(),
         sessionObject->GetDeviceId(), std::string(""), Session::TYPE_BYTES);
     if (session == nullptr) {
         ZLOGE(LOG_LABEL, "get databus session fail");
         return false;
     }
-
     sessionObject->SetBusSession(session);
+    return true;
+}
 
-    if (!current->ProxyAttachDBinderSession(handle, sessionObject)) {
-        ZLOGE(LOG_LABEL, "fail to attach session");
-        if (current->QuerySessionByInfo(sessionObject->GetServiceName(),
-            sessionObject->GetDeviceId()) == nullptr) {
-            sessionObject->CloseDatabusSession();
-        }
+bool DBinderDatabusInvoker::OnDatabusSessionServerSideClosed(std::shared_ptr<Session> session)
+{
+    int64_t channelId = session->GetChannelId();
+    uint32_t tokenId = 0;
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
         return false;
     }
+    bool ret = current->StubDetachDBinderSession(IPCProcessSkeleton::ConvertChannelID2Int(channelId), tokenId);
+    // detach info whose listen fd equals the given one
+    std::list<uint64_t> stubIndexs = current->DetachAppInfoToStubIndex(session->GetPeerPid(), session->GetPeerUid(),
+        tokenId, session->GetPeerDeviceId(), IPCProcessSkeleton::ConvertChannelID2Int(channelId));
+    for (auto it = stubIndexs.begin(); it != stubIndexs.end(); it++) {
+        // note that we canont remove mapping from stub to index here because other session may still be used
+        IRemoteObject *stub = current->QueryStubByIndex(*it);
+        if (stub == nullptr) {
+            continue;
+        }
+        current->DetachCommAuthInfo(stub, session->GetPeerPid(), session->GetPeerUid(), tokenId,
+            session->GetPeerDeviceId());
+        // a proxy doesn't refers this stub, we need to dec ref
+        stub->DecStrongRef(this);
+        ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u deviceId %{public}s stubIndex %{public}" PRIu64,
+            session->GetPeerPid(), session->GetPeerUid(),
+            IPCProcessSkeleton::ConvertToSecureString(session->GetPeerDeviceId()).c_str(), *it);
+    }
+    ZLOGI(LOG_LABEL, "detach stub to session = %{public}" PRId64 ", ret:%{public}d", channelId, ret);
+    return true;
+}
 
+bool DBinderDatabusInvoker::OnDatabusSessionClientSideClosed(std::shared_ptr<Session> session)
+{
+    int64_t channelId = session->GetChannelId();
+    std::vector<uint32_t> proxy;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        return false;
+    }
+    if (!current->QueryProxyBySessionHandle(IPCProcessSkeleton::ConvertChannelID2Int(channelId), proxy)) {
+        ZLOGE(LOG_LABEL, "session id is invalid: %{public}" PRId64 " ", channelId);
+        return false;
+    }
+    if (proxy.empty()) {
+        ZLOGE(LOG_LABEL, "proxy handle is empty");
+        return false;
+    }
+    for (auto it = proxy.begin(); it != proxy.end(); ++it) {
+        std::u16string descriptor = current->MakeHandleDescriptor(*it);
+        sptr<IRemoteObject> remoteObject = current->QueryObject(descriptor);
+        if (remoteObject != nullptr) {
+            IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject.GetRefPtr());
+            // No need to close session again here. First erase session and then notify user session has been closed.
+            current->ProxyDetachDBinderSession(*it, remoteProxy);
+            if (remoteProxy->IsSubscribeDeathNotice()) {
+                remoteProxy->SendObituary();
+            } else {
+                ZLOGE(LOG_LABEL, "descriptor: %{public}s does not subscribe death notice",
+                    Str16ToStr8(descriptor).c_str());
+            }
+        } else {
+            ZLOGE(LOG_LABEL, "cannot find proxy with descriptor: %{public}s", Str16ToStr8(descriptor).c_str());
+        }
+    }
+    ZLOGI(LOG_LABEL, "close socket sussess %{public}" PRId64 " ", channelId);
     return true;
 }
 
 bool DBinderDatabusInvoker::OnDatabusSessionClosed(std::shared_ptr<Session> session)
 {
     if (session == nullptr) {
-        ZLOGE(LOG_LABEL, "databus session to be closed is nullptr");
+        ZLOGE(LOG_LABEL, "OnDatabusSessionClosed session is nullptr");
         return false;
     }
+    int64_t channelId = session->GetChannelId();
     /* means close socket */
-    ZLOGI(LOG_LABEL, "close databus session, own session name = %{public}s, peer session name = %{public}s",
-        session->GetMySessionName().c_str(), session->GetPeerSessionName().c_str());
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
-        return false;
-    }
+    ZLOGI(LOG_LABEL, "own session name = %{public}s, peer session name = %{public}s, session = %{public}" PRId64 "",
+        session->GetMySessionName().c_str(), session->GetPeerSessionName().c_str(), channelId);
 
-    if (current->StubDetachDBinderSession(IPCProcessSkeleton::ConvertChannelID2Int(session->GetChannelId()))) {
-        current->DetachStubRefInfo(session->GetPeerPid(), session->GetPeerDeviceId());
-        // No need to clear proxy objects
-        return true;
+    bool result = false;
+    if (session->IsServerSide()) {
+        result = OnDatabusSessionServerSideClosed(session);
+    } else {
+        result = OnDatabusSessionClientSideClosed(session);
     }
-
-    std::vector<uint32_t> proxy;
-    if (!current->QueryProxyBySessionHandle(IPCProcessSkeleton::ConvertChannelID2Int(session->GetChannelId()), proxy)) {
-        return false;
-    }
-
-    if (proxy.empty()) {
-        ZLOGE(LOG_LABEL, "proxy handle is empty");
-        return false;
-    }
-
-    for (auto it = proxy.begin(); it != proxy.end(); ++it) {
-        std::u16string descriptor = current->MakeHandleDescriptor(*it);
-        IRemoteObject *remoteObject = current->QueryObject(descriptor);
-        if (remoteObject != nullptr) {
-            (void)current->ProxyDetachDBinderSession(*it);
-            (void)current->DetachHandleToIndex(*it);
-            IPCObjectProxy *remoteProxy = reinterpret_cast<IPCObjectProxy *>(remoteObject);
-            if (remoteProxy->IsSubscribeDeathNotice()) {
-                remoteProxy->SendObituary();
-            }
-        }
-    }
-
-    ZLOGI(LOG_LABEL, "closet socket sussess");
-    return true;
+    ZLOGI(LOG_LABEL, "close socket sussess %{public}" PRId64, channelId);
+    return result;
 }
 
-uint32_t DBinderDatabusInvoker::QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session, uint64_t stubIndex)
+uint32_t DBinderDatabusInvoker::QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
         return 0;
     }
-
-    return current->QueryHandleByDatabusSession(session->GetServiceName(), session->GetDeviceId(), stubIndex);
+    return current->QueryHandleByDatabusSession(session->GetServiceName(), session->GetDeviceId(),
+        session->GetStubIndex());
 }
 
 uint64_t DBinderDatabusInvoker::GetSeqNum() const
@@ -648,9 +688,27 @@ uint64_t DBinderDatabusInvoker::GetCallerTokenID() const
     return callerTokenID_;
 }
 
-uint64_t DBinderDatabusInvoker::GetFirstTokenID() const
+uint64_t DBinderDatabusInvoker::GetFirstCallerTokenID() const
 {
     return firstTokenID_;
+}
+
+uint64_t DBinderDatabusInvoker::GetSelfTokenID() const
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetSelfTokenID();
+    }
+    return 0;
+}
+
+uint64_t DBinderDatabusInvoker::GetSelfFirstCallerTokenID() const
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetSelfFirstCallerTokenID();
+    }
+    return 0;
 }
 
 void DBinderDatabusInvoker::SetCallerDeviceID(const std::string &deviceId)
@@ -661,31 +719,12 @@ void DBinderDatabusInvoker::SetCallerDeviceID(const std::string &deviceId)
 void DBinderDatabusInvoker::SetCallerTokenID(const uint32_t tokenId)
 {
     callerTokenID_ = tokenId;
+    firstTokenID_ = tokenId;
 }
 
 bool DBinderDatabusInvoker::IsLocalCalling()
 {
     return false;
-}
-
-bool DBinderDatabusInvoker::SetTokenId(const dbinder_transaction_data *tr,
-    std::shared_ptr<DBinderSessionObject> sessionObject)
-{
-    if (sessionObject == nullptr) {
-        ZLOGE(LOG_LABEL, "sessionObject is null");
-        return false;
-    }
-    std::shared_ptr<FeatureSetData> feature = sessionObject->GetFeatureSet();
-    if (feature == nullptr) {
-        ZLOGE(LOG_LABEL, "feature is null");
-        return false;
-    }
-    if (IsATEnable(feature->featureSet) == true) {
-        uint32_t bufferUseSize = tr->sizeOfSelf - sizeof(struct dbinder_transaction_data) - GetFeatureSize();
-        uint32_t tokenId = GetTokenFromData((FeatureTransData *)(tr->buffer + bufferUseSize), GetFeatureSize());
-        SetCallerTokenID(tokenId);
-    }
-    return true;
 }
 
 int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex)
@@ -702,8 +741,8 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stu
         return RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
 
-    int pid = session->GetPeerPid();
-    int uid = (int)(session->GetPeerUid());
+    int pid = static_cast<int>(session->GetPeerPid());
+    int uid = static_cast<int>(session->GetPeerUid());
     std::string deviceId = session->GetPeerDeviceId();
     if (uid < 0 || deviceId.length() > DEVICEID_LENGTH) {
         ZLOGE(LOG_LABEL, "user id and device id error");
@@ -715,14 +754,19 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stu
         ZLOGE(LOG_LABEL, "current process skeleton is nullptr");
         return IPC_SKELETON_ERR;
     }
-    if (current->QueryAppInfoToStubIndex((uint32_t)pid, (uint32_t)uid, deviceId, stubIndex) == false) {
-        ZLOGE(LOG_LABEL, "stub index is NOT belong to caller,serviceName = %{public}s, listenFd = %{public}u",
-            deviceId.c_str(), listenFd);
+    uint32_t callerTokenId = sessionObject->GetTokenId();
+    if (current->QueryAppInfoToStubIndex(pid, uid, callerTokenId, deviceId, stubIndex, listenFd) == false) {
+        ZLOGE(LOG_LABEL, "stubIndex is NOT belong to caller,pid:%{public}d, uid:%{public}d,stubIndex:%{public}" PRIu64
+            ", deviceId:%{public}s, listenFd = %{public}u, callerTokenId = %{public}u", pid, uid, stubIndex,
+            IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(), listenFd, callerTokenId);
         return RPC_DATABUS_INVOKER_INVALID_STUB_INDEX;
     }
     callerPid_ = pid;
     callerUid_ = uid;
     callerDeviceID_ = deviceId;
+    clientFd_ = listenFd;
+    callerTokenID_ = callerTokenId;
+    firstTokenID_ = callerTokenId;
     return ERR_NONE;
 }
 
@@ -763,7 +807,8 @@ uint64_t DBinderDatabusInvoker::MakeStubIndexByRemoteObject(IRemoteObject *stubO
     return stubIndex;
 }
 
-std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::MakeDefaultServerSessionObject()
+std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::MakeDefaultServerSessionObject(uint64_t stubIndex,
+    const std::shared_ptr<DBinderSessionObject> sessionObject)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
@@ -771,17 +816,18 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::MakeDefaultServerSe
         return nullptr;
     }
     std::string serviceName = current->GetDatabusName();
-    if (serviceName.empty()) {
-        ZLOGE(LOG_LABEL, "fail to get databus name");
+    std::string deviceId = current->GetLocalDeviceID();
+    if (serviceName.empty() || deviceId.empty()) {
+        ZLOGE(LOG_LABEL, "fail to get databus name or deviceId");
         return nullptr;
     }
-    std::shared_ptr<DBinderSessionObject> connectSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serviceName, current->GetLocalDeviceID());
-    if (connectSession == nullptr) {
+    auto session = std::make_shared<DBinderSessionObject>(nullptr, serviceName, deviceId, stubIndex, nullptr,
+        sessionObject->GetTokenId());
+    if (session == nullptr) {
         ZLOGE(LOG_LABEL, "new server session fail!");
         return nullptr;
     }
-    return connectSession;
+    return session;
 }
 
 bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObject, uint64_t stubIndex,
@@ -802,33 +848,28 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
         return false;
     }
 
-    int peerPid = session->GetPeerPid();
-    int peerUid = (int)(session->GetPeerUid());
+    int peerPid = static_cast<int>(session->GetPeerPid());
+    int peerUid = static_cast<int>(session->GetPeerUid());
+    uint32_t tokenId = sessionObject->GetTokenId();
     std::string deviceId = session->GetPeerDeviceId();
-    if (!current->AttachAppInfoToStubIndex((uint32_t)peerPid, (uint32_t)peerUid, deviceId, stubIndex)) {
-        ZLOGI(LOG_LABEL, "fail to attach appinfo to stub index, when proxy call we check appinfo");
-        // attempt attach again, if failed, do nothing
+    ZLOGI(LOG_LABEL, "peerPid:%{public}d, peerUid:%{public}d, peerDeviceId:%{public}s,tokenId:%{public}u, "
+        "stubIndex:%{public}" PRIu64, peerPid, peerUid, IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(),
+        tokenId, stubIndex);
+    // mark listen fd as 0
+    if (!current->AttachAppInfoToStubIndex(peerPid, peerUid, tokenId, deviceId, stubIndex, 0)) {
+        ZLOGI(LOG_LABEL, "app info already existed, replace with 0");
     }
-
-    if (!current->AttachCommAuthInfo(stubObject, peerPid, peerUid, deviceId, sessionObject->GetFeatureSet())) {
-        ZLOGI(LOG_LABEL, "fail to attach comm auth info, maybe attached already");
-        // attempt attach again, if failed, do nothing
-    }
-
-    if (current->AttachStubSendRefInfo(stubObject, peerPid, deviceId)) {
-        if (!current->IncStubRefTimes(stubObject)) {
-            ZLOGE(LOG_LABEL, "Inc Stub RefTimes fail");
-            current->DetachCommAuthInfo(stubObject, peerPid, peerUid, deviceId);
-            current->DetachAppInfoToStubIndex((uint32_t)peerPid, (uint32_t)peerUid, deviceId, stubIndex);
-            return false;
-        }
+    if (current->AttachCommAuthInfo(stubObject, peerPid, peerUid, tokenId, deviceId)) {
+        // first time send this stub to proxy indicating by deviceId, pid, uid
         stubObject->IncStrongRef(this);
+    } else {
+        ZLOGI(LOG_LABEL, "comm auth info attached already");
     }
     return true;
 }
 
 std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::CreateServerSessionObject(binder_uintptr_t binder,
-    uint64_t &stubIndex, std::shared_ptr<DBinderSessionObject> sessionObject)
+    std::shared_ptr<DBinderSessionObject> sessionObject)
 {
     IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(binder);
     if (stubObject == nullptr) {
@@ -836,7 +877,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::CreateServerSession
         return nullptr;
     }
 
-    stubIndex = MakeStubIndexByRemoteObject(stubObject);
+    uint64_t stubIndex = MakeStubIndexByRemoteObject(stubObject);
     if (stubIndex == 0) {
         ZLOGE(LOG_LABEL, "fail to add stub");
         return nullptr;
@@ -845,7 +886,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::CreateServerSession
         ZLOGE(LOG_LABEL, "fail to connect stub to session");
         return nullptr;
     }
-    return MakeDefaultServerSessionObject();
+    return MakeDefaultServerSessionObject(stubIndex, sessionObject);
 }
 
 int DBinderDatabusInvoker::FlushCommands(IRemoteObject *object)
@@ -882,7 +923,7 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
     callerUid_ = (pid_t)getuid();
     callerPid_ = getpid();
     callerDeviceID_ = GetLocalDeviceID();
-    callerTokenID_ = RpcGetSelfTokenID();
+    callerTokenID_ = GetSelfTokenID();
     return accessToken + identity;
 }
 
@@ -905,12 +946,7 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
     return true;
 }
 
-int DBinderDatabusInvoker::TranslateProxy(uint32_t handle, uint32_t flag)
-{
-    return -IPC_INVOKER_TRANSLATE_ERR;
-}
-
-int DBinderDatabusInvoker::TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd)
+int DBinderDatabusInvoker::TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj)
 {
     return -IPC_INVOKER_TRANSLATE_ERR;
 }

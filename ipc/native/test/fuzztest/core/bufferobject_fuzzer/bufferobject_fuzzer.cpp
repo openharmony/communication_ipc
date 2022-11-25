@@ -223,7 +223,8 @@ namespace OHOS {
             return false;
         }
         BufferObject object;
-        object.UpdateSendBuffer();
+        uint32_t sendSize = *(reinterpret_cast<const uint32_t*>(data));
+        object.UpdateSendBuffer(sendSize);
         return true;
     }
 }

@@ -21,6 +21,7 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "log_tags.h"
+#include "dbinder_log.h"
 
 static std::string g_dbinderTestServerName = "dbinderTestServer";
 
@@ -117,6 +118,12 @@ int DBinderTestService::TransProxyObject(int data, sptr<IRemoteObject> &transObj
     return 0;
 }
 
+int DBinderTestService::TransProxyObjectRefCount(sptr<IRemoteObject> &transObject, int operation)
+{
+    DBINDER_LOGI(LOG_LABEL, "enter %{public}s", __func__);
+    return 0;
+}
+
 int DBinderTestService::TransProxyObjectAgain(int data, sptr<IRemoteObject> &transObject, int operation, int &rep,
     int &withdrawRes)
 {
@@ -127,6 +134,12 @@ int DBinderTestService::TransProxyObjectAgain(int data, sptr<IRemoteObject> &tra
 int DBinderTestService::TransStubObject(int data, sptr<IRemoteObject> &transObject, int &rep, int &stubRep)
 {
     (void)transObject;
+    DBINDER_LOGI(LOG_LABEL, "enter %{public}s", __func__);
+    return 0;
+}
+
+int DBinderTestService::TransStubObjectRefCount(sptr<IRemoteObject> &transObject, int operation)
+{
     DBINDER_LOGI(LOG_LABEL, "enter %{public}s", __func__);
     return 0;
 }

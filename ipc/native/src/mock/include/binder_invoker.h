@@ -80,7 +80,11 @@ public:
 
     uint64_t GetCallerTokenID() const override;
 
-    uint64_t GetFirstTokenID() const override;
+    uint64_t GetFirstCallerTokenID() const override;
+
+    uint64_t GetSelfTokenID() const override;
+
+    uint64_t GetSelfFirstCallerTokenID() const override;
 
     uint32_t GetStatus() const override;
 
@@ -101,9 +105,7 @@ public:
     void ExitCurrentThread();
 
 #ifndef CONFIG_IPC_SINGLE
-    int TranslateProxy(uint32_t handle, uint32_t flag) override;
-
-    int TranslateStub(binder_uintptr_t cookie, binder_uintptr_t ptr, uint32_t flag, int cmd) override;
+    int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
 
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif
@@ -144,10 +146,15 @@ private:
 
     int HandleReply(MessageParcel *reply);
 
+    bool TranslateDBinderProxy(int handle, MessageParcel &data);
+
+    void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
+
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
     static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
+    static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
     Parcel input_;
     Parcel output_;
     BinderConnector *binderConnector_;

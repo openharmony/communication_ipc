@@ -21,18 +21,22 @@
 #include "ipc_object_stub.h"
 
 namespace OHOS {
+#ifdef BINDER_IPC_32BIT
+typedef unsigned int binder_uintptr_t;
+#else
 typedef unsigned long long binder_uintptr_t;
+#endif
 
 class DBinderServiceStub : public IPCObjectStub {
 public:
-    explicit DBinderServiceStub(const std::string& serviceName, const std::string& deviceID,
+    explicit DBinderServiceStub(const std::string &serviceName, const std::string &deviceID,
         binder_uintptr_t binderObject);
     ~DBinderServiceStub();
     int32_t ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    const std::string& GetServiceName();
-    const std::string& GetDeviceID();
+    const std::string &GetServiceName();
+    const std::string &GetDeviceID();
     binder_uintptr_t GetBinderObject() const;
 
 private:
