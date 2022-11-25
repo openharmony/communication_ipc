@@ -443,6 +443,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         auto targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
         if (targetObject == nullptr) {
             ZLOGE(LABEL, "Invalid samgr stub object");
+            abort();
         } else {
             error = targetObject->SendRequest(tr->code, *data, reply, option);
         }
