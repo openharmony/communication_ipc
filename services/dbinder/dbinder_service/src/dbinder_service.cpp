@@ -798,8 +798,8 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
     if (replyMessage->dBinderCode == MESSAGE_AS_REPLY) {
         session->deviceIdInfo.tokenId = 0;
     }
-    DBINDER_LOGI(LOG_LABEL, "stubIndex: %{public}llu, tokenId: %{public}u", replyMessage->stubIndex,
-        session->deviceIdInfo.tokenId);
+    DBINDER_LOGI(LOG_LABEL, "stubIndex: %{public}d, tokenId: %{public}u",
+        static_cast<int32_t>(replyMessage->stubIndex), session->deviceIdInfo.tokenId);
     session->seqNumber   = replyMessage->seqNumber;
     session->socketFd    = 0;
     session->stubIndex   = replyMessage->stubIndex;
