@@ -74,7 +74,7 @@ ohos_unittest("IPCFileDescOpsTest") {
   sources = [
     "ipc_file_desc_unittest.cpp",
     "iremote_object_unitest.cpp",
-   ]
+  ]
 
   configs = [
     "$SUBSYSTEM_DIR:ipc_util_config",
