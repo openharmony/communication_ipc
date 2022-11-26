@@ -52,6 +52,19 @@ void IPCObjectProxyTest::TearDown()
 }
 
 /**
+ * @tc.name: CheckObjectLegalityTest001
+ * @tc.desc: Verify the IPCObjectProxy::CheckObjectLegality function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, CheckObjectLegalityTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+
+    auto ret = object.CheckObjectLegality();
+    ASSERT_FALSE(ret);
+}
+
+/**
  * @tc.name: GetPidAndUidInfoTest001
  * @tc.desc: Verify the IPCObjectProxy::GetPidAndUidInfo function
  * @tc.type: FUNC
