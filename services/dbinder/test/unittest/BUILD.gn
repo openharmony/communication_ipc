@@ -13,17 +13,15 @@
 
 import("//build/test.gni")
 
-# SUBSYSTEM_DIR = "//foundation/communication/ipc"
-# IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 MODULE_OUTPUT_PATH = "ipc"
 
 ohos_unittest("RPCDbinderTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
+    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/src",
     "//foundation/communication/ipc/ipc/native/c/manager/include",
     "//foundation/communication/ipc/utils/include",
-    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/src",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/communication/ipc/ipc/native/c/rpc/include",
   ]
