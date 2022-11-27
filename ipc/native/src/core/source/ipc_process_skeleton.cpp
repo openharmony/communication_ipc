@@ -24,6 +24,7 @@
 #include "ipc_types.h"
 
 #include "ipc_thread_skeleton.h"
+#include "process_skeleton.h"
 #include "sys_binder.h"
 #include "log_tags.h"
 
@@ -113,11 +114,19 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
 {
-    if (registryObject_ == nullptr) {
-        registryObject_ = FindOrNewObject(REGISTRY_HANDLE);
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return nullptr;
     }
-
-    return registryObject_;
+    sptr<IRemoteObject> object = current->GetRegistryObject();
+    if (object == nullptr) {
+        object = FindOrNewObject(REGISTRY_HANDLE);
+        if (object != nullptr) {
+            current->SetRegistryObject(object);
+        }
+    }
+    return object;
 }
 
 std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
@@ -201,16 +210,19 @@ bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
         ZLOGE(LOG_LABEL, "object is null");
         return false;
     }
-
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return false;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
     if (invoker == nullptr) {
         ZLOGE(LOG_LABEL, "fail to get invoker");
         return false;
     }
-
     bool ret = invoker->SetRegistryObject(object);
     if (ret) {
-        registryObject_ = object;
+        current->SetRegistryObject(object);
     }
     ZLOGI(LOG_LABEL, "%{public}s set registry result is %{public}d", __func__, ret);
     return ret;
