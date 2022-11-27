@@ -57,6 +57,8 @@ ohos_shared_library("ipc_single") {
   ]
   public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
 
+  deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
+
   external_deps = [
     "c_utils:utils",
     "hitrace_native:libhitracechain",
