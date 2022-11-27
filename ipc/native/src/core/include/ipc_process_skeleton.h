@@ -203,7 +203,6 @@ private:
     std::map<IRemoteObject *, bool> isContainStub_;
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;
-    sptr<IRemoteObject> registryObject_ = nullptr;
 
 #ifndef CONFIG_IPC_SINGLE
     std::mutex databusProcMutex_;
