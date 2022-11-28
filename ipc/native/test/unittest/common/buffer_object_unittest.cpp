@@ -60,7 +60,7 @@ HWTEST_F(BufferObjectUnitTest, UpdateSendBufferTest001, TestSize.Level1)
     BufferObject object;
     object.SetSendBufferWriteCursor(1);
     object.SetSendBufferReadCursor(1);
-    object.UpdateSendBuffer();
+    object.UpdateSendBuffer(0);
     EXPECT_EQ(object.GetSendBufferReadCursor(), 0);
     EXPECT_EQ(object.GetSendBufferWriteCursor(), 0);
 }
@@ -77,7 +77,7 @@ HWTEST_F(BufferObjectUnitTest, UpdateSendBufferTest002, TestSize.Level1)
     object.SetSendBufferWriteCursor(BUFFER_WRITE_CURSOR_TEST);
     object.SetSendBufferReadCursor(BUFFER_READ_CURSOR_TEST);
     object.sendBuffer_ = new (std::nothrow) char[BUFF_SIZE_TEST]();
-    object.UpdateSendBuffer();
+    object.UpdateSendBuffer(0);
     EXPECT_EQ(object.GetSendBufferWriteCursor(),
         BUFFER_WRITE_CURSOR_TEST - BUFFER_READ_CURSOR_TEST);
 }
@@ -93,7 +93,7 @@ HWTEST_F(BufferObjectUnitTest, UpdateSendBufferTest003, TestSize.Level1)
     object.sendBuffSize_ = BUFF_SIZE_TEST;
     object.SetSendBufferWriteCursor(BUFFER_WRITE_CURSOR_TEST);
     object.SetSendBufferReadCursor(BUFFER_READ_CURSOR_TEST);
-    object.UpdateSendBuffer();
+    object.UpdateSendBuffer(0);
     EXPECT_EQ(object.GetSendBufferReadCursor(), 0);
     EXPECT_EQ(object.GetSendBufferWriteCursor(), 0);
 }
