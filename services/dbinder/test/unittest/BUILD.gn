@@ -41,7 +41,7 @@ ohos_unittest("RPCDbinderTest") {
   ]
 
   resource_config_file =
-    "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
 ###############################################################################
