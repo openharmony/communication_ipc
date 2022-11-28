@@ -13,10 +13,17 @@
  * limitations under the License.
  */
 
+#include <string.h>
+#include "securec.h"
+#define private public
 #include "dbinder_service.h"
+#undef private
+#include "dbinder_remote_listener.h"
 #include "gtest/gtest.h"
+#include "rpc_feature_set.h"
 #include "rpc_log.h"
 #include "log_tags.h"
+#include "string_ex.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -45,4 +52,53 @@ HWTEST_F(DBinderServiceUnitTest, process_closesession_001, TestSize.Level1)
     sptr<DBinderService> dBinderService_;
     std::shared_ptr<Session> session = nullptr;
     EXPECT_EQ(dBinderService_->ProcessOnSessionClosed(session), false);
+}
+
+/**
+ * @tc.name: RegisterRemoteProxy001
+ * @tc.desc: Verify the RegisterRemoteProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxy001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::u16string serviceName;
+    int32_t systemAbilityId = 1;
+    EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, systemAbilityId), false);
+    serviceName = u"testServer";
+    systemAbilityId = 0;
+    EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, systemAbilityId), false);
+    systemAbilityId = 1;
+    EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, systemAbilityId), true);
+}
+
+/**
+ * @tc.name: RegisterRemoteProxy002
+ * @tc.desc: Verify the RegisterRemoteProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxy002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::u16string serviceName;
+    sptr<IRemoteObject> binderObject = nullptr;
+    EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, binderObject), false);
+    serviceName = u"testServer";
+    EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, binderObject), false);
+    sptr<IRemoteObject> object = new IPCObjectProxy(16);
+    EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, object), true);
+}
+
+/**
+ * @tc.name: QuerySessionObject001
+ * @tc.desc: Verify the QuerySessionObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, QuerySessionObject001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = 0;
+    std::shared_ptr<struct SessionInfo> testSession = nullptr;
+    testSession = dBinderService->QuerySessionObject(stub);
+    EXPECT_EQ(testSession, nullptr);
 }
