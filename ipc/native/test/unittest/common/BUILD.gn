@@ -246,13 +246,12 @@ ohos_unittest("IPCMockUnitTest") {
 group("unittest") {
   testonly = true
   deps = [
-    #":BinderConnectorTest",
-    #":BinderInvokerUnitTest",
+    ":BinderConnectorTest",
+    ":BinderInvokerUnitTest",
     ":IPCFileDescOpsTest",
     ":IPCHiTraceUnitTest",
-
-    #":IPCMockUnitTest",
-    #":IPCNativeUnitTest",
+    ":IPCMockUnitTest",
+    ":IPCNativeUnitTest",
   ]
   if (support_jsapi) {
     deps += [ ":IPCNapiUnitTest" ]

@@ -28,6 +28,7 @@ const std::string DEVICE_TEST = "deviceTest";
 const std::string LOCALDEVICE_TEST = "localDeviceTest";
 constexpr uint64_t STUBINDEX_TEST = 1;
 constexpr uint32_t HANDLE_TEST = 1;
+constexpr uint32_t TOKENID_TEST = 1;
 }
 
 class DBinderCallbackStubTest : public testing::Test {
@@ -50,9 +51,8 @@ void DBinderCallbackStubTest::TearDownTestCase()
 
 void DBinderCallbackStubTest::SetUp()
 {
-    std::shared_ptr<FeatureSetData> feature = std::make_shared<FeatureSetData>();
     fakeStub_ =  new (std::nothrow) DBinderCallbackStub(
-        SERVICE_TEST, DEVICE_TEST, LOCALDEVICE_TEST, STUBINDEX_TEST, HANDLE_TEST, feature);
+        SERVICE_TEST, DEVICE_TEST, LOCALDEVICE_TEST, STUBINDEX_TEST, HANDLE_TEST, TOKENID_TEST);
 }
 
 void DBinderCallbackStubTest::TearDown()
@@ -73,16 +73,16 @@ HWTEST_F(DBinderCallbackStubTest, GetServiceNameTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name:GetFeatureSetTest001
- * @tc.desc: Verify the GetFeatureSet function
+ * @tc.name:GetTokenIdTest001
+ * @tc.desc: Verify the GetTokenId function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderCallbackStubTest, GetFeatureSetTest001, TestSize.Level1)
+HWTEST_F(DBinderCallbackStubTest, GetTokenIdTest001, TestSize.Level1)
 {
     ASSERT_TRUE(fakeStub_ != nullptr);
-    std::shared_ptr<FeatureSetData> ret = fakeStub_->GetFeatureSet();
+    uint32_t ret = fakeStub_->GetTokenId();
 
-    EXPECT_NE(ret, nullptr);
+    EXPECT_EQ(ret, TOKENID_TEST);
 }
 
 /**
