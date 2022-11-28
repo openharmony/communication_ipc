@@ -63,7 +63,7 @@ HWTEST_F(DBinderSessionObjectTest, SetBusSessionTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId);
+    DBinderSessionObject object(nullptr, serviceName, serverDeviceId, 1, nullptr, 1);
 
     object.SetBusSession(sessionMock);
     auto session = object.GetBusSession();
@@ -80,7 +80,7 @@ HWTEST_F(DBinderSessionObjectTest, GetBusSessionTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId);
+    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId, 1, nullptr, 1);
 
     EXPECT_CALL(*sessionMock, GetChannelId())
         .Times(1)
@@ -105,7 +105,7 @@ HWTEST_F(DBinderSessionObjectTest, GetSessionBuffTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId);
+    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId, 1, nullptr, 1);
 
     std::shared_ptr<BufferObject> buffer = object.GetSessionBuff();
     EXPECT_NE(buffer, nullptr);
@@ -121,7 +121,7 @@ HWTEST_F(DBinderSessionObjectTest, SetServiceNameTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(session, serviceName, serverDeviceId);
+    DBinderSessionObject object(session, serviceName, serverDeviceId, 1, nullptr, 1);
 
     std::string name = "testname";
     object.SetServiceName(name);
@@ -138,7 +138,7 @@ HWTEST_F(DBinderSessionObjectTest, SetDeviceIdTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(session, serviceName, serverDeviceId);
+    DBinderSessionObject object(session, serviceName, serverDeviceId, 1, nullptr, 1);
 
     std::string deviceId = "testid";
     object.SetDeviceId(deviceId);
@@ -146,20 +146,20 @@ HWTEST_F(DBinderSessionObjectTest, SetDeviceIdTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFeatureSetTest001
- * @tc.desc: Verify the DBinderSessionObject::SetFeatureSet function
+ * @tc.name: SetProxyTest001
+ * @tc.desc: Verify the DBinderSessionObject::SetProxy function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderSessionObjectTest, SetFeatureSetTest001, TestSize.Level1)
+HWTEST_F(DBinderSessionObjectTest, SetProxyTest001, TestSize.Level1)
 {
     std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(session, serviceName, serverDeviceId);
+    IPCObjectProxy *testProxy = new IPCObjectProxy(1, u"testproxy");
+    DBinderSessionObject object(session, serviceName, serverDeviceId, 1, nullptr, 1);
 
-    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
-    object.SetFeatureSet(rpcFeatureSet);
-    EXPECT_NE(object.GetFeatureSet(), nullptr);
+    object.SetProxy(testProxy);
+    EXPECT_NE(object.GetProxy(), nullptr);
 }
 
 /**
@@ -172,7 +172,7 @@ HWTEST_F(DBinderSessionObjectTest, GetFlatSessionLenTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(session, serviceName, serverDeviceId);
+    DBinderSessionObject object(session, serviceName, serverDeviceId, 1, nullptr, 1);
 
     uint32_t len = object.GetFlatSessionLen();
     EXPECT_EQ(sizeof(FlatDBinderSession), len);
@@ -188,7 +188,7 @@ HWTEST_F(DBinderSessionObjectTest, GetSessionHandleTest001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId);
+    DBinderSessionObject object(sessionMock, serviceName, serverDeviceId, 1, nullptr, 1);
 
     EXPECT_CALL(*sessionMock, GetChannelId())
         .Times(1)
