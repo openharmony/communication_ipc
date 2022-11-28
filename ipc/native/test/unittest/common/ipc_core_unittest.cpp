@@ -298,12 +298,12 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest010, TestSize.Level1)
 HWTEST_F(IPCNativeUnitTest, SendRequestTest011, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    uint32_t code = DBINDER_TRANS_COMMAUTH;
+    uint32_t code = GET_PID_UID;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     int result = testStub->SendRequest(code, data, reply, option);
-    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    EXPECT_EQ(result, ERR_NONE);
 }
 
 /**
@@ -314,7 +314,7 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest011, TestSize.Level1)
 HWTEST_F(IPCNativeUnitTest, SendRequestTest012, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    uint32_t code = GET_UIDPID_INFO;
+    uint32_t code = GET_SESSION_NAME;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -330,7 +330,7 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest012, TestSize.Level1)
 HWTEST_F(IPCNativeUnitTest, SendRequestTest013, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    uint32_t code = GRANT_DATABUS_NAME;
+    uint32_t code = GET_GRANTED_SESSION_NAME;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -346,7 +346,7 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest013, TestSize.Level1)
 HWTEST_F(IPCNativeUnitTest, SendRequestTest014, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    uint32_t code = TRANS_DATABUS_NAME;
+    uint32_t code = GET_SESSION_NAME_PID_UID;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1008,10 +1008,9 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetStubObjectTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
-    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
 
     std::string deviceId = "testdeviceId";
-    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
     ASSERT_TRUE(commAuthInfo.GetStubObject() != nullptr);
 }
 
@@ -1024,10 +1023,9 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemotePidTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
-    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
 
     std::string deviceId = "testdeviceId";
-    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
     EXPECT_EQ(commAuthInfo.GetRemotePid(), 1);
 }
 
@@ -1040,10 +1038,9 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteUidTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
-    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
 
     std::string deviceId = "testdeviceId";
-    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
     EXPECT_EQ(commAuthInfo.GetRemoteUid(), 1);
 }
 
@@ -1056,25 +1053,23 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteDeviceIdTest001, TestSize.Level
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
-    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
 
     std::string deviceId = "testdeviceId";
-    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
     EXPECT_STREQ(commAuthInfo.GetRemoteDeviceId().c_str(), deviceId.c_str());
 }
 
 /**
- * @tc.name: CommAuthInfoGetFeatureSetTest001
- * @tc.desc: Verify the CommAuthInfo::GetFeatureSet function
+ * @tc.name: CommAuthInfoGetRemoteTokenIdTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteTokenId function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetFeatureSetTest001, TestSize.Level1)
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteTokenIdTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
-    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
 
     std::string deviceId = "testdeviceId";
-    CommAuthInfo commAuthInfo(object, 1, 1, deviceId, rpcFeatureSet);
-    EXPECT_NE(commAuthInfo.GetFeatureSet(), nullptr);
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
+    EXPECT_EQ(commAuthInfo.GetRemoteTokenId(), 1);
 }

@@ -19,6 +19,7 @@
 #define private public
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
+#include "ipc_test_helper.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
 #include "mock_iremote_object.h"
@@ -52,41 +53,41 @@ void IPCObjectProxyTest::TearDown()
 }
 
 /**
- * @tc.name: GetPidAndUidInfoTest001
- * @tc.desc: Verify the IPCObjectProxy::GetPidAndUidInfo function
+ * @tc.name: GetSessionNameTest001
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionName function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, GetPidAndUidInfoTest001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetSessionNameTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
-    std::string ret = object.GetPidAndUidInfo(1);
+    std::string ret = object.GetSessionName();
     ASSERT_TRUE(ret.size() != 0);
 }
 
 /**
- * @tc.name: GetDataBusNameTest001
- * @tc.desc: Verify the IPCObjectProxy::GetDataBusName function
+ * @tc.name: GetGrantedSessionNameTest001
+ * @tc.desc: Verify the IPCObjectProxy::GetGrantedSessionName function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, GetDataBusNameTest001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
-    std::string ret = object.GetDataBusName(1);
+    std::string ret = object.GetGrantedSessionName();
     ASSERT_TRUE(ret.size() == 0);
 }
 
 /**
- * @tc.name: TransDataBusNameTest001
- * @tc.desc: Verify the IPCObjectProxy::TransDataBusName function
+ * @tc.name: GetSessionNameForPidUidTest001
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUid function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, TransDataBusNameTest001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-
-    std::string ret = object.TransDataBusName(1, 1);
+    IPCTestHelper helper;
+    std::string ret = object.GetSessionNameForPidUid(helper.GetPid(), helper.GetUid());
     ASSERT_TRUE(ret.size() == 0);
 }
 
@@ -156,72 +157,57 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest004, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPidAndUidInfoTest002
- * @tc.desc: Verify the IPCObjectProxy::GetPidAndUidInfo function
+ * @tc.name: GetSessionNameTest002
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionName function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, GetPidAndUidInfoTest002, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetSessionNameTest002, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = true;
-    auto ret = object.GetPidAndUidInfo(1);
+    auto ret = object.GetSessionName();
     ASSERT_TRUE(ret.size() == 0);
 }
 
 /**
- * @tc.name: GetDataBusNameTest002
- * @tc.desc: Verify the IPCObjectProxy::GetDataBusName function
+ * @tc.name: GetGrantedSessionNameTest002
+ * @tc.desc: Verify the IPCObjectProxy::GetGrantedSessionName function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, GetDataBusNameTest002, TestSize.Level1)
-{
-    IPCObjectProxy object(1);
-
-    object.isRemoteDead_ = false;
-    auto ret = object.GetDataBusName(1);
-    ASSERT_TRUE(ret.size() == 0);
-}
-
-/**
- * @tc.name: GetDataBusNameTest003
- * @tc.desc: Verify the IPCObjectProxy::GetDataBusName function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCObjectProxyTest, GetDataBusNameTest003, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest002, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = true;
-    auto ret = object.GetDataBusName(1);
+    auto ret = object.GetGrantedSessionName();
     ASSERT_TRUE(ret.size() == 0);
 }
 
 /**
- * @tc.name: TransDataBusNameTest002
- * @tc.desc: Verify the IPCObjectProxy::TransDataBusName function
+ * @tc.name: GetSessionNameForPidUidTest002
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUidTest function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, TransDataBusNameTest002, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest002, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
-    object.isRemoteDead_ = false;
-    auto ret = object.TransDataBusName(1, 1);
+    auto ret = object.GetSessionNameForPidUid(1, 1);
     ASSERT_TRUE(ret.size() == 0);
 }
 
 /**
- * @tc.name: TransDataBusNameTest003
- * @tc.desc: Verify the IPCObjectProxy::TransDataBusName function
+ * @tc.name: GetSessionNameForPidUidTest003
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUid function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, TransDataBusNameTest003, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = true;
-    auto ret = object.TransDataBusName(1, 1);
+    auto ret = object.GetSessionNameForPidUid(1, 1);
     ASSERT_TRUE(ret.size() == 0);
 }
 
@@ -367,7 +353,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest004, TestSize.Level1)
     sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
     object->recipients_.push_back(death);
     object->isRemoteDead_ = false;
-    object->proto_ = IRemoteObject::IF_PROT_ERROR;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     auto ret = object->RemoveDeathRecipient(death);
     EXPECT_EQ(ret, true);
@@ -461,7 +447,7 @@ HWTEST_F(IPCObjectProxyTest, NoticeServiceDieTest001, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     auto ret = object->NoticeServiceDie();
-    EXPECT_EQ(ret, IPC_PROXY_TRANSACTION_ERR);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**
@@ -513,34 +499,34 @@ HWTEST_F(IPCObjectProxyTest, IncRefToRemoteTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSessionFromDBinderServiceTest001
- * @tc.desc: Verify the IPCObjectProxy::GetSessionFromDBinderService function
+ * @tc.name: GetProtoInfoTest001
+ * @tc.desc: Verify the IPCObjectProxy::GetProtoInfo function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, GetSessionFromDBinderServiceTest001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest001, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
     object->isRemoteDead_ = true;
     object->proto_ = IRemoteObject::IF_PROT_DATABUS;
 
-    auto ret = object->GetSessionFromDBinderService();
+    auto ret = object->GetProtoInfo();
     EXPECT_EQ(ret, IRemoteObject::IF_PROT_ERROR);
 }
 
 /**
- * @tc.name: GetSessionFromDBinderServiceTest002
- * @tc.desc: Verify the IPCObjectProxy::GetSessionFromDBinderService function
+ * @tc.name: GetProtoInfoTest002
+ * @tc.desc: Verify the IPCObjectProxy::GetProtoInfo function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, GetSessionFromDBinderServiceTest002, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest002, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
     object->isRemoteDead_ = true;
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
-    auto ret = object->GetSessionFromDBinderService();
+    auto ret = object->GetProtoInfo();
     EXPECT_EQ(ret, IRemoteObject::IF_PROT_ERROR);
 }
 
@@ -622,6 +608,6 @@ HWTEST_F(IPCObjectProxyTest, RemoveDbinderDeathRecipientTest001, TestSize.Level1
     current->noticeStub_[object.GetRefPtr()] = objectStub;
     auto ret = object->RemoveDbinderDeathRecipient();
 
-    ASSERT_TRUE(ret == true);
+    ASSERT_TRUE(ret == false);
     current->noticeStub_.erase(object.GetRefPtr());
 }
