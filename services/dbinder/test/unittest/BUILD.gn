@@ -13,26 +13,29 @@
 
 import("//build/test.gni")
 
-# SUBSYSTEM_DIR = "//foundation/communication/ipc"
-# IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 MODULE_OUTPUT_PATH = "ipc"
 
 ohos_unittest("RPCDbinderTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
+    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/src",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/communication/ipc/ipc/native/c/manager/include",
+    "//foundation/communication/ipc/ipc/native/c/rpc/include",
     "//foundation/communication/ipc/utils/include",
   ]
 
   sources = [ "dbinder_service_unittest.cpp" ]
 
-  configs = []
-
-  deps = [ "//third_party/googletest:gtest_main" ]
+  deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//third_party/googletest:gtest_main",
+  ]
 
   external_deps = [
     "c_utils:utils",
+    "dsoftbus:softbus_client",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:libdbinder",
   ]
