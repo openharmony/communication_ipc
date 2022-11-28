@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <string.h>
+#include <string>
 #include "securec.h"
 #define private public
 #include "dbinder_service.h"
