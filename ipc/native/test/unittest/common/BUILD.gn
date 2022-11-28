@@ -63,7 +63,18 @@ ohos_unittest("IPCNativeUnitTest") {
 
 ohos_unittest("IPCFileDescOpsTest") {
   module_out_path = MODULE_OUTPUT_PATH
-  sources = [ "ipc_file_desc_unittest.cpp" ]
+
+  include_dirs = [
+    "//utils/system/safwk/native/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+    "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include",
+    "//foundation/communication/ipc/native/src/core/include",
+  ]
+
+  sources = [
+    "ipc_file_desc_unittest.cpp",
+    "iremote_object_unitest.cpp",
+  ]
 
   configs = [
     "$SUBSYSTEM_DIR:ipc_util_config",
