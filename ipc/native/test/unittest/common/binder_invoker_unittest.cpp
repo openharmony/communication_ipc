@@ -139,19 +139,6 @@ HWTEST_F(BinderInvokerUnitTest, UnflattenObject002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCallerTokenID001
- * @tc.desc: Verify the GetCallerTokenID function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, GetCallerTokenID001, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    binderInvoker.firstTokenID_ = 0;
-    uint32_t ret = binderInvoker.GetFirstTokenID();
-    EXPECT_EQ((uint64_t)ret, RpcGetFirstCallerTokenID());
-}
-
-/**
  * @tc.name: SetRegistryObject001
  * @tc.desc: Verify the SetRegistryObject function
  * @tc.type: FUNC
@@ -190,60 +177,6 @@ HWTEST_F(BinderInvokerUnitTest, SetRegistryObject003, TestSize.Level1)
     sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
     bool ret = binderInvoker.SetRegistryObject(testProxy);
     EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: TranslateProxyTest001
- * @tc.desc: Verify the TranslateProxy function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateProxyTest001, TestSize.Level1)
-{
-#ifndef CONFIG_IPC_SINGLE
-    BinderInvoker binderInvoker;
-    binderInvoker.binderConnector_ = nullptr;
-    EXPECT_EQ(binderInvoker.TranslateProxy(0, 0), -IPC_INVOKER_CONNECT_ERR);
-#endif
-}
-
-/**
- * @tc.name: TranslateProxyTest002
- * @tc.desc: Verify the TranslateProxy function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateProxyTest002, TestSize.Level1)
-{
-#ifndef CONFIG_IPC_SINGLE
-    BinderInvoker binderInvoker;
-    EXPECT_EQ(binderInvoker.TranslateProxy(1, 0), -IPC_INVOKER_TRANSLATE_ERR);
-#endif
-}
-
-/**
- * @tc.name: TranslateStubTest001
- * @tc.desc: Verify the TranslateStub function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateStubTest001, TestSize.Level1)
-{
-#ifndef CONFIG_IPC_SINGLE
-    BinderInvoker binderInvoker;
-    binderInvoker.binderConnector_ = nullptr;
-    EXPECT_EQ(binderInvoker.TranslateStub(0, 0, 0, 0), -IPC_INVOKER_CONNECT_ERR);
-#endif
-}
-
-/**
- * @tc.name: TranslateStubTest002
- * @tc.desc: Verify the TranslateStub function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateStubTest002, TestSize.Level1)
-{
-#ifndef CONFIG_IPC_SINGLE
-    BinderInvoker binderInvoker;
-    EXPECT_EQ(binderInvoker.TranslateStub(60, 90, 0, 0), -IPC_INVOKER_TRANSLATE_ERR);
-#endif
 }
 
 /**
@@ -586,18 +519,6 @@ HWTEST_F(BinderInvokerUnitTest, GetCallerTokenIDTest001, TestSize.Level1)
     BinderInvoker binderInvoker;
     binderInvoker.callerTokenID_ = 1;
     EXPECT_EQ(binderInvoker.GetCallerTokenID(), 1);
-}
-
-/**
- * @tc.name: GetFirstTokenIDTest001
- * @tc.desc: Override GetFirstTokenID branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, GetFirstTokenIDTest001, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    binderInvoker.firstTokenID_ = 1;
-    EXPECT_EQ(binderInvoker.GetFirstTokenID(), 1);
 }
 
 /**
