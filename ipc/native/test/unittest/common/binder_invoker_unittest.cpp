@@ -243,9 +243,9 @@ HWTEST_F(BinderInvokerUnitTest, OnAttemptAcquireTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    binderInvoker.input_.WritePointer((uintptr_t)testStub.GetRefPtr());
+    binderInvoker.input_.WritePointer((uintptr_t)testStub->GetRefCounter());
     binderInvoker.OnAttemptAcquire();
-    EXPECT_NE(reinterpret_cast<RefCounter *>(testStub.GetRefPtr()), nullptr);
+    EXPECT_NE(reinterpret_cast<RefCounter *>(testStub->GetRefCounter()), nullptr);
 }
 
 /**
