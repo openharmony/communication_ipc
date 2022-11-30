@@ -290,44 +290,6 @@ ohos_unittest("InvokerFactoryTest") {
       "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("RPCFeatureUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/ipc/native/src/mock/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/c/adapter/access_token/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/src/",
-  ]
-
-  sources = [ "rpc_feature_set_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
-}
-
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -338,7 +300,6 @@ group("unittest") {
     ":IPCHiTraceUnitTest",
     ":IPCMockUnitTest",
     ":IPCNativeUnitTest",
-    ":RPCFeatureUnitTest",
     ":InvokerFactoryTest",
   ]
   if (support_jsapi) {
