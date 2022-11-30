@@ -304,29 +304,26 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy001, TestSize.Level1)
 HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy002, TestSize.Level1)
 {
     uint32_t handle = 0;
-    std::shared_ptr<DBinderSessionObject> remoteSession =
+    std::shared_ptr<DBinderSessionObject> dbinderSessionObject =
         std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
     DBinderDatabusInvoker testInvoker;
-    bool res = testInvoker.AuthSession2Proxy(handle, remoteSession);
-    EXPECT_FALSE(res);
-}
+    bool res = testInvoker.AuthSession2Proxy(handle, dbinderSessionObject);
+    EXPECT_NE(dbinderSessionObject, nullptr);
 
-/**
- * @tc.name: AuthSession2Proxy003
- * @tc.desc: AuthSession2Proxy
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy003, TestSize.Level1)
-{
-    uint32_t handle = 0;
-    std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
-    remoteSession->SetBusSession(nullptr);
-    EXPECT_TRUE(remoteSession->GetBusSession() == nullptr);
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    dbinderSessionObject->session_ = sessionMock;
+    res = testInvoker.AuthSession2Proxy(handle, dbinderSessionObject);
+    EXPECT_NE(dbinderSessionObject->GetBusSession(), nullptr);
 
-    DBinderDatabusInvoker testInvoker;
-    bool res = testInvoker.AuthSession2Proxy(handle, remoteSession);
-    EXPECT_FALSE(res);
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+    rpcFeatureSet->featureSet = 1;
+    dbinderSessionObject->rpcFeatureSet_ = rpcFeatureSet;
+    std::string deviceId = "";
+    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef(deviceId));
+    res = testInvoker.AuthSession2Proxy(handle, dbinderSessionObject);
+    EXPECT_NE(dbinderSessionObject->GetFeatureSet(), nullptr);
+    EXPECT_EQ(res, false);
 }
 
 /**
@@ -337,10 +334,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy003, TestSize.Level1)
 HWTEST_F(IPCDbinderDataBusInvokerTest, QuerySessionOfBinderProxy001, TestSize.Level1)
 {
     uint32_t handle = 0;
-    std::string serverName = "serverName";
-    std::string deviceId = "7001005458323933328a519c2fa83800";
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId);
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
     EXPECT_TRUE (remoteSession != nullptr);
 
     DBinderDatabusInvoker testInvoker;
@@ -430,8 +425,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CreateProcessThreadTest001, TestSize.Leve
     current->threadPool_ = nullptr;
     bool ret = testInvoker.CreateProcessThread();
     EXPECT_FALSE(ret);
-    ret = testInvoker.CreateProcessThread();
-    EXPECT_FALSE(ret);
 }
 
 /**
@@ -478,7 +471,47 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CreateServerSessionObjectTest002, TestSiz
     std::shared_ptr<DBinderSessionObject> sessionObject = nullptr;
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.CreateServerSessionObject(binder, stubIndex, sessionObject);
     EXPECT_EQ(ret, nullptr);
+
+    sessionObject = std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    ret = testInvoker.CreateServerSessionObject(binder, stubIndex, sessionObject);
+    EXPECT_EQ(ret, nullptr);
     delete temp;
+}
+
+/**
+ * @tc.name: ConnectRemoteObject2SessionTest001
+ * @tc.desc: ConnectRemoteObject2Session
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, ConnectRemoteObject2SessionTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCObjectStub *temp = new (std::nothrow) IPCObjectStub();
+    uint64_t stubIndex = 1;
+
+    bool ret = testInvoker.ConnectRemoteObject2Session(temp, stubIndex, nullptr);
+    EXPECT_EQ(ret, false);
+
+    std::shared_ptr<DBinderSessionObject> dbinderSessionObject =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    dbinderSessionObject->session_ = nullptr;
+    ret = testInvoker.ConnectRemoteObject2Session(temp, stubIndex, dbinderSessionObject);
+    EXPECT_EQ(ret, false);
+
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    dbinderSessionObject->session_ = sessionMock;
+
+    EXPECT_CALL(*sessionMock, GetPeerPid())
+        .WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(*sessionMock, GetPeerUid())
+        .WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef(DEVICE_ID_TEST));
+
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+    dbinderSessionObject->SetFeatureSet(rpcFeatureSet);
+    ret = testInvoker.ConnectRemoteObject2Session(temp, stubIndex, dbinderSessionObject);
+    EXPECT_EQ(ret, true);
 }
 
 /**
@@ -500,14 +533,41 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, MakeDefaultServerSessionObjectTest001, Te
 
 /**
  * @tc.name: FlushCommandsTest001
- * @tc.desc: FlushCommands
+ * @tc.desc: FlushCommands return false
  * @tc.type: FUNC
  */
 HWTEST_F(IPCDbinderDataBusInvokerTest, FlushCommandsTest001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
-    IRemoteObject *object = nullptr;
-    int ret = testInvoker.FlushCommands(object);
+    IPCObjectStub *iPCObjectStub = nullptr;
+    int ret = testInvoker.FlushCommands(iPCObjectStub);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: FlushCommandsTest002
+ * @tc.desc: FlushCommands return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, FlushCommandsTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCObjectStub iPCObjectStub;
+    int ret = testInvoker.FlushCommands(&iPCObjectStub);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: FlushCommandsTest003
+ * @tc.desc: FlushCommands return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, FlushCommandsTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    int handle = 11;
+    IPCObjectProxy iPCObjectProxy(handle);
+    int ret = testInvoker.FlushCommands(&iPCObjectProxy);
     EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 
@@ -559,10 +619,11 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnReceiveNewConnectionTest001, TestSize.L
 {
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    uint32_t listenFd = 1;
 
     EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillOnce(testing::Return(0X0000000000FFFFFFULL))
-        .WillRepeatedly(testing::Return(0));
+        .WillOnce(testing::Return(0))
+        .WillRepeatedly(testing::Return(listenFd));
 
     EXPECT_CALL(*sessionMock, GetPeerPid())
         .WillRepeatedly(testing::Return(1));
@@ -578,6 +639,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnReceiveNewConnectionTest001, TestSize.L
 
     bool ret = testInvoker.OnReceiveNewConnection(sessionMock);
     EXPECT_FALSE(ret);
+    ret = testInvoker.OnReceiveNewConnection(sessionMock);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -755,6 +818,29 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasRawDataPackage001
+ * @tc.desc: HasRawDataPackage return MAX_RAWDATA_SIZE
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, HasRawDataPackage001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
+    dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
+    EXPECT_TRUE(tmp != nullptr);
+
+    tmp->magic = DBINDER_MAGICWORD;
+    tmp->cmd = BC_SEND_RAWDATA;
+    tmp->sizeOfSelf = MAX_RAWDATA_SIZE + 1;
+    const char *data = reinterpret_cast<const char *>(tmp);
+    ssize_t len = tmp->sizeOfSelf;
+
+    testInvoker.HasRawDataPackage(data, len);
+    EXPECT_TRUE(tmp->sizeOfSelf == static_cast<uint32_t>(len));
+    free(tmp);
+}
+
+/**
  * @tc.name: OnRawDataAvailable001
  * @tc.desc: OnRawDataAvailable
  * @tc.type: FUNC
@@ -819,4 +905,411 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, HasCompletePackage001, TestSize.Level1)
     res = testInvoker.HasCompletePackage(data, readCursor, size);
     EXPECT_EQ(tmp->sizeOfSelf, res);
     free(tmp);
+}
+
+/**
+ * @tc.name:SetTokenIdTest001
+ * @tc.desc: Verify the SetTokenId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetTokenIdTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    ssize_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
+    dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
+    tmp->sizeOfSelf = sizeof(struct dbinder_transaction_data) + sizeof(FeatureTransData);
+    std::shared_ptr<DBinderSessionObject> dbinderSessionObject = nullptr;
+    bool ret = testInvoker.SetTokenId(tmp, dbinderSessionObject);
+    EXPECT_EQ(dbinderSessionObject, nullptr);
+
+    dbinderSessionObject = std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    ret = testInvoker.SetTokenId(tmp, dbinderSessionObject);
+    EXPECT_NE(dbinderSessionObject, nullptr);
+
+    std::shared_ptr<FeatureSetData> rpcFeatureSet = std::make_shared<FeatureSetData>();
+    rpcFeatureSet->featureSet = 1;
+    dbinderSessionObject->SetFeatureSet(rpcFeatureSet);
+    ret = testInvoker.SetTokenId(tmp, dbinderSessionObject);
+    EXPECT_TRUE(ret);
+
+    rpcFeatureSet->featureSet = 0;
+    dbinderSessionObject->SetFeatureSet(rpcFeatureSet);
+    ret = testInvoker.SetTokenId(tmp, dbinderSessionObject);
+    EXPECT_TRUE(ret);
+    free(tmp);
+}
+
+/**
+ * @tc.name:CheckAndSetCallerInfo001
+ * @tc.desc: Verify the CheckAndSetCallerInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    uint32_t handle = 1;
+    uint64_t stubIndex = 1;
+    std::shared_ptr<DBinderSessionObject> sessionObject =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->StubAttachDBinderSession(handle, sessionObject);
+
+    int ret = testInvoker.CheckAndSetCallerInfo(0, stubIndex);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+
+    ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name:CheckAndSetCallerInfo002
+ * @tc.desc: Verify the CheckAndSetCallerInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    uint32_t handle = 1;
+    uint64_t stubIndex = 1;
+
+    std::shared_ptr<DBinderSessionObject> sessionObject =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    sessionObject->session_ = sessionMock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->StubAttachDBinderSession(handle, sessionObject);
+
+    int ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: UpdateClientSession001
+ * @tc.desc: UpdateClientSession return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, UpdateClientSession001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    uint32_t handle = 1;
+    std::shared_ptr<DBinderSessionObject> sessionObject =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    bool ret = testInvoker.UpdateClientSession(handle, sessionObject);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: OnSendMessage001
+ * @tc.desc: OnSendMessage return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> sessionOfPeer = nullptr;
+    int ret = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendMessage002
+ * @tc.desc: OnSendMessage return RPC_DATABUS_INVOKER_INVALID_DATA_ERR
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+
+    std::shared_ptr<DBinderSessionObject> sessionOfPeer =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    int ret = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendMessage003
+ * @tc.desc: OnSendMessage return RPC_DATABUS_INVOKER_INVALID_DATA_ERR
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    std::shared_ptr<DBinderSessionObject> sessionOfPeer =
+        std::make_shared<DBinderSessionObject>(sessionMock, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    int ret = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendRawData001
+ * @tc.desc: OnSendRawData return RPC_DATABUS_INVOKER_INVALID_DATA_ERR
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendRawData001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> session = nullptr;
+    size_t size = 0;
+    int ret = testInvoker.OnSendRawData(session, nullptr, size);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendRawData002
+ * @tc.desc: OnSendRawData return RPC_DATABUS_INVOKER_INVALID_DATA_ERR
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendRawData002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> session =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    size_t size = 0;
+    int ret = testInvoker.OnSendRawData(session, nullptr, size);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendRawData003
+ * @tc.desc: OnSendRawData return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendRawData003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    std::shared_ptr<DBinderSessionObject> session =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    session->session_ = sessionMock;
+    size_t size = 0;
+    int ret = testInvoker.OnSendRawData(session, nullptr, size);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: SetCallerPid001
+ * @tc.desc: SetCallerPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallerPid001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    pid_t pid = 1;
+
+    testInvoker.SetCallerPid(pid);
+    EXPECT_EQ(1, testInvoker.callerPid_);
+}
+
+/**
+ * @tc.name: GetCallerUid001
+ * @tc.desc: GetCallerUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, GetCallerUid001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    pid_t uid = 1;
+    testInvoker.SetCallerUid(uid);
+
+    uid_t test = testInvoker.GetCallerUid();
+    EXPECT_EQ(test, testInvoker.callerUid_);
+}
+
+/**
+ * @tc.name: SetCallerUid001
+ * @tc.desc: SetCallerUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallerUid001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    pid_t uid = 1;
+    testInvoker.SetCallerUid(uid);
+
+    EXPECT_EQ(1, testInvoker.callerUid_);
+}
+
+/**
+ * @tc.name: SetCallerDeviceID001
+ * @tc.desc: SetCallerDeviceID
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallerDeviceID001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    const std::string deviceId = "test";
+    testInvoker.SetCallerDeviceID(deviceId);
+
+    EXPECT_EQ("test", testInvoker.callerDeviceID_);
+}
+
+/**
+ * @tc.name: SetCallerTokenID001
+ * @tc.desc: SetCallerTokenID
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallerTokenID001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    const uint32_t tokenId = 1;
+    testInvoker.SetCallerTokenID(tokenId);
+
+    EXPECT_EQ(1, testInvoker.callerTokenID_);
+}
+
+/**
+ * @tc.name: SetTokenId001
+ * @tc.desc: SetTokenId
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetTokenId001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    const dbinder_transaction_data* tr = nullptr;
+    std::shared_ptr<DBinderSessionObject> sessionObject = nullptr;
+    bool test = testInvoker.SetTokenId(tr, sessionObject);
+
+    EXPECT_TRUE(sessionObject == nullptr);
+    EXPECT_EQ(test, false);
+}
+
+/**
+ * @tc.name: ConnectRemoteObject2Session001
+ * @tc.desc: ConnectRemoteObject2Session
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, ConnectRemoteObject2Session001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IRemoteObject* stubObject = nullptr;
+    uint64_t stubIndex = 1;
+    const std::shared_ptr<DBinderSessionObject> sessionObject = nullptr;
+    bool test = testInvoker.ConnectRemoteObject2Session(stubObject, stubIndex, sessionObject);
+
+    EXPECT_TRUE(sessionObject == nullptr);
+    EXPECT_EQ(test, false);
+}
+
+/**
+ * @tc.name: FlattenSession001
+ * @tc.desc: FlattenSession return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::string serverDeviceId;
+    std::shared_ptr<DBinderSessionObject> session =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, serverDeviceId);
+    FlatDBinderSession flatDBinderSession;
+    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    uint64_t stubIndex = 0;
+    uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
+    EXPECT_EQ(ret, 0);
+    serverDeviceId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: FlattenSession002
+ * @tc.desc: FlattenSession return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::string serviceName;
+    std::shared_ptr<DBinderSessionObject> session =
+        std::make_shared<DBinderSessionObject>(nullptr, serviceName, DEVICE_ID_TEST);
+    FlatDBinderSession flatDBinderSession;
+    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    uint64_t stubIndex = 0;
+    uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
+    EXPECT_EQ(ret, 0);
+    serviceName = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: FlattenSession003
+ * @tc.desc: FlattenSession return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> session =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    FlatDBinderSession flatDBinderSession;
+    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    uint64_t stubIndex = 0;
+    uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
+    EXPECT_EQ(ret, 280);
+}
+
+/**
+ * @tc.name: UnFlattenSession001
+ * @tc.desc: UnFlattenSession return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+
+    uint64_t stubIndex = 0;
+    FlatDBinderSession flatDBinderSession;
+    flatDBinderSession.stubIndex = 0;
+    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    std::shared_ptr<DBinderSessionObject> ret = testInvoker.UnFlattenSession(sessionOffset, stubIndex);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: UnFlattenSession002
+ * @tc.desc: UnFlattenSession return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    uint64_t stubIndex = 0;
+    FlatDBinderSession flatDBinderSession;
+    int len = 65;
+    strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
+    strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
+    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    std::shared_ptr<DBinderSessionObject> ret = testInvoker.UnFlattenSession(sessionOffset, stubIndex);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: QueryHandleBySession001
+ * @tc.desc: QueryHandleBySession return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, QueryHandleBySession001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> session =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    uint64_t stubIndex = 0;
+    uint32_t ret = testInvoker.QueryHandleBySession(session, stubIndex);
+
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: MakeStubIndexByRemoteObject001
+ * @tc.desc: MakeStubIndexByRemoteObject return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, MakeStubIndexByRemoteObject001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCObjectProxy *iPCObjectProxy = nullptr;
+    uint32_t ret = testInvoker.MakeStubIndexByRemoteObject(iPCObjectProxy);
+    EXPECT_EQ(ret, 0);
 }
