@@ -17,11 +17,13 @@
 #define private public
 #define protected public
 #include "binder_invoker.h"
+#include "binder_connector.h"
 #undef protected
 #undef private
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
+#include "sys_binder.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -47,16 +49,33 @@ void BinderInvokerUnitTest::TearDown()
 {}
 
 /**
- * @tc.name: SetCallingIdentity001
- * @tc.desc: Verify the ReadFileDescriptor function
+ * @tc.name: SetCallingIdentityTest001
+ * @tc.desc: Verify the SetCallingIdentityTest001 function
  * @tc.type: FUNC
  */
-HWTEST_F(BinderInvokerUnitTest, SetCallingIdentity001, TestSize.Level1)
+HWTEST_F(BinderInvokerUnitTest, SetCallingIdentityTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     std::string identity;
     bool ret = binderInvoker.SetCallingIdentity(identity);
     EXPECT_EQ(ret, false);
+    identity = "aaa";
+    ret = binderInvoker.SetCallingIdentity(identity);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest002
+ * @tc.desc: Override SetCallingIdentity branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, SetCallingIdentityTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string token = binderInvoker.ResetCallingIdentity();
+    EXPECT_FALSE(token.empty());
+    bool ret = binderInvoker.SetCallingIdentity(token);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -68,6 +87,23 @@ HWTEST_F(BinderInvokerUnitTest, ReadFileDescriptor001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     Parcel parcel;
+    int ret = binderInvoker.ReadFileDescriptor(parcel);
+    EXPECT_EQ(ret, -1);
+}
+
+/**
+ * @tc.name: ReadFileDescriptor002
+ * @tc.desc: Verify the ReadFileDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, ReadFileDescriptor002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    Parcel parcel;
+    flat_binder_object tr {};
+    tr.flags = 1;
+    tr.hdr.type = -1;
+    parcel.WriteBuffer(&tr, sizeof(flat_binder_object));
     int ret = binderInvoker.ReadFileDescriptor(parcel);
     EXPECT_EQ(ret, -1);
 }
@@ -86,16 +122,20 @@ HWTEST_F(BinderInvokerUnitTest, UnflattenObject001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCallerTokenID001
- * @tc.desc: Verify the GetCallerTokenID function
+ * @tc.name: UnflattenObject002
+ * @tc.desc: Verify the UnflattenObject function
  * @tc.type: FUNC
  */
-HWTEST_F(BinderInvokerUnitTest, GetCallerTokenID001, TestSize.Level1)
+HWTEST_F(BinderInvokerUnitTest, UnflattenObject002, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    binderInvoker.firstTokenID_ = 0;
-    uint32_t ret = binderInvoker.GetFirstCallerTokenID();
-    EXPECT_EQ((uint64_t)ret, RpcGetFirstCallerTokenID());
+    Parcel parcel;
+    flat_binder_object tr {};
+    tr.flags = 1;
+    tr.hdr.type = -1;
+    parcel.WriteBuffer(&tr, sizeof(flat_binder_object));
+    sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
+    EXPECT_EQ(ret, nullptr);
 }
 
 /**
@@ -209,6 +249,23 @@ HWTEST_F(BinderInvokerUnitTest, OnAttemptAcquireTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnAttemptAcquireTest002
+ * @tc.desc: Verify the OnAttemptAcquire function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, OnAttemptAcquireTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    void* test = nullptr;
+    binderInvoker.input_.WritePointer((uintptr_t)test);
+    binderInvoker.OnAttemptAcquire();
+
+    uintptr_t refsPtr = binderInvoker.input_.WritePointer((uintptr_t)test);
+    auto *refs = reinterpret_cast<RefCounter *>(refsPtr);
+    EXPECT_TRUE(refs != nullptr);
+}
+
+/**
  * @tc.name: HandleReplyTest001
  * @tc.desc: Verify the HandleReply function
  * @tc.type: FUNC
@@ -288,6 +345,30 @@ HWTEST_F(BinderInvokerUnitTest, HandleCommandsInnerTest005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HandleCommandsInnerTest006
+ * @tc.desc: Verify the HandleCommandsInner function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, HandleCommandsInnerTest006, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint32_t cmd = BR_DEAD_BINDER;
+    EXPECT_EQ(binderInvoker.HandleCommandsInner(cmd), ERR_NONE);
+}
+
+/**
+ * @tc.name: HandleCommandsInnerTest007
+ * @tc.desc: Verify the HandleCommandsInner function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, HandleCommandsInnerTest007, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint32_t cmd = -1;
+    EXPECT_EQ(binderInvoker.HandleCommandsInner(cmd), IPC_INVOKER_ON_TRANSACT_ERR);
+}
+
+/**
  * @tc.name: TransactWithDriverTest001
  * @tc.desc: Verify the TransactWithDriver function
  * @tc.type: FUNC
@@ -297,4 +378,191 @@ HWTEST_F(BinderInvokerUnitTest, TransactWithDriverTest001, TestSize.Level1)
     BinderInvoker binderInvoker;
     binderInvoker.binderConnector_ = nullptr;
     EXPECT_EQ(binderInvoker.TransactWithDriver(true), IPC_INVOKER_CONNECT_ERR);
+}
+
+/**
+ * @tc.name: StartWorkLoopTest001
+ * @tc.desc: Override StartWorkLoop branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, StartWorkLoopTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.input_.WriteUint32(BR_TRANSACTION);
+    binderInvoker.isMainWorkThread = false;
+    binderInvoker.StartWorkLoop();
+
+    EXPECT_TRUE(binderInvoker.HandleCommands(BR_TRANSACTION) == IPC_INVOKER_INVALID_DATA_ERR);
+    EXPECT_TRUE(binderInvoker.isMainWorkThread == false);
+}
+
+/**
+ * @tc.name: OnTransactionTest001
+ * @tc.desc: Override OnTransaction branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, OnTransactionTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binder_transaction_data tr {};
+    tr.offsets_size = 1;
+    binderInvoker.input_.WriteBuffer(&tr, sizeof(binder_transaction_data));
+    const uint8_t* buffer = binderInvoker.input_.ReadBuffer(sizeof(binder_transaction_data));
+    binderInvoker.OnTransaction(buffer);
+    EXPECT_TRUE(tr.offsets_size > 0);
+    EXPECT_TRUE(binderInvoker.binderConnector_->IsAccessTokenSupported());
+    EXPECT_TRUE(tr.target.ptr == 0);
+}
+
+/**
+ * @tc.name: HandleCommandsTest001
+ * @tc.desc: Override HandleCommands branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, HandleCommandsTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint32_t cmd = BR_FINISHED;
+    int error = binderInvoker.HandleCommands(cmd);
+    EXPECT_EQ(error, -ERR_TIMED_OUT);
+}
+
+/**
+ * @tc.name: JoinProcessThreadTest001
+ * @tc.desc: Override JoinProcessThread branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, JoinProcessThreadTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    bool initiative = false;
+    binderInvoker.JoinProcessThread(initiative);
+    EXPECT_TRUE(initiative == false);
+}
+
+/**
+ * @tc.name: WaitForCompletionTest001
+ * @tc.desc: Override WaitForCompletion branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, WaitForCompletionTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.input_.WriteUint32(BR_FAILED_REPLY);
+    MessageParcel reply;
+    int32_t acquireResult = 1;
+    int error = binderInvoker.WaitForCompletion(&reply, &acquireResult);
+    EXPECT_EQ(error, static_cast<int>(BR_FAILED_REPLY));
+}
+
+/**
+ * @tc.name: WaitForCompletionTest002
+ * @tc.desc: Override WaitForCompletion branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, WaitForCompletionTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.input_.WriteUint32(BR_ACQUIRE_RESULT);
+    MessageParcel reply;
+    int32_t acquireResult;
+    int error = binderInvoker.WaitForCompletion(&reply, &acquireResult);
+    EXPECT_EQ(error, ERR_NONE);
+}
+
+/**
+ * @tc.name: WaitForCompletionTest003
+ * @tc.desc: Override WaitForCompletion branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, WaitForCompletionTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.input_.WriteUint32(BR_TRANSLATION_COMPLETE);
+    MessageParcel reply;
+    int32_t acquireResult;
+    int error = binderInvoker.WaitForCompletion(&reply, &acquireResult);
+    EXPECT_EQ(error, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetCallerPidTest001
+ * @tc.desc: Override GetCallerPid branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerPidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerPid_ = 1;
+    EXPECT_EQ(binderInvoker.GetCallerPid(), 1);
+}
+
+/**
+ * @tc.name: GetCallerUidTest001
+ * @tc.desc: Override GetCallerUid branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerUidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = 1;
+    EXPECT_EQ(binderInvoker.GetCallerUid(), 1);
+}
+
+/**
+ * @tc.name: GetCallerTokenIDTest001
+ * @tc.desc: Override GetCallerTokenID branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerTokenIDTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerTokenID_ = 1;
+    EXPECT_EQ(binderInvoker.GetCallerTokenID(), 1);
+}
+
+/**
+ * @tc.name: GetLocalDeviceIDTest001
+ * @tc.desc: Override GetLocalDeviceID branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetLocalDeviceIDTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    EXPECT_EQ(binderInvoker.GetLocalDeviceID(), "");
+}
+
+/**
+ * @tc.name: GetCallerDeviceIDTest001
+ * @tc.desc: Override GetCallerDeviceID branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerDeviceIDTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    EXPECT_EQ(binderInvoker.GetCallerDeviceID(), "");
+}
+
+/**
+ * @tc.name: IsLocalCallingTest001
+ * @tc.desc: Override IsLocalCalling branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, IsLocalCallingTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    EXPECT_EQ(binderInvoker.IsLocalCalling(), true);
+}
+
+/**
+ * @tc.name: FlattenObjectTest001
+ * @tc.desc: Override FlattenObject branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, FlattenObjectTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    OHOS::Parcel parcel;
+    const IRemoteObject* object = nullptr;
+    EXPECT_EQ(binderInvoker.FlattenObject(parcel, object), false);
 }
