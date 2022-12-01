@@ -50,6 +50,7 @@
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
+static constexpr int HIDUMPER_SERVICE_UID = 1212;
 #endif
 
 using namespace OHOS::HiviewDFX;
@@ -58,11 +59,11 @@ static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectStub" };
 using namespace OHOS::Security;
 // Authentication information can be added only for processes with system permission.
 static constexpr pid_t ALLOWED_UID = 10000;
-static constexpr pid_t SHELL_UID = 2000;
 static constexpr int APL_BASIC = 2;
 // Only the samgr can obtain the UID and PID.
 static const std::string SAMGR_PROCESS_NAME = "samgr";
 #endif
+static constexpr int SHELL_UID = 2000;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
@@ -178,20 +179,22 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             reply.WriteInt32(refCount);
             break;
         }
-#ifndef CONFIG_IPC_SINGLE
         case DUMP_TRANSACTION: {
             pid_t uid = IPCSkeleton::GetCallingUid();
+#ifndef CONFIG_IPC_SINGLE
             uint32_t calllingTokenID = IPCSkeleton::GetFirstTokenID();
             calllingTokenID = calllingTokenID == 0 ? IPCSkeleton::GetCallingTokenID() : calllingTokenID;
             if (!IPCSkeleton::IsLocalCalling() ||
                 (uid != 0 && uid != SHELL_UID && !HasDumpPermission(calllingTokenID))) {
+#else
+            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && uid != HIDUMPER_SERVICE_UID)) {
+#endif
                 ZLOGE(LABEL, "do not allow dump");
                 break;
             }
             result = OnRemoteDump(code, data, reply, option);
             break;
         }
-#endif
         case GET_PROTO_INFO: {
             result = ProcessProto(code, data, reply, option);
             break;
