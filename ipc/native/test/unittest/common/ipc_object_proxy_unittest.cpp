@@ -22,7 +22,9 @@
 #include "ipc_test_helper.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
+#include "iremote_object.h"
 #include "mock_iremote_object.h"
+#include "mock_session_impl.h"
 #undef private
 
 using namespace testing::ext;
@@ -610,4 +612,398 @@ HWTEST_F(IPCObjectProxyTest, RemoveDbinderDeathRecipientTest001, TestSize.Level1
 
     ASSERT_TRUE(ret == false);
     current->noticeStub_.erase(object.GetRefPtr());
+}
+
+/**
+ * @tc.name: CheckHaveSessionTest001
+ * @tc.desc: Verify the IPCObjectProxy::CheckHaveSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, CheckHaveSessionTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    std::string serviceName = "testserviceName";
+    std::string serverDeviceId = "testserverDeviceId";
+    int64_t stubIndex = 1;
+    IPCObjectProxy *proxy = object.GetRefPtr();
+    uint32_t tokenId = 1;
+
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
+        sessionMock, serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    auto session = current->proxyToSession_[1] = dbinderSessionObject;
+    ASSERT_TRUE(current->ProxyQueryDBinderSession(1) != nullptr);
+    auto ret = object->CheckHaveSession();
+
+    ASSERT_TRUE(ret == true);
+    dbinderSessionObject->proxy_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest001
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IRemoteInvoker *invoker = nullptr;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = invoker;
+    MessageParcel reply;
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+    current->invokers_.clear();
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest002
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest002, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 1;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "testlocalBusName";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 1;
+    reply.WriteUint32(rpcFeatureSet);
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest003
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest003, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 1;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "testlocalBusName";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 0;
+    reply.WriteUint32(rpcFeatureSet);
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest004
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest004, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 0;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "testlocalBusName";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 0;
+    reply.WriteUint32(rpcFeatureSet);
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest005
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession5 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest005, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 1;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "testlocalBusName";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 1;
+    reply.WriteUint32(rpcFeatureSet);
+
+    IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
+        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+    processCurrent->proxyToSession_[0] = dbinderSessionObject;
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+    processCurrent->proxyToSession_.clear();
+    dbinderSessionObject->proxy_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest006
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession5 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest006, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 1;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "testlocalBusName";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 1;
+    reply.WriteUint32(rpcFeatureSet);
+
+    IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
+        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+    processCurrent->proxyToSession_[0] = dbinderSessionObject;
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+    processCurrent->proxyToSession_.clear();
+    dbinderSessionObject->proxy_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest007
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession5 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest007, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 1;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 1;
+    reply.WriteUint32(rpcFeatureSet);
+
+    IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
+        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+    processCurrent->proxyToSession_[0] = dbinderSessionObject;
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+    processCurrent->proxyToSession_.clear();
+    dbinderSessionObject->proxy_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest008
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession5 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest008, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 0;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 0;
+    reply.WriteUint32(rpcFeatureSet);
+
+    IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
+    processCurrent->proxyToSession_.clear();
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: ReleaseDatabusProtoTest001
+ * @tc.desc: Verify the IPCObjectProxy::ReleaseDatabusProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        0, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+
+    object->ReleaseDatabusProto();
+    ASSERT_TRUE(object->isRemoteDead_ == false);
+}
+
+/**
+ * @tc.name: ReleaseDatabusProtoTest002
+ * @tc.desc: Verify the IPCObjectProxy::ReleaseDatabusProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest002, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+
+    object->proto_ = IRemoteObject::IF_PROT_DATABUS;
+    object->ReleaseDatabusProto();
+    object->isRemoteDead_ = true;
+    ASSERT_TRUE(object->handle_ != 0);
+}
+
+/**
+ * @tc.name: ReleaseDatabusProtoTest003
+ * @tc.desc: Verify the IPCObjectProxy::ReleaseDatabusProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest003, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+
+    object->proto_ = IRemoteObject::IF_PROT_DATABUS;
+    object->ReleaseDatabusProto();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    std::string serviceName = "testserviceName";
+    std::string serverDeviceId = "testserverDeviceId";
+    int64_t stubIndex = 1;
+    IPCObjectProxy *proxy = object.GetRefPtr();
+    uint32_t tokenId = 1;
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
+        sessionMock, serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+
+    auto session = current->proxyToSession_[1] = dbinderSessionObject;
+    ASSERT_TRUE(object->handle_ != 0);
+    current->proxyToSession_.clear();
+    dbinderSessionObject->proxy_ = nullptr;
+}
+
+/**
+ * @tc.name: ReleaseDatabusProtoTest004
+ * @tc.desc: Verify the IPCObjectProxy::ReleaseDatabusProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest004, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+
+    object->proto_ = IRemoteObject::IF_PROT_DATABUS;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->proxyToSession_.clear();
+    object->ReleaseDatabusProto();
+    ASSERT_TRUE(object->handle_ != 0);
 }
