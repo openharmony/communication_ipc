@@ -20,7 +20,9 @@
         "small",
         "mini"
       ],
-      "features": [],
+      "features": [
+        "ipc_feature_rpc_enabled"
+      ],
       "syscap":[
         "SystemCapability.Communication.IPC.Core"
       ],
