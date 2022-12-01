@@ -515,9 +515,8 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage002, TestSize.Level1)
     EXPECT_EQ(res, true);
 }
 
-/*
- **
- *@tc.name: GetDatabusNameByProxyTest001
+/**
+ * @tc.name: GetDatabusNameByProxyTest001
  * @tc.desc: Verify the GetDatabusNameByProxy function
  * @tc.type: FUNC
  */
