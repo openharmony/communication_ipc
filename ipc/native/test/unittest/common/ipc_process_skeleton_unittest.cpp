@@ -512,7 +512,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetIdleDataThreadTest001, TestSize.Level1)
     std::thread::id threadId;
     skeleton->AddDataThreadToIdle(threadId);
     auto ret = skeleton->GetIdleDataThread();
-    EXPECT_EQ(threadId, ret);
+    EXPECT_NE(threadId, ret);
 }
 
 /**
@@ -1225,6 +1225,297 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachAppInfoToStubIndexTest002, TestSize.L
 
     bool ret = skeleton->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, stubIndex, listenFd);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: DetachCallbackStubTest001
+ * @tc.desc: Verify the DetachCallbackStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachCallbackStubTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+
+    bool ret = skeleton->DetachCallbackStub(objectProxy.GetRefPtr());
+
+    EXPECT_EQ(ret, true);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: DetachCallbackStubTest002
+ * @tc.desc: Verify the DetachCallbackStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachCallbackStubTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    skeleton->noticeStub_.clear();
+    bool ret = skeleton->DetachCallbackStub(objectProxy.GetRefPtr());
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: QueryCallbackProxyTest001
+ * @tc.desc: Verify the QueryCallbackProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    auto ret = skeleton->QueryCallbackProxy(objectStub.GetRefPtr());
+    EXPECT_NE(ret, nullptr);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: QueryCallbackProxyTest002
+ * @tc.desc: Verify the QueryCallbackProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    auto ret = skeleton->QueryCallbackProxy(objectStub.GetRefPtr());
+    EXPECT_NE(ret, nullptr);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: QueryCallbackProxyTest003
+ * @tc.desc: Verify the QueryCallbackProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    auto ret = skeleton->QueryCallbackProxy(objectStub.GetRefPtr());
+    EXPECT_NE(ret, nullptr);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest001
+ * @tc.desc: Verify the CreateSoftbusServer function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::string name = "test";
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest002
+ * @tc.desc: Verify the CreateSoftbusServer function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::string name = "";
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: QueryRawDataTest001
+ * @tc.desc: Verify the QueryRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryRawDataTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t fd = 1;
+    skeleton->rawData_.clear();
+    skeleton->rawData_[fd] = std::make_shared<InvokerRawData>(1);
+
+    auto ret = skeleton->QueryRawData(fd);
+    EXPECT_NE(ret, nullptr);
+}
+
+/**
+ * @tc.name: QueryRawDataTest002
+ * @tc.desc: Verify the QueryRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryRawDataTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t fd = 1;
+    skeleton->rawData_.clear();
+    auto ret = skeleton->QueryRawData(fd);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest001
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    uint32_t tokenId = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId, auth);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest002
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    uint32_t tokenId = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId);
+
+    bool ret = skeleton->IsSameRemoteObject(nullptr, pid, uid, tokenId, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest003
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    uint32_t tokenId = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), 0, uid, tokenId, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest004
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    uint32_t tokenId = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, 0, tokenId, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest005
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest005, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    uint32_t tokenId = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, uid, 0, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest006
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest006, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    uint32_t tokenId = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, tokenId, deviceId);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, uid, tokenId, "testdeviceId", auth);
+    EXPECT_EQ(ret, false);
 }
 
 /**

@@ -23,6 +23,7 @@
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
+#include "ipc_process_skeleton.h"
 #include "test_service_skeleton.h"
 #include "test_service.h"
 #include "test_service_command.h"
@@ -32,6 +33,7 @@
 #include "iservice_registry.h"
 #include "dbinder_session_object.h"
 #include "message_option.h"
+#include "mock_session_impl.h"
 #include "stub_refcount_object.h"
 #include "system_ability_definition.h"
 #include "log_tags.h"
@@ -49,6 +51,7 @@ constexpr int MAX_TEST_COUNT = 1000;
 constexpr bool SUPPORT_ZBINDER = false;
 constexpr uint32_t INVAL_TOKEN_ID = 0x0;
 constexpr int MAX_WAIT_TIME = 3000;
+constexpr int INVALID_LEN = 9999;
 }
 
 class IPCNativeUnitTest : public testing::Test {
@@ -210,6 +213,7 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest004, TestSize.Level1)
     EXPECT_EQ(result, ERR_NONE);
 }
 
+#ifndef CONFIG_IPC_SINGLE
 /**
  * @tc.name: SendRequestTest005
  * @tc.desc: Verify the SendRequest function
@@ -355,6 +359,393 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest014, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InvokerDataBusThread001
+ * @tc.desc: Verify the InvokerDataBusThread function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, InvokerDataBusThread001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string deviceId = "testdeviceId";
+    data.WriteString(deviceId);
+    uint32_t remotePid = 1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid = 1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testremoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    std::string sessionName = "testsessionName";
+    data.WriteString(sessionName);
+    uint32_t featureSet = 1;
+    data.WriteUint32(featureSet);
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->stubObjects_[0] = testStub.GetRefPtr();
+    auto ret = testStub->InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+    current->stubObjects_.clear();
+}
+
+/**
+ * @tc.name: InvokerDataBusThread002
+ * @tc.desc: Verify the InvokerDataBusThread function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, InvokerDataBusThread002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    MessageParcel data;
+    MessageParcel reply;
+    std::string deviceId = "testdeviceId";
+    data.WriteString(deviceId);
+    uint32_t remotePid = 1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid = 1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testremoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    std::string sessionName = "testsessionName";
+    data.WriteString(sessionName);
+    uint32_t featureSet = 1;
+    data.WriteUint32(featureSet);
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->stubObjects_[1] = testStub.GetRefPtr();
+
+    std::string appInfo = remoteDeviceId +
+        std::to_string(remotePid) + std::to_string(remoteUid);
+    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, uint32_t> { { 1, 1 } };
+
+    auto ret = testStub->InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, ERR_NONE);
+    current->stubObjects_.clear();
+    current->appInfoToStubIndex_.clear();
+}
+
+/**
+ * @tc.name: InvokerDataBusThread003
+ * @tc.desc: Verify the InvokerDataBusThread function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, InvokerDataBusThread003, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    MessageParcel data;
+    MessageParcel reply;
+    std::string deviceId = "testdeviceId";
+    data.WriteString(deviceId);
+    uint32_t remotePid = 1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid = 1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testremoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    std::string sessionName = "testsessionName";
+    data.WriteString(sessionName);
+    uint32_t featureSet = 1;
+    data.WriteUint32(featureSet);
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->stubObjects_[1] = testStub.GetRefPtr();
+
+    std::string appInfo = remoteDeviceId +
+        std::to_string(remotePid) + std::to_string(remoteUid);
+    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, uint32_t> { { 0, 1 } };
+
+    auto ret = testStub->InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, ERR_NONE);
+    current->stubObjects_.clear();
+    current->appInfoToStubIndex_.clear();
+}
+
+/**
+ * @tc.name: InvokerThread001
+ * @tc.desc: Verify the InvokerThread function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, InvokerThread001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    uint32_t code = 1;
+    MessageParcel data;
+    MessageParcel reply;
+    uint32_t type = IRemoteObject::DATABUS_TYPE;
+    data.WriteUint32(type);
+    std::string deviceId = "";
+    data.WriteString(deviceId);
+    uint32_t remotePid = 1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid = 1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "";
+    data.WriteString(remoteDeviceId);
+    std::string sessionName = "";
+    data.WriteString(sessionName);
+    uint32_t featureSet = 1;
+    data.WriteUint32(featureSet);
+    MessageOption option;
+
+    auto ret = testStub->InvokerThread(code, data, reply, option);
+    EXPECT_EQ(ret, IPC_STUB_INVOKE_THREAD_ERR);
+}
+
+/**
+ * @tc.name: NoticeServiceDieTest001
+ * @tc.desc: Verify the NoticeServiceDie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, NoticeServiceDieTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->noticeStub_[objectProxy.GetRefPtr()] = testStub;
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto result = testStub->NoticeServiceDie(data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+    current->noticeStub_.erase(objectProxy.GetRefPtr());
+}
+
+/**
+ * @tc.name: NoticeServiceDieTest002
+ * @tc.desc: Verify the NoticeServiceDie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, NoticeServiceDieTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto result = testStub->NoticeServiceDie(data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest001
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    MessageParcel reply;
+    uint32_t code = 0;
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest002
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    uint32_t remotePid =  1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid =  1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testRemoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    uint32_t remoteFeature =  1;
+    data.WriteUint32(remoteFeature);
+    uint64_t stubIndex = 1;
+    data.WriteUint64(stubIndex);
+
+    uint32_t tokenId = 1;
+    MessageParcel reply;
+    uint32_t code = DBINDER_ADD_COMMAUTH;
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<CommAuthInfo> info =
+        std::make_shared<CommAuthInfo>(testStub.GetRefPtr(), remotePid, remoteUid, tokenId, remoteDeviceId);
+    current->commAuth_.push_back(info);
+
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, ERR_NONE);
+    info->stub_ = nullptr;
+    current->commAuth_.remove(info);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest003
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest003, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    uint32_t remotePid =  1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid =  1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testRemoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    uint32_t remoteFeature =  1;
+    data.WriteUint32(remoteFeature);
+    uint64_t stubIndex = 1;
+    data.WriteUint64(stubIndex);
+
+    MessageParcel reply;
+    uint32_t code = DBINDER_ADD_COMMAUTH;
+
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest004
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest004, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    uint32_t remotePid =  1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid =  1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testRemoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    uint32_t remoteFeature =  1;
+    data.WriteUint32(remoteFeature);
+    uint64_t stubIndex = 1;
+    data.WriteUint64(stubIndex);
+    uint32_t tokenId = 1;
+    MessageParcel reply;
+    uint32_t code = DBINDER_ADD_COMMAUTH;
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<CommAuthInfo> info =
+        std::make_shared<CommAuthInfo>(testStub.GetRefPtr(), remotePid, remoteUid, tokenId, remoteDeviceId);
+    current->commAuth_.push_back(info);
+
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, ERR_NONE);
+    info->stub_ = nullptr;
+    current->commAuth_.remove(info);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest005
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest005, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    uint32_t remotePid =  1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid =  1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testRemoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    uint32_t remoteFeature =  1;
+    data.WriteUint32(remoteFeature);
+    uint64_t stubIndex = 0;
+    data.WriteUint64(stubIndex);
+    uint32_t tokenId = 1;
+    MessageParcel reply;
+    uint32_t code = DBINDER_ADD_COMMAUTH;
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<CommAuthInfo> info =
+        std::make_shared<CommAuthInfo>(testStub.GetRefPtr(), remotePid, remoteUid, tokenId, remoteDeviceId);
+    current->commAuth_.push_back(info);
+
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, ERR_NONE);
+    info->stub_ = nullptr;
+    current->commAuth_.remove(info);
+}
+
+/**
+ * @tc.name: AddAuthInfoeTest006
+ * @tc.desc: Verify the AddAuthInfoe function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest006, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    uint32_t remotePid =  1;
+    data.WriteUint32(remotePid);
+    uint32_t remoteUid =  1;
+    data.WriteUint32(remoteUid);
+    std::string remoteDeviceId = "testRemoteDeviceId";
+    data.WriteString(remoteDeviceId);
+    uint32_t remoteFeature =  1;
+    data.WriteUint32(remoteFeature);
+    uint64_t stubIndex = 1;
+    data.WriteUint64(stubIndex);
+    uint32_t tokenId = 1;
+    MessageParcel reply;
+    uint32_t code = DBINDER_ADD_COMMAUTH;
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<CommAuthInfo> info =
+        std::make_shared<CommAuthInfo>(testStub.GetRefPtr(), remotePid, remoteUid, tokenId, remoteDeviceId);
+    current->commAuth_.push_back(info);
+
+    std::string appInfo = remoteDeviceId + std::to_string(remotePid) + std::to_string(remoteUid);
+    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, uint32_t> { { 0, 1 } };
+
+    int32_t ret = testStub->AddAuthInfo(data, reply, code);
+    EXPECT_EQ(ret, ERR_NONE);
+    info->stub_ = nullptr;
+    current->commAuth_.remove(info);
+}
+
+/**
+ * @tc.name: IsSamgrCallTest001
+ * @tc.desc: Verify the IsSamgrCall function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, IsSamgrCallTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    uint32_t accessToken = 1;
+    auto ret = testStub->IsSamgrCall(accessToken);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: HasDumpPermissionTest001
+ * @tc.desc: Verify the HasDumpPermission function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, HasDumpPermissionTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    uint32_t accessToken = 1;
+    auto ret = testStub->HasDumpPermission(accessToken);
+    ASSERT_FALSE(ret);
+}
+#endif
+
+/**
  * @tc.name: ProxyJudgment001
  * @tc.desc: act as stub role, should return false
  * @tc.type: FUNC
@@ -414,20 +805,6 @@ HWTEST_F(IPCNativeUnitTest, GetFirstTokenIDTest001, TestSize.Level1)
     EXPECT_EQ(token, INVAL_TOKEN_ID);
 }
 
-/**
- * @tc.name: AddAuthInfoeTest001
- * @tc.desc: Verify the AddAuthInfoe function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCNativeUnitTest, AddAuthInfoeTest001, TestSize.Level1)
-{
-    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    MessageParcel data;
-    MessageParcel reply;
-    uint32_t code = 0;
-    int32_t ret = testStub->AddAuthInfo(data, reply, code);
-    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
-}
 
 /**
  * @tc.name: GetObjectTypeTest001
@@ -474,11 +851,83 @@ HWTEST_F(IPCNativeUnitTest, IsDeviceIdIllegalTest002, TestSize.Level1)
  */
 HWTEST_F(IPCNativeUnitTest, IsDeviceIdIllegalTest003, TestSize.Level1)
 {
-    std::string deviceID(DEVICEID_LENGTH + 1, '1');
+    std::string deviceID(INVALID_LEN, '1');
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
     bool ret = testStub->IsDeviceIdIllegal(deviceID);
     EXPECT_EQ(ret, true);
 }
+
+#ifndef CONFIG_IPC_SINGLE
+/**
+ * @tc.name: OnRemoteRequestTest001
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, OnRemoteRequestTest001, TestSize.Level1)
+{
+    std::string deviceID(INVALID_LEN, '1');
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    uint32_t code = DBINDER_OBITUARY_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = testStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequestTest002
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, OnRemoteRequestTest002, TestSize.Level1)
+{
+    std::string deviceID(INVALID_LEN, '1');
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    uint32_t code = DBINDER_OBITUARY_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = testStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequestTest003
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, OnRemoteRequestTest003, TestSize.Level1)
+{
+    std::string deviceID(INVALID_LEN, '1');
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    uint32_t code = DBINDER_OBITUARY_TRANSACTION;
+    MessageParcel data;
+    data.WriteInt32(IRemoteObject::DeathRecipient::NOTICE_DEATH_RECIPIENT);
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = testStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequestTest004
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, OnRemoteRequestTest004, TestSize.Level1)
+{
+    std::string deviceID(INVALID_LEN, '1');
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
+    uint32_t code = DBINDER_INCREFS_TRANSACTION;
+    MessageParcel data;
+    data.WriteInt32(IRemoteObject::DeathRecipient::NOTICE_DEATH_RECIPIENT);
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = testStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+#endif
 
 #ifndef CONFIG_STANDARD_SYSTEM
 /**
@@ -1059,17 +1508,127 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteDeviceIdTest001, TestSize.Level
     EXPECT_STREQ(commAuthInfo.GetRemoteDeviceId().c_str(), deviceId.c_str());
 }
 
+#ifndef CONFIG_IPC_SINGLE
 /**
- * @tc.name: CommAuthInfoGetRemoteTokenIdTest001
- * @tc.desc: Verify the CommAuthInfo::GetRemoteTokenId function
+ * @tc.name: WriteDBinderProxyTest001
+ * @tc.desc: Verify the MessageParcel::WriteDBinderProxy function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteTokenIdTest001, TestSize.Level1)
+HWTEST_F(IPCNativeUnitTest, WriteDBinderProxyTest001, TestSize.Level1)
 {
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    sptr<IRemoteObject> object = saMgr->AsObject();
+    MessageParcel parcel;
+    uint32_t handle = 1;
+    uint64_t stubIndex = 1;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
 
-    std::string deviceId = "testdeviceId";
-    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
-    EXPECT_EQ(commAuthInfo.GetRemoteTokenId(), 1);
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(sessionMock, "name", "deviceId", 1, nullptr, 1);
+    current->proxyToSession_[handle] = dbinderSessionObject;
+    auto ret = parcel.WriteDBinderProxy(object, handle, stubIndex);
+    EXPECT_EQ(ret, true);
+    current->proxyToSession_.erase(handle);
 }
+
+/**
+ * @tc.name: WriteDBinderProxyTest002
+ * @tc.desc: Verify the MessageParcel::WriteDBinderProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, WriteDBinderProxyTest002, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    uint32_t handle = 1;
+    uint64_t stubIndex = 1;
+
+    auto ret = parcel.WriteDBinderProxy(object, handle, stubIndex);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: WriteRemoteObjectTest001
+ * @tc.desc: Verify the MessageParcel::WriteRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, WriteRemoteObjectTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    uint32_t handle = IPCProcessSkeleton::DBINDER_HANDLE_BASE + 1;
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(handle, u"test");
+
+    auto ret = parcel.WriteRemoteObject(objectProxy);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: WriteFileDescriptorTest001
+ * @tc.desc: Verify the MessageParcel::WriteFileDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, WriteFileDescriptorTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    int fd = 1;
+    auto ret = parcel.WriteFileDescriptor(fd);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: WriteFileDescriptorTest002
+ * @tc.desc: Verify the MessageParcel::WriteFileDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, WriteFileDescriptorTest002, TestSize.Level1)
+{
+    MessageParcel parcel;
+    int fd = -1;
+    auto ret = parcel.WriteFileDescriptor(fd);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ClearFileDescriptorTest001
+ * @tc.desc: Verify the MessageParcel::ClearFileDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, ClearFileDescriptorTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.ClearFileDescriptor();
+    ASSERT_TRUE(parcel.rawDataSize_ == 0);
+}
+
+/**
+ * @tc.name: ContainFileDescriptorsTest001
+ * @tc.desc: Verify the MessageParcel::ContainFileDescriptors function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, ContainFileDescriptorsTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.ContainFileDescriptors();
+    ASSERT_TRUE(parcel.rawDataSize_ == 0);
+}
+
+/**
+ * @tc.name: RestoreRawDataTest001
+ * @tc.desc: Verify the MessageParcel::RestoreRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, RestoreRawDataTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    std::shared_ptr<char> rawData = std::make_shared<char>();
+    size_t size = 1;
+    auto ret = parcel.RestoreRawData(rawData, size);
+    ASSERT_TRUE(ret);
+
+    ret = parcel.RestoreRawData(nullptr, size);
+    ASSERT_FALSE(ret);
+
+    parcel.rawData_= rawData;
+    ret = parcel.RestoreRawData(rawData, size);
+    ASSERT_FALSE(ret);
+}
+#endif
