@@ -122,8 +122,6 @@ HWTEST_F(DBinderRemoteListenerUnitTest, senddatatoremote_002, TestSize.Level1)
     const std::string deviceId = "";
     DHandleEntryTxRx message;
     message.head.len = sizeof(DHandleEntryTxRx);
-    //message.head.version = VERSION_NUM;
-    //message.deviceIdInfo.afType = DATABBUS_TYPE;
     EXPECT_EQ(dBinderRemoteListener_.SendDataToRemote(deviceId, &message), false);
 }
 
