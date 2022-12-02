@@ -156,9 +156,6 @@ uint64_t BinderConnector::GetSelfTokenID()
     if (IsAccessTokenSupported() != true) {
         return 0;
     }
-    if (selfTokenID_ != 0) {
-        return selfTokenID_;
-    }
     int fd = open(TOKENID_DEVNODE.c_str(), O_RDWR);
     if (fd < 0) {
         ZLOGE(LABEL, "%{public}s: fail to open tokenId node", __func__);
