@@ -847,18 +847,6 @@ HWTEST_F(DBinderServiceUnitTest, AttachBusNameObjectTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DetachBusNameObjectTest001
- * @tc.desc: Verify the DetachBusNameObject function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceUnitTest, DetachBusNameObjectTest001, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    IPCObjectProxy object(1);
-    EXPECT_EQ(dBinderService->DetachBusNameObject(&object), false);
-}
-
-/**
  * @tc.name: DetachBusNameObjectTest002
  * @tc.desc: Verify the DetachBusNameObject function
  * @tc.type: FUNC
