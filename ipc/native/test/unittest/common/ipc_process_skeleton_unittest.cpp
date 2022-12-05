@@ -368,6 +368,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleToIndexTest001, TestSize.Level1)
 
     skeleton->handleToStubIndex_.insert(std::pair<uint32_t, uint64_t>(1, 1));
     uint64_t handler = 1;
+    auto it = skeleton->handleToStubIndex_.find(1);
+    if (it != skeleton->handleToStubIndex_.end()) {
+        handler = it->second;
+    }
 
     EXPECT_EQ(handler, skeleton->QueryHandleToIndex(1));
 }
@@ -387,6 +391,14 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleToIndexTest003, TestSize.Level1)
     uint32_t hd = 1;
     uint64_t ret = skeleton->QueryHandleToIndex(handleList, hd);
     uint64_t handler = 1;
+    for (auto it = handleList.begin(); it != handleList.end(); it++) {
+        auto mapIndex = skeleton->handleToStubIndex_.find(*it);
+        if (mapIndex != skeleton->handleToStubIndex_.end()) {
+            hd = mapIndex->first;
+            handler = mapIndex->second;
+            break;
+        }
+    }
     EXPECT_EQ(ret, handler);
 }
 
@@ -480,7 +492,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleByDatabusSessionTest001, TestSiz
         std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handler, object));
     auto ret = skeleton->QueryHandleByDatabusSession(name, deviceId, index);
 
-    EXPECT_EQ(ret, handler);
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -1229,6 +1241,733 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachAppInfoToStubIndexTest002, TestSize.L
 
     bool ret = skeleton->AttachAppInfoToStubIndex(pid, uid, deviceId, stubIndex);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: QueryAppInfoToStubIndexTest001
+ * @tc.desc: Verify the QueryAppInfoToStubIndex function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryAppInfoToStubIndexTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->appInfoToStubIndex_.clear();
+    uint32_t pid = 1;
+    uint32_t uid = 1;
+    std::string deviceId = "testDeviceId";
+    uint64_t stubIndex = 1;
+    std::string appInfo = deviceId + std::to_string(pid) + std::to_string(uid);
+    std::map<uint64_t, bool> indexMap = {
+        { 0, true }
+    };
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    bool ret = skeleton->QueryAppInfoToStubIndex(pid, uid, deviceId, stubIndex);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: QueryAppInfoToStubIndexTest002
+ * @tc.desc: Verify the QueryAppInfoToStubIndex function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryAppInfoToStubIndexTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->appInfoToStubIndex_.clear();
+    uint32_t pid = 1;
+    uint32_t uid = 1;
+    std::string deviceId = "testDeviceId";
+    uint64_t stubIndex = 1;
+    std::string appInfo = deviceId + std::to_string(pid) + std::to_string(uid);
+    std::map<uint64_t, bool> indexMap = {
+        { stubIndex, true }
+    };
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    bool ret = skeleton->QueryAppInfoToStubIndex(pid, uid, deviceId, stubIndex);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: DetachCallbackStubTest001
+ * @tc.desc: Verify the DetachCallbackStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachCallbackStubTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    bool ret = skeleton->DetachCallbackStub(objectStub.GetRefPtr());
+    EXPECT_EQ(ret, true);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: DetachCallbackStubTest002
+ * @tc.desc: Verify the DetachCallbackStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachCallbackStubTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_.clear();
+    bool ret = skeleton->DetachCallbackStub(objectStub.GetRefPtr());
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: QueryCallbackProxyTest001
+ * @tc.desc: Verify the QueryCallbackProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    auto ret = skeleton->QueryCallbackProxy(objectStub.GetRefPtr());
+    EXPECT_NE(ret, nullptr);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: QueryCallbackProxyTest002
+ * @tc.desc: Verify the QueryCallbackProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    auto ret = skeleton->QueryCallbackProxy(objectStub.GetRefPtr());
+    EXPECT_NE(ret, nullptr);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: QueryCallbackProxyTest003
+ * @tc.desc: Verify the QueryCallbackProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->noticeStub_.clear();
+
+    sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
+    sptr<IPCObjectStub> objectStub = new IPCObjectStub(u"testObject");
+    skeleton->noticeStub_[objectProxy.GetRefPtr()] = objectStub;
+    auto ret = skeleton->QueryCallbackProxy(objectStub.GetRefPtr());
+    EXPECT_NE(ret, nullptr);
+    skeleton->noticeStub_.clear();
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest001
+ * @tc.desc: Verify the CreateSoftbusServer function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::string name = "test";
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest002
+ * @tc.desc: Verify the CreateSoftbusServer function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::string name = "";
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: QueryRawDataTest001
+ * @tc.desc: Verify the QueryRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryRawDataTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t fd = 1;
+    skeleton->rawData_.clear();
+    skeleton->rawData_[fd] = std::make_shared<InvokerRawData>(1);
+
+    auto ret = skeleton->QueryRawData(fd);
+    EXPECT_NE(ret, nullptr);
+}
+
+/**
+ * @tc.name: QueryRawDataTest002
+ * @tc.desc: Verify the QueryRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryRawDataTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t fd = 1;
+    skeleton->rawData_.clear();
+    auto ret = skeleton->QueryRawData(fd);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: AttachStubRecvRefInfoTest001
+ * @tc.desc: Verify the AttachStubRecvRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachStubRecvRefInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->stubRecvRefs_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(stubObject.GetRefPtr(), pid, deviceId);
+    skeleton->stubRecvRefs_.push_back(countObject);
+    auto ret = skeleton->AttachStubRecvRefInfo(stubObject.GetRefPtr(), pid, deviceId);
+    EXPECT_EQ(ret, false);
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: AttachStubRecvRefInfoTest002
+ * @tc.desc: Verify the AttachStubRecvRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachStubRecvRefInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->stubRecvRefs_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    auto ret = skeleton->AttachStubRecvRefInfo(stubObject.GetRefPtr(), pid, deviceId);
+    EXPECT_EQ(ret, true);
+    skeleton->stubRecvRefs_.clear();
+}
+
+/**
+ * @tc.name: DetachStubRecvRefInfoTest001
+ * @tc.desc: Verify the DetachStubRecvRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachStubRecvRefInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->stubRecvRefs_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(stubObject.GetRefPtr(), pid, deviceId);
+    skeleton->stubRecvRefs_.push_back(countObject);
+    auto ret = skeleton->DetachStubRecvRefInfo(stubObject.GetRefPtr(), pid, deviceId);
+    EXPECT_EQ(ret, true);
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachStubRecvRefInfoTest002
+ * @tc.desc: Verify the DetachStubRecvRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachStubRecvRefInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->stubRecvRefs_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    auto ret = skeleton->DetachStubRecvRefInfo(stubObject.GetRefPtr(), pid, deviceId);
+    EXPECT_EQ(ret, false);
+    skeleton->stubRecvRefs_.clear();
+}
+
+/**
+ * @tc.name: QueryStubRecvRefInfoTest001
+ * @tc.desc: Verify the QueryStubRecvRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryStubRecvRefInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(stubObject.GetRefPtr(), pid, deviceId);
+    skeleton->stubRecvRefs_.push_back(countObject);
+    auto ret = skeleton->QueryStubRecvRefInfo(pid, deviceId);
+
+    ASSERT_TRUE(ret.size() != 0);
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryStubRecvRefInfoTest002
+ * @tc.desc: Verify the QueryStubRecvRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryStubRecvRefInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(stubObject.GetRefPtr(), pid, deviceId);
+    skeleton->stubRecvRefs_.push_back(countObject);
+
+    skeleton->QueryStubRecvRefInfo(pid, deviceId);
+    ASSERT_TRUE(skeleton->stubRecvRefs_.size() != 0);
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachStubRefInfoTest001
+ * @tc.desc: Verify the DetachStubRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachStubRefInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    IPCObjectStub stubObject(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(&stubObject, pid, deviceId);
+    skeleton->stubRecvRefs_.push_back(countObject);
+    skeleton->stubSendRefs_.push_back(countObject);
+
+    skeleton->DetachStubRefInfo(pid, deviceId);
+    ASSERT_TRUE(skeleton->stubRecvRefs_.size() == 0);
+    skeleton->stubSendRefs_.clear();
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachStubRefInfoTest002
+ * @tc.desc: Verify the DetachStubRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachStubRefInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    IPCObjectStub stubObject(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(&stubObject, pid, deviceId);
+    skeleton->stubRecvRefs_.push_back(countObject);
+    skeleton->stubSendRefs_.push_back(countObject);
+
+    skeleton->DetachStubRefInfo(&stubObject, pid, deviceId);
+    ASSERT_TRUE(skeleton->stubRecvRefs_.size() == 0);
+    skeleton->stubSendRefs_.clear();
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: IncStubRefTimesTest001
+ * @tc.desc: Verify the IncStubRefTimes function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IncStubRefTimesTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->transTimes_.clear();
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    skeleton->transTimes_[object.GetRefPtr()] = 1;
+    bool ret = skeleton->IncStubRefTimes(object.GetRefPtr());
+    EXPECT_EQ(ret, true);
+    skeleton->transTimes_.clear();
+}
+
+/**
+ * @tc.name: IncStubRefTimesTest002
+ * @tc.desc: Verify the IncStubRefTimes function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IncStubRefTimesTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->transTimes_.clear();
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    bool ret = skeleton->IncStubRefTimes(object.GetRefPtr());
+    EXPECT_EQ(ret, true);
+    skeleton->transTimes_.clear();
+}
+
+/**
+ * @tc.name: DecStubRefTimesTest001
+ * @tc.desc: Verify the DecStubRefTimes function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DecStubRefTimesTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->transTimes_.clear();
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    skeleton->transTimes_[object.GetRefPtr()] = 1;
+    bool ret = skeleton->DecStubRefTimes(object.GetRefPtr());
+    EXPECT_EQ(ret, true);
+    skeleton->transTimes_.clear();
+}
+
+/**
+ * @tc.name: DecStubRefTimesTest002
+ * @tc.desc: Verify the DecStubRefTimes function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DecStubRefTimesTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->transTimes_.clear();
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    skeleton->transTimes_[object.GetRefPtr()] = 0;
+    bool ret = skeleton->DecStubRefTimes(object.GetRefPtr());
+    EXPECT_EQ(ret, false);
+    skeleton->transTimes_.clear();
+}
+
+/**
+ * @tc.name: DecStubRefTimesTest003
+ * @tc.desc: Verify the DecStubRefTimes function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DecStubRefTimesTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->transTimes_.clear();
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    bool ret = skeleton->DecStubRefTimes(object.GetRefPtr());
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AttachStubSendRefInfoTest001
+ * @tc.desc: Verify the AttachStubSendRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachStubSendRefInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->stubSendRefs_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(stubObject.GetRefPtr(), pid, deviceId);
+    skeleton->stubSendRefs_.push_back(countObject);
+    auto ret = skeleton->AttachStubSendRefInfo(stubObject.GetRefPtr(), pid, deviceId);
+    EXPECT_EQ(ret, false);
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: AttachStubSendRefInfoTest002
+ * @tc.desc: Verify the AttachStubSendRefInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachStubSendRefInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->stubSendRefs_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    std::string deviceId = "test";
+
+    std::shared_ptr<StubRefCountObject> countObject =
+        std::make_shared<StubRefCountObject>(stubObject.GetRefPtr(), pid, deviceId);
+    auto ret = skeleton->AttachStubSendRefInfo(stubObject.GetRefPtr(), pid, deviceId);
+    EXPECT_EQ(ret, true);
+    skeleton->stubRecvRefs_.clear();
+    countObject->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest001
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(pid, uid, deviceId, auth);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest002
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(0, uid, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest003
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(pid, 0, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest004
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, uid, deviceId, auth);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest005
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest005, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+    IRemoteObject *stub = nullptr;
+
+    bool ret = skeleton->IsSameRemoteObject(stub, pid, uid, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest006
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest006, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), 0, uid, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest007
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest007, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, 0, deviceId, auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest008
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest008, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(stubObject.GetRefPtr(), pid, uid, "deviceId", auth);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsSameRemoteObjectTest009
+ * @tc.desc: Verify the IsSameRemoteObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsSameRemoteObjectTest009, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<FeatureSetData> featureSet = std::make_shared<FeatureSetData>();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(u"testObject");
+    int pid = 1;
+    int uid = 1;
+    std::string deviceId = "test";
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), pid, uid, deviceId, featureSet);
+
+    bool ret = skeleton->IsSameRemoteObject(pid, uid, "deviceId", auth);
+    EXPECT_EQ(ret, false);
 }
 
 /**
