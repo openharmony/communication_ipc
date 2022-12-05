@@ -336,3 +336,17 @@ HWTEST_F(BufferObjectUnitTest, GetNeedBufferSizeTest005, TestSize.Level1)
     uint32_t ret = 0;
     EXPECT_EQ(object.GetNeedBufferSize(SOCKET_BUFF_SIZE_USER_HUGE + 1), ret);
 }
+
+/**
+ * @tc.name: deleteTest001
+ * @tc.desc: Verify the delete function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BufferObjectUnitTest, deleteTest001, TestSize.Level1)
+{
+    BufferObject object;
+    object.sendBuffer_ = nullptr;
+    object.receiveBuffer_ = nullptr;
+
+    ASSERT_TRUE(object.sendBuffSize_ == 0);
+}
