@@ -299,7 +299,6 @@ HWTEST_F(DBinderServiceUnitTest, StopRemoteListener001, TestSize.Level1)
     std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>(dBinderService);
     EXPECT_EQ(dBinderService->StartRemoteListener(), false);
     dBinderService->StopRemoteListener();
-
 }
 
 /**
