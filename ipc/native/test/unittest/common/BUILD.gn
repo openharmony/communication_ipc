@@ -38,6 +38,8 @@ ohos_unittest("IPCNativeUnitTest") {
     "ipc_object_proxy_unittest.cpp",
     "ipc_process_skeleton_unittest.cpp",
     "ipc_thread_skeleton_unittest.cpp",
+    "iremote_object_unitest.cpp",
+    "message_parcel_unittest.cpp",
   ]
 
   configs = [
@@ -72,10 +74,7 @@ ohos_unittest("IPCFileDescOpsTest") {
     "//foundation/communication/ipc/native/src/core/include",
   ]
 
-  sources = [
-    "ipc_file_desc_unittest.cpp",
-    "iremote_object_unitest.cpp",
-  ]
+  sources = [ "ipc_file_desc_unittest.cpp" ]
 
   configs = [
     "$SUBSYSTEM_DIR:ipc_util_config",
