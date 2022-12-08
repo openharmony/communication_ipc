@@ -41,7 +41,7 @@ public:
     enum {
         DATABUS_TYPE,
     };
-    class DeathRecipient : public virtual RefBase {
+    class DeathRecipient : public RefBase {
     public:
         enum {
             ADD_DEATH_RECIPIENT,
