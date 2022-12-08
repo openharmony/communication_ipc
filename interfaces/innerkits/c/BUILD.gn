@@ -12,16 +12,20 @@
 # limitations under the License.
 
 import("//build/lite/config/component/lite_component.gni")
+import("//foundation/communication/ipc/config.gni")
 
 declare_args() {
   enable_ipc_test = false
 }
 
 lite_component("rpc") {
-  features = [
-    "ipc:rpc_manager",
-    "dbinder:dbinder",
-  ]
+  features = []
+  if (ipc_feature_rpc_enabled) {
+    features += [
+      "ipc:rpc_manager",
+      "dbinder:dbinder",
+    ]
+  }
   if (ohos_kernel_type != "liteos_m") {
     features += [ "ipc:ipc_single" ]
   }
