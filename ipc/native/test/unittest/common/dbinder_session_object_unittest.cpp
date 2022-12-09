@@ -83,12 +83,10 @@ HWTEST_F(DBinderSessionObjectTest, GetBusSessionTest001, TestSize.Level1)
     DBinderSessionObject object(sessionMock, serviceName, serverDeviceId, 1, nullptr, 1);
 
     EXPECT_CALL(*sessionMock, GetChannelId())
-        .Times(1)
-        .WillOnce(testing::Return(1));
+        .WillRepeatedly(testing::Return(1));
 
     EXPECT_CALL(*sessionMock, GetSessionId())
-        .Times(1)
-        .WillOnce(testing::Return(1));
+        .WillRepeatedly(testing::Return(1));
 
     auto session = object.GetBusSession();
     EXPECT_NE(session, nullptr);
@@ -191,8 +189,7 @@ HWTEST_F(DBinderSessionObjectTest, GetSessionHandleTest001, TestSize.Level1)
     DBinderSessionObject object(sessionMock, serviceName, serverDeviceId, 1, nullptr, 1);
 
     EXPECT_CALL(*sessionMock, GetChannelId())
-        .Times(1)
-        .WillOnce(testing::Return(1));
+        .WillRepeatedly(testing::Return(1));
 
     uint32_t ret = object.GetSessionHandle();
     uint32_t id = 1;
