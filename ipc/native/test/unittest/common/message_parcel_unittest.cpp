@@ -385,3 +385,29 @@ HWTEST_F(MessageParcelTest, WriteAshmemTest001, TestSize.Level1)
     ASSERT_TRUE(ret == true);
     ashmem->CloseAshmem();
 }
+
+/**
+ * @tc.name: ReadAshmemTest001
+ * @tc.desc: Verify the MessageParcel::ReadAshmem function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ReadAshmemTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+
+    auto ret = parcel.ReadAshmem();
+    ASSERT_TRUE(ret == nullptr);
+}
+
+/**
+ * @tc.name: AppendTest001
+ * @tc.desc: Verify the MessageParcel::Append function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, AppendTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    MessageParcel data;
+    auto ret = parcel.Append(data);
+    ASSERT_TRUE(ret);
+}
