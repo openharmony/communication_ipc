@@ -38,6 +38,7 @@ ohos_unittest("IPCNativeUnitTest") {
     "ipc_object_proxy_unittest.cpp",
     "ipc_process_skeleton_unittest.cpp",
     "ipc_thread_skeleton_unittest.cpp",
+    "ipc_thread_pool_unittest.cpp",
     "iremote_object_unitest.cpp",
     "message_parcel_unittest.cpp",
   ]
@@ -69,6 +70,8 @@ ohos_unittest("IPCFileDescOpsTest") {
 
   include_dirs = [
     "//utils/system/safwk/native/include",
+    "//foundation/communication/ipc/ipc/native/c/rpc/include",
+    "//foundation/communication/ipc/ipc/native/c/ipc_adapter/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include",
     "//foundation/communication/ipc/native/src/core/include",

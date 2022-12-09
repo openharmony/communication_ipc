@@ -18,9 +18,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <gtest/gtest.h>
+
+#define private public
+#include "binder_invoker.h"
 #include "ipc_debug.h"
 #include "ipc_file_descriptor.h"
 #include "log_tags.h"
+#include "ipc_thread_skeleton.h"
+#undef private
 
 namespace OHOS {
 using namespace testing::ext;
@@ -89,5 +94,51 @@ HWTEST_F(IPCFileDescOpsTest, fd_parcelable_003, TestSize.Level1)
 
     fdesc.SetFd(fd);
     EXPECT_EQ(fd, fdesc.GetFd());
+}
+
+HWTEST_F(IPCFileDescOpsTest, Marshalling001, TestSize.Level1)
+{
+    int fd = 9876;
+    IPCFileDescriptor fdesc;
+
+    fdesc.SetFd(fd);
+    BinderInvoker *invoker = nullptr;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    Parcel parcel;
+    auto ret = fdesc.Marshalling(parcel);
+    ASSERT_FALSE(ret);
+}
+
+HWTEST_F(IPCFileDescOpsTest, Unmarshalling001, TestSize.Level1)
+{
+    int fd = 9876;
+    IPCFileDescriptor fdesc;
+
+    fdesc.SetFd(fd);
+    BinderInvoker *invoker = nullptr;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    Parcel parcel;
+    auto ret = fdesc.Unmarshalling(parcel);
+    ASSERT_TRUE(ret == nullptr);
+}
+
+HWTEST_F(IPCFileDescOpsTest, Unmarshalling002, TestSize.Level1)
+{
+    int fd = 9876;
+    IPCFileDescriptor fdesc;
+    Parcel parcel;
+
+    fdesc.SetFd(fd);
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->WriteFileDescriptor(parcel, fd, true);
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    auto ret = fdesc.Unmarshalling(parcel);
+    ASSERT_TRUE(ret != nullptr);
 }
 } // namespace OHOS
