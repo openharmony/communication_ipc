@@ -16,14 +16,17 @@
 #include <gtest/gtest.h>
 
 #define private public
+#define protected public
 #include "comm_auth_info.h"
 #include "databus_session_callback.h"
 #include "dbinder_session_object.h"
+#include "binder_invoker.h"
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
+#include "ipc_thread_skeleton.h"
 #include "test_service_skeleton.h"
 #include "test_service.h"
 #include "test_service_command.h"
@@ -37,6 +40,7 @@
 #include "stub_refcount_object.h"
 #include "system_ability_definition.h"
 #include "log_tags.h"
+#undef protected
 #undef private
 #ifndef CONFIG_STANDARD_SYSTEM
 #include "jni_help.h"
@@ -52,6 +56,7 @@ constexpr bool SUPPORT_ZBINDER = false;
 constexpr uint32_t INVAL_TOKEN_ID = 0x0;
 constexpr int MAX_WAIT_TIME = 3000;
 constexpr int INVALID_LEN = 9999;
+constexpr pid_t ALLOWED_UID = 10000;
 }
 
 class IPCNativeUnitTest : public testing::Test {
@@ -228,6 +233,27 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest005, TestSize.Level1)
     MessageOption option;
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVOKE_THREAD_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest006
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest006, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = INVOKE_LISTEN_THREAD;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = ALLOWED_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
 /**
