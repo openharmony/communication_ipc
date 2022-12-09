@@ -110,7 +110,7 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest004, TestSize.Level1)
 HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest005, TestSize.Level1)
 {
     IPCWorkThreadPool threadPool(1);
-    std::string threadName = "threadName1";
+    std::string threadName = "threadName2";
 
     threadPool.threads_[threadName] = nullptr;
     auto ret = threadPool.RemoveThread(threadName);
