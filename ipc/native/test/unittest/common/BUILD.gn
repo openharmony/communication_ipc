@@ -21,6 +21,7 @@ ohos_unittest("IPCNativeUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
+    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
     "//foundation/communication/ipc/ipc/native/c/rpc/include",
     "//foundation/communication/ipc/ipc/native/c/ipc_adapter/include",
@@ -37,8 +38,8 @@ ohos_unittest("IPCNativeUnitTest") {
     "ipc_core_unittest.cpp",
     "ipc_object_proxy_unittest.cpp",
     "ipc_process_skeleton_unittest.cpp",
-    "ipc_thread_skeleton_unittest.cpp",
     "ipc_thread_pool_unittest.cpp",
+    "ipc_thread_skeleton_unittest.cpp",
     "iremote_object_unitest.cpp",
     "message_parcel_unittest.cpp",
   ]

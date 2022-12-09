@@ -149,7 +149,7 @@ HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest001, TestSize.Level1)
     invoker->callerPid_ = 1;
     invoker->callerUid_ = 1;
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = invoker;
 
     int32_t ret = fakeStub->ProcessProto(code, data, reply, option);
     EXPECT_EQ(ret, BINDER_CALLBACK_AUTHCOMM_ERR);
