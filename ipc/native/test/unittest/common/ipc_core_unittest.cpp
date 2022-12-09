@@ -322,12 +322,10 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest009, TestSize.Level1)
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
 
     EXPECT_CALL(*invoker, GetStatus())
-        .Times(1)
-        .WillOnce(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
     EXPECT_CALL(*invoker, IsLocalCalling())
-        .Times(1)
-        .WillOnce(testing::Return(false));
+        .WillRepeatedly(testing::Return(false));
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
@@ -434,12 +432,10 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest015, TestSize.Level1)
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
 
     EXPECT_CALL(*invoker, GetStatus())
-        .Times(1)
-        .WillOnce(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
     EXPECT_CALL(*invoker, IsLocalCalling())
-        .Times(1)
-        .WillOnce(testing::Return(false));
+        .WillRepeatedly(testing::Return(false));
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
