@@ -19,6 +19,7 @@
 #define protected public
 #include "comm_auth_info.h"
 #include "databus_session_callback.h"
+#include "dbinder_databus_invoker.h"
 #include "dbinder_session_object.h"
 #include "binder_invoker.h"
 #include "ipc_debug.h"
@@ -37,6 +38,7 @@
 #include "dbinder_session_object.h"
 #include "message_option.h"
 #include "mock_session_impl.h"
+#include "mock_iremote_invoker.h"
 #include "stub_refcount_object.h"
 #include "system_ability_definition.h"
 #include "log_tags.h"
@@ -254,6 +256,8 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest006, TestSize.Level1)
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    current->invokers_.clear();
+    delete invoker;
 }
 
 /**
@@ -268,8 +272,17 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest007, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = ALLOWED_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    current->invokers_.clear();
+    delete invoker;
 }
 
 /**
@@ -300,8 +313,27 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest009, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    DBinderDatabusInvoker *dbinderInvoker = new DBinderDatabusInvoker();
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .Times(1)
+        .WillOnce(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .Times(1)
+        .WillOnce(testing::Return(false));
+
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    current->invokers_.clear();
+    delete invoker;
+    delete dbinderInvoker;
 }
 
 /**
@@ -382,6 +414,36 @@ HWTEST_F(IPCNativeUnitTest, SendRequestTest014, TestSize.Level1)
     MessageOption option;
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: SendRequestTest015
+ * @tc.desc: Verify the SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, SendRequestTest015, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = GET_SESSION_NAME;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .Times(1)
+        .WillOnce(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .Times(1)
+        .WillOnce(testing::Return(false));
+
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+    current->invokers_.clear();
 }
 
 /**
@@ -914,8 +976,17 @@ HWTEST_F(IPCNativeUnitTest, OnRemoteRequestTest002, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerTokenID_ = 1;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
     auto ret = testStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+    current->invokers_.clear();
+    delete invoker;
 }
 
 /**

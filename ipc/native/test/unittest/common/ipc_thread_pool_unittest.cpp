@@ -56,12 +56,15 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest001, TestSize.Level1)
     std::string threadName = "threadName1";
 
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
-    threadPool.threads_[threadName] = ipcThread;
+    ASSERT_TRUE(ipcThread != nullptr);
     ipcThread->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+    threadPool.threads_[threadName] = ipcThread;
 
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
+    threadPool.threads_.clear();
+    ASSERT_TRUE(ipcThread != nullptr);
 }
 
 /**
@@ -72,15 +75,36 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest001, TestSize.Level1)
 HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest002, TestSize.Level1)
 {
     IPCWorkThreadPool threadPool(1);
-    std::string threadName = "threadName1";
+    std::string threadName = "threadName2";
 
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
-    threadPool.threads_[threadName] = ipcThread;
     ipcThread->proto_ = IRemoteObject::IF_PROT_DATABUS;
+    threadPool.threads_[threadName] = ipcThread;
 
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
+    threadPool.threads_.clear();
+}
+
+/**
+ * @tc.name: RemoveThreadTest003
+ * @tc.desc: Verify the RemoveThread function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest003, TestSize.Level1)
+{
+    IPCWorkThreadPool threadPool(1);
+    std::string threadName = "threadName3";
+
+    auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
+    ipcThread->proto_ = IRemoteObject::IF_PROT_ERROR;
+    threadPool.threads_[threadName] = ipcThread;
+
+    auto ret = threadPool.RemoveThread(threadName);
+
+    EXPECT_EQ(ret, true);
+    threadPool.threads_.clear();
 }
 
 /**
@@ -91,15 +115,14 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest002, TestSize.Level1)
 HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest004, TestSize.Level1)
 {
     IPCWorkThreadPool threadPool(1);
-    std::string threadName = "threadName1";
+    std::string threadName = "threadName4";
 
-    auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
+    sptr<IPCWorkThread> ipcThread = nullptr;
     threadPool.threads_[threadName] = ipcThread;
-    ipcThread->proto_ = IRemoteObject::IF_PROT_ERROR;
-
     auto ret = threadPool.RemoveThread(threadName);
 
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
+    threadPool.threads_.clear();
 }
 
 /**
@@ -110,23 +133,7 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest004, TestSize.Level1)
 HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest005, TestSize.Level1)
 {
     IPCWorkThreadPool threadPool(1);
-    std::string threadName = "threadName2";
-
-    threadPool.threads_[threadName] = nullptr;
-    auto ret = threadPool.RemoveThread(threadName);
-
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: RemoveThreadTest006
- * @tc.desc: Verify the RemoveThread function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest006, TestSize.Level1)
-{
-    IPCWorkThreadPool threadPool(1);
-    std::string threadName = "threadName1";
+    std::string threadName = "threadName5";
 
     auto ret = threadPool.RemoveThread(threadName);
 
@@ -143,5 +150,5 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, UpdateMaxThreadNumTest001, TestSize.Level1)
     IPCWorkThreadPool threadPool(1);
     threadPool.UpdateMaxThreadNum(0);
 
-    EXPECT_EQ(threadPool.maxThreadNum_, 1);
+    EXPECT_EQ(threadPool.maxThreadNum_, 2);
 }
