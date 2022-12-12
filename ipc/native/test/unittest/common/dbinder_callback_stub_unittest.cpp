@@ -28,6 +28,7 @@
 #include "ipc_process_skeleton.h"
 #include "dbinder_session_object.h"
 #include "stub_refcount_object.h"
+#include "mock_iremote_invoker.h"
 #undef protected
 #undef private
 
@@ -193,4 +194,80 @@ HWTEST_F(DBinderCallbackStubTest, OnRemoteRequestTest002, TestSize.Level1)
     int32_t ret = fakeStub->OnRemoteRequest(code, data, reply, option);
 
     EXPECT_EQ(ret, DBINDER_CALLBACK_ERR);
+}
+
+/**
+ * @tc.name: ProcessProtoTest002
+ * @tc.desc: Verify the ProcessProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest002, TestSize.Level1)
+{
+    sptr<DBinderCallbackStub> fakeStub = new (std::nothrow) DBinderCallbackStub(
+        SERVICE_TEST, DEVICE_TEST, LOCALDEVICE_TEST, STUBINDEX_TEST, HANDLE_TEST, TOKENID_TEST);
+    ASSERT_TRUE(fakeStub != nullptr);
+
+    uint32_t code = DBINDER_DECREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, GetCallerPid())
+        .WillRepeatedly(testing::Return(-1));
+
+    EXPECT_CALL(*invoker, GetCallerUid())
+        .WillRepeatedly(testing::Return(1114));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(1));
+
+    int32_t ret = fakeStub->ProcessProto(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
+ * @tc.name: ProcessProtoTest003
+ * @tc.desc: Verify the ProcessProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest003, TestSize.Level1)
+{
+    sptr<DBinderCallbackStub> fakeStub = new (std::nothrow) DBinderCallbackStub(
+        SERVICE_TEST, DEVICE_TEST, LOCALDEVICE_TEST, STUBINDEX_TEST, HANDLE_TEST, TOKENID_TEST);
+    ASSERT_TRUE(fakeStub != nullptr);
+
+    uint32_t code = DBINDER_DECREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, GetCallerPid())
+        .WillRepeatedly(testing::Return(1111));
+
+    EXPECT_CALL(*invoker, GetCallerUid())
+        .WillRepeatedly(testing::Return(-1));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(1));
+
+    int32_t ret = fakeStub->ProcessProto(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    current->invokers_.clear();
+    delete invoker;
 }
