@@ -459,8 +459,6 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest017, TestSize.Level1)
 }
 #endif
 
-
-
 #ifndef CONFIG_IPC_SINGLE
 
 /**

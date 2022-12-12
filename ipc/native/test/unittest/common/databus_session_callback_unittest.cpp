@@ -178,5 +178,4 @@ HWTEST_F(DbSessionCallbackUnitTest, OnSessionOpenedTest004, TestSize.Level1)
     ssize_t len = strlen(data);
     dbSessionCallback.OnBytesReceived(session, data, len);
     dbSessionCallback.OnSessionClosed(session);
-
 }
