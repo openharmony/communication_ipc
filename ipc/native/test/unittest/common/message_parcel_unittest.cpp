@@ -212,7 +212,12 @@ HWTEST_F(MessageParcelTest, RestoreRawDataTest001, TestSize.Level1)
     MessageParcel parcel;
     std::shared_ptr<char> rawData = std::make_shared<char>();
     size_t size = 1;
-    auto ret = parcel.RestoreRawData(rawData, size);
+
+    parcel.rawData_= nullptr;
+    auto ret = parcel.RestoreRawData(nullptr, size);
+    ASSERT_FALSE(ret);
+
+    ret = parcel.RestoreRawData(rawData, size);
     ASSERT_TRUE(ret);
 
     ret = parcel.RestoreRawData(nullptr, size);
@@ -257,7 +262,7 @@ HWTEST_F(MessageParcelTest, ReadRawDataTest003, TestSize.Level1)
 {
     MessageParcel parcel;
     parcel.WriteInt32(MessageParcel::MIN_RAWDATA_SIZE + 1);
-    auto ret = parcel.ReadRawData(1);
+    auto ret = parcel.ReadRawData(MessageParcel::MIN_RAWDATA_SIZE + 1);
     ASSERT_TRUE(ret == nullptr);
 }
 
@@ -322,6 +327,21 @@ HWTEST_F(MessageParcelTest, ReadRawDataTest007, TestSize.Level1)
     parcel.writeRawDataFd_ = 0;
     parcel.rawData_ = std::make_shared<char>(MessageParcel::MIN_RAWDATA_SIZE + 1);
     auto ret = parcel.ReadRawData(MessageParcel::MIN_RAWDATA_SIZE + 1);
+    ASSERT_TRUE(ret == nullptr);
+}
+
+/**
+ * @tc.name: ReadRawDataTest008
+ * @tc.desc: Verify the MessageParcel::ReadRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ReadRawDataTest008, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.WriteInt32(MessageParcel::MIN_RAWDATA_SIZE + 1);
+    parcel.rawData_ = std::make_shared<char>(MessageParcel::MIN_RAWDATA_SIZE + 1);
+    parcel.writeRawDataFd_ = 0;
+    auto ret = parcel.ReadRawData(MessageParcel::MIN_RAWDATA_SIZE);
     ASSERT_TRUE(ret == nullptr);
 }
 
