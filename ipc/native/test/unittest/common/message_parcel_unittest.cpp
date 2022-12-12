@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 
 #define private public
+#include "buffer_object.h"
 #include "dbinder_session_object.h"
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
@@ -309,6 +310,22 @@ HWTEST_F(MessageParcelTest, ReadRawDataTest006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReadRawDataTest007
+ * @tc.desc: Verify the MessageParcel::ReadRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ReadRawDataTest007, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.WriteInt32(MessageParcel::MIN_RAWDATA_SIZE + 1);
+    parcel.rawDataSize_ = 0;
+    parcel.writeRawDataFd_ = 0;
+    parcel.rawData_ = std::make_shared<char>(MessageParcel::MIN_RAWDATA_SIZE + 1);
+    auto ret = parcel.ReadRawData(MessageParcel::MIN_RAWDATA_SIZE + 1);
+    ASSERT_TRUE(ret == nullptr);
+}
+
+/**
  * @tc.name: GetRawDataTest001
  * @tc.desc: Verify the MessageParcel::GetRawData function
  * @tc.type: FUNC
@@ -411,3 +428,69 @@ HWTEST_F(MessageParcelTest, AppendTest001, TestSize.Level1)
     auto ret = parcel.Append(data);
     ASSERT_TRUE(ret);
 }
+
+/**
+ * @tc.name: WriteRawDataTest001
+ * @tc.desc: Verify the MessageParcel::WriteRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRawDataTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    char data[1] = { 0 };
+    auto ret = parcel.WriteRawData(data, 1);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: WriteRawDataTest002
+ * @tc.desc: Verify the MessageParcel::WriteRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRawDataTest002, TestSize.Level1)
+{
+    MessageParcel parcel;
+    auto ret = parcel.WriteRawData(nullptr, 1);
+    ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: WriteRawDataTest003
+ * @tc.desc: Verify the MessageParcel::WriteRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRawDataTest003, TestSize.Level1)
+{
+    MessageParcel parcel;
+    char data[1] = { 0 };
+    auto ret = parcel.WriteRawData(data, MAX_RAWDATA_SIZE + 1);
+    ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: WriteRawDataTest004
+ * @tc.desc: Verify the MessageParcel::WriteRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRawDataTest004, TestSize.Level1)
+{
+    MessageParcel parcel;
+    char data[MessageParcel::MIN_RAWDATA_SIZE + 1] = { 0 };
+    auto ret = parcel.WriteRawData(data, MessageParcel::MIN_RAWDATA_SIZE + 1);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: WriteRawDataTest005
+ * @tc.desc: Verify the MessageParcel::WriteRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRawDataTest005, TestSize.Level1)
+{
+    MessageParcel parcel;
+    char data[1] = { 0 };
+    parcel.kernelMappedWrite_ = data;
+    auto ret = parcel.WriteRawData(data, 1);
+    ASSERT_TRUE(!ret);
+}
+
