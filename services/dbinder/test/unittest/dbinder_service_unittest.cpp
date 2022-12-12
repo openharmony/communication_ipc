@@ -109,6 +109,21 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StartDBinderService003
+ * @tc.desc: Verify the StartDBinderService function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, StartDBinderService003, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService;
+    std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
+    DBinderService::mainThreadCreated_ = false;
+    dBinderService->remoteListener_ = nullptr;
+    bool res = dBinderService->StartDBinderService(callbackImpl);
+    EXPECT_EQ(res, false);
+}
+
+/**
  * @tc.name: ReStartRemoteListener001
  * @tc.desc: Verify the ReStartRemoteListener function
  * @tc.type: FUNC
@@ -132,6 +147,20 @@ HWTEST_F(DBinderServiceUnitTest, StartRemoteListener001, TestSize.Level1)
     dBinderService->remoteListener_ = nullptr;
     bool res = dBinderService->StartRemoteListener();
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: StartRemoteListener002
+ * @tc.desc: Verify the StartRemoteListener function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, StartRemoteListener002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    bool res = dBinderService->StartRemoteListener();
+    EXPECT_EQ(res, true);
+    
 }
 
 /**
@@ -261,7 +290,7 @@ HWTEST_F(DBinderServiceUnitTest, StopRemoteListener001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>(dBinderService);
-    EXPECT_EQ(dBinderService->StartRemoteListener(), false);
+    EXPECT_EQ(dBinderService->StartRemoteListener(), true);
     dBinderService->StopRemoteListener();
 }
 
@@ -1092,4 +1121,118 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject);
     remoteObject = new IPCObjectProxy(1);
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject);
+}
+
+/**
+ * @tc.name: SendMessageToRemote001
+ * @tc.desc: Verify the SendMessageToRemote function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, SendMessageToRemote001, TestSize.Level1)
+{
+    uint32_t dBinderCode = 4;
+    uint32_t reason = 0;
+    std::shared_ptr<DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    dBinderService->SendMessageToRemote(dBinderCode, reason, replyMessage);
+    dBinderCode = 1;
+    dBinderService->SendMessageToRemote(dBinderCode, reason, replyMessage);
+    DBinderService *temp = new DBinderService();
+    DBinderService::instance_ = temp;
+    dBinderService = DBinderService::GetInstance();
+    EXPECT_EQ(dBinderService, DBinderService::instance_);
+}
+
+/**
+ * @tc.name: StartThreadPool001
+ * @tc.desc: Verify the StartThreadPool function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, StartThreadPool001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->threadPoolStarted_ = true;
+    bool res1 = dBinderService->StartThreadPool();
+    EXPECT_EQ(res1, true);
+    dBinderService->threadPoolStarted_ = false;
+    dBinderService->threadPool_ = nullptr;
+    dBinderService->StartThreadPool();
+    dBinderService->threadPool_ = std::make_unique<ThreadPool>("DBinderRemoteListener");
+    bool res2 = dBinderService->StartThreadPool();
+    EXPECT_EQ(res2, true);
+}
+
+/**
+ * @tc.name: StopThreadPool001
+ * @tc.desc: Verify the StopThreadPool function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, StopThreadPool001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->threadPoolStarted_ = true;
+    dBinderService->StartThreadPool();
+    dBinderService->threadPoolStarted_ = false;
+    bool res = dBinderService->StartThreadPool();
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: AddAsynMessageTask001
+ * @tc.desc: Verify the AddAsynMessageTask function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, AddAsynMessageTask001, TestSize.Level1)
+{
+    std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->AddAsynMessageTask(message);
+}
+
+/**
+ * @tc.name: IsSameSession002
+ * @tc.desc: Verify the IsSameSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, IsSameSession002, TestSize.Level1)
+{
+    std::shared_ptr<struct SessionInfo> oldSession= std::make_shared<struct SessionInfo>();
+    std::shared_ptr<struct SessionInfo> newSession= std::make_shared<struct SessionInfo>();
+    oldSession->stubIndex = 1;
+    oldSession->toPort = 2;
+    oldSession->fromPort = 3;
+    oldSession->type = 4;
+    oldSession->serviceName[0] = 't';
+    newSession->stubIndex = 2;
+    newSession->toPort = 2;
+    newSession->fromPort = 3;
+    newSession->type = 4;
+    newSession->serviceName[0] = 't';
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_EQ(dBinderService->IsSameSession(oldSession, newSession), false);
+    newSession->stubIndex = 1;
+    newSession->toPort = 12;
+    EXPECT_EQ(dBinderService->IsSameSession(oldSession, newSession), false);
+    newSession->toPort = 2;
+    newSession->fromPort = 13;
+    EXPECT_EQ(dBinderService->IsSameSession(oldSession, newSession), false);
+    newSession->fromPort = 3;
+    newSession->type = 14;
+    EXPECT_EQ(dBinderService->IsSameSession(oldSession, newSession), false);
+    newSession->type = 4;
+    EXPECT_EQ(dBinderService->IsSameSession(oldSession, newSession), true);
+}
+
+/**
+ * @tc.name: AttachSessionObject001
+ * @tc.desc: Verify the AttachSessionObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, AttachSessionObject001, TestSize.Level1)
+{
+    std::shared_ptr<struct SessionInfo> object = nullptr;
+    binder_uintptr_t stub = 0;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_EQ(dBinderService->AttachSessionObject(object, stub), true);
 }
