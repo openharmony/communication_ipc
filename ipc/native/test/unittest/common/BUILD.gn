@@ -339,8 +339,8 @@ group("unittest") {
     ":IPCHiTraceUnitTest",
     ":IPCMockUnitTest",
     ":IPCNativeUnitTest",
-    ":RPCFeatureUnitTest",
     ":InvokerFactoryTest",
+    ":RPCFeatureUnitTest",
   ]
   if (support_jsapi) {
     deps += [ ":IPCNapiUnitTest" ]
