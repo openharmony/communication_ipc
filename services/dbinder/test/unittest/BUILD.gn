@@ -29,6 +29,7 @@ ohos_unittest("RPCDbinderTest") {
   ]
 
   sources = [
+    "dbinder_death_recipient_unittest.cpp",
     "dbinder_remote_listener_unittest.cpp",
     "dbinder_service_stub_unittest.cpp",
     "dbinder_service_unittest.cpp",

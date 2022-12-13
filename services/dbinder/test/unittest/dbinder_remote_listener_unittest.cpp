@@ -125,12 +125,42 @@ HWTEST_F(DBinderRemoteListenerUnitTest, senddatatoremote_002, TestSize.Level1)
     EXPECT_EQ(dBinderRemoteListener_.SendDataToRemote(deviceId, &message), false);
 }
 
+HWTEST_F(DBinderRemoteListenerUnitTest, senddatatoremote_003, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string deviceId = "123";
+    DHandleEntryTxRx message;
+    message.head.len = sizeof(DHandleEntryTxRx);
+    EXPECT_EQ(dBinderRemoteListener_.SendDataToRemote(deviceId, &message), false);
+}
+
 HWTEST_F(DBinderRemoteListenerUnitTest, startlistener_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-
     std::shared_ptr<DBinderRemoteListener> listener = nullptr;
     EXPECT_EQ(dBinderRemoteListener_.StartListener(listener), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, startlistener_002, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    std::shared_ptr<DBinderRemoteListener> listener = nullptr;
+    listener = std::make_shared<DBinderRemoteListener>(DBinderService::GetInstance());
+    EXPECT_EQ(dBinderRemoteListener_.StartListener(listener), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, StopListener_001, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    dBinderRemoteListener_.softbusManager_ = nullptr;
+    EXPECT_EQ(dBinderRemoteListener_.StopListener(), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, StopListener_002, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
+    EXPECT_EQ(dBinderRemoteListener_.StopListener(), false);
 }
 
 HWTEST_F(DBinderRemoteListenerUnitTest, closedatabussession_001, TestSize.Level1)
@@ -138,4 +168,71 @@ HWTEST_F(DBinderRemoteListenerUnitTest, closedatabussession_001, TestSize.Level1
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
     const std::string deviceId = "";
     EXPECT_EQ(dBinderRemoteListener_.CloseDatabusSession(deviceId), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, closedatabussession_002, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string deviceId = "123";
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
+    EXPECT_EQ(dBinderRemoteListener_.CloseDatabusSession(deviceId), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, QueryOrNewDeviceLock_001, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string deviceId = "";
+    dBinderRemoteListener_.QueryOrNewDeviceLock(deviceId);
+    const std::string deviceId1 = "123456";
+    std::shared_ptr<DeviceLock> lockInfo = nullptr;
+    lockInfo = dBinderRemoteListener_.QueryOrNewDeviceLock(deviceId1);
+    EXPECT_TRUE(lockInfo != nullptr);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, SendDataReply_001, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string deviceId = "";
+    EXPECT_EQ(dBinderRemoteListener_.SendDataReply(deviceId, nullptr), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, SendDataReply_002, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string deviceId = "";
+    DHandleEntryTxRx message;
+    message.deviceIdInfo.fromDeviceId[0] = 't';
+    EXPECT_EQ(dBinderRemoteListener_.SendDataReply(deviceId, &message), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, SendDataReply_003, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string deviceId = "12345";
+    DHandleEntryTxRx message;
+    message.deviceIdInfo.fromDeviceId[0] = 't';
+    EXPECT_EQ(dBinderRemoteListener_.SendDataReply(deviceId, &message), false);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, OpenSoftbusSession_001, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string peerDeviceId = "12345";
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
+    EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, OpenSoftbusSession_002, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string peerDeviceId = "";
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
+    EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
+}
+
+HWTEST_F(DBinderRemoteListenerUnitTest, GetPeerSession_001, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string peerDeviceId = "";
+    EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
 }
