@@ -16,9 +16,13 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#define private public
 #include "databus_session_callback.h"
+#include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
+#include "iremote_object.h"
 #include "mock_session_impl.h"
+#undef private
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -130,4 +134,48 @@ HWTEST_F(DbSessionCallbackUnitTest, OnSessionOpenedTest003, TestSize.Level1)
     dbSessionCallback.OnSessionClosed(session);
 
     EXPECT_EQ(ret, SESSION_UNOPEN_ERR);
+}
+
+/**
+ * @tc.name: OnSessionOpenedTest004
+ * @tc.desc: Verify the OnSessionOpened function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbSessionCallbackUnitTest, OnSessionOpenedTest004, TestSize.Level1)
+{
+    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
+
+    EXPECT_CALL(*session, GetChannelId())
+        .WillRepeatedly(testing::Return(1));
+
+    EXPECT_CALL(*session, IsServerSide())
+        .WillRepeatedly(testing::Return(true));
+
+    EXPECT_CALL(*session, GetPeerPid())
+        .WillRepeatedly(testing::Return(PID_TEST));
+
+    EXPECT_CALL(*session, GetPeerUid())
+        .WillRepeatedly(testing::Return(UID_TEST));
+
+    EXPECT_CALL(*session, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef(DEVICE_ID_TEST));
+
+    EXPECT_CALL(*session, GetMySessionName())
+        .WillRepeatedly(testing::ReturnRef(SESSION_NAME_TEST));
+
+    EXPECT_CALL(*session, GetPeerSessionName())
+        .WillRepeatedly(testing::ReturnRef(PEER_SESSION_NAME_TEST));
+
+    IRemoteInvoker *invoker = nullptr;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = invoker;
+
+    DatabusSessionCallback dbSessionCallback;
+    int ret = dbSessionCallback.OnSessionOpened(session);
+
+    EXPECT_EQ(ret, SESSION_INVOKER_NULL_ERR);
+    char data[] = "testdata";
+    ssize_t len = strlen(data);
+    dbSessionCallback.OnBytesReceived(session, data, len);
+    dbSessionCallback.OnSessionClosed(session);
 }
