@@ -153,6 +153,25 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessProto002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessProto003
+ * @tc.desc: Verify the ProcessProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, ProcessProto003, TestSize.Level1)
+{
+    const std::string service = "serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = 11;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    uint32_t code = 11;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = dBinderServiceStub.ProcessProto(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+}
+
+/**
  * @tc.name: OnRemoteRequest001
  * @tc.desc: Verify the OnRemoteRequest function
  * @tc.type: FUNC
