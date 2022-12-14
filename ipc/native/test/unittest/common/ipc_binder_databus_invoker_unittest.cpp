@@ -25,6 +25,7 @@
 #include "dbinder_databus_invoker.h"
 #undef private
 #include "mock_session_impl.h"
+#include "mock_iremote_invoker.h"
 #include "dbinder_session_object.h"
 
 using namespace testing::ext;
@@ -1159,4 +1160,30 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, MakeStubIndexByRemoteObject001, TestSize.
     IPCObjectProxy *iPCObjectProxy = nullptr;
     uint32_t ret = testInvoker.MakeStubIndexByRemoteObject(iPCObjectProxy);
     EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetSelfFirstCallerTokenIDTest001
+ * @tc.desc: Verify the DBinderDatabusInvoker::GetSelfFirstCallerTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, GetSelfFirstCallerTokenIDTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, GetSelfFirstCallerTokenID())
+        .WillRepeatedly(testing::Return(111));
+
+    auto ret = testInvoker.GetSelfFirstCallerTokenID();
+    EXPECT_EQ(ret, 111);
+    current->invokers_.clear();
+    delete invoker;
 }

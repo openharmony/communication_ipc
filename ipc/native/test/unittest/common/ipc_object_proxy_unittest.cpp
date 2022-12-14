@@ -23,6 +23,7 @@
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
+#include "mock_iremote_invoker.h"
 #include "mock_iremote_object.h"
 #include "mock_session_impl.h"
 #undef private
@@ -52,6 +53,8 @@ void IPCObjectProxyTest::SetUp()
 
 void IPCObjectProxyTest::TearDown()
 {
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
 }
 
 /**
@@ -65,6 +68,53 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameTest001, TestSize.Level1)
 
     std::string ret = object.GetSessionName();
     ASSERT_TRUE(ret.size() != 0);
+}
+
+/**
+ * @tc.name: SendRequestTest001
+ * @tc.desc: Verify the IPCObjectProxy::SendRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, SendRequestTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    uint32_t code = MAX_TRANSACTION_ID + 1;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    auto ret = object.SendRequest(code, data, reply, option);
+    ASSERT_TRUE(ret == IPC_PROXY_INVALID_CODE_ERR);
+}
+
+/**
+ * @tc.name: SendRequestInnerTest001
+ * @tc.desc: Verify the IPCObjectProxy::SendRequestInner function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, SendRequestInnerTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    bool isLocal = true;
+    uint32_t code = MAX_TRANSACTION_ID + 1;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_DEAD_OBJECT));
+
+    auto ret = object.SendRequestInner(isLocal, code, data, reply, option);
+    ASSERT_TRUE(ret == ERR_DEAD_OBJECT);
+    current->invokers_.clear();
+    delete invoker;
 }
 
 /**
@@ -159,6 +209,69 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetInterfaceDescriptorTest005
+ * @tc.desc: Verify the IPCObjectProxy::GetInterfaceDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest005, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_DEAD_OBJECT));
+
+    auto ret = object.GetInterfaceDescriptor();
+    ASSERT_TRUE(ret.size() == 0);
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
+ * @tc.name: GetInterfaceDescriptorTest006
+ * @tc.desc: Verify the IPCObjectProxy::GetInterfaceDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_DEAD_OBJECT));
+
+    auto ret = object.GetInterfaceDescriptor();
+    ASSERT_TRUE(ret.size() == 0);
+    current->invokers_.clear();
+    delete invoker;
+}
+
+int SendRequestMock(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
+        MessageOption &option)
+{
+    reply.WriteUint32(IRemoteObject::IF_PROT_DEFAULT);
+    return ERR_NONE;
+}
+
+/**
  * @tc.name: GetSessionNameTest002
  * @tc.desc: Verify the IPCObjectProxy::GetSessionName function
  * @tc.type: FUNC
@@ -188,7 +301,7 @@ HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest002, TestSize.Level1)
 
 /**
  * @tc.name: GetSessionNameForPidUidTest002
- * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUidTest function
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUid function
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest002, TestSize.Level1)
@@ -211,6 +324,110 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest003, TestSize.Level1)
     object.isRemoteDead_ = true;
     auto ret = object.GetSessionNameForPidUid(1, 1);
     ASSERT_TRUE(ret.size() == 0);
+}
+
+/**
+ * @tc.name: GetGrantedSessionNameTest003
+ * @tc.desc: Verify the IPCObjectProxy::GetGrantedSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest003, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Invoke(SendRequestMock));
+
+    auto ret = object.GetSessionNameForPidUid(1, 1);
+    ASSERT_TRUE(ret.size() == 0);
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
+ * @tc.name: GetSessionNameForPidUidTest004
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUidTest004 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest004, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Invoke(SendRequestMock));
+
+    auto ret = object.GetSessionNameForPidUid(1, 1);
+    ASSERT_TRUE(ret.size() == 0);
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
+ * @tc.name: GetSessionNameForPidUidTest005
+ * @tc.desc: Verify the IPCObjectProxy::GetSessionNameForPidUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest005, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Invoke(SendRequestMock));
+
+    auto ret = object.GetSessionNameForPidUid(1, 1);
+    ASSERT_TRUE(ret.size() == 0);
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
+ * @tc.name: OnFirstStrongRefTest005
+ * @tc.desc: Verify the IPCObjectProxy::OnFirstStrongRef function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, OnFirstStrongRefTest005, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"";
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = nullptr;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+
+    object.OnFirstStrongRef(nullptr);
+    ASSERT_TRUE(object.handle_ == 1);
+    current->invokers_.clear();
 }
 
 /**
@@ -530,6 +747,42 @@ HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest002, TestSize.Level1)
 
     auto ret = object->GetProtoInfo();
     EXPECT_EQ(ret, IRemoteObject::IF_PROT_ERROR);
+}
+
+
+int SendRequestPortMock(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
+        MessageOption &option)
+{
+    reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS);
+    return ERR_NONE;
+}
+
+/**
+ * @tc.name: GetProtoInfoTest003
+ * @tc.desc: Verify the IPCObjectProxy::GetProtoInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest003, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = u"test";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Invoke(SendRequestPortMock));
+
+    auto ret = object.GetProtoInfo();
+    ASSERT_TRUE(ret != IRemoteObject::IF_PROT_DATABUS);
+    current->invokers_.clear();
+    delete invoker;
 }
 
 /**
@@ -930,6 +1183,48 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest008, TestSize.Level1)
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
     ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest009
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSessionTest009 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest009, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = false;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_.clear();
+
+    MessageParcel reply;
+    uint64_t stubIndex = 1;
+    reply.ReadUint64(stubIndex);
+    std::string serviceName =  "testserviceName";
+    reply.WriteString(serviceName);
+    std::string peerID =  "testpeerID";
+    reply.WriteString(peerID);
+    std::string localID =  "testlocalID";
+    reply.WriteString(localID);
+    std::string localBusName =  "testlocalBusName";
+    reply.WriteString(localBusName);
+    uint32_t rpcFeatureSet = 1;
+    reply.WriteUint32(rpcFeatureSet);
+
+    IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
+        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+    processCurrent->proxyToSession_[0] = dbinderSessionObject;
+
+    auto ret = object->UpdateDatabusClientSession(1, reply);
+
+    ASSERT_TRUE(ret == false);
+    processCurrent->proxyToSession_.clear();
+    dbinderSessionObject->proxy_ = nullptr;
 }
 
 /**
