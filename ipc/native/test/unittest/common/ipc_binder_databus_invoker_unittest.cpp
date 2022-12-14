@@ -286,6 +286,29 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, NewSessionOfBinderProxy002, TestSize.Leve
 }
 
 /**
+ * @tc.name: NewSessionOfBinderProxy003
+ * @tc.desc: NewSessionOfBinderProxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, NewSessionOfBinderProxy003, TestSize.Level1)
+{
+    uint32_t handle = REGISTRY_HANDLE;
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    EXPECT_TRUE (remoteSession != nullptr);
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+    ASSERT_TRUE(invoker == nullptr);
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> ret = testInvoker.NewSessionOfBinderProxy(handle, remoteSession);
+    EXPECT_TRUE (ret == nullptr);
+    current->invokers_.clear();
+}
+
+/**
  * @tc.name: AuthSession2Proxy001
  * @tc.desc: AuthSession2Proxy
  * @tc.type: FUNC
