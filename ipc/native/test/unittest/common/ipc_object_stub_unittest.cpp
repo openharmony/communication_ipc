@@ -1010,3 +1010,29 @@ HWTEST_F(IPCObjectStubTest, CreateSessionNameTest002, TestSize.Level1)
     ASSERT_TRUE(ret.size() == 0);
 }
 #endif
+
+/**
+ * @tc.name: GetCallingTokenIDTest001
+ * @tc.desc: Verify the GetCallingTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetCallingTokenIDTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    auto ret = testStub->GetCallingTokenID();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetCallingFullTokenIDTest001
+ * @tc.desc: Verify the GetCallingFullTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    auto ret = testStub->GetCallingFullTokenID();
+    EXPECT_EQ(ret, 0);
+}

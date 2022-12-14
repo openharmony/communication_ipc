@@ -144,6 +144,19 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetPidUidTest001
+ * @tc.desc: Verify the IPCObjectProxy::GetPidUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetPidUidTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    MessageParcel reply;
+    auto ret = object.GetPidUid(reply);
+    ASSERT_TRUE(ret == 0);
+}
+
+/**
  * @tc.name: GetInterfaceDescriptorTest001
  * @tc.desc: Verify the IPCObjectProxy::GetInterfaceDescriptor function
  * @tc.type: FUNC
