@@ -73,3 +73,42 @@ HWTEST_F(BinderConnectorTest, ExitCurrentThread001, TestSize.Level1)
     binderConnector->ExitCurrentThread(BINDER_THREAD_EXIT);
     EXPECT_TRUE(binderConnector->driverFD_ > 0);
 }
+
+/**
+ * @tc.name: IsAccessTokenSupported001
+ * @tc.desc: Verify the IsAccessTokenSupported function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsAccessTokenSupported001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    auto ret = binderConnector->IsAccessTokenSupported();
+    ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: GetSelfTokenID001
+ * @tc.desc: Verify the GetSelfTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, GetSelfTokenID001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    auto ret = binderConnector->GetSelfTokenID();
+    ASSERT_TRUE(ret == 0);
+}
+
+/**
+ * @tc.name: GetSelfFirstCallerTokenID001
+ * @tc.desc: Verify the GetSelfFirstCallerTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, GetSelfFirstCallerTokenID001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    auto ret = binderConnector->GetSelfFirstCallerTokenID();
+    ASSERT_TRUE(ret == 0);
+}
