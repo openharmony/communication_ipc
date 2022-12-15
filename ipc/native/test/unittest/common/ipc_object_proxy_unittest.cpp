@@ -278,7 +278,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
 }
 
 int SendRequestMock(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
-        MessageOption &option)
+    MessageOption &option)
 {
     reply.WriteUint32(IRemoteObject::IF_PROT_DEFAULT);
     return ERR_NONE;
@@ -764,7 +764,7 @@ HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest002, TestSize.Level1)
 
 
 int SendRequestPortMock(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
-        MessageOption &option)
+    MessageOption &option)
 {
     reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS);
     return ERR_NONE;
