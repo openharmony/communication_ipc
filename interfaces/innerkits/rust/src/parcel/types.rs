@@ -13,22 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef IPC_C_PARCEL_INTERANL_H
-#define IPC_C_PARCEL_INTERANL_H
+pub mod bool;
+pub mod integer;
+pub mod option;
+pub mod reference;
+pub mod strings;
+pub mod interface_token;
+pub mod string16;
 
-#include "c_parcel.h"
-
-#include <refbase.h>
-#include "message_parcel.h"
-
-struct MessageParcelHolder : public virtual OHOS::RefBase {
-    explicit MessageParcelHolder(OHOS::MessageParcel *parcel = nullptr);
-    ~MessageParcelHolder();
-
-    OHOS::MessageParcel *parcel_;
-
-private:
-    bool isExternal_;
-};
-
-#endif /* IPC_C_PARCEL_INTERANL_H */
+use crate::parcel::parcelable::*;

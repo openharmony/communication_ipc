@@ -13,22 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef IPC_C_PARCEL_INTERANL_H
-#define IPC_C_PARCEL_INTERANL_H
+use super::*;
+use crate::{BorrowedMsgParcel, Result, SerOption, DeSerOption};
 
-#include "c_parcel.h"
+impl<T: SerOption> Serialize for Option<T> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        SerOption::ser_option(self.as_ref(), parcel)
+    }
+}
 
-#include <refbase.h>
-#include "message_parcel.h"
-
-struct MessageParcelHolder : public virtual OHOS::RefBase {
-    explicit MessageParcelHolder(OHOS::MessageParcel *parcel = nullptr);
-    ~MessageParcelHolder();
-
-    OHOS::MessageParcel *parcel_;
-
-private:
-    bool isExternal_;
-};
-
-#endif /* IPC_C_PARCEL_INTERANL_H */
+impl<T: DeSerOption> Deserialize for Option<T> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+        DeSerOption::de_option(parcel)
+    }
+}
