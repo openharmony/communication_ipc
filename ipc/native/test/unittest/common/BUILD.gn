@@ -39,6 +39,7 @@ ohos_unittest("IPCNativeUnitTest") {
     "ipc_object_proxy_unittest.cpp",
     "ipc_object_stub_unittest.cpp",
     "ipc_process_skeleton_unittest.cpp",
+    "ipc_skeleton_unittest.cpp",
     "ipc_thread_pool_unittest.cpp",
     "ipc_thread_skeleton_unittest.cpp",
     "iremote_object_unitest.cpp",
