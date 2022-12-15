@@ -13,22 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef IPC_C_PARCEL_INTERANL_H
-#define IPC_C_PARCEL_INTERANL_H
+use super::*;
+use crate::{BorrowedMsgParcel, Result};
 
-#include "c_parcel.h"
+// We need these to support Option<&T> for all T
+impl<T: Serialize + ?Sized> Serialize for &T {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        Serialize::serialize(*self, parcel)
+    }
+}
 
-#include <refbase.h>
-#include "message_parcel.h"
-
-struct MessageParcelHolder : public virtual OHOS::RefBase {
-    explicit MessageParcelHolder(OHOS::MessageParcel *parcel = nullptr);
-    ~MessageParcelHolder();
-
-    OHOS::MessageParcel *parcel_;
-
-private:
-    bool isExternal_;
-};
-
-#endif /* IPC_C_PARCEL_INTERANL_H */
+impl<T: SerOption + ?Sized> SerOption for &T {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<(), > {
+        SerOption::ser_option(this.copied(), parcel)
+    }
+}
