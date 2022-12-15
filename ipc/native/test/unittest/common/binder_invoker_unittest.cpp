@@ -566,3 +566,93 @@ HWTEST_F(BinderInvokerUnitTest, FlattenObjectTest001, TestSize.Level1)
     const IRemoteObject* object = nullptr;
     EXPECT_EQ(binderInvoker.FlattenObject(parcel, object), false);
 }
+
+#ifndef CONFIG_IPC_SINGLE
+/**
+ * @tc.name: TranslateIRemoteObjectTest001
+ * @tc.desc: Override TranslateIRemoteObject branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, TranslateIRemoteObjectTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    int32_t cmd = 1;
+    sptr<IRemoteObject> testStub = new IPCObjectStub(u"testStub");
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = 1;
+    auto ret = binderInvoker.TranslateIRemoteObject(cmd, testStub);
+    EXPECT_EQ(ret, -IPC_INVOKER_TRANSLATE_ERR);
+}
+
+/**
+ * @tc.name: TranslateIRemoteObjectTest002
+ * @tc.desc: Override TranslateIRemoteObject branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, TranslateIRemoteObjectTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    int32_t cmd = 1;
+    binderInvoker.binderConnector_ = nullptr;
+    sptr<IRemoteObject> testStub = new IPCObjectStub(u"testStub");
+    auto ret = binderInvoker.TranslateIRemoteObject(cmd, testStub);
+    EXPECT_EQ(ret, -IPC_INVOKER_CONNECT_ERR);
+}
+
+/**
+ * @tc.name: TranslateIRemoteObjectTest003
+ * @tc.desc: Override TranslateIRemoteObject branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, TranslateIRemoteObjectTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    int32_t cmd = 1;
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    sptr<IRemoteObject> testStub = new IPCObjectStub(u"testStub");
+    auto ret = binderInvoker.TranslateIRemoteObject(cmd, testStub);
+    EXPECT_EQ(ret, -IPC_INVOKER_CONNECT_ERR);
+}
+#endif
+
+/**
+ * @tc.name: GetSelfTokenIDTest002
+ * @tc.desc: Override GetSelfTokenID branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetSelfTokenIDTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.binderConnector_ = nullptr;
+    auto ret = binderInvoker.GetSelfTokenID();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetSelfTokenIDTest003
+ * @tc.desc: Override GetSelfTokenID branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetSelfTokenIDTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    auto ret = binderInvoker.GetSelfTokenID();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetCallerTokenIDTest003
+ * @tc.desc: Override GetCallerTokenID branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerTokenIDTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerTokenID_ = 0;
+    binderInvoker.callerUid_ = 1;
+    auto ret = binderInvoker.GetCallerTokenID();
+    EXPECT_EQ(ret, 1);
+}
