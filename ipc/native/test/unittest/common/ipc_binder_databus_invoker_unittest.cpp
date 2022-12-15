@@ -1625,16 +1625,16 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, JoinProcessThread001, TestSize.Level1)
     DBinderDatabusInvoker testInvoker;
     std::thread::id threadId = std::this_thread::get_id();
 
-    std::thread([&testInvoker, threadId](){
+    std::thread([&testInvoker, threadId]() {
         std::this_thread::sleep_for(std::chrono::seconds(2));
             testInvoker.StopWorkThread();
             IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
             current->WakeUpDataThread(threadId);
             current->dataInfoQueue_.clear();
-       }).detach();
+    }).detach();
 
-   testInvoker.JoinProcessThread(true);
-   ASSERT_TRUE(testInvoker.stopWorkThread_ == true);
+    testInvoker.JoinProcessThread(true);
+    ASSERT_TRUE(testInvoker.stopWorkThread_ == true);
 }
 
 /**
@@ -1750,7 +1750,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnDatabusSessionServerSideClosed001, Test
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
 
-    std::string appInfo = 
+    std::string appInfo =
         deviceId + current->UIntToString(pid) +
         current->UIntToString(uid) + current->UIntToString(tokenId);
 
