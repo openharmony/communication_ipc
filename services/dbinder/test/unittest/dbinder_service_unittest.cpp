@@ -742,7 +742,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest003, TestSize.Level1)
     dBinderService->StartRemoteListener();
     std::u16string serviceName(u"testServer");
     std::string deviceID("123456");
-    EXPECT_EQ(dBinderService->NoticeServiceDieInner(serviceName, deviceID), DBINDER_SERVICE_NOTICE_DIE_ERR);
+    EXPECT_EQ(dBinderService->NoticeServiceDieInner(serviceName, deviceID), ERR_NONE);
 }
 
 /**
