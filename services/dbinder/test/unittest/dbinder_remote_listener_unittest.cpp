@@ -236,3 +236,12 @@ HWTEST_F(DBinderRemoteListenerUnitTest, GetPeerSession_001, TestSize.Level1)
     const std::string peerDeviceId = "";
     EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
 }
+
+HWTEST_F(DBinderRemoteListenerUnitTest, GetPeerSession_002, TestSize.Level1)
+{
+    DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    const std::string peerDeviceId = "12345";
+    EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
+    dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId);
+}
