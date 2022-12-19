@@ -23,16 +23,21 @@ pub mod process;
 pub use crate::errors::{Result, result_status};
 pub use crate::ipc::{
     IRemoteBroker, IRemoteObj, IRemoteStub, FromRemoteObj, RemoteObjRef,
-    remote_obj::RemoteObj, remote_obj::DeathRecipient, remote_stub::RemoteStub,
+    remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient, remote_stub::RemoteStub,
 };
-pub use crate::parcel::{MsgParcel, BorrowedMsgParcel,
+pub use crate::parcel::{MsgParcel, BorrowedMsgParcel, IMsgParcel,
     parcelable::{Serialize, Deserialize, SerOption, DeSerOption, SerArray, DeArray},
 };
 pub use crate::parcel::types::{
-    interface_token::InterFaceToken,
+    interface_token::InterfaceToken, file_desc::FileDesc,
     string16::String16
 };
-pub use crate::process::{add_service, get_service, init_access_token, join_work_thread};
+
+pub use crate::process::{
+    add_service, get_service, init_access_token, join_work_thread, stop_work_thread,
+    get_calling_token_id, get_first_token_id, get_self_token_id, get_calling_pid,
+    get_calling_uid,
+};
 
 /// First request code available for user IPC request(inclusive)
 pub const FIRST_CALL_TRANSACTION: isize = 0x00000001;

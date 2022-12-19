@@ -20,12 +20,19 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
 #include "c_remote_object.h"
 
 CRemoteObject *GetContextManager(void);
 void JoinWorkThread(void);
+void StopWorkThread(void);
 
 void InitTokenId(void);
+uint64_t GetCallingTokenId(void);
+uint64_t GetFirstToekenId(void);
+uint64_t GetSelfToekenId(void);
+uint64_t GetCallingPid(void);
+uint64_t GetCallingUid(void);
 
 #ifdef __cplusplus
 }

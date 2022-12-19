@@ -25,6 +25,82 @@ use std::ptr::{NonNull};
 use crate::AsRawPtr;
 use crate::parcel::parcelable::{Serialize, Deserialize};
 
+/// This trait implements the common function for MsgParcel
+/// and BorrowedMsgParcel
+pub trait IMsgParcel: AsRawPtr<CParcel> {
+    fn get_data_size(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetDataSize(self.as_raw())
+        }
+    }
+
+    fn set_data_size(&mut self, new_size: u32) -> bool {
+        unsafe {
+            ipc_binding::CParcelSetDataSize(self.as_mut_raw(), new_size)
+        }
+    }
+
+    fn get_data_capacity(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetDataCapacity(self.as_raw())
+        }
+    }
+
+    fn set_data_capacity(&mut self, new_size: u32) -> bool {
+        unsafe {
+            ipc_binding::CParcelSetDataCapacity(self.as_mut_raw(), new_size)
+        }
+    }
+
+    fn get_max_capacity(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetMaxCapacity(self.as_raw())
+        }
+    }
+
+    fn set_max_capacity(&mut self, new_size: u32) -> bool {
+        unsafe {
+            ipc_binding::CParcelSetMaxCapacity(self.as_mut_raw(), new_size)
+        }
+    }
+
+    fn get_writable_bytes(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetWritableBytes(self.as_raw())
+        }
+    }
+
+    fn get_readable_bytes(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetReadableBytes(self.as_raw())
+        }
+    }
+
+    fn get_read_position(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetReadPosition(self.as_raw())
+        }
+    }
+
+    fn get_write_position(&self) -> u32 {
+        unsafe {
+            ipc_binding::CParcelGetWritePosition(self.as_raw())
+        }
+    }
+
+    fn rewind_read(&mut self, new_pos: u32) -> bool {
+        unsafe {
+            ipc_binding::CParcelRewindRead(self.as_mut_raw(), new_pos)
+        }
+    }
+
+    fn rewind_write(&mut self, new_pos: u32) -> bool {
+        unsafe {
+            ipc_binding::CParcelRewindWrite(self.as_mut_raw(), new_pos)
+        }
+    }
+}
+
 /// Container for a message (data and object references) that can be sent
 /// through Binder.
 ///
@@ -35,6 +111,8 @@ pub struct MsgParcel {
 }
 
 unsafe impl Send for MsgParcel {}
+
+impl IMsgParcel for MsgParcel {}
 
 impl MsgParcel {
     pub fn new() -> Option<Self> {
@@ -61,6 +139,16 @@ impl MsgParcel {
         BorrowedMsgParcel {
             ptr: self.ptr,
             _mark: PhantomData,
+        }
+    }
+
+    /// Get an immutable borrowed view into the contents of this `MsgParcel`.
+    pub fn borrowed_ref(&self) -> &BorrowedMsgParcel<'_> {
+        // Safety: MsgParcel and BorrowedParcel are both represented in the same
+        // way as a NonNull<CParcel> due to their use of repr(transparent),
+        // so casting references as done here is valid.
+        unsafe {
+            &*(self as *const MsgParcel as *const BorrowedMsgParcel<'_>)
         }
     }
 }
@@ -97,6 +185,8 @@ pub struct BorrowedMsgParcel<'a> {
     _mark: PhantomData<&'a mut MsgParcel>,
 }
 
+impl<'a> IMsgParcel for BorrowedMsgParcel<'a> {}
+
 impl<'a> BorrowedMsgParcel<'a> {
 
     /// # Safety:
@@ -132,7 +222,6 @@ unsafe impl<'a> AsRawPtr<CParcel> for BorrowedMsgParcel<'a> {
     }
 }
 
-
 impl MsgParcel {
     pub fn read<D: Deserialize>(&self) -> Result<D> {
         self.borrowed_ref().read()
@@ -140,16 +229,6 @@ impl MsgParcel {
 
     pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> Result<()> {
         self.borrowed().write(parcelable)
-    }
-
-    /// Get an immutable borrowed view into the contents of this `MsgParcel`.
-    pub fn borrowed_ref(&self) -> &BorrowedMsgParcel<'_> {
-        // Safety: MsgParcel and BorrowedParcel are both represented in the same
-        // way as a NonNull<CParcel> due to their use of repr(transparent),
-        // so casting references as done here is valid.
-        unsafe {
-            &*(self as *const MsgParcel as *const BorrowedMsgParcel<'_>)
-        }
     }
 }
 
