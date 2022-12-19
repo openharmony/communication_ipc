@@ -18,15 +18,19 @@ use crate::{ipc_binding, BorrowedMsgParcel, Result, AsRawPtr, result_status};
 use std::ffi::{c_char, c_void};
 use std::convert::TryInto;
 
-pub struct InterFaceToken(String);
+pub struct InterfaceToken(String);
 
-impl InterFaceToken {
+impl InterfaceToken {
     pub fn new(value: &str) -> Self {
         Self(String::from(value))
     }
+
+    pub fn get_token(&self) -> String {
+        String::from(&self.0)
+    }
 }
 
-impl Serialize for InterFaceToken {
+impl Serialize for InterfaceToken {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
         let token = &self.0;
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -40,7 +44,7 @@ impl Serialize for InterFaceToken {
     }
 }
 
-impl Deserialize for InterFaceToken {
+impl Deserialize for InterfaceToken {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
         let mut vec: Option<Vec<u8>> = None;
         let ok_status = unsafe {
@@ -54,7 +58,6 @@ impl Deserialize for InterFaceToken {
 
         if ok_status {
             let result = vec.map(|s| {
-                println!("read interface token from native success, s: {:?}", s);
                 match String::from_utf8(s) {
                     Ok(val) => val,
                     Err(_) => String::from("")
@@ -72,4 +75,3 @@ impl Deserialize for InterFaceToken {
         }
     }
 }
-

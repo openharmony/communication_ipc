@@ -15,6 +15,7 @@
 
 #include "c_parcel_internal.h"
 
+#include <securec.h>
 #include <string_ex.h>
 #include "c_remote_object_internal.h"
 
@@ -218,14 +219,21 @@ bool CParcelReadString(const CParcel *parcel, void *stringData, OnCParcelBytesAl
     if (!IsValidParcel(parcel, __func__) || allocator == nullptr) {
         return false;
     }
-    std::string value = parcel->parcel_->ReadString();
+    std::string value;
+    if (!parcel->parcel_->ReadString(value)) {
+        printf("%s: read string from parcel failed\n", __func__);
+        return false;
+    }
     char *buffer = nullptr;
     bool isSuccess = allocator(stringData, &buffer, value.length());
     if (!isSuccess) {
         printf("%s: allocate string buffer is null\n", __func__);
         return false;
     }
-    memcpy(buffer, value.data(), value.length());
+    if (value.length() > 0 && memcpy_s(buffer, value.length(), value.data(), value.length()) != EOK) {
+        printf("%s: memcpy string failed\n", __func__);
+        return false;
+    }
     return true;
 }
 
@@ -259,9 +267,13 @@ bool CParcelReadString16(const CParcel *parcel, void *stringData, OnCParcelBytes
     if (!IsValidParcel(parcel, __func__) || allocator == nullptr) {
         return false;
     }
-    std::u16string u16string = parcel->parcel_->ReadString16();
+    std::u16string u16string;
+    if (!parcel->parcel_->ReadString16(u16string)) {
+        printf("%s: read u16string from parcel failed\n", __func__);
+        return false;
+    }
     std::string value = Str16ToStr8(u16string);
-    if (u16string.length() <= 0 || value.length() <= 0) {
+    if (u16string.length() != 0 && value.length() == 0) {
         printf("%s: u16string len: %u, string len: %u\n", __func__, u16string.length(), value.length());
         return false;
     }
@@ -271,7 +283,10 @@ bool CParcelReadString16(const CParcel *parcel, void *stringData, OnCParcelBytes
         printf("%s: allocate string buffer is null\n", __func__);
         return false;
     }
-    memcpy(buffer, value.data(), value.length());
+    if (value.length() > 0 && memcpy_s(buffer, value.length(), value.data(), value.length()) != EOK) {
+        printf("%s: memcpy string16 failed\n", __func__);
+        return false;
+    }
     return true;
 }
 
@@ -280,12 +295,12 @@ bool CParcelWriteInterfaceToken(CParcel *parcel, const char *token, int32_t toke
     if (!IsValidParcel(parcel, __func__)) {
         return false;
     }
-    if (token == nullptr || tokenLen <= 0) {
+    if (token == nullptr || tokenLen < 0) {
         printf("%s: token len is invalid: %d\n", __func__, tokenLen);
         return false;
     }
     std::u16string u16string = Str8ToStr16(std::string(token, tokenLen));
-    if (u16string.length() == 0) {
+    if (u16string.length() == 0 && tokenLen != 0) {
         printf("%s: convert token to u16string failed: %d\n", __func__, tokenLen);
         return false;
     }
@@ -299,7 +314,7 @@ bool CParcelReadInterfaceToken(const CParcel *parcel, void *token, OnCParcelByte
     }
     std::u16string u16string = parcel->parcel_->ReadInterfaceToken();
     std::string value = Str16ToStr8(u16string);
-    if (u16string.length() <= 0 || value.length() <= 0) {
+    if (u16string.length() != 0 && value.length() == 0) {
         printf("%s: u16string len: %u, string len: %u\n", __func__, u16string.length(), value.length());
         return false;
     }
@@ -310,7 +325,10 @@ bool CParcelReadInterfaceToken(const CParcel *parcel, void *token, OnCParcelByte
         printf("%s: allocate interface token buffer failed\n", __func__);
         return false;
     }
-    memcpy(buffer, value.data(), value.length());
+    if (value.length() > 0 && memcpy_s(buffer, value.length(), value.data(), value.length()) != EOK) {
+        printf("%s: memcpy interface token failed\n", __func__);
+        return false;
+    }
     return true;
 }
 
@@ -345,4 +363,121 @@ CRemoteObject *CParcelReadRemoteObject(const CParcel *parcel)
     holder->remote_ = remote;
     holder->IncStrongRef(nullptr);
     return holder;
+}
+
+bool CParcelWriteFileDescriptor(CParcel *parcel, int32_t fd)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return false;
+    }
+    return parcel->parcel_->WriteFileDescriptor(fd);
+}
+
+bool CParcelReadFileDescriptor(const CParcel *parcel, int32_t *fd)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return false;
+    }
+    if (fd == nullptr) {
+        printf("%s: fd is null\n", __func__);
+        return false;
+    }
+    *fd = parcel->parcel_->ReadFileDescriptor();
+    return (*fd < 0) ? false : true;
+}
+
+uint32_t CParcelGetDataSize(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetDataSize();
+}
+
+bool CParcelSetDataSize(CParcel *parcel, uint32_t new_size)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->SetDataSize(new_size);
+}
+
+uint32_t CParcelGetDataCapacity(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetDataCapacity();
+}
+
+bool CParcelSetDataCapacity(CParcel *parcel, uint32_t new_size)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->SetDataCapacity(new_size);
+}
+
+uint32_t CParcelGetMaxCapacity(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetMaxCapacity();
+}
+
+bool CParcelSetMaxCapacity(CParcel *parcel, uint32_t new_size)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->SetMaxCapacity(new_size);
+}
+
+uint32_t CParcelGetWritableBytes(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetWritableBytes();
+}
+
+uint32_t CParcelGetReadableBytes(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetReadableBytes();
+}
+
+uint32_t CParcelGetReadPosition(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetReadPosition();
+}
+
+uint32_t CParcelGetWritePosition(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->GetWritePosition();
+}
+
+bool CParcelRewindRead(CParcel *parcel, uint32_t new_pos)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->RewindRead(new_pos);
+}
+
+bool CParcelRewindWrite(CParcel *parcel, uint32_t new_pos)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return 0;
+    }
+    return parcel->parcel_->RewindWrite(new_pos);
 }

@@ -376,7 +376,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 #endif
         return status && dbinderStatus;
     }
-    return false;
+    return recipientErased;
 }
 
 void IPCObjectProxy::SendObituary()
