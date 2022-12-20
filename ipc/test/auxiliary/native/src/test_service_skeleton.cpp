@@ -14,6 +14,7 @@
  */
 
 #include "test_service_skeleton.h"
+#include <cinttypes>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -333,6 +334,72 @@ int RpcSetFirstCallerTokenID(uint64_t tokenID)
 
     close(fd);
     return ACCESS_TOKEN_OK;
+}
+
+int TestServiceProxy::TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected)
+{
+    MessageOption option;
+    MessageParcel dataParcel, replyParcel1, replyParcel2;
+    uint64_t token  = IPCSkeleton::GetCallingFullTokenID();
+    uint64_t ftoken  = IPCSkeleton::GetFirstFullTokenID();
+    uint64_t tokenSelf = IPCSkeleton::GetSelfTokenID();
+    uint64_t oldTokenSelf = tokenSelf;
+    int32_t ret = 0;
+
+    if (token != tokenSelf) {
+        ZLOGE(LABEL, "token != tokenSelf");
+        return -1;
+    }
+    if (ftoken != 0) {
+        ZLOGE(LABEL, "ftoken != 0");
+        return -1;
+    }
+
+    if (RpcSetFirstCallerTokenID(ftoken_expected) != 0) {
+        ZLOGE(LABEL, "RpcSetFirstCallerTokenID err");
+        ret = -1;
+        goto ERR;
+    }
+    if (RpcGetFirstCallerTokenID() != ftoken_expected) {
+        ZLOGE(LABEL, "RpcGetFirstCallerTokenID err");
+        ret = -1;
+        goto ERR;
+    }
+
+    if (RpcSetSelfTokenID(token_expected) != 0) {
+        ZLOGE(LABEL, "RpcSetSelfTokenID err");
+        ret = -1;
+        goto ERR;
+    }
+    if (RpcGetSelfTokenID() != token_expected) {
+        ZLOGE(LABEL, "RpcGetSelfTokenID err");
+        ret = -1;
+        goto ERR;
+    }
+    ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID_64, dataParcel, replyParcel1, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "SendRequest ret = %{public}d", ret);
+        ret = -1;
+        goto ERR;
+    }
+    token  = replyParcel1.ReadUint64();
+    ftoken  = replyParcel1.ReadUint64();
+
+    if (token != token_expected) {
+        ZLOGE(LABEL, "token != token_expected, token:%{public}" PRIu64, token);
+        ret = -1;
+        goto ERR;
+    }
+    if (ftoken != ftoken_expected) {
+        ZLOGE(LABEL, "ftoken != ftoken_expected, ftoken:%{public}" PRIu64, ftoken);
+        ret = -1;
+        goto ERR;
+    }
+
+ERR:
+    RpcSetFirstCallerTokenID(0);
+    RpcSetSelfTokenID(oldTokenSelf);
+    return ret;
 }
 
 int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
@@ -672,6 +739,15 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
             ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
             reply.WriteInt32(token);
             reply.WriteInt32(ftoken);
+            break;
+        }
+        case TRANS_ID_ACCESS_TOKENID_64: {
+            uint64_t token = IPCSkeleton::GetCallingFullTokenID();
+            uint64_t ftoken = IPCSkeleton::GetFirstFullTokenID();
+            ZLOGE(LABEL, "server GetCallingFullTokenID:%{public}" PRIu64, token);
+            ZLOGE(LABEL, "server GetFirstFullTokenID:%{public}" PRIu64, ftoken);
+            reply.WriteUint64(token);
+            reply.WriteUint64(ftoken);
             break;
         }
         case TRANS_MESSAGE_PARCEL_ADDPED: {
