@@ -464,24 +464,6 @@ HWTEST_F(BinderInvokerUnitTest, StartWorkLoopTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnTransactionTest001
- * @tc.desc: Override OnTransaction branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, OnTransactionTest001, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    binder_transaction_data tr {};
-    tr.offsets_size = 1;
-    binderInvoker.input_.WriteBuffer(&tr, sizeof(binder_transaction_data));
-    const uint8_t* buffer = binderInvoker.input_.ReadBuffer(sizeof(binder_transaction_data));
-    binderInvoker.OnTransaction(buffer);
-    EXPECT_TRUE(tr.offsets_size > 0);
-    EXPECT_TRUE(!binderInvoker.binderConnector_->IsAccessTokenSupported());
-    EXPECT_TRUE(tr.target.ptr == 0);
-}
-
-/**
  * @tc.name: HandleCommandsTest001
  * @tc.desc: Override HandleCommands branch
  * @tc.type: FUNC
