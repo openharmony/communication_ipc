@@ -49,6 +49,7 @@ public:
         TRANS_ID_ACCESS_TOKENID = 18,
         TRANS_MESSAGE_PARCEL_ADDPED = 19,
         TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT = 20,
+        TRANS_ID_ACCESS_TOKENID_64 = 21,
     };
 public:
     virtual int TestSyncTransaction(int data, int &reply, int delayTime = 0) = 0;
@@ -69,6 +70,7 @@ public:
     virtual void TestAsyncDumpService() = 0;
     virtual int TestNestingSend(int sendCode, int &replyCode) = 0;
     virtual int TestAccessTokenID(int32_t ftoken_expected) = 0;
+    virtual int TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected) = 0;
     virtual int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) = 0;
     virtual int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) = 0;
@@ -110,6 +112,7 @@ public:
     void TestAsyncDumpService() override;
     int TestNestingSend(int sendCode, int &replyCode) override;
     int TestAccessTokenID(int32_t ftoken_expected) override;
+    int TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected) override;
     int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) override;
     int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) override;
