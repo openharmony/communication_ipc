@@ -776,7 +776,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable002, TestSize.Level1)
 
     uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    EXPECT_TRUE(tmp != nullptr);
+    ASSERT_TRUE(tmp != nullptr);
+    memset_s(tmp, size, 0, size);
 
     data = reinterpret_cast<const char *>(tmp);
     ssize_t len = 0;
@@ -800,7 +801,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable003, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    EXPECT_TRUE(tmp != nullptr);
+    ASSERT_TRUE(tmp != nullptr);
+    memset_s(tmp, size, 0, size);
 
     tmp->magic = DBINDER_MAGICWORD;
     tmp->cmd = BC_SEND_RAWDATA;
@@ -828,7 +830,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable004, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    EXPECT_TRUE(tmp != nullptr);
+    ASSERT_TRUE(tmp != nullptr);
+    memset_s(tmp, size, 0, size);
 
     EXPECT_CALL(*sessionMock, GetChannelId())
         .WillOnce(testing::Return(0X0000000000FFFFFFULL))
@@ -843,11 +846,11 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable004, TestSize.Level1)
 
     tmp->magic = DBINDER_MAGICWORD;
     testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_FALSE(tmp->cmd == BC_SEND_RAWDATA);
+    EXPECT_TRUE(tmp->magic == DBINDER_MAGICWORD);
 
     tmp->cmd = BC_SEND_RAWDATA;
     testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_FALSE(tmp->sizeOfSelf == static_cast<uint32_t>(len));
+    EXPECT_TRUE(tmp->cmd == BC_SEND_RAWDATA);
     free(tmp);
 }
 
@@ -862,7 +865,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnRawDataAvailable001, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    EXPECT_TRUE(tmp != nullptr);
+    ASSERT_TRUE(tmp != nullptr);
+    memset_s(tmp, size, 0, size);
 
     tmp->magic = DBINDER_MAGICWORD;
     tmp->cmd = BC_SEND_RAWDATA;
@@ -894,7 +898,9 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, HasCompletePackage001, TestSize.Level1)
     uint32_t readCursor = 0;
 
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    EXPECT_TRUE(tmp != nullptr);
+    ASSERT_TRUE(tmp != nullptr);
+    memset_s(tmp, size, 0, size);
+
     const char *data = reinterpret_cast<const char *>(tmp);
     uint32_t res = testInvoker.HasCompletePackage(data, readCursor, size);
     EXPECT_EQ(res, readCursor);
