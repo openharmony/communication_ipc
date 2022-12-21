@@ -189,6 +189,34 @@ HWTEST_F(IPCNativeUnitTest, GetCallingTokenIDTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetCallingFullTokenIDTest001
+ * @tc.desc: Verify the GetCallingFullTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetCallingFullTokenIDTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint64_t token1 = testStub->GetCallingFullTokenID();
+    uint64_t token2 = static_cast<uint64_t>(testStub->GetCallingTokenID());
+    EXPECT_NE(token1, INVAL_TOKEN_ID);
+    EXPECT_EQ(token1, token2);
+}
+
+/**
+ * @tc.name: GetCallingFullTokenIDTest002
+ * @tc.desc: Verify the GetCallingFullTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetCallingFullTokenIDTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint64_t token1 = testStub->GetCallingFullTokenID();
+    uint64_t token2 = IPCSkeleton::GetSelfTokenID();
+    EXPECT_NE(token1, INVAL_TOKEN_ID);
+    EXPECT_EQ(token1, token2);
+}
+
+/**
  * @tc.name: GetFirstTokenIDTest001
  * @tc.desc: Verify the GetFirstTokenID function
  * @tc.type: FUNC
@@ -200,6 +228,17 @@ HWTEST_F(IPCNativeUnitTest, GetFirstTokenIDTest001, TestSize.Level1)
     EXPECT_EQ(token, INVAL_TOKEN_ID);
 }
 
+/**
+ * @tc.name: GetFirstFullTokenIDTest001
+ * @tc.desc: Verify the GetFirstFullTokenID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, GetFirstFullTokenIDTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint64_t token = testStub->GetFirstFullTokenID();
+    EXPECT_EQ(token, INVAL_TOKEN_ID);
+}
 
 /**
  * @tc.name: GetObjectTypeTest001
@@ -738,8 +777,8 @@ HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
     if (service->IsProxyObject()) {
         ZLOGD(LABEL, "Got Proxy node");
         TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
-        int ret = proxy->TestAccessTokenID(3571);
-        EXPECT_EQ(ret, 0);
+        EXPECT_EQ(proxy->TestAccessTokenID64(3560, 3571), 0);
+        EXPECT_EQ(proxy->TestAccessTokenID(3571), 0);
     } else {
         ZLOGE(LABEL, "Got Stub node");
     }

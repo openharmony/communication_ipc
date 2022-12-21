@@ -46,6 +46,7 @@ public:
     void TestAsyncDumpService() override;
     int TestNestingSend(int sendCode, int &replyCode) override;
     int TestAccessTokenID(int32_t ftoken_expected) override;
+    int TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected) override;
     int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) override;
     int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) override;

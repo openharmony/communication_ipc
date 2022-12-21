@@ -192,6 +192,13 @@ int TestService::TestAccessTokenID(int32_t ftoken_expected)
     return 0;
 }
 
+int TestService::TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected)
+{
+    (void)token_expected;
+    (void)ftoken_expected;
+    return 0;
+}
+
 int TestService::TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src)
 {
     (void)dst;
