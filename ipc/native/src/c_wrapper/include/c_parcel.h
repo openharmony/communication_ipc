@@ -57,6 +57,21 @@ bool CParcelWriteInterfaceToken(CParcel *parcel, const char *token, int32_t toke
 bool CParcelReadInterfaceToken(const CParcel *parcel, void *token, OnCParcelBytesAllocator allocator);
 bool CParcelWriteRemoteObject(CParcel *parcel, const CRemoteObject *object);
 CRemoteObject *CParcelReadRemoteObject(const CParcel *parcel);
+bool CParcelWriteFileDescriptor(CParcel *parcel, int32_t fd);
+bool CParcelReadFileDescriptor(const CParcel *parcel, int32_t *fd);
+
+uint32_t CParcelGetDataSize(const CParcel *parcel);
+bool CParcelSetDataSize(CParcel *parcel, uint32_t new_size);
+uint32_t CParcelGetDataCapacity(const CParcel *parcel);
+bool CParcelSetDataCapacity(CParcel *parcel, uint32_t new_size);
+uint32_t CParcelGetMaxCapacity(const CParcel *parcel);
+bool CParcelSetMaxCapacity(CParcel *parcel, uint32_t new_size);
+uint32_t CParcelGetWritableBytes(const CParcel *parcel);
+uint32_t CParcelGetReadableBytes(const CParcel *parcel);
+uint32_t CParcelGetReadPosition(const CParcel *parcel);
+uint32_t CParcelGetWritePosition(const CParcel *parcel);
+bool CParcelRewindRead(CParcel *parcel, uint32_t new_pos);
+bool CParcelRewindWrite(CParcel *parcel, uint32_t new_pos);
 
 #ifdef __cplusplus
 }

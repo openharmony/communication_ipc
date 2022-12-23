@@ -20,5 +20,6 @@ pub mod reference;
 pub mod strings;
 pub mod interface_token;
 pub mod string16;
+pub mod file_desc;
 
 use crate::parcel::parcelable::*;

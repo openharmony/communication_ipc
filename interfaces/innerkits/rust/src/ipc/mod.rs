@@ -19,6 +19,7 @@ pub mod macros;
 
 use crate::{BorrowedMsgParcel, MsgParcel, Result, DeathRecipient};
 use std::ops::{Deref};
+use std::cmp::Ordering;
 
 // Export types of this module
 pub use crate::RemoteObj;
@@ -77,3 +78,23 @@ impl<I: FromRemoteObj + ?Sized> Clone for RemoteObjRef<I> {
         FromRemoteObj::from(self.0.as_object().unwrap()).unwrap()
     }
 }
+
+ impl<I: FromRemoteObj + ?Sized> Ord for RemoteObjRef<I> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.as_object().cmp(&other.0.as_object())
+    }
+}
+
+impl<I: FromRemoteObj + ?Sized> PartialOrd for RemoteObjRef<I> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.0.as_object().partial_cmp(&other.0.as_object())
+    }
+}
+
+impl<I: FromRemoteObj + ?Sized> PartialEq for RemoteObjRef<I> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.as_object().eq(&other.0.as_object())
+    }
+}
+
+impl<I: FromRemoteObj + ?Sized> Eq for RemoteObjRef<I> {}

@@ -77,7 +77,15 @@ macro_rules! define_remote_object {
             fn on_remote_request(&self, code: u32, data: &$crate::BorrowedMsgParcel,
                 reply: &mut $crate::BorrowedMsgParcel) -> i32 {
                 // For example, "self.0" is "Box<dyn ITest>", "*self.0" is "dyn ITest"
-                $on_remote_request(&*self.0, code, data, reply)
+                let result = $on_remote_request(&*self.0, code, data, reply);
+                match result {
+                    Ok(_) => 0,
+                    Err(error) => {
+                        println!("stub: {} deal fail: {} for code: {}", $descriptor,
+                            error, code);
+                        error
+                    }
+                }
             }
         }
 
