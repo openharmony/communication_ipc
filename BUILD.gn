@@ -45,7 +45,6 @@ group("ipc_components") {
       "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
       "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
       "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
-      "//foundation/communication/ipc/interfaces/innerkits/rust:rust_ipc_component",
       "//foundation/communication/ipc/ipc/native/src/core:ipc_common",
     ]
   } else {
