@@ -76,6 +76,8 @@ extern "C" {
     pub fn RemoteObjectGetUserData(object: *mut CRemoteObject) -> *const c_void;
     pub fn RemoteObjectSendRequest(object: *mut CRemoteObject, code: u32, data: *const CParcel,
         reply: *mut CParcel, is_async: bool) -> i32;
+    // Compare CRemoteObject
+    pub fn RemoteObjectLessThan(object: *const CRemoteObject, other:  *const CRemoteObject) -> bool;
 
     pub fn CreateDeathRecipient(onDeathRecipient: OnDeathRecipientCb, onDestroy: OnDeathRecipientDestroyCb,
         userData: *const c_void) -> *mut CDeathRecipient;
@@ -112,11 +114,30 @@ extern "C" {
         allocator: OnCParcelBytesAllocator) -> bool;
     pub fn CParcelWriteRemoteObject(parcel: *mut CParcel, object: *mut CRemoteObject) -> bool;
     pub fn CParcelReadRemoteObject(parcel: *const CParcel) -> *mut CRemoteObject;
-
     pub fn CParcelWriteBuffer(parcel: *mut CParcel, value: *const c_void, len: i32) -> bool;
     pub fn CParcelReadBuffer(parcel: *const CParcel, value: *mut c_void, allocator: OnCParcelBytesAllocator) -> bool;
+    pub fn CParcelWriteFileDescriptor(parcel: *mut CParcel, fd: i32) -> bool;
+    pub fn CParcelReadFileDescriptor(parcel: *const CParcel, fd: *mut i32) -> bool;
+    pub fn CParcelGetDataSize(parcel: *const CParcel) -> u32;
+    pub fn CParcelSetDataSize(parcel: *mut CParcel, new_size: u32) -> bool;
+    pub fn CParcelGetDataCapacity(parcel: *const CParcel) -> u32;
+    pub fn CParcelSetDataCapacity(parcel: *mut CParcel, new_size: u32) -> bool;
+    pub fn CParcelGetMaxCapacity(parcel: *const CParcel) -> u32;
+    pub fn CParcelSetMaxCapacity(parcel: *mut CParcel, new_size: u32) -> bool;
+    pub fn CParcelGetWritableBytes(parcel: *const CParcel) -> u32;
+    pub fn CParcelGetReadableBytes(parcel: *const CParcel) -> u32;
+    pub fn CParcelGetReadPosition(parcel: *const CParcel) -> u32;
+    pub fn CParcelGetWritePosition(parcel: *const CParcel) -> u32;
+    pub fn CParcelRewindRead(parcel: *mut CParcel, new_pos: u32) -> bool;
+    pub fn CParcelRewindWrite(parcel: *mut CParcel, new_pos: u32) -> bool;
 
     pub fn GetContextManager() -> *mut CRemoteObject;
     pub fn JoinWorkThread();
+    pub fn StopWorkThread();
     pub fn InitTokenId();
+    pub fn GetCallingTokenId() -> u64;
+    pub fn GetFirstToekenId() -> u64;
+    pub fn GetSelfToekenId() -> u64;
+    pub fn GetCallingPid() -> u64;
+    pub fn GetCallingUid() -> u64;
 }

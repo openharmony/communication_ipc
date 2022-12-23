@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-use crate::{ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterFaceToken, String16};
+use crate::{
+    ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterfaceToken, String16,
+    Result,
+};
 
 fn get_samgr() -> Option<RemoteObj>
 {
@@ -23,69 +26,87 @@ fn get_samgr() -> Option<RemoteObj>
     }
 }
 
-pub fn add_service(service: &RemoteObj, said: i32)
+pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
 {
     let samgr = get_samgr().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
-    match data.write(&InterFaceToken::new("ohos.samgr.accessToken")) {
-        Ok(()) => { println!("write token success") }
-        Err(val) => { println!("write token fail: {}", val) }
-    }
-    match data.write(&said) {
-        Ok(()) => { println!("write said success") }
-        Err(val) => { println!("write said fail: {}", val) }
-    }
-    match data.write(service) {
-        Ok(()) => { println!("write service success") }
-        Err(val) => { println!("write service fail: {}", val) }
-    }
-    match data.write(&false) {
-        Ok(()) => { println!("write bool success") }
-        Err(val) => { println!("write bool fail: {}", val) }
-    }
-    match data.write(&0) {
-        Ok(()) => { println!("write 0 success") }
-        Err(val) => { println!("write 0 fail: {}", val) }
-    }
-    match data.write(&String16::new("")) {
-        Ok(()) => { println!("write string16 111 success") }
-        Err(val) => { println!("write string16 111 fail: {}", val) }
-    }
-    match data.write(&String16::new("")) {
-        Ok(()) => { println!("write string16 222 success") }
-        Err(val) => { println!("write string16 222 fail: {}", val) }
-    }
-    let reply = samgr.send_request(3, &data, false).expect("failed to register service");
-    let replyValue: i32 = reply.read().expect("register service reply should 0");
+    let _ = data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
+    let _ = data.write(&said)?;
+    let _ = data.write(service)?;
+    let _ = data.write(&false)?;
+    let _ = data.write(&0)?;
+    let _ = data.write(&String16::new(""))?;
+    let _ = data.write(&String16::new(""))?;
+    let reply = samgr.send_request(3, &data, false)?;
+    let replyValue: i32 = reply.read()?;
     println!("register service result: {}", replyValue);
+    if replyValue == 0 { Ok(())} else { Err(replyValue) }
 }
 
-pub fn get_service(said: i32) -> RemoteObj
+pub fn get_service(said: i32) -> Result<RemoteObj>
 {
     let samgr = get_samgr().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
-    match data.write(&InterFaceToken::new("ohos.samgr.accessToken")) {
-        Ok(()) => { println!("write token success") }
-        Err(val) => { println!("write token fail: {}", val) }
-    }
-    match data.write(&said) {
-        Ok(()) => { println!("write said success") }
-        Err(val) => { println!("write said fail: {}", val) }
-    }
-    let reply = samgr.send_request(2, &data, false).expect("Failed to get service");
-    let remote: RemoteObj = reply.read().expect("Failed to read remote object");
-    println!("register service result");
-    return remote;
+    let _ = data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
+    let _ = data.write(&said)?;
+    let reply = samgr.send_request(2, &data, false)?;
+    let remote: RemoteObj = reply.read()?;
+    println!("get service success");
+    Ok(remote)
 }
 
 pub fn join_work_thread()
 {
-    unsafe { ipc_binding::JoinWorkThread(); }
+    unsafe {
+        ipc_binding::JoinWorkThread();
+    }
+}
+
+pub fn stop_work_thread()
+{
+    unsafe {
+        ipc_binding::StopWorkThread()
+    }
 }
 
 pub fn init_access_token()
 {
     unsafe {
         ipc_binding::InitTokenId();
+    }
+}
+
+pub fn get_calling_token_id() -> u64
+{
+    unsafe {
+        ipc_binding::GetCallingTokenId()
+    }
+}
+
+pub fn get_first_token_id() -> u64
+{
+    unsafe {
+        ipc_binding::GetFirstToekenId()
+    }
+}
+
+pub fn get_self_token_id() -> u64
+{
+    unsafe {
+        ipc_binding::GetSelfToekenId()
+    }
+}
+
+pub fn get_calling_pid() -> u64
+{
+    unsafe {
+        ipc_binding::GetCallingPid()
+    }
+}
+
+pub fn get_calling_uid() -> u64
+{
+    unsafe {
+        ipc_binding::GetCallingUid()
     }
 }

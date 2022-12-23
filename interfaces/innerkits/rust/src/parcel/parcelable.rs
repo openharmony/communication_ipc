@@ -65,7 +65,6 @@ pub const NON_NULL_FLAG : i32 = 1;
  
 // DOC TODO
 pub trait SerOption: Serialize {
-
     fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<(), > {
         if let Some(inner) = this {
             parcel.write(&NON_NULL_FLAG)?;
@@ -78,7 +77,6 @@ pub trait SerOption: Serialize {
 
 // DOC TODO
 pub trait DeSerOption: Deserialize {
-
     fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
         let null: i32 = parcel.read()?;
         if null == NULL_FLAG {

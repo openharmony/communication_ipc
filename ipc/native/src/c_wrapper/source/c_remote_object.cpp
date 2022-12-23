@@ -152,6 +152,14 @@ const void *RemoteObjectGetUserData(CRemoteObject *object)
     return object->GetUserData();
 }
 
+bool RemoteObjectLessThan(const CRemoteObject *lhs, const CRemoteObject *rhs)
+{
+    if (!IsValidRemoteObject(lhs, __func__) || !IsValidRemoteObject(rhs, __func__)) {
+        return false;
+    }
+    return lhs->remote_.GetRefPtr() < rhs->remote_.GetRefPtr();
+}
+
 int RemoteObjectSendRequest(const CRemoteObject *object, uint32_t code,
     const CParcel *data, CParcel *reply, bool isAsync)
 {

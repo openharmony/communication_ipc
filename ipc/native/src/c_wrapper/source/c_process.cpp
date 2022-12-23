@@ -43,6 +43,11 @@ void JoinWorkThread(void)
     IPCSkeleton::JoinWorkThread();
 }
 
+void StopWorkThread(void)
+{
+    IPCSkeleton::StopWorkThread();
+}
+
 void InitTokenId(void)
 {
     uint64_t tokenId;
@@ -58,4 +63,29 @@ void InitTokenId(void)
     };
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
+}
+
+uint64_t GetCallingTokenId(void)
+{
+    return IPCSkeleton::GetCallingFullTokenID();
+}
+
+uint64_t GetFirstToekenId(void)
+{
+    return IPCSkeleton::GetFirstFullTokenID();
+}
+
+uint64_t GetSelfToekenId(void)
+{
+    return IPCSkeleton::GetSelfTokenID();
+}
+
+uint64_t GetCallingPid(void)
+{
+    return static_cast<uint64_t>(IPCSkeleton::GetCallingPid());
+}
+
+uint64_t GetCallingUid(void)
+{
+    return static_cast<uint64_t>(IPCSkeleton::GetCallingUid());
 }

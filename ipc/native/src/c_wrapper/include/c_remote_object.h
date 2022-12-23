@@ -44,7 +44,7 @@ void RemoteObjectIncStrongRef(CRemoteObject *object);
 void RemoteObjectDecStrongRef(CRemoteObject *object);
 
 const void *RemoteObjectGetUserData(CRemoteObject *object);
-
+bool RemoteObjectLessThan(const CRemoteObject *lhs, const CRemoteObject *rhs);
 int RemoteObjectSendRequest(const CRemoteObject *object, uint32_t code,
     const CParcel *data, CParcel *reply, bool isAsync);
 

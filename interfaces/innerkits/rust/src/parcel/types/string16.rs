@@ -24,6 +24,10 @@ impl String16 {
     pub fn new(value: &str) -> Self {
         Self(String::from(value))
     }
+
+    pub fn get_string(&self) -> String {
+        String::from(&self.0)
+    }
 }
 
 impl Serialize for String16 {
@@ -66,10 +70,9 @@ impl Deserialize for String16 {
                 println!("convert native string16 to String fail");
                 Err(-1)
             }
-        }else{
+        } else {
             println!("read string16 from native fail");
             Err(-1)
         }
     }
 }
-
