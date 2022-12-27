@@ -13,31 +13,37 @@
  * limitations under the License.
  */
 
-use super::*;
+ use super::*;
 
-
-impl<T: SerArray> Serialize for Vec<T> {
+ impl<T: SerArray, const N: usize> Serialize for [T; N] {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        SerArray::ser_array(&self[..], parcel)
+        // forwards to T::serialize_array.
+        SerArray::ser_array(self, parcel)
     }
 }
 
-impl<T: SerArray> SerOption for Vec<T> {
+impl<T: SerArray, const N: usize> SerOption for [T; N] {
     fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        SerOption::ser_option(this.map(Vec::as_slice), parcel)
+        SerOption::ser_option(this.map(|arr| &arr[..]), parcel)
+    }
+}
+
+impl<T: SerArray, const N: usize> SerArray for [T; N] {}
+
+impl<T: DeArray, const N: usize> Deserialize for [T; N] {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+        let vec = DeArray::de_array(parcel)
+            .transpose()
+            .unwrap_or(Err(-1))?;
+        vec.try_into().or(Err(-1))
+    }
+}
+
+impl<T: DeArray, const N: usize> DeOption for [T; N] {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+        let vec = DeArray::de_array(parcel)?;
+        vec.map(|v| v.try_into().or(Err(-1))).transpose()
     }
 }
  
-impl<T: DeArray> Deserialize for Vec<T> {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
-        DeArray::de_array(parcel)
-            .transpose()
-            .unwrap_or(Err(-1))
-    }
-}
-
-impl<T: DeArray> DeOption for Vec<T> {
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
-        DeArray::de_array(parcel)
-    }
-}
+impl<T: DeArray, const N: usize> DeArray for [T; N] {}

@@ -27,6 +27,7 @@ ohos_rust_shared_library("ipc_rust") {
     "src/lib.rs",
     "src/parcel/mod.rs",
     "src/parcel/parcelable.rs",
+    "src/parcel/types.rs",
   ]
 
   deps = [ ":ipc_c" ]
@@ -73,9 +74,5 @@ ohos_shared_library("ipc_c") {
 }
 
 group("rust_ipc_component") {
-  deps = [
-    ":ipc_rust",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/rust/tests/client:rust_ipc_test_client",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/rust/tests/server:rust_ipc_test_server",
-  ]
+  deps = [ ":ipc_rust" ]
 }

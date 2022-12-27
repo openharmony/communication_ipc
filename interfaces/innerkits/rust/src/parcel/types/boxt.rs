@@ -15,17 +15,26 @@
 
 use super::*;
 
-impl<T: SerOption> Serialize for Option<T> {
+impl<T: Serialize> Serialize for Box<T> {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        SerOption::ser_option(self.as_ref(), parcel)
+        Serialize::serialize(&**self, parcel)
     }
 }
 
-impl<T: DeOption> Deserialize for Option<T> {
+impl<T: Deserialize> Deserialize for Box<T> {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
-        DeOption::de_option(parcel)
+        Deserialize::deserialize(parcel).map(Box::new)
     }
 }
 
-// impl<T: DeOption> DeArray for Option<T> {}
-// impl<T: SerOption> SerArray for Option<T> {}
+impl<T: SerOption> SerOption for Box<T> {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        SerOption::ser_option(this.map(|inner| &**inner), parcel)
+    }
+}
+ 
+impl<T: DeOption> DeOption for Box<T> {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+        DeOption::de_option(parcel).map(|t| t.map(Box::new))
+    }
+}

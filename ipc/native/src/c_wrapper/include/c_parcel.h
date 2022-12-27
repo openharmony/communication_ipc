@@ -59,6 +59,8 @@ bool CParcelWriteRemoteObject(CParcel *parcel, const CRemoteObject *object);
 CRemoteObject *CParcelReadRemoteObject(const CParcel *parcel);
 bool CParcelWriteFileDescriptor(CParcel *parcel, int32_t fd);
 bool CParcelReadFileDescriptor(const CParcel *parcel, int32_t *fd);
+bool CParcelWriteBuffer(CParcel *parcel, const uint8_t *buffer, uint32_t len);
+bool CParcelReadBuffer(const CParcel *parcel, uint8_t *value, uint32_t len);
 
 uint32_t CParcelGetDataSize(const CParcel *parcel);
 bool CParcelSetDataSize(CParcel *parcel, uint32_t new_size);

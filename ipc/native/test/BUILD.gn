@@ -18,5 +18,8 @@ import("//build/test.gni")
 group("unittest") {
   testonly = true
   deps = [ "unittest/common:unittest" ]
+  if (target_cpu == "arm64") {
+    deps += [ "unittest/rust:unittest" ]
+  }
 }
 ###############################################################################

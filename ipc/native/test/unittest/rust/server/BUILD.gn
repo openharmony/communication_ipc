@@ -15,11 +15,11 @@ import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
-ohos_rust_test("rust_ipc_test_client") {
+ohos_rust_executable("rust_ipc_test_server") {
   sources = [ "src/main.rs" ]
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/rust/tests/service:test_ipc_service",
+    "$SUBSYSTEM_DIR/ipc/native/test/unittest/rust/service:test_ipc_service",
   ]
 
   subsystem_name = "communication"

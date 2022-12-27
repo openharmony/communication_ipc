@@ -15,16 +15,18 @@
 
 use super::*;
 use crate::{ipc_binding, BorrowedMsgParcel, Result, result_status, AsRawPtr};
-use std::ffi::{c_char, c_void};
 use std::convert::TryInto;
 
+/// String16 packed a String type which transfered with C++ std::u16string.
 pub struct String16(String);
 
 impl String16 {
+    /// Create a String16 object with rust String
     pub fn new(value: &str) -> Self {
         Self(String::from(value))
     }
 
+    /// Get packed String of String16
     pub fn get_string(&self) -> String {
         String::from(&self.0)
     }
