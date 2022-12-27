@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+//! Implement of RemoteObj type, which represent a C++ IRemoteObject.
+
 use std::ptr;
 use crate::{
     ipc_binding, IRemoteObj, DeathRecipient, Result,
@@ -34,6 +36,7 @@ pub struct RemoteObj(ptr::NonNull<CRemoteObject>);
 
 impl RemoteObj {
     /// Create an `RemoteObj` wrapper object from a raw `CRemoteObject` pointer.
+    /// # Safety
     pub unsafe fn from_raw(obj: *mut CRemoteObject) -> Option<RemoteObj> {
         if obj.is_null() {
             None
@@ -44,7 +47,6 @@ impl RemoteObj {
 
     /// Extract a raw `CRemoteObject` pointer from this wrapper.
     /// # Safety
-    /// TODO
     pub unsafe fn as_inner(&self) -> *mut CRemoteObject {
         self.0.as_ptr()
     }
@@ -52,7 +54,7 @@ impl RemoteObj {
 
 impl IRemoteObj for RemoteObj {
     fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> Result<MsgParcel> {
-        // SAFETY: TODO
+        // SAFETY:
         unsafe {
             let mut reply = MsgParcel::new().expect("create reply MsgParcel not success");
             let result = ipc_binding::RemoteObjectSendRequest(self.as_inner(), code, data.as_raw(),
@@ -85,7 +87,7 @@ impl Serialize for RemoteObj {
         let ret = unsafe {
             ipc_binding::CParcelWriteRemoteObject(parcel.as_mut_raw(), self.as_inner())
         };
-        if ret == true {
+        if ret {
             Ok(())
         } else {
             Err(-1)
