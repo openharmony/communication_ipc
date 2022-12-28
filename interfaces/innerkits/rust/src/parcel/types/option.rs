@@ -14,6 +14,7 @@
  */
 
 use super::*;
+use crate::{BorrowedMsgParcel, Result, SerOption, DeSerOption};
 
 impl<T: SerOption> Serialize for Option<T> {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
@@ -21,11 +22,8 @@ impl<T: SerOption> Serialize for Option<T> {
     }
 }
 
-impl<T: DeOption> Deserialize for Option<T> {
+impl<T: DeSerOption> Deserialize for Option<T> {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
-        DeOption::de_option(parcel)
+        DeSerOption::de_option(parcel)
     }
 }
-
-// impl<T: DeOption> DeArray for Option<T> {}
-// impl<T: SerOption> SerArray for Option<T> {}

@@ -274,7 +274,7 @@ bool CParcelReadString16(const CParcel *parcel, void *stringData, OnCParcelBytes
     }
     std::string value = Str16ToStr8(u16string);
     if (u16string.length() != 0 && value.length() == 0) {
-        printf("%s: u16string len: %lu, string len: %lu\n", __func__, u16string.length(), value.length());
+        printf("%s: u16string len: %u, string len: %u\n", __func__, u16string.length(), value.length());
         return false;
     }
     char *buffer = nullptr;
@@ -315,7 +315,7 @@ bool CParcelReadInterfaceToken(const CParcel *parcel, void *token, OnCParcelByte
     std::u16string u16string = parcel->parcel_->ReadInterfaceToken();
     std::string value = Str16ToStr8(u16string);
     if (u16string.length() != 0 && value.length() == 0) {
-        printf("%s: u16string len: %lu, string len: %lu\n", __func__, u16string.length(), value.length());
+        printf("%s: u16string len: %u, string len: %u\n", __func__, u16string.length(), value.length());
         return false;
     }
     printf("%s: c read interface token: %s\n", __func__, value.c_str());
@@ -384,35 +384,6 @@ bool CParcelReadFileDescriptor(const CParcel *parcel, int32_t *fd)
     }
     *fd = parcel->parcel_->ReadFileDescriptor();
     return (*fd < 0) ? false : true;
-}
-
-bool CParcelWriteBuffer(CParcel *parcel, const uint8_t *buffer, uint32_t len)
-{
-    if (!IsValidParcel(parcel, __func__)) {
-        return false;
-    }
-    if (buffer == nullptr) {
-        printf("%s: buffer is null: %d\n", __func__, len);
-        return false;
-    }
-    return parcel->parcel_->WriteBuffer(buffer, len);
-}
-
-bool CParcelReadBuffer(const CParcel *parcel, uint8_t *value, uint32_t len)
-{
-    if (!IsValidParcel(parcel, __func__) || value == nullptr) {
-        return false;
-    }
-    const uint8_t *data = parcel->parcel_->ReadBuffer(len);
-    if (data == nullptr) {
-        printf("%s: read buffer failed\n", __func__);
-        return false;
-    }
-    if (len > 0 && memcpy_s(value, len, data, len) != EOK) {
-        printf("%s: copy buffer failed\n", __func__);
-        return false;
-    }
-    return true;
 }
 
 uint32_t CParcelGetDataSize(const CParcel *parcel)

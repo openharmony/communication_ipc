@@ -14,63 +14,35 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, Result, AsRawPtr, result_status};
-use std::ffi::{c_char, c_void};
-use std::convert::TryInto;
 
-pub struct InterfaceToken(String);
-
-impl InterfaceToken {
-    pub fn new(value: &str) -> Self {
-        Self(String::from(value))
-    }
-
-    pub fn get_token(&self) -> String {
-        String::from(&self.0)
-    }
-}
-
-impl Serialize for InterfaceToken {
+impl Serialize for &[u8] {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        let token = &self.0;
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
-            ipc_binding::CParcelWriteInterfaceToken(
+            ipc_binding::CParcelWriteBuffer(
                 parcel.as_mut_raw(), 
-                token.as_ptr() as *const c_char,
-                token.as_bytes().len().try_into().unwrap()  
-            )};
+                self.as_ptr() as *const void,
+                self.len().try_into().unwrap()  
+            )
+        };
         result_status::<()>(ret, ())
-    }
 }
 
-impl Deserialize for InterfaceToken {
+impl Deserialize for Vec<u8> {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
         let mut vec: Option<Vec<u8>> = None;
-        let ok_status = unsafe {
+        let status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-            ipc_binding::CParcelReadInterfaceToken(
+            ipc_binding::CParcelReadBuffer(
                 parcel.as_raw(), 
                 &mut vec as *mut _ as *mut c_void,
                 allocate_vec_with_buffer::<u8>
             )
         };
 
-        if ok_status {
-            let result = vec.map(|s| {
-                match String::from_utf8(s) {
-                    Ok(val) => val,
-                    Err(_) => String::from("")
-                }
-            });
-            if let Some(val) = result {
-                Ok(Self(val))
-            } else {
-                println!("convert interface token to String fail");
-                Err(-1)
-            }
+        if status {
+            vec.transpose()
         }else{
-            println!("read interface token from native fail");
             Err(-1)
         }
     }

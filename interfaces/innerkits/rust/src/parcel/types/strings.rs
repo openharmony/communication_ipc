@@ -20,6 +20,7 @@ use crate::{
 };
 use std::ptr;
 use std::convert::TryInto;
+use std::ffi::{c_char, c_void};
 
 impl SerOption for str {
     fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {

@@ -26,45 +26,39 @@ pub use crate::RemoteObj;
 
 /// Like C++ IRemoteObject class, define function for both proxy and stub object
 pub trait IRemoteObj {
-    /// Send a IPC request to remote service
+    // IPC request
     fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> Result<MsgParcel>;
 
-    /// Add a death recipient
+    // Death Recipient
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool;
-
-    /// Remove a death recipient
     fn remove_death_recipient(&self, recipient: &mut DeathRecipient) -> bool;
 }
 
-/// Like C++ IPCObjectStub class, define function for stub object only, like on_remote_request().
+// Like C++ IPCObjectStub class, define function for stub object only, like on_remote_request().
 pub trait IRemoteStub: Send + Sync {
-    /// Get object descriptor of this stub
     fn get_descriptor() -> &'static str;
 
-    /// Callback for deal IPC request
     fn on_remote_request(&self, code: u32, data: &BorrowedMsgParcel, reply: &mut BorrowedMsgParcel) -> i32;
 }
 
-/// Like C++ IRemoteBroker class 
+// Like C++ IRemoteBroker class 
 pub trait IRemoteBroker: Send + Sync {
-    /// Convert self to RemoteObject
+    // Convert self to RemoteObject
     fn as_object(&self) -> Option<RemoteObj> {
         panic!("This is not a RemoteObject.")
     }
 }
 
-/// Define function which how to convert a RemoteObj to RemoteObjRef, the later contains a
-/// dynamic trait object: IRemoteObject. For example, "dyn ITest" should implements this trait
+// Define function which how to convert a RemoteObj to RemoteObjRef, the later contains a
+// dynamic trait object: IRemoteObject. For example, "dyn ITest" should implements this trait
 pub trait FromRemoteObj: IRemoteBroker {
-    /// Convert a RemoteObj to RemoteObjeRef
     fn from(object: RemoteObj) -> Result<RemoteObjRef<Self>>;
 }
 
-/// Strong reference for "dyn IRemoteBroker" object, for example T is "dyn ITest"
+// Strong reference for "dyn IRemoteBroker" object, for example T is "dyn ITest"
 pub struct RemoteObjRef<T: FromRemoteObj + ?Sized>(Box<T>);
 
 impl<T: FromRemoteObj + ?Sized> RemoteObjRef<T> {
-    /// Create a RemoteObjRef object
     pub fn new(object: Box<T>) -> Self {
         Self(object)
     }
