@@ -18,15 +18,15 @@ extern crate test_ipc_service;
 
 use std::thread;
 use std::time::Duration;
-use std::io::{Read, SeekFrom, Seek};
+use std::io::Write;
 use ipc_rust::{
     FromRemoteObj, DeathRecipient, IRemoteObj, FileDesc, RemoteObjRef,
     MsgParcel, String16, InterfaceToken, get_service, init_access_token,
     get_first_token_id, get_self_token_id, get_calling_pid, get_calling_uid,
     IMsgParcel,
 };
-use test_ipc_service::{ITest, TestProxy, IPC_TEST_SERVICE_ID, IFoo};
-use std::fs::File;
+use test_ipc_service::{ITest, IPC_TEST_SERVICE_ID};
+use std::fs::OpenOptions;
 
 fn get_test_service() -> RemoteObjRef<dyn ITest>
 {
@@ -45,6 +45,21 @@ fn get_test_service() -> RemoteObjRef<dyn ITest>
 #[test]
 fn test_add_access_token() {
     init_access_token();
+}
+
+#[test]
+fn test_ipc_request() {
+    let remote = get_test_service();
+    assert_eq!(remote.echo_str("hello"), "hello");
+}
+
+#[test]
+fn test_request_concurrent() {
+    let remote = get_test_service();
+    for _i in 1..=5 {
+        assert!(remote.request_concurent(false));
+        assert!(remote.request_concurent(true));
+    }
 }
 
 #[test]
@@ -210,84 +225,15 @@ fn test_calling_info() {
 }
 
 #[test]
-fn test_sync_request() {
+fn test_parcel_fd() {
     let remote = get_test_service();
-    let value = remote.test_sync_transaction(2019, 0).expect("should return reverse value");
-    assert_eq!(value, 9102);
-}
 
-#[test]
-fn test_async_request() {
-    let remote = get_test_service();
-    remote.test_async_transaction(2019, 0).expect("should return reverse value");
-}
-
-#[test]
-fn test_ping_service() {
-    let remote = get_test_service();
-    let descriptor = String16::new(TestProxy::get_descriptor());
-    remote.test_ping_service(&descriptor).expect("should success");
-}
-
-#[test]
-fn test_fd() {
-    let remote = get_test_service();
-    let fd: FileDesc = remote.test_transact_fd().expect("should return valied fd");
-    let mut info = String::new();
-    let mut file = File::from(fd);
-    file.seek(SeekFrom::Start(0));
-    file.read_to_string(&mut info).expect("The string cannot be read");
-    println!("file content: {}", info);
-    assert_eq!(info, "Sever write!\n");
-}
-
-#[test]
-fn test_loop_request() {
-    let remote = get_test_service();
-    // start loop test, test times is 1000
-    let mut value = String::new();
-    for _i in 1..=1000 {
-        value.push_str("0123456789abcdefghijklmnopqrstuvwxyz~!@#$%^&*()_+{}?/[]<>-='|~");
-        let len = remote.test_transact_string(&value).expect("should return value length");
-        assert_eq!(value.len() as i32, len);
-    }
-}
-
-#[test]
-fn test_remote_obj() {
-    let remote = get_test_service();
-    let remote = remote.test_get_foo_service().expect("should return valid RemoteObj");
-    <dyn IFoo as FromRemoteObj>::from(remote).expect(
-        "convert foo service should success");
-}
-
-#[test]
-fn test_parcel_buffer(){
-    let u8_slice = [1u8;100];
-    let u8_slice = &u8_slice[..];
-    let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
-    let res = parcel.write_buffer(u8_slice);
-    assert_eq!(res, true);
-    let u8_vec: Vec<u8> = parcel.read_buffer(100).expect("read buffer failed");
-    assert_eq!(u8_vec, u8_slice);
-}
-
-#[test]
-fn test_parcel_buffer_other(){
-    let u8_slice = [1u8;100];
-    let u8_slice = &u8_slice[..];
-    let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
-    let res = parcel.write_buffer(u8_slice);
-    assert_eq!(res, true);
-    let u8_vec = parcel.read_buffer(0).expect("read zero length buffer failed");
-    assert_eq!(u8_vec.len() as i32, 0);
-}
-
-#[test]
-fn test_parcel_ref(){
-    let s = "hello".to_string();
-    let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
-    parcel.write(&s).expect("write false failed");
-    let res: String = parcel.read().expect("read str failed");
-    assert_eq!(res, s);
+    let path = "/data/test_fd";
+    let mut value = OpenOptions::new().read(true)
+                                      .write(true)
+                                      .create(true)
+                                      .open(path).expect("create data failed");
+    let file_content = "Rust IPC Pass FD";
+    write!(value, "{}", file_content);
+    assert_eq!(remote.pass_file(FileDesc::new(value)), file_content);
 }

@@ -14,6 +14,7 @@
  */
 
 use super::*;
+use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, result_status, Result};
 
 impl Serialize for bool {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {

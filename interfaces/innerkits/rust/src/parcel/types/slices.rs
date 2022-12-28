@@ -13,22 +13,4 @@
  * limitations under the License.
  */
 
-use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, result_status, Result};
-
- 
-impl<T: SerArray> Serialize for [T] {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        SerArray::ser_array(self, parcel)
-    }
-}
- 
-impl<T: SerArray> SerOption for [T] {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        if let Some(v) = this {
-            SerArray::ser_array(v, parcel)
-        } else {
-            parcel.write(&-1i32)
-        }
-    }
-}
+// TODO
