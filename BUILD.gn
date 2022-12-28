@@ -47,9 +47,6 @@ group("ipc_components") {
       "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
       "//foundation/communication/ipc/ipc/native/src/core:ipc_common",
     ]
-    if (target_cpu == "arm64") {
-      deps += [ "//foundation/communication/ipc/interfaces/innerkits/rust:rust_ipc_component" ]
-    }
   } else {
     deps = [ "//foundation/communication/ipc/interfaces/innerkits/c:rpc" ]
   }

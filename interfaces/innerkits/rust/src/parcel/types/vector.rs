@@ -15,29 +15,4 @@
 
 use super::*;
 
-
-impl<T: SerArray> Serialize for Vec<T> {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        SerArray::ser_array(&self[..], parcel)
-    }
-}
-
-impl<T: SerArray> SerOption for Vec<T> {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-        SerOption::ser_option(this.map(Vec::as_slice), parcel)
-    }
-}
- 
-impl<T: DeArray> Deserialize for Vec<T> {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
-        DeArray::de_array(parcel)
-            .transpose()
-            .unwrap_or(Err(-1))
-    }
-}
-
-impl<T: DeArray> DeOption for Vec<T> {
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
-        DeArray::de_array(parcel)
-    }
-}
+// TODO
