@@ -26,29 +26,10 @@
 #include "test_service_skeleton.h"
 #include "if_system_ability_manager.h"
 #include "log_tags.h"
-#include <nativetoken_kit.h>
-#include <token_setproc.h>
 
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestClient" };
-
-static void InitTokenId(void)
-{
-    uint64_t tokenId;
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 0,
-        .aclsNum = 0,
-        .dcaps = NULL,
-        .perms = NULL,
-        .acls = NULL,
-        .processName = "com.ipc.test",
-        .aplStr = "normal",
-    };
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-}
 
 std::vector<std::string> GetArgvOptions(int argc, char **argv)
 {
@@ -61,7 +42,6 @@ std::vector<std::string> GetArgvOptions(int argc, char **argv)
 
 int main(int argc, char *argv[])
 {
-    InitTokenId();
     int result = 0;
     TestCommand commandId = TestCommand::TEST_CMD_SYNC_TRANS;
     if (argc > 1) {

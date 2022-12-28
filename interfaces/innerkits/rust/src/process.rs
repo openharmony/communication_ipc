@@ -26,38 +26,35 @@ fn get_samgr() -> Option<RemoteObj>
     }
 }
 
-/// Add a service to samgr
 pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
 {
     let samgr = get_samgr().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
-    data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
-    data.write(&said)?;
-    data.write(service)?;
-    data.write(&false)?;
-    data.write(&0)?;
-    data.write(&String16::new(""))?;
-    data.write(&String16::new(""))?;
+    let _ = data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
+    let _ = data.write(&said)?;
+    let _ = data.write(service)?;
+    let _ = data.write(&false)?;
+    let _ = data.write(&0)?;
+    let _ = data.write(&String16::new(""))?;
+    let _ = data.write(&String16::new(""))?;
     let reply = samgr.send_request(3, &data, false)?;
-    let reply_value: i32 = reply.read()?;
-    println!("register service result: {}", reply_value);
-    if reply_value == 0 { Ok(())} else { Err(reply_value) }
+    let replyValue: i32 = reply.read()?;
+    println!("register service result: {}", replyValue);
+    if replyValue == 0 { Ok(())} else { Err(replyValue) }
 }
 
-/// Get a service proxy from samgr
 pub fn get_service(said: i32) -> Result<RemoteObj>
 {
     let samgr = get_samgr().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
-    data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
-    data.write(&said)?;
+    let _ = data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
+    let _ = data.write(&said)?;
     let reply = samgr.send_request(2, &data, false)?;
     let remote: RemoteObj = reply.read()?;
     println!("get service success");
     Ok(remote)
 }
 
-/// Make current thread join to the IPC/RPC work thread pool
 pub fn join_work_thread()
 {
     unsafe {
@@ -65,7 +62,6 @@ pub fn join_work_thread()
     }
 }
 
-/// Exit current thread from IPC/RPC work thread pool
 pub fn stop_work_thread()
 {
     unsafe {
@@ -73,7 +69,6 @@ pub fn stop_work_thread()
     }
 }
 
-/// Set access token info for this process
 pub fn init_access_token()
 {
     unsafe {
@@ -81,7 +76,6 @@ pub fn init_access_token()
     }
 }
 
-/// Get calling token ID of caller
 pub fn get_calling_token_id() -> u64
 {
     unsafe {
@@ -89,7 +83,6 @@ pub fn get_calling_token_id() -> u64
     }
 }
 
-/// Get first calling token ID of caller
 pub fn get_first_token_id() -> u64
 {
     unsafe {
@@ -97,7 +90,6 @@ pub fn get_first_token_id() -> u64
     }
 }
 
-/// Get self token id of current process
 pub fn get_self_token_id() -> u64
 {
     unsafe {
@@ -105,7 +97,6 @@ pub fn get_self_token_id() -> u64
     }
 }
 
-/// Get calling process id of caller
 pub fn get_calling_pid() -> u64
 {
     unsafe {
@@ -113,7 +104,6 @@ pub fn get_calling_pid() -> u64
     }
 }
 
-/// Get calling user id of caller
 pub fn get_calling_uid() -> u64
 {
     unsafe {
