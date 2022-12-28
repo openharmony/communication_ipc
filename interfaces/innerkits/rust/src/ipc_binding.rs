@@ -81,7 +81,6 @@ extern "C" {
 
     pub fn CreateDeathRecipient(onDeathRecipient: OnDeathRecipientCb, onDestroy: OnDeathRecipientDestroyCb,
         userData: *const c_void) -> *mut CDeathRecipient;
-    pub fn DeathRecipientIncStrongRef(recipient: *mut CDeathRecipient);
     pub fn DeathRecipientDecStrongRef(recipient: *mut CDeathRecipient);
     pub fn AddDeathRecipient(object: *mut CRemoteObject, recipient: *mut CDeathRecipient) -> bool;
     pub fn RemoveDeathRecipient(object: *mut CRemoteObject, recipient: *mut CDeathRecipient) -> bool;
@@ -114,8 +113,8 @@ extern "C" {
         allocator: OnCParcelBytesAllocator) -> bool;
     pub fn CParcelWriteRemoteObject(parcel: *mut CParcel, object: *mut CRemoteObject) -> bool;
     pub fn CParcelReadRemoteObject(parcel: *const CParcel) -> *mut CRemoteObject;
-    pub fn CParcelWriteBuffer(parcel: *mut CParcel, value: *const c_void, len: i32) -> bool;
-    pub fn CParcelReadBuffer(parcel: *const CParcel, value: *mut c_void, allocator: OnCParcelBytesAllocator) -> bool;
+    pub fn CParcelWriteBuffer(parcel: *mut CParcel, value: *const u8, len: u32) -> bool;
+    pub fn CParcelReadBuffer(parcel: *const CParcel, value: *mut u8, len: u32) -> bool;
     pub fn CParcelWriteFileDescriptor(parcel: *mut CParcel, fd: i32) -> bool;
     pub fn CParcelReadFileDescriptor(parcel: *const CParcel, fd: *mut i32) -> bool;
     pub fn CParcelGetDataSize(parcel: *const CParcel) -> u32;

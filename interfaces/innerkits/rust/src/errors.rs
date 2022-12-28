@@ -16,6 +16,7 @@
 /// IPC specific Result, error is i32 type
 pub type Result<T> = std::result::Result<T, i32>;
 
+/// Generate a rust ipc Result by ret and val arguments.
 pub fn result_status<T>(ret: bool, val: T) -> Result<T> {
     if ret {
         Ok(val)
