@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+/// This macro can define a rust IPC proxy and stub releations.
 #[macro_export]
 macro_rules! define_remote_object {
     {
@@ -37,28 +38,33 @@ macro_rules! define_remote_object {
             },
         }
     } => {
+        /// IPC proxy type
         pub struct $proxy {
             remote: $crate::RemoteObj,
             $($item_name: $item_type,)*
         }
 
         impl $proxy {
+            /// Create proxy object by RemoteObj
             fn from_remote_object(remote: RemoteObj) -> $crate::Result<Self> {
                 Ok(Self {remote, $($item_name: $item_init),* })
             }
-            
+
+            /// Get proxy object descriptor
             #[allow(dead_code)]
-            fn get_descriptor() -> &'static str {
+            pub fn get_descriptor() -> &'static str {
                 $descriptor
             }
         }
 
         impl $crate::IRemoteBroker for $proxy {
+            /// Get RemoteObje object from proxy
             fn as_object(&self) -> Option<$crate::RemoteObj> {
                 Some(self.remote.clone())
             }
         }
 
+        /// IPC stub type
         pub struct $stub(Box<dyn $remote_broker + Sync + Send>);
 
         impl $stub {
@@ -70,10 +76,12 @@ macro_rules! define_remote_object {
         }
 
         impl $crate::IRemoteStub for $stub {
+            /// Get stub object descriptor
             fn get_descriptor() -> &'static str {
                 $descriptor
             }
 
+            /// Callback to deal IPC request for this stub
             fn on_remote_request(&self, code: u32, data: &$crate::BorrowedMsgParcel,
                 reply: &mut $crate::BorrowedMsgParcel) -> i32 {
                 // For example, "self.0" is "Box<dyn ITest>", "*self.0" is "dyn ITest"
@@ -90,7 +98,7 @@ macro_rules! define_remote_object {
         }
 
         impl $crate::FromRemoteObj for dyn $remote_broker {
-            // For example, convert RemoteObj to RemoteObjRef<dyn ITest>
+            /// For example, convert RemoteObj to RemoteObjRef<dyn ITest>
             fn from(object: $crate::RemoteObj) -> $crate::Result<$crate::RemoteObjRef<dyn $remote_broker>> {
                 Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(object)?)))
             }

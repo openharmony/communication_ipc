@@ -24,6 +24,7 @@ use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
 pub struct FileDesc(File);
 
 impl FileDesc {
+    /// Create a FileDesc object with rust File object.
     pub fn new(file: File) -> Self {
         Self(file)
     }
@@ -90,7 +91,7 @@ impl SerOption for FileDesc {
     }
 }
 
-impl DeSerOption for FileDesc {
+impl DeOption for FileDesc {
     fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
         let mut fd = -1i32;
         let ok_status = unsafe {

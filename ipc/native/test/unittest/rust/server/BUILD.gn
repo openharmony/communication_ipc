@@ -15,13 +15,12 @@ import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
-ohos_rust_shared_library("test_ipc_service") {
-  sources = [ "src/lib.rs" ]
-
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust" ]
-
-  crate_name = "test_ipc_service"
-  crate_type = "dylib"
+ohos_rust_executable("rust_ipc_test_server") {
+  sources = [ "src/main.rs" ]
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust",
+    "$SUBSYSTEM_DIR/ipc/native/test/unittest/rust/service:test_ipc_service",
+  ]
 
   subsystem_name = "communication"
   part_name = "ipc"

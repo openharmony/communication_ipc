@@ -19,85 +19,131 @@ pub mod types;
 use crate::{ipc_binding, Result};
 use crate::ipc_binding::{CParcel};
 use std::marker::PhantomData;
-use std::mem::ManuallyDrop;
+use std::mem::{ManuallyDrop,MaybeUninit};
 use std::ops::{Drop};
 use std::ptr::{NonNull};
 use crate::AsRawPtr;
 use crate::parcel::parcelable::{Serialize, Deserialize};
 
+
 /// This trait implements the common function for MsgParcel
 /// and BorrowedMsgParcel
 pub trait IMsgParcel: AsRawPtr<CParcel> {
+    /// Get current data size in parcel
     fn get_data_size(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetDataSize(self.as_raw())
         }
     }
 
+    /// Set current data size in parcel
     fn set_data_size(&mut self, new_size: u32) -> bool {
         unsafe {
             ipc_binding::CParcelSetDataSize(self.as_mut_raw(), new_size)
         }
     }
 
+    /// Get current data capacity in parcel
     fn get_data_capacity(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetDataCapacity(self.as_raw())
         }
     }
 
+    /// Set current data capacity in parcel
     fn set_data_capacity(&mut self, new_size: u32) -> bool {
         unsafe {
             ipc_binding::CParcelSetDataCapacity(self.as_mut_raw(), new_size)
         }
     }
 
+    /// Get maximum capacity in parcel
     fn get_max_capacity(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetMaxCapacity(self.as_raw())
         }
     }
 
+    /// Set maximum capacity in parcel
     fn set_max_capacity(&mut self, new_size: u32) -> bool {
         unsafe {
             ipc_binding::CParcelSetMaxCapacity(self.as_mut_raw(), new_size)
         }
     }
 
+    /// Get current writalbe bytes in parcel
     fn get_writable_bytes(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetWritableBytes(self.as_raw())
         }
     }
 
+    /// Get current readable bytes in parcel
     fn get_readable_bytes(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetReadableBytes(self.as_raw())
         }
     }
 
+    /// Get current read position of parcel
     fn get_read_position(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetReadPosition(self.as_raw())
         }
     }
 
+    /// Get current write position of parcel
     fn get_write_position(&self) -> u32 {
         unsafe {
             ipc_binding::CParcelGetWritePosition(self.as_raw())
         }
     }
 
+    /// Rewind the read position to a new position of parcel
     fn rewind_read(&mut self, new_pos: u32) -> bool {
         unsafe {
             ipc_binding::CParcelRewindRead(self.as_mut_raw(), new_pos)
         }
     }
 
+    /// Rewind the write position to a new position of parcel
     fn rewind_write(&mut self, new_pos: u32) -> bool {
         unsafe {
             ipc_binding::CParcelRewindWrite(self.as_mut_raw(), new_pos)
         }
+    }
+
+    /// Write a bytes stream into parcel
+    fn write_buffer(&mut self, data: &[u8]) -> bool {
+        // SAFETY:
+        unsafe {
+            ipc_binding::CParcelWriteBuffer(self.as_mut_raw(),
+                data.as_ptr(), data.len() as u32)
+        }
+    }
+
+    /// Read a sized bytes stream from parcel
+    fn read_buffer(&self, len: u32) -> Result<Vec<u8>> {
+        let mut buffer: Vec<MaybeUninit<u8>> = Vec::with_capacity(len as usize);
+        // SAFETY: this is safe because the vector contains MaybeUninit elements which can be uninitialized
+        unsafe{
+            buffer.set_len(len as usize);
+        } 
+
+        let ok_status = unsafe {
+            ipc_binding::CParcelReadBuffer(
+                self.as_raw(),
+                buffer.as_mut_ptr() as *mut u8, 
+                len
+            )
+        };
+        // SAFETY: MaybeUninit has been initialized, this should be safe
+        // since MaybeUninit should have same layout as inner type
+        unsafe fn transmute_vec(v: Vec<std::mem::MaybeUninit<u8>>) -> Vec<u8> {
+            std::mem::transmute(v)
+        }
+        let buffer = unsafe { transmute_vec(buffer) };
+        if ok_status { Ok(buffer) } else { Err(-1) }
     }
 }
 
@@ -115,6 +161,7 @@ unsafe impl Send for MsgParcel {}
 impl IMsgParcel for MsgParcel {}
 
 impl MsgParcel {
+    /// Create a MsgParcel object
     pub fn new() -> Option<Self> {
         let cparcel: *mut CParcel = unsafe {
             ipc_binding::CParcelObtain()
@@ -123,10 +170,12 @@ impl MsgParcel {
         NonNull::new(cparcel).map(|x| MsgParcel{ptr: x})
     }
 
+    /// # Safety
     pub unsafe fn from_raw(ptr: *mut CParcel) -> Option<MsgParcel> {
         NonNull::new(ptr).map(|ptr| Self { ptr })
     }
 
+    /// Get a raw CParcel pointer and MsgParcel dropped its ownership
     pub fn into_raw(self) -> *mut CParcel {
         let ptr = self.ptr.as_ptr();
         let _ = ManuallyDrop::new(self);
@@ -189,7 +238,7 @@ impl<'a> IMsgParcel for BorrowedMsgParcel<'a> {}
 
 impl<'a> BorrowedMsgParcel<'a> {
 
-    /// # Safety:
+    /// # Safety
     ///
     /// `*mut CParcel` must be a valid pointer 
     pub unsafe fn from_raw(ptr: *mut CParcel) -> Option<BorrowedMsgParcel<'a>> {
@@ -223,20 +272,24 @@ unsafe impl<'a> AsRawPtr<CParcel> for BorrowedMsgParcel<'a> {
 }
 
 impl MsgParcel {
+    /// Read a data object which implements the Deserialize trait from MsgParcel
     pub fn read<D: Deserialize>(&self) -> Result<D> {
         self.borrowed_ref().read()
     }
 
+    /// Write a data object which implements the Serialize trait to MsgParcel
     pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> Result<()> {
         self.borrowed().write(parcelable)
     }
 }
 
 impl<'a> BorrowedMsgParcel<'a> {
+    /// Read a data object which implements the Deserialize trait from BorrowedMsgParcel
     pub fn read<D: Deserialize>(&self) -> Result<D> {
         D::deserialize(self)
     }
 
+    /// Write a data object which implements the Serialize trait to BorrowedMsgParcel
     pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> Result<()> {
         parcelable.serialize(self)
     }
