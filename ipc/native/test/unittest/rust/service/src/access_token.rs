@@ -16,7 +16,7 @@
 //! This crate implements the accesstoken init function FFI binding.
 
 use std::ptr;
-use std::ffi::c_char;
+use std::ffi::{c_char, CString};
 
 #[repr(C)]
 struct TokenInfoParams {
@@ -38,6 +38,8 @@ extern "C" {
 /// Init access token ID for current process
 pub fn init_access_token()
 {
+    let name = CString::new("com.ipc.test").expect("process name is invalid");
+    let apl = CString::new("normal").expect("apl string is invalid");
     let mut param = TokenInfoParams {
         dcaps_num: 0,
         perms_num: 0,
@@ -45,8 +47,8 @@ pub fn init_access_token()
         dcaps: ptr::null(),
         perms: ptr::null(),
         acls: ptr::null(),
-        process_name: "com.ipc.test".as_ptr(),
-        apl_str: "normal".as_ptr(),
+        process_name: name.as_ptr(),
+        apl_str: apl.as_ptr(),
     };
 
     unsafe {
