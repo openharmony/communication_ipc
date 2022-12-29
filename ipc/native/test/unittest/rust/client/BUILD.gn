@@ -11,16 +11,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
+MODULE_OUTPUT_PATH = "ipc"
 
-ohos_rust_test("rust_ipc_test_client") {
+ohos_rust_unittest("rust_ipc_test_client") {
+  module_out_path = MODULE_OUTPUT_PATH
   sources = [ "src/main.rs" ]
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/rust/tests/service:test_ipc_service",
+    "$SUBSYSTEM_DIR/ipc/native/test/unittest/rust/service:test_ipc_service",
   ]
+
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 
   subsystem_name = "communication"
   part_name = "ipc"

@@ -27,7 +27,6 @@ CRemoteObject *GetContextManager(void);
 void JoinWorkThread(void);
 void StopWorkThread(void);
 
-void InitTokenId(void);
 uint64_t GetCallingTokenId(void);
 uint64_t GetFirstToekenId(void);
 uint64_t GetSelfToekenId(void);

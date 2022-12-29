@@ -17,14 +17,34 @@
 #include "ipc_skeleton.h"
 #include "test_service.h"
 #include "log_tags.h"
+#include <nativetoken_kit.h>
+#include <token_setproc.h>
 
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
 [[maybe_unused]]static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestServer" };
 
+static void InitTokenId(void)
+{
+    uint64_t tokenId;
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 0,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = NULL,
+        .acls = NULL,
+        .processName = "com.ipc.test",
+        .aplStr = "normal",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+}
+
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {
+    InitTokenId();
     TestService::Instantiate();
     ZLOGD(LABEL, "call  StartThreadPool");
     IPCSkeleton::JoinWorkThread();
