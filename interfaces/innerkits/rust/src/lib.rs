@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
+//! Safe Rust interface to OHOS IPC/RPC
+
 mod ipc_binding;
-pub mod errors;
-pub mod ipc;
-pub mod parcel;
-pub mod process;
+mod errors;
+mod ipc;
+mod parcel;
+mod process;
 
 // Export types of this crate
 pub use crate::errors::{Result, result_status};
@@ -26,17 +28,19 @@ pub use crate::ipc::{
     remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient, remote_stub::RemoteStub,
 };
 pub use crate::parcel::{MsgParcel, BorrowedMsgParcel, IMsgParcel,
-    parcelable::{Serialize, Deserialize, SerOption, DeSerOption, SerArray, DeArray},
+    parcelable::{Serialize, Deserialize, SerOption, DeOption},
 };
+
+// pub use crate::parcel::{SerArray, DeArray};
+
 pub use crate::parcel::types::{
     interface_token::InterfaceToken, file_desc::FileDesc,
     string16::String16
 };
 
 pub use crate::process::{
-    add_service, get_service, init_access_token, join_work_thread, stop_work_thread,
+    add_service, get_service, join_work_thread, stop_work_thread, get_calling_uid,
     get_calling_token_id, get_first_token_id, get_self_token_id, get_calling_pid,
-    get_calling_uid,
 };
 
 /// First request code available for user IPC request(inclusive)

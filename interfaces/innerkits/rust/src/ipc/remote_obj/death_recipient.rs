@@ -15,6 +15,7 @@
 
 use super::*;
 
+/// This type represent a rust DeathRecipient which like C++ DethRecipient. 
 #[repr(C)]
 pub struct DeathRecipient {
     native: *mut CDeathRecipient,
@@ -22,6 +23,7 @@ pub struct DeathRecipient {
 }
 
 impl DeathRecipient {
+    /// Create a rust DeathRecipient object with a death recipient callback.
     pub fn new<F>(callback: F) -> Option<DeathRecipient>
     where
         F: Fn() + Send + Sync + 'static,
@@ -69,7 +71,7 @@ impl DeathRecipient {
     {
         if !callback.is_null() {
             println!("death recipient on destroy");
-            Box::from_raw(callback as *mut F);
+            drop(Box::from_raw(callback as *mut F));
         }
     }
 }
