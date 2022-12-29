@@ -61,7 +61,11 @@ ohos_executable("ipc_server_test") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [ ":ipc_test_helper" ]
+  deps = [
+    ":ipc_test_helper",
+    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -82,7 +86,11 @@ ohos_executable("ipc_client_test") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [ ":ipc_test_helper" ]
+  deps = [
+    ":ipc_test_helper",
+    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -142,7 +150,11 @@ ohos_executable("ipc_server_test_extra") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [ ":ipc_test_helper_extra" ]
+  deps = [
+    ":ipc_test_helper_extra",
+    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+  ]
 
   external_deps = [
     "c_utils:utils",

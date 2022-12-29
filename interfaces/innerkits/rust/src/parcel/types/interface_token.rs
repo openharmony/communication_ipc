@@ -15,16 +15,18 @@
 
 use super::*;
 use crate::{ipc_binding, BorrowedMsgParcel, Result, AsRawPtr, result_status};
-use std::ffi::{c_char, c_void};
 use std::convert::TryInto;
 
+/// InterfaceToken packed a String type which transfered with C++ std::u16string.
 pub struct InterfaceToken(String);
 
 impl InterfaceToken {
+    /// Create a InterfaceToken object by Rust String
     pub fn new(value: &str) -> Self {
         Self(String::from(value))
     }
 
+    /// Get packed String of InterfaceToken
     pub fn get_token(&self) -> String {
         String::from(&self.0)
     }

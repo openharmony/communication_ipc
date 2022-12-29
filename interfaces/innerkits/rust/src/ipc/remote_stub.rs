@@ -27,7 +27,7 @@ pub struct RemoteStub<T: IRemoteStub> {
 }
 
 impl<T: IRemoteStub> RemoteStub<T> {
-    // create a RemoteStub object
+    /// Create a RemoteStub object
     pub fn new(rust: T) -> Option<Self> {
         let rust = Box::into_raw(Box::new(rust));
         let descripor = CString::new(T::get_descriptor()).expect("descripor must be valid!");
@@ -91,7 +91,7 @@ impl<T: IRemoteStub> RemoteStub<T> {
             let rust_object: &T = &*(object as *const T);
             rust_object.on_remote_request(code, &data, &mut reply)
         };
-        return res;
+        res
     }
 
     unsafe extern "C" fn on_destroy(user_data: *mut c_void) {

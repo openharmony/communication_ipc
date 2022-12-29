@@ -163,7 +163,7 @@ bool RemoteObjectLessThan(const CRemoteObject *lhs, const CRemoteObject *rhs)
 int RemoteObjectSendRequest(const CRemoteObject *object, uint32_t code,
     const CParcel *data, CParcel *reply, bool isAsync)
 {
-    if (!IsValidRemoteObject(object, __func__) || data == nullptr) {
+    if (!IsValidRemoteObject(object, __func__) || data == nullptr || reply == nullptr) {
         printf("%s: object and data must be not null\n", __func__);
         return -EINVAL;
     }
@@ -180,7 +180,7 @@ CDeathRecipient *CreateDeathRecipient(OnDeathRecipientCb onDeathRecipient,
     }
     CDeathRecipient *recipient = new (std::nothrow) CDeathRecipient(onDeathRecipient,
         onDestroy, userData);
-    if (userData == nullptr) {
+    if (recipient == nullptr) {
         printf("%s: create CDeathRecipient object failed\n", __func__);
         return nullptr;
     }

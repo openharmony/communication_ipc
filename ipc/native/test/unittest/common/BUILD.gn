@@ -334,6 +334,42 @@ ohos_unittest("RPCFeatureUnitTest") {
       "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
+if (target_cpu == "arm64") {
+  ohos_unittest("IPCCInterfaceUnitTest") {
+    module_out_path = MODULE_OUTPUT_PATH
+
+    include_dirs = [
+      "//commonlibrary/c_utils/base/include",
+      "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+      "//foundation/communication/ipc/ipc/native/src/c_wrapper/include",
+    ]
+
+    sources = [
+      "ipc_c_message_parcel_unittest.cpp",
+      "ipc_c_process_unittest.cpp",
+      "ipc_c_remote_object_unittest.cpp",
+    ]
+
+    configs = [
+      "$SUBSYSTEM_DIR:ipc_util_config",
+      "$IPC_TEST_ROOT:ipc_test_config",
+    ]
+
+    deps = [
+      "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
+      "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+      "//foundation/communication/ipc/interfaces/innerkits/rust:ipc_c",
+      "//third_party/googletest:gmock_main",
+      "//third_party/googletest:gtest_main",
+    ]
+
+    external_deps = [ "c_utils:utils" ]
+
+    resource_config_file =
+        "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  }
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -347,6 +383,9 @@ group("unittest") {
     ":InvokerFactoryTest",
     ":RPCFeatureUnitTest",
   ]
+  if (target_cpu == "arm64") {
+    deps += [ ":IPCCInterfaceUnitTest" ]
+  }
   if (support_jsapi) {
     deps += [ ":IPCNapiUnitTest" ]
   }
