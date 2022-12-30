@@ -334,7 +334,7 @@ ohos_unittest("RPCFeatureUnitTest") {
       "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
 }
 
-if (target_cpu == "arm64") {
+if (product_name == "rk3568" && target_cpu == "arm64") {
   ohos_unittest("IPCCInterfaceUnitTest") {
     module_out_path = MODULE_OUTPUT_PATH
 
@@ -383,7 +383,7 @@ group("unittest") {
     ":InvokerFactoryTest",
     ":RPCFeatureUnitTest",
   ]
-  if (target_cpu == "arm64") {
+  if (product_name == "rk3568" && target_cpu == "arm64") {
     deps += [ ":IPCCInterfaceUnitTest" ]
   }
   if (support_jsapi) {
