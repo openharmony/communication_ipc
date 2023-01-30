@@ -21,6 +21,7 @@
 #include "functional"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
+#include "ipc_debug.h"
 #include "iremote_object.h"
 #include "log_tags.h"
 #include "refbase.h"
@@ -38,13 +39,20 @@ BrokerRegistration &BrokerRegistration::Get()
 
 BrokerRegistration::~BrokerRegistration()
 {
+    isUnloading = true;
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     for (auto it = creators_.begin(); it != creators_.end();) {
         it = creators_.erase(it);
     }
+    for (auto it1 = objects_.begin(); it1 != objects_.end();) {
+        BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(*it1);
+        object->isSoUnloaded = true;
+        it1 = objects_.erase(it1);
+    }
 }
 
-bool BrokerRegistration::Register(const std::u16string &descriptor, const Constructor &creator)
+bool BrokerRegistration::Register(const std::u16string &descriptor, const Constructor &creator,
+    const BrokerDelegatorBase *object)
 {
     if (descriptor.empty()) {
         return false;
@@ -52,19 +60,38 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
 
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     auto it = creators_.find(descriptor);
+    bool ret = false;
     if (it == creators_.end()) {
-        return creators_.insert({ descriptor, creator }).second;
+        ret = creators_.insert({ descriptor, creator }).second;
     }
-    return false;
+    auto it1 = std::find_if(objects_.begin(), objects_.end(), [descriptor](uintptr_t id) {
+        const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(id);
+        return object->descriptor_ == descriptor;
+    });
+    if (it1 == objects_.end()) {
+        objects_.push_back(reinterpret_cast<uintptr_t>(object));
+    }
+    return ret;
 }
 
 void BrokerRegistration::Unregister(const std::u16string &descriptor)
 {
+    if (isUnloading) {
+        ZLOGE(LABEL, "BrokerRegistration is Unloading");
+        return;
+    }
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     if (!descriptor.empty()) {
         auto it = creators_.find(descriptor);
         if (it != creators_.end()) {
             creators_.erase(it);
+        }
+        auto it1 = std::find_if(objects_.begin(), objects_.end(), [descriptor](uintptr_t id) {
+            const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(id);
+            return object->descriptor_ == descriptor;
+        });
+        if (it1 != objects_.end()) {
+            objects_.erase(it1);
         }
     }
 }

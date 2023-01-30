@@ -43,7 +43,7 @@ public:
 
 inline const std::string &ErrorBase::GetErrorDesc(uint32_t error)
 {
-    static const std::string unknowCommand = "UNKNOWN COMMAND";
+    static constexpr const char *unknowCommand = "UNKNOWN COMMAND";
     ErrorMap::iterator found = GetErrorMap().find(error);
     if (found == GetErrorMap().end()) {
         return unknowCommand;

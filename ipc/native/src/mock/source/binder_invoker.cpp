@@ -105,8 +105,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LABEL, "WriteTransaction ERROR");
 #ifndef BUILD_PUBLIC_VERSION
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
-            DbinderErrorCode::IPC_DRIVER, DbinderErrorCode::ERROR_CODE, DbinderErrorCode::TRANSACT_DATA_FAILURE);
+        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
+            DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
+            DbinderErrorCode::TRANSACT_DATA_FAILURE);
 #endif
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
@@ -960,8 +961,9 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
     if (!status) {
         ZLOGE(LABEL, "Fail to flatten object");
 #ifndef BUILD_PUBLIC_VERSION
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
-            DbinderErrorCode::IPC_DRIVER, DbinderErrorCode::ERROR_CODE, DbinderErrorCode::FLATTEN_OBJECT_FAILURE);
+        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
+            DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
+            DbinderErrorCode::FLATTEN_OBJECT_FAILURE);
 #endif
     }
     return status;
