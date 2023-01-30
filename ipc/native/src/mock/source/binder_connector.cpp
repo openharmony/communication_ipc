@@ -43,8 +43,8 @@ std::mutex BinderConnector::skeletonMutex;
 constexpr int SZ_1_M = 1048576;
 constexpr int DOUBLE = 2;
 static const int IPC_MMAP_SIZE = (SZ_1_M - sysconf(_SC_PAGE_SIZE) * DOUBLE);
-static const std::string DRIVER_NAME = std::string("/dev/binder");
-static const std::string TOKENID_DEVNODE = std::string("/dev/access_token_id");
+static constexpr const char *DRIVER_NAME = "/dev/binder";
+static constexpr const char *TOKENID_DEVNODE = "/dev/access_token_id";
 BinderConnector *BinderConnector::instance_ = nullptr;
 
 BinderConnector::BinderConnector(const std::string &deviceName)
@@ -75,7 +75,7 @@ bool BinderConnector::OpenDriver()
     if (fd < 0) {
         ZLOGE(LABEL, "%{public}s:fail to open", __func__);
 #ifndef BUILD_PUBLIC_VERSION
-        ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, DbinderErrorCode::ERROR_CODE,
+        ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
             DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE);
 #endif
         return false;
@@ -103,7 +103,7 @@ bool BinderConnector::OpenDriver()
         close(driverFD_);
         driverFD_ = -1;
 #ifndef BUILD_PUBLIC_VERSION
-        ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, DbinderErrorCode::ERROR_CODE,
+        ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
             DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE);
 #endif
         return false;
@@ -135,7 +135,7 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
         if (err == -EINTR) {
             ZLOGE(LABEL, "%s:ioctl_binder returned EINTR", __func__);
 #ifndef BUILD_PUBLIC_VERSION
-            ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, DbinderErrorCode::ERROR_CODE,
+            ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
                 DbinderErrorCode::WRITE_IPC_DRIVER_FAILURE);
 #endif
         }
@@ -156,7 +156,7 @@ uint64_t BinderConnector::GetSelfTokenID()
     if (IsAccessTokenSupported() != true) {
         return 0;
     }
-    int fd = open(TOKENID_DEVNODE.c_str(), O_RDWR);
+    int fd = open(TOKENID_DEVNODE, O_RDWR);
     if (fd < 0) {
         ZLOGE(LABEL, "%{public}s: fail to open tokenId node", __func__);
         return 0;
@@ -174,7 +174,7 @@ uint64_t BinderConnector::GetSelfFirstCallerTokenID()
     if (IsAccessTokenSupported() != true) {
         return 0;
     }
-    int fd = open(TOKENID_DEVNODE.c_str(), O_RDWR);
+    int fd = open(TOKENID_DEVNODE, O_RDWR);
     if (fd < 0) {
         ZLOGE(LABEL, "%{public}s: fail to open tokenId node", __func__);
         return 0;
@@ -193,7 +193,7 @@ BinderConnector *BinderConnector::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> lockGuard(skeletonMutex);
         if (instance_ == nullptr) {
-            auto temp = new (std::nothrow) BinderConnector(DRIVER_NAME);
+            auto temp = new (std::nothrow) BinderConnector(std::string(DRIVER_NAME));
             if (temp == nullptr) {
                 ZLOGE(LABEL, "create BinderConnector object failed");
                 return nullptr;
