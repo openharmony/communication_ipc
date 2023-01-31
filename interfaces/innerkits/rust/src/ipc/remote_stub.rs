@@ -31,7 +31,7 @@ impl<T: IRemoteStub> RemoteStub<T> {
     pub fn new(rust: T) -> Option<Self> {
         let rust = Box::into_raw(Box::new(rust));
         let descripor = CString::new(T::get_descriptor()).expect("descripor must be valid!");
-        // SAFETY:TODO
+        // SAFETY:
         let native = unsafe {
             // set rust object pointer to native, so we can figure out who deal
             // the request during on_remote_request().
@@ -48,7 +48,7 @@ impl<T: IRemoteStub> RemoteStub<T> {
 
 impl<T: IRemoteStub> IRemoteBroker for RemoteStub<T> {
     fn as_object(&self) -> Option<RemoteObj> {
-        // SAFETY: TODO
+        // SAFETY:
         unsafe {
             // add remote object reference count
             ipc_binding::RemoteObjectIncStrongRef(self.native);

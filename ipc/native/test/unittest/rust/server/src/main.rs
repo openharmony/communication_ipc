@@ -94,7 +94,6 @@ impl ITest for TestService {
         let first_token_id = get_first_token_id();
         let pid = get_calling_pid();
         let uid = get_calling_uid();
-        println!("{}, {}, {}, {}", token_id, first_token_id, pid, uid);
         Ok((token_id, first_token_id, pid, uid))
     }
 }

@@ -38,9 +38,9 @@ impl Serialize for InterfaceToken {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteInterfaceToken(
-                parcel.as_mut_raw(), 
+                parcel.as_mut_raw(),
                 token.as_ptr() as *const c_char,
-                token.as_bytes().len().try_into().unwrap()  
+                token.as_bytes().len().try_into().unwrap()
             )};
         result_status::<()>(ret, ())
     }
@@ -52,7 +52,7 @@ impl Deserialize for InterfaceToken {
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             ipc_binding::CParcelReadInterfaceToken(
-                parcel.as_raw(), 
+                parcel.as_raw(),
                 &mut vec as *mut _ as *mut c_void,
                 allocate_vec_with_buffer::<u8>
             )

@@ -27,5 +27,5 @@ impl<T: DeOption> Deserialize for Option<T> {
     }
 }
 
-// impl<T: DeOption> DeArray for Option<T> {}
-// impl<T: SerOption> SerArray for Option<T> {}
+impl<T: DeOption> DeArray for Option<T> {}
+impl<T: SerOption> SerArray for Option<T> {}
