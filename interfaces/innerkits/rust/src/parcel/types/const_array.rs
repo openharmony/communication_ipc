@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
- use super::*;
+use super::*;
 
- impl<T: SerArray, const N: usize> Serialize for [T; N] {
+impl<T: SerArray, const N: usize> Serialize for [T; N] {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
         // forwards to T::serialize_array.
         SerArray::ser_array(self, parcel)
@@ -45,5 +45,5 @@ impl<T: DeArray, const N: usize> DeOption for [T; N] {
         vec.map(|v| v.try_into().or(Err(-1))).transpose()
     }
 }
- 
+
 impl<T: DeArray, const N: usize> DeArray for [T; N] {}

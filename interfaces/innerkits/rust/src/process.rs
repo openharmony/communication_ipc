@@ -18,7 +18,8 @@ use crate::{
     Result,
 };
 
-fn get_samgr() -> Option<RemoteObj>
+/// Get proxy object of samgr
+pub fn get_context_object() -> Option<RemoteObj>
 {
     unsafe {
         let samgr = ipc_binding::GetContextManager();
@@ -29,7 +30,7 @@ fn get_samgr() -> Option<RemoteObj>
 /// Add a service to samgr
 pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
 {
-    let samgr = get_samgr().expect("samgr is not null");
+    let samgr = get_context_object().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
     data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
     data.write(&said)?;
@@ -47,7 +48,7 @@ pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
 /// Get a service proxy from samgr
 pub fn get_service(said: i32) -> Result<RemoteObj>
 {
-    let samgr = get_samgr().expect("samgr is not null");
+    let samgr = get_context_object().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
     data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
     data.write(&said)?;
