@@ -27,7 +27,7 @@ use std::ffi::{c_void};
 pub mod death_recipient;
 pub mod cmp;
 
-/// RemoteObject can be used as proxy or stub object. 
+/// RemoteObject can be used as proxy or stub object.
 /// It always contained a native CRemoteObject pointer.
 /// # Invariant
 ///
@@ -123,18 +123,18 @@ unsafe impl Sync for RemoteObj {}
 
 impl Clone for RemoteObj {
     fn clone(&self) -> Self {
-        // SAFETY: TODO 
+        // SAFETY:
         unsafe {
             ipc_binding::RemoteObjectIncStrongRef(self.as_inner());
         }
-        // SAFETY: no `None` here, cause `self` is valid 
+        // SAFETY: no `None` here, cause `self` is valid
         Self(self.0)
     }
 }
 
 impl Drop for RemoteObj {
     fn drop(&mut self) {
-        // SAFETY: TODO
+        // SAFETY:
         unsafe {
             ipc_binding::RemoteObjectDecStrongRef(self.as_inner());
         }

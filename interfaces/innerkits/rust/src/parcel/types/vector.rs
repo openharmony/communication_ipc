@@ -15,7 +15,6 @@
 
 use super::*;
 
-
 impl<T: SerArray> Serialize for Vec<T> {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
         SerArray::ser_array(&self[..], parcel)
@@ -27,7 +26,7 @@ impl<T: SerArray> SerOption for Vec<T> {
         SerOption::ser_option(this.map(Vec::as_slice), parcel)
     }
 }
- 
+
 impl<T: DeArray> Deserialize for Vec<T> {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
         DeArray::de_array(parcel)

@@ -15,6 +15,11 @@
 
 use super::*;
 use crate::{ipc_binding, BorrowedMsgParcel, Result, result_status, AsRawPtr};
+use std::mem::MaybeUninit;
+
+impl_serde_option_for_parcelable!(i8, u8, i16, u16, i32, u32, i64, u64, f32,f64);
+
+// Using macros Eliminating duplicate code in the future
 
 ///  i8 && u8
 impl Serialize for i8 {
@@ -73,54 +78,133 @@ impl Deserialize for i16 {
     }
 }
 
-// impl SerArray for i16 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteInt16Array(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr(),
-//                 slice.len()
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
+impl SerArray for i8 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        let ret = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // If the slice is > 0 length, `slice.as_ptr()` will be a
+            // valid pointer to an array of elements of type `$ty`. If the slice
+            // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+            // since the pointer is not dereferenced if the length parameter is
+            // 0.
+            ipc_binding::CParcelWriteInt8Array(
+                parcel.as_mut_raw(),
+                slice.as_ptr(),
+                slice.len().try_into().unwrap(),
+            )
+        };
+        result_status::<()>(ret, ())
+    }
+}
 
-// impl DeArray for i16 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadInt16Array(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-        
-//     }
-// }
+impl DeArray for i8 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        let ok_status = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // `allocate_vec<T>` expects the opaque pointer to
+            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+            // correct for it.
+            ipc_binding::CParcelReadInt8Array(
+                parcel.as_raw(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer,
+            )
+        };
+        if ok_status {
+            let vec: Option<Vec<Self>> = unsafe {
+                // SAFETY: We are assuming that the NDK correctly
+                // initialized every element of the vector by now, so we
+                // know that all the MaybeUninits are now properly
+                // initialized.
+                vec.map(|vec| vec_assume_init(vec))
+            };
+            Ok(vec)
+        } else {
+            Err(-1)
+        }
+    }
+}
+
+impl SerArray for u8 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        // SAFETY:
+        let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i8, slice.len()) };
+        i8::ser_array(slice, parcel)
+    }
+}
+
+impl DeArray for u8 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        i8::de_array(parcel).map(|v|
+            v.map(|mut v| v.iter_mut().map(|i| *i as u8).collect())
+        )
+    }
+}
+
+impl SerArray for i16 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        let ret = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // If the slice is > 0 length, `slice.as_ptr()` will be a
+            // valid pointer to an array of elements of type `$ty`. If the slice
+            // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+            // since the pointer is not dereferenced if the length parameter is
+            // 0.
+            ipc_binding::CParcelWriteInt16Array(
+                parcel.as_mut_raw(),
+                slice.as_ptr(),
+                slice.len().try_into().unwrap()
+            )
+        };
+        result_status::<()>(ret, ())
+    }
+}
+
+impl DeArray for i16 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        let ok_status = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // `allocate_vec<T>` expects the opaque pointer to
+            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+            // correct for it.
+            ipc_binding::CParcelReadInt16Array(
+                parcel.as_raw(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer,
+            )
+        };
+        if ok_status {
+            let vec: Option<Vec<Self>> = unsafe {
+                // SAFETY: We are assuming that the NDK correctly
+                // initialized every element of the vector by now, so we
+                // know that all the MaybeUninits are now properly
+                // initialized.
+                vec.map(|vec| vec_assume_init(vec))
+            };
+            Ok(vec)
+        } else {
+            Err(-1)
+        }
+    }
+}
+
+impl SerArray for u16 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        // SAFETY:
+        let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i16, slice.len()) };
+        i16::ser_array(slice, parcel)
+    }
+}
+
+impl DeArray for u16 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        i16::de_array(parcel).map(|v|
+            v.map(|mut v| v.iter_mut().map(|i| *i as u16).collect())
+        )
+    }
+}
 
 impl Serialize for u16 {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
@@ -133,55 +217,6 @@ impl Deserialize for u16 {
         i16::deserialize(parcel).map(|v| v as u16)
     }
 }
-
-// impl SerArray for u16 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteInt16Array(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr() as *const i16,
-//                 slice.len()
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
-
-// impl DeArray for u16 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadInt16Array(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-        
-//     }
-// }
 
 /// i32 && u32
 impl Serialize for i32 {
@@ -205,54 +240,69 @@ impl Deserialize for i32 {
     }
 }
 
-// impl SerArray for i32 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteInt32Array(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr(),
-//                 slice.len()
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
+impl SerArray for i32 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        let ret = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // If the slice is > 0 length, `slice.as_ptr()` will be a
+            // valid pointer to an array of elements of type `$ty`. If the slice
+            // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+            // since the pointer is not dereferenced if the length parameter is
+            // 0.
+            ipc_binding::CParcelWriteInt32Array(
+                parcel.as_mut_raw(),
+                slice.as_ptr(),
+                slice.len().try_into().unwrap(),
+            )
+        };
+        result_status::<()>(ret, ())
+    }
+}
 
-// impl DeArray for i32 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadInt32Array(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-        
-//     }
-// }
+impl DeArray for i32 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        let ok_status = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // `allocate_vec<T>` expects the opaque pointer to
+            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+            // correct for it.
+            ipc_binding::CParcelReadInt32Array(
+                parcel.as_raw(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer,
+            )
+        };
+        if ok_status {
+            let vec: Option<Vec<Self>> = unsafe {
+                // SAFETY: We are assuming that the NDK correctly
+                // initialized every element of the vector by now, so we
+                // know that all the MaybeUninits are now properly
+                // initialized.
+                vec.map(|vec| vec_assume_init(vec))
+            };
+            Ok(vec)
+        } else {
+            Err(-1)
+        }
+    }
+}
+
+impl SerArray for u32 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        // SAFETY:
+        let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i32, slice.len()) };
+        i32::ser_array(slice, parcel)
+    }
+}
+
+impl DeArray for u32 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        i32::de_array(parcel).map(|v|
+            v.map(|mut v| v.iter_mut().map(|i| *i as u32).collect())
+        )
+    }
+}
 
 impl Serialize for u32 {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
@@ -265,55 +315,6 @@ impl Deserialize for u32 {
         i32::deserialize(parcel).map(|v| v as u32)
     }
 }
-
-// impl SerArray for u32 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteInt32Array(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr() as *const i32,
-//                 slice.len().try_into().or(Err(-1)?,
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
-
-// impl DeArray for u32 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadInt32Array(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-        
-//     }
-// }
 
 /// i64 && u64
 impl Serialize for i64 {
@@ -337,54 +338,69 @@ impl Deserialize for i64 {
     }
 }
 
-// impl SerArray for i64 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteInt64Array(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr() as *const i64,
-//                 slice.len()
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
+impl SerArray for i64 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        let ret = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // If the slice is > 0 length, `slice.as_ptr()` will be a
+            // valid pointer to an array of elements of type `$ty`. If the slice
+            // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+            // since the pointer is not dereferenced if the length parameter is
+            // 0.
+            ipc_binding::CParcelWriteInt64Array(
+                parcel.as_mut_raw(),
+                slice.as_ptr() as *const i64,
+                slice.len().try_into().unwrap()
+            )
+        };
+        result_status::<()>(ret, ())
+    }
+}
 
-// impl DeArray for i64 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadInt64Array(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-        
-//     }
-// }
+impl DeArray for i64 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        let ok_status = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // `allocate_vec<T>` expects the opaque pointer to
+            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+            // correct for it.
+            ipc_binding::CParcelReadInt64Array(
+                parcel.as_raw(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer,
+            )
+        };
+        if ok_status {
+            let vec: Option<Vec<Self>> = unsafe {
+                // SAFETY: We are assuming that the NDK correctly
+                // initialized every element of the vector by now, so we
+                // know that all the MaybeUninits are now properly
+                // initialized.
+                vec.map(|vec| vec_assume_init(vec))
+            };
+            Ok(vec)
+        } else {
+            Err(-1)
+        }
+    }
+}
+
+impl SerArray for u64 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        // SAFETY:
+        let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i64, slice.len()) };
+        i64::ser_array(slice, parcel)
+    }
+}
+
+impl DeArray for u64 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        i64::de_array(parcel).map(|v|
+            v.map(|mut v| v.iter_mut().map(|i| *i as u64).collect())
+        )
+    }
+}
 
 impl Serialize for u64 {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
@@ -397,55 +413,6 @@ impl Deserialize for u64 {
         i64::deserialize(parcel).map(|v| v as u64)
     }
 }
-
-// impl SerArray for u64 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteInt64Array(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr() as *const i64,
-//                 slice.len()
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
-
-// impl DeArray for u64 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadInt64Array(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-        
-//     }
-// }
 
 /// f32
 impl Serialize for f32 {
@@ -469,53 +436,53 @@ impl Deserialize for f32 {
     }
 }
 
-// impl SerArray for f32 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteFloatArray(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr(),
-//                 slice.len().try_into().or(Err(-1)?,
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
+impl SerArray for f32 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        let ret = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // If the slice is > 0 length, `slice.as_ptr()` will be a
+            // valid pointer to an array of elements of type `$ty`. If the slice
+            // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+            // since the pointer is not dereferenced if the length parameter is
+            // 0.
+            ipc_binding::CParcelWriteFloatArray(
+                parcel.as_mut_raw(),
+                slice.as_ptr(),
+                slice.len().try_into().or(Err(-1))?,
+            )
+        };
+        result_status::<()>(ret, ())
+    }
+}
 
-// impl DeArray for f32 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadFloatArray(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-//     }
-// }
+impl DeArray for f32 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        let ok_status = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // `allocate_vec<T>` expects the opaque pointer to
+            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+            // correct for it.
+            ipc_binding::CParcelReadFloatArray(
+                parcel.as_raw(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer,
+            )
+        };
+        if ok_status {
+            let vec: Option<Vec<Self>> = unsafe {
+                // SAFETY: We are assuming that the NDK correctly
+                // initialized every element of the vector by now, so we
+                // know that all the MaybeUninits are now properly
+                // initialized.
+                vec.map(|vec| vec_assume_init(vec))
+            };
+            Ok(vec)
+        } else {
+            Err(-1)
+        }
+    }
+}
 
 /// f64
 impl Serialize for f64 {
@@ -539,50 +506,50 @@ impl Deserialize for f64 {
     }
 }
 
-// impl SerArray for f64 {
-//     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
-//         let ret = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // If the slice is > 0 length, `slice.as_ptr()` will be a
-//             // valid pointer to an array of elements of type `$ty`. If the slice
-//             // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-//             // since the pointer is not dereferenced if the length parameter is
-//             // 0.
-//             ipc_binding::CParcelWriteDoubleArray(
-//                 parcel.as_mut_raw(),
-//                 slice.as_ptr(),
-//                 slice.len()
-//             )
-//         };
-//         result_status::<()>(ret, ())
-//     }
-// }
+impl SerArray for f64 {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        let ret = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // If the slice is > 0 length, `slice.as_ptr()` will be a
+            // valid pointer to an array of elements of type `$ty`. If the slice
+            // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+            // since the pointer is not dereferenced if the length parameter is
+            // 0.
+            ipc_binding::CParcelWriteDoubleArray(
+                parcel.as_mut_raw(),
+                slice.as_ptr(),
+                slice.len().try_into().unwrap()
+            )
+        };
+        result_status::<()>(ret, ())
+    }
+}
 
-// impl DeArray for f64 {
-//     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
-//         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
-//         let ok_status = unsafe {
-//             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-//             // `allocate_vec<T>` expects the opaque pointer to
-//             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-//             // correct for it.
-//             ipc_binding::CParcelReadDoubleArray(
-//                 parcel.as_raw(),
-//                 &mut vec as *mut _ as *mut c_void,
-//                 allocate_vec_with_buffer,
-//             )
-//         };
-//         if ok_status{
-//             let vec: Option<Vec<Self>> = unsafe {
-//                 // SAFETY: We are assuming that the NDK correctly
-//                 // initialized every element of the vector by now, so we
-//                 // know that all the MaybeUninits are now properly
-//                 // initialized.
-//                 vec.map(|vec| vec_assume_init(vec))
-//             };
-//             Ok(vec)
-//         }else{
-//             Err(-1)
-//         }
-//     }
-// }
+impl DeArray for f64 {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+        let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        let ok_status = unsafe {
+            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+            // `allocate_vec<T>` expects the opaque pointer to
+            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+            // correct for it.
+            ipc_binding::CParcelReadDoubleArray(
+                parcel.as_raw(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer,
+            )
+        };
+        if ok_status {
+            let vec: Option<Vec<Self>> = unsafe {
+                // SAFETY: We are assuming that the NDK correctly
+                // initialized every element of the vector by now, so we
+                // know that all the MaybeUninits are now properly
+                // initialized.
+                vec.map(|vec| vec_assume_init(vec))
+            };
+            Ok(vec)
+        } else {
+            Err(-1)
+        }
+    }
+}

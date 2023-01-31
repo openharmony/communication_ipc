@@ -25,9 +25,11 @@ mod process;
 pub use crate::errors::{Result, result_status};
 pub use crate::ipc::{
     IRemoteBroker, IRemoteObj, IRemoteStub, FromRemoteObj, RemoteObjRef,
-    remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient, remote_stub::RemoteStub,
+    remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient,
+    remote_stub::RemoteStub,
 };
-pub use crate::parcel::{MsgParcel, BorrowedMsgParcel, IMsgParcel,
+pub use crate::parcel::{
+    MsgParcel, BorrowedMsgParcel, IMsgParcel, RawData,
     parcelable::{Serialize, Deserialize, SerOption, DeOption},
 };
 
@@ -39,8 +41,9 @@ pub use crate::parcel::types::{
 };
 
 pub use crate::process::{
-    add_service, get_service, join_work_thread, stop_work_thread, get_calling_uid,
-    get_calling_token_id, get_first_token_id, get_self_token_id, get_calling_pid,
+    get_context_object, add_service, get_service, join_work_thread, stop_work_thread,
+    get_calling_uid, get_calling_token_id, get_first_token_id, get_self_token_id,
+    get_calling_pid,
 };
 
 /// First request code available for user IPC request(inclusive)

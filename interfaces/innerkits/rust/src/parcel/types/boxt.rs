@@ -32,7 +32,7 @@ impl<T: SerOption> SerOption for Box<T> {
         SerOption::ser_option(this.map(|inner| &**inner), parcel)
     }
 }
- 
+
 impl<T: DeOption> DeOption for Box<T> {
     fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
         DeOption::de_option(parcel).map(|t| t.map(Box::new))

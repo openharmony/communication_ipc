@@ -22,6 +22,7 @@ use std::marker::PhantomData;
 use std::mem::{ManuallyDrop,MaybeUninit};
 use std::ops::{Drop};
 use std::ptr::{NonNull};
+use std::slice;
 use crate::AsRawPtr;
 use crate::parcel::parcelable::{Serialize, Deserialize};
 
@@ -128,12 +129,12 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
         // SAFETY: this is safe because the vector contains MaybeUninit elements which can be uninitialized
         unsafe{
             buffer.set_len(len as usize);
-        } 
+        }
 
         let ok_status = unsafe {
             ipc_binding::CParcelReadBuffer(
                 self.as_raw(),
-                buffer.as_mut_ptr() as *mut u8, 
+                buffer.as_mut_ptr() as *mut u8,
                 len
             )
         };
@@ -145,7 +146,66 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
         let buffer = unsafe { transmute_vec(buffer) };
         if ok_status { Ok(buffer) } else { Err(-1) }
     }
+
+    /// Write a large bytes stream into parcel
+    fn write_raw_data(&mut self, data: &[u8]) -> bool {
+        // SAFETY:
+        unsafe {
+            ipc_binding::CParcelWriteRawData(self.as_mut_raw(),
+                data.as_ptr(), data.len() as u32)
+        }
+    }
+
+    /// Read a big bytes stream from parcel
+    fn read_raw_data(&self, len: u32) -> Result<RawData> {
+        let raw_data_ptr = unsafe {
+            ipc_binding::CParcelReadRawData(self.as_raw(), len)
+        };
+        if raw_data_ptr.is_null() {
+            Err(-1)
+        } else {
+            Ok(RawData {
+                raw_ptr: raw_data_ptr,
+                len,
+            })
+         }
+    }
 }
+
+/// Rust RawData type which just for fetch data from C++ MssageParcel::ReadRawData()
+#[repr(C)]
+pub struct RawData{
+    raw_ptr: *const u8,
+    len: u32,
+}
+
+impl RawData{
+    /// The caller should ensure that the u8 slice can be
+    /// correctly converted to other rust types
+    pub fn read(&self, start: u32, len: u32) -> Result<&[u8]> {
+        if len == 0 || len > self.len || start >= self.len || (start + len) > self.len {
+            return Err(-1);
+        }
+
+        let data_ptr = unsafe {
+            // SAFETY: raw_ptr is valid in [0..len], the memory is matained by C++ Parcel.
+            self.raw_ptr.add(start as usize)
+        };
+        if !data_ptr.is_null() {
+            // SAFETY:
+            // 1. data is valid for reads for `len * mem::size_of::<u8>() `
+            // 2. The entire memory range of this slice be contained within a single allocated object (From Cpp)
+            // 3. data_ptr point to len consecutive properly initialized values of `u8`
+            // 4. The total size `len * mem::size_of::<u8>()` of the slice is no larger than `isize::MAX`
+            unsafe {
+                Ok(slice::from_raw_parts::<u8>(data_ptr, len as usize))
+            }
+        } else {
+            Err(-1)
+        }
+    }
+}
+
 
 /// Container for a message (data and object references) that can be sent
 /// through Binder.
@@ -184,7 +244,7 @@ impl MsgParcel {
 
     /// Get a borrowed view into the contents of this `MsgParcel`.
     pub fn borrowed(&mut self) -> BorrowedMsgParcel<'_> {
-        // SAFETY: The raw pointer is a valid pointer 
+        // SAFETY: The raw pointer is a valid pointer
         BorrowedMsgParcel {
             ptr: self.ptr,
             _mark: PhantomData,
@@ -220,7 +280,7 @@ impl Drop for MsgParcel {
     fn drop(&mut self) {
         unsafe {
             ipc_binding::CParcelDecStrongRef(self.as_mut_raw())
-        }  
+        }
     }
 }
 
@@ -240,7 +300,7 @@ impl<'a> BorrowedMsgParcel<'a> {
 
     /// # Safety
     ///
-    /// `*mut CParcel` must be a valid pointer 
+    /// `*mut CParcel` must be a valid pointer
     pub unsafe fn from_raw(ptr: *mut CParcel) -> Option<BorrowedMsgParcel<'a>> {
         Some(Self {
             ptr: NonNull::new(ptr)?,

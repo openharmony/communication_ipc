@@ -68,7 +68,7 @@ impl Serialize for FileDesc {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
         let fd = self.0.as_raw_fd();
         let ret = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to an `CParcel`. 
+            // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
             ipc_binding::CParcelWriteFileDescriptor(parcel.as_mut_raw(), fd)
         };
         result_status::<()>(ret, ())
@@ -81,8 +81,8 @@ impl SerOption for FileDesc {
             f.serialize(parcel)
         } else {
             let ret = unsafe {
-                // SAFETY: `parcel` always contains a valid pointer to an `CParcel`. 
-                // `CParcelWriteFileDescriptor` accepts the value `-1` as the file 
+                // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
+                // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
                 // descriptor to signify serializing a null file descriptor.
                 ipc_binding::CParcelWriteFileDescriptor(parcel.as_mut_raw(), -1i32)
             };
@@ -95,8 +95,8 @@ impl DeOption for FileDesc {
     fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
         let mut fd = -1i32;
         let ok_status = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to an `CParcel`. 
-            // `CParcelWriteFileDescriptor` accepts the value `-1` as the file 
+            // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
+            // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
             // descriptor to signify serializing a null file descriptor.
             // The read function passes ownership of the file
             // descriptor to its caller if it was non-null, so we must take

@@ -45,7 +45,7 @@ pub trait IRemoteStub: Send + Sync {
     fn on_remote_request(&self, code: u32, data: &BorrowedMsgParcel, reply: &mut BorrowedMsgParcel) -> i32;
 }
 
-/// Like C++ IRemoteBroker class 
+/// Like C++ IRemoteBroker class
 pub trait IRemoteBroker: Send + Sync {
     /// Convert self to RemoteObject
     fn as_object(&self) -> Option<RemoteObj> {
