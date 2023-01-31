@@ -13,6 +13,21 @@
  * limitations under the License.
  */
 
+/// # Example
+///
+/// ```ignore
+/// impl_serde_option_for_parcelable!(i32, bool);
+/// ```
+#[macro_export]
+macro_rules! impl_serde_option_for_parcelable {
+    ($($ty:ty),*) => {
+            $(
+                impl SerOption for $ty {}
+                impl DeOption for $ty {}
+            )*
+    };
+}
+
 pub mod bool;
 pub mod integer;
 pub mod option;
@@ -22,9 +37,9 @@ pub mod interface_token;
 pub mod string16;
 pub mod file_desc;
 pub mod boxt;
-// pub mod const_array;
-// pub mod slices;
-// pub mod vector;
+pub mod const_array;
+pub mod slices;
+pub mod vector;
 
 use crate::parcel::parcelable::*;
 use std::ffi::{c_char, c_void};

@@ -85,7 +85,6 @@ pub trait ITest: IRemoteBroker {
 
 fn on_itest_remote_request(stub: &dyn ITest, code: u32, data: &BorrowedMsgParcel,
     reply: &mut BorrowedMsgParcel) -> Result<()> {
-    println!("on_remote_reuqest in Rust TestStub, code: {}", code);
     match code {
         1 => {
             let value: i32 = data.read().expect("should a value");
