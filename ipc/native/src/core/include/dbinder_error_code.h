@@ -34,8 +34,8 @@ public:
     static const int KERNEL_DRIVER_ERROR = 950000607;
     static const int SOCKET_DRIVER_ERROR = 950000608;
 
-    inline static const std::string ERROR_TYPE = "ErrType";
-    inline static const std::string ERROR_CODE = "ErrCode";
+    inline static constexpr const char *ERROR_TYPE = "ErrType";
+    inline static constexpr const char *ERROR_CODE = "ErrCode";
 
     // 601
     enum SystemEnvironmentError {

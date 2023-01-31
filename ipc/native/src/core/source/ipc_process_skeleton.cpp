@@ -106,7 +106,7 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
     std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (manager != nullptr) {
-        std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
+        std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
         (void)manager->RemoveSessionServer(pkgName, sessionName_);
     }
 #endif
@@ -223,6 +223,7 @@ bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
     bool ret = invoker->SetRegistryObject(object);
     if (ret) {
         current->SetRegistryObject(object);
+        current->SetSamgrFlag(true);
     }
     ZLOGI(LOG_LABEL, "%{public}s set registry result is %{public}d", __func__, ret);
     return ret;
@@ -357,7 +358,7 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
 {
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
-    std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
+    std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
     NodeBasicInfo nodeBasicInfo;
     if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
         ZLOGE(LOG_LABEL, "Get local node device info failed");
@@ -1025,7 +1026,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         ZLOGE(LOG_LABEL, "fail to create softbus callbacks");
         return false;
     }
-    std::string pkgName = DBINDER_SERVER_PKG_NAME + "_" + std::to_string(getpid());
+    std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
     int ret = manager->CreateSessionServer(pkgName, name, callback);
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "fail to create softbus server, maybe created already");
