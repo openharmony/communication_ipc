@@ -22,7 +22,7 @@ using Communication::SoftBus::ISessionListener;
 using Communication::SoftBus::Session;
 
 namespace OHOS {
-static const std::string DBINDER_SERVER_PKG_NAME = "DBinderBus";
+static constexpr const char *DBINDER_SERVER_PKG_NAME = "DBinderBus";
 
 class DatabusSessionCallback : public ISessionListener {
 public:

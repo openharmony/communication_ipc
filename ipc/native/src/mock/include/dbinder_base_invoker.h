@@ -608,8 +608,9 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
     if (messageInfo == nullptr) {
         ZLOGE(LOG_LABEL, "receive buffer is nullptr");
 #ifndef BUILD_PUBLIC_VERSION
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
-            DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::ERROR_CODE, DbinderErrorCode::HANDLE_RECV_DATA_FAILURE);
+        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
+            DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
+            DbinderErrorCode::HANDLE_RECV_DATA_FAILURE);
 #endif
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
@@ -732,8 +733,9 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LOG_LABEL, "seqNumber can not be zero,handle=%d", handle);
 #ifndef BUILD_PUBLIC_VERSION
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
-            DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::ERROR_CODE, DbinderErrorCode::TRANSACT_DATA_FAILURE);
+        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
+            DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
+            DbinderErrorCode::TRANSACT_DATA_FAILURE);
 #endif
         return RPC_BASE_INVOKER_WRITE_TRANS_ERR;
     }
