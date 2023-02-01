@@ -32,7 +32,6 @@
 #include "log_tags.h"
 #include "message_option.h"
 #include "message_parcel.h"
-#include "process_skeleton.h"
 #include "refbase.h"
 #include "string_ex.h"
 #include "sys_binder.h"
@@ -40,6 +39,8 @@
 #include "vector"
 
 #ifndef CONFIG_IPC_SINGLE
+#include "accesstoken_kit.h"
+#include "access_token_adapter.h"
 #include "dbinder_databus_invoker.h"
 #include "dbinder_error_code.h"
 #include "ISessionService.h"
@@ -48,16 +49,20 @@
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
+static constexpr int HIDUMPER_SERVICE_UID = 1212;
 #endif
 
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectStub" };
 #ifndef CONFIG_IPC_SINGLE
+using namespace OHOS::Security;
 // Authentication information can be added only for processes with system permission.
 static constexpr pid_t ALLOWED_UID = 10000;
+static constexpr int APL_BASIC = 2;
+// Only the samgr can obtain the UID and PID.
+static const std::string SAMGR_PROCESS_NAME = "samgr";
 #endif
 static constexpr int SHELL_UID = 2000;
-static constexpr int HIDUMPER_SERVICE_UID = 1212;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
@@ -94,6 +99,11 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     switch (code) {
 #ifndef CONFIG_IPC_SINGLE
         case DBINDER_OBITUARY_TRANSACTION: {
+            if (!IsSamgrCall(IPCSkeleton::GetCallingTokenID())) {
+                ZLOGE(LABEL, "%s: DBINDER_OBITUARY_TRANSACTION unauthenticated user ", __func__);
+                result = IPC_STUB_INVALID_DATA_ERR;
+                break;
+            }
             if (data.ReadInt32() == IRemoteObject::DeathRecipient::NOTICE_DEATH_RECIPIENT) {
                 result = NoticeServiceDie(data, reply, option);
             } else {
@@ -158,7 +168,14 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
         }
         case DUMP_TRANSACTION: {
             pid_t uid = IPCSkeleton::GetCallingUid();
+#ifndef CONFIG_IPC_SINGLE
+            uint32_t calllingTokenID = IPCSkeleton::GetFirstTokenID();
+            calllingTokenID = calllingTokenID == 0 ? IPCSkeleton::GetCallingTokenID() : calllingTokenID;
+            if (!IPCSkeleton::IsLocalCalling() ||
+                (uid != 0 && uid != SHELL_UID && !HasDumpPermission(calllingTokenID))) {
+#else
             if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && uid != HIDUMPER_SERVICE_UID)) {
+#endif
                 ZLOGE(LABEL, "do not allow dump");
                 break;
             }
@@ -261,7 +278,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             break;
         }
         case GET_GRANTED_SESSION_NAME: {
-            if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+            if (!IPCSkeleton::IsLocalCalling() ||
+                !IsSamgrCall(static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID()))) {
                 ZLOGE(LABEL, "GRANT_DATABUS_NAME message is excluded in sa manager");
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
@@ -270,7 +288,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             break;
         }
         case GET_SESSION_NAME_PID_UID: {
-            if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+            if (!IPCSkeleton::IsLocalCalling() ||
+                !IsSamgrCall(static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID()))) {
                 ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
@@ -594,9 +613,43 @@ std::string IPCObjectStub::CreateSessionName(int uid, int pid)
     return sessionName;
 }
 
-bool IPCObjectStub::IsSamgrCall()
+bool IPCObjectStub::IsSamgrCall(uint32_t accessToken)
 {
-    return ProcessSkeleton::GetInstance()->GetSamgrFlag();
+    auto tokenType = AccessToken::AccessTokenKit::GetTokenTypeFlag(accessToken);
+    if (tokenType != AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        ZLOGE(LABEL, "not native call");
+        return false;
+    }
+    AccessToken::NativeTokenInfo nativeTokenInfo;
+    int32_t result = AccessToken::AccessTokenKit::GetNativeTokenInfo(accessToken, nativeTokenInfo);
+    if (result == ERR_NONE && nativeTokenInfo.processName == SAMGR_PROCESS_NAME) {
+        return true;
+    }
+    ZLOGE(LABEL, "not samgr called, processName:%{private}s", nativeTokenInfo.processName.c_str());
+    return false;
+}
+
+bool IPCObjectStub::HasDumpPermission(uint32_t accessToken) const
+{
+    int res = AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, "ohos.permission.DUMP");
+    if (res == AccessToken::PermissionState::PERMISSION_GRANTED) {
+        return true;
+    }
+    bool ret = false;
+    auto tokenType = AccessToken::AccessTokenKit::GetTokenTypeFlag(accessToken);
+    if (tokenType == AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        AccessToken::NativeTokenInfo nativeTokenInfo;
+        int32_t result = AccessToken::AccessTokenKit::GetNativeTokenInfo(accessToken, nativeTokenInfo);
+        ret =  (result == ERR_NONE && nativeTokenInfo.apl >= APL_BASIC);
+    } else if (tokenType == AccessToken::ATokenTypeEnum::TOKEN_HAP) {
+        AccessToken::HapTokenInfo hapTokenInfo;
+        int32_t result = AccessToken::AccessTokenKit::GetHapTokenInfo(accessToken, hapTokenInfo);
+        ret =  (result == ERR_NONE && hapTokenInfo.apl >= APL_BASIC);
+    }
+    if (!ret) {
+        ZLOGD(LABEL, "No dump permission, please check!");
+    }
+    return ret;
 }
 #endif
 } // namespace OHOS
