@@ -18,7 +18,6 @@
 
 #include <unordered_map>
 #include <functional>
-#include <vector>
 #include "iremote_object.h"
 #include "refbase.h"
 
@@ -44,19 +43,9 @@ public:
     virtual sptr<IRemoteObject> AsObject() = 0;
 };
 
-class BrokerDelegatorBase {
-public:
-    BrokerDelegatorBase() = default;
-    virtual ~BrokerDelegatorBase() = default;
-
-public:
-    bool isSoUnloaded = false;
-    std::u16string descriptor_;
-};
-
 #define DECLARE_INTERFACE_DESCRIPTOR(DESCRIPTOR)                         \
-    static constexpr const char16_t *metaDescriptor_ = DESCRIPTOR;       \
-    static inline const std::u16string GetDescriptor()                  \
+    static inline const std::u16string metaDescriptor_ = { DESCRIPTOR }; \
+    static inline const std::u16string &GetDescriptor()                  \
     {                                                                    \
         return metaDescriptor_;                                          \
     }
@@ -66,7 +55,7 @@ class BrokerRegistration {
 
 public:
     static BrokerRegistration &Get();
-    bool Register(const std::u16string &descriptor, const Constructor &creator, const BrokerDelegatorBase *object);
+    bool Register(const std::u16string &descriptor, const Constructor &creator);
     void Unregister(const std::u16string &descriptor);
     sptr<IRemoteBroker> NewInstance(const std::u16string &descriptor, const sptr<IRemoteObject> &object);
 
@@ -81,14 +70,12 @@ private:
     BrokerRegistration &operator = (BrokerRegistration &&) = delete;
     std::mutex creatorMutex_;
     std::unordered_map<std::u16string, Constructor> creators_;
-    std::vector<uintptr_t> objects_;
-    std::atomic<bool> isUnloading = false;
 };
 
-template <typename T> class BrokerDelegator : public BrokerDelegatorBase {
+template <typename T> class BrokerDelegator {
 public:
     BrokerDelegator();
-    ~BrokerDelegator() override;
+    ~BrokerDelegator();
 
 private:
     BrokerDelegator(const BrokerDelegator &) = delete;
@@ -101,17 +88,14 @@ template <typename T> BrokerDelegator<T>::BrokerDelegator()
 {
     const std::u16string descriptor = T::GetDescriptor();
     BrokerRegistration &registration = BrokerRegistration::Get();
-    if (registration.Register(descriptor, BrokerCreator<T>(), this)) {
-        descriptor_ = T::GetDescriptor();
-    }
+    registration.Register(descriptor, BrokerCreator<T>());
 }
 
 template <typename T> BrokerDelegator<T>::~BrokerDelegator()
 {
-    if (!isSoUnloaded && !descriptor_.empty()) {
-        BrokerRegistration &registration = BrokerRegistration::Get();
-        registration.Unregister(descriptor_);
-    }
+    const std::u16string descriptor = T::GetDescriptor();
+    BrokerRegistration &registration = BrokerRegistration::Get();
+    registration.Unregister(descriptor);
 }
 
 template <typename INTERFACE> inline sptr<INTERFACE> iface_cast(const sptr<IRemoteObject> &object)

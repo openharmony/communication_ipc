@@ -88,7 +88,8 @@ private:
     int32_t GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     std::string CreateSessionName(int uid, int pid);
-    bool IsSamgrCall();
+    bool IsSamgrCall(uint32_t accessToken);
+    bool HasDumpPermission(uint32_t accessToken) const;
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);

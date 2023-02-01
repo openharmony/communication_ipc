@@ -860,7 +860,22 @@ HWTEST_F(IPCObjectStubTest, IsSamgrCallTest001, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
-    auto ret = testStub->IsSamgrCall();
+    uint32_t accessToken = 1;
+    auto ret = testStub->IsSamgrCall(accessToken);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: HasDumpPermissionTest001
+ * @tc.desc: Verify the HasDumpPermission function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, HasDumpPermissionTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    uint32_t accessToken = 1;
+    auto ret = testStub->HasDumpPermission(accessToken);
     ASSERT_FALSE(ret);
 }
 

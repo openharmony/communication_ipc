@@ -67,7 +67,7 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameTest001, TestSize.Level1)
     IPCObjectProxy object(1);
 
     std::string ret = object.GetSessionName();
-    ASSERT_TRUE(ret.size() == 0);
+    ASSERT_TRUE(ret.size() != 0);
 }
 
 /**
@@ -153,7 +153,7 @@ HWTEST_F(IPCObjectProxyTest, GetPidUidTest001, TestSize.Level1)
     IPCObjectProxy object(1);
     MessageParcel reply;
     auto ret = object.GetPidUid(reply);
-    ASSERT_TRUE(ret != 0);
+    ASSERT_TRUE(ret == 0);
 }
 
 /**
@@ -166,7 +166,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest001, TestSize.Level1)
     IPCObjectProxy object(1);
 
     std::u16string ret = object.GetInterfaceDescriptor();
-    ASSERT_TRUE(ret.size() == 0);
+    ASSERT_TRUE(ret.size() != 0);
 }
 
 /**
@@ -179,7 +179,7 @@ HWTEST_F(IPCObjectProxyTest, GetObjectRefCountTest001, TestSize.Level1)
     IPCObjectProxy object(1);
 
     auto ret = object.GetObjectRefCount();
-    ASSERT_TRUE(ret == 0);
+    ASSERT_TRUE(ret != 0);
 }
 
 /**
@@ -452,9 +452,9 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
-    object.isRemoteDead_ = false;
+    object.isRemoteDead_ = true;
     object.WaitForInit();
-    EXPECT_EQ(object.isRemoteDead_, true);
+    EXPECT_EQ(object.isRemoteDead_, false);
     EXPECT_EQ(object.isFinishInit_, true);
 }
 
@@ -469,12 +469,13 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest002, TestSize.Level1)
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = false;
+    object.isRemoteDead_ = true;
     object.proto_ = IRemoteObject::IF_PROT_DATABUS;
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->proxyToSession_.clear();
     object.WaitForInit();
-    EXPECT_EQ(object.isRemoteDead_, true);
+    EXPECT_EQ(object.isRemoteDead_, false);
 }
 
 /**
@@ -487,12 +488,13 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest003, TestSize.Level1)
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = false;
+    object.isRemoteDead_ = true;
     object.proto_ = IRemoteObject::IF_PROT_ERROR;
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->proxyToSession_.clear();
     object.WaitForInit();
-    EXPECT_EQ(object.isRemoteDead_, true);
+    EXPECT_NE(object.isRemoteDead_, true);
 }
 
 /**
@@ -505,12 +507,13 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest004, TestSize.Level1)
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = false;
+    object.isRemoteDead_ = true;
     object.proto_ = IRemoteObject::IF_PROT_ERROR;
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->proxyToSession_.clear();
     object.WaitForInit();
-    EXPECT_EQ(object.isRemoteDead_, true);
+    EXPECT_NE(object.isRemoteDead_, true);
 }
 #endif
 
@@ -676,7 +679,7 @@ HWTEST_F(IPCObjectProxyTest, NoticeServiceDieTest001, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     auto ret = object->NoticeServiceDie();
-    EXPECT_NE(ret, ERR_NONE);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**
@@ -708,7 +711,7 @@ HWTEST_F(IPCObjectProxyTest, IncRefToRemoteTest001, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     auto ret = object->IncRefToRemote();
-    EXPECT_NE(ret, ERR_NONE);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
 /**

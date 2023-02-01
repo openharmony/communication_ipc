@@ -68,6 +68,7 @@ template <typename T> InvokerDelegator<T>::InvokerDelegator(int prot)
 
 template <typename T> InvokerDelegator<T>::~InvokerDelegator()
 {
+    InvokerFactory::Get().Unregister(prot_);
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
