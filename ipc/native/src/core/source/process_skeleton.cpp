@@ -50,14 +50,4 @@ void ProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     registryObject_ = object;
 }
-
-void ProcessSkeleton::SetSamgrFlag(bool flag)
-{
-    isSamgr_ = flag;
-}
-
-bool ProcessSkeleton::GetSamgrFlag()
-{
-    return isSamgr_;
-}
 } // namespace OHOS

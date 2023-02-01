@@ -29,8 +29,6 @@ public:
     static sptr<ProcessSkeleton> GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
-    void SetSamgrFlag(bool flag);
-    bool GetSamgrFlag();
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
@@ -40,7 +38,6 @@ private:
     static sptr<ProcessSkeleton> instance_;
     static std::mutex mutex_;
     sptr<IRemoteObject> registryObject_ = nullptr;
-    bool isSamgr_ = false;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H

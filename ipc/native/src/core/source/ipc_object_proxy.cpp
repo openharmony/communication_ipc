@@ -319,9 +319,8 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
     if (!invoker->AddDeathRecipient(handle_, this)) {
         ZLOGE(LABEL, "%{public}s: fail to add binder death recipient", __func__);
 #ifndef BUILD_PUBLIC_VERSION
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
-            DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE);
+        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
+            DbinderErrorCode::IPC_DRIVER, DbinderErrorCode::ERROR_CODE, DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE);
 #endif
         return false;
     }
@@ -330,8 +329,8 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         if (!AddDbinderDeathRecipient()) {
             ZLOGE(LABEL, "%{public}s: failed to add dbinder death recipient", __func__);
 #ifndef BUILD_PUBLIC_VERSION
-            ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
-                DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
+            ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, DbinderErrorCode::ERROR_TYPE,
+                DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::ERROR_CODE,
                 DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE);
 #endif
             return false;
