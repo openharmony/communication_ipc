@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
-#include "hilog/log.h"
-#include "log_tags.h"
 #include "napi_ashmem.h"
 #include "napi_message_parcel.h"
 #include "napi_message_sequence.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_remote_object.h"
-#include "napi_rpc_error.h"
 
 namespace OHOS {
 EXTERN_C_START
+extern napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports);
+extern napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports);
+extern napi_value NAPIMessageOptionExport(napi_env env, napi_value exports);
+
 static napi_value RpcExport(napi_env env, napi_value exports)
 {
     NAPI_MessageParcel::Export(env, exports);
