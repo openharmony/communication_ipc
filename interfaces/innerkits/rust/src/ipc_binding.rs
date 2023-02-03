@@ -32,6 +32,11 @@ pub struct CParcel {
     _private: [u8; 0],
 }
 
+#[repr(C)]
+pub struct CAshmem {
+    _private: [u8; 0],
+}
+
 // Callback function type for OnRemoteRequest() from native, this
 // callback will be called when native recive client IPC request.
 pub type OnRemoteRequest = unsafe extern "C" fn (
@@ -211,6 +216,26 @@ extern "C" {
     pub fn CParcelGetWritePosition(parcel: *const CParcel) -> u32;
     pub fn CParcelRewindRead(parcel: *mut CParcel, new_pos: u32) -> bool;
     pub fn CParcelRewindWrite(parcel: *mut CParcel, new_pos: u32) -> bool;
+}
+
+// C interface for Ashmem
+extern "C" {
+    pub fn CreateCAshmem(name: *const c_char, size: i32) -> *mut CAshmem;
+    pub fn CAshmemIncStrongRef(ashmem: *mut CAshmem);
+    pub fn CAshmemDecStrongRef(ashmem: *mut CAshmem);
+
+    pub fn CloseCAshmem(ashmem: *mut CAshmem);
+    pub fn MapCAshmem(ashmem: *mut CAshmem, mapType: i32) -> bool;
+    pub fn MapReadAndWriteCAshmem(ashmem: *mut CAshmem) -> bool;
+    pub fn MapReadOnlyCAshmem(ashmem: *mut CAshmem) -> bool;
+    pub fn UnmapCAshmem(ashmem: *mut CAshmem);
+    pub fn SetCAshmemProtection(ashmem: *mut CAshmem, protectionType: i32) -> bool;
+    pub fn GetCAshmemProtection(ashmem: *const CAshmem) -> i32;
+    pub fn GetCAshmemSize(ashmem: *const CAshmem) -> i32;
+    pub fn WriteToCAshmem(ashmem: *mut CAshmem, data: *const u8,
+        size: i32, offset: i32) -> bool;
+    pub fn ReadFromCAshmem(ashmem: *const CAshmem, size: i32, offset: i32) -> *const u8;
+    pub fn GetCAshmemFd(ashmem: *const CAshmem) -> i32;
 }
 
 // C interface for IPC miscellaneous

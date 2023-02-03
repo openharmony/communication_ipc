@@ -41,7 +41,7 @@ fn get_test_service() -> RemoteObjRef<dyn ITest>
             panic!();
         }
     };
-    return remote;
+    remote
 }
 
 #[test]
@@ -55,10 +55,10 @@ fn test_death_recipient_001() {
     let mut death_recipient = DeathRecipient::new(|| {
             println!("recv death recipient in rust");
         }).expect("new death recipient failed");
-    assert_eq!(object.add_death_recipient(&mut death_recipient), true);
-    assert_eq!(object.add_death_recipient(&mut death_recipient), true);
-    assert_eq!(object.remove_death_recipient(&mut death_recipient), true);
-    assert_eq!(object.remove_death_recipient(&mut death_recipient), true);
+    assert!(object.add_death_recipient(&mut death_recipient));
+    assert!(object.add_death_recipient(&mut death_recipient));
+    assert!(object.remove_death_recipient(&mut death_recipient));
+    assert!(object.remove_death_recipient(&mut death_recipient));
 }
 
 #[test]
@@ -67,7 +67,7 @@ fn test_death_recipient_002() {
     let mut death_recipient = DeathRecipient::new(|| {
         println!("recv death recipient in rust");
     }).expect("new death recipient failed");
-    assert_eq!(object.add_death_recipient(&mut death_recipient), true);
+    assert!(object.add_death_recipient(&mut death_recipient));
     println!("please kill remote ITest service");
     thread::sleep(Duration::from_secs(10));
 }
@@ -166,7 +166,7 @@ fn test_fd() {
     let fd: FileDesc = remote.test_transact_fd().expect("get server fd failed");
     let mut info = String::new();
     let mut file = File::from(fd);
-    file.seek(SeekFrom::Start(0));
+    file.seek(SeekFrom::Start(0)).expect("seek failed");
     file.read_to_string(&mut info).expect("read string from fd failed");
     println!("file content: {}", info);
     assert_eq!(info, "Sever write!\n");
@@ -194,7 +194,7 @@ fn test_remote_obj() {
 }
 
 #[cfg(test)]
-mod ParcelTypeTest {
+mod parcel_type_test {
     use super::*;
 
     #[test]
@@ -214,9 +214,9 @@ mod ParcelTypeTest {
         parcel.write(&2.2_f64).expect("write f64 failed");
 
         let value: bool = parcel.read().expect("read false failed");
-        assert_eq!(value, false);
+        assert!(!value);
         let value: bool = parcel.read().expect("read true failed");
-        assert_eq!(value, true);
+        assert!(value);
         let value: u8 = parcel.read().expect("read u8 failed");
         assert_eq!(value, 1_u8);
         let value: i8 = parcel.read().expect("read i8 failed");
@@ -601,7 +601,7 @@ mod ParcelTypeTest {
         let u8_slice = &u8_slice[..];
         let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
         let res = parcel.write_buffer(u8_slice);
-        assert_eq!(res, true);
+        assert!(res);
         let u8_vec: Vec<u8> = parcel.read_buffer(100).expect("read buffer failed");
         assert_eq!(u8_vec, u8_slice);
     }
@@ -612,7 +612,7 @@ mod ParcelTypeTest {
         let u8_slice = &u8_slice[..];
         let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
         let res = parcel.write_buffer(u8_slice);
-        assert_eq!(res, true);
+        assert!(res);
         let u8_vec = parcel.read_buffer(0).expect("read zero length buffer failed");
         assert_eq!(u8_vec.len() as i32, 0);
     }
@@ -639,7 +639,11 @@ mod ParcelTypeTest {
 
         impl Deserialize for Year {
             fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
-                parcel.read::<i64>().map(|i| Year(i) )
+                let ret = parcel.read::<i64>();
+                match ret {
+                    Ok(year) => Ok(Year(year)),
+                    Err(_) => Err(-1),
+                }
             }
         }
 
