@@ -17,9 +17,9 @@ import("//build/test.gni")
 
 group("unittest") {
   testonly = true
-  deps = [ "unittest/common:unittest" ]
-  if (product_name == "rk3568" && target_cpu == "arm64") {
-    deps += [ "unittest/rust:unittest" ]
-  }
+  deps = [
+    "unittest/common:unittest",
+    "unittest/rust:unittest",
+  ]
 }
 ###############################################################################
