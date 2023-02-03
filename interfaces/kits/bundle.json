@@ -42,7 +42,7 @@
                 "header_files": [
                     "napi_remote_object.h"
                 ],
-                "header_base": "//foundation/communication/ipc/ipc/native/src/napi/include"
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common/include"
               }
             }
         ],

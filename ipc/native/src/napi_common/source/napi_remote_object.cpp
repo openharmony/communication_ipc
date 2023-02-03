@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,196 +13,42 @@
  * limitations under the License.
  */
 
-#include "napi_remote_object.h"
-#include <mutex>
-#include <native_value.h>
-#include <cstring>
-#include <thread>
-#include <unistd.h>
+#include "napi_remote_object_internal.h"
+
 #include <uv.h>
-#include "access_token_adapter.h"
-#include "hilog/log.h"
-#include "hitrace_meter.h"
-#include "ipc_object_proxy.h"
-#include "ipc_object_stub.h"
-#include "ipc_skeleton.h"
-#include "ipc_thread_skeleton.h"
+#include <string_ex.h>
+#include <thread>
+#include <hitrace_meter.h>
+
+#include "iremote_invoker.h"
 #include "ipc_debug.h"
-#include "ipc_types.h"
 #include "log_tags.h"
-#include "napi_message_option.h"
+#include "napi_process_skeleton.h"
 #include "napi_message_parcel.h"
 #include "napi_message_sequence.h"
+#include "napi_remote_object_holder.h"
+#include "napi_remote_proxy_holder.h"
 #include "napi_rpc_error.h"
-#include "rpc_bytrace.h"
-#include "string_ex.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
+#include "native_engine/native_value.h"
 
-static std::atomic<int32_t> bytraceId = 1000;
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
-
-static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
-
-template<class T>
-inline T *ConvertNativeValueTo(NativeValue *value)
-{
-    return (value != nullptr) ? static_cast<T *>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
-}
-
-static NapiError napiErr;
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
+static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
-/*
- * The native NAPIRemoteObject act as bridger between js and native.
- * It received the request from client and pass it js Layer.
- */
-class NAPIRemoteObject : public IPCObjectStub {
-public:
-    NAPIRemoteObject(napi_env env, napi_value thisVar, const std::u16string &descriptor);
+static std::atomic<int32_t> bytraceId = 1000;
+static NapiError napiErr;
 
-    ~NAPIRemoteObject() override;
-
-    bool CheckObjectLegality() const override;
-
-    int GetObjectType() const override;
-
-    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
-    napi_ref GetJsObjectRef() const;
-private:
-    napi_env env_ = nullptr;
-    napi_value thisVar_ = nullptr;
-    static napi_value ThenCallback(napi_env env, napi_callback_info info);
-    static napi_value CatchCallback(napi_env env, napi_callback_info info);
-    napi_ref thisVarRef_ = nullptr;
-    struct ThreadLockInfo {
-        std::mutex mutex;
-        std::condition_variable condition;
-        bool ready = false;
-    };
-    struct CallbackParam {
-        napi_env env;
-        napi_ref thisVarRef;
-        uint32_t code;
-        MessageParcel *data;
-        MessageParcel *reply;
-        MessageOption *option;
-        CallingInfo callingInfo;
-        ThreadLockInfo *lockInfo;
-        int result;
-    };
-    int OnJsRemoteRequest(CallbackParam *jsParam);
-};
-
-/*
- * To ensure a better consistency of the life time of
- * js RemoteObject and native object, we designed
- * a container to save the native object.
- */
-class NAPIRemoteObjectHolder : public RefBase {
-public:
-    explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor);
-    ~NAPIRemoteObjectHolder();
-    sptr<NAPIRemoteObject> Get(napi_value object);
-    void Set(sptr<NAPIRemoteObject> object);
-    void attachLocalInterface(napi_value localInterface, std::string &descriptor);
-    napi_value queryLocalInterface(std::string &descriptor);
-    void Lock()
-    {
-        mutex_.lock();
-    };
-
-    void Unlock()
-    {
-        mutex_.unlock();
-    };
-
-    void IncAttachCount()
-    {
-        ++attachCount_;
-    };
-
-    int32_t DecAttachCount()
-    {
-        if (attachCount_ > 0) {
-            --attachCount_;
-        }
-        return attachCount_;
-    };
-
-    std::u16string GetDescriptor()
-    {
-        return descriptor_;
-    };
-
-private:
-    std::mutex mutex_;
-    napi_env env_ = nullptr;
-    std::u16string descriptor_;
-    sptr<NAPIRemoteObject> cachedObject_;
-    napi_ref localInterfaceRef_;
-    int32_t attachCount_;
-};
-
-NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
-    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
-{}
-
-NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
+template<class T>
+inline T *ConvertNativeValueTo(NativeValue *value)
 {
-    // free the reference of object.
-    cachedObject_ = nullptr;
-    if (localInterfaceRef_ != nullptr) {
-        napi_delete_reference(env_, localInterfaceRef_);
-    }
-}
-
-sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
-{
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    // grab an strong reference to the object,
-    // so it will not be freed util this reference released.
-    sptr<NAPIRemoteObject> remoteObject = nullptr;
-    if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_;
-    }
-
-    if (remoteObject == nullptr) {
-        remoteObject = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
-        cachedObject_ = remoteObject;
-    }
-    return remoteObject;
-}
-
-void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
-{
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    cachedObject_ = object;
-}
-
-void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)
-{
-    if (localInterfaceRef_ != nullptr) {
-        napi_delete_reference(env_, localInterfaceRef_);
-    }
-    napi_create_reference(env_, localInterface, 1, &localInterfaceRef_);
-    descriptor_ = Str8ToStr16(descriptor);
-}
-
-napi_value NAPIRemoteObjectHolder::queryLocalInterface(std::string &descriptor)
-{
-    if (!descriptor_.empty() && strcmp(Str16ToStr8(descriptor_).c_str(), descriptor.c_str()) == 0) {
-        napi_value ret = nullptr;
-        napi_get_reference_value(env_, localInterfaceRef_, &ret);
-        return ret;
-    }
-    napi_value result = nullptr;
-    napi_get_null(env_, &result);
-    return result;
+    return (value != nullptr) ? static_cast<T *>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
 }
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
@@ -305,45 +151,6 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     }
     return thisVar;
 }
-
-EXTERN_C_START
-/*
- * function for module exports
- */
-napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
-{
-    const std::string className = "RemoteObject";
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteObject_sendRequest),
-        DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteObject_sendMessageRequest),
-        DECLARE_NAPI_FUNCTION("getCallingPid", NAPI_RemoteObject_getCallingPid),
-        DECLARE_NAPI_FUNCTION("getCallingUid", NAPI_RemoteObject_getCallingUid),
-        DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteObject_getInterfaceDescriptor),
-        DECLARE_NAPI_FUNCTION("getDescriptor", NAPI_RemoteObject_getDescriptor),
-        DECLARE_NAPI_FUNCTION("attachLocalInterface", NAPI_RemoteObject_attachLocalInterface),
-        DECLARE_NAPI_FUNCTION("modifyLocalInterface", NAPI_RemoteObject_modifyLocalInterface),
-        DECLARE_NAPI_FUNCTION("queryLocalInterface", NAPI_RemoteObject_queryLocalInterface),
-        DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteObject_getLocalInterface),
-        DECLARE_NAPI_FUNCTION("addDeathRecipient", NAPI_RemoteObject_addDeathRecipient),
-        DECLARE_NAPI_FUNCTION("registerDeathRecipient", NAPI_RemoteObject_registerDeathRecipient),
-        DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteObject_removeDeathRecipient),
-        DECLARE_NAPI_FUNCTION("unregisterDeathRecipient", NAPI_RemoteObject_unregisterDeathRecipient),
-        DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteObject_isObjectDead),
-    };
-    napi_value constructor = nullptr;
-    napi_define_class(env, className.c_str(), className.length(), RemoteObject_JS_Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    NAPI_ASSERT(env, constructor != nullptr, "define js class RemoteObject failed");
-    napi_status status = napi_set_named_property(env, exports, "RemoteObject", constructor);
-    NAPI_ASSERT(env, status == napi_ok, "set property RemoteObject to exports failed");
-    napi_value global = nullptr;
-    status = napi_get_global(env, &global);
-    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
-    status = napi_set_named_property(env, global, "IPCStubConstructor_", constructor);
-    NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
-    return exports;
-}
-EXTERN_C_END
 
 NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
@@ -764,14 +571,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     return ret;
 }
 
-NAPIRemoteProxyHolder *NAPI_ohos_rpc_getRemoteProxyHolder(napi_env env, napi_value jsRemoteProxy)
-{
-    NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_unwrap(env, jsRemoteProxy, (void **)&proxyHolder);
-    NAPI_ASSERT(env, proxyHolder != nullptr, "failed to get napi remote proxy holder");
-    return proxyHolder;
-}
-
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
@@ -862,437 +661,7 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
     return nullptr;
 }
 
-napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info info)
-{
-    sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
-    if (object == nullptr) {
-        ZLOGE(LOG_LABEL, "fatal error, could not get registry object");
-        return nullptr;
-    }
-    return NAPI_ohos_rpc_CreateJsRemoteObject(env, object);
-}
-
-napi_value NAPI_IPCSkeleton_getCallingPid(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    if (napiActiveStatus != nullptr) {
-        int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-        napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-        if (activeStatus == IRemoteInvoker::ACTIVE_INVOKER) {
-            napi_value callingPid = nullptr;
-            napi_get_named_property(env, global, "callingPid_", &callingPid);
-            return callingPid;
-        }
-    }
-    pid_t pid = getpid();
-    napi_value result = nullptr;
-    napi_create_int32(env, static_cast<int32_t>(pid), &result);
-    return result;
-}
-
-napi_value NAPI_IPCSkeleton_getCallingUid(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    if (napiActiveStatus != nullptr) {
-        int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-        napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-        if (activeStatus == IRemoteInvoker::ACTIVE_INVOKER) {
-            napi_value callingUid = nullptr;
-            napi_get_named_property(env, global, "callingUid_", &callingUid);
-            return callingUid;
-        }
-    }
-    uint32_t uid = getuid();
-    napi_value result = nullptr;
-    napi_create_int32(env, static_cast<int32_t>(uid), &result);
-    return result;
-}
-
-napi_value NAPI_IPCSkeleton_getCallingTokenId(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    if (napiActiveStatus != nullptr) {
-        int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-        napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-        if (activeStatus == IRemoteInvoker::ACTIVE_INVOKER) {
-            napi_value callingTokenId = nullptr;
-            napi_get_named_property(env, global, "callingTokenId_", &callingTokenId);
-            return callingTokenId;
-        }
-    }
-    uint64_t TokenId = RpcGetSelfTokenID();
-    napi_value result = nullptr;
-    napi_create_uint32(env, static_cast<uint32_t>(TokenId), &result);
-    return result;
-}
-
-napi_value NAPI_IPCSkeleton_getCallingDeviceID(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    if (napiActiveStatus != nullptr) {
-        int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-        napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-        if (activeStatus == IRemoteInvoker::ACTIVE_INVOKER) {
-            napi_value callingDeviceID = nullptr;
-            napi_get_named_property(env, global, "callingDeviceID_", &callingDeviceID);
-            return callingDeviceID;
-        }
-    }
-    napi_value result = nullptr;
-    napi_create_string_utf8(env, "", 0, &result);
-    return result;
-}
-
-napi_value NAPI_IPCSkeleton_getLocalDeviceID(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    if (napiActiveStatus != nullptr) {
-        int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-        napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-        if (activeStatus == IRemoteInvoker::ACTIVE_INVOKER) {
-            napi_value localDeviceID = nullptr;
-            napi_get_named_property(env, global, "localDeviceID_", &localDeviceID);
-            return localDeviceID;
-        }
-    }
-    napi_value result = nullptr;
-    napi_create_string_utf8(env, "", 0, &result);
-    return result;
-}
-
-napi_value NAPI_IPCSkeleton_isLocalCalling(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    if (napiActiveStatus != nullptr) {
-        int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-        napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-        if (activeStatus == IRemoteInvoker::ACTIVE_INVOKER) {
-            napi_value isLocalCalling = nullptr;
-            napi_get_named_property(env, global, "isLocalCalling_", &isLocalCalling);
-            return isLocalCalling;
-        }
-    }
-    napi_value result = nullptr;
-    napi_get_boolean(env, true, &result);
-    return result;
-}
-
-napi_value NAPI_IPCSkeleton_flushCommands(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv[1] = {0};
-    napi_value thisVar = nullptr;
-    void *data = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
-
-    napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
-    NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
-
-    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
-    int32_t result = IPCSkeleton::FlushCommands(target);
-    napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_create_int32(env, result, &napiValue));
-    return napiValue;
-}
-
-napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv[1] = {0};
-    napi_value thisVar = nullptr;
-    void *data = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    if (argc != 1) {
-        ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-
-    napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
-    if (valueType != napi_object) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-
-    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
-    IPCSkeleton::FlushCommands(target);
-    napi_value napiValue = nullptr;
-    napi_get_undefined(env, &napiValue);
-    return napiValue;
-}
-
-napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-    napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-    if (activeStatus != IRemoteInvoker::ACTIVE_INVOKER) {
-        napi_value result = nullptr;
-        napi_create_string_utf8(env, "", 0, &result);
-        return result;
-    }
-    napi_value napiCallingPid = nullptr;
-    napi_get_named_property(env, global, "callingPid_", &napiCallingPid);
-    int32_t callerPid;
-    napi_get_value_int32(env, napiCallingPid, &callerPid);
-    napi_value napiCallingUid = nullptr;
-    napi_get_named_property(env, global, "callingUid_", &napiCallingUid);
-    uint32_t callerUid;
-    napi_get_value_uint32(env, napiCallingUid, &callerUid);
-    napi_value napiIsLocalCalling = nullptr;
-    napi_get_named_property(env, global, "isLocalCalling_", &napiIsLocalCalling);
-    bool isLocalCalling = true;
-    napi_get_value_bool(env, napiIsLocalCalling, &isLocalCalling);
-    if (isLocalCalling) {
-        int64_t identity = (static_cast<uint64_t>(callerUid) << PID_LEN) | static_cast<uint64_t>(callerPid);
-        callerPid = getpid();
-        callerUid = getuid();
-        napi_value newCallingPid;
-        napi_create_int32(env, callerPid, &newCallingPid);
-        napi_set_named_property(env, global, "callingPid_", newCallingPid);
-        napi_value newCallingUid;
-        napi_create_uint32(env, callerUid, &newCallingUid);
-        napi_set_named_property(env, global, "callingUid_", newCallingUid);
-        napi_value result = nullptr;
-        napi_create_string_utf8(env, std::to_string(identity).c_str(), NAPI_AUTO_LENGTH, &result);
-        return result;
-    } else {
-        napi_value napiCallingDeviceID = nullptr;
-        napi_get_named_property(env, global, "callingDeviceID_", &napiCallingDeviceID);
-        size_t bufferSize = 0;
-        size_t maxLen = 4096;
-        napi_get_value_string_utf8(env, napiCallingDeviceID, nullptr, 0, &bufferSize);
-        NAPI_ASSERT(env, bufferSize < maxLen, "string length too large");
-        char stringValue[bufferSize + 1];
-        size_t jsStringLength = 0;
-        napi_get_value_string_utf8(env, napiCallingDeviceID, stringValue, bufferSize + 1, &jsStringLength);
-        NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
-        std::string callerDeviceID = stringValue;
-        std::string token = std::to_string(((static_cast<uint64_t>(callerUid) << PID_LEN)
-            | static_cast<uint64_t>(callerPid)));
-        std::string identity = callerDeviceID + token;
-        callerUid = getuid();
-        napi_value newCallingUid;
-        napi_create_uint32(env, callerUid, &newCallingUid);
-        napi_set_named_property(env, global, "callingUid_", newCallingUid);
-        callerPid = getpid();
-        napi_value newCallingPid;
-        napi_create_int32(env, callerPid, &newCallingPid);
-        napi_set_named_property(env, global, "callingPid_", newCallingPid);
-        napi_value newCallingDeviceID = nullptr;
-        napi_get_named_property(env, global, "localDeviceID_", &newCallingDeviceID);
-        napi_set_named_property(env, global, "callingDeviceID_", newCallingDeviceID);
-
-        napi_value result = nullptr;
-        napi_create_string_utf8(env, identity.c_str(), NAPI_AUTO_LENGTH, &result);
-        return result;
-    }
-}
-
-napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-    napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-    if (activeStatus != IRemoteInvoker::ACTIVE_INVOKER) {
-        napi_value result = nullptr;
-        napi_get_boolean(env, true, &result);
-        return result;
-    }
-
-    napi_value retValue = nullptr;
-    napi_get_boolean(env, false, &retValue);
-
-    size_t argc = 1;
-    size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT_BASE(env, argc == expectedArgc, "requires 1 parameters", retValue);
-    napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
-    NAPI_ASSERT_BASE(env, valueType == napi_string, "type mismatch for parameter 1", retValue);
-    size_t bufferSize = 0;
-    size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
-    NAPI_ASSERT_BASE(env, bufferSize < maxLen, "string length too large", retValue);
-    char stringValue[bufferSize + 1];
-    size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
-    NAPI_ASSERT_BASE(env, jsStringLength == bufferSize, "string length wrong", retValue);
-
-    std::string identity = stringValue;
-    napi_value napiIsLocalCalling = nullptr;
-    napi_get_named_property(env, global, "isLocalCalling_", &napiIsLocalCalling);
-    bool isLocalCalling = true;
-    napi_get_value_bool(env, napiIsLocalCalling, &isLocalCalling);
-    napi_value result;
-    if (isLocalCalling) {
-        if (identity.empty()) {
-            napi_get_boolean(env, false, &result);
-            return result;
-        }
-
-        int64_t token = std::stoll(identity);
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
-        napi_value napiCallingPid;
-        napi_create_int32(env, callerPid, &napiCallingPid);
-        napi_set_named_property(env, global, "callingPid_", napiCallingPid);
-        napi_value napiCallingUid;
-        napi_create_int32(env, callerUid, &napiCallingUid);
-        napi_set_named_property(env, global, "callingUid_", napiCallingUid);
-        napi_get_boolean(env, true, &result);
-        return result;
-    } else {
-        if (identity.empty() || identity.length() <= DEVICEID_LENGTH) {
-            napi_get_boolean(env, false, &result);
-            return result;
-        }
-
-        std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-        int64_t token = std::stoll(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH));
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
-        napi_value napiCallingPid;
-        napi_create_int32(env, callerPid, &napiCallingPid);
-        napi_set_named_property(env, global, "callingPid_", napiCallingPid);
-        napi_value napiCallingUid;
-        napi_create_int32(env, callerUid, &napiCallingUid);
-        napi_set_named_property(env, global, "callingUid_", napiCallingUid);
-        napi_value napiCallingDeviceID = nullptr;
-        napi_create_string_utf8(env, deviceId.c_str(), NAPI_AUTO_LENGTH, &napiCallingDeviceID);
-        napi_set_named_property(env, global, "callingDeviceID_", napiCallingDeviceID);
-        napi_get_boolean(env, true, &result);
-        return result;
-    }
-}
-
-static napi_value NAPI_IPCSkeleton_restoreCallingIdentitySetProperty(napi_env env,
-                                                                     napi_value &global,
-                                                                     char* stringValue)
-{
-    std::string identity = stringValue;
-    napi_value napiIsLocalCalling = nullptr;
-    napi_get_named_property(env, global, "isLocalCalling_", &napiIsLocalCalling);
-    bool isLocalCalling = true;
-    napi_get_value_bool(env, napiIsLocalCalling, &isLocalCalling);
-    napi_value result;
-    napi_get_undefined(env, &result);
-    if (isLocalCalling) {
-        if (identity.empty()) {
-            ZLOGE(LOG_LABEL, "identity is empty");
-            return result;
-        }
-
-        int64_t token = std::stoll(identity);
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
-        napi_value napiCallingPid;
-        napi_create_int32(env, callerPid, &napiCallingPid);
-        napi_set_named_property(env, global, "callingPid_", napiCallingPid);
-        napi_value napiCallingUid;
-        napi_create_int32(env, callerUid, &napiCallingUid);
-        napi_set_named_property(env, global, "callingUid_", napiCallingUid);
-        return result;
-    } else {
-        if (identity.empty() || identity.length() <= DEVICEID_LENGTH) {
-            ZLOGE(LOG_LABEL, "identity is empty or length is too short");
-            return result;
-        }
-
-        std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-        int64_t token = std::stoll(identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH));
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
-        napi_value napiCallingPid;
-        napi_create_int32(env, callerPid, &napiCallingPid);
-        napi_set_named_property(env, global, "callingPid_", napiCallingPid);
-        napi_value napiCallingUid;
-        napi_create_int32(env, callerUid, &napiCallingUid);
-        napi_set_named_property(env, global, "callingUid_", napiCallingUid);
-        napi_value napiCallingDeviceID = nullptr;
-        napi_create_string_utf8(env, deviceId.c_str(), NAPI_AUTO_LENGTH, &napiCallingDeviceID);
-        napi_set_named_property(env, global, "callingDeviceID_", napiCallingDeviceID);
-        return result;
-    }
-}
-
-napi_value NAPI_IPCSkeleton_restoreCallingIdentity(napi_env env, napi_callback_info info)
-{
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    napi_value napiActiveStatus = nullptr;
-    napi_get_named_property(env, global, "activeStatus_", &napiActiveStatus);
-    int32_t activeStatus = IRemoteInvoker::IDLE_INVOKER;
-    napi_get_value_int32(env, napiActiveStatus, &activeStatus);
-    if (activeStatus != IRemoteInvoker::ACTIVE_INVOKER) {
-        ZLOGD(LOG_LABEL, "status is not active");
-        napi_value result = nullptr;
-        napi_get_undefined(env, &result);
-        return result;
-    }
-
-    size_t argc = 1;
-    size_t expectedArgc = 1;
-    napi_value argv[ARGV_INDEX_1] = { 0 };
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != expectedArgc) {
-        ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
-    if (valueType != napi_string) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    size_t bufferSize = 0;
-    size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
-    if (bufferSize >= maxLen) {
-        ZLOGE(LOG_LABEL, "string length too large");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    char stringValue[bufferSize + 1];
-    size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
-    if (jsStringLength != bufferSize) {
-        ZLOGE(LOG_LABEL, "string length wrong");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-
-    return NAPI_IPCSkeleton_restoreCallingIdentitySetProperty(env, global, stringValue);
-}
-
-napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
@@ -1319,7 +688,7 @@ napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callback_inf
     return ret;
 }
 
-napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
@@ -1361,7 +730,7 @@ napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callback_info 
     return ret;
 }
 
-napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_value thisVar = nullptr;
@@ -1372,7 +741,7 @@ napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_callback_
     return result;
 }
 
-napi_value NAPI_RemoteObject_getDescriptor(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_getDescriptor(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_value thisVar = nullptr;
@@ -1387,14 +756,14 @@ napi_value NAPI_RemoteObject_getDescriptor(napi_env env, napi_callback_info info
     return result;
 }
 
-napi_value NAPI_RemoteObject_getCallingPid(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_getCallingPid(napi_env env, napi_callback_info info)
 {
-    return NAPI_IPCSkeleton_getCallingPid(env, info);
+    return NAPI_getCallingPid(env, info);
 }
 
-napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_info info)
 {
-    return NAPI_IPCSkeleton_getCallingUid(env, info);
+    return NAPI_getCallingUid(env, info);
 }
 
 napi_value MakeSendRequestResult(SendRequestParam *param)
@@ -1543,7 +912,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
     return promise;
 }
 
-napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info info)
 {
     size_t argc = 4;
     size_t argcCallback = 5;
@@ -1624,7 +993,7 @@ napi_value NAPI_RemoteObject_checkSendMessageRequestArgs(napi_env env,
     return result;
 }
 
-napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callback_info info)
 {
     size_t argc = 4;
     size_t argcCallback = 5;
@@ -1672,7 +1041,7 @@ napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callback_info
         reply->GetMessageParcel(), *option, argv);
 }
 
-napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
     size_t expectedArgc = 2;
@@ -1729,7 +1098,7 @@ napi_value NAPI_RemoteObject_checkModifyLocalInterfaceArgs(napi_env env, size_t 
     return result;
 }
 
-napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
     napi_value argv[2] = { 0 };
@@ -1768,172 +1137,74 @@ napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_callback_in
     return result;
 }
 
-napi_value NAPI_RemoteObject_addDeathRecipient(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_addDeathRecipient(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_boolean(env, false, &result);
     return result;
 }
 
-napi_value NAPI_RemoteObject_registerDeathRecipient(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_registerDeathRecipient(napi_env env, napi_callback_info info)
 {
     ZLOGE(LOG_LABEL, "only proxy object permitted");
     return napiErr.ThrowError(env, errorDesc::ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
-napi_value NAPI_RemoteObject_removeDeathRecipient(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_removeDeathRecipient(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_boolean(env, false, &result);
     return result;
 }
 
-napi_value NAPI_RemoteObject_unregisterDeathRecipient(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_unregisterDeathRecipient(napi_env env, napi_callback_info info)
 {
     ZLOGE(LOG_LABEL, "only proxy object permitted");
     return napiErr.ThrowError(env, errorDesc::ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
-napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info)
+static napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_boolean(env, false, &result);
     return result;
-}
-
-napi_value NAPIIPCSkeleton_JS_Constructor(napi_env env, napi_callback_info info)
-{
-    napi_value thisArg = nullptr;
-    void *data = nullptr;
-    napi_get_cb_info(env, info, nullptr, nullptr, &thisArg, &data);
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    return thisArg;
 }
 
 EXTERN_C_START
 /*
  * function for module exports
  */
-napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports)
+napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
 {
-    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init start...");
-    napi_property_descriptor desc[] = {
-        DECLARE_NAPI_STATIC_FUNCTION("getContextObject", NAPI_IPCSkeleton_getContextObject),
-        DECLARE_NAPI_STATIC_FUNCTION("getCallingPid", NAPI_IPCSkeleton_getCallingPid),
-        DECLARE_NAPI_STATIC_FUNCTION("getCallingUid", NAPI_IPCSkeleton_getCallingUid),
-        DECLARE_NAPI_STATIC_FUNCTION("getCallingDeviceID", NAPI_IPCSkeleton_getCallingDeviceID),
-        DECLARE_NAPI_STATIC_FUNCTION("getLocalDeviceID", NAPI_IPCSkeleton_getLocalDeviceID),
-        DECLARE_NAPI_STATIC_FUNCTION("isLocalCalling", NAPI_IPCSkeleton_isLocalCalling),
-        DECLARE_NAPI_STATIC_FUNCTION("flushCmdBuffer", NAPI_IPCSkeleton_flushCmdBuffer),
-        DECLARE_NAPI_STATIC_FUNCTION("flushCommands", NAPI_IPCSkeleton_flushCommands),
-        DECLARE_NAPI_STATIC_FUNCTION("resetCallingIdentity", NAPI_IPCSkeleton_resetCallingIdentity),
-        DECLARE_NAPI_STATIC_FUNCTION("restoreCallingIdentity", NAPI_IPCSkeleton_restoreCallingIdentity),
-        DECLARE_NAPI_STATIC_FUNCTION("setCallingIdentity", NAPI_IPCSkeleton_setCallingIdentity),
-        DECLARE_NAPI_STATIC_FUNCTION("getCallingTokenId", NAPI_IPCSkeleton_getCallingTokenId),
-    };
-    NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
-    napi_value result = nullptr;
-    napi_define_class(env, "IPCSkeleton", NAPI_AUTO_LENGTH, NAPIIPCSkeleton_JS_Constructor, nullptr,
-        sizeof(desc) / sizeof(desc[0]), desc, &result);
-    napi_status status = napi_set_named_property(env, exports, "IPCSkeleton", result);
-    NAPI_ASSERT(env, status == napi_ok, "create ref to js RemoteObject constructor failed");
-    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init end...");
-    return exports;
-}
-EXTERN_C_END
-
-napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info info)
-{
-    size_t argc = 2;
-    napi_value argv[2] = { 0 };
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc >= 0, "invalid parameter number");
-    int flags = 0;
-    int waittime = 0;
-    if (argc == 0) {
-        flags = MessageOption::TF_SYNC;
-        waittime = MessageOption::TF_WAIT_TIME;
-    } else if (argc == 1) {
-        napi_valuetype valueType;
-        napi_typeof(env, argv[0], &valueType);
-        NAPI_ASSERT(env, valueType == napi_number || valueType == napi_boolean, "type mismatch for parameter 1");
-        if (valueType == napi_boolean) {
-            bool jsBoolFlags = false;
-            napi_get_value_bool(env, argv[0], &jsBoolFlags);
-            flags = jsBoolFlags ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC;
-        } else {
-            int32_t jsFlags = 0;
-            napi_get_value_int32(env, argv[0], &jsFlags);
-            flags = jsFlags == 0 ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC;
-        }
-        waittime = MessageOption::TF_WAIT_TIME;
-    } else {
-        napi_valuetype valueType = napi_null;
-        napi_typeof(env, argv[0], &valueType);
-        NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-        napi_typeof(env, argv[1], &valueType);
-        NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
-        int32_t jsFlags = 0;
-        napi_get_value_int32(env, argv[0], &jsFlags);
-        int32_t jsWaittime = 0;
-        napi_get_value_int32(env, argv[1], &jsWaittime);
-        flags = jsFlags == 0 ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC;
-        waittime = jsWaittime;
-    }
-
-    auto messageOption = new MessageOption(flags, waittime);
-    // connect native message option to js thisVar
-    napi_status status = napi_wrap(
-        env, thisVar, messageOption,
-        [](napi_env env, void *data, void *hint) {
-            ZLOGI(LOG_LABEL, "NAPIMessageOption destructed by js callback");
-            delete (reinterpret_cast<MessageOption *>(data));
-        },
-        nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js MessageOption and native option failed");
-    return thisVar;
-}
-
-EXTERN_C_START
-/*
- * function for module exports
- */
-napi_value NAPIMessageOptionExport(napi_env env, napi_value exports)
-{
-    const std::string className = "MessageOption";
-    napi_value tfSync = nullptr;
-    napi_create_int32(env, MessageOption::TF_SYNC, &tfSync);
-    napi_value tfAsync = nullptr;
-    napi_create_int32(env, MessageOption::TF_ASYNC, &tfAsync);
-    napi_value tfFds = nullptr;
-    napi_create_int32(env, MessageOption::TF_ACCEPT_FDS, &tfFds);
-    napi_value tfWaitTime = nullptr;
-    napi_create_int32(env, MessageOption::TF_WAIT_TIME, &tfWaitTime);
+    const std::string className = "RemoteObject";
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("getFlags", NapiOhosRpcMessageOptionGetFlags),
-        DECLARE_NAPI_FUNCTION("setFlags", NapiOhosRpcMessageOptionSetFlags),
-        DECLARE_NAPI_FUNCTION("isAsync", NapiOhosRpcMessageOptionIsAsync),
-        DECLARE_NAPI_FUNCTION("setAsync", NapiOhosRpcMessageOptionSetAsync),
-        DECLARE_NAPI_FUNCTION("getWaitTime", NapiOhosRpcMessageOptionGetWaittime),
-        DECLARE_NAPI_FUNCTION("setWaitTime", NapiOhosRpcMessageOptionSetWaittime),
-        DECLARE_NAPI_STATIC_PROPERTY("TF_SYNC", tfSync),
-        DECLARE_NAPI_STATIC_PROPERTY("TF_ASYNC", tfAsync),
-        DECLARE_NAPI_STATIC_PROPERTY("TF_ACCEPT_FDS", tfFds),
-        DECLARE_NAPI_STATIC_PROPERTY("TF_WAIT_TIME", tfWaitTime),
+        DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteObject_sendRequest),
+        DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteObject_sendMessageRequest),
+        DECLARE_NAPI_FUNCTION("getCallingPid", NAPI_RemoteObject_getCallingPid),
+        DECLARE_NAPI_FUNCTION("getCallingUid", NAPI_RemoteObject_getCallingUid),
+        DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteObject_getInterfaceDescriptor),
+        DECLARE_NAPI_FUNCTION("getDescriptor", NAPI_RemoteObject_getDescriptor),
+        DECLARE_NAPI_FUNCTION("attachLocalInterface", NAPI_RemoteObject_attachLocalInterface),
+        DECLARE_NAPI_FUNCTION("modifyLocalInterface", NAPI_RemoteObject_modifyLocalInterface),
+        DECLARE_NAPI_FUNCTION("queryLocalInterface", NAPI_RemoteObject_queryLocalInterface),
+        DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteObject_getLocalInterface),
+        DECLARE_NAPI_FUNCTION("addDeathRecipient", NAPI_RemoteObject_addDeathRecipient),
+        DECLARE_NAPI_FUNCTION("registerDeathRecipient", NAPI_RemoteObject_registerDeathRecipient),
+        DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteObject_removeDeathRecipient),
+        DECLARE_NAPI_FUNCTION("unregisterDeathRecipient", NAPI_RemoteObject_unregisterDeathRecipient),
+        DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteObject_isObjectDead),
     };
     napi_value constructor = nullptr;
-    napi_define_class(env, className.c_str(), className.length(), NAPIMessageOption_JS_Constructor, nullptr,
+    napi_define_class(env, className.c_str(), className.length(), RemoteObject_JS_Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    NAPI_ASSERT(env, constructor != nullptr, "define js class MessageOption failed");
-    napi_status status = napi_set_named_property(env, exports, "MessageOption", constructor);
-    NAPI_ASSERT(env, status == napi_ok, "set property MessageOption to exports failed");
+    NAPI_ASSERT(env, constructor != nullptr, "define js class RemoteObject failed");
+    napi_status status = napi_set_named_property(env, exports, "RemoteObject", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set property RemoteObject to exports failed");
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
-    status = napi_set_named_property(env, global, "IPCOptionConstructor_", constructor);
-    NAPI_ASSERT(env, status == napi_ok, "set message option constructor failed");
+    status = napi_set_named_property(env, global, "IPCStubConstructor_", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
     return exports;
 }
 EXTERN_C_END

@@ -1,0 +1,61 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+if (support_jsapi) {
+  config("napi_common_deps_config") {
+    include_dirs = [ "include" ]
+  }
+
+  ohos_shared_library("ipc_napi") {
+    include_dirs = [
+      "include",
+      "../../../utils/include",
+      "../../../ipc/native/src/napi_common/include",
+    ]
+    all_dependent_configs = [ ":napi_common_deps_config" ]
+
+    sources = [
+      "../../../ipc/native/src/napi_common/source/napi_ashmem.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_message_parcel.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_message_sequence.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_process_skeleton.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_remote_object.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_remote_object_holder.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_remote_proxy_holder.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_rpc_error.cpp",
+    ]
+
+    deps = [ "//third_party/libuv:uv" ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hitrace_native:hitrace_meter",
+      "hiviewdfx_hilog_native:libhilog",
+      "ipc:ipc_core",
+      "napi:ace_napi",
+    ]
+
+    install_images = [ system_base_dir ]
+    relative_install_dir = "chipset-pub-sdk"
+    subsystem_name = "communication"
+    part_name = "ipc"
+  }
+}
+
+group("ipc_napi_common") {
+  if (support_jsapi) {
+    deps = [ ":ipc_napi" ]
+  }
+}
