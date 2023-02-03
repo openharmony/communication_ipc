@@ -20,6 +20,7 @@ mod errors;
 mod ipc;
 mod parcel;
 mod process;
+mod ashmem;
 
 // Export types of this crate
 pub use crate::errors::{Result, result_status};
@@ -32,14 +33,14 @@ pub use crate::parcel::{
     MsgParcel, BorrowedMsgParcel, IMsgParcel, RawData,
     parcelable::{Serialize, Deserialize, SerOption, DeOption},
 };
-
-// pub use crate::parcel::{SerArray, DeArray};
-
+pub use crate::parcel::parcelable::{SerArray, DeArray};
 pub use crate::parcel::types::{
     interface_token::InterfaceToken, file_desc::FileDesc,
     string16::String16
 };
-
+pub use crate::ashmem::{
+    Ashmem, PROT_NONE, PROT_READ, PROT_WRITE, PROT_EXEC,
+};
 pub use crate::process::{
     get_context_object, add_service, get_service, join_work_thread, stop_work_thread,
     get_calling_uid, get_calling_token_id, get_first_token_id, get_self_token_id,

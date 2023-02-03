@@ -34,7 +34,6 @@ int RemoteServiceHolderStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel 
     OHOS::MessageParcel &reply, OHOS::MessageOption &option)
 {
     (void)option;
-    printf("%s: OnRemoteRequest code: %u\n", __func__, code);
     if (callback_ == nullptr || holder_ == nullptr) {
         printf("%s: callback is null for code: %u\n", __func__, code);
         return -1;
