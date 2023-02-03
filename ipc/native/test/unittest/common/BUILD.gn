@@ -370,6 +370,20 @@ if (product_name == "rk3568" && target_cpu == "arm64") {
   }
 }
 
+ohos_unittest("IPCSoDlcloseTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  sources = [ "ipc_so_dlclose_unittest.cpp" ]
+
+  deps = [
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  resource_config_file =
+      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -380,6 +394,7 @@ group("unittest") {
     ":IPCHiTraceUnitTest",
     ":IPCMockUnitTest",
     ":IPCNativeUnitTest",
+    ":IPCSoDlcloseTest",
     ":InvokerFactoryTest",
     ":RPCFeatureUnitTest",
   ]
