@@ -164,10 +164,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
         if raw_data_ptr.is_null() {
             Err(-1)
         } else {
-            Ok(RawData {
-                raw_ptr: raw_data_ptr,
-                len,
-            })
+            Ok(RawData::new(raw_data_ptr, len))
          }
     }
 }
@@ -180,6 +177,14 @@ pub struct RawData{
 }
 
 impl RawData{
+    /// Create RawData object
+    pub fn new(raw_ptr: *const u8, len: u32) -> Self {
+        RawData {
+            raw_ptr,
+            len,
+        }
+    }
+
     /// The caller should ensure that the u8 slice can be
     /// correctly converted to other rust types
     pub fn read(&self, start: u32, len: u32) -> Result<&[u8]> {

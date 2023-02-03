@@ -105,7 +105,6 @@ pub unsafe extern "C" fn allocate_vec_with_buffer<T>(
     res
 }
 
-
 /// Callback to allocate a vector for parcel array read functions.
 ///
 /// # Safety
@@ -131,6 +130,7 @@ unsafe extern "C" fn allocate_vec<T>(
 // We want the default implementation for most types, but an override for
 // a few special ones like `readByteArray` for `u8`.
 pub trait SerArray: Serialize + Sized {
+    /// Default array serialize implement.
     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
         let ret = unsafe {
             // SAFETY: Safe FFI, slice will always be a safe pointer to pass.
