@@ -214,7 +214,7 @@ if (support_jsapi) {
 
     external_deps = [
       "hiviewdfx_hilog_native:libhilog",
-      "ipc_js:rpc",
+      "ipc:ipc_napi_common",
     ]
 
     resource_config_file =

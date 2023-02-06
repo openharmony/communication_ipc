@@ -13,28 +13,21 @@
  * limitations under the License.
  */
 
-#include "napi_remote_object.h"
-#include <mutex>
-#include <cstring>
-#include <thread>
-#include <unistd.h>
-#include <uv.h>
-#include "access_token_adapter.h"
-#include "hilog/log.h"
-#include "hitrace_meter.h"
+#include <hilog/log.h>
+#include <hitrace_meter.h>
+#include <string_ex.h>
+
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
-#include "ipc_thread_skeleton.h"
 #include "ipc_debug.h"
-#include "ipc_types.h"
 #include "log_tags.h"
-#include "napi_message_option.h"
 #include "napi_message_parcel.h"
 #include "napi_message_sequence.h"
+#include "napi_remote_proxy_holder.h"
+#include "napi_remote_object_internal.h"
 #include "napi_rpc_error.h"
-#include "rpc_bytrace.h"
-#include "string_ex.h"
+
 
 static std::atomic<int32_t> bytraceId = 1000;
 namespace OHOS {
@@ -49,188 +42,6 @@ static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
 
-NAPIDeathRecipient::NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient)
-{
-    env_ = env;
-    napi_status status = napi_create_reference(env_, jsDeathRecipient, 1, &deathRecipientRef_);
-    NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, "failed to create ref to js death recipient");
-}
-
-NAPIDeathRecipient::~NAPIDeathRecipient()
-{
-    if (env_ != nullptr) {
-        if (deathRecipientRef_ != nullptr) {
-            napi_status status = napi_delete_reference(env_, deathRecipientRef_);
-            NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js death recipient");
-            deathRecipientRef_ = nullptr;
-        }
-    }
-}
-
-void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
-{
-    if (deathRecipientRef_ == nullptr) {
-        ZLOGE(LOG_LABEL, "js death recipient has already removed");
-        return;
-    }
-
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    uv_work_t *work = new(std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ZLOGE(LOG_LABEL, "failed to new uv_work_t");
-        return;
-    }
-    OnRemoteDiedParam *param = new OnRemoteDiedParam {
-        .env = env_,
-        .deathRecipientRef = deathRecipientRef_
-    };
-    work->data = reinterpret_cast<void *>(param);
-    ZLOGI(LOG_LABEL, "start to queue");
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
-        ZLOGI(LOG_LABEL, "start to call onRmeoteDied");
-        OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
-        napi_value jsDeathRecipient = nullptr;
-        napi_get_reference_value(param->env, param->deathRecipientRef, &jsDeathRecipient);
-        NAPI_ASSERT_RETURN_VOID(param->env, jsDeathRecipient != nullptr, "failed to get js death recipient");
-        napi_value onRemoteDied = nullptr;
-        napi_get_named_property(param->env, jsDeathRecipient, "onRemoteDied", &onRemoteDied);
-        NAPI_ASSERT_RETURN_VOID(param->env, onRemoteDied != nullptr, "failed to get property onRemoteDied");
-        napi_value returnVal = nullptr;
-        napi_call_function(param->env, jsDeathRecipient, onRemoteDied, 0, nullptr, &returnVal);
-        if (returnVal == nullptr) {
-            ZLOGE(LOG_LABEL, "failed to call function onRemoteDied");
-        }
-        delete param;
-        delete work;
-    });
-}
-
-bool NAPIDeathRecipient::Matches(napi_value object)
-{
-    bool result = false;
-    if (object != nullptr) {
-        if (deathRecipientRef_ != nullptr) {
-            napi_value jsDeathRecipient = nullptr;
-            napi_get_reference_value(env_, deathRecipientRef_, &jsDeathRecipient);
-            napi_status status = napi_strict_equals(env_, object, jsDeathRecipient, &result);
-            if (status != napi_ok) {
-                ZLOGI(LOG_LABEL, "compares death recipients failed");
-            }
-        }
-    }
-    return result;
-}
-
-NAPIDeathRecipientList::NAPIDeathRecipientList() {}
-
-NAPIDeathRecipientList::~NAPIDeathRecipientList()
-{
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    set_.clear();
-}
-
-bool NAPIDeathRecipientList::Add(const sptr<NAPIDeathRecipient> &recipient)
-{
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    auto ret = set_.insert(recipient);
-    return ret.second;
-}
-
-bool NAPIDeathRecipientList::Remove(const sptr<NAPIDeathRecipient> &recipient)
-{
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    return (set_.erase(recipient) > 0);
-}
-
-sptr<NAPIDeathRecipient> NAPIDeathRecipientList::Find(napi_value jsRecipient)
-{
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    for (auto it = set_.begin(); it != set_.end(); it++) {
-        if ((*it)->Matches(jsRecipient)) {
-            return *it;
-        }
-    }
-    return nullptr;
-}
-
-NAPIRemoteProxyHolder::NAPIRemoteProxyHolder() : list_(nullptr), object_(nullptr) {}
-
-NAPIRemoteProxyHolder::~NAPIRemoteProxyHolder()
-{
-    list_ = nullptr;
-    object_ = nullptr;
-}
-
-napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
-{
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
-    // new napi proxy holder instance
-    auto proxyHolder = new NAPIRemoteProxyHolder();
-    // connect native object to js thisVar
-    napi_status status = napi_wrap(
-        env, thisVar, proxyHolder,
-        [](napi_env env, void *data, void *hint) {
-            ZLOGI(LOG_LABEL, "proxy holder destructed by js callback");
-            delete (reinterpret_cast<NAPIRemoteProxyHolder *>(data));
-        },
-        nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteProxy and native holder failed");
-    return thisVar;
-}
-
-EXTERN_C_START
-/*
- * function for module exports
- */
-napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
-{
-    const std::string className = "RemoteProxy";
-    napi_value pingTransaction = nullptr;
-    napi_create_int32(env, PING_TRANSACTION, &pingTransaction);
-    napi_value dumpTransaction = nullptr;
-    napi_create_int32(env, DUMP_TRANSACTION, &dumpTransaction);
-    napi_value interfaceTransaction = nullptr;
-    napi_create_int32(env, INTERFACE_TRANSACTION, &interfaceTransaction);
-    napi_value minTransactionId = nullptr;
-    napi_create_int32(env, MIN_TRANSACTION_ID, &minTransactionId);
-    napi_value maxTransactionId = nullptr;
-    napi_create_int32(env, MAX_TRANSACTION_ID, &maxTransactionId);
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("queryLocalInterface", NAPI_RemoteProxy_queryLocalInterface),
-        DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteProxy_getLocalInterface),
-        DECLARE_NAPI_FUNCTION("addDeathRecipient", NAPI_RemoteProxy_addDeathRecipient),
-        DECLARE_NAPI_FUNCTION("registerDeathRecipient", NAPI_RemoteProxy_registerDeathRecipient),
-        DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteProxy_removeDeathRecipient),
-        DECLARE_NAPI_FUNCTION("unregisterDeathRecipient", NAPI_RemoteProxy_unregisterDeathRecipient),
-        DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteProxy_getInterfaceDescriptor),
-        DECLARE_NAPI_FUNCTION("getDescriptor", NAPI_RemoteProxy_getDescriptor),
-        DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteProxy_sendRequest),
-        DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteProxy_sendMessageRequest),
-        DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteProxy_isObjectDead),
-        DECLARE_NAPI_STATIC_PROPERTY("PING_TRANSACTION", pingTransaction),
-        DECLARE_NAPI_STATIC_PROPERTY("DUMP_TRANSACTION", dumpTransaction),
-        DECLARE_NAPI_STATIC_PROPERTY("INTERFACE_TRANSACTION", interfaceTransaction),
-        DECLARE_NAPI_STATIC_PROPERTY("MIN_TRANSACTION_ID", minTransactionId),
-        DECLARE_NAPI_STATIC_PROPERTY("MAX_TRANSACTION_ID", maxTransactionId),
-    };
-    napi_value constructor = nullptr;
-    napi_define_class(env, className.c_str(), className.length(), RemoteProxy_JS_Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    NAPI_ASSERT(env, constructor != nullptr, "define js class RemoteProxy failed");
-    napi_status status = napi_set_named_property(env, exports, "RemoteProxy", constructor);
-    NAPI_ASSERT(env, status == napi_ok, "set property RemoteProxy to exports failed");
-    napi_value global = nullptr;
-    status = napi_get_global(env, &global);
-    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
-    status = napi_set_named_property(env, global, "IPCProxyConstructor_", constructor);
-    NAPI_ASSERT(env, status == napi_ok, "set proxy constructor failed");
-    return exports;
-}
-EXTERN_C_END
-
-// This method runs on a worker thread, no access to the JavaScript
 void ExecuteSendRequest(napi_env env, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
@@ -853,4 +664,71 @@ napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
     }
 }
 
+napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    // new napi proxy holder instance
+    auto proxyHolder = new NAPIRemoteProxyHolder();
+    // connect native object to js thisVar
+    napi_status status = napi_wrap(
+        env, thisVar, proxyHolder,
+        [](napi_env env, void *data, void *hint) {
+            ZLOGI(LOG_LABEL, "proxy holder destructed by js callback");
+            delete (reinterpret_cast<NAPIRemoteProxyHolder *>(data));
+        },
+        nullptr, nullptr);
+    NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteProxy and native holder failed");
+    return thisVar;
+}
+
+EXTERN_C_START
+/*
+ * function for module exports
+ */
+napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
+{
+    const std::string className = "RemoteProxy";
+    napi_value pingTransaction = nullptr;
+    napi_create_int32(env, PING_TRANSACTION, &pingTransaction);
+    napi_value dumpTransaction = nullptr;
+    napi_create_int32(env, DUMP_TRANSACTION, &dumpTransaction);
+    napi_value interfaceTransaction = nullptr;
+    napi_create_int32(env, INTERFACE_TRANSACTION, &interfaceTransaction);
+    napi_value minTransactionId = nullptr;
+    napi_create_int32(env, MIN_TRANSACTION_ID, &minTransactionId);
+    napi_value maxTransactionId = nullptr;
+    napi_create_int32(env, MAX_TRANSACTION_ID, &maxTransactionId);
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("queryLocalInterface", NAPI_RemoteProxy_queryLocalInterface),
+        DECLARE_NAPI_FUNCTION("getLocalInterface", NAPI_RemoteProxy_getLocalInterface),
+        DECLARE_NAPI_FUNCTION("addDeathRecipient", NAPI_RemoteProxy_addDeathRecipient),
+        DECLARE_NAPI_FUNCTION("registerDeathRecipient", NAPI_RemoteProxy_registerDeathRecipient),
+        DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteProxy_removeDeathRecipient),
+        DECLARE_NAPI_FUNCTION("unregisterDeathRecipient", NAPI_RemoteProxy_unregisterDeathRecipient),
+        DECLARE_NAPI_FUNCTION("getInterfaceDescriptor", NAPI_RemoteProxy_getInterfaceDescriptor),
+        DECLARE_NAPI_FUNCTION("getDescriptor", NAPI_RemoteProxy_getDescriptor),
+        DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteProxy_sendRequest),
+        DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteProxy_sendMessageRequest),
+        DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteProxy_isObjectDead),
+        DECLARE_NAPI_STATIC_PROPERTY("PING_TRANSACTION", pingTransaction),
+        DECLARE_NAPI_STATIC_PROPERTY("DUMP_TRANSACTION", dumpTransaction),
+        DECLARE_NAPI_STATIC_PROPERTY("INTERFACE_TRANSACTION", interfaceTransaction),
+        DECLARE_NAPI_STATIC_PROPERTY("MIN_TRANSACTION_ID", minTransactionId),
+        DECLARE_NAPI_STATIC_PROPERTY("MAX_TRANSACTION_ID", maxTransactionId),
+    };
+    napi_value constructor = nullptr;
+    napi_define_class(env, className.c_str(), className.length(), RemoteProxy_JS_Constructor, nullptr,
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    NAPI_ASSERT(env, constructor != nullptr, "define js class RemoteProxy failed");
+    napi_status status = napi_set_named_property(env, exports, "RemoteProxy", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set property RemoteProxy to exports failed");
+    napi_value global = nullptr;
+    status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    status = napi_set_named_property(env, global, "IPCProxyConstructor_", constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set proxy constructor failed");
+    return exports;
+}
+EXTERN_C_END
 } // namespace OHOS

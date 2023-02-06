@@ -28,17 +28,14 @@ ohos_shared_library("rpc") {
     "//utils/system/safwk/native/include",
     "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
     "$SUBSYSTEM_DIR/ipc/native/c/adapter/access_token/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/napi_common/include",
   ]
   public_configs = [ ":rpc_public_config" ]
 
   sources = [
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ashmem.cpp",
+    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ipc_skeleton.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_parcel.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_sequence.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_object.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_proxy.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_error.cpp",
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
   ]
 
@@ -52,6 +49,7 @@ ohos_shared_library("rpc") {
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "ipc:ipc_napi_common",
   ]
 
   relative_install_dir = "module"
