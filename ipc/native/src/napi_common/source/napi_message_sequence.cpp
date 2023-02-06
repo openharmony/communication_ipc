@@ -14,6 +14,7 @@
  */
 
 #include "napi_message_sequence.h"
+
 #include <cstring>
 #include <unistd.h>
 #include "hilog/log.h"
