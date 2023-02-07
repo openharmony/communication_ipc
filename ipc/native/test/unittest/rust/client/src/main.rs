@@ -26,7 +26,7 @@ use ipc_rust::{
     RawData,
 };
 
-use ipc_rust::{Serialize, Deserialize,BorrowedMsgParcel};
+use ipc_rust::{Serialize, Deserialize, BorrowedMsgParcel, Ashmem};
 use test_ipc_service::{ITest, TestProxy, IPC_TEST_SERVICE_ID, IFoo, init_access_token};
 use std::fs::File;
 
@@ -682,6 +682,37 @@ mod parcel_type_test {
         for i in 0..large_len {
             let value = res.read(i, 1).expect("read value from large len raw data failed");
             assert_eq!(value[0], data[i as usize]);
+        }
+    }
+
+    #[test]
+    fn test_ashmem_read_and_write(){
+        let ashmemName = "AshmemIpc";
+        let rawData1k = 1024;
+        let ashmemString = "HelloWorld2023";
+
+        for _i in 1..=30000 {
+            let ashmem = Ashmem::new(&ashmemName, rawData1k).expect("create ashmem failed");
+            assert_eq!(ashmem.map_read_write(), true);
+            assert_eq!(ashmem.write(&ashmemString.as_bytes(), 0), true);
+
+            let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
+            parcel.write(&ashmem).expect("write MsgParcel failed");
+            assert_eq!(parcel.rewind_read(0), true);
+
+            let ashmem2: Ashmem = parcel.read().expect("read MsgParcel failed");
+            assert_eq!(ashmem2.map_readonly(), true);
+
+            let res: Result<RawData> = ashmem2.read(ashmemString.len() as i32, 0);
+            let ptr = res.unwrap();
+            let read_string = ptr.read(0, ashmemString.len() as u32);
+            let res = std::str::from_utf8(read_string.unwrap()).unwrap();
+            assert_eq!(&ashmemString, &res);
+
+            ashmem.unmap();
+            ashmem.close();
+            ashmem2.unmap();
+            ashmem2.close();
         }
     }
 }
