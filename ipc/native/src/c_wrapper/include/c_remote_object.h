@@ -31,7 +31,8 @@ struct CDeathRecipient;
 typedef struct CDeathRecipient CDeathRecipient;
 
 // Callback as remote stub
-typedef int (*OnRemoteRequestCb)(const CRemoteObject *stub, int code, const CParcel *data, CParcel *reply);
+typedef int (*OnRemoteRequestCb)(const void *userData, int code, 
+    const CParcel *data, CParcel *reply);
 typedef void (*OnRemoteObjectDestroyCb)(const void *userData);
 // Callback as death recipient
 typedef void (*OnDeathRecipientCb)(const void *userData);
@@ -43,7 +44,6 @@ CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
 void RemoteObjectIncStrongRef(CRemoteObject *object);
 void RemoteObjectDecStrongRef(CRemoteObject *object);
 
-const void *RemoteObjectGetUserData(CRemoteObject *object);
 bool RemoteObjectLessThan(const CRemoteObject *lhs, const CRemoteObject *rhs);
 int RemoteObjectSendRequest(const CRemoteObject *object, uint32_t code,
     const CParcel *data, CParcel *reply, bool isAsync);

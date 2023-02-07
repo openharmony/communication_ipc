@@ -40,7 +40,7 @@ pub struct CAshmem {
 // Callback function type for OnRemoteRequest() from native, this
 // callback will be called when native recive client IPC request.
 pub type OnRemoteRequest = unsafe extern "C" fn (
-    stub: *mut CRemoteObject,
+    user_data: *mut c_void,
     code: u32,
     data: *const CParcel,
     reply: *mut CParcel
@@ -49,7 +49,7 @@ pub type OnRemoteRequest = unsafe extern "C" fn (
 // Callback function type for OnRemoteObjectDestroy() from native,
 // this callback will be called when native remote object destroyed.
 pub type OnRemoteObjectDestroy = unsafe extern "C" fn (
-    stub: *mut c_void
+    user_data: *mut c_void
 );
 
 // Callback function type for OnDeathRecipientCb() from native,
@@ -116,7 +116,6 @@ extern "C" {
     pub fn RemoteObjectIncStrongRef(object: *mut CRemoteObject);
     pub fn RemoteObjectDecStrongRef(object: *mut CRemoteObject);
 
-    pub fn RemoteObjectGetUserData(object: *mut CRemoteObject) -> *const c_void;
     pub fn RemoteObjectSendRequest(object: *mut CRemoteObject, code: u32,
         data: *const CParcel, reply: *mut CParcel, is_async: bool) -> i32;
     pub fn RemoteObjectLessThan(object: *const CRemoteObject,

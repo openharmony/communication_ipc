@@ -21,39 +21,32 @@
 
 using namespace OHOS;
 
-RemoteServiceHolderStub::RemoteServiceHolderStub(CRemoteObject *holder, std::u16string &desc, OnRemoteRequestCb callback)
-    : IPCObjectStub(desc), holder_(holder), callback_(callback)
+RemoteServiceHolderStub::RemoteServiceHolderStub(std::u16string &desc,
+    OnRemoteRequestCb callback, const void *userData, OnRemoteObjectDestroyCb destroy)
+    : IPCObjectStub(desc), callback_(callback)
+    , userData_(userData), destroy_(destroy)
 {
 }
 
 RemoteServiceHolderStub::~RemoteServiceHolderStub()
 {
+    if (destroy_) {
+        destroy_(userData_);
+    }
+    destroy_ = nullptr;
 }
 
 int RemoteServiceHolderStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data,
     OHOS::MessageParcel &reply, OHOS::MessageOption &option)
 {
     (void)option;
-    if (callback_ == nullptr || holder_ == nullptr) {
+    if (callback_ == nullptr) {
         printf("%s: callback is null for code: %u\n", __func__, code);
         return -1;
     }
     CParcel parcelData(&data);
     CParcel parcelReply(&reply);
-    return callback_(holder_, code, &parcelData, &parcelReply);
-}
-
-CRemoteStubHolder::CRemoteStubHolder(const void *userData, OnRemoteObjectDestroyCb onRemoteObjectDestroy)
-    : userData_(userData), onRemoteObjectDestroy_(onRemoteObjectDestroy)
-{
-}
-
-CRemoteStubHolder::~CRemoteStubHolder()
-{
-    if (onRemoteObjectDestroy_) {
-        onRemoteObjectDestroy_(GetUserData());
-    }
-    onRemoteObjectDestroy_ = nullptr;
+    return callback_(userData_, code, &parcelData, &parcelReply);
 }
 
 CDeathRecipient::CDeathRecipient(OnDeathRecipientCb onDeathRecipient,
@@ -81,14 +74,6 @@ void CDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     }
 }
 
-CRemoteProxyHolder::CRemoteProxyHolder()
-{
-}
-
-CRemoteProxyHolder::~CRemoteProxyHolder()
-{
-}
-
 bool IsValidRemoteObject(const CRemoteObject *object, const char *promot)
 {
     if (object == nullptr) {
@@ -108,13 +93,14 @@ CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
     if (desc == nullptr || callback == nullptr || destroy == nullptr) {
         return nullptr;
     }
-    auto holder = new (std::nothrow) CRemoteStubHolder(userData, destroy);
+    auto holder = new (std::nothrow) CRemoteObjectHolder();
     if (holder == nullptr) {
-        printf("%s: new CRemoteStubHolder failed\n", __func__);
+        printf("%s: new CRemoteObjectHolder failed\n", __func__);
         return nullptr;
     }
     std::u16string descriptor = Str8ToStr16(std::string(desc));
-    holder->remote_ = new (std::nothrow) RemoteServiceHolderStub(holder, descriptor, callback);
+    holder->remote_ = new (std::nothrow) RemoteServiceHolderStub(
+        descriptor, callback, userData, destroy);
     if (holder->remote_ == nullptr) {
         printf("%s: new RemoteServiceHolderStub failed\n", __func__);
         delete holder;
@@ -140,15 +126,6 @@ void RemoteObjectDecStrongRef(CRemoteObject *object)
         return;
     }
     object->DecStrongRef(nullptr);
-}
-
-const void *RemoteObjectGetUserData(CRemoteObject *object)
-{
-    if (object == nullptr) {
-        printf("%s: unexpected CRemoteObject\n", __func__);
-        return nullptr;
-    }
-    return object->GetUserData();
 }
 
 bool RemoteObjectLessThan(const CRemoteObject *lhs, const CRemoteObject *rhs)
@@ -214,9 +191,8 @@ bool AddDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
         printf("%s: this is not a proxy object", __func__);
         return false;
     }
-    struct CRemoteProxyHolder *proxy = reinterpret_cast<struct CRemoteProxyHolder *>(object);
     sptr<IRemoteObject::DeathRecipient> callback(recipient);
-    return proxy->remote_->AddDeathRecipient(callback);
+    return object->remote_->AddDeathRecipient(callback);
 }
 
 bool RemoveDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
@@ -228,8 +204,7 @@ bool RemoveDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
     if (!object->remote_->IsProxyObject()) {
         printf("%s: this is not a proxy object\n", __func__);
         return false;
-    }
-    struct CRemoteProxyHolder *proxy = reinterpret_cast<struct CRemoteProxyHolder *>(object);
+    };
     sptr<IRemoteObject::DeathRecipient> callback(recipient);
-    return proxy->remote_->RemoveDeathRecipient(callback);
+    return object->remote_->RemoveDeathRecipient(callback);
 }
