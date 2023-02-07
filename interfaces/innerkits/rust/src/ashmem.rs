@@ -13,9 +13,13 @@
  * limitations under the License.
  */
 
-use crate::{ipc_binding, RawData, Result};
+use crate::{
+    ipc_binding, RawData, Result, BorrowedMsgParcel, result_status,
+    AsRawPtr
+};
 use crate::ipc_binding::CAshmem;
 use std::ffi::CString;
+use crate::parcel::parcelable::{Serialize, Deserialize};
 
 /// Ashmem packed the native CAshmem
 #[repr(C)]
@@ -43,6 +47,16 @@ impl Ashmem {
     /// # Safety
     pub unsafe fn as_inner(&self) -> *mut CAshmem {
         self.0
+    }
+
+    /// Create an `Ashmem` wrapper object from a raw `CAshmem` pointer.
+    /// # Safety
+    pub unsafe fn from_raw(cashmem: *mut CAshmem) -> Option<Self> {
+        if cashmem.is_null() {
+            None
+        } else {
+            Some(Self(cashmem))
+        }
     }
 }
 
@@ -172,6 +186,35 @@ impl Drop for Ashmem {
         // SAFETY:
         unsafe {
             ipc_binding::CAshmemDecStrongRef(self.as_inner());
+        }
+    }
+}
+
+/// Write a ashmem
+impl Serialize for Ashmem {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+        // SAFETY:
+        let ret = unsafe {
+            ipc_binding::CParcelWriteAshmem(parcel.as_mut_raw(), self.as_inner())
+        };
+        result_status::<()>(ret, ())
+    }
+}
+
+/// read a ashmem
+impl Deserialize for Ashmem {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+        let ptr = unsafe {
+            ipc_binding::CParcelReadAshmem(parcel.as_raw())
+        };
+        if ptr.is_null() {
+            Err(-1)
+        } else {
+            // SAFETY:
+            unsafe {
+                let ashmem = Ashmem::from_raw(ptr).unwrap();
+                Ok(ashmem)
+            }
         }
     }
 }
