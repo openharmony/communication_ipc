@@ -26,7 +26,6 @@ use std::slice;
 use crate::AsRawPtr;
 use crate::parcel::parcelable::{Serialize, Deserialize};
 
-
 /// This trait implements the common function for MsgParcel
 /// and BorrowedMsgParcel
 pub trait IMsgParcel: AsRawPtr<CParcel> {
