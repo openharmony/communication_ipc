@@ -111,7 +111,7 @@ void UnmapCAshmem(CAshmem *ashmem)
     if (!IsValidCAshmem(ashmem, __func__)) {
         return;
     }
-    ashmem->ashmem_->MapReadOnlyAshmem();
+    ashmem->ashmem_->UnmapAshmem();
 }
 
 bool SetCAshmemProtection(CAshmem *ashmem, int32_t protectionType)

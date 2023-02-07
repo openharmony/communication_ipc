@@ -16,6 +16,8 @@
 #ifndef IPC_C_PARCEL_H
 #define IPC_C_PARCEL_H
 
+#include "c_ashmem.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -114,6 +116,9 @@ uint32_t CParcelGetReadPosition(const CParcel *parcel);
 uint32_t CParcelGetWritePosition(const CParcel *parcel);
 bool CParcelRewindRead(CParcel *parcel, uint32_t new_pos);
 bool CParcelRewindWrite(CParcel *parcel, uint32_t new_pos);
+
+bool CParcelWriteAshmem(CParcel *parcel, CAshmem *ashmem);
+CAshmem *CParcelReadAshmem(const CParcel *parcel);
 
 #ifdef __cplusplus
 }

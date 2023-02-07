@@ -216,6 +216,9 @@ extern "C" {
     pub fn CParcelGetWritePosition(parcel: *const CParcel) -> u32;
     pub fn CParcelRewindRead(parcel: *mut CParcel, new_pos: u32) -> bool;
     pub fn CParcelRewindWrite(parcel: *mut CParcel, new_pos: u32) -> bool;
+
+    pub fn CParcelWriteAshmem(parcel: *mut CParcel, ashmem: *mut CAshmem) -> bool;
+    pub fn CParcelReadAshmem(parcel: *const CParcel) -> *mut CAshmem;
 }
 
 // C interface for Ashmem

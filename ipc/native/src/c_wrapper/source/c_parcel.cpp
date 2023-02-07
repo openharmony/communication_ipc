@@ -84,7 +84,7 @@ static bool ReadAndCheckArrayLength(const CParcel *parcel, int32_t &len)
     if (static_cast<uint32_t>(len) > parcel->parcel_->GetReadableBytes()) {
         printf("%s: readable bytes are too short in parcel: %d\n", __func__, len);
         return false;
-    } 
+    }
     return true;
 }
 
@@ -826,4 +826,31 @@ bool CParcelRewindWrite(CParcel *parcel, uint32_t new_pos)
         return 0;
     }
     return parcel->parcel_->RewindWrite(new_pos);
+}
+
+bool CParcelWriteAshmem(CParcel *parcel, CAshmem *ashmem)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return false;
+    }
+    return parcel->parcel_->WriteAshmem(ashmem->ashmem_);
+}
+
+CAshmem *CParcelReadAshmem(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return nullptr;
+    }
+    sptr<Ashmem> ashmem = parcel->parcel_->ReadAshmem();
+    if (ashmem == nullptr) {
+        printf("%s: read ashmem failed\n", __func__);
+        return nullptr;
+    }
+    CAshmem *cashmem = new (std::nothrow) CAshmem(ashmem);
+    if (cashmem == nullptr) {
+        printf("%s: new ashmem failed\n", __func__);
+        return nullptr;
+    }
+    ashmem->IncStrongRef(nullptr);
+    return cashmem;
 }
