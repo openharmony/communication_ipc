@@ -388,13 +388,9 @@ CRemoteObject *CParcelReadRemoteObject(const CParcel *parcel)
         return nullptr;
     }
     CRemoteObject *holder = nullptr;
-    if (remote->IsProxyObject()) {
-        holder = new (std::nothrow) CRemoteProxyHolder();
-    } else {
-        holder = new (std::nothrow) CRemoteStubHolder(nullptr, nullptr);
-    }
+    holder = new (std::nothrow) CRemoteObjectHolder();
     if (holder == nullptr) {
-        printf("%s: craete remote object holder failed\n", __func__);
+        printf("%s: create remote object holder failed\n", __func__);
         return nullptr;
     }
     holder->remote_ = remote;
