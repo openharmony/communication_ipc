@@ -82,13 +82,12 @@ impl<T: IRemoteStub> Drop for RemoteStub<T> {
 
 /// C call Rust
 impl<T: IRemoteStub> RemoteStub<T> {
-    unsafe extern "C" fn on_remote_request(stub: *mut CRemoteObject, code: u32,
+    unsafe extern "C" fn on_remote_request(user_data: *mut c_void, code: u32,
         data: *const CParcel, reply: *mut CParcel) -> i32 {
         let res = {
             let mut reply = BorrowedMsgParcel::from_raw(reply).unwrap();
             let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
-            let object = ipc_binding::RemoteObjectGetUserData(stub);
-            let rust_object: &T = &*(object as *const T);
+            let rust_object: &T = &*(user_data as *mut T);
             rust_object.on_remote_request(code, &data, &mut reply)
         };
         res

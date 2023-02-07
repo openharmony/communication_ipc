@@ -46,8 +46,11 @@ macro_rules! define_remote_object {
 
         impl $proxy {
             /// Create proxy object by RemoteObj
-            fn from_remote_object(remote: RemoteObj) -> $crate::Result<Self> {
-                Ok(Self {remote, $($item_name: $item_init),* })
+            fn from_remote_object(remote: &RemoteObj) -> $crate::Result<Self> {
+                Ok(Self {
+                    remote: remote.clone(),
+                    $($item_name: $item_init),*
+                })
             }
 
             /// Get proxy object descriptor
@@ -99,8 +102,9 @@ macro_rules! define_remote_object {
 
         impl $crate::FromRemoteObj for dyn $remote_broker {
             /// For example, convert RemoteObj to RemoteObjRef<dyn ITest>
-            fn from(object: $crate::RemoteObj) -> $crate::Result<$crate::RemoteObjRef<dyn $remote_broker>> {
-                Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(object)?)))
+            fn from(object: $crate::RemoteObj)
+                -> $crate::Result<$crate::RemoteObjRef<dyn $remote_broker>> {
+                Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(&object)?)))
             }
         }
     };
