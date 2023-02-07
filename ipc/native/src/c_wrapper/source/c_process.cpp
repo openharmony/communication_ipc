@@ -26,7 +26,7 @@ CRemoteObject *GetContextManager(void)
     if (saMgr == nullptr) {
         return nullptr;
     }
-    CRemoteObject *holder = new (std::nothrow) CRemoteProxyHolder();
+    CRemoteObject *holder = new (std::nothrow) CRemoteObjectHolder();
     if (holder == nullptr) {
         printf("%s: create samgr proxy holder failed\n", __func__);
         return nullptr;

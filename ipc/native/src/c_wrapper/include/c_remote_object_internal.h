@@ -29,26 +29,7 @@ struct CRemoteObjectHolder : public virtual OHOS::RefBase {
     CRemoteObjectHolder() = default;
     virtual ~CRemoteObjectHolder() = default;
 
-    virtual const void *GetUserData() = 0;
     OHOS::sptr<OHOS::IRemoteObject> remote_;
-};
-
-struct CRemoteStubHolder : public CRemoteObjectHolder {
-    CRemoteStubHolder(const void *userData, OnRemoteObjectDestroyCb onRemoteObjectDestroy);
-    virtual ~CRemoteStubHolder();
-
-    const void *GetUserData() { return userData_; };
-
-private:
-    const void *userData_;
-    OnRemoteObjectDestroyCb onRemoteObjectDestroy_;
-};
-
-struct CRemoteProxyHolder : public CRemoteObjectHolder {
-    CRemoteProxyHolder();
-    virtual ~CRemoteProxyHolder();
-
-    const void *GetUserData() { return nullptr; };
 };
 
 struct CDeathRecipient: public virtual OHOS::IRemoteObject::DeathRecipient {
@@ -67,15 +48,17 @@ private:
 
 class RemoteServiceHolderStub: public OHOS::IPCObjectStub {
 public:
-    explicit RemoteServiceHolderStub(CRemoteObject *holder, std::u16string &desc, OnRemoteRequestCb callback);
+    explicit RemoteServiceHolderStub(std::u16string &desc, OnRemoteRequestCb callback,
+        const void *userData, OnRemoteObjectDestroyCb destroy);
     ~RemoteServiceHolderStub();
 
     int OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data,
         OHOS::MessageParcel &reply, OHOS::MessageOption &option) override;
 
 private:
-    CRemoteObject *holder_;
     OnRemoteRequestCb callback_;
+    const void *userData_;
+    OnRemoteObjectDestroyCb destroy_;
 };
 
 bool IsValidRemoteObject(const CRemoteObject *object, const char *promot);

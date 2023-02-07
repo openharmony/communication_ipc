@@ -45,7 +45,7 @@ void IpcCRemoteObjectUnitTest::SetUp()
 void IpcCRemoteObjectUnitTest::TearDown()
 {}
 
-static int OnRemoteRequest(const CRemoteObject *stub, int code, const CParcel *data, CParcel *reply)
+static int OnRemoteRequest(const void *stub, int code, const CParcel *data, CParcel *reply)
 {
     (void)stub;
     (void)code;
@@ -88,22 +88,6 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectRefCount, TestSize.Level1)
     EXPECT_EQ(ref->GetSptrRefCount(), 1);
     RemoteObjectIncStrongRef(nullptr);
     RemoteObjectDecStrongRef(nullptr);
-    // destroy the CRemoteObject object
-    RemoteObjectDecStrongRef(remote);
-}
-
-/**
- * @tc.name: CRemoteObjectUserData
- * @tc.desc: Verify the CRemoteObject user data function
- * @tc.type: FUNC
- */
-HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectUserData, TestSize.Level1)
-{
-    EXPECT_EQ(RemoteObjectGetUserData(nullptr), nullptr);
-    int8_t userData;
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
-    EXPECT_NE(remote, nullptr);
-    EXPECT_EQ(RemoteObjectGetUserData(remote), &userData);
     // destroy the CRemoteObject object
     RemoteObjectDecStrongRef(remote);
 }
