@@ -16,10 +16,10 @@ import("//build/lite/config/component/lite_component.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test"
 IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
 
-executable("ipc_client") {
+executable("ipc_test_client") {
   output_extension = "bin"
   output_dir = "$root_out_dir/test/ipc"
-  sources = [ "$SUBSYSTEM_DIR/ipc/client/client.c" ]
+  sources = [ "$SUBSYSTEM_DIR/ipc/client/ipc_test_client.c" ]
   include_dirs = [
     "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
@@ -31,8 +31,11 @@ executable("ipc_client") {
     "-lstdc++",
     "-lpthread",
   ]
-  deps =
-      [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]
+
+  deps = [
+      "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single",
+      "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+  ]
 
   configs -= [ "//build/lite/config:clang_opt" ]
 }
