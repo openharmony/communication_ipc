@@ -18,8 +18,11 @@
 #include <string_ex.h>
 #include "c_parcel_internal.h"
 #include "c_remote_object_internal.h"
+#include "log_tags.h"
+#include "ipc_debug.h"
 
 using namespace OHOS;
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CRemoteObject" };
 
 RemoteServiceHolderStub::RemoteServiceHolderStub(std::u16string &desc,
     OnRemoteRequestCb callback, const void *userData, OnRemoteObjectDestroyCb destroy)
@@ -41,7 +44,7 @@ int RemoteServiceHolderStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel 
 {
     (void)option;
     if (callback_ == nullptr) {
-        printf("%s: callback is null for code: %u\n", __func__, code);
+        ZLOGE(LOG_LABEL, "%{public}s: callback is null for code: %u\n", __func__, code);
         return -1;
     }
     CParcel parcelData(&data);
@@ -77,11 +80,11 @@ void CDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 bool IsValidRemoteObject(const CRemoteObject *object, const char *promot)
 {
     if (object == nullptr) {
-        printf("[%s] RemoteObject is null\n", promot);
+        ZLOGE(LOG_LABEL, "[%{public}s] RemoteObject is null\n", promot);
         return false;
     }
     if (object->remote_ == nullptr) {
-        printf("[%s]wrapper RemoteObject is null\n", promot);
+        ZLOGE(LOG_LABEL, "[%{public}s]wrapper RemoteObject is null\n", promot);
         return false;
     }
     return true;
@@ -95,14 +98,14 @@ CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
     }
     auto holder = new (std::nothrow) CRemoteObjectHolder();
     if (holder == nullptr) {
-        printf("%s: new CRemoteObjectHolder failed\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: new CRemoteObjectHolder failed\n", __func__);
         return nullptr;
     }
     std::u16string descriptor = Str8ToStr16(std::string(desc));
     holder->remote_ = new (std::nothrow) RemoteServiceHolderStub(
         descriptor, callback, userData, destroy);
     if (holder->remote_ == nullptr) {
-        printf("%s: new RemoteServiceHolderStub failed\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: new RemoteServiceHolderStub failed\n", __func__);
         delete holder;
         return nullptr;
     }
@@ -113,7 +116,7 @@ CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
 void RemoteObjectIncStrongRef(CRemoteObject *object)
 {
     if (object == nullptr) {
-        printf("%s: unexpected CRemoteObject\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: unexpected CRemoteObject\n", __func__);
         return;
     }
     object->IncStrongRef(nullptr);
@@ -122,7 +125,7 @@ void RemoteObjectIncStrongRef(CRemoteObject *object)
 void RemoteObjectDecStrongRef(CRemoteObject *object)
 {
     if (object == nullptr) {
-        printf("%s: unexpected CRemoteObject\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: unexpected CRemoteObject\n", __func__);
         return;
     }
     object->DecStrongRef(nullptr);
@@ -140,7 +143,7 @@ int RemoteObjectSendRequest(const CRemoteObject *object, uint32_t code,
     const CParcel *data, CParcel *reply, bool isAsync)
 {
     if (!IsValidRemoteObject(object, __func__) || data == nullptr || reply == nullptr) {
-        printf("%s: object and data must be not null\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: object and data must be not null\n", __func__);
         return -EINVAL;
     }
     MessageOption option(isAsync ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC);
@@ -151,13 +154,13 @@ CDeathRecipient *CreateDeathRecipient(OnDeathRecipientCb onDeathRecipient,
     OnDeathRecipientDestroyCb onDestroy, const void *userData)
 {
     if (onDeathRecipient == nullptr || onDestroy == nullptr || userData == nullptr) {
-        printf("%s: args must not be null\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: args must not be null\n", __func__);
         return nullptr;
     }
     CDeathRecipient *recipient = new (std::nothrow) CDeathRecipient(onDeathRecipient,
         onDestroy, userData);
     if (recipient == nullptr) {
-        printf("%s: create CDeathRecipient object failed\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: create CDeathRecipient object failed\n", __func__);
         return nullptr;
     }
     recipient->IncStrongRef(nullptr);
@@ -167,7 +170,7 @@ CDeathRecipient *CreateDeathRecipient(OnDeathRecipientCb onDeathRecipient,
 void DeathRecipientIncStrongRef(CDeathRecipient *recipient)
 {
     if (recipient == nullptr) {
-        printf("%s: unexpected CDeathRecipient\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: unexpected CDeathRecipient\n", __func__);
         return;
     }
     recipient->IncStrongRef(nullptr);
@@ -176,7 +179,7 @@ void DeathRecipientIncStrongRef(CDeathRecipient *recipient)
 void DeathRecipientDecStrongRef(CDeathRecipient *recipient)
 {
     if (recipient == nullptr) {
-        printf("%s: unexpected CDeathRecipient\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: unexpected CDeathRecipient\n", __func__);
         return;
     }
     recipient->DecStrongRef(nullptr);
@@ -188,7 +191,7 @@ bool AddDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
         return false;
     }
     if (!object->remote_->IsProxyObject()) {
-        printf("%s: this is not a proxy object", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: this is not a proxy object", __func__);
         return false;
     }
     sptr<IRemoteObject::DeathRecipient> callback(recipient);
@@ -198,11 +201,11 @@ bool AddDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
 bool RemoveDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
 {
     if (!IsValidRemoteObject(object, __func__) || recipient == nullptr) {
-        printf("%s: recipient is null\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
         return false;
     }
     if (!object->remote_->IsProxyObject()) {
-        printf("%s: this is not a proxy object\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: this is not a proxy object\n", __func__);
         return false;
     };
     sptr<IRemoteObject::DeathRecipient> callback(recipient);

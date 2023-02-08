@@ -18,8 +18,15 @@ use crate::{
     AsRawPtr
 };
 use crate::ipc_binding::CAshmem;
-use std::ffi::CString;
+use std::ffi::{CString, c_char};
 use crate::parcel::parcelable::{Serialize, Deserialize};
+use hilog_rust::{error, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustAshmem"
+};
 
 /// Ashmem packed the native CAshmem
 #[repr(C)]
@@ -138,7 +145,7 @@ impl Ashmem {
     pub fn write(&self, data: &[u8], offset: i32) -> bool {
         let len = data.len() as i32;
         if offset < 0 || offset >= len {
-            println!("invalid offset: {}, len: {}", offset, len);
+            error!(LOG_LABEL, "invalid offset: {}, len: {}", offset, len);
             return false;
         }
         unsafe {
