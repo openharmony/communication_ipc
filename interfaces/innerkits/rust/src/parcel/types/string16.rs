@@ -16,6 +16,14 @@
 use super::*;
 use crate::{ipc_binding, BorrowedMsgParcel, Result, result_status, AsRawPtr};
 use std::convert::TryInto;
+use std::ffi::{CString};
+use hilog_rust::{error, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustString16"
+};
 
 /// String16 packed a String type which transfered with C++ std::u16string.
 pub struct String16(String);
@@ -68,11 +76,11 @@ impl Deserialize for String16 {
             if let Some(val) = result {
                 Ok(Self(val))
             } else {
-                println!("convert native string16 to String fail");
+                error!(LOG_LABEL, "convert native string16 to String fail");
                 Err(-1)
             }
         } else {
-            println!("read string16 from native fail");
+            error!(LOG_LABEL, "read string16 from native fail");
             Err(-1)
         }
     }

@@ -15,8 +15,15 @@
 
 use crate::{ipc_binding, IRemoteStub, IRemoteBroker, RemoteObj, BorrowedMsgParcel, };
 use crate::ipc_binding::{CRemoteObject, CParcel};
-use std::ffi::{c_void, CString};
+use std::ffi::{c_void, CString, c_char};
 use std::ops::{Deref};
+use hilog_rust::{info, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustRemoteStub"
+};
 
 /// RemoteStub packed the native CRemoteObject and the rust stub object T
 /// which must implement IRemoteStub trait.
@@ -94,7 +101,7 @@ impl<T: IRemoteStub> RemoteStub<T> {
     }
 
     unsafe extern "C" fn on_destroy(user_data: *mut c_void) {
-        println!("RemoteStub<T> on_destroy in Rust");
+        info!(LOG_LABEL, "RemoteStub<T> on_destroy in Rust");
         // T will be freed by Box after this function end.
         drop(Box::from_raw(user_data as *mut T));
     }

@@ -20,6 +20,14 @@ use crate::{
 };
 use std::convert::TryInto;
 use std::mem::MaybeUninit;
+use std::ffi::{CString};
+use hilog_rust::{error, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustString"
+};
 
 impl SerOption for str {}
 impl SerOption for String {}
@@ -89,7 +97,6 @@ impl SerArray for String {
                 on_string_writer,
             )
         };
-        println!("write String array result: {}", ret);
         result_status::<()>(ret, ())
     }
 }
@@ -116,7 +123,7 @@ impl DeArray for String {
             };
             Ok(vec)
         } else {
-            println!("read string from native fail");
+            error!(LOG_LABEL, "read string from native fail");
             Err(-1)
         }
     }
@@ -213,11 +220,11 @@ unsafe extern "C" fn on_string_reader(
                 if let Some(new_vec) = vec {
                     new_vec.push(MaybeUninit::new(string));
                 } else {
-                    println!("on_string_reader allocate vec failed");
+                    error!(LOG_LABEL, "on_string_reader allocate vec failed");
                     return false;
                 }
             } else {
-                println!("on_string_reader vec_to_string failed");
+                error!(LOG_LABEL, "on_string_reader vec_to_string failed");
                 return false;
             }
         } else {
@@ -236,7 +243,7 @@ fn vec_to_string(vec: Option<Vec<u8>>) -> Result<String> {
     if let Some(ret) = value {
         ret
     } else {
-        println!("convert vector u8 to String fail");
+        error!(LOG_LABEL, "convert vector u8 to String fail");
         Err(-1)
     }
 }

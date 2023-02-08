@@ -17,6 +17,14 @@ use crate::{
     ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterfaceToken, String16,
     Result,
 };
+use std::ffi::{CString, c_char};
+use hilog_rust::{info, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustProcess"
+};
 
 /// Get proxy object of samgr
 pub fn get_context_object() -> Option<RemoteObj>
@@ -41,7 +49,7 @@ pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
     data.write(&String16::new(""))?;
     let reply = samgr.send_request(3, &data, false)?;
     let reply_value: i32 = reply.read()?;
-    println!("register service result: {}", reply_value);
+    info!(LOG_LABEL, "register service result: {}", reply_value);
     if reply_value == 0 { Ok(())} else { Err(reply_value) }
 }
 
@@ -54,7 +62,7 @@ pub fn get_service(said: i32) -> Result<RemoteObj>
     data.write(&said)?;
     let reply = samgr.send_request(2, &data, false)?;
     let remote: RemoteObj = reply.read()?;
-    println!("get service success");
+    info!(LOG_LABEL, "get service success");
     Ok(remote)
 }
 
