@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,7 +44,7 @@ static void AddDeathCallback()
 
     int32_t ret = AddDeathRecipient(svcIdentity, ServerDeadCallback, NULL, &cbId);
     if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("[ipc_test_client] AddDeathRecipient failed, error %d", ret);
+        RPC_LOG_ERROR("[ipc_test_client] AddDeathRecipient failed, error [%d]", ret);
         return;
     }
     RPC_LOG_INFO("[ipc_test_client] add death callback success, cbId = [%u]", cbId);
