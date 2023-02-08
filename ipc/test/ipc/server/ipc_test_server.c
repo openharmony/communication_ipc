@@ -165,7 +165,7 @@ void __attribute__((weak)) HOS_SystemInit(void)
 
 int main(int argc, char *argv[])
 {
-    RPC_LOG_INFO("[ipc_test_server] Enter System Ability Server .... ");
+    RPC_LOG_INFO("[ipc_test_server] Enter System Ability Server");
     HOS_SystemInit();
 
     while (1) {
@@ -181,7 +181,7 @@ static void Init(void)
     sleep(WAIT_FOR_SERVER);
     SAMGR_GetInstance()->RegisterService((Service *)&g_IPCSaService);
     SAMGR_GetInstance()->RegisterDefaultFeatureApi(IPC_TEST_SERVICE, GET_IUNKNOWN(g_IPCSaService));
-    RPC_LOG_INFO("[ipc_test_server] Init end %s", IPC_TEST_SERVICE);
+    RPC_LOG_INFO("[ipc_test_server] Init end");
 }
 
 SYSEX_SERVICE_INIT(Init);
