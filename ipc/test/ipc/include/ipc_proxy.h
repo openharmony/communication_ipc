@@ -27,7 +27,7 @@ enum CilentFuncId {
     CLIENT_OP_PRINT = 3,
 };
 
-enum ServerFuncId{
+enum ServerFuncId {
     SERVER_OP_ADD = 1,
     SERVER_OP_SUB = 2,
     SERVER_OP_MULTI = 3,
