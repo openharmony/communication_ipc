@@ -61,8 +61,7 @@ static int ServerAddCallback(IOwner owner, int code, IpcIo *reply)
     ReadInt32(reply, (int *)owner);
     int tmpSum = OP_A + OP_B;
     RPC_LOG_INFO("ServerAddCallback return[%d].", *(int32_t*)owner);
-    EXPECT_EQ( *(int32_t*)owner, tmpSum);
-
+    EXPECT_EQ(*(int32_t*)owner, tmpSum);
     return 0;
 }
 
@@ -202,6 +201,10 @@ int main(int argc, char *argv[])
     CallServerAdd();
     CallServerMulti();
     CallServerSub();
-    while (1) {}
+
+    while (1) {
+        pause();
+    }
+
     return -1;
 }
