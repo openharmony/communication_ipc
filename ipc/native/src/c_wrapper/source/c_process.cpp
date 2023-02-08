@@ -16,9 +16,12 @@
 #include "c_process.h"
 
 #include "c_remote_object_internal.h"
+#include "log_tags.h"
+#include "ipc_debug.h"
 #include "ipc_skeleton.h"
 
 using namespace OHOS;
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CProcess" };
 
 CRemoteObject *GetContextManager(void)
 {
@@ -28,7 +31,7 @@ CRemoteObject *GetContextManager(void)
     }
     CRemoteObject *holder = new (std::nothrow) CRemoteObjectHolder();
     if (holder == nullptr) {
-        printf("%s: create samgr proxy holder failed\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: create samgr proxy holder failed\n", __func__);
         return nullptr;
     }
     holder->IncStrongRef(nullptr);

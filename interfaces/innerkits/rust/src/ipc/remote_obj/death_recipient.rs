@@ -14,6 +14,14 @@
  */
 
 use super::*;
+use std::ffi::{CString, c_char};
+use hilog_rust::{info, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustDeathRecipient"
+};
 
 /// This type represent a rust DeathRecipient which like C++ DethRecipient. 
 #[repr(C)]
@@ -70,7 +78,7 @@ impl DeathRecipient {
         F: Fn() + Send + Sync + 'static,
     {
         if !callback.is_null() {
-            println!("death recipient on destroy");
+            info!(LOG_LABEL, "death recipient on destroy");
             drop(Box::from_raw(callback as *mut F));
         }
     }

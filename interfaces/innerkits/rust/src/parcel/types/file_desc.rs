@@ -18,6 +18,14 @@ use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, result_status, Result};
 
 use std::fs::File;
 use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
+use std::ffi::{CString};
+use hilog_rust::{error, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustFileDesc"
+};
 
 /// Rust version of the Java class android.os.ParcelFileDescriptor
 #[derive(Debug)]
@@ -108,7 +116,7 @@ impl DeOption for FileDesc {
         };
         if ok_status{
             if fd < 0 {
-                println!("file descriptor is invalid from native");
+                error!(LOG_LABEL, "file descriptor is invalid from native");
                 Err(-1)
             } else {
                 let file = unsafe {
@@ -120,7 +128,7 @@ impl DeOption for FileDesc {
                 Ok(Some(FileDesc::new(file)))
             }
         } else {
-            println!("read file descriptor failed from native");
+            error!(LOG_LABEL, "read file descriptor failed from native");
             Err(-1)
         }
     }

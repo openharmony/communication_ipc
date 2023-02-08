@@ -16,6 +16,14 @@
 use super::*;
 use crate::{ipc_binding, BorrowedMsgParcel, Result, AsRawPtr, result_status};
 use std::convert::TryInto;
+use std::ffi::{CString, c_char};
+use hilog_rust::{error, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustInterfaceToken"
+};
 
 /// InterfaceToken packed a String type which transfered with C++ std::u16string.
 pub struct InterfaceToken(String);
@@ -68,11 +76,11 @@ impl Deserialize for InterfaceToken {
             if let Some(val) = result {
                 Ok(Self(val))
             } else {
-                println!("convert interface token to String fail");
+                error!(LOG_LABEL, "convert interface token to String fail");
                 Err(-1)
             }
         }else{
-            println!("read interface token from native fail");
+            error!(LOG_LABEL, "read interface token from native fail");
             Err(-1)
         }
     }
