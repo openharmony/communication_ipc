@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#![allow(clippy::needless_borrow)] 
+#![allow(clippy::bool_assert_comparison)]
+#![allow(non_snake_case)]
 extern crate ipc_rust;
 extern crate test_ipc_service;
 
