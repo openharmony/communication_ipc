@@ -30,7 +30,10 @@ ohos_rust_shared_library("ipc_rust") {
     "src/parcel/types.rs",
   ]
 
-  deps = [ ":ipc_c" ]
+  deps = [
+    ":ipc_c",
+    "//base/hiviewdfx/hilog/interfaces/rust:hilog_rust",
+  ]
 
   crate_name = "ipc_rust"
   crate_type = "dylib"
@@ -46,7 +49,10 @@ config("libipc_c_private_config") {
 }
 
 ohos_shared_library("ipc_c") {
-  include_dirs = [ "$IPC_CORE_ROOT/src/c_wrapper/include" ]
+  include_dirs = [
+    "$IPC_CORE_ROOT/src/c_wrapper/include",
+    "$SUBSYSTEM_DIR/utils/include",
+  ]
   sources = [
     "$IPC_CORE_ROOT/src/c_wrapper/source/c_ashmem.cpp",
     "$IPC_CORE_ROOT/src/c_wrapper/source/c_parcel.cpp",

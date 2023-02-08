@@ -92,8 +92,6 @@ macro_rules! define_remote_object {
                 match result {
                     Ok(_) => 0,
                     Err(error) => {
-                        println!("stub: {} deal fail: {} for code: {}", $descriptor,
-                            error, code);
                         error
                     }
                 }

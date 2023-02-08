@@ -15,17 +15,20 @@
 
 #include "c_ashmem.h"
 #include "c_ashmem_internal.h"
+#include "log_tags.h"
+#include "ipc_debug.h"
 
 using namespace OHOS;
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CAshmem" };
 
 static bool IsValidCAshmem(const CAshmem *ashmem, const char *promot)
 {
     if (ashmem == nullptr) {
-        printf("%s: cashmem is null\n", promot);
+        ZLOGE(LOG_LABEL, "%{public}s: cashmem is null\n", promot);
         return false;
     }
     if (ashmem->ashmem_ == nullptr) {
-        printf("%s: wrapper ashmem is null\n", promot);
+        ZLOGE(LOG_LABEL, "%{public}s: wrapper ashmem is null\n", promot);
         return false;
     }
     return true;
@@ -43,12 +46,12 @@ CAshmem *CreateCAshmem(const char *name, int32_t size)
 {
     sptr<Ashmem> ashmem = Ashmem::CreateAshmem(name, size);
     if (ashmem == nullptr) {
-        printf("%s: create native ashmem failed\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: create native ashmem failed\n", __func__);
         return nullptr;
     }
     CAshmem *cashmem = new (std::nothrow) CAshmem(ashmem);
     if (cashmem == nullptr) {
-        printf("%s: create cashmem failed\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: create cashmem failed\n", __func__);
         ashmem->CloseAshmem();
         return nullptr;
     }
@@ -59,7 +62,7 @@ CAshmem *CreateCAshmem(const char *name, int32_t size)
 void CAshmemIncStrongRef(CAshmem *ashmem)
 {
     if (ashmem == nullptr) {
-        printf("%s: ashmem is nullptr\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: ashmem is nullptr\n", __func__);
         return;
     }
     ashmem->IncStrongRef(nullptr);
@@ -68,7 +71,7 @@ void CAshmemIncStrongRef(CAshmem *ashmem)
 void CAshmemDecStrongRef(CAshmem *ashmem)
 {
     if (ashmem == nullptr) {
-        printf("%s: ashmem is nullptr\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: ashmem is nullptr\n", __func__);
         return;
     }
     ashmem->DecStrongRef(nullptr);
