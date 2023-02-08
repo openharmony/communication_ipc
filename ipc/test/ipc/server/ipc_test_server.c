@@ -136,14 +136,14 @@ ServerInvokeCmd g_serverInvokeCmdTbl[] = {
 
 static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
-    RPC_LOG_INFO("[ipc_server]Invoke:RECEIVE FUNCID:%d", funcId);
+    RPC_LOG_INFO("[ipc_test_server]Invoke:RECEIVE FUNCID:%d", funcId);
     int tblSize = sizeof(g_serverInvokeCmdTbl) / sizeof(ServerInvokeCmd);
     for (int i = 0; i < tblSize; i++) {
         if (funcId == g_serverInvokeCmdTbl[i].id) {
             return g_serverInvokeCmdTbl[i].func(req, reply);
         }
     }
-    RPC_LOG_INFO("[ipc_server]not support func[%d]", funcId);
+    RPC_LOG_INFO("[ipc_test_server]not support func[%d]", funcId);
     return -1;
 }
 
