@@ -18,16 +18,15 @@
 
 #include "ipc_proxy.h"
 #include "ipc_skeleton.h"
+#include "iproxy_client.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "serializer.h"
 #include "samgr_lite.h"
-#include "iproxy_client.h"
 
 #define WAIT_SERVER_READY_INTERVAL_COUNT 50
 
 static IClientProxy *g_serverProxy = NULL;
-static SvcIdentity *g_samgr = NULL;
 
 void ServerDeadCallback(void *arg)
 {
@@ -41,10 +40,9 @@ static void AddDeathCallback()
     uint32_t cbId = 0;
 
     SvcIdentity svcIdentity = SAMGR_GetRemoteIdentity(IPC_TEST_SERVICE, NULL);
-
     int32_t ret = AddDeathRecipient(svcIdentity, ServerDeadCallback, NULL, &cbId);
     if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("[ipc_test_client] AddDeathRecipient failed, error [%d]", ret);
+        RPC_LOG_ERROR("[ipc_test_client] AddDeathRecipient failed, ret:[%d]", ret);
         return;
     }
     RPC_LOG_INFO("[ipc_test_client] add death callback success, cbId = [%u]", cbId);
@@ -54,7 +52,7 @@ static int ServerAddCallback(IOwner owner, int code, IpcIo *reply)
 {
     RPC_LOG_INFO("ServerAddCallback start.");
     if (code != 0) {
-        RPC_LOG_INFO("server add callback error[%d].", code);
+        RPC_LOG_ERROR("server add callback error[%d].", code);
         return -1;
     }
 
@@ -78,7 +76,7 @@ static void CallServerAdd(void)
     int32_t ans = g_serverProxy->Invoke(g_serverProxy, SERVER_OP_ADD, &data, &ret, ServerAddCallback);
     RPC_LOG_INFO("SERVER_OP_ADD callback ret=[%d] ans=[%d]", ret, ans);
     if (ans != 0) {
-        RPC_LOG_INFO("SERVER_OP_ADD callback ret [%d]", ret);
+        RPC_LOG_ERROR("SERVER_OP_ADD callback ret [%d]", ret);
     }
 
     RPC_LOG_INFO("====== CallServerAdd end ======");
@@ -87,7 +85,7 @@ static void CallServerAdd(void)
 static int ServerMultiCallback(IOwner owner, int code, IpcIo *reply)
 {
     if (code != 0) {
-        RPC_LOG_INFO("server multi callback error[%d].", code);
+        RPC_LOG_ERROR("server multi callback error[%d].", code);
         return -1;
     }
 
@@ -109,7 +107,7 @@ static void CallServerMulti(void)
     int ret = -1;
     int32_t ans = g_serverProxy->Invoke(g_serverProxy, SERVER_OP_MULTI, &data, &ret, ServerMultiCallback);
     if (ans != 0) {
-        RPC_LOG_INFO("SERVER_OP_MULTI callback ret [%d]", ret);
+        RPC_LOG_ERROR("SERVER_OP_MULTI callback ret [%d]", ret);
     }
 
     RPC_LOG_INFO("====== call serverone OP_MULTI end======");
@@ -118,7 +116,7 @@ static void CallServerMulti(void)
 static int ServerSubCallback(IOwner owner, int code, IpcIo *reply)
 {
     if (code != 0) {
-        RPC_LOG_INFO("server multi callback error[%d].", code);
+        RPC_LOG_ERROR("server multi callback error[%d].", code);
         return -1;
     }
 
@@ -154,12 +152,12 @@ static IClientProxy *GetServerProxy(void)
     while (clientProxy == NULL) {
         proxyInitCount++;
         if (proxyInitCount == WAIT_SERVER_READY_INTERVAL_COUNT) {
-            RPC_LOG_INFO("[ipc_test_client] get server proxy error");
+            RPC_LOG_ERROR("[ipc_test_client] get server proxy error");
             return NULL;
         }
         IUnknown *iUnknown = SAMGR_GetInstance()->GetDefaultFeatureApi(IPC_TEST_SERVICE);
         if (iUnknown == NULL) {
-            RPC_LOG_INFO("iUnknown is null");
+            RPC_LOG_ERROR("iUnknown is null");
             sleep(1);
             continue;
         }
@@ -167,7 +165,7 @@ static IClientProxy *GetServerProxy(void)
 
         int32_t ret = iUnknown->QueryInterface(iUnknown, CLIENT_PROXY_VER, (void **)&clientProxy);
         if (ret != EC_SUCCESS || clientProxy == NULL) {
-            RPC_LOG_INFO("QueryInterface failed [%d]", ret);
+            RPC_LOG_ERROR("QueryInterface failed [%d]", ret);
             sleep(1);
             continue;
         }
@@ -185,14 +183,14 @@ void __attribute__((weak)) HOS_SystemInit(void)
 
 int main(int argc, char *argv[])
 {
-    RPC_LOG_INFO("[ipc_test_client] Enter System Ability Client .... ");
+    RPC_LOG_INFO("[ipc_test_client] Enter System Ability Client");
     HOS_SystemInit();
     RPC_LOG_INFO("[ipc_test_client] SystemInit end");
 
     RPC_LOG_INFO("[ipc_test_client] GetServerProxy start");
     g_serverProxy = GetServerProxy();
     if (g_serverProxy == NULL) {
-        RPC_LOG_INFO("get ipc client proxy failed");
+        RPC_LOG_ERROR("get ipc client proxy failed");
         return -1;
     }
     RPC_LOG_INFO("[ipc_test_client] GetServerProxy end");
