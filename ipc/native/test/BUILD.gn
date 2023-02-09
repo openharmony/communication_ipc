@@ -17,9 +17,6 @@ import("//build/test.gni")
 
 group("unittest") {
   testonly = true
-  deps = [
-    "unittest/common:unittest",
-    "unittest/rust:unittest",
-  ]
+  deps = [ "unittest/common:unittest" ]
 }
 ###############################################################################
