@@ -1528,9 +1528,7 @@ napi_value NAPI_MessageSequence::JS_rewindRead(napi_env env, napi_callback_info 
     }
 
     bool result = napiSequence->nativeParcel_->RewindRead(static_cast<size_t>(pos));
-    if (!result) {
-        ZLOGE(LOG_LABEL, "rewind write failed");
-    }
+    NAPI_ASSERT(env, result == true, "rewind read failed");
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
     return napiValue;
@@ -1582,9 +1580,7 @@ napi_value NAPI_MessageSequence::JS_rewindWrite(napi_env env, napi_callback_info
     }
 
     bool result = napiSequence->nativeParcel_->RewindWrite(static_cast<size_t>(pos));
-    if (!result) {
-        ZLOGE(LOG_LABEL, "rewind write failed");
-    }
+    NAPI_ASSERT(env, result == true, "rewind write failed");
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
     return napiValue;
