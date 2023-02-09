@@ -19,15 +19,14 @@
 
 #include "ipc_proxy.h"
 #include "ipc_skeleton.h"
+#include "iproxy_server.h"
+#include "iproxy_client.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "serializer.h"
 #include "samgr_lite.h"
-#include "iproxy_server.h"
-#include "iproxy_client.h"
-#define WAIT_SERVER_READY_INTERVAL_COUNT 50
-static SvcIdentity *sid = NULL;
 
+#define WAIT_SERVER_READY_INTERVAL_COUNT 50
 #define STACK_SIZE 0x800
 #define QUEUE_SIZE 20
 #define WAIT_FOR_SERVER 2
@@ -51,21 +50,17 @@ static const char *GetName(Service *service)
 static BOOL Initialize(Service *service, Identity identity)
 {
     if (service == NULL) {
-        RPC_LOG_INFO("invalid param");
-        return false;
+        RPC_LOG_ERROR("invalid param");
+        return FALSE;
     }
     IPCSaService *ipcSaService = (IPCSaService *)service;
     ipcSaService->identity = identity;
-    return true;
+    return TRUE;
 }
 
 static BOOL MessageHandle(Service *service, Request *msg)
 {
-    if (service == NULL || msg == NULL) {
-        RPC_LOG_INFO("invalid param");
-        return true;
-    }
-    return false;
+    return TRUE;
 }
 
 static TaskConfig GetTaskConfig(Service *service)
@@ -77,9 +72,9 @@ static TaskConfig GetTaskConfig(Service *service)
 
 int32_t ServerOpAdd(IpcIo *req, IpcIo *reply)
 {
-    RPC_LOG_INFO("[ipc_test_server] ServerOpAdd:server send session msg ipc server pop");
+    RPC_LOG_INFO("[ipc_test_server] ServerOpAdd called");
     if (req == NULL || reply == NULL) {
-        RPC_LOG_INFO("invalid param");
+        RPC_LOG_ERROR("invalid param");
         return ERR_INVALID_PARAM;
     }
     int32_t a;
@@ -93,9 +88,9 @@ int32_t ServerOpAdd(IpcIo *req, IpcIo *reply)
 
 int32_t ServerOpSub(IpcIo *req, IpcIo *reply)
 {
-    RPC_LOG_INFO("[ipc_test_server] ServerOpSub:server send session msg ipc server pop");
+    RPC_LOG_INFO("[ipc_test_server] ServerOpSub called");
     if (req == NULL || reply == NULL) {
-        RPC_LOG_INFO("invalid param");
+        RPC_LOG_ERROR("invalid param");
         return ERR_INVALID_PARAM;
     }
     int32_t a;
@@ -109,9 +104,9 @@ int32_t ServerOpSub(IpcIo *req, IpcIo *reply)
 
 int32_t ServerOpMulit(IpcIo *req, IpcIo *reply)
 {
-    RPC_LOG_INFO("[ipc_test_server] ServerOpMulit:server send session msg ipc server pop");
+    RPC_LOG_INFO("[ipc_test_server] ServerOpMulit called");
     if (req == NULL || reply == NULL) {
-        RPC_LOG_INFO("invalid param");
+        RPC_LOG_ERROR("invalid param");
         return ERR_INVALID_PARAM;
     }
     int32_t a;
@@ -181,7 +176,6 @@ static void Init(void)
     sleep(WAIT_FOR_SERVER);
     SAMGR_GetInstance()->RegisterService((Service *)&g_IPCSaService);
     SAMGR_GetInstance()->RegisterDefaultFeatureApi(IPC_TEST_SERVICE, GET_IUNKNOWN(g_IPCSaService));
-    RPC_LOG_INFO("[ipc_test_server] Init end");
 }
 
 SYSEX_SERVICE_INIT(Init);
