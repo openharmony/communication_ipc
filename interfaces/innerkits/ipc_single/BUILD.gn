@@ -23,6 +23,7 @@ config("libipc_single_private_config") {
   ]
 }
 ohos_shared_library("ipc_single") {
+  version_script = "libipc_single_map"
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$SUBSYSTEM_DIR/utils/include",
