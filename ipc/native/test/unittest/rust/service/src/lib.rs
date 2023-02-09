@@ -26,6 +26,7 @@ use ipc_rust::{
 use ipc_rust::{
     MsgParcel, BorrowedMsgParcel, FileDesc, InterfaceToken, String16,
 };
+use std::convert::{TryFrom, TryInto};
 pub use access_token::init_access_token;
 
 /// Reverse a i32 value, for example reverse 2019 to 9102
@@ -63,6 +64,23 @@ pub enum ITestCode {
     CodeCallingInfo,
 }
 
+impl TryFrom<u32> for ITestCode {
+    type Error = i32;
+    fn try_from(code: u32) -> Result<Self> {
+        match code {
+            _ if code == ITestCode::CodeSyncTransaction as u32 => Ok(ITestCode::CodeSyncTransaction),
+            _ if code == ITestCode::CodeAsyncTransaction as u32 => Ok(ITestCode::CodeAsyncTransaction),
+            _ if code == ITestCode::CodePingService as u32 => Ok(ITestCode::CodePingService),
+            _ if code == ITestCode::CodeGetFooService as u32 => Ok(ITestCode::CodeGetFooService),
+            _ if code == ITestCode::CodeTransactFd as u32 => Ok(ITestCode::CodeTransactFd),
+            _ if code == ITestCode::CodeTransactString as u32 => Ok(ITestCode::CodeTransactString),
+            _ if code == ITestCode::CodeInterfaceToekn as u32 => Ok(ITestCode::CodeInterfaceToekn),
+            _ if code == ITestCode::CodeCallingInfo as u32 => Ok(ITestCode::CodeCallingInfo),
+            _ => Err(-1),
+        }
+    }
+}
+
 /// Function between proxy and stub of ITestService 
 pub trait ITest: IRemoteBroker {
     /// Test sync transaction
@@ -85,48 +103,48 @@ pub trait ITest: IRemoteBroker {
 
 fn on_itest_remote_request(stub: &dyn ITest, code: u32, data: &BorrowedMsgParcel,
     reply: &mut BorrowedMsgParcel) -> Result<()> {
-    match code {
-        1 => {
+    match code.try_into()? {
+        ITestCode::CodeSyncTransaction => {
             let value: i32 = data.read().expect("should a value");
             let delay_time: i32 = data.read().expect("should a delay time");
             let ret = stub.test_sync_transaction(value, delay_time)?;
             reply.write(&ret)?;
             Ok(())
         }
-        2 => {
+        ITestCode::CodeAsyncTransaction => {
             let value: i32 = data.read().expect("should a value");
             let delay_time: i32 = data.read().expect("should a delay time");
             stub.test_async_transaction(value, delay_time)?;
             Ok(())
         }
-        3 => {
+        ITestCode::CodePingService => {
             let service_name: String16 = data.read().expect("should a service name");
             stub.test_ping_service(&service_name)?;
             Ok(())
         }
-        4 => {
+        ITestCode::CodeGetFooService => {
             let service = stub.test_get_foo_service()?;
             reply.write(&service)?;
             Ok(())
         }
-        5 => {
+        ITestCode::CodeTransactFd => {
             let fd = stub.test_transact_fd()?;
             reply.write(&fd).expect("should write fd success");
             Ok(())
         }
-        6 => {
+        ITestCode::CodeTransactString => {
             let value: String = data.read()?;
             let len = stub.test_transact_string(&value)?;
             reply.write(&len)?;
             Ok(())
         }
-        7 => {
+        ITestCode::CodeInterfaceToekn => {
             let token: InterfaceToken = data.read().expect("should have a interface token");
             let value = stub.echo_interface_token(&token).expect("service deal echo token failed");
             reply.write(&value).expect("write echo token result failed");
             Ok(())
         }
-        8 => {
+        ITestCode::CodeCallingInfo => {
             let (token_id, first_token_id, pid, uid) = stub.echo_calling_info()?;
             reply.write(&token_id).expect("write token id failed");
             reply.write(&first_token_id).expect("write first token id failed");
@@ -134,7 +152,6 @@ fn on_itest_remote_request(stub: &dyn ITest, code: u32, data: &BorrowedMsgParcel
             reply.write(&uid).expect("write uid failed");
             Ok(())
         }
-        _ => Err(-1)
     }
 }
 
