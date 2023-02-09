@@ -14,6 +14,7 @@
  */
 
 #include <stdlib.h>
+#include <ohos_init.h>
 
 #include "ipc_proxy.h"
 #include "ipc_skeleton.h"
@@ -22,7 +23,6 @@
 #include "serializer.h"
 #include "samgr_lite.h"
 #include "iproxy_client.h"
-#include <ohos_init.h>
 
 #define WAIT_SERVER_READY_INTERVAL_COUNT 50
 
