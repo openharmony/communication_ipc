@@ -67,6 +67,7 @@ pub fn get_service(said: i32) -> Result<RemoteObj>
 }
 
 /// Make current thread join to the IPC/RPC work thread pool
+#[inline]
 pub fn join_work_thread()
 {
     unsafe {
@@ -75,6 +76,7 @@ pub fn join_work_thread()
 }
 
 /// Exit current thread from IPC/RPC work thread pool
+#[inline]
 pub fn stop_work_thread()
 {
     unsafe {
@@ -83,6 +85,7 @@ pub fn stop_work_thread()
 }
 
 /// Get calling token ID of caller
+#[inline]
 pub fn get_calling_token_id() -> u64
 {
     unsafe {
@@ -91,6 +94,7 @@ pub fn get_calling_token_id() -> u64
 }
 
 /// Get first calling token ID of caller
+#[inline]
 pub fn get_first_token_id() -> u64
 {
     unsafe {
@@ -99,6 +103,7 @@ pub fn get_first_token_id() -> u64
 }
 
 /// Get self token id of current process
+#[inline]
 pub fn get_self_token_id() -> u64
 {
     unsafe {
@@ -107,6 +112,7 @@ pub fn get_self_token_id() -> u64
 }
 
 /// Get calling process id of caller
+#[inline]
 pub fn get_calling_pid() -> u64
 {
     unsafe {
@@ -115,6 +121,7 @@ pub fn get_calling_pid() -> u64
 }
 
 /// Get calling user id of caller
+#[inline]
 pub fn get_calling_uid() -> u64
 {
     unsafe {
