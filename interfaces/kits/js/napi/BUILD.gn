@@ -21,6 +21,7 @@ config("rpc_public_config") {
 }
 
 ohos_shared_library("rpc") {
+  version_script = "librpc_map"
   include_dirs = [
     "$SUBSYSTEM_DIR/utils/include",
     "//foundation/arkui/napi/interfaces/kits",

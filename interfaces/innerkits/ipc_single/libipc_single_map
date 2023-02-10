@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+1.0 {
+    global:
+        extern "C++" {
+            OHOS::MessageParcel::WriteInterfaceToken*;
+            OHOS::IPCObjectStub::IPCObjectStub*;
+            OHOS::IPCObjectStub::Dump*;
+            OHOS::BrokerRegistration::Register*;
+            OHOS::BrokerRegistration::Unregister*;
+            OHOS::BrokerRegistration::NewInstance*;
+            OHOS::IPCSkeleton::SetCallingIdentity*;
+            "OHOS::MessageParcel::MessageParcel()";
+            "OHOS::MessageParcel::MessageParcel(OHOS::Allocator*)";
+            "OHOS::MessageParcel::~MessageParcel()";
+            "OHOS::MessageParcel::WriteFileDescriptor(int)";
+            "OHOS::MessageParcel::ReadFileDescriptor()";
+            "OHOS::MessageParcel::ReadInterfaceToken()";
+            "OHOS::MessageParcel::ReadRemoteObject()";
+            "OHOS::MessageParcel::WriteRawData(void const*, unsigned long)";
+            "OHOS::MessageParcel::WriteRawData(void const*, unsigned int)";
+            "OHOS::MessageParcel::ReadRawData(unsigned long)";
+            "OHOS::MessageParcel::ReadRawData(unsigned int)";
+            "OHOS::MessageParcel::WriteRemoteObject(OHOS::sptr<OHOS::IRemoteObject> const&)";
+            "OHOS::MessageParcel::ContainFileDescriptors() const";
+            "OHOS::MessageParcel::WriteAshmem(OHOS::sptr<OHOS::Ashmem>)";
+            "OHOS::MessageParcel::ReadAshmem()";
+            "OHOS::MessageParcel::Append(OHOS::MessageParcel&)";
+            "OHOS::MessageParcel::WriteNoException()";
+            "OHOS::MessageParcel::ReadException()";
+            "OHOS::IPCObjectStub::~IPCObjectStub()";
+            "OHOS::IPCObjectStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::GetObjectRefCount()";
+            "OHOS::IPCObjectStub::SendRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::AddDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
+            "OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
+            "OHOS::IPCObjectStub::OnLastStrongRef(void const*)";
+            "OHOS::IPCObjectStub::OnRemoteDump(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::ProcessProto(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::GetObjectType() const";
+            "OHOS::IPCObjectStub::GetCallingPid()";
+            "OHOS::IPCObjectStub::RemoveDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
+            "virtual thunk to OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
+            "virtual thunk to OHOS::IPCObjectStub::OnLastStrongRef(void const*)";
+            "virtual thunk to OHOS::IPCObjectStub::~IPCObjectStub()";
+            "OHOS::BrokerRegistration::Get()";
+            "OHOS::MessageOption::MessageOption(int, int)";
+            "OHOS::MessageOption::GetFlags() const";
+            "OHOS::MessageOption::SetFlags(int)";
+            "OHOS::IPCSkeleton::GetContextObject()";
+            "OHOS::IPCSkeleton::GetInstance()";
+            "OHOS::IPCSkeleton::SetMaxWorkThreadNum(int)";
+            "OHOS::IPCSkeleton::GetCallingPid()";
+            "OHOS::IPCSkeleton::GetCallingUid()";
+            "OHOS::IPCSkeleton::JoinWorkThread()";
+            "OHOS::IPCSkeleton::GetCallingTokenID()";
+            "OHOS::IPCSkeleton::GetCallingFullTokenID()";
+            "OHOS::IPCSkeleton::GetFirstTokenID()";
+            "OHOS::IPCSkeleton::GetSelfTokenID()";
+            "OHOS::IPCSkeleton::StopWorkThread()";
+            "OHOS::IPCSkeleton::GetFirstFullTokenID()";
+            "OHOS::IPCSkeleton::ResetCallingIdentity()";
+            "OHOS::PeerHolder::PeerHolder(OHOS::sptr<OHOS::IRemoteObject> const&)";
+            "OHOS::PeerHolder::Remote()";
+            "OHOS::IRemoteObject::CheckObjectLegality() const";
+            "OHOS::IRemoteObject::Marshalling(OHOS::Parcel&) const";
+            "OHOS::IRemoteObject::Marshalling(OHOS::Parcel&, OHOS::sptr<OHOS::IRemoteObject> const&)";
+            "OHOS::IRemoteObject::Unmarshalling(OHOS::Parcel&)";
+            "OHOS::IRemoteObject::AsInterface()";
+            "OHOS::IRemoteObject::IsProxyObject() const";
+            "virtual thunk to OHOS::IRemoteObject::Marshalling(OHOS::Parcel&) const";
+            "OHOS::IPC_SINGLE::IPCThreadSkeleton::JoinWorkThread(int)";
+        };
+    local:
+        *;
+};

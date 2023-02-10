@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+1.0 {
+    global:
+        extern "C++" {
+            RpcGetSelfTokenID;
+            GetRpcFeatureAck;
+            GetFeatureSize;
+            SetFeatureTransData;
+            IsFeatureAck;
+            GetTokenFromData;
+            GetTokenIdSize;
+            IsATEnable;
+            RpcGetFirstCallerTokenID;
+            OHOS::MessageParcel*;
+            OHOS::IPCObjectStub*;
+            OHOS::IPCObjectProxy*;
+            OHOS::IPCFileDescriptor*;
+            OHOS::MessageOption*;
+            OHOS::InvokerFactory*;
+            OHOS::IPCSkeleton*;
+            OHOS::IRemoteObject*;
+            OHOS::BinderInvoker*;
+            OHOS::BrokerRegistration*;
+            OHOS::IPCThreadSkeleton*;
+            OHOS::IPCWorkThreadPool*;
+            OHOS::PeerHolder::PeerHolder*;
+            OHOS::PeerHolder::Remote*;
+            OHOS::IPCProcessSkeleton*;
+            OHOS::DBinderDatabusInvoker*;
+            OHOS::BufferObject*;
+            OHOS::BinderConnector*;
+            OHOS::DatabusSessionCallback*;
+            OHOS::DBinderCallbackStub*;
+            OHOS::StubRefCountObject*;
+            OHOS::InvokerRawData*;
+            OHOS::IPCWorkThread*;
+            OHOS::DBinderSessionObject*;
+            OHOS::CommAuthInfo*;
+            "vtable for OHOS::BinderInvoker";
+            "vtable for OHOS::DatabusSessionCallback";
+            "virtual thunk to OHOS::IPCObjectStub::~IPCObjectStub()";
+            "virtual thunk to OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
+            "virtual thunk to OHOS::IPCObjectStub::OnLastStrongRef(void const*)";
+            "virtual thunk to OHOS::IPCObjectProxy::~IPCObjectProxy()";
+            "virtual thunk to OHOS::IPCObjectProxy::OnLastStrongRef(void const*)";
+            "virtual thunk to OHOS::IPCObjectProxy::OnFirstStrongRef(void const*)";
+            "virtual thunk to OHOS::IPCFileDescriptor::Marshalling(OHOS::Parcel&)";
+            "virtual thunk to OHOS::IPCFileDescriptor::~ipcFileDescriptor()";
+            "virtual thunk to OHOS::IRemoteObject::Marshalling(OHOS::Parcel&) const";
+        };
+    local:
+        *;
+};
