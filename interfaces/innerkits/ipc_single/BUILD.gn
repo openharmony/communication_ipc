@@ -65,8 +65,11 @@ ohos_shared_library("ipc_single") {
     "hiviewdfx_hilog_native:libhilog",
   ]
 
+  innerapi_tags = [
+    "chipsetsdk",
+    "platformsdk",
+  ]
   install_images = [ system_base_dir ]
-  relative_install_dir = "chipset-pub-sdk"
 
   subsystem_name = "communication"
   part_name = "ipc"
