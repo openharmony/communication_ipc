@@ -144,9 +144,8 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
         return nullptr;
     }
     {
-        std::unique_lock<std::shared_mutex> lockGuard(mutex_);
-        IRemoteObject *remoteObject = QueryObjectInner(descriptor);
-        if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
+        result = QueryObject(descriptor);
+        if (result == nullptr) {
             // Either this is a new handle or attemptIncStrong failed(strong refcount has been decreased to zero),
             // we need to create a new proxy and initialize it. Meanwhile, the old proxy is destroying concurrently.
             if (handle == REGISTRY_HANDLE) {
@@ -162,9 +161,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
             }
             // OnFirstStrongRef will be called.
             result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
-            AttachObjectInner(result.GetRefPtr());
-        } else {
-            result = remoteObject;
+            AttachObject(result.GetRefPtr());
         }
     }
 
@@ -251,7 +248,7 @@ bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
 bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     // check whether it is a valid IPCObjectStub object.
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(mutex_);
     auto it = isContainStub_.find(object);
     if (it != isContainStub_.end()) {
         return it->second;
@@ -282,11 +279,6 @@ bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
 {
     std::unique_lock<std::shared_mutex> lockGuard(mutex_);
-    return AttachObjectInner(object);
-}
-
-bool IPCProcessSkeleton::AttachObjectInner(IRemoteObject *object)
-{
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
     std::u16string descriptor = object->GetObjectDescriptor();
@@ -306,24 +298,19 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descri
         return result;
     }
 
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
-    IRemoteObject *remoteObject = QueryObjectInner(descriptor);
+    std::shared_lock<std::shared_mutex> lockGuard(mutex_);
+    IRemoteObject *remoteObject = nullptr;
+    auto it = objects_.find(descriptor);
+    if (it != objects_.end()) {
+        // Life-time of IPCObjectProxy is extended to WEAK
+        // now it's weak reference counted, so it's safe to get raw pointer
+        remoteObject = it->second.GetRefPtr();
+    }
     if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
         return result;
     }
     result = remoteObject;
     return result;
-}
-
-IRemoteObject *IPCProcessSkeleton::QueryObjectInner(const std::u16string &descriptor)
-{
-    auto it = objects_.find(descriptor);
-    if (it != objects_.end()) {
-        // Life-time of IPCObjectProxy is extended to WEAK
-        // now it's weak reference counted, so it's safe to get raw pointer
-        return it->second.GetRefPtr();
-    }
-    return nullptr;
 }
 
 #ifndef CONFIG_IPC_SINGLE
@@ -966,7 +953,7 @@ bool IPCProcessSkeleton::AttachCallbackStub(IPCObjectProxy *ipcProxy, sptr<IPCOb
 sptr<IPCObjectStub> IPCProcessSkeleton::DetachCallbackStub(IPCObjectProxy *ipcProxy)
 {
     sptr<IPCObjectStub> ret = nullptr;
-    std::shared_lock<std::shared_mutex> lockGuard(callbackStubMutex_);
+    std::unique_lock<std::shared_mutex> lockGuard(callbackStubMutex_);
     auto it = noticeStub_.find(ipcProxy);
     if (it != noticeStub_.end()) {
         ret = it->second;
@@ -1163,7 +1150,7 @@ bool IPCProcessSkeleton::DetachDBinderCallbackStubByProxy(sptr<IRemoteObject> pr
 
 void IPCProcessSkeleton::DetachDBinderCallbackStub(DBinderCallbackStub *stub)
 {
-    std::shared_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
+    std::unique_lock<std::shared_mutex> lockGuard(dbinderSentMutex_);
     for (auto it = dbinderSentCallback.begin(); it != dbinderSentCallback.end(); it++) {
         if (it->second == stub) {
             dbinderSentCallback.erase(it);

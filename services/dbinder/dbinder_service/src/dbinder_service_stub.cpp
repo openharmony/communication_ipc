@@ -113,6 +113,7 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
             break;
         }
         case DBINDER_OBITUARY_TRANSACTION: {
+            DBINDER_LOGE(LOG_LABEL, "%{public}s: recv DBINDER_OBITUARY_TRANSACTION", __func__);
             result = ProcessDeathRecipient(data, reply);
             break;
         }
@@ -129,6 +130,7 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 int32_t DBinderServiceStub::ProcessDeathRecipient(MessageParcel &data, MessageParcel &reply)
 {
     int32_t processType = data.ReadInt32();
+    DBINDER_LOGE(LOG_LABEL, "%{public}s: enter, processType:%{public}d", __func__, processType);
     if (processType == IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT) {
         return AddDbinderDeathRecipient(data, reply);
     }
@@ -150,6 +152,8 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
 
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     sptr<IRemoteObject::DeathRecipient> death(new DbinderDeathRecipient());
+    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s", 
+        __func__, DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
 
     // If the client dies, notify DBS to delete information of callbackProxy
     if (!callbackProxy->AddDeathRecipient(death)) {
@@ -184,7 +188,8 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     }
 
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-
+    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s", 
+        __func__, DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "dBinder service is null");
