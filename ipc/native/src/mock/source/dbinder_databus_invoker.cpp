@@ -731,7 +731,7 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stu
 {
     std::shared_ptr<DBinderSessionObject> sessionObject = QueryClientSessionObject(listenFd);
     if (sessionObject == nullptr) {
-        ZLOGE(LOG_LABEL, "session is not exist for listenFd = %u", listenFd);
+        ZLOGE(LOG_LABEL, "session is not exist for listenFd = %{public}u", listenFd);
         return RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
 
