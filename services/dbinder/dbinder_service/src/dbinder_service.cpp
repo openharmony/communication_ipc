@@ -982,8 +982,8 @@ bool DBinderService::AttachCallbackProxy(sptr<IRemoteObject> object, DBinderServ
 
 bool DBinderService::NoticeCallbackProxy(sptr<DBinderServiceStub> dbStub)
 {
-    DBINDER_LOGI(LOG_LABEL, "%{public}s: enter, service:%{public}s devicId:%{public}s", 
-        __func__, dbStub->GetServiceName().c_str(), 
+    DBINDER_LOGI(LOG_LABEL, "%{public}s: enter, service:%{public}s devicId:%{public}s",
+        __func__, dbStub->GetServiceName().c_str(),
         DBinderService::ConvertToSecureDeviceID(dbStub->GetDeviceID()).c_str());
     bool status = true;
     const binder_uintptr_t binderObject = reinterpret_cast<binder_uintptr_t>(dbStub.GetRefPtr());
@@ -1040,8 +1040,8 @@ int32_t DBinderService::NoticeServiceDieInner(const std::u16string &serviceName,
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "%{public}s: service:%{public}s devicId:%{public}s", 
-        __func__, Str16ToStr8(serviceName).c_str(), 
+    DBINDER_LOGI(LOG_LABEL, "%{public}s: service:%{public}s devicId:%{public}s",
+        __func__, Str16ToStr8(serviceName).c_str(),
         DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
     sptr<DBinderServiceStub> dbStub = FindDBinderStub(serviceName, deviceID);
     if (dbStub == nullptr) {
