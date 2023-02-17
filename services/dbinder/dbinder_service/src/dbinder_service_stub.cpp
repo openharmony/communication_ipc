@@ -152,7 +152,7 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
 
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     sptr<IRemoteObject::DeathRecipient> death(new DbinderDeathRecipient());
-    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s", 
+    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s",
         __func__, DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
 
     // If the client dies, notify DBS to delete information of callbackProxy
@@ -188,7 +188,7 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     }
 
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s", 
+    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s",
         __func__, DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
