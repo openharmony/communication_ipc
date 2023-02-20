@@ -100,9 +100,7 @@ public:
     sptr<IRemoteObject> FindOrNewObject(int handle);
     bool IsContainsObject(IRemoteObject *object);
     sptr<IRemoteObject> QueryObject(const std::u16string &descriptor);
-    IRemoteObject *QueryObjectInner(const std::u16string &descriptor);
     bool AttachObject(IRemoteObject *object);
-    bool AttachObjectInner(IRemoteObject *object);
     bool DetachObject(IRemoteObject *object);
 
     bool OnThreadTerminated(const std::string &threadName);
