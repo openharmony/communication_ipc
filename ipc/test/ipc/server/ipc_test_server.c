@@ -142,7 +142,7 @@ static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req
     return -1;
 }
 
-static IPCSaService g_IPCSaService = {
+static IPCSaService g_ipcSaService = {
     .GetName = GetName,
     .Initialize = Initialize,
     .MessageHandle = MessageHandle,
@@ -174,8 +174,8 @@ static void Init(void)
 {
     RPC_LOG_INFO("[ipc_test_server] Init start");
     sleep(WAIT_FOR_SERVER);
-    SAMGR_GetInstance()->RegisterService((Service *)&g_IPCSaService);
-    SAMGR_GetInstance()->RegisterDefaultFeatureApi(IPC_TEST_SERVICE, GET_IUNKNOWN(g_IPCSaService));
+    SAMGR_GetInstance()->RegisterService((Service *)&g_ipcSaService);
+    SAMGR_GetInstance()->RegisterDefaultFeatureApi(IPC_TEST_SERVICE, GET_IUNKNOWN(g_ipcSaService));
 }
 
 SYSEX_SERVICE_INIT(Init);
