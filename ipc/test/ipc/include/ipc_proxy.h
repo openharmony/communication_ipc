@@ -21,19 +21,17 @@ enum {
     ADD_SYSTEM_ABILITY_TRANSACTION = 2,
 };
 
-enum {
+enum CilentFuncId {
     CLIENT_OP_ADD = 1,
     CLIENT_OP_SUB = 2,
     CLIENT_OP_PRINT = 3,
 };
 
-enum {
+enum ServerFuncId {
     SERVER_OP_ADD = 1,
     SERVER_OP_SUB = 2,
     SERVER_OP_MULTI = 3,
-    SERVER_OP_ADD_SERVICE = 4,
 };
-
 #define IPC_MAX_SIZE 128
 
 enum {
@@ -48,7 +46,7 @@ enum {
     }
 
 #define IPC_TEST_TIME_INTERVAL 120
-
+#define IPC_TEST_SERVICE "dev_mgr_svc"
 #define OP_A 12
 #define OP_B 17
 
