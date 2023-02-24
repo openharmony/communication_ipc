@@ -19,6 +19,7 @@
             OHOS::MessageParcel::WriteInterfaceToken*;
             OHOS::IPCObjectStub::IPCObjectStub*;
             OHOS::IPCObjectStub::Dump*;
+            OHOS::IPCFileDescriptor*;
             OHOS::BrokerRegistration::Register*;
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
@@ -53,6 +54,7 @@
             "OHOS::IPCObjectStub::ProcessProto(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
             "OHOS::IPCObjectStub::GetObjectType() const";
             "OHOS::IPCObjectStub::GetCallingPid()";
+            "OHOS::IPCObjectStub::GetCallingUid()";
             "OHOS::IPCObjectStub::RemoveDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
             "virtual thunk to OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
             "virtual thunk to OHOS::IPCObjectStub::OnLastStrongRef(void const*)";
