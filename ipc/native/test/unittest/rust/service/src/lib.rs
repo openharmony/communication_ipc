@@ -62,6 +62,8 @@ pub enum ITestCode {
     CodeInterfaceToekn,
     /// Transaction calling infomation code
     CodeCallingInfo,
+    /// Transaction device id code
+    CodeGetDeviceId,
 }
 
 impl TryFrom<u32> for ITestCode {
@@ -76,6 +78,7 @@ impl TryFrom<u32> for ITestCode {
             _ if code == ITestCode::CodeTransactString as u32 => Ok(ITestCode::CodeTransactString),
             _ if code == ITestCode::CodeInterfaceToekn as u32 => Ok(ITestCode::CodeInterfaceToekn),
             _ if code == ITestCode::CodeCallingInfo as u32 => Ok(ITestCode::CodeCallingInfo),
+            _ if code == ITestCode::CodeGetDeviceId as u32 => Ok(ITestCode::CodeGetDeviceId),
             _ => Err(-1),
         }
     }
@@ -99,6 +102,8 @@ pub trait ITest: IRemoteBroker {
     fn echo_interface_token(&self, token: &InterfaceToken) -> Result<InterfaceToken>;
     /// Test calling infomation transaction
     fn echo_calling_info(&self) -> Result<(u64, u64, u64, u64)>;
+    /// Test get device id
+    fn test_get_device_id(&self) -> Result<(String, String)>;
 }
 
 fn on_itest_remote_request(stub: &dyn ITest, code: u32, data: &BorrowedMsgParcel,
@@ -152,6 +157,12 @@ fn on_itest_remote_request(stub: &dyn ITest, code: u32, data: &BorrowedMsgParcel
             reply.write(&uid).expect("write uid failed");
             Ok(())
         }
+        ITestCode::CodeGetDeviceId => {
+            let (local_device_id, calling_device_id) = stub.test_get_device_id()?;
+            reply.write(&local_device_id).expect("write local device id failed");
+            reply.write(&calling_device_id).expect("write calling device id failed");
+            Ok(())
+        }
     }
 }
 
@@ -194,6 +205,10 @@ impl ITest for RemoteStub<TestStub> {
 
     fn echo_calling_info(&self) -> Result<(u64, u64, u64, u64)> {
         self.0.echo_calling_info()
+    }
+
+    fn test_get_device_id(&self) -> Result<(String, String)> {
+        self.0.test_get_device_id()
     }
 }
 
@@ -268,6 +283,15 @@ impl ITest for TestProxy {
         let pid: u64 = reply.read().expect("need reply calling pid");
         let uid: u64 = reply.read().expect("need reply calling uid");
         Ok((token_id, first_token_id, pid, uid))
+    }
+
+    fn test_get_device_id(&self) -> Result<(String, String)> {
+        let data = MsgParcel::new().expect("MsgParcel should success");
+        let reply = self.remote.send_request(ITestCode::CodeGetDeviceId as u32,
+            &data, false)?;
+        let local_device_id: String = reply.read().expect("need reply calling local device id");
+        let calling_device_id: String = reply.read().expect("need reply first calling device id");
+        Ok((local_device_id, calling_device_id))
     }
 }
 

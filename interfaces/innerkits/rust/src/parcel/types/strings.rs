@@ -149,7 +149,8 @@ unsafe extern "C" fn on_str_writer(
 
     for item in slice.iter().take(len) {
         let ret = unsafe {
-            ipc_binding::CParcelWriteStringElement(array,
+            ipc_binding::CParcelWriteStringElement(
+                array,
                 item.as_ptr() as *const c_char,
                 item.as_bytes().len().try_into().unwrap())
         };
@@ -180,7 +181,8 @@ unsafe extern "C" fn on_string_writer(
 
     for item in slice.iter().take(len) {
         let ret = unsafe {
-            ipc_binding::CParcelWriteStringElement(array,
+            ipc_binding::CParcelWriteStringElement(
+                array,
                 item.as_ptr() as *const c_char,
                 item.as_bytes().len().try_into().unwrap())
         };
@@ -234,7 +236,7 @@ unsafe extern "C" fn on_string_reader(
     true
 }
 
-fn vec_to_string(vec: Option<Vec<u8>>) -> Result<String> {
+pub fn vec_to_string(vec: Option<Vec<u8>>) -> Result<String> {
     let value = vec.map(|s| {
         // The vector includes a null-terminator and
         // we don't want the string to be null-terminated for Rust.
@@ -244,6 +246,21 @@ fn vec_to_string(vec: Option<Vec<u8>>) -> Result<String> {
         ret
     } else {
         error!(LOG_LABEL, "convert vector u8 to String fail");
+        Err(-1)
+    }
+}
+
+pub fn vec_u16_to_string(vec: Option<Vec<u16>>) -> Result<String> {
+    let value = vec.map(|s| {
+        // The vector includes a null-terminator and
+        // we don't want the string to be null-terminated for Rust.
+        let slice = &s[..];
+        String::from_utf16(slice).or(Err(-1))
+    });
+    if let Some(ret) = value {
+        ret
+    } else {
+        error!(LOG_LABEL, "convert vector u16 to String fail");
         Err(-1)
     }
 }

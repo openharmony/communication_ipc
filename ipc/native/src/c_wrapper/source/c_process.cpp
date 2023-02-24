@@ -15,6 +15,7 @@
 
 #include "c_process.h"
 
+#include <securec.h>
 #include "c_remote_object_internal.h"
 #include "log_tags.h"
 #include "ipc_debug.h"
@@ -72,4 +73,70 @@ uint64_t GetCallingPid(void)
 uint64_t GetCallingUid(void)
 {
     return static_cast<uint64_t>(IPCSkeleton::GetCallingUid());
+}
+
+bool SetMaxWorkThreadNum(int maxThreadNum)
+{
+    return IPCSkeleton::SetMaxWorkThreadNum(maxThreadNum);
+}
+
+bool IsLocalCalling(void)
+{
+    return IPCSkeleton::IsLocalCalling();
+}
+
+bool GetLocalDeviceID(void *value, OnCParcelBytesAllocator allocator)
+{
+    std::string str(IPCSkeleton::GetLocalDeviceID());
+    char *buffer = nullptr;
+    bool isSuccess = allocator(value, &buffer, str.length());
+    if (!isSuccess) {
+        ZLOGE(LOG_LABEL, "%{public}s: allocate string buffer is null\n", __func__);
+        return false;
+    }
+    if (str.length() > 0 && memcpy_s(buffer, str.length(), str.data(), str.length()) != EOK) {
+        ZLOGE(LOG_LABEL, "%{public}s: memcpy string failed\n", __func__);
+        return false;
+    }
+    return true;
+}
+bool GetCallingDeviceID(void *value, OnCParcelBytesAllocator allocator)
+{
+    std::string str(IPCSkeleton::GetCallingDeviceID());
+    char *buffer = nullptr;
+    bool isSuccess = allocator(value, &buffer, str.length());
+    if (!isSuccess) {
+        ZLOGE(LOG_LABEL, "%{public}s: allocate string buffer is null\n", __func__);
+        return false;
+    }
+    if (str.length() > 0 && memcpy_s(buffer, str.length(), str.data(), str.length()) != EOK) {
+        ZLOGE(LOG_LABEL, "%{public}s: memcpy string failed\n", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool SetCallingIdentity(const char *identity)
+{
+    if (identity == nullptr) {
+        return false;
+    }
+    std::string str = identity;
+    return IPCSkeleton::SetCallingIdentity(str);
+}
+
+bool ResetCallingIdentity(void *value, OnCParcelBytesAllocator allocator)
+{
+    std::string str(IPCSkeleton::ResetCallingIdentity());
+    char *buffer = nullptr;
+    bool isSuccess = allocator(value, &buffer, str.length());
+    if (!isSuccess) {
+        ZLOGE(LOG_LABEL, "%{public}s: allocate string buffer is null\n", __func__);
+        return false;
+    }
+    if (str.length() > 0 && memcpy_s(buffer, str.length(), str.data(), str.length()) != EOK) {
+        ZLOGE(LOG_LABEL, "%{public}s: memcpy string failed\n", __func__);
+        return false;
+    }
+    return true;
 }

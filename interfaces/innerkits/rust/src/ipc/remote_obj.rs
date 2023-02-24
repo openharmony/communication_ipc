@@ -18,11 +18,13 @@
 use std::ptr;
 use crate::{
     ipc_binding, IRemoteObj, DeathRecipient, Result,
-    MsgParcel, BorrowedMsgParcel, AsRawPtr
+    MsgParcel, BorrowedMsgParcel, AsRawPtr, parcel::on_string16_writer,
+    parcel::vec_u16_to_string,
 };
 use crate::ipc_binding::{CRemoteObject, CDeathRecipient};
-use crate::parcel::parcelable::{Serialize, Deserialize};
+use crate::parcel::parcelable::{Serialize, Deserialize, allocate_vec_with_buffer};
 use std::ffi::{c_void};
+use crate::String16;
 
 pub mod death_recipient;
 pub mod cmp;
@@ -69,6 +71,7 @@ impl IRemoteObj for RemoteObj {
 
     // Add death Recipient
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::AddDeathRecipient(self.as_inner(), recipient.as_mut_raw())
         }
@@ -76,8 +79,49 @@ impl IRemoteObj for RemoteObj {
 
     // remove death Recipients
     fn remove_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::RemoveDeathRecipient(self.as_inner(), recipient.as_mut_raw())
+        }
+    }
+
+    fn is_proxy(&self) -> bool {
+        // SAFETY:
+        unsafe {
+            ipc_binding::IsProxyObject(self.as_inner())
+        }
+    }
+
+    fn dump(&self, fd: i32, args: &mut Vec<String16>) -> i32 {
+        let slice = &args[..];
+        // SAFETY:
+        unsafe {
+            ipc_binding::Dump(self.as_inner(), fd, slice.as_ptr() as *const c_void,
+                slice.len().try_into().unwrap(), on_string16_writer)
+        }
+    }
+
+    fn is_dead(&self) -> bool {
+        // SAFETY:
+        unsafe {
+            ipc_binding::IsObjectDead(self.as_inner())
+        }
+    }
+
+    fn interface_descriptor(&self) -> Result<String> {
+        let mut vec: Option<Vec<u16>> = None;
+        let ok_status = unsafe {
+            // SAFETY:
+            ipc_binding::GetInterfaceDescriptor(
+                self.as_inner(),
+                &mut vec as *mut _ as *mut c_void,
+                allocate_vec_with_buffer::<u16>
+            )
+        };
+        if ok_status {
+            vec_u16_to_string(vec)
+        } else {
+            Err(-1)
         }
     }
 }

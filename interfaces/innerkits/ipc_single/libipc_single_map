@@ -61,6 +61,9 @@
             "OHOS::MessageOption::MessageOption(int, int)";
             "OHOS::MessageOption::GetFlags() const";
             "OHOS::MessageOption::SetFlags(int)";
+            "OHOS::MessageParcel::GetRawDataSize() const";
+            "OHOS::MessageParcel::GetRawDataCapacity() const";
+            "OHOS::MessageParcel::ClearFileDescriptor()";
             "OHOS::IPCSkeleton::GetContextObject()";
             "OHOS::IPCSkeleton::GetInstance()";
             "OHOS::IPCSkeleton::SetMaxWorkThreadNum(int)";
@@ -74,6 +77,9 @@
             "OHOS::IPCSkeleton::StopWorkThread()";
             "OHOS::IPCSkeleton::GetFirstFullTokenID()";
             "OHOS::IPCSkeleton::ResetCallingIdentity()";
+            "OHOS::IPCSkeleton::IsLocalCalling()";
+            "OHOS::IPCSkeleton::GetLocalDeviceID()";
+            "OHOS::IPCSkeleton::GetCallingDeviceID()";
             "OHOS::PeerHolder::PeerHolder(OHOS::sptr<OHOS::IRemoteObject> const&)";
             "OHOS::PeerHolder::Remote()";
             "OHOS::IRemoteObject::CheckObjectLegality() const";
@@ -84,6 +90,14 @@
             "OHOS::IRemoteObject::IsProxyObject() const";
             "virtual thunk to OHOS::IRemoteObject::Marshalling(OHOS::Parcel&) const";
             "OHOS::IPC_SINGLE::IPCThreadSkeleton::JoinWorkThread(int)";
+            "virtual thunk to OHOS::IRemoteObject::IsObjectDead() const";
+            "OHOS::IRemoteObject::IsObjectDead() const";
+            "OHOS::IPCObjectProxy::IsObjectDead()";
+            "OHOS::IPCObjectStub::IsObjectDead()";
+            "virtual thunk to OHOS::IRemoteObject::GetInterfaceDescriptor()";
+            "OHOS::IRemoteObject::GetInterfaceDescriptor()";
+            "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
+            "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
         };
     local:
         *;

@@ -41,6 +41,10 @@ pub mod const_array;
 pub mod slices;
 pub mod vector;
 
+pub use self::string16::on_string16_writer;
+pub use self::strings::vec_u16_to_string;
+pub use self::strings::vec_to_string;
+
 use crate::parcel::parcelable::*;
 use std::ffi::{c_char, c_void};
 use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, result_status, Result, SerOption, DeOption};

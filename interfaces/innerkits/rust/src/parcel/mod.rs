@@ -16,6 +16,11 @@
 pub mod parcelable;
 pub mod types;
 
+pub use types::on_string16_writer;
+pub use types::vec_u16_to_string;
+pub use types::vec_to_string;
+pub use parcelable::allocate_vec_with_buffer;
+
 use crate::{ipc_binding, Result};
 use crate::ipc_binding::{CParcel};
 use std::marker::PhantomData;
@@ -165,6 +170,49 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
         } else {
             Ok(RawData::new(raw_data_ptr, len))
          }
+    }
+
+    /// contain file descriptors
+    fn has_fd(&self) -> bool {
+        unsafe {
+            ipc_binding::CParcelContainFileDescriptors(self.as_raw())
+        }
+    }
+
+    /// clear file descriptor
+    fn clear_fd(&mut self) {
+        unsafe {
+            ipc_binding::CParcelClearFileDescriptor(self.as_mut_raw());
+        }
+    }
+
+    /// get raw data size
+    fn get_raw_data_size(&self) -> usize {
+        unsafe {
+            ipc_binding::CParcelGetRawDataSize(self.as_raw())
+        }
+    }
+
+    /// get raw data capacity
+    fn get_raw_data_capacity(&self) -> usize {
+        unsafe {
+            ipc_binding::CParcelGetRawDataCapacity(self.as_raw())
+        }
+    }
+
+    /// set clear fd flag
+    fn set_clear_fd_flag(&mut self) {
+        unsafe {
+            ipc_binding::CParcelSetClearFdFlag(self.as_mut_raw());
+        }
+    }
+
+    /// append a MsgParcel
+    fn append(&mut self, data: &mut MsgParcel) -> bool {
+        let data_parcel = data.as_mut_raw();
+        unsafe {
+            ipc_binding::CParcelAppend(self.as_mut_raw(), data_parcel)
+        }
     }
 }
 

@@ -59,6 +59,10 @@ public:
 
     virtual bool IsProxyObject() const;
 
+    virtual bool IsObjectDead() const;
+
+    virtual std::u16string GetInterfaceDescriptor();
+
     virtual bool CheckObjectLegality() const;
 
     virtual bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) = 0;
