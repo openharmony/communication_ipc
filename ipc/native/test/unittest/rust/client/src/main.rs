@@ -26,7 +26,8 @@ use ipc_rust::{
     FromRemoteObj, DeathRecipient, IRemoteObj, FileDesc, RemoteObjRef,
     MsgParcel, String16, InterfaceToken, get_service, get_first_token_id,
     get_self_token_id, get_calling_pid, get_calling_uid, IMsgParcel, Result,
-    RawData,
+    RawData, set_max_work_thread, reset_calling_identity, set_calling_identity,
+    is_local_calling, get_local_device_id, get_calling_device_id,
 };
 
 use ipc_rust::{Serialize, Deserialize, BorrowedMsgParcel, Ashmem};
@@ -140,6 +141,21 @@ fn test_calling_info() {
     assert_eq!(first_token_id, get_first_token_id());
     assert_eq!(pid, get_calling_pid());
     assert_eq!(uid, get_calling_uid());
+}
+
+#[test]
+fn test_get_device_id() {
+    assert_eq!(true, set_max_work_thread(3));
+    let identity_str: String = reset_calling_identity().expect("Failed to reset calling identity");
+    assert_eq!(true, set_calling_identity(identity_str));
+    assert_eq!(true, is_local_calling());
+
+    let remote = get_test_service();
+    let (local_device_id, calling_device_id) =
+        remote.test_get_device_id().expect("test_get_device_id is failed");
+
+    assert_eq!(local_device_id, get_local_device_id().expect("Failed toget local device id"));
+    assert_eq!(calling_device_id, get_calling_device_id().expect("Failed to get calling device id"));
 }
 
 #[test]
@@ -718,4 +734,74 @@ mod parcel_type_test {
             ashmem2.close();
         }
     }
+
+    #[test]
+    fn test_clear_file_descriptor(){
+        let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
+        parcel.clear_fd();
+        assert_eq!(parcel.get_raw_data_size(), 0);
+    }
+
+    #[test]
+    fn test_contain_file_descriptors(){
+        let parcel = MsgParcel::new().expect("create MsgParcel failed");
+        parcel.has_fd();
+        assert_eq!(parcel.get_raw_data_size(), 0);
+    }
+
+    #[test]
+    fn test_get_raw_data_size(){
+        let parcel = MsgParcel::new().expect("create MsgParcel failed");
+        assert_eq!(parcel.get_raw_data_size(), 0);
+    }
+
+    #[test]
+    fn test_get_raw_data_capacity(){
+        let parcel = MsgParcel::new().expect("create MsgParcel failed");
+        let size = parcel.get_raw_data_capacity();
+        assert_eq!(size, 128 * 1024 * 1024);
+    }
+
+    #[test]
+    fn test_set_clear_fd_flag(){
+        let mut parcel = MsgParcel::new().expect("create MsgParcel failed");
+        parcel.set_clear_fd_flag();
+    }
+
+    #[test]
+    fn test_append(){
+        let mut parcel_num1 = MsgParcel::new().expect("create MsgParcel failed");
+        let mut parcel_num2 = MsgParcel::new().expect("create MsgParcel failed");
+        assert_eq!(parcel_num2.append(&mut parcel_num1), true);
+    }
+}
+
+#[test]
+fn test_is_proxy_object() {
+    let object = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
+    assert_eq!(object.is_proxy(), true);
+}
+
+#[test]
+fn test_dump() {
+    let object = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
+    let args: &mut Vec<String16> = &mut Vec::new();
+    args.push(String16::new("test.ipc.ITestService"));
+    let res = object.dump(0, args);
+    assert_eq!(0, res);
+}
+
+#[test]
+fn test_is_object_dead() {
+    let remote = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
+    let ret = remote.is_dead();
+    assert_eq!(ret, false);
+}
+
+#[test]
+fn test_get_interface_descriptor() {
+    let remote = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
+    let descriptor = String16::new(TestProxy::get_descriptor());
+    let ret = remote.interface_descriptor().expect("get interface descriptor failed");
+    assert_eq!(descriptor.get_string(), ret);
 }

@@ -18,6 +18,8 @@
 
 #include "c_ashmem.h"
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -95,6 +97,8 @@ bool CParcelReadDoubleArray(const CParcel *parcel, void *value, OnCParcelDoubleA
 bool CParcelWriteStringArray(CParcel *parcel, const void *value,
     int32_t len, OnStringArrayWrite writer);
 bool CParcelWriteStringElement(void *data, const char *value, int32_t len);
+bool CParcelWritU16stringElement(void *data, const char16_t *value, int32_t len);
+
 bool CParcelReadStringArray(const CParcel *parcel, void *value, OnStringArrayRead reader);
 bool CParcelReadStringElement(uint32_t index, const void *data, void *value,
     OnCParcelBytesAllocator allocator);
@@ -116,9 +120,15 @@ uint32_t CParcelGetReadPosition(const CParcel *parcel);
 uint32_t CParcelGetWritePosition(const CParcel *parcel);
 bool CParcelRewindRead(CParcel *parcel, uint32_t new_pos);
 bool CParcelRewindWrite(CParcel *parcel, uint32_t new_pos);
-
 bool CParcelWriteAshmem(CParcel *parcel, CAshmem *ashmem);
 CAshmem *CParcelReadAshmem(const CParcel *parcel);
+
+bool CParcelContainFileDescriptors(const CParcel *parcel);
+size_t CParcelGetRawDataSize(const CParcel *parcel);
+size_t CParcelGetRawDataCapacity(const CParcel *parcel);
+void CParcelClearFileDescriptor(CParcel *parcel);
+void CParcelSetClearFdFlag(CParcel *parcel);
+bool CParcelAppend(CParcel *parcel, CParcel *data);
 
 #ifdef __cplusplus
 }

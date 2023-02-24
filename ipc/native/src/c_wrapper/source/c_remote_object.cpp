@@ -15,6 +15,7 @@
 
 #include "c_remote_object.h"
 
+#include <securec.h>
 #include <string_ex.h>
 #include "c_parcel_internal.h"
 #include "c_remote_object_internal.h"
@@ -210,4 +211,66 @@ bool RemoveDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient)
     };
     sptr<IRemoteObject::DeathRecipient> callback(recipient);
     return object->remote_->RemoveDeathRecipient(callback);
+}
+
+
+bool IsProxyObject(CRemoteObject *object)
+{
+    if (!IsValidRemoteObject(object, __func__)) {
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
+        return false;
+    }
+    return object->remote_->IsProxyObject();
+}
+
+int Dump(CRemoteObject *object, int fd, const void *value, int32_t len, OnStringArrayWrite writer)
+{
+    if (!IsValidRemoteObject(object, __func__) || writer == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
+        return -1;
+    }
+    std::vector<std::u16string> stringVector;
+    if (len > 0 && !writer(reinterpret_cast<void *>(&stringVector), value, static_cast<uint32_t>(len))) {
+        ZLOGE(LOG_LABEL, "%{public}s: write string array to vector failed\n", __func__);
+        return -1;
+    }
+    return object->remote_->Dump(fd, stringVector);
+}
+
+bool IsObjectDead(CRemoteObject *object)
+{
+    if (!IsValidRemoteObject(object, __func__)) {
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
+        return false;
+    }
+    if (!IsProxyObject(object)) {
+        return false;
+    }
+    return object->remote_->IsObjectDead();
+}
+
+bool GetInterfaceDescriptor(CRemoteObject *object, void *value, On16BytesAllocator allocator)
+{
+    if (!IsValidRemoteObject(object, __func__)) {
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
+        return false;
+    }
+    if (!IsProxyObject(object)) {
+        return false;
+    }
+
+    std::u16string str(object->remote_->GetInterfaceDescriptor());
+    uint16_t *buffer = nullptr;
+    bool isSuccess = allocator(value, &buffer, str.length());
+    if (!isSuccess) {
+        ZLOGE(LOG_LABEL, "%{public}s: allocate string buffer is null\n", __func__);
+        return false;
+    }
+
+    int32_t size = sizeof(char16_t) * str.length();
+    if (str.length() > 0 && memcpy_s(buffer, size, str.data(), size) != EOK) {
+        ZLOGE(LOG_LABEL, "%{public}s: memcpy string failed\n", __func__);
+        return false;
+    }
+    return true;
 }

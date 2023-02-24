@@ -38,6 +38,8 @@ typedef void (*OnRemoteObjectDestroyCb)(const void *userData);
 typedef void (*OnDeathRecipientCb)(const void *userData);
 typedef void (*OnDeathRecipientDestroyCb)(const void *userData);
 
+typedef bool (*On16BytesAllocator)(void *stringData, uint16_t **buffer, int32_t len);
+
 CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
     OnRemoteObjectDestroyCb destroy, const void *userData);
 
@@ -56,6 +58,12 @@ void DeathRecipientDecStrongRef(CDeathRecipient *recipient);
 bool AddDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient);
 bool RemoveDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient);
 
+bool IsProxyObject(CRemoteObject *object);
+int Dump(CRemoteObject *object, int fd, const void *value,
+    int32_t len, OnStringArrayWrite writer);
+
+bool IsObjectDead(CRemoteObject *object);
+bool GetInterfaceDescriptor(CRemoteObject *object, void *value, On16BytesAllocator allocator);
 #ifdef __cplusplus
 }
 #endif

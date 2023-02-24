@@ -16,6 +16,8 @@
 #ifndef IPC_C_PROCESS_H
 #define IPC_C_PROCESS_H
 
+#include "c_parcel.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,6 +34,13 @@ uint64_t GetFirstToekenId(void);
 uint64_t GetSelfToekenId(void);
 uint64_t GetCallingPid(void);
 uint64_t GetCallingUid(void);
+
+bool IsLocalCalling(void);
+bool SetMaxWorkThreadNum(int maxThreadNum);
+bool SetCallingIdentity(const char *identity);
+bool GetLocalDeviceID(void *value, OnCParcelBytesAllocator allocator);
+bool GetCallingDeviceID(void *value, OnCParcelBytesAllocator allocator);
+bool ResetCallingIdentity(void *value, OnCParcelBytesAllocator allocator);
 
 #ifdef __cplusplus
 }

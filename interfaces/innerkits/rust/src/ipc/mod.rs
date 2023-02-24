@@ -17,9 +17,10 @@ pub mod remote_obj;
 pub mod remote_stub;
 pub mod macros;
 
-use crate::{BorrowedMsgParcel, MsgParcel, Result, DeathRecipient};
+use crate::{BorrowedMsgParcel, MsgParcel, Result, DeathRecipient,};
 use std::ops::{Deref};
 use std::cmp::Ordering;
+use crate::String16;
 
 // Export types of this module
 pub use crate::RemoteObj;
@@ -34,6 +35,18 @@ pub trait IRemoteObj {
 
     /// Remove a death recipient
     fn remove_death_recipient(&self, recipient: &mut DeathRecipient) -> bool;
+
+    /// Determine whether it is a proxy object
+    fn is_proxy(&self) -> bool;
+
+    /// Dump a service through a string
+    fn dump(&self, fd: i32, args: &mut Vec<String16>) -> i32;
+
+    /// Judge whether the object is dead
+    fn is_dead(&self) -> bool;
+
+    /// get interface descriptor
+    fn interface_descriptor(&self) -> Result<String>;
 }
 
 /// Like C++ IPCObjectStub class, define function for stub object only, like on_remote_request().
@@ -85,7 +98,7 @@ impl<I: FromRemoteObj + ?Sized> Clone for RemoteObjRef<I> {
     }
 }
 
- impl<I: FromRemoteObj + ?Sized> Ord for RemoteObjRef<I> {
+impl<I: FromRemoteObj + ?Sized> Ord for RemoteObjRef<I> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.0.as_object().cmp(&other.0.as_object())
     }
