@@ -633,6 +633,21 @@ bool CParcelWriteStringElement(void *data, const char *value, int32_t len)
     return true;
 }
 
+bool CParcelWritU16stringElement(void *data, const char16_t *value, int32_t len)
+{
+    std::vector<std::u16string> *u16stringVector = reinterpret_cast<std::vector<std::u16string> *>(data);
+    if (u16stringVector == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s: stringVector is null\n", __func__);
+        return false;
+    }
+    if (len < 0) {
+        ZLOGE(LOG_LABEL, "%{public}s: string len is invalid: %d\n", __func__, len);
+        return false;
+    }
+    u16stringVector->push_back(std::u16string(value, len));
+    return true;
+}
+
 bool CParcelReadStringArray(const CParcel *parcel, void *value, OnStringArrayRead reader)
 {
     if (!IsValidParcel(parcel, __func__) || reader == nullptr) {
@@ -848,4 +863,52 @@ CAshmem *CParcelReadAshmem(const CParcel *parcel)
     }
     ashmem->IncStrongRef(nullptr);
     return cashmem;
+}
+
+bool CParcelContainFileDescriptors(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return false;
+    }
+    return parcel->parcel_->ContainFileDescriptors();
+}
+
+size_t CParcelGetRawDataSize(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return -1;
+    }
+    return parcel->parcel_->GetRawDataSize();
+}
+
+size_t CParcelGetRawDataCapacity(const CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return -1;
+    }
+    return parcel->parcel_->GetRawDataCapacity();
+}
+
+void CParcelClearFileDescriptor(CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return;
+    }
+    parcel->parcel_->ClearFileDescriptor();
+}
+
+void CParcelSetClearFdFlag(CParcel *parcel)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return;
+    }
+    parcel->parcel_->SetClearFdFlag();
+}
+
+bool CParcelAppend(CParcel *parcel, CParcel *data)
+{
+    if (!IsValidParcel(parcel, __func__)) {
+        return false;
+    }
+    return parcel->parcel_->Append(*(data->parcel_));
 }

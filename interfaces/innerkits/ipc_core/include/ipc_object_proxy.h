@@ -35,7 +35,7 @@ public:
         return true;
     };
 
-    bool IsObjectDead() const;
+    bool IsObjectDead() const override;
 
     int32_t GetObjectRefCount() override;
 
@@ -72,7 +72,7 @@ public:
     std::string GetGrantedSessionName();
     int GetProto() const;
     void WaitForInit();
-    std::u16string GetInterfaceDescriptor();
+    std::u16string GetInterfaceDescriptor() override;
 
 private:
     void MarkObjectDied();

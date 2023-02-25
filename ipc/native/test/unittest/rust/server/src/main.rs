@@ -21,7 +21,8 @@ extern crate test_ipc_service;
 use ipc_rust::{
     IRemoteBroker, join_work_thread, FileDesc, InterfaceToken, Result,
     add_service, get_calling_token_id, get_first_token_id, get_calling_pid,
-    get_calling_uid, String16, RemoteObj, IRemoteStub,
+    get_calling_uid, String16, RemoteObj, IRemoteStub, get_local_device_id,
+    get_calling_device_id,
 };
 use test_ipc_service::{ITest, TestStub, IPC_TEST_SERVICE_ID, reverse, IFoo, FooStub, init_access_token};
 use std::io::Write;
@@ -95,6 +96,17 @@ impl ITest for TestService {
         let pid = get_calling_pid();
         let uid = get_calling_uid();
         Ok((token_id, first_token_id, pid, uid))
+    }
+
+    fn test_get_device_id(&self) -> Result<(String, String)> {
+        let local_device_id = get_local_device_id();
+        let calling_device_id = get_calling_device_id();
+
+        if let (Ok(local_id), Ok(calling_id)) = (local_device_id, calling_device_id) {
+            Ok((local_id, calling_id))
+        } else {
+            Err(-1)
+        }
     }
 }
 

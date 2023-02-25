@@ -80,4 +80,15 @@ IRemoteObject::IRemoteObject(std::u16string descriptor) : descriptor_(descriptor
 {
     asRemote_ = true;
 }
+
+bool IRemoteObject::IsObjectDead() const
+{
+    return false;
+}
+
+std::u16string IRemoteObject::GetInterfaceDescriptor()
+{
+    return descriptor_;
+}
+
 } // namespace OHOS
