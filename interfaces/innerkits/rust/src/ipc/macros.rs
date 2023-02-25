@@ -61,7 +61,7 @@ macro_rules! define_remote_object {
         }
 
         impl $crate::IRemoteBroker for $proxy {
-            /// Get RemoteObje object from proxy
+            /// Get RemoteObject object from proxy
             fn as_object(&self) -> Option<$crate::RemoteObj> {
                 Some(self.remote.clone())
             }

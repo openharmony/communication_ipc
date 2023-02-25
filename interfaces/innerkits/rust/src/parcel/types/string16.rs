@@ -85,3 +85,36 @@ impl Deserialize for String16 {
         }
     }
 }
+
+/// Callback to serialize a String16 array to c++ std::vector<std::u16string>.
+///
+/// Safety: We are relying on c interface to not overrun our slice. As long
+/// as it doesn't provide an index larger than the length of the original
+/// slice in ser_array, this operation is safe. The index provided
+/// is zero-based.
+#[allow(dead_code)]
+pub unsafe extern "C" fn on_string16_writer(
+    array: *const c_void, // C++ vector pointer
+    value: *mut c_void, // Rust slice pointer
+    len: u32,
+) -> bool {
+    if len == 0 {
+        return false;
+    }
+    let len = len as usize;
+    let slice: &[String16] = std::slice::from_raw_parts(value.cast(), len);
+
+    for item in slice.iter().take(len) {
+        // SAFETY:
+        let ret = unsafe {
+            ipc_binding::CParcelWritU16stringElement(
+                array,
+                item.0.as_ptr() as *const c_char,
+                item.0.as_bytes().len().try_into().unwrap())
+        };
+        if !ret {
+            return false;
+        }
+    }
+    true
+}

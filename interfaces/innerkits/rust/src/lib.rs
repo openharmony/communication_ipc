@@ -44,7 +44,8 @@ pub use crate::ashmem::{
 pub use crate::process::{
     get_context_object, add_service, get_service, join_work_thread, stop_work_thread,
     get_calling_uid, get_calling_token_id, get_first_token_id, get_self_token_id,
-    get_calling_pid,
+    get_calling_pid, set_max_work_thread, is_local_calling, set_calling_identity,
+    get_local_device_id, get_calling_device_id, reset_calling_identity,
 };
 
 /// First request code available for user IPC request(inclusive)

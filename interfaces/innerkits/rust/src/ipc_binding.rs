@@ -129,6 +129,14 @@ extern "C" {
         recipient: *mut CDeathRecipient) -> bool;
     pub fn RemoveDeathRecipient(object: *mut CRemoteObject,
         recipient: *mut CDeathRecipient) -> bool;
+
+    pub fn IsProxyObject(object: *mut CRemoteObject) -> bool;
+    pub fn Dump(object: *mut CRemoteObject, fd: i32, value: *const c_void, len: i32,
+            writer: OnStringArrayWrite) -> i32;
+
+    pub fn IsObjectDead(object: *mut CRemoteObject) -> bool;
+    pub fn GetInterfaceDescriptor(object: *mut CRemoteObject,
+        value: *mut c_void, allocator: OnCParcelBytesAllocator::<u16>) -> bool;
 }
 
 // C interface for Parcel
@@ -194,6 +202,8 @@ extern "C" {
         writer: OnStringArrayWrite) -> bool;
     pub fn CParcelWriteStringElement(data: *const c_void, value: *const c_char,
         len: i32) -> bool;
+    pub fn CParcelWritU16stringElement(data: *const c_void, value: *const c_char,
+        len: i32) -> bool;
     pub fn CParcelReadStringArray(parcel: *const CParcel, value: *mut c_void,
         reader: OnStringArrayRead) -> bool;
     pub fn CParcelReadStringElement(index: u32, data: *const c_void, value: *mut c_void,
@@ -215,9 +225,15 @@ extern "C" {
     pub fn CParcelGetWritePosition(parcel: *const CParcel) -> u32;
     pub fn CParcelRewindRead(parcel: *mut CParcel, new_pos: u32) -> bool;
     pub fn CParcelRewindWrite(parcel: *mut CParcel, new_pos: u32) -> bool;
-
     pub fn CParcelWriteAshmem(parcel: *mut CParcel, ashmem: *mut CAshmem) -> bool;
     pub fn CParcelReadAshmem(parcel: *const CParcel) -> *mut CAshmem;
+
+    pub fn CParcelContainFileDescriptors(parcel: *const CParcel) -> bool;
+    pub fn CParcelGetRawDataSize(parcel: *const CParcel) -> usize;
+    pub fn CParcelGetRawDataCapacity(parcel: *const CParcel) -> usize;
+    pub fn CParcelClearFileDescriptor(parcel: *mut CParcel);
+    pub fn CParcelSetClearFdFlag(parcel: *mut CParcel);
+    pub fn CParcelAppend(parcel: *mut CParcel, data: *mut CParcel) -> bool;
 }
 
 // C interface for Ashmem
@@ -250,4 +266,11 @@ extern "C" {
     pub fn GetSelfToekenId() -> u64;
     pub fn GetCallingPid() -> u64;
     pub fn GetCallingUid() -> u64;
+
+    pub fn SetMaxWorkThreadNum(maxThreadNum: i32) -> bool;
+    pub fn IsLocalCalling() -> bool;
+    pub fn SetCallingIdentity(identity: *const c_char) -> bool;
+    pub fn GetLocalDeviceID(value: *mut c_void, allocator: OnCParcelBytesAllocator::<u8>) -> bool;
+    pub fn GetCallingDeviceID(value: *mut c_void, allocator: OnCParcelBytesAllocator::<u8>) -> bool;
+    pub fn ResetCallingIdentity(value: *mut c_void, allocator: OnCParcelBytesAllocator::<u8>) -> bool;
 }
