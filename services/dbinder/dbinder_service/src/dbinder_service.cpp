@@ -37,6 +37,8 @@ bool DBinderService::mainThreadCreated_ = false;
 std::mutex DBinderService::instanceMutex_;
 std::shared_ptr<DBinderRemoteListener> DBinderService::remoteListener_ = nullptr;
 constexpr int32_t DBINDER_UID_START_INDEX = 7;
+// DBinderServiceStub's reference count in a MakeRemoteBinder call.
+constexpr int DBINDER_STUB_REF_COUNT = 2;
 
 DBinderService::DBinderService()
 {
@@ -211,7 +213,7 @@ bool DBinderService::IsSameStubObject(const sptr<DBinderServiceStub> &stub, cons
         return false;
     }
     if (IsSameTextStr(stub->GetServiceName(), Str16ToStr8(service)) && IsSameTextStr(stub->GetDeviceID(), device)) {
-        DBINDER_LOGI(LOG_LABEL, "found registered service with name = %s", Str16ToStr8(service).c_str());
+        DBINDER_LOGI(LOG_LABEL, "found registered service with name = %{public}s", Str16ToStr8(service).c_str());
         return true;
     }
     return false;
@@ -290,15 +292,18 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
         ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber(), pid, uid);
         retryTimes++;
     } while (!ret && (retryTimes < RETRY_TIMES));
-
     if (!ret) {
-        DBINDER_LOGE(LOG_LABEL, "fail to invoke service, service name = %{public}s", Str16ToStr8(serviceName).c_str());
-        /* invoke fail, delete dbinder stub info */
-        (void)DeleteDBinderStub(serviceName, deviceID);
-        (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
-        return nullptr;
+        DBINDER_LOGE(LOG_LABEL, "fail to invoke service, service name = %{public}s, device = %{public}s "
+            "DBinderServiceStub refcount = %{public}d",
+            Str16ToStr8(serviceName).c_str(), DBinderService::ConvertToSecureDeviceID(deviceID).c_str(),
+            dBinderServiceStub->GetSptrRefCount());
+        if (dBinderServiceStub->GetSptrRefCount() <= DBINDER_STUB_REF_COUNT) {
+            /* invoke fail, delete dbinder stub info */
+            (void)DeleteDBinderStub(serviceName, deviceID);
+            (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
+        }
+	return nullptr;
     }
-
     return dBinderServiceStub;
 }
 
@@ -448,9 +453,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
                 continue;
             }
             if (!AttachProxyObject(remoteObject, binderObject)) {
-                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
-                DBINDER_LOGE(LOG_LABEL, "attach proxy object fail");
-                continue;
+                DBINDER_LOGW(LOG_LABEL, "attach proxy object is already existed");
             }
         }
         std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
@@ -943,6 +946,9 @@ bool DBinderService::AttachCallbackProxy(sptr<IRemoteObject> object, DBinderServ
 
 bool DBinderService::NoticeCallbackProxy(sptr<DBinderServiceStub> dbStub)
 {
+    DBINDER_LOGI(LOG_LABEL, "%{public}s: enter, service:%{public}s devicId:%{public}s",
+        __func__, dbStub->GetServiceName().c_str(),
+        DBinderService::ConvertToSecureDeviceID(dbStub->GetDeviceID()).c_str());
     bool status = true;
     const binder_uintptr_t binderObject = reinterpret_cast<binder_uintptr_t>(dbStub.GetRefPtr());
     if (!DetachSessionObject(binderObject)) {
@@ -998,6 +1004,10 @@ int32_t DBinderService::NoticeServiceDieInner(const std::u16string &serviceName,
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
+    DBINDER_LOGI(LOG_LABEL, "%{public}s: service:%{public}s devicId:%{public}s",
+        __func__, Str16ToStr8(serviceName).c_str(),
+        DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
+
     sptr<DBinderServiceStub> dbStub = FindDBinderStub(serviceName, deviceID);
     if (dbStub == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "find null stub, do not need notice death");
@@ -1025,7 +1035,6 @@ int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
     }
     DBINDER_LOGI(LOG_LABEL, "remote device is dead, device = %s",
         DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
-
     if (remoteListener_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remote listener is null");
         return DBINDER_SERVICE_NOTICE_DIE_ERR;

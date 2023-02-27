@@ -114,6 +114,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     switch (code) {
 #ifndef CONFIG_IPC_SINGLE
         case DBINDER_OBITUARY_TRANSACTION: {
+            ZLOGW(LABEL, "%{public}s: recv DBINDER_OBITUARY_TRANSACTION", __func__);
             if (!IsSamgrCall(IPCSkeleton::GetCallingTokenID())) {
                 ZLOGE(LABEL, "%s: DBINDER_OBITUARY_TRANSACTION unauthenticated user ", __func__);
                 result = IPC_STUB_INVALID_DATA_ERR;
@@ -430,6 +431,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
 
 int32_t IPCObjectStub::NoticeServiceDie(MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    ZLOGE(LABEL, "%{public}s enter, desc:%{public}s", __func__, Str16ToStr8(descriptor_).c_str());
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LABEL, "%s: current is null", __func__);
