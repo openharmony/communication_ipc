@@ -393,6 +393,7 @@ void IPCObjectProxy::SendObituary()
     std::vector<sptr<DeathRecipient>> deathCallback;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
+        ZLOGW(LABEL, "%{public}s: enter, handle: %{public}d", __func__, handle_);
         MarkObjectDied();
         deathCallback = recipients_;
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
@@ -427,6 +428,7 @@ int IPCObjectProxy::GetProto() const
 
 int32_t IPCObjectProxy::NoticeServiceDie()
 {
+    ZLOGW(LABEL, "%{public}s: handle: %{public}d", __func__, handle_);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);

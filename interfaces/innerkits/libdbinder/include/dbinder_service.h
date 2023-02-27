@@ -127,12 +127,12 @@ public:
     void LoadSystemAbilityComplete(const std::string& srcNetworkId, int32_t systemAbilityId,
         const sptr<IRemoteObject>& remoteObject);
     bool ProcessOnSessionClosed(std::shared_ptr<Session> session);
+    static std::string ConvertToSecureDeviceID(const std::string &deviceID);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();
     static bool StartRemoteListener();
     static void StopRemoteListener();
-    static std::string ConvertToSecureDeviceID(const std::string &deviceID);
     std::u16string GetRegisterService(binder_uintptr_t binderObject);
     bool InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
     void OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage);
