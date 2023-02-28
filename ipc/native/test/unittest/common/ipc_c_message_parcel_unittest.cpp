@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include <refbase.h>
+#include <securec.h>
+#include "c_ashmem.h"
 #include "c_parcel.h"
 #include "c_parcel_internal.h"
 
@@ -51,9 +53,12 @@ static bool CParcelBytesAllocatorOk(void *stringData, char **buffer, int32_t len
     if (buffer == nullptr || len < 0) {
         return false;
     }
-    *buffer = (char *)malloc(len);
-    if (*buffer == nullptr) {
-        return false;
+    if (len != 0) {
+        *buffer = (char *)malloc(len);
+        if (*buffer == nullptr) {
+            return false;
+        }
+        (void)memset_s(*buffer, len, 0, len);
     }
     void **ptr = reinterpret_cast<void **>(stringData);
     if (ptr != nullptr) {
@@ -457,4 +462,123 @@ HWTEST_F(IpcCMessageParcelUnitTest, CParcelDataInfo, TestSize.Level1)
     EXPECT_TRUE(CParcelGetWritePosition(parcel) == 0);
 
     CParcelDecStrongRef(parcel);
+}
+
+/**
+ * @tc.name: CParcelContainFileDescriptors
+ * @tc.desc: Verify whether there is fd with this description
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, CParcelContainFileDescriptors, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    CParcelContainFileDescriptors(parcel);
+    EXPECT_EQ(CParcelGetRawDataSize(parcel), 0);
+    CParcelDecStrongRef(parcel);
+}
+
+/**
+ * @tc.name: CParcelClearFileDescriptor
+ * @tc.desc: Verify clear fd by this description
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, CParcelClearFileDescriptor, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    CParcelClearFileDescriptor(parcel);
+    EXPECT_EQ(CParcelGetRawDataSize(parcel), 0);
+    CParcelDecStrongRef(parcel);
+}
+
+/**
+ * @tc.name: CParcelGetRawDataSize
+ * @tc.desc: Get raw data size
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, CParcelGetRawDataSize, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    EXPECT_EQ(CParcelGetRawDataSize(parcel), 0);
+    CParcelDecStrongRef(parcel);
+}
+
+/**
+ * @tc.name: CParcelGetRawDataCapacity
+ * @tc.desc: Get raw data capacity
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, CParcelGetRawDataCapacity, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    EXPECT_EQ(CParcelGetRawDataCapacity(parcel), 128 * 1024 * 1024);
+    CParcelDecStrongRef(parcel);
+}
+
+/**
+ * @tc.name: CParcelSetClearFdFlag
+ * @tc.desc: Verify set clear fd flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, CParcelSetClearFdFlag, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    CParcelSetClearFdFlag(parcel);
+    CParcelDecStrongRef(parcel);
+}
+
+/**
+ * @tc.name: CParcelAppend
+ * @tc.desc: Verify Whether the parcel is appended successfully
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, CParcelAppend, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    CParcel *parcel2= CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    EXPECT_EQ(CParcelAppend(parcel, parcel2), true);
+    CParcelDecStrongRef(parcel);
+    CParcelDecStrongRef(parcel2);
+}
+
+/**
+ * @tc.name: ReadAndWriteAshmemTest
+ * @tc.desc: Verify the read and write ashmem function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCMessageParcelUnitTest, ReadAndWriteAshmemTest, TestSize.Level1)
+{
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+
+    std::string name = "AshmemIpc";
+    std::string ashmemString = "HelloWorld2023";
+    CAshmem *ashmem = CreateCAshmem(name.c_str(), 1024);
+    ASSERT_TRUE(ashmem != nullptr);
+    EXPECT_EQ(MapReadAndWriteCAshmem(ashmem), true);
+    EXPECT_EQ(WriteToCAshmem(ashmem, const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(ashmemString.c_str())),
+        strlen(ashmemString.c_str()), 0), true);
+    EXPECT_EQ(CParcelWriteAshmem(parcel, ashmem), true);
+    EXPECT_EQ(CParcelRewindRead(parcel, 0), true);
+
+    CAshmem *ashmem2 = CParcelReadAshmem(parcel);
+    ASSERT_TRUE(ashmem2 != nullptr);
+    ASSERT_TRUE(MapReadOnlyCAshmem(ashmem2));
+    const void *content = ReadFromCAshmem(ashmem2, strlen(ashmemString.c_str()), 0);
+    ASSERT_TRUE(content != nullptr);
+
+    auto readContent = static_cast<const char *>(content);
+    std::string str(readContent, strlen(ashmemString.c_str()));
+    EXPECT_EQ(str, ashmemString);
+
+    UnmapCAshmem(ashmem);
+    CloseCAshmem(ashmem);
+    UnmapCAshmem(ashmem2);
+    CloseCAshmem(ashmem2);
 }

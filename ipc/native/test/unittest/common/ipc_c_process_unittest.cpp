@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include <nativetoken_kit.h>
+#include <securec.h>
 #include <token_setproc.h>
 #include <unistd.h>
 #include "c_process.h"
@@ -59,6 +60,25 @@ static void InitTokenId(void)
     SetSelfTokenID(tokenId);
 }
 
+static bool BytesAllocator(void *stringData, char **buffer, int32_t len)
+{
+    if (buffer == nullptr || len < 0) {
+        return false;
+    }
+    if (len != 0) {
+        *buffer = (char *)malloc(len);
+        if (*buffer == nullptr) {
+            return false;
+        }
+        (void)memset_s(*buffer, len, 0, len);
+    }
+    void **ptr = reinterpret_cast<void **>(stringData);
+    if (ptr != nullptr) {
+        *ptr = *buffer;
+    }
+    return true;
+}
+
 /**
  * @tc.name: CProcessCallingInfo
  * @tc.desc: Verify the CProcess calling info functions
@@ -72,4 +92,69 @@ HWTEST_F(IpcCProcessUnitTest, CProcessCallingInfo, TestSize.Level1)
     EXPECT_EQ(GetFirstToekenId(), 0);
     EXPECT_EQ(GetCallingPid(), static_cast<uint64_t>(getpid()));
     EXPECT_EQ(GetCallingUid(), static_cast<uint64_t>(getuid()));
+}
+
+/**
+ * @tc.name: SetMaxWorkThreadNum
+ * @tc.desc: Verify set max work thread
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCProcessUnitTest, SetMaxWorkThreadNum, TestSize.Level1)
+{
+    EXPECT_EQ(true, SetMaxWorkThreadNum(3));
+}
+
+/**
+ * @tc.name: CallingIdentity
+ * @tc.desc: Verify reset and set calling identity
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCProcessUnitTest, CallingIdentity, TestSize.Level1)
+{
+    void *value = nullptr;
+    bool ret = ResetCallingIdentity(reinterpret_cast<void *>(&value), BytesAllocator);
+    EXPECT_EQ(true, ret);
+    ret = SetCallingIdentity(reinterpret_cast<const char *>(value));
+    EXPECT_EQ(false, ret);
+    if (value != nullptr) {
+        free(value);
+    }
+}
+
+/**
+ * @tc.name: IsLocalCalling
+ * @tc.desc: Verify whether it is local calling
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCProcessUnitTest, IsLocalCalling, TestSize.Level1)
+{
+    EXPECT_EQ(true, IsLocalCalling());
+}
+
+/**
+ * @tc.name: GetCallingDeviceID
+ * @tc.desc: Get calling device ID
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCProcessUnitTest, GetCallingDeviceID, TestSize.Level1)
+{
+    void *value = nullptr;
+    EXPECT_EQ(GetCallingDeviceID(value, BytesAllocator), true);
+    if (value != nullptr) {
+        free(value);
+    }
+}
+
+/**
+ * @tc.name: GetLocalDeviceID
+ * @tc.desc: Get local device ID
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCProcessUnitTest, GetLocalDeviceID, TestSize.Level1)
+{
+    void *value = nullptr;
+    EXPECT_EQ(GetLocalDeviceID(value, BytesAllocator), true);
+    if (value != nullptr) {
+        free(value);
+    }
 }

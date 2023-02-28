@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstring>
+#include <securec.h>
 #include "c_process.h"
 #include "c_remote_object.h"
 #include "c_remote_object_internal.h"
@@ -67,6 +69,34 @@ static void OnDeathRecipient(const void *userData)
 static void OnDeathRecipientDestroy(const void *userData)
 {
     (void)userData;
+}
+
+static bool Bytes16Allocator(void *stringData, uint16_t **buffer, int32_t len)
+{
+    if (buffer == nullptr || len < 0) {
+        return false;
+    }
+    if (len != 0) {
+        *buffer = (uint16_t *)malloc(len * sizeof(uint16_t));
+        if (*buffer == nullptr) {
+            return false;
+        }
+        (void)memset_s(*buffer, len * sizeof(uint16_t), 0, len * sizeof(uint16_t));
+    }
+    void **ptr = reinterpret_cast<void **>(stringData);
+    if (ptr != nullptr) {
+        *ptr = *buffer;
+    }
+    return true;
+}
+
+static bool StringArrayWrite(const void *array, const void *value, uint32_t len)
+{
+    if (value == nullptr || len < 0) {
+        return false;
+    }
+    array = value;
+    return true;
 }
 
 /**
@@ -219,4 +249,69 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CDeathRecipient, TestSize.Level1)
     // destroy the CDeathRecipient object
     DeathRecipientDecStrongRef(recipient);
     RemoteObjectDecStrongRef(samgr);
+}
+
+/**
+ * @tc.name: CRemoteObjectIsProxyObject
+ * @tc.desc: Verify whether the bit proxy object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectIsProxyObject, TestSize.Level1)
+{
+    int8_t userData;
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    EXPECT_NE(remote, nullptr);
+
+    bool ret = IsProxyObject(remote);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CRemoteObjectIsObjectDead
+ * @tc.desc: Verify whether the object is dead
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectIsObjectDead, TestSize.Level1)
+{
+    int8_t userData;
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    EXPECT_NE(remote, nullptr);
+
+    bool ret = IsObjectDead(remote);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CRemoteObjectGetInterfaceDescriptor
+ * @tc.desc: Get interface descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectGetInterfaceDescriptor, TestSize.Level1)
+{
+    int8_t userData;
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    EXPECT_NE(remote, nullptr);
+
+    void *data = nullptr;
+    bool ret = GetInterfaceDescriptor(remote, reinterpret_cast<void *>(&data), Bytes16Allocator);
+    EXPECT_EQ(ret, false);
+    if (data != nullptr) {
+        free(data);
+    }
+}
+
+/**
+ * @tc.name: CRemoteObjectDump
+ * @tc.desc: Dump the service through the incoming string
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectDump, TestSize.Level1)
+{
+    int8_t userData;
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    EXPECT_NE(remote, nullptr);
+
+    const char *data = SERVICE_NAME;
+    int ret = Dump(remote, 0, reinterpret_cast<const void *>(&data), strlen(data), StringArrayWrite);
+    EXPECT_EQ(ret, 0);
 }
