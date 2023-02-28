@@ -55,6 +55,10 @@
             "OHOS::IPCObjectStub::GetObjectType() const";
             "OHOS::IPCObjectStub::GetCallingPid()";
             "OHOS::IPCObjectStub::GetCallingUid()";
+            "OHOS::IPCObjectStub::GetCallingTokenID()";
+            "OHOS::IPCObjectStub::GetCallingFullTokenID()";
+            "OHOS::IPCObjectStub::GetFirstTokenID()";
+            "OHOS::IPCObjectStub::GetFirstFullTokenID()";
             "OHOS::IPCObjectStub::RemoveDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
             "virtual thunk to OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
             "virtual thunk to OHOS::IPCObjectStub::OnLastStrongRef(void const*)";
