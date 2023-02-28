@@ -23,6 +23,7 @@
             OHOS::BrokerRegistration::Register*;
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
+            OHOS::IPCSkeleton*;
             OHOS::IPCSkeleton::SetCallingIdentity*;
             OHOS::IRemoteObject::IRemoteObject*;
             "OHOS::MessageParcel::MessageParcel()";
