@@ -37,7 +37,7 @@ use std::fs::File;
 fn get_test_service() -> RemoteObjRef<dyn ITest>
 {
     let object = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
-    let remote = <dyn ITest as FromRemoteObj>::from(object);
+    let remote = <dyn ITest as FromRemoteObj>::try_from(object);
     let remote = match remote {
         Ok(x) => x,
         Err(error) => {
@@ -208,7 +208,7 @@ fn test_loop_request() {
 fn test_remote_obj() {
     let remote = get_test_service();
     let remote = remote.test_get_foo_service().expect("get FooService proxy failed");
-    <dyn IFoo as FromRemoteObj>::from(remote).expect(
+    <dyn IFoo as FromRemoteObj>::try_from(remote).expect(
         "convert foo service should success");
 }
 
