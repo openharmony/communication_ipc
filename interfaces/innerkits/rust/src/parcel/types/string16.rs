@@ -14,7 +14,7 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, Result, result_status, AsRawPtr};
+use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result, AsRawPtr};
 use std::convert::TryInto;
 use std::ffi::{CString};
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
@@ -41,7 +41,7 @@ impl String16 {
 }
 
 impl Serialize for String16 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let string = &self.0;
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
@@ -50,12 +50,12 @@ impl Serialize for String16 {
                 string.as_ptr() as *const c_char,
                 string.as_bytes().len().try_into().unwrap()
             )};
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for String16 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut vec: Option<Vec<u8>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -77,11 +77,11 @@ impl Deserialize for String16 {
                 Ok(Self(val))
             } else {
                 error!(LOG_LABEL, "convert native string16 to String fail");
-                Err(-1)
+                Err(IpcStatusCode::Failed)
             }
         } else {
             error!(LOG_LABEL, "read string16 from native fail");
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }

@@ -14,7 +14,7 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, Result, AsRawPtr, result_status};
+use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, AsRawPtr, status_result};
 use std::convert::TryInto;
 use std::ffi::{CString, c_char};
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
@@ -41,7 +41,7 @@ impl InterfaceToken {
 }
 
 impl Serialize for InterfaceToken {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let token = &self.0;
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
@@ -50,12 +50,12 @@ impl Serialize for InterfaceToken {
                 token.as_ptr() as *const c_char,
                 token.as_bytes().len().try_into().unwrap()
             )};
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for InterfaceToken {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut vec: Option<Vec<u8>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -77,11 +77,11 @@ impl Deserialize for InterfaceToken {
                 Ok(Self(val))
             } else {
                 error!(LOG_LABEL, "convert interface token to String fail");
-                Err(-1)
+                Err(IpcStatusCode::Failed)
             }
         }else{
             error!(LOG_LABEL, "read interface token from native fail");
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }

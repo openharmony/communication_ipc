@@ -21,7 +21,7 @@ pub use types::vec_u16_to_string;
 pub use types::vec_to_string;
 pub use parcelable::allocate_vec_with_buffer;
 
-use crate::{ipc_binding, Result};
+use crate::{ipc_binding, IpcResult, IpcStatusCode};
 use crate::ipc_binding::{CParcel};
 use std::marker::PhantomData;
 use std::mem::{ManuallyDrop,MaybeUninit};
@@ -128,7 +128,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
     }
 
     /// Read a sized bytes stream from parcel
-    fn read_buffer(&self, len: u32) -> Result<Vec<u8>> {
+    fn read_buffer(&self, len: u32) -> IpcResult<Vec<u8>> {
         let mut buffer: Vec<MaybeUninit<u8>> = Vec::with_capacity(len as usize);
         // SAFETY: this is safe because the vector contains MaybeUninit elements which can be uninitialized
         unsafe{
@@ -148,7 +148,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
             std::mem::transmute(v)
         }
         let buffer = unsafe { transmute_vec(buffer) };
-        if ok_status { Ok(buffer) } else { Err(-1) }
+        if ok_status { Ok(buffer) } else { Err(IpcStatusCode::Failed) }
     }
 
     /// Write a large bytes stream into parcel
@@ -161,12 +161,12 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
     }
 
     /// Read a big bytes stream from parcel
-    fn read_raw_data(&self, len: u32) -> Result<RawData> {
+    fn read_raw_data(&self, len: u32) -> IpcResult<RawData> {
         let raw_data_ptr = unsafe {
             ipc_binding::CParcelReadRawData(self.as_raw(), len)
         };
         if raw_data_ptr.is_null() {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         } else {
             Ok(RawData::new(raw_data_ptr, len))
          }
@@ -234,9 +234,9 @@ impl RawData{
 
     /// The caller should ensure that the u8 slice can be
     /// correctly converted to other rust types
-    pub fn read(&self, start: u32, len: u32) -> Result<&[u8]> {
+    pub fn read(&self, start: u32, len: u32) -> IpcResult<&[u8]> {
         if len == 0 || len > self.len || start >= self.len || (start + len) > self.len {
-            return Err(-1);
+            return Err(IpcStatusCode::Failed);
         }
 
         let data_ptr = unsafe {
@@ -253,7 +253,7 @@ impl RawData{
                 Ok(slice::from_raw_parts::<u8>(data_ptr, len as usize))
             }
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
@@ -385,24 +385,24 @@ unsafe impl<'a> AsRawPtr<CParcel> for BorrowedMsgParcel<'a> {
 
 impl MsgParcel {
     /// Read a data object which implements the Deserialize trait from MsgParcel
-    pub fn read<D: Deserialize>(&self) -> Result<D> {
+    pub fn read<D: Deserialize>(&self) -> IpcResult<D> {
         self.borrowed_ref().read()
     }
 
     /// Write a data object which implements the Serialize trait to MsgParcel
-    pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> Result<()> {
+    pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> IpcResult<()> {
         self.borrowed().write(parcelable)
     }
 }
 
 impl<'a> BorrowedMsgParcel<'a> {
     /// Read a data object which implements the Deserialize trait from BorrowedMsgParcel
-    pub fn read<D: Deserialize>(&self) -> Result<D> {
+    pub fn read<D: Deserialize>(&self) -> IpcResult<D> {
         D::deserialize(self)
     }
 
     /// Write a data object which implements the Serialize trait to BorrowedMsgParcel
-    pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> Result<()> {
+    pub fn write<S: Serialize + ?Sized>(&mut self, parcelable: &S) -> IpcResult<()> {
         parcelable.serialize(self)
     }
 }

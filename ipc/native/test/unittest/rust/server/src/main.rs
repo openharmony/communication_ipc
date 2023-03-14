@@ -19,10 +19,10 @@ extern crate ipc_rust;
 extern crate test_ipc_service;
 
 use ipc_rust::{
-    IRemoteBroker, join_work_thread, FileDesc, InterfaceToken, Result,
+    IRemoteBroker, join_work_thread, FileDesc, InterfaceToken, IpcResult,
     add_service, get_calling_token_id, get_first_token_id, get_calling_pid,
     get_calling_uid, String16, RemoteObj, IRemoteStub, get_local_device_id,
-    get_calling_device_id,
+    get_calling_device_id, IpcStatusCode,
 };
 use test_ipc_service::{ITest, TestStub, IPC_TEST_SERVICE_ID, reverse, IFoo, FooStub, init_access_token};
 use std::io::Write;
@@ -42,31 +42,31 @@ impl IRemoteBroker for FooService {
 pub struct TestService;
 
 impl ITest for TestService {
-    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> Result<i32> {
+    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> IpcResult<i32> {
         if delay_time > 0 {
             thread::sleep(time::Duration::from_millis(delay_time as u64));
         }
         Ok(reverse(value))
     }
 
-    fn test_async_transaction(&self, _value: i32, delay_time: i32) -> Result<()> {
+    fn test_async_transaction(&self, _value: i32, delay_time: i32) -> IpcResult<()> {
         if delay_time > 0 {
             thread::sleep(time::Duration::from_millis(delay_time as u64));
         }
         Ok(())
     }
 
-    fn test_ping_service(&self, service_name: &String16) -> Result<()> {
+    fn test_ping_service(&self, service_name: &String16) -> IpcResult<()> {
         let name = service_name.get_string();
         println!("test_ping_service recv service name: {}", name);
         if name == TestStub::get_descriptor() {
             Ok(())
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 
-    fn test_transact_fd(&self) -> Result<FileDesc> {
+    fn test_transact_fd(&self) -> IpcResult<FileDesc> {
         let path = "/data/test.txt";
         let mut value = OpenOptions::new().read(true)
                                           .write(true)
@@ -77,20 +77,20 @@ impl ITest for TestService {
         Ok(FileDesc::new(value))
     }
 
-    fn test_transact_string(&self, value: &str) -> Result<i32> {
+    fn test_transact_string(&self, value: &str) -> IpcResult<i32> {
         Ok(value.len() as i32)
     }
 
-    fn test_get_foo_service(&self) -> Result<RemoteObj> {
+    fn test_get_foo_service(&self) -> IpcResult<RemoteObj> {
         let service = FooStub::new_remote_stub(FooService).expect("create FooService success");
         Ok(service.as_object().expect("get a RemoteObj success"))
     }
 
-    fn echo_interface_token(&self, token: &InterfaceToken) -> Result<InterfaceToken> {
+    fn echo_interface_token(&self, token: &InterfaceToken) -> IpcResult<InterfaceToken> {
         Ok(InterfaceToken::new(&token.get_token()))
     }
 
-    fn echo_calling_info(&self) -> Result<(u64, u64, u64, u64)> {
+    fn echo_calling_info(&self) -> IpcResult<(u64, u64, u64, u64)> {
         let token_id = get_calling_token_id();
         let first_token_id = get_first_token_id();
         let pid = get_calling_pid();
@@ -98,14 +98,14 @@ impl ITest for TestService {
         Ok((token_id, first_token_id, pid, uid))
     }
 
-    fn test_get_device_id(&self) -> Result<(String, String)> {
+    fn test_get_device_id(&self) -> IpcResult<(String, String)> {
         let local_device_id = get_local_device_id();
         let calling_device_id = get_calling_device_id();
 
         if let (Ok(local_id), Ok(calling_id)) = (local_device_id, calling_device_id) {
             Ok((local_id, calling_id))
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }

@@ -17,12 +17,12 @@ extern crate ipc_rust;
 extern crate example_calc_ipc_service;
 
 use ipc_rust::{FromRemoteObj, RemoteObjRef, get_service,};
-use example_calc_ipc_service::{ICalc, CalcProxy, EXAMPLE_IPC_CALC_SERVICE_ID, init_access_token};
+use example_calc_ipc_service::{ICalc, EXAMPLE_IPC_CALC_SERVICE_ID};
 
 fn get_calc_service() -> RemoteObjRef<dyn ICalc>
 {
     let object = get_service(EXAMPLE_IPC_CALC_SERVICE_ID).expect("get icalc service failed");
-    let remote = <dyn ICalc as FromRemoteObj>::from(object);
+    let remote = <dyn ICalc as FromRemoteObj>::try_from(object);
     let remote = match remote {
         Ok(x) => x,
         Err(error) => {
@@ -34,7 +34,7 @@ fn get_calc_service() -> RemoteObjRef<dyn ICalc>
 }
 
 #[test]
-fn Calculator_Ability() {
+fn calculator_ability() {
     let remote = get_calc_service();
     // add
     let ret = remote.add(5, 5).expect("add failed");

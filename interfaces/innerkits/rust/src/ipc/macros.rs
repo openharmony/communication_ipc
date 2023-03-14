@@ -46,7 +46,7 @@ macro_rules! define_remote_object {
 
         impl $proxy {
             /// Create proxy object by RemoteObj
-            fn from_remote_object(remote: &RemoteObj) -> $crate::Result<Self> {
+            fn from_remote_object(remote: &RemoteObj) -> $crate::IpcResult<Self> {
                 Ok(Self {
                     remote: remote.clone(),
                     $($item_name: $item_init),*
@@ -89,10 +89,11 @@ macro_rules! define_remote_object {
                 reply: &mut $crate::BorrowedMsgParcel) -> i32 {
                 // For example, "self.0" is "Box<dyn ITest>", "*self.0" is "dyn ITest"
                 let result = $on_remote_request(&*self.0, code, data, reply);
+
                 match result {
                     Ok(_) => 0,
                     Err(error) => {
-                        error
+                        error as i32
                     }
                 }
             }
@@ -101,7 +102,7 @@ macro_rules! define_remote_object {
         impl $crate::FromRemoteObj for dyn $remote_broker {
             /// For example, convert RemoteObj to RemoteObjRef<dyn ITest>
             fn try_from(object: $crate::RemoteObj)
-                -> $crate::Result<$crate::RemoteObjRef<dyn $remote_broker>> {
+                -> $crate::IpcResult<$crate::RemoteObjRef<dyn $remote_broker>> {
                 Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(&object)?)))
             }
         }

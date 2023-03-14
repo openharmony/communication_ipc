@@ -16,14 +16,14 @@
 use super::*;
 
 impl<T: SerArray, const N: usize> Serialize for [T; N] {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // forwards to T::serialize_array.
         SerArray::ser_array(self, parcel)
     }
 }
 
 impl<T: SerArray, const N: usize> SerOption for [T; N] {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         SerOption::ser_option(this.map(|arr| &arr[..]), parcel)
     }
 }
@@ -31,18 +31,18 @@ impl<T: SerArray, const N: usize> SerOption for [T; N] {
 impl<T: SerArray, const N: usize> SerArray for [T; N] {}
 
 impl<T: DeArray, const N: usize> Deserialize for [T; N] {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let vec = DeArray::de_array(parcel)
             .transpose()
-            .unwrap_or(Err(-1))?;
-        vec.try_into().or(Err(-1))
+            .unwrap_or(Err(IpcStatusCode::Failed))?;
+        vec.try_into().or(Err(IpcStatusCode::Failed))
     }
 }
 
 impl<T: DeArray, const N: usize> DeOption for [T; N] {
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Self>> {
         let vec = DeArray::de_array(parcel)?;
-        vec.map(|v| v.try_into().or(Err(-1))).transpose()
+        vec.map(|v| v.try_into().or(Err(IpcStatusCode::Failed))).transpose()
     }
 }
 

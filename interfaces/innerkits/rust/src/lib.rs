@@ -23,7 +23,7 @@ mod process;
 mod ashmem;
 
 // Export types of this crate
-pub use crate::errors::{Result, result_status};
+pub use crate::errors::{IpcResult, status_result, IpcStatusCode, parse_status_code};
 pub use crate::ipc::{
     IRemoteBroker, IRemoteObj, IRemoteStub, FromRemoteObj, RemoteObjRef,
     remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient,

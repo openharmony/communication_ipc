@@ -16,25 +16,25 @@
 use super::*;
 
 impl<T: Serialize> Serialize for Box<T> {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         Serialize::serialize(&**self, parcel)
     }
 }
 
 impl<T: Deserialize> Deserialize for Box<T> {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         Deserialize::deserialize(parcel).map(Box::new)
     }
 }
 
 impl<T: SerOption> SerOption for Box<T> {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         SerOption::ser_option(this.map(|inner| &**inner), parcel)
     }
 }
 
 impl<T: DeOption> DeOption for Box<T> {
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Self>> {
         DeOption::de_option(parcel).map(|t| t.map(Box::new))
     }
 }

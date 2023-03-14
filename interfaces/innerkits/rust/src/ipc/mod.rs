@@ -17,7 +17,7 @@ pub mod remote_obj;
 pub mod remote_stub;
 pub mod macros;
 
-use crate::{BorrowedMsgParcel, MsgParcel, Result, DeathRecipient,};
+use crate::{BorrowedMsgParcel, MsgParcel, IpcResult, DeathRecipient,};
 use std::ops::{Deref};
 use std::cmp::Ordering;
 use crate::String16;
@@ -28,7 +28,7 @@ pub use crate::RemoteObj;
 /// Like C++ IRemoteObject class, define function for both proxy and stub object
 pub trait IRemoteObj {
     /// Send a IPC request to remote service
-    fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> Result<MsgParcel>;
+    fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> IpcResult<MsgParcel>;
 
     /// Add a death recipient
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool;
@@ -46,7 +46,7 @@ pub trait IRemoteObj {
     fn is_dead(&self) -> bool;
 
     /// get interface descriptor
-    fn interface_descriptor(&self) -> Result<String>;
+    fn interface_descriptor(&self) -> IpcResult<String>;
 }
 
 /// Like C++ IPCObjectStub class, define function for stub object only, like on_remote_request().
@@ -70,7 +70,7 @@ pub trait IRemoteBroker: Send + Sync {
 /// dynamic trait object: IRemoteObject. For example, "dyn ITest" should implements this trait
 pub trait FromRemoteObj: IRemoteBroker {
     /// Convert a RemoteObj to RemoteObjeRef
-    fn try_from(object: RemoteObj) -> Result<RemoteObjRef<Self>>;
+    fn try_from(object: RemoteObj) -> IpcResult<RemoteObjRef<Self>>;
 }
 
 /// Strong reference for "dyn IRemoteBroker" object, for example T is "dyn ITest"
@@ -93,7 +93,9 @@ impl<T: FromRemoteObj + ?Sized> Deref for RemoteObjRef<T> {
 
 impl<I: FromRemoteObj + ?Sized> Clone for RemoteObjRef<I> {
     fn clone(&self) -> Self {
-        // non None
+        // Clone is a method in the RemoteObjRef structure.
+        // T in RemoteObjRef<T>implements the trait FromRemoteObj,
+        // so self.0.as_ Object(). unwrap() must be a RemoteObj object that exists
         FromRemoteObj::try_from(self.0.as_object().unwrap()).unwrap()
     }
 }
