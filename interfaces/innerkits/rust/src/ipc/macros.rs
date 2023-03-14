@@ -100,7 +100,7 @@ macro_rules! define_remote_object {
 
         impl $crate::FromRemoteObj for dyn $remote_broker {
             /// For example, convert RemoteObj to RemoteObjRef<dyn ITest>
-            fn from(object: $crate::RemoteObj)
+            fn try_from(object: $crate::RemoteObj)
                 -> $crate::Result<$crate::RemoteObjRef<dyn $remote_broker>> {
                 Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(&object)?)))
             }
