@@ -16,27 +16,27 @@
 use super::*;
 
 impl<T: SerArray> Serialize for Vec<T> {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         SerArray::ser_array(&self[..], parcel)
     }
 }
 
 impl<T: SerArray> SerOption for Vec<T> {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         SerOption::ser_option(this.map(Vec::as_slice), parcel)
     }
 }
 
 impl<T: DeArray> Deserialize for Vec<T> {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         DeArray::de_array(parcel)
             .transpose()
-            .unwrap_or(Err(-1))
+            .unwrap_or(Err(IpcStatusCode::Failed))
     }
 }
 
 impl<T: DeArray> DeOption for Vec<T> {
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Self>> {
         DeArray::de_array(parcel)
     }
 }

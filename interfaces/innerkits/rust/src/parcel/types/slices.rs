@@ -14,16 +14,16 @@
  */
 
 use super::*;
-use crate::{BorrowedMsgParcel, Result};
+use crate::{BorrowedMsgParcel, IpcResult};
 
 impl<T: SerArray> Serialize for [T] {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         SerArray::ser_array(self, parcel)
     }
 }
 
 impl<T: SerArray> SerOption for [T] {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         if let Some(v) = this {
             SerArray::ser_array(v, parcel)
         } else {

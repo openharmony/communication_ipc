@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-use crate::{Result, result_status, BorrowedMsgParcel, ipc_binding, AsRawPtr};
+use crate::{IpcResult, IpcStatusCode, status_result, BorrowedMsgParcel, ipc_binding, AsRawPtr};
 use std::mem::MaybeUninit;
 use std::ffi::{c_void, c_ulong};
 use std::ptr;
@@ -26,14 +26,14 @@ use std::ptr;
 /// struct Year(i64);
 ///
 /// impl Serialize for Year {
-///     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+///     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
 ///         parcel::write(self.0);
 ///     }
 /// }
 /// ```
 pub trait Serialize {
     /// Serialize Self to BorrowedMsgParcel
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()>;
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()>;
 }
 
 /// Implement `Deserialize` trait to deserialize a custom MsgParcel.
@@ -44,7 +44,7 @@ pub trait Serialize {
 /// struct Year(i64);
 ///
 /// impl Deserialize for Year {
-///     fn deserialize(parcel: &mut BorrowedMsgParcel<'_>) -> Result<Self> {
+///     fn deserialize(parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<Self> {
 ///         let i = parcel::read::<i64>(parcel);
 ///         Ok(Year(i))
 ///     }
@@ -52,7 +52,7 @@ pub trait Serialize {
 /// ```
 pub trait Deserialize: Sized {
     /// Deserialize an instance from the given [`Parcel`].
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self>;
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self>;
 }
 
 pub const NULL_FLAG : i32 = 0;
@@ -61,7 +61,7 @@ pub const NON_NULL_FLAG : i32 = 1;
 /// Define trait function for Option<T> which T must implements the trait Serialize.
 pub trait SerOption: Serialize {
     /// Serialize the Option<T>
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<(), > {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<(), > {
         if let Some(inner) = this {
             parcel.write(&NON_NULL_FLAG)?;
             parcel.write(inner)
@@ -74,7 +74,7 @@ pub trait SerOption: Serialize {
 /// Define trait function for Option<T> which T must implements the trait Deserialize.
 pub trait DeOption: Deserialize {
     /// Deserialize the Option<T>
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Self>> {
         let null: i32 = parcel.read()?;
         if null == NULL_FLAG {
             Ok(None)
@@ -131,7 +131,7 @@ unsafe extern "C" fn allocate_vec<T>(
 // a few special ones like `readByteArray` for `u8`.
 pub trait SerArray: Serialize + Sized {
     /// Default array serialize implement.
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: Safe FFI, slice will always be a safe pointer to pass.
             ipc_binding::CParcelWriteParcelableArray(
@@ -141,7 +141,7 @@ pub trait SerArray: Serialize + Sized {
                 ser_element::<Self>,
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
@@ -175,7 +175,7 @@ pub(crate) unsafe extern "C" fn ser_element<T: Serialize>(
 /// but can be overridden for custom implementations like `readByteArray`.
 pub trait DeArray: Deserialize {
     /// Deserialize an array of type from the given parcel.
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: Safe FFI, vec is the correct opaque type expected by
@@ -200,7 +200,7 @@ pub trait DeArray: Deserialize {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
