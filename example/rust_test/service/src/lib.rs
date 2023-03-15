@@ -20,7 +20,7 @@ extern crate ipc_rust;
 mod access_token;
 
 use ipc_rust::{
-    IRemoteBroker, IRemoteObj, RemoteStub, Result,
+    IRemoteBroker, IRemoteObj, RemoteStub, IpcResult, IpcStatusCode,
     RemoteObj, define_remote_object, FIRST_CALL_TRANSACTION,
 };
 use ipc_rust::{
@@ -71,14 +71,14 @@ pub enum ICalcCode {
 }
 
 impl TryFrom<u32> for ICalcCode {
-    type Error = i32;
-    fn try_from(code: u32) -> Result<Self> {
+    type Error = IpcStatusCode;
+    fn try_from(code: u32) -> IpcResult<Self> {
         match code {
             _ if code == ICalcCode::CodeAdd as u32 => Ok(ICalcCode::CodeAdd),
             _ if code == ICalcCode::CodeSub as u32 => Ok(ICalcCode::CodeSub),
             _ if code == ICalcCode::CodeMul as u32 => Ok(ICalcCode::CodeMul),
             _ if code == ICalcCode::CodeDiv as u32 => Ok(ICalcCode::CodeDiv),
-            _ => Err(-1),
+            _ => Err(IpcStatusCode::Failed),
         }
     }
 }
@@ -86,17 +86,17 @@ impl TryFrom<u32> for ICalcCode {
 /// Function between proxy and stub of ICalcService 
 pub trait ICalc: IRemoteBroker {
     /// Calc add num1 + num2
-    fn add(&self, num1: i32, num2: i32) -> Result<i32>;
+    fn add(&self, num1: i32, num2: i32) -> IpcResult<i32>;
     /// Calc sub num1 + num2
-    fn sub(&self, num1: i32, num2: i32) -> Result<i32>;
+    fn sub(&self, num1: i32, num2: i32) -> IpcResult<i32>;
     /// Calc mul num1 + num2
-    fn mul(&self, num1: i32, num2: i32) -> Result<i32>;
+    fn mul(&self, num1: i32, num2: i32) -> IpcResult<i32>;
     /// Calc div num1 + num2
-    fn div(&self, num1: i32, num2: i32) -> Result<i32>;
+    fn div(&self, num1: i32, num2: i32) -> IpcResult<i32>;
 }
 
 fn on_icalc_remote_request(stub: &dyn ICalc, code: u32, data: &BorrowedMsgParcel,
-    reply: &mut BorrowedMsgParcel) -> Result<()> {
+    reply: &mut BorrowedMsgParcel) -> IpcResult<()> {
     match code.try_into()? {
         ICalcCode::CodeAdd => {
             let num1: i32 = data.read().expect("Failed to read num1 in addition operation");
@@ -138,22 +138,22 @@ define_remote_object!(
 
 // Make RemoteStub<CalcStub> object can call ICalc function directly.
 impl ICalc for RemoteStub<CalcStub> {
-    fn add (&self, num1: i32, num2: i32) -> Result<i32> {
+    fn add (&self, num1: i32, num2: i32) -> IpcResult<i32> {
         self.0.add(num1, num2)
     }
-    fn sub (&self, num1: i32, num2: i32) -> Result<i32> {
+    fn sub (&self, num1: i32, num2: i32) -> IpcResult<i32> {
         self.0.sub(num1, num2)
     }
-    fn mul (&self, num1: i32, num2: i32) -> Result<i32> {
+    fn mul (&self, num1: i32, num2: i32) -> IpcResult<i32> {
         self.0.mul(num1, num2)
     }
-    fn div (&self, num1: i32, num2: i32) -> Result<i32> {
+    fn div (&self, num1: i32, num2: i32) -> IpcResult<i32> {
         self.0.div(num1, num2)
     }
 }
 
 impl ICalc for CalcProxy {
-    fn add(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn add(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(&num1)?;
         data.write(&num2)?;
@@ -162,7 +162,7 @@ impl ICalc for CalcProxy {
         let ret: i32 = reply.read().expect("need reply i32");
         Ok(ret)
     }
-    fn sub(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn sub(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(&num1)?;
         data.write(&num2)?;
@@ -171,7 +171,7 @@ impl ICalc for CalcProxy {
         let ret: i32 = reply.read().expect("need reply i32");
         Ok(ret)
     }
-    fn mul(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn mul(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(&num1)?;
         data.write(&num2)?;
@@ -180,7 +180,7 @@ impl ICalc for CalcProxy {
         let ret: i32 = reply.read().expect("need reply i32");
         Ok(ret)
     }
-    fn div(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn div(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(&num1)?;
         data.write(&num2)?;

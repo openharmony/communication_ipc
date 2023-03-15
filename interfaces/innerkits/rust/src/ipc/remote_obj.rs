@@ -17,9 +17,9 @@
 
 use std::ptr;
 use crate::{
-    ipc_binding, IRemoteObj, DeathRecipient, Result,
+    ipc_binding, IRemoteObj, DeathRecipient, IpcResult, IpcStatusCode,
     MsgParcel, BorrowedMsgParcel, AsRawPtr, parcel::on_string16_writer,
-    parcel::vec_u16_to_string,
+    parcel::vec_u16_to_string, parse_status_code,
 };
 use crate::ipc_binding::{CRemoteObject, CDeathRecipient};
 use crate::parcel::parcelable::{Serialize, Deserialize, allocate_vec_with_buffer};
@@ -55,7 +55,7 @@ impl RemoteObj {
 }
 
 impl IRemoteObj for RemoteObj {
-    fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> Result<MsgParcel> {
+    fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> IpcResult<MsgParcel> {
         // SAFETY:
         unsafe {
             let mut reply = MsgParcel::new().expect("create reply MsgParcel not success");
@@ -64,7 +64,7 @@ impl IRemoteObj for RemoteObj {
             if result == 0 {
                 Ok(reply)
             } else {
-                Err(result)
+                Err(parse_status_code(result))
             }
         }
     }
@@ -108,7 +108,7 @@ impl IRemoteObj for RemoteObj {
         }
     }
 
-    fn interface_descriptor(&self) -> Result<String> {
+    fn interface_descriptor(&self) -> IpcResult<String> {
         let mut vec: Option<Vec<u16>> = None;
         let ok_status = unsafe {
             // SAFETY:
@@ -121,26 +121,26 @@ impl IRemoteObj for RemoteObj {
         if ok_status {
             vec_u16_to_string(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl Serialize for RemoteObj {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             ipc_binding::CParcelWriteRemoteObject(parcel.as_mut_raw(), self.as_inner())
         };
         if ret {
             Ok(())
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl Deserialize for RemoteObj {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         // Safety: `Parcel` always contains a valid pointer to an
         // `AParcel`. We pass a valid, mutable pointer to `val`, a
         // literal of type `$ty`, and `$read_fn` will write the
@@ -151,7 +151,7 @@ impl Deserialize for RemoteObj {
         if let Some(x) = object {
             Ok(x)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }

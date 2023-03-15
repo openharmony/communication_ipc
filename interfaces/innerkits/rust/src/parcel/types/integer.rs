@@ -14,7 +14,7 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, Result, result_status, AsRawPtr};
+use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result, AsRawPtr};
 use std::mem::MaybeUninit;
 
 impl_serde_option_for_parcelable!(i8, u8, i16, u16, i32, u32, i64, u64, f32,f64);
@@ -23,63 +23,63 @@ impl_serde_option_for_parcelable!(i8, u8, i16, u16, i32, u32, i64, u64, f32,f64)
 
 ///  i8 && u8
 impl Serialize for i8 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteInt8(parcel.as_mut_raw(), *self)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for i8 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadInt8(parcel.as_raw(), &mut val)
         };
-        result_status::<i8>(ret, val)
+        status_result::<i8>(ret as i32, val)
     }
 }
 
 // u8 -> i8
 impl Serialize for u8 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         (*self as i8).serialize(parcel)
     }
 }
 // i8 -> u8
 impl Deserialize for u8 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         i8::deserialize(parcel).map(|v| v as u8)
     }
 }
 
 ///  i16 && u16
 impl Serialize for i16 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteInt16(parcel.as_mut_raw(), *self)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for i16 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadInt16(parcel.as_raw(), &mut val)
         };
-        result_status::<i16>(ret, val)
+        status_result::<i16>(ret as i32, val)
     }
 }
 
 impl SerArray for i8 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -93,12 +93,12 @@ impl SerArray for i8 {
                 slice.len().try_into().unwrap(),
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for i8 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -121,13 +121,13 @@ impl DeArray for i8 {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl SerArray for u8 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY:
         let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i8, slice.len()) };
         i8::ser_array(slice, parcel)
@@ -135,7 +135,7 @@ impl SerArray for u8 {
 }
 
 impl DeArray for u8 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         i8::de_array(parcel).map(|v|
             v.map(|mut v| v.iter_mut().map(|i| *i as u8).collect())
         )
@@ -143,7 +143,7 @@ impl DeArray for u8 {
 }
 
 impl SerArray for i16 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -157,12 +157,12 @@ impl SerArray for i16 {
                 slice.len().try_into().unwrap()
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for i16 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -185,13 +185,13 @@ impl DeArray for i16 {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl SerArray for u16 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY:
         let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i16, slice.len()) };
         i16::ser_array(slice, parcel)
@@ -199,7 +199,7 @@ impl SerArray for u16 {
 }
 
 impl DeArray for u16 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         i16::de_array(parcel).map(|v|
             v.map(|mut v| v.iter_mut().map(|i| *i as u16).collect())
         )
@@ -207,41 +207,41 @@ impl DeArray for u16 {
 }
 
 impl Serialize for u16 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         (*self as i16).serialize(parcel)
     }
 }
 
 impl Deserialize for u16 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         i16::deserialize(parcel).map(|v| v as u16)
     }
 }
 
 /// i32 && u32
 impl Serialize for i32 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteInt32(parcel.as_mut_raw(), *self)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for i32 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadInt32(parcel.as_raw(), &mut val)
         };
-        result_status::<i32>(ret, val)
+        status_result::<i32>(ret as i32, val)
     }
 }
 
 impl SerArray for i32 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -255,12 +255,12 @@ impl SerArray for i32 {
                 slice.len().try_into().unwrap(),
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for i32 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -283,13 +283,13 @@ impl DeArray for i32 {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl SerArray for u32 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY:
         let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i32, slice.len()) };
         i32::ser_array(slice, parcel)
@@ -297,7 +297,7 @@ impl SerArray for u32 {
 }
 
 impl DeArray for u32 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         i32::de_array(parcel).map(|v|
             v.map(|mut v| v.iter_mut().map(|i| *i as u32).collect())
         )
@@ -305,41 +305,41 @@ impl DeArray for u32 {
 }
 
 impl Serialize for u32 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         (*self as i32).serialize(parcel)
     }
 }
 
 impl Deserialize for u32 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         i32::deserialize(parcel).map(|v| v as u32)
     }
 }
 
 /// i64 && u64
 impl Serialize for i64 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteInt64(parcel.as_mut_raw(), *self)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for i64 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadInt64(parcel.as_raw(), &mut val)
         };
-        result_status::<i64>(ret, val)
+        status_result::<i64>(ret as i32, val)
     }
 }
 
 impl SerArray for i64 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -353,12 +353,12 @@ impl SerArray for i64 {
                 slice.len().try_into().unwrap()
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for i64 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -381,13 +381,13 @@ impl DeArray for i64 {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl SerArray for u64 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY:
         let slice = unsafe {std::slice::from_raw_parts(slice.as_ptr() as *const i64, slice.len()) };
         i64::ser_array(slice, parcel)
@@ -395,7 +395,7 @@ impl SerArray for u64 {
 }
 
 impl DeArray for u64 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         i64::de_array(parcel).map(|v|
             v.map(|mut v| v.iter_mut().map(|i| *i as u64).collect())
         )
@@ -403,41 +403,41 @@ impl DeArray for u64 {
 }
 
 impl Serialize for u64 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         (*self as i64).serialize(parcel)
     }
 }
 
 impl Deserialize for u64 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         i64::deserialize(parcel).map(|v| v as u64)
     }
 }
 
 /// f32
 impl Serialize for f32 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteFloat(parcel.as_mut_raw(), *self)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for f32 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadFloat(parcel.as_raw(), &mut val)
         };
-        result_status::<f32>(ret, val)
+        status_result::<f32>(ret as i32, val)
     }
 }
 
 impl SerArray for f32 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -448,15 +448,15 @@ impl SerArray for f32 {
             ipc_binding::CParcelWriteFloatArray(
                 parcel.as_mut_raw(),
                 slice.as_ptr(),
-                slice.len().try_into().or(Err(-1))?,
+                slice.len().try_into().or(Err(IpcStatusCode::Failed))?,
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for f32 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -479,35 +479,35 @@ impl DeArray for f32 {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 /// f64
 impl Serialize for f64 {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteDouble(parcel.as_mut_raw(), *self)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Deserialize for f64 {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadDouble(parcel.as_raw(), &mut val)
         };
-        result_status::<f64>(ret, val)
+        status_result::<f64>(ret as i32, val)
     }
 }
 
 impl SerArray for f64 {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -521,12 +521,12 @@ impl SerArray for f64 {
                 slice.len().try_into().unwrap()
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for f64 {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -549,7 +549,7 @@ impl DeArray for f64 {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }

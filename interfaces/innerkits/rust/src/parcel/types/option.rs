@@ -16,13 +16,13 @@
 use super::*;
 
 impl<T: SerOption> Serialize for Option<T> {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         SerOption::ser_option(self.as_ref(), parcel)
     }
 }
 
 impl<T: DeOption> Deserialize for Option<T> {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         DeOption::de_option(parcel)
     }
 }

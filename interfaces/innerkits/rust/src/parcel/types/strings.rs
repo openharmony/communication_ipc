@@ -15,7 +15,7 @@
 
 use super::*;
 use crate::{
-    ipc_binding, BorrowedMsgParcel, Result, result_status,
+    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result,
     AsRawPtr
 };
 use std::convert::TryInto;
@@ -34,25 +34,25 @@ impl SerOption for String {}
 impl DeOption for String {}
 
 impl Serialize for str {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             ipc_binding::CParcelWriteString(
                 parcel.as_mut_raw(),
                 self.as_ptr() as *const c_char,
                 self.as_bytes().len().try_into().unwrap()
             )};
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl Serialize for String {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         self.as_str().serialize(parcel)
     }
 }
 
 impl Deserialize for String {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut vec: Option<Vec<u8>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -66,13 +66,13 @@ impl Deserialize for String {
         if ok_status {
             vec_to_string(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl SerArray for &str {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY:
             ipc_binding::CParcelWriteStringArray(
@@ -82,12 +82,12 @@ impl SerArray for &str {
                 on_str_writer,
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl SerArray for String {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY:
             ipc_binding::CParcelWriteStringArray(
@@ -97,12 +97,12 @@ impl SerArray for String {
                 on_string_writer,
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for String {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -124,7 +124,7 @@ impl DeArray for String {
             Ok(vec)
         } else {
             error!(LOG_LABEL, "read string from native fail");
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
@@ -236,31 +236,31 @@ unsafe extern "C" fn on_string_reader(
     true
 }
 
-pub fn vec_to_string(vec: Option<Vec<u8>>) -> Result<String> {
+pub fn vec_to_string(vec: Option<Vec<u8>>) -> IpcResult<String> {
     let value = vec.map(|s| {
         // The vector includes a null-terminator and
         // we don't want the string to be null-terminated for Rust.
-        String::from_utf8(s).or(Err(-1))
+        String::from_utf8(s).or(Err(IpcStatusCode::Failed))
     });
     if let Some(ret) = value {
         ret
     } else {
         error!(LOG_LABEL, "convert vector u8 to String fail");
-        Err(-1)
+        Err(IpcStatusCode::Failed)
     }
 }
 
-pub fn vec_u16_to_string(vec: Option<Vec<u16>>) -> Result<String> {
+pub fn vec_u16_to_string(vec: Option<Vec<u16>>) -> IpcResult<String> {
     let value = vec.map(|s| {
         // The vector includes a null-terminator and
         // we don't want the string to be null-terminated for Rust.
         let slice = &s[..];
-        String::from_utf16(slice).or(Err(-1))
+        String::from_utf16(slice).or(Err(IpcStatusCode::Failed))
     });
     if let Some(ret) = value {
         ret
     } else {
         error!(LOG_LABEL, "convert vector u16 to String fail");
-        Err(-1)
+        Err(IpcStatusCode::Failed)
     }
 }

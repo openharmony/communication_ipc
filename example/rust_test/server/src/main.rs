@@ -19,22 +19,22 @@ extern crate example_calc_ipc_service;
 extern crate ipc_rust;
 
 use example_calc_ipc_service::{ICalc, CalcStub, EXAMPLE_IPC_CALC_SERVICE_ID, init_access_token, add, sub, mul, div};
-use ipc_rust::{IRemoteBroker, join_work_thread, Result, add_service,};
+use ipc_rust::{IRemoteBroker, join_work_thread, IpcResult, add_service,};
 
 /// example.calc.ipc.ICalcService type
 pub struct CalcService;
 
 impl ICalc for CalcService {
-    fn add(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn add(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         Ok(add(&num1, &num2))
     }
-    fn sub(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn sub(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         Ok(sub(&num1, &num2))
     }
-    fn mul(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn mul(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         Ok(mul(&num1, &num2))
     }
-    fn div(&self, num1: i32, num2: i32) -> Result<i32> {
+    fn div(&self, num1: i32, num2: i32) -> IpcResult<i32> {
         Ok(div(&num1, &num2))
     }
 }

@@ -19,29 +19,28 @@ use std::mem::MaybeUninit;
 impl_serde_option_for_parcelable!(bool);
 
 impl Serialize for bool {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             let ret = ipc_binding::CParcelWriteBool(parcel.as_mut_raw(), *self);
-            result_status::<()>(ret, ())
+            status_result::<()>(ret as i32, ())
         }
     }
 }
 
 impl Deserialize for bool {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut val = Self::default();
         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelReadBool(parcel.as_raw(), &mut val)
         };
-
-        result_status::<bool>(ret, val)
+        status_result::<bool>(ret as i32, val)
     }
 }
 
 impl SerArray for bool {
-    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             // If the slice is > 0 length, `slice.as_ptr()` will be a
@@ -55,12 +54,12 @@ impl SerArray for bool {
                 slice.len().try_into().unwrap(),
             )
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl DeArray for bool {
-    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Vec<Self>>> {
+    fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
@@ -83,7 +82,7 @@ impl DeArray for bool {
             };
             Ok(vec)
         } else {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }

@@ -47,4 +47,7 @@ pub use self::strings::vec_to_string;
 
 use crate::parcel::parcelable::*;
 use std::ffi::{c_char, c_void};
-use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, result_status, Result, SerOption, DeOption};
+use crate::{
+    ipc_binding, BorrowedMsgParcel, AsRawPtr, status_result,
+    IpcResult, IpcStatusCode, SerOption, DeOption
+};

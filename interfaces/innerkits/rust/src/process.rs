@@ -15,7 +15,7 @@
 
 use crate::{
     ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterfaceToken, String16,
-    Result,
+    IpcResult, IpcStatusCode, parse_status_code,
 };
 use crate::parcel::{vec_to_string, allocate_vec_with_buffer,};
 use std::ffi::{CString, c_char, c_void};
@@ -37,7 +37,7 @@ pub fn get_context_object() -> Option<RemoteObj>
 }
 
 /// Add a service to samgr
-pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
+pub fn add_service(service: &RemoteObj, said: i32) -> IpcResult<()>
 {
     let samgr = get_context_object().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
@@ -51,11 +51,11 @@ pub fn add_service(service: &RemoteObj, said: i32) -> Result<()>
     let reply = samgr.send_request(3, &data, false)?;
     let reply_value: i32 = reply.read()?;
     info!(LOG_LABEL, "register service result: {}", reply_value);
-    if reply_value == 0 { Ok(())} else { Err(reply_value) }
+    if reply_value == 0 { Ok(())} else { Err(parse_status_code(reply_value)) }
 }
 
 /// Get a service proxy from samgr
-pub fn get_service(said: i32) -> Result<RemoteObj>
+pub fn get_service(said: i32) -> IpcResult<RemoteObj>
 {
     let samgr = get_context_object().expect("samgr is not null");
     let mut data = MsgParcel::new().expect("MsgParcel is not null");
@@ -164,7 +164,7 @@ pub fn set_calling_identity(identity: String) -> bool
 
 /// get local device id
 #[inline]
-pub fn get_local_device_id() ->  Result<String>
+pub fn get_local_device_id() ->  IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     let ok_status = unsafe {
@@ -178,13 +178,13 @@ pub fn get_local_device_id() ->  Result<String>
     if ok_status {
         vec_to_string(vec)
     } else {
-        Err(-1)
+        Err(IpcStatusCode::Failed)
     }
 }
 
 /// get calling device id
 #[inline]
-pub fn get_calling_device_id() -> Result<String>
+pub fn get_calling_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     let ok_status = unsafe {
@@ -198,13 +198,13 @@ pub fn get_calling_device_id() -> Result<String>
     if ok_status {
         vec_to_string(vec)
     } else {
-        Err(-1)
+        Err(IpcStatusCode::Failed)
     }
 }
 
 /// reset calling identity
 #[inline]
-pub fn reset_calling_identity() ->  Result<String>
+pub fn reset_calling_identity() ->  IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     let ok_status = unsafe {
@@ -218,6 +218,6 @@ pub fn reset_calling_identity() ->  Result<String>
     if ok_status {
         vec_to_string(vec)
     } else {
-        Err(-1)
+        Err(IpcStatusCode::Failed)
     }
 }

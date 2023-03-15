@@ -14,7 +14,7 @@
  */
 
 use crate::{
-    ipc_binding, RawData, Result, BorrowedMsgParcel, result_status,
+    ipc_binding, RawData, IpcResult, IpcStatusCode, BorrowedMsgParcel, status_result,
     AsRawPtr
 };
 use crate::ipc_binding::CAshmem;
@@ -156,13 +156,13 @@ impl Ashmem {
     }
 
     /// Read ashmem
-    pub fn read(&self, size: i32, offset: i32) -> Result<RawData> {
+    pub fn read(&self, size: i32, offset: i32) -> IpcResult<RawData> {
         let raw_ptr = unsafe {
             // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::ReadFromCAshmem(self.as_inner(), size, offset)
         };
         if raw_ptr.is_null() { 
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         } else {
             Ok(RawData::new(raw_ptr, size as u32))
         }
@@ -199,23 +199,23 @@ impl Drop for Ashmem {
 
 /// Write a ashmem
 impl Serialize for Ashmem {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         // SAFETY:
         let ret = unsafe {
             ipc_binding::CParcelWriteAshmem(parcel.as_mut_raw(), self.as_inner())
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 /// read a ashmem
 impl Deserialize for Ashmem {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let ptr = unsafe {
             ipc_binding::CParcelReadAshmem(parcel.as_raw())
         };
         if ptr.is_null() {
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         } else {
             // SAFETY:
             unsafe {

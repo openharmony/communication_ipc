@@ -14,17 +14,17 @@
  */
 
 use super::*;
-use crate::{BorrowedMsgParcel, Result};
+use crate::{BorrowedMsgParcel, IpcResult};
 
 // We need these to support Option<&T> for all T
 impl<T: Serialize + ?Sized> Serialize for &T {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         Serialize::serialize(*self, parcel)
     }
 }
 
 impl<T: SerOption + ?Sized> SerOption for &T {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<(), > {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<(), > {
         SerOption::ser_option(this.copied(), parcel)
     }
 }
