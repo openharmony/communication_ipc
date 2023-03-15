@@ -20,8 +20,8 @@ extern crate ipc_rust;
 mod access_token;
 
 use ipc_rust::{
-    IRemoteBroker, IRemoteObj, RemoteStub, Result,
-    RemoteObj, define_remote_object, FIRST_CALL_TRANSACTION
+    IRemoteBroker, IRemoteObj, RemoteStub, IpcResult, IpcStatusCode,
+    RemoteObj, define_remote_object, FIRST_CALL_TRANSACTION,
 };
 use ipc_rust::{
     MsgParcel, BorrowedMsgParcel, FileDesc, InterfaceToken, String16,
@@ -67,8 +67,8 @@ pub enum ITestCode {
 }
 
 impl TryFrom<u32> for ITestCode {
-    type Error = i32;
-    fn try_from(code: u32) -> Result<Self> {
+    type Error = IpcStatusCode;
+    fn try_from(code: u32) -> IpcResult<Self> {
         match code {
             _ if code == ITestCode::CodeSyncTransaction as u32 => Ok(ITestCode::CodeSyncTransaction),
             _ if code == ITestCode::CodeAsyncTransaction as u32 => Ok(ITestCode::CodeAsyncTransaction),
@@ -79,7 +79,7 @@ impl TryFrom<u32> for ITestCode {
             _ if code == ITestCode::CodeInterfaceToekn as u32 => Ok(ITestCode::CodeInterfaceToekn),
             _ if code == ITestCode::CodeCallingInfo as u32 => Ok(ITestCode::CodeCallingInfo),
             _ if code == ITestCode::CodeGetDeviceId as u32 => Ok(ITestCode::CodeGetDeviceId),
-            _ => Err(-1),
+            _ => Err(IpcStatusCode::Failed),
         }
     }
 }
@@ -87,27 +87,27 @@ impl TryFrom<u32> for ITestCode {
 /// Function between proxy and stub of ITestService 
 pub trait ITest: IRemoteBroker {
     /// Test sync transaction
-    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> Result<i32>;
+    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> IpcResult<i32>;
     /// Test async transaction
-    fn test_async_transaction(&self, value: i32, delay_time: i32) -> Result<()>;
+    fn test_async_transaction(&self, value: i32, delay_time: i32) -> IpcResult<()>;
     /// Test ping service transaction
-    fn test_ping_service(&self, service_name: &String16) -> Result<()>;
+    fn test_ping_service(&self, service_name: &String16) -> IpcResult<()>;
     /// Test file descriptor transaction
-    fn test_transact_fd(&self) -> Result<FileDesc>;
+    fn test_transact_fd(&self) -> IpcResult<FileDesc>;
     /// Test string transaction
-    fn test_transact_string(&self, value: &str) -> Result<i32>;
+    fn test_transact_string(&self, value: &str) -> IpcResult<i32>;
     /// Test get foo service IPC object transaction
-    fn test_get_foo_service(&self) -> Result<RemoteObj>;
+    fn test_get_foo_service(&self) -> IpcResult<RemoteObj>;
     /// Test interface token transaction
-    fn echo_interface_token(&self, token: &InterfaceToken) -> Result<InterfaceToken>;
+    fn echo_interface_token(&self, token: &InterfaceToken) -> IpcResult<InterfaceToken>;
     /// Test calling infomation transaction
-    fn echo_calling_info(&self) -> Result<(u64, u64, u64, u64)>;
+    fn echo_calling_info(&self) -> IpcResult<(u64, u64, u64, u64)>;
     /// Test get device id
-    fn test_get_device_id(&self) -> Result<(String, String)>;
+    fn test_get_device_id(&self) -> IpcResult<(String, String)>;
 }
 
 fn on_itest_remote_request(stub: &dyn ITest, code: u32, data: &BorrowedMsgParcel,
-    reply: &mut BorrowedMsgParcel) -> Result<()> {
+    reply: &mut BorrowedMsgParcel) -> IpcResult<()> {
     match code.try_into()? {
         ITestCode::CodeSyncTransaction => {
             let value: i32 = data.read().expect("should a value");
@@ -175,45 +175,45 @@ define_remote_object!(
 
 // Make RemoteStub<TestStub> object can call ITest function directly.
 impl ITest for RemoteStub<TestStub> {
-    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> Result<i32> {
+    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> IpcResult<i32> {
         self.0.test_sync_transaction(value, delay_time)
     }
 
-    fn test_async_transaction(&self, value: i32, delay_time: i32) -> Result<()> {
+    fn test_async_transaction(&self, value: i32, delay_time: i32) -> IpcResult<()> {
         self.0.test_async_transaction(value, delay_time)
     }
 
-    fn test_ping_service(&self, service_name: &String16) -> Result<()> {
+    fn test_ping_service(&self, service_name: &String16) -> IpcResult<()> {
         self.0.test_ping_service(service_name)
     }
 
-    fn test_transact_fd(&self) -> Result<FileDesc> {
+    fn test_transact_fd(&self) -> IpcResult<FileDesc> {
         self.0.test_transact_fd()
     }
 
-    fn test_transact_string(&self, value: &str) -> Result<i32> {
+    fn test_transact_string(&self, value: &str) -> IpcResult<i32> {
         self.0.test_transact_string(value)
     }
 
-    fn test_get_foo_service(&self) -> Result<RemoteObj> {
+    fn test_get_foo_service(&self) -> IpcResult<RemoteObj> {
         self.0.test_get_foo_service()
     }
 
-    fn echo_interface_token(&self, token: &InterfaceToken) -> Result<InterfaceToken> {
+    fn echo_interface_token(&self, token: &InterfaceToken) -> IpcResult<InterfaceToken> {
         self.0.echo_interface_token(token)
     }
 
-    fn echo_calling_info(&self) -> Result<(u64, u64, u64, u64)> {
+    fn echo_calling_info(&self) -> IpcResult<(u64, u64, u64, u64)> {
         self.0.echo_calling_info()
     }
 
-    fn test_get_device_id(&self) -> Result<(String, String)> {
+    fn test_get_device_id(&self) -> IpcResult<(String, String)> {
         self.0.test_get_device_id()
     }
 }
 
 impl ITest for TestProxy {
-    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> Result<i32> {
+    fn test_sync_transaction(&self, value: i32, delay_time: i32) -> IpcResult<i32> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(&value)?;
         data.write(&delay_time)?;
@@ -223,7 +223,7 @@ impl ITest for TestProxy {
         Ok(ret)
     }
 
-    fn test_async_transaction(&self, value: i32, delay_time: i32) -> Result<()> {
+    fn test_async_transaction(&self, value: i32, delay_time: i32) -> IpcResult<()> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(&value)?;
         data.write(&delay_time)?;
@@ -232,7 +232,7 @@ impl ITest for TestProxy {
         Ok(())
     }
 
-    fn test_ping_service(&self, service_name: &String16) -> Result<()> {
+    fn test_ping_service(&self, service_name: &String16) -> IpcResult<()> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(service_name)?;
         let _reply = self.remote.send_request(ITestCode::CodePingService as u32,
@@ -240,7 +240,7 @@ impl ITest for TestProxy {
         Ok(())
     }
 
-    fn test_transact_fd(&self) -> Result<FileDesc> {
+    fn test_transact_fd(&self) -> IpcResult<FileDesc> {
         let data = MsgParcel::new().expect("MsgParcel should success");
         let reply = self.remote.send_request(ITestCode::CodeTransactFd as u32,
             &data, false)?;
@@ -248,7 +248,7 @@ impl ITest for TestProxy {
         Ok(fd)
     }
 
-    fn test_transact_string(&self, value: &str) -> Result<i32> {
+    fn test_transact_string(&self, value: &str) -> IpcResult<i32> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(value).expect("should write string success");
         let reply = self.remote.send_request(ITestCode::CodeTransactString as u32,
@@ -257,7 +257,7 @@ impl ITest for TestProxy {
         Ok(len)
     }
 
-    fn test_get_foo_service(&self) -> Result<RemoteObj> {
+    fn test_get_foo_service(&self) -> IpcResult<RemoteObj> {
         let data = MsgParcel::new().expect("MsgParcel should success");
         let reply = self.remote.send_request(ITestCode::CodeGetFooService as u32,
             &data, false)?;
@@ -265,7 +265,7 @@ impl ITest for TestProxy {
         Ok(service)
     }
 
-    fn echo_interface_token(&self, token: &InterfaceToken) -> Result<InterfaceToken> {
+    fn echo_interface_token(&self, token: &InterfaceToken) -> IpcResult<InterfaceToken> {
         let mut data = MsgParcel::new().expect("MsgParcel should success");
         data.write(token).expect("write token should success");
         let reply = self.remote.send_request(ITestCode::CodeInterfaceToekn as u32,
@@ -274,7 +274,7 @@ impl ITest for TestProxy {
         Ok(echo_value)
     }
 
-    fn echo_calling_info(&self) -> Result<(u64, u64, u64, u64)> {
+    fn echo_calling_info(&self) -> IpcResult<(u64, u64, u64, u64)> {
         let data = MsgParcel::new().expect("MsgParcel should success");
         let reply = self.remote.send_request(ITestCode::CodeCallingInfo as u32,
             &data, false)?;
@@ -285,7 +285,7 @@ impl ITest for TestProxy {
         Ok((token_id, first_token_id, pid, uid))
     }
 
-    fn test_get_device_id(&self) -> Result<(String, String)> {
+    fn test_get_device_id(&self) -> IpcResult<(String, String)> {
         let data = MsgParcel::new().expect("MsgParcel should success");
         let reply = self.remote.send_request(ITestCode::CodeGetDeviceId as u32,
             &data, false)?;
@@ -300,7 +300,7 @@ pub trait IFoo: IRemoteBroker {
 }
 
 fn on_foo_remote_request(_stub: &dyn IFoo, _code: u32, _data: &BorrowedMsgParcel,
-    _reply: &mut BorrowedMsgParcel) -> Result<()> {
+    _reply: &mut BorrowedMsgParcel) -> IpcResult<()> {
     Ok(())
 }
 

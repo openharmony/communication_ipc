@@ -14,7 +14,7 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, result_status, Result};
+use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, status_result, IpcResult, IpcStatusCode};
 
 use std::fs::File;
 use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
@@ -73,18 +73,18 @@ impl PartialEq for FileDesc {
 impl Eq for FileDesc {}
 
 impl Serialize for FileDesc {
-    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let fd = self.0.as_raw_fd();
         let ret = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
             ipc_binding::CParcelWriteFileDescriptor(parcel.as_mut_raw(), fd)
         };
-        result_status::<()>(ret, ())
+        status_result::<()>(ret as i32, ())
     }
 }
 
 impl SerOption for FileDesc {
-    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+    fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         if let Some(f) = this {
             f.serialize(parcel)
         } else {
@@ -94,13 +94,13 @@ impl SerOption for FileDesc {
                 // descriptor to signify serializing a null file descriptor.
                 ipc_binding::CParcelWriteFileDescriptor(parcel.as_mut_raw(), -1i32)
             };
-            result_status::<()>(ret, ())
+            status_result::<()>(ret as i32, ())
         }
     }
 }
 
 impl DeOption for FileDesc {
-    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> Result<Option<Self>> {
+    fn de_option(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Self>> {
         let mut fd = -1i32;
         let ok_status = unsafe {
             // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
@@ -117,7 +117,7 @@ impl DeOption for FileDesc {
         if ok_status{
             if fd < 0 {
                 error!(LOG_LABEL, "file descriptor is invalid from native");
-                Err(-1)
+                Err(IpcStatusCode::Failed)
             } else {
                 let file = unsafe {
                     // SAFETY: At this point, we know that the file descriptor was
@@ -129,15 +129,15 @@ impl DeOption for FileDesc {
             }
         } else {
             error!(LOG_LABEL, "read file descriptor failed from native");
-            Err(-1)
+            Err(IpcStatusCode::Failed)
         }
     }
 }
 
 impl Deserialize for FileDesc {
-    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+    fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         Deserialize::deserialize(parcel)
             .transpose()
-            .unwrap_or(Err(-1))
+            .unwrap_or(Err(IpcStatusCode::Failed))
     }
 }

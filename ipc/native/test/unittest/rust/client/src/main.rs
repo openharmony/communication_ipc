@@ -25,9 +25,9 @@ use std::io::{Read, SeekFrom, Seek};
 use ipc_rust::{
     FromRemoteObj, DeathRecipient, IRemoteObj, FileDesc, RemoteObjRef,
     MsgParcel, String16, InterfaceToken, get_service, get_first_token_id,
-    get_self_token_id, get_calling_pid, get_calling_uid, IMsgParcel, Result,
+    get_self_token_id, get_calling_pid, get_calling_uid, IMsgParcel, IpcResult,
     RawData, set_max_work_thread, reset_calling_identity, set_calling_identity,
-    is_local_calling, get_local_device_id, get_calling_device_id,
+    is_local_calling, get_local_device_id, get_calling_device_id, IpcStatusCode,
 };
 
 use ipc_rust::{Serialize, Deserialize, BorrowedMsgParcel, Ashmem};
@@ -651,17 +651,17 @@ mod parcel_type_test {
         struct Year(i64);
 
         impl Serialize for Year {
-            fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> Result<()> {
+            fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
                 parcel.write(&self.0)
             }
         }
 
         impl Deserialize for Year {
-            fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> Result<Self> {
+            fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
                 let ret = parcel.read::<i64>();
                 match ret {
                     Ok(year) => Ok(Year(year)),
-                    Err(_) => Err(-1),
+                    Err(_) => Err(IpcStatusCode::Failed),
                 }
             }
         }
@@ -722,7 +722,7 @@ mod parcel_type_test {
             let ashmem2: Ashmem = parcel.read().expect("read MsgParcel failed");
             assert_eq!(ashmem2.map_readonly(), true);
 
-            let res: Result<RawData> = ashmem2.read(ashmemString.len() as i32, 0);
+            let res: IpcResult<RawData> = ashmem2.read(ashmemString.len() as i32, 0);
             let ptr = res.unwrap();
             let read_string = ptr.read(0, ashmemString.len() as u32);
             let res = std::str::from_utf8(read_string.unwrap()).unwrap();
