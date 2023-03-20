@@ -302,7 +302,7 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
             (void)DeleteDBinderStub(serviceName, deviceID);
             (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
         }
-	return nullptr;
+        return nullptr;
     }
     return dBinderServiceStub;
 }
