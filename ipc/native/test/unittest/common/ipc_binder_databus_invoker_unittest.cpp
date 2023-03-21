@@ -355,6 +355,36 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AuthSession2Proxy004
+ * @tc.desc: AuthSession2Proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy004, TestSize.Level1)
+{
+    uint32_t handle = 0;
+
+    IPCObjectProxy *ipcProxy = new IPCObjectProxy(handle, u"testproxy");
+    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
+    std::shared_ptr<DBinderSessionObject> databusSession =
+        std::make_shared<DBinderSessionObject>(session, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, ipcProxy, 1);
+    DBinderDatabusInvoker testInvoker;
+
+    EXPECT_CALL(*session, GetPeerPid())
+        .WillRepeatedly(testing::Return(1));
+
+    EXPECT_CALL(*session, GetPeerUid())
+        .WillRepeatedly(testing::Return(1));
+
+    EXPECT_CALL(*session, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef("test"));
+
+    bool res = testInvoker.AuthSession2Proxy(handle, databusSession);
+    EXPECT_FALSE(res);
+    databusSession->proxy_ = nullptr;
+    delete ipcProxy;
+}
+
+/**
  * @tc.name: QuerySessionOfBinderProxy001
  * @tc.desc: QuerySessionOfBinderProxy
  * @tc.type: FUNC
