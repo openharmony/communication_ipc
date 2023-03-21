@@ -1318,7 +1318,7 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
         return napiValue;
     }
 
-    if (arrayLength <= 0) {
+    if (arrayLength == 0) {
         napi_value result = nullptr;
         napi_create_array(env, &result);
         return result;
@@ -1676,7 +1676,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
         return napiValue;
     }
 
-    if (arrayLength <= 0) {
+    if (arrayLength == 0) {
         napi_value result = nullptr;
         napi_create_array(env, &result);
         return result;
