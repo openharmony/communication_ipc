@@ -67,9 +67,9 @@ HWTEST_F(IRemoteObjectTest, CheckObjectLegalityTest001, TestSize.Level1)
  */
 HWTEST_F(IRemoteObjectTest, IsObjectDeadTest001, TestSize.Level1)
 {
-    IPCObjectProxy object(1);
+    sptr<IRemoteObject> object = new IPCObjectProxy(16);
 
-    auto ret = object.IsObjectDead();
+    auto ret = object->IsObjectDead();
     ASSERT_FALSE(ret);
 }
 
@@ -80,7 +80,7 @@ HWTEST_F(IRemoteObjectTest, IsObjectDeadTest001, TestSize.Level1)
  */
 HWTEST_F(IRemoteObjectTest, GetInterfaceDescriptorTest001, TestSize.Level1)
 {
-    IPCObjectProxy object(1);
+    sptr<IRemoteObject> object = new IPCObjectProxy(0);
 
-    EXPECT_NE(object.descriptor_, object.GetInterfaceDescriptor());
+    EXPECT_EQ(object->descriptor_, object->GetInterfaceDescriptor());
 }
