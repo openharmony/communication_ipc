@@ -54,6 +54,7 @@ public:
 private:
     static pthread_key_t TLSKey_;
     static pthread_once_t TLSKeyOnce_;
+    static std::recursive_mutex mutex_;
     std::unordered_map<int, IRemoteInvoker *> invokers_;
 };
 #ifdef CONFIG_IPC_SINGLE
