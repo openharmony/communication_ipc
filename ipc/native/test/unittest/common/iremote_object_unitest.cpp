@@ -82,5 +82,5 @@ HWTEST_F(IRemoteObjectTest, GetInterfaceDescriptorTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
 
-    EXPECT_NE(object.descriptor_ , object.GetInterfaceDescriptor());
+    EXPECT_NE(object.descriptor_, object.GetInterfaceDescriptor());
 }
