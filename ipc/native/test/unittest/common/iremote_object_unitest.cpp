@@ -59,3 +59,28 @@ HWTEST_F(IRemoteObjectTest, CheckObjectLegalityTest001, TestSize.Level1)
     auto ret = object.CheckObjectLegality();
     ASSERT_FALSE(ret);
 }
+
+/**
+ * @tc.name: IsObjectDeadTest001
+ * @tc.desc: Verify the IRemoteObject::IsObjectDead function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IRemoteObjectTest, IsObjectDeadTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+
+    auto ret = object.IsObjectDead();
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetInterfaceDescriptorTest001
+ * @tc.desc: Verify the IRemoteObject::GetInterfaceDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IRemoteObjectTest, GetInterfaceDescriptorTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+
+    EXPECT_NE(object.descriptor_ , object.GetInterfaceDescriptor());
+}
