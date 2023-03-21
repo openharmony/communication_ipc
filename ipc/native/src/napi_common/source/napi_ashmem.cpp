@@ -63,7 +63,7 @@ napi_value NAPIAshmem::CreateAshmem(napi_env env, napi_callback_info info)
     }
     size_t bufferSize = 0;
     napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
-    if (bufferSize <= 0) {
+    if (bufferSize == 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem name");
         return nullptr;
     }
@@ -148,7 +148,7 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     }
     size_t bufferSize = 0;
     napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
-    if (bufferSize <= 0) {
+    if (bufferSize == 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem name");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
