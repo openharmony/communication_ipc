@@ -158,7 +158,7 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
     napi_value argv[2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc >= 0, "invalid parameter number");
+
     int flags = 0;
     int waittime = 0;
     if (argc == 0) {
