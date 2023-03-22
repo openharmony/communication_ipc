@@ -322,7 +322,6 @@ HWTEST_F(IPCSkeletonTest, IsLocalCallingTest001, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
 
-    std::string testDeviceID = "testDeviceID";
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
@@ -348,7 +347,6 @@ HWTEST_F(IPCSkeletonTest, FlushCommandsTest001, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
 
-    std::string testDeviceID = "testDeviceID";
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
