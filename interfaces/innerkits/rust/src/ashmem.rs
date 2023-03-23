@@ -161,7 +161,7 @@ impl Ashmem {
             // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::ReadFromCAshmem(self.as_inner(), size, offset)
         };
-        if raw_ptr.is_null() { 
+        if raw_ptr.is_null() {
             Err(IpcStatusCode::Failed)
         } else {
             Ok(RawData::new(raw_ptr, size as u32))
