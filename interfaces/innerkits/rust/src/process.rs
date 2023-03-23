@@ -17,7 +17,7 @@ use crate::{
     ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterfaceToken, String16,
     IpcResult, IpcStatusCode, parse_status_code,
 };
-use crate::parcel::{vec_to_string, allocate_vec_with_buffer,};
+use crate::parcel::{vec_to_string, allocate_vec_with_buffer};
 use std::ffi::{CString, c_char, c_void};
 use hilog_rust::{info, hilog, HiLogLabel, LogType};
 
@@ -164,7 +164,7 @@ pub fn set_calling_identity(identity: String) -> bool
 
 /// get local device id
 #[inline]
-pub fn get_local_device_id() ->  IpcResult<String>
+pub fn get_local_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     let ok_status = unsafe {
@@ -204,7 +204,7 @@ pub fn get_calling_device_id() -> IpcResult<String>
 
 /// reset calling identity
 #[inline]
-pub fn reset_calling_identity() ->  IpcResult<String>
+pub fn reset_calling_identity() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     let ok_status = unsafe {
