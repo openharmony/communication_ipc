@@ -42,7 +42,6 @@ bool IPCThreadSkeleton::isThreadAvailable = true;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCThreadSkeleton" };
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
-    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto *current = static_cast<IPCThreadSkeleton *>(args);
     auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
     if (it != current->invokers_.end()) {
@@ -87,7 +86,7 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     ZLOGE(LABEL, "IPCThreadSkeleton delete");
     isThreadAvailable = false;
-    std::lock_guard<std::recursive_mutex> lockGuard(this->mutex_);
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);
