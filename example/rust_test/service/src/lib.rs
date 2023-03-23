@@ -83,7 +83,7 @@ impl TryFrom<u32> for ICalcCode {
     }
 }
 
-/// Function between proxy and stub of ICalcService 
+/// Function between proxy and stub of ICalcService
 pub trait ICalc: IRemoteBroker {
     /// Calc add num1 + num2
     fn add(&self, num1: i32, num2: i32) -> IpcResult<i32>;

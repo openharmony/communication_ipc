@@ -23,7 +23,7 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
     tag: "RustDeathRecipient"
 };
 
-/// This type represent a rust DeathRecipient which like C++ DethRecipient. 
+/// This type represent a rust DeathRecipient which like C++ DethRecipient.
 #[repr(C)]
 pub struct DeathRecipient {
     native: *mut CDeathRecipient,
