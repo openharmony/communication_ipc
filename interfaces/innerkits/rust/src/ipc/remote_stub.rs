@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-use crate::{ipc_binding, IRemoteStub, IRemoteBroker, RemoteObj, BorrowedMsgParcel, };
+use crate::{ipc_binding, IRemoteStub, IRemoteBroker, RemoteObj, BorrowedMsgParcel};
 use crate::ipc_binding::{CRemoteObject, CParcel};
 use std::ffi::{c_void, CString, c_char};
 use std::ops::{Deref};

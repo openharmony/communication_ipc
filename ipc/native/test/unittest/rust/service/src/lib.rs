@@ -84,7 +84,7 @@ impl TryFrom<u32> for ITestCode {
     }
 }
 
-/// Function between proxy and stub of ITestService 
+/// Function between proxy and stub of ITestService
 pub trait ITest: IRemoteBroker {
     /// Test sync transaction
     fn test_sync_transaction(&self, value: i32, delay_time: i32) -> IpcResult<i32>;
