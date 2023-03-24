@@ -43,6 +43,7 @@ std::recursive_mutex IPCThreadSkeleton::mutex_;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCThreadSkeleton" };
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto *current = static_cast<IPCThreadSkeleton *>(args);
     auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
     if (it != current->invokers_.end()) {
