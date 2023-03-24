@@ -38,10 +38,12 @@ using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
 bool IPCThreadSkeleton::isThreadAvailable = true;
+std::recursive_mutex IPCThreadSkeleton::mutex_;
 
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCThreadSkeleton" };
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto *current = static_cast<IPCThreadSkeleton *>(args);
     auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
     if (it != current->invokers_.end()) {
