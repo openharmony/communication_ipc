@@ -37,7 +37,6 @@ namespace IPC_SINGLE {
 using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
-bool IPCThreadSkeleton::isThreadAvailable = true;
 std::recursive_mutex IPCThreadSkeleton::mutex_;
 
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCThreadSkeleton" };
@@ -62,9 +61,6 @@ void IPCThreadSkeleton::MakeTlsKey()
 
 IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
 {
-    if (isThreadAvailable != true) {
-        return nullptr;
-    }
     IPCThreadSkeleton *current = nullptr;
 
     pthread_once(&TLSKeyOnce_, IPCThreadSkeleton::MakeTlsKey);
@@ -87,7 +83,6 @@ IPCThreadSkeleton::IPCThreadSkeleton()
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     ZLOGE(LABEL, "IPCThreadSkeleton delete");
-    isThreadAvailable = false;
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
@@ -103,7 +98,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         return nullptr;
     }
 
-    std::lock_guard<std::recursive_mutex> lockGuard(current->mutex_);
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto it = current->invokers_.find(proto);
     if (it != current->invokers_.end()) {
         invoker = it->second;
