@@ -52,7 +52,6 @@ public:
     void StopWorkThread(int proto);
 
 private:
-    static bool isThreadAvailable;
     static std::recursive_mutex mutex_;
     static pthread_key_t TLSKey_;
     static pthread_once_t TLSKeyOnce_;
