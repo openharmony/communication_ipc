@@ -20,6 +20,7 @@
 #include "c_ashmem.h"
 #include "c_parcel.h"
 #include "c_parcel_internal.h"
+#include <fcntl.h>
 
 using namespace testing::ext;
 using namespace OHOS;
