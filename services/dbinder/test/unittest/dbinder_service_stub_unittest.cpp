@@ -63,6 +63,8 @@ HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub001, TestSize.Level1)
     const std::string device = "deviceTest";
     binder_uintptr_t object = 11;
     DBinderServiceStub dBinderServiceStub(service, device, object);
+    int32_t num = dBinderServiceStub.GetObjectRefCount();
+    EXPECT_NE(num, 0);
 }
 
 /**
