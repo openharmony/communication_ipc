@@ -731,12 +731,10 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_024, TestSize.Level1)
 {
     std::vector<std::unique_ptr<std::thread>> threads;
     for (int i = 0; i < threadNums; i++) {
-        threads.emplace_back(std::make_unique<std::thread>(&IPCNativeFrameworkTest::RegisterThread));
+        auto& res = threads.emplace_back(std::make_unique<std::thread>(&IPCNativeFrameworkTest::RegisterThread));
+        EXPECT_NE(res, nullptr);
     }
 
-    ZLOGD(LABEL, "Sleep IPC Testcase024");
-    sleep(10);
-    std::cout << "ok\n" << std::endl;
     for (auto &thread : threads) {
         thread->join();
     }
