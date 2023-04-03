@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,9 +29,35 @@ public:
     };
     MessageOption(int flags = TF_SYNC, int waitTime = TF_WAIT_TIME);
     ~MessageOption() = default;
+
+    /**
+     * @brief Sets flags.
+     * @param flags Indicates the identity to set.
+     * @return void
+     * @since 9
+     */
     void SetFlags(int flags);
+
+    /**
+     * @brief Gets flags.
+     * @return Returns the resulting flags.
+     * @since 9
+     */
     int GetFlags() const;
+
+    /**
+     * @brief Sets the wait time.
+     * @param waitTime Indicates the wait time to set.
+     * @return void
+     * @since 9
+     */
     void SetWaitTime(int waitTime);
+
+    /**
+     * @brief Gets the wait time.
+     * @return Returns the resulting wait time.
+     * @since 9
+     */
     int GetWaitTime() const;
 
 private:
