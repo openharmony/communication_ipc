@@ -57,8 +57,8 @@ impl Serialize for String16 {
 impl Deserialize for String16 {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut vec: Option<Vec<u8>> = None;
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ok_status = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             ipc_binding::CParcelReadString16(
                 parcel.as_raw(),
                 &mut vec as *mut _ as *mut c_void,
@@ -88,7 +88,9 @@ impl Deserialize for String16 {
 
 /// Callback to serialize a String16 array to c++ std::vector<std::u16string>.
 ///
-/// Safety: We are relying on c interface to not overrun our slice. As long
+/// # Safety:
+///
+/// We are relying on c interface to not overrun our slice. As long
 /// as it doesn't provide an index larger than the length of the original
 /// slice in ser_array, this operation is safe. The index provided
 /// is zero-based.

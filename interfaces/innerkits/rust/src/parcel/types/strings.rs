@@ -35,6 +35,7 @@ impl DeOption for String {}
 
 impl Serialize for str {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
             ipc_binding::CParcelWriteString(
                 parcel.as_mut_raw(),
@@ -54,8 +55,8 @@ impl Serialize for String {
 impl Deserialize for String {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut vec: Option<Vec<u8>> = None;
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ok_status = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             ipc_binding::CParcelReadString(
                 parcel.as_raw(),
                 &mut vec as *mut _ as *mut c_void,
@@ -73,8 +74,8 @@ impl Deserialize for String {
 
 impl SerArray for &str {
     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
-            // SAFETY:
             ipc_binding::CParcelWriteStringArray(
                 parcel.as_mut_raw(),
                 slice.as_ptr() as *const c_void,
@@ -88,8 +89,8 @@ impl SerArray for &str {
 
 impl SerArray for String {
     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ret = unsafe {
-            // SAFETY:
             ipc_binding::CParcelWriteStringArray(
                 parcel.as_mut_raw(),
                 slice.as_ptr() as *const c_void,
@@ -104,11 +105,11 @@ impl SerArray for String {
 impl DeArray for String {
     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+        // `allocate_vec<T>` expects the opaque pointer to
+        // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+        // correct for it.
         let ok_status = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-            // `allocate_vec<T>` expects the opaque pointer to
-            // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-            // correct for it.
             ipc_binding::CParcelReadStringArray(
                 parcel.as_raw(),
                 &mut vec as *mut _ as *mut c_void,
@@ -116,9 +117,8 @@ impl DeArray for String {
             )
         };
         if ok_status {
+            // SAFETY: all the MaybeUninits are now properly initialized.
             let vec: Option<Vec<Self>> = unsafe {
-                // SAFETY: all the MaybeUninits are now properly
-                // initialized.
                 vec.map(|vec| vec_assume_init(vec))
             };
             Ok(vec)
@@ -131,7 +131,9 @@ impl DeArray for String {
 
 /// Callback to serialize a String array to c++ std::vector<std::string>.
 ///
-/// Safety: We are relying on c interface to not overrun our slice. As long
+/// # Safety:
+///
+/// We are relying on c interface to not overrun our slice. As long
 /// as it doesn't provide an index larger than the length of the original
 /// slice in ser_array, this operation is safe. The index provided
 /// is zero-based.
@@ -148,6 +150,7 @@ unsafe extern "C" fn on_str_writer(
     let slice: &[&str] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
+        // SAFETY:
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
@@ -163,7 +166,9 @@ unsafe extern "C" fn on_str_writer(
 
 /// Callback to serialize a String array to c++ std::vector<std::string>.
 ///
-/// Safety: We are relying on c interface to not overrun our slice. As long
+/// # Safety:
+///
+/// We are relying on c interface to not overrun our slice. As long
 /// as it doesn't provide an index larger than the length of the original
 /// slice in ser_array, this operation is safe. The index provided
 /// is zero-based.
@@ -180,6 +185,7 @@ unsafe extern "C" fn on_string_writer(
     let slice: &[String] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
+        // SAFETY:
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
@@ -195,6 +201,8 @@ unsafe extern "C" fn on_string_writer(
 
 /// Callback to deserialize a String element in Vector<String>.
 ///
+/// # Safety:
+///
 /// The opaque array data pointer must be a mutable pointer to an
 /// `Option<Vec<MaybeUninit<T>>>` with at least enough elements for `index` to be valid
 /// (zero-based).
@@ -204,11 +212,13 @@ unsafe extern "C" fn on_string_reader(
     value: *mut c_void, // Rust vector pointer
     len: u32, // C++ vector length
 ) -> bool {
+    // SAFETY:
     // Allocate Vec<String> capacity, data_len will set correctly by vec.push().
     unsafe { allocate_vec_maybeuninit::<String>(value, 0) };
     let vec = &mut *(value as *mut Option<Vec<MaybeUninit<String>>>);
     for index in 0..len {
         let mut vec_u8: Option<Vec<u8>> = None;
+        // SAFETY:
         let ok_status = unsafe {
             ipc_binding::CParcelReadStringElement(
                 index,

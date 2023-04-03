@@ -57,8 +57,8 @@ impl Serialize for InterfaceToken {
 impl Deserialize for InterfaceToken {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         let mut vec: Option<Vec<u8>> = None;
+        // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
         let ok_status = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
             ipc_binding::CParcelReadInterfaceToken(
                 parcel.as_raw(),
                 &mut vec as *mut _ as *mut c_void,
