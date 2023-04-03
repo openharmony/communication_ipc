@@ -37,9 +37,9 @@ impl DeathRecipient {
         F: Fn() + Send + Sync + 'static,
     {
         let callback = Box::into_raw(Box::new(callback));
+        // SAFETY: set callback pointer to native, so we can find call which fuction
+        // when remote service died.
         let native = unsafe {
-            // set callback pointer to native, so we can find call which fuction
-            // when remote service died.
             ipc_binding::CreateDeathRecipient(Self::on_remote_died::<F>,
                 Self::on_destroy::<F>, callback as *mut c_void)
         };
@@ -100,9 +100,9 @@ unsafe impl AsRawPtr<CDeathRecipient> for DeathRecipient {
 
 impl Drop for DeathRecipient {
     fn drop(&mut self) {
+        // Safety: DeathRecipient will always hold a reference for
+        // native CDeathRecipient.
         unsafe {
-            // Safety: DeathRecipient will always hold a reference for
-            // native CDeathRecipient.
             ipc_binding::DeathRecipientDecStrongRef(self.native);
         }
     }

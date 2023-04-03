@@ -79,64 +79,72 @@ pub const PROT_EXEC: i32 = 4;
 impl Ashmem {
     /// Close Ashmem, the ashmem becomes invalid after closing.
     pub fn close(&self) {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::CloseCAshmem(self.as_inner());
         }
     }
 
     /// Set ashmem map type with above PROT_XXX by mmap()
     pub fn map(&self, map_type: i32) -> bool {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::MapCAshmem(self.as_inner(), map_type)
         }
     }
 
     /// Set ashmem map type with `PROT_READ | PROT_WRITE` by mmap()
     pub fn map_read_write(&self) -> bool {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::MapReadAndWriteCAshmem(self.as_inner())
         }
     }
 
     /// Set ashmem map type with `PROT_READ` by mmap()
     pub fn map_readonly(&self) -> bool {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::MapReadOnlyCAshmem(self.as_inner())
         }
     }
 
     /// unmap ashmem
     pub fn unmap(&self) {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::UnmapCAshmem(self.as_inner());
         }
     }
 
     /// Set ashmem map type with above PROT_XXX by ioctl()
     pub fn set_protection(&self, protection: i32) -> bool {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::SetCAshmemProtection(self.as_inner(), protection)
         }
     }
 
     /// Get ashmem map type
     pub fn get_protection(&self) -> i32 {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::GetCAshmemProtection(self.as_inner())
         }
     }
 
     /// Get ashmem size
     pub fn get_size(&self) -> i32 {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::GetCAshmemSize(self.as_inner())
         }
     }
@@ -148,8 +156,9 @@ impl Ashmem {
             error!(LOG_LABEL, "invalid offset: {}, len: {}", offset, len);
             return false;
         }
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::WriteToCAshmem(self.as_inner(),
                 data.as_ptr(), len, offset)
         }
@@ -157,8 +166,9 @@ impl Ashmem {
 
     /// Read ashmem
     pub fn read(&self, size: i32, offset: i32) -> IpcResult<RawData> {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         let raw_ptr = unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::ReadFromCAshmem(self.as_inner(), size, offset)
         };
         if raw_ptr.is_null() {
@@ -170,8 +180,9 @@ impl Ashmem {
 
     /// Get ashmem inner file descriptor
     pub fn get_fd(&self) -> i32 {
+        // SAFETY:
+        // Rust Ashmem always hold a valid native CAshmem.
         unsafe {
-            // SAFETY: Rust Ashmem always hold a valid native CAshmem.
             ipc_binding::GetCAshmemFd(self.as_inner())
         }
     }
@@ -211,6 +222,7 @@ impl Serialize for Ashmem {
 /// read a ashmem
 impl Deserialize for Ashmem {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
+        // SAFETY:
         let ptr = unsafe {
             ipc_binding::CParcelReadAshmem(parcel.as_raw())
         };
