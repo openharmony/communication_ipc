@@ -18,14 +18,14 @@ use std::cmp::Ordering;
 
 impl Ord for RemoteObj {
     fn cmp(&self, other: &Self) -> Ordering {
+        // SAFETY: RemoteObj always holds a valid `CRemoteObject` pointer
+        // (null is also safe to pass to this function, but we should never do that).
         let less_than = unsafe {
-            // SAFETY: RemoteObj always holds a valid `CRemoteObject` pointer\
-            // (null is also safe to pass to this function, but we should never do that).
             ipc_binding::RemoteObjectLessThan(self.0.as_ptr(), other.0.as_ptr())
         };
+        // SAFETY: RemoteObj always holds a valid `CRemoteObject` pointer
+        // (null is also safe to pass to this function, but we should never do that).
         let greater_than = unsafe {
-            // SAFETY: RemoteObj always holds a valid `CRemoteObject` pointer\
-            // (null is also safe to pass to this function, but we should never do that).
             ipc_binding::RemoteObjectLessThan(other.0.as_ptr(), self.0.as_ptr())
         };
         if !less_than && !greater_than {

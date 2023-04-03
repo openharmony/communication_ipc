@@ -27,6 +27,9 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
 
 /// RemoteStub packed the native CRemoteObject and the rust stub object T
 /// which must implement IRemoteStub trait.
+/// Safety Invariant: The native pointer must be a valid pointer and cannot be null.
+/// The native is guaranteed by the c interface
+/// FFI Safety : Ensure stable memory layout C-ABI compatibility
 #[repr(C)]
 pub struct RemoteStub<T: IRemoteStub> {
     native: *mut CRemoteObject,
@@ -38,7 +41,10 @@ impl<T: IRemoteStub> RemoteStub<T> {
     pub fn new(rust: T) -> Option<Self> {
         let rust = Box::into_raw(Box::new(rust));
         let descripor = CString::new(T::get_descriptor()).expect("descripor must be valid!");
-        // SAFETY:
+        // SAFETY: The incoming parameters are FFI safety
+        // Descripor is converted to a string type compatible with the c interface through CString.
+        // on_remote_request and on_destroy callback function has been checked for security,
+        // and the parameter type is FFI safety
         let native = unsafe {
             // set rust object pointer to native, so we can figure out who deal
             // the request during on_remote_request().
@@ -66,13 +72,17 @@ impl<T: IRemoteStub> IRemoteBroker for RemoteStub<T> {
 }
 
 unsafe impl<T: IRemoteStub> Send for RemoteStub<T> {}
+/// # Safety
+///
+/// RemoteSub thread safety. Multi-thread access and sharing have been considered inside the C-side code
 unsafe impl<T: IRemoteStub> Sync for RemoteStub<T> {}
 
 impl<T: IRemoteStub> Deref for RemoteStub<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Rust `Box::into_raw` poiter, so is valid
+        // SAFETY:
+        // Rust `Box::into_raw` poiter, so is valid
         unsafe {
             &*self.rust
         }
@@ -81,6 +91,8 @@ impl<T: IRemoteStub> Deref for RemoteStub<T> {
 
 impl<T: IRemoteStub> Drop for RemoteStub<T> {
     fn drop(&mut self) {
+        // SAFETY:
+        // Because self is valid, its internal native pointer is valid.
         unsafe {
             ipc_binding::RemoteObjectDecStrongRef(self.native);
         }
@@ -89,6 +101,10 @@ impl<T: IRemoteStub> Drop for RemoteStub<T> {
 
 /// C call Rust
 impl<T: IRemoteStub> RemoteStub<T> {
+    /// # Safety
+    ///
+    /// The parameters passed in should ensure FFI safety
+    /// user_data pointer, data pointer and reply pointer on the c side must be guaranteed not to be null
     unsafe extern "C" fn on_remote_request(user_data: *mut c_void, code: u32,
         data: *const CParcel, reply: *mut CParcel) -> i32 {
         let res = {
@@ -99,7 +115,10 @@ impl<T: IRemoteStub> RemoteStub<T> {
         };
         res
     }
-
+    /// # Safety
+    ///
+    /// The parameters passed in should ensure FFI safety
+    /// user_data pointer, data pointer and reply pointer on the c side must be guaranteed not to be null
     unsafe extern "C" fn on_destroy(user_data: *mut c_void) {
         info!(LOG_LABEL, "RemoteStub<T> on_destroy in Rust");
         // T will be freed by Box after this function end.

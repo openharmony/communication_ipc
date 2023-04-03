@@ -132,8 +132,8 @@ unsafe extern "C" fn allocate_vec<T>(
 pub trait SerArray: Serialize + Sized {
     /// Default array serialize implement.
     fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
+        // SAFETY: Safe FFI, slice will always be a safe pointer to pass.
         let ret = unsafe {
-            // SAFETY: Safe FFI, slice will always be a safe pointer to pass.
             ipc_binding::CParcelWriteParcelableArray(
                 parcel.as_mut_raw(),
                 slice.as_ptr() as *const c_void,
@@ -147,7 +147,9 @@ pub trait SerArray: Serialize + Sized {
 
 /// Callback to serialize an element of a generic parcelable array.
 ///
-/// Safety: We are relying on c interface to not overrun our slice. As long
+/// # Safety
+///
+/// We are relying on c interface to not overrun our slice. As long
 /// as it doesn't provide an index larger than the length of the original
 /// slice in serialize_array, this operation is safe. The index provided
 /// is zero-based.
@@ -177,9 +179,10 @@ pub trait DeArray: Deserialize {
     /// Deserialize an array of type from the given parcel.
     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+        // SAFETY:
+        // Safe FFI, vec is the correct opaque type expected by
+        // allocate_vec and de_element.
         let ok_status = unsafe {
-            // SAFETY: Safe FFI, vec is the correct opaque type expected by
-            // allocate_vec and de_element.
             ipc_binding::CParcelReadParcelableArray(
                 parcel.as_raw(),
                 &mut vec as *mut _ as *mut c_void,
@@ -189,13 +192,14 @@ pub trait DeArray: Deserialize {
         };
 
         if ok_status{
+            // SAFETY:
+            // We are assuming that the C-API correctly initialized every
+            // element of the vector by now, so we know that all the
+            // MaybeUninits are now properly initialized. We can transmute from
+            // Vec<MaybeUninit<T>> to Vec<T> because MaybeUninit<T> has the same
+            // alignment and size as T, so the pointer to the vector allocation
+            // will be compatible.
             let vec: Option<Vec<Self>> = unsafe {
-                // SAFETY: We are assuming that the C-API correctly initialized every
-                // element of the vector by now, so we know that all the
-                // MaybeUninits are now properly initialized. We can transmute from
-                // Vec<MaybeUninit<T>> to Vec<T> because MaybeUninit<T> has the same
-                // alignment and size as T, so the pointer to the vector allocation
-                // will be compatible.
                 std::mem::transmute(vec)
             };
             Ok(vec)
@@ -206,6 +210,8 @@ pub trait DeArray: Deserialize {
 }
 
 /// Callback to deserialize a parcelable element.
+///
+/// # Safety
 ///
 /// The opaque array data pointer must be a mutable pointer to an
 /// `Option<Vec<MaybeUninit<T>>>` with at least enough elements for `index` to be valid
@@ -236,8 +242,9 @@ unsafe extern "C" fn de_element<T: Deserialize>(
     ptr::write(vec[index].as_mut_ptr(), element);
     true
 }
-
-/// Safety: All elements in the vector must be properly initialized.
+/// # Safety
+///
+/// All elements in the vector must be properly initialized.
 pub unsafe fn vec_assume_init<T>(vec: Vec<MaybeUninit<T>>) -> Vec<T> {
     // We can convert from Vec<MaybeUninit<T>> to Vec<T> because MaybeUninit<T>
     // has the same alignment and size as T, so the pointer to the vector
@@ -250,6 +257,9 @@ pub unsafe fn vec_assume_init<T>(vec: Vec<MaybeUninit<T>>) -> Vec<T> {
     )
 }
 
+/// # Safety
+///
+/// Ensure that the value pointer is not null
 pub(crate) unsafe fn allocate_vec_maybeuninit<T>(
     value: *mut c_void,
     len: u32,

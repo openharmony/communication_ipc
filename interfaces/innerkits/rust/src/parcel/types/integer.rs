@@ -179,11 +179,11 @@ macro_rules! parcelable_array {
 /// impl DeArray for i8 {
 ///     fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
 ///         let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+///         // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+///         // `allocate_vec<T>` expects the opaque pointer to
+///         // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+///         // correct for it.
 ///         let ok_status = unsafe {
-///             // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-///             // `allocate_vec<T>` expects the opaque pointer to
-///             // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-///             // correct for it.
 ///             ipc_binding::CParcelReadInt8Array(
 ///                 parcel.as_raw(),
 ///                 &mut vec as *mut _ as *mut c_void,
@@ -191,11 +191,11 @@ macro_rules! parcelable_array {
 ///             )
 ///         };
 ///         if ok_status {
+///             // SAFETY: We are assuming that the NDK correctly
+///             // initialized every element of the vector by now, so we
+///             // know that all the MaybeUninits are now properly
+///             // initialized.
 ///             let vec: Option<Vec<Self>> = unsafe {
-///                 // SAFETY: We are assuming that the NDK correctly
-///                 // initialized every element of the vector by now, so we
-///                 // know that all the MaybeUninits are now properly
-///                 // initialized.
 ///                 vec.map(|vec| vec_assume_init(vec))
 ///             };
 ///             Ok(vec)
@@ -210,13 +210,12 @@ macro_rules! define_impl_array {
     {SerArray, $num_ty:ty, $cparcel_write_fn:path} => {
         impl SerArray for $num_ty {
             fn ser_array(slice: &[Self], parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
+                // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+                // If the slice is > 0 length, `slice.as_ptr()` will be a
+                // valid pointer to an array of elements of type `$ty`. If the slice
+                // length is 0, `slice.as_ptr()` may be dangling, but this is safe
+                // since the pointer is not dereferenced if the length parameter is 0.
                 let ret = unsafe {
-                    // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-                    // If the slice is > 0 length, `slice.as_ptr()` will be a
-                    // valid pointer to an array of elements of type `$ty`. If the slice
-                    // length is 0, `slice.as_ptr()` may be dangling, but this is safe
-                    // since the pointer is not dereferenced if the length parameter is
-                    // 0.
                     $cparcel_write_fn(
                         parcel.as_mut_raw(),
                         slice.as_ptr(),
@@ -232,11 +231,11 @@ macro_rules! define_impl_array {
         impl DeArray for $num_ty {
             fn de_array(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Vec<Self>>> {
                 let mut vec: Option<Vec<MaybeUninit<Self>>> = None;
+                // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+                // `allocate_vec<T>` expects the opaque pointer to
+                // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
+                // correct for it.
                 let ok_status = unsafe {
-                    // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
-                    // `allocate_vec<T>` expects the opaque pointer to
-                    // be of type `*mut Option<Vec<MaybeUninit<T>>>`, so `&mut vec` is
-                    // correct for it.
                     $cparcel_read_fn(
                         parcel.as_raw(),
                         &mut vec as *mut _ as *mut c_void,
@@ -244,11 +243,11 @@ macro_rules! define_impl_array {
                     )
                 };
                 if ok_status {
+                    // SAFETY: We are assuming that the NDK correctly
+                    // initialized every element of the vector by now, so we
+                    // know that all the MaybeUninits are now properly
+                    // initialized.
                     let vec: Option<Vec<Self>> = unsafe {
-                        // SAFETY: We are assuming that the NDK correctly
-                        // initialized every element of the vector by now, so we
-                        // know that all the MaybeUninits are now properly
-                        // initialized.
                         vec.map(|vec| vec_assume_init(vec))
                     };
                     Ok(vec)
