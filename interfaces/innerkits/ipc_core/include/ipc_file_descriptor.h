@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,11 +24,45 @@ public:
     IPCFileDescriptor();
     explicit IPCFileDescriptor(int fd);
     ~IPCFileDescriptor();
-
+    
+    /**
+     * @brief Marshal the object.
+     * @param parcel Indicates the Parcel object to which the sequenceable object will be marshaled.
+     * @return Returns <b>true</b> if the marshalling is successful; returns <b>false</b> otherwise.
+     * @since 9
+     */
     bool Marshalling(Parcel &parcel) const override;
+
+    /**
+     * @brief Marshal the object.
+     * @param Parcel Indicates the Parcel object to which the sequenceable object will be marshaled.
+     * @param object Indicates the IPCFileDescriptor pointer object.
+     * @return Returns <b>true</b> if the marshalling is successful; returns <b>false</b> otherwise.
+     * @since 9
+     */
     static bool Marshalling(Parcel &parcel, const sptr<IPCFileDescriptor> &object);
+
+    /**
+     * @brief Unmarshal the object.
+     * @param Parcel Indicates the Parcel object to which the sequenceable object will be marshaled.
+     * @return Returns <b>true</b> if the marshalling is successful; returns <b>false</b> otherwise.
+     * @since 9
+     */
     static IPCFileDescriptor *Unmarshalling(Parcel &parcel);
+    
+    /**
+     * @brief Gets the file descriptor.
+     * @return Returns the file descriptor.
+     * @since 9
+     */
     int GetFd() const;
+
+    /**
+     * @brief Sets the file descriptor.
+     * @param fd Indicates the file descriptor.
+     * @return void
+     * @since 9
+     */
     void SetFd(int fd);
 
 private:
