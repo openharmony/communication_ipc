@@ -110,8 +110,8 @@ impl IRemoteObj for RemoteObj {
 
     fn interface_descriptor(&self) -> IpcResult<String> {
         let mut vec: Option<Vec<u16>> = None;
+        // SAFETY:
         let ok_status = unsafe {
-            // SAFETY:
             ipc_binding::GetInterfaceDescriptor(
                 self.as_inner(),
                 &mut vec as *mut _ as *mut c_void,

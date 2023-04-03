@@ -75,8 +75,9 @@ impl Eq for FileDesc {}
 impl Serialize for FileDesc {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
         let fd = self.0.as_raw_fd();
+        // SAFETY:
+        // `parcel` always contains a valid pointer to an `CParcel`.
         let ret = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
             ipc_binding::CParcelWriteFileDescriptor(parcel.as_mut_raw(), fd)
         };
         status_result::<()>(ret as i32, ())
@@ -88,10 +89,11 @@ impl SerOption for FileDesc {
         if let Some(f) = this {
             f.serialize(parcel)
         } else {
+            // SAFETY:
+            // `parcel` always contains a valid pointer to an `CParcel`.
+            // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
+            // descriptor to signify serializing a null file descriptor.
             let ret = unsafe {
-                // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
-                // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
-                // descriptor to signify serializing a null file descriptor.
                 ipc_binding::CParcelWriteFileDescriptor(parcel.as_mut_raw(), -1i32)
             };
             status_result::<()>(ret as i32, ())
@@ -102,13 +104,14 @@ impl SerOption for FileDesc {
 impl DeOption for FileDesc {
     fn de_option(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Option<Self>> {
         let mut fd = -1i32;
+        // SAFETY:
+        // `parcel` always contains a valid pointer to an `CParcel`.
+        // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
+        // descriptor to signify serializing a null file descriptor.
+        // The read function passes ownership of the file
+        // descriptor to its caller if it was non-null, so we must take
+        // ownership of the file and ensure that it is eventually closed.
         let ok_status = unsafe {
-            // SAFETY: `parcel` always contains a valid pointer to an `CParcel`.
-            // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
-            // descriptor to signify serializing a null file descriptor.
-            // The read function passes ownership of the file
-            // descriptor to its caller if it was non-null, so we must take
-            // ownership of the file and ensure that it is eventually closed.
             ipc_binding::CParcelReadFileDescriptor(
                 parcel.as_raw(),
                 &mut fd,
@@ -119,10 +122,11 @@ impl DeOption for FileDesc {
                 error!(LOG_LABEL, "file descriptor is invalid from native");
                 Err(IpcStatusCode::Failed)
             } else {
+                // SAFETY:
+                // At this point, we know that the file descriptor was
+                // not -1, so must be a valid, owned file descriptor which we
+                // can safely turn into a `File`.
                 let file = unsafe {
-                    // SAFETY: At this point, we know that the file descriptor was
-                    // not -1, so must be a valid, owned file descriptor which we
-                    // can safely turn into a `File`.
                     File::from_raw_fd(fd)
                 };
                 Ok(Some(FileDesc::new(file)))

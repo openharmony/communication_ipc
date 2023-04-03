@@ -30,6 +30,7 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
 /// Get proxy object of samgr
 pub fn get_context_object() -> Option<RemoteObj>
 {
+    // SAFETY:
     unsafe {
         let samgr = ipc_binding::GetContextManager();
         RemoteObj::from_raw(samgr)
@@ -71,6 +72,7 @@ pub fn get_service(said: i32) -> IpcResult<RemoteObj>
 #[inline]
 pub fn join_work_thread()
 {
+    // SAFETY:
     unsafe {
         ipc_binding::JoinWorkThread();
     }
@@ -80,6 +82,7 @@ pub fn join_work_thread()
 #[inline]
 pub fn stop_work_thread()
 {
+    // SAFETY:
     unsafe {
         ipc_binding::StopWorkThread()
     }
@@ -89,6 +92,7 @@ pub fn stop_work_thread()
 #[inline]
 pub fn get_calling_token_id() -> u64
 {
+    // SAFETY:
     unsafe {
         ipc_binding::GetCallingTokenId()
     }
@@ -98,6 +102,7 @@ pub fn get_calling_token_id() -> u64
 #[inline]
 pub fn get_first_token_id() -> u64
 {
+    // SAFETY:
     unsafe {
         ipc_binding::GetFirstToekenId()
     }
@@ -107,6 +112,7 @@ pub fn get_first_token_id() -> u64
 #[inline]
 pub fn get_self_token_id() -> u64
 {
+    // SAFETY:
     unsafe {
         ipc_binding::GetSelfToekenId()
     }
@@ -116,6 +122,7 @@ pub fn get_self_token_id() -> u64
 #[inline]
 pub fn get_calling_pid() -> u64
 {
+    // SAFETY:
     unsafe {
         ipc_binding::GetCallingPid()
     }
@@ -125,6 +132,7 @@ pub fn get_calling_pid() -> u64
 #[inline]
 pub fn get_calling_uid() -> u64
 {
+    // SAFETY:
     unsafe {
         ipc_binding::GetCallingUid()
     }
@@ -134,6 +142,7 @@ pub fn get_calling_uid() -> u64
 #[inline]
 pub fn set_max_work_thread(max_thread_num: i32) -> bool
 {
+    // SAFETY:
     unsafe {
         ipc_binding::SetMaxWorkThreadNum(max_thread_num)
     }
@@ -143,6 +152,7 @@ pub fn set_max_work_thread(max_thread_num: i32) -> bool
 #[inline]
 pub fn is_local_calling() -> bool
 {
+    // SAFETY:
     unsafe {
         ipc_binding::IsLocalCalling()
     }
@@ -154,6 +164,8 @@ pub fn set_calling_identity(identity: String) -> bool
 {
     match CString::new(identity.as_str()) {
         Ok(name) => {
+            // SAFETY:
+            // Name is valid
             unsafe {
                 ipc_binding::SetCallingIdentity(name.as_ptr())
             }
@@ -167,8 +179,8 @@ pub fn set_calling_identity(identity: String) -> bool
 pub fn get_local_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
+    // SAFETY:
     let ok_status = unsafe {
-        // SAFETY:
         ipc_binding::GetLocalDeviceID(
             &mut vec as *mut _ as *mut c_void,
             allocate_vec_with_buffer::<u8>
@@ -187,8 +199,8 @@ pub fn get_local_device_id() -> IpcResult<String>
 pub fn get_calling_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
+    // SAFETY:
     let ok_status = unsafe {
-        // SAFETY:
         ipc_binding::GetCallingDeviceID(
             &mut vec as *mut _ as *mut c_void,
             allocate_vec_with_buffer::<u8>
@@ -207,8 +219,8 @@ pub fn get_calling_device_id() -> IpcResult<String>
 pub fn reset_calling_identity() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
+    // SAFETY:
     let ok_status = unsafe {
-        // SAFETY:
         ipc_binding::ResetCallingIdentity(
             &mut vec as *mut _ as *mut c_void,
             allocate_vec_with_buffer::<u8>

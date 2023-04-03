@@ -36,6 +36,7 @@ use crate::parcel::parcelable::{Serialize, Deserialize};
 pub trait IMsgParcel: AsRawPtr<CParcel> {
     /// Get current data size in parcel
     fn get_data_size(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetDataSize(self.as_raw())
         }
@@ -43,6 +44,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Set current data size in parcel
     fn set_data_size(&mut self, new_size: u32) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelSetDataSize(self.as_mut_raw(), new_size)
         }
@@ -50,6 +52,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Get current data capacity in parcel
     fn get_data_capacity(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetDataCapacity(self.as_raw())
         }
@@ -57,6 +60,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Set current data capacity in parcel
     fn set_data_capacity(&mut self, new_size: u32) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelSetDataCapacity(self.as_mut_raw(), new_size)
         }
@@ -64,6 +68,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Get maximum capacity in parcel
     fn get_max_capacity(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetMaxCapacity(self.as_raw())
         }
@@ -71,6 +76,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Set maximum capacity in parcel
     fn set_max_capacity(&mut self, new_size: u32) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelSetMaxCapacity(self.as_mut_raw(), new_size)
         }
@@ -78,6 +84,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Get current writalbe bytes in parcel
     fn get_writable_bytes(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetWritableBytes(self.as_raw())
         }
@@ -85,6 +92,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Get current readable bytes in parcel
     fn get_readable_bytes(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetReadableBytes(self.as_raw())
         }
@@ -92,6 +100,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Get current read position of parcel
     fn get_read_position(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetReadPosition(self.as_raw())
         }
@@ -99,6 +108,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Get current write position of parcel
     fn get_write_position(&self) -> u32 {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetWritePosition(self.as_raw())
         }
@@ -106,6 +116,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Rewind the read position to a new position of parcel
     fn rewind_read(&mut self, new_pos: u32) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelRewindRead(self.as_mut_raw(), new_pos)
         }
@@ -113,6 +124,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Rewind the write position to a new position of parcel
     fn rewind_write(&mut self, new_pos: u32) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelRewindWrite(self.as_mut_raw(), new_pos)
         }
@@ -134,7 +146,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
         unsafe{
             buffer.set_len(len as usize);
         }
-
+        // SAFETY:
         let ok_status = unsafe {
             ipc_binding::CParcelReadBuffer(
                 self.as_raw(),
@@ -147,6 +159,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
         unsafe fn transmute_vec(v: Vec<std::mem::MaybeUninit<u8>>) -> Vec<u8> {
             std::mem::transmute(v)
         }
+        // SAFETY:
         let buffer = unsafe { transmute_vec(buffer) };
         if ok_status { Ok(buffer) } else { Err(IpcStatusCode::Failed) }
     }
@@ -162,6 +175,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// Read a big bytes stream from parcel
     fn read_raw_data(&self, len: u32) -> IpcResult<RawData> {
+        // SAFETY:
         let raw_data_ptr = unsafe {
             ipc_binding::CParcelReadRawData(self.as_raw(), len)
         };
@@ -174,6 +188,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// contain file descriptors
     fn has_fd(&self) -> bool {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelContainFileDescriptors(self.as_raw())
         }
@@ -181,6 +196,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// clear file descriptor
     fn clear_fd(&mut self) {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelClearFileDescriptor(self.as_mut_raw());
         }
@@ -188,6 +204,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// get raw data size
     fn get_raw_data_size(&self) -> usize {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetRawDataSize(self.as_raw())
         }
@@ -195,6 +212,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// get raw data capacity
     fn get_raw_data_capacity(&self) -> usize {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetRawDataCapacity(self.as_raw())
         }
@@ -202,6 +220,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
 
     /// set clear fd flag
     fn set_clear_fd_flag(&mut self) {
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelSetClearFdFlag(self.as_mut_raw());
         }
@@ -210,6 +229,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
     /// append a MsgParcel
     fn append(&mut self, data: &mut MsgParcel) -> bool {
         let data_parcel = data.as_mut_raw();
+        // SAFETY:
         unsafe {
             ipc_binding::CParcelAppend(self.as_mut_raw(), data_parcel)
         }
@@ -238,9 +258,9 @@ impl RawData{
         if len == 0 || len > self.len || start >= self.len || (start + len) > self.len {
             return Err(IpcStatusCode::Failed);
         }
-
+        // SAFETY:
+        // raw_ptr is valid in [0..len], the memory is matained by C++ Parcel.
         let data_ptr = unsafe {
-            // SAFETY: raw_ptr is valid in [0..len], the memory is matained by C++ Parcel.
             self.raw_ptr.add(start as usize)
         };
         if !data_ptr.is_null() {
@@ -267,7 +287,9 @@ impl RawData{
 pub struct MsgParcel {
     ptr: NonNull<CParcel>,
 }
-
+/// # Safety
+///
+/// An `MsgParcel` is an immutable handle to CParcel, which is thread-safe
 unsafe impl Send for MsgParcel {}
 
 impl IMsgParcel for MsgParcel {}
@@ -275,6 +297,7 @@ impl IMsgParcel for MsgParcel {}
 impl MsgParcel {
     /// Create a MsgParcel object
     pub fn new() -> Option<Self> {
+        // SAFETY:
         let cparcel: *mut CParcel = unsafe {
             ipc_binding::CParcelObtain()
         };
@@ -330,6 +353,7 @@ unsafe impl AsRawPtr<CParcel> for MsgParcel {
 
 impl Drop for MsgParcel {
     fn drop(&mut self) {
+        // Safety:
         unsafe {
             ipc_binding::CParcelDecStrongRef(self.as_mut_raw())
         }
