@@ -56,10 +56,12 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
     ExtendObjectLifetime();
+    ZLOGI(LABEL, "handle = %{public}u create, descriptor: %{public}s", handle_, Str16ToStr8(descriptor_).c_str());
 }
 
 IPCObjectProxy::~IPCObjectProxy()
 {
+    ZLOGW(LABEL, "handle = %{public}u destroyed, descriptor: %{public}s", handle_, Str16ToStr8(descriptor_).c_str());
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()

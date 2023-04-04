@@ -359,6 +359,7 @@ void BinderInvoker::OnBinderDied()
 {
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
+    ZLOGD(LABEL, "%s, enter", __func__);
     if (proxy != nullptr) {
         proxy->SendObituary();
     }
@@ -420,7 +421,7 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
         ZLOGE(LABEL, "OnReleaseObject FAIL!");
         return;
     }
-
+    ZLOGD(LABEL, "OnReleaseObject refcount=%{public}d", refs->GetStrongRefCount());
     if (cmd == BR_RELEASE) {
         obj->DecStrongRef(this);
     } else {
