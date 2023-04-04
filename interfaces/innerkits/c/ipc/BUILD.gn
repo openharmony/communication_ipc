@@ -124,6 +124,7 @@ if (ohos_kernel_type == "liteos_m") {
       "-lpthread",
     ]
     cflags = [ "-fPIC" ]
+    cflags += [ "-Wno-int-conversion" ]
     cflags_cc = cflags
     public_deps = [
       ":rpc_log",
@@ -168,6 +169,7 @@ if (ohos_kernel_type == "liteos_m") {
       "-lpthread",
     ]
     cflags = [ "-fPIC" ]
+    cflags += [ "-Wno-int-conversion" ]
     cflags_cc = cflags
     public_deps = [
       ":rpc_log",
