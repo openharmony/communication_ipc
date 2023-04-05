@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,10 @@ namespace OHOS {
 
 constexpr int REGISTRY_HANDLE = 0;
 
+/**
+ * @brief Enumerates the commands and identifiers used in communication.
+ * @since 9
+ */
 enum {
     FIRST_CALL_TRANSACTION = 0x00000001,
     LAST_CALL_TRANSACTION = 0x00ffffff,
@@ -48,6 +52,10 @@ enum {
     TRANS_ASYNC = 1,
 };
 
+/**
+ * @brief Enumerates the error types of communication.
+ * @since 9
+ */
 enum {
     NO_ERROR = 0,
     TRANSACTION_ERR,
@@ -64,6 +72,10 @@ constexpr int MIN_TRANSACTION_ID = 0x1;
 constexpr int MAX_TRANSACTION_ID = 0x00ffffff;
 constexpr int INVALID_FD = -1;
 
+/**
+ * @brief Enumerate the correct error code returned.
+ * @since 9
+ */
 enum {
     ERR_NONE = 0,
     ERR_TRANSACTION_FAILED = 1,

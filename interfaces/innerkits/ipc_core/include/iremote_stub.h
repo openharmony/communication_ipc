@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,19 @@ template <typename INTERFACE> class IRemoteStub : public IPCObjectStub, public I
 public:
     IRemoteStub();
     virtual ~IRemoteStub() = default;
+
+    /**
+     * @brief Obtains the object.
+     * @return Returns the IRemoteObject pointer object.
+     * @since 9
+     */
     sptr<IRemoteObject> AsObject() override;
+
+    /**
+     * @brief Gets the interface.
+     * @return Returns the IRemoteBroker pointer interface.
+     * @since 9
+     */
     sptr<IRemoteBroker> AsInterface() override;
 };
 
