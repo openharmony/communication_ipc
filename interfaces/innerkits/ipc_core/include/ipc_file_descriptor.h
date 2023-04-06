@@ -24,7 +24,7 @@ public:
     IPCFileDescriptor();
     explicit IPCFileDescriptor(int fd);
     ~IPCFileDescriptor();
-    
+
     /**
      * @brief Marshal the object.
      * @param parcel Indicates the Parcel object to which the sequenceable object will be marshaled.
@@ -49,7 +49,7 @@ public:
      * @since 9
      */
     static IPCFileDescriptor *Unmarshalling(Parcel &parcel);
-    
+
     /**
      * @brief Gets the file descriptor.
      * @return Returns the file descriptor.
