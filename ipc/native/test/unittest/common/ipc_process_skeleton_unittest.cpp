@@ -248,7 +248,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest001, TestSize.Level1)
     ASSERT_TRUE(skeleton != nullptr);
 
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    skeleton->AttachObject(object);
+    skeleton->AttachObjectInner(object);
     bool ret = skeleton->IsContainsObject(object.GetRefPtr());
 
     EXPECT_EQ(ret, true);
