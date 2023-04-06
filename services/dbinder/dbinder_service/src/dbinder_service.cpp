@@ -37,8 +37,6 @@ bool DBinderService::mainThreadCreated_ = false;
 std::mutex DBinderService::instanceMutex_;
 std::shared_ptr<DBinderRemoteListener> DBinderService::remoteListener_ = nullptr;
 constexpr int32_t DBINDER_UID_START_INDEX = 7;
-// DBinderServiceStub's reference count in a MakeRemoteBinder call.
-constexpr int DBINDER_STUB_REF_COUNT = 2;
 
 DBinderService::DBinderService()
 {
@@ -297,11 +295,9 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
             "DBinderServiceStub refcount = %{public}d",
             Str16ToStr8(serviceName).c_str(), DBinderService::ConvertToSecureDeviceID(deviceID).c_str(),
             dBinderServiceStub->GetSptrRefCount());
-        if (dBinderServiceStub->GetSptrRefCount() <= DBINDER_STUB_REF_COUNT) {
-            /* invoke fail, delete dbinder stub info */
-            (void)DeleteDBinderStub(serviceName, deviceID);
-            (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
-        }
+        /* invoke fail, delete dbinder stub info */
+        (void)DeleteDBinderStub(serviceName, deviceID);
+        (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
         return nullptr;
     }
     return dBinderServiceStub;
@@ -453,7 +449,9 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
                 continue;
             }
             if (!AttachProxyObject(remoteObject, binderObject)) {
-                DBINDER_LOGW(LOG_LABEL, "attach proxy object is already existed");
+                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, replyMessage);
+                DBINDER_LOGE(LOG_LABEL, "attach proxy object fail");
+                continue;
             }
         }
         std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
