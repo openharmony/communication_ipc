@@ -154,7 +154,7 @@ public:
      * @since 9
      */
     static std::string ResetCallingIdentity();
-    
+
     /**
      * @brief Set calling identity.
      * @param identity Indicates the string containing the UID and PID of the remote user.

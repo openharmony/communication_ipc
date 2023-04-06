@@ -41,7 +41,7 @@ public:
     {
         return false;
     };
-    
+
     RpcSystemAbilityCallback() = default;
     virtual ~RpcSystemAbilityCallback() = default;
 };

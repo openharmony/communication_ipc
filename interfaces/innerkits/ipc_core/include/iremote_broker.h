@@ -78,7 +78,7 @@ public:
      * @since 9
      */
     static BrokerRegistration &Get();
-	
+
     /**
      * @brief Register the broker.
      * @param descriptor Indicates a descriptor the type of string.
@@ -96,7 +96,7 @@ public:
      * @since 9
      */
     void Unregister(const std::u16string &descriptor);
-	
+
     /**
      * @brief Obtains the new instance object.
      * @param descriptor Indicates a descriptor the type of string.

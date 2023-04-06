@@ -39,7 +39,7 @@ public:
     * @since 9
     */
     int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption) override;
-    
+
     /**
      * @brief Determine whether it is a Proxy Object.
      * @return Returns <b>true</b> if it is Proxy Object; returns <b>false</b> otherwise.
@@ -56,14 +56,14 @@ public:
      * @since 9
      */
     bool IsObjectDead() const override;
-    
+
     /**
      * @brief Obtains the reference count of the object.
      * @return Returns the reference count.
      * @since 9
      */
     int32_t GetObjectRefCount() override;
-    
+
     /**
      * @brief Dump the contents.
      * @param fd Indicates the file descriptor.
@@ -73,7 +73,7 @@ public:
      * @since 9
      */
     int Dump(int fd, const std::vector<std::u16string> &args) override;
-    
+
     /**
      * @brief The first strong reference provided.
      * @param objectId Indicates the object Id.
@@ -81,7 +81,7 @@ public:
      * @since 9
      */
     void OnFirstStrongRef(const void *objectId) override;
-    
+
     /**
      * @brief The last strong reference provided.
      * @param objectId Indicates the object Id.
@@ -89,7 +89,7 @@ public:
      * @since 9
      */
     void OnLastStrongRef(const void *objectId) override;
-    
+
     /**
      * @brief Registered a death recipient.
      * @param recipient Indicates the recipient of the DeathRecipient pointer.
@@ -97,7 +97,7 @@ public:
      * @since 9
      */
     bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) override;
-    
+
     /**
      * @brief Unregistered a death recipient.
      * @param recipient Indicates the recipient of the DeathRecipient pointer.
@@ -105,7 +105,7 @@ public:
      * @since 9
      */
     bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) override;
-    
+
     /**
      * @brief Send Obituary to agents who have registered for death notices.
      * @return void
@@ -135,7 +135,7 @@ public:
     {
         return handle_;
     };
-    
+
     /**
      * @brief Call the listening thread.
      * @param data Indicates the object sent to the peer process.
@@ -153,7 +153,7 @@ public:
      * @since 9
      */
     int32_t NoticeServiceDie();
-    
+
     /**
      * @brief Obtains the corresponding PID and UID.
      * @param reply Indicates the object returned by the peer process.
@@ -162,14 +162,14 @@ public:
      * @since 9
      */
     int GetPidUid(MessageParcel &reply);
-    
+
     /**
      * @brief Obtains the session name.
      * @return Returns the session name of type string.
      * @since 9
      */
     std::string GetSessionName();
-     
+ 
     /**
      * @brief Obtains the session name for PID and UID.
      * @param uid Indicates the UID value entered.
@@ -178,21 +178,21 @@ public:
      * @since 9
      */
     std::string GetSessionNameForPidUid(uint32_t uid, uint32_t pid);
-    
+
     /**
      * @brief Obtains the grant session name.
      * @return Returns the grant session name of type string.
      * @since 9
      */
     std::string GetGrantedSessionName();
-    
+
     /**
      * @brief Obtains the proxy protocol.
      * @return Returns the obtained proxy protocol.
      * @since 9
      */
     int GetProto() const;
-    
+
     /**
      * @brief Wait for initialization.
      * @return void
@@ -300,7 +300,7 @@ private:
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
-    
+
     std::vector<sptr<DeathRecipient>> recipients_;
     const uint32_t handle_;
     int proto_;

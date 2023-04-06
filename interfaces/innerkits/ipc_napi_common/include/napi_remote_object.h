@@ -43,7 +43,7 @@ namespace OHOS {
     };
 
 EXTERN_C_START
-   
+
     /**
      * @brief Export NAPIRemote object.
      * @param env Indicates the environment in which NAPI is called.
