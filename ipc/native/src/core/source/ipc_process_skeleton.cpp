@@ -127,8 +127,10 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
         return nullptr;
     }
     {
-        result = QueryObject(descriptor);
-        if (result == nullptr) {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        IRemoteObject *remoteObject = QueryObjectInner(descriptor);
+        if (remoteObject == nullptr) {
             if (handle == REGISTRY_HANDLE) {
                 IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
                 if (invoker == nullptr) {
@@ -140,13 +142,20 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
                     return nullptr;
                 }
             }
-            result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
-            if (result == nullptr) {
-                return result;
+
+            auto proxy = new (std::nothrow) IPCObjectProxy(handle, descriptor);
+            if (proxy == nullptr) {
+                return nullptr;
             }
-            AttachObject(result.GetRefPtr());
+            remoteObject = reinterpret_cast<IRemoteObject *>(proxy);
+            if (!AttachObjectInner(remoteObject)) {
+                delete proxy;
+                return nullptr;
+            }
         }
+        result = remoteObject;
     }
+
     sptr<IPCObjectProxy> remoteProxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
     remoteProxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
@@ -224,7 +233,7 @@ bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
 bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     /* don't care mutex result even object is deleted */
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = isContainStub_.find(object);
     if (it != isContainStub_.end()) {
         return it->second;
@@ -235,58 +244,66 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 
 bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
-    (void)isContainStub_.erase(object);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return DetachObjectInner(object);
+}
 
+bool IPCProcessSkeleton::DetachObjectInner(IRemoteObject *object)
+{
+    int strongRef = object->GetSptrRefCount();
+    if (strongRef > 0) {
+        ZLOGI(LOG_LABEL, "proxy is still strong referenced:%{public}d", strongRef);
+        return false;
+    }
+
+    // If it fails, clear it in the destructor.
+    (void)isContainStub_.erase(object);
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
         return false;
     }
-    // This handle may have already been replaced with a new IPCObjectProxy,
-    // if someone failed the AttemptIncStrong.
-    auto iterator = objects_.find(descriptor);
-    if (iterator->second == object) {
-        objects_.erase(iterator);
-        return true;
-    }
-    return false;
+
+    return (objects_.erase(descriptor) > 0);
 }
 
 bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
 {
-    std::unique_lock<std::shared_mutex> lock(mutex_);
-    (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return AttachObjectInner(object);
+}
 
+bool IPCProcessSkeleton::AttachObjectInner(IRemoteObject *object)
+{
+    // If it fails, it means it was added before.
+    (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
         return false;
     }
-    // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
-    wptr<IRemoteObject> wp = object;
-    auto result = objects_.insert_or_assign(descriptor, wp);
+
+    auto result = objects_.insert(std::pair<std::u16string, wptr<IRemoteObject>>(descriptor, object));
     return result.second;
 }
 
 IRemoteObject *IPCProcessSkeleton::QueryObject(const std::u16string &descriptor)
 {
-    sptr<IRemoteObject> result = nullptr;
     if (descriptor.empty()) {
-        return result;
+        return nullptr;
     }
-    std::shared_lock<std::shared_mutex> lockGuard(mutex_);
-    IRemoteObject *remoteObject = nullptr;
+
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return QueryObjectInner(descriptor);
+}
+
+IRemoteObject *IPCProcessSkeleton::QueryObjectInner(const std::u16string &descriptor)
+{
     auto it = objects_.find(descriptor);
     if (it != objects_.end()) {
-        // Life-time of IPCObjectProxy is extended to WEAK
-        // now it's weak reference counted, so it's safe to get raw pointer
-        remoteObject = it->second.GetRefPtr();
+        return it->second.GetRefPtr();
     }
-    if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
-        return result;
-    }
-    result = remoteObject;
-    return result;
+    return nullptr;
 }
+
 
 #ifndef CONFIG_IPC_SINGLE
 sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()

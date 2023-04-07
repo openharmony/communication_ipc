@@ -98,8 +98,11 @@ public:
     sptr<IRemoteObject> FindOrNewObject(int handle);
     bool IsContainsObject(IRemoteObject *object);
     IRemoteObject *QueryObject(const std::u16string &descriptor);
+    IRemoteObject *QueryObjectInner(const std::u16string &descriptor);
     bool AttachObject(IRemoteObject *object);
+    bool AttachObjectInner(IRemoteObject *object);
     bool DetachObject(IRemoteObject *object);
+    bool DetachObjectInner(IRemoteObject *object);
 
     bool OnThreadTerminated(const std::string &threadName);
 
@@ -207,7 +210,7 @@ private:
     IPCProcessSkeleton();
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
-    std::shared_mutex mutex_;
+    std::recursive_mutex mutex_;
     std::shared_mutex rawDataMutex_;
     std::map<std::u16string, wptr<IRemoteObject>> objects_;
     std::map<IRemoteObject *, bool> isContainStub_;
