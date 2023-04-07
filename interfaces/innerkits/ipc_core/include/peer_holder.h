@@ -24,7 +24,7 @@ protected:
     PeerHolder(const sptr<IRemoteObject> &object);
 
     ~PeerHolder() = default;
-    
+
     /**
      * @brief Gets the proxy object.
      * @return Returns the IRemoteObject pointer object.
