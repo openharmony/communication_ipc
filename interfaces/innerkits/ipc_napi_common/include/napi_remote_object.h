@@ -20,7 +20,7 @@
 #include "refbase.h"
 
 namespace OHOS {
-    //Description of caller information parameters.
+    // Description of caller information parameters.
     struct CallingInfo {
         pid_t callingPid;
         pid_t callingUid;
@@ -31,7 +31,7 @@ namespace OHOS {
         int activeStatus;
     };
 
-    //NAPI caller information parameter description.
+    // NAPI caller information parameter description.
     struct NAPI_CallingInfo {
         napi_value callingPid;
         napi_value callingUid;
