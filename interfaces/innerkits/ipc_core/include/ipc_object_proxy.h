@@ -169,7 +169,7 @@ public:
      * @since 9
      */
     std::string GetSessionName();
- 
+
     /**
      * @brief Obtains the session name for PID and UID.
      * @param uid Indicates the UID value entered.

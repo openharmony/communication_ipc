@@ -46,20 +46,20 @@ constexpr int RPC_TOKENID_SUPPORT_VERSION = 2;
 constexpr int ENCRYPT_HEAD_LEN = 28;
 constexpr int ENCRYPT_LENGTH = 4;
 
-//Description of the device identification information parameter.
+// Description of the device identification information parameter.
 struct DeviceIdInfo {
     uint32_t tokenId;
     char fromDeviceId[DEVICEID_LENGTH + 1];
     char toDeviceId[DEVICEID_LENGTH + 1];
 };
 
-//Description of the DHandle entry head parameter.
+// Description of the DHandle entry head parameter.
 struct DHandleEntryHead {
     uint32_t len;
     uint32_t version;
 };
 
-//Description of the DHandle entry TxRx parameter.
+// Description of the DHandle entry TxRx parameter.
 struct DHandleEntryTxRx {
     struct DHandleEntryHead head;
     uint32_t transType;
@@ -77,7 +77,7 @@ struct DHandleEntryTxRx {
     uint32_t uid;
 };
 
-//SessionInfo parameter description.
+// SessionInfo parameter description.
 struct SessionInfo {
     uint32_t seqNumber;
     uint32_t type;
@@ -89,7 +89,7 @@ struct SessionInfo {
     struct DeviceIdInfo deviceIdInfo;
 };
 
-//Enumerate DBinder message codes.
+// Enumerate DBinder message codes.
 enum DBinderCode {
     MESSAGE_AS_INVOKER          = 1,
     MESSAGE_AS_REPLY            = 2,
@@ -98,7 +98,7 @@ enum DBinderCode {
     MESSAGE_AS_REPLY_TOKENID    = 5,
 };
 
-//Enumerate the returned DBinder error codes.
+// Enumerate the returned DBinder error codes.
 enum DBinderErrorCode {
     DBINDER_OK                  = 100,
     STUB_INVALID                = 101,
@@ -115,7 +115,7 @@ enum DBinderErrorCode {
     SESSION_NAME_INVALID        = 112,
 };
 
-//Description of thread locking information parameters.
+// Description of thread locking information parameters.
 struct ThreadLockInfo {
     std::mutex mutex;
     std::string networkId;
