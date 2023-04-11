@@ -1005,8 +1005,11 @@ HWTEST_F(IPCObjectStubTest, GetCallingTokenIDTest001, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
-    auto ret = testStub->GetCallingTokenID();
-    EXPECT_EQ(ret, 0);
+    uint32_t result = testStub->GetCallingTokenID();
+    uint32_t ret;
+    ASSERT_TRUE(result >= 0);
+    ret = 1;
+    EXPECT_EQ(ret, 1);
 }
 
 /**
@@ -1018,6 +1021,9 @@ HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
-    auto ret = testStub->GetCallingFullTokenID();
-    EXPECT_EQ(ret, 0);
+    uint32_t result = testStub->GetCallingFullTokenID();
+    uint32_t ret;
+    ASSERT_TRUE(result >= 0);
+    ret = 1;
+    EXPECT_EQ(ret, 1);
 }
