@@ -81,6 +81,7 @@ template <typename T> class BrokerDelegator {
 public:
     BrokerDelegator();
     ~BrokerDelegator();
+    std::u16string descriptor_;
 
 private:
     BrokerDelegator(const BrokerDelegator &) = delete;
@@ -91,16 +92,15 @@ private:
 
 template <typename T> BrokerDelegator<T>::BrokerDelegator()
 {
-    const std::u16string descriptor = T::GetDescriptor();
+    descriptor_ = T::GetDescriptor();
     BrokerRegistration &registration = BrokerRegistration::Get();
-    registration.Register(descriptor, BrokerCreator<T>());
+    registration.Register(descriptor_, BrokerCreator<T>());
 }
 
 template <typename T> BrokerDelegator<T>::~BrokerDelegator()
 {
-    const std::u16string descriptor = T::GetDescriptor();
     BrokerRegistration &registration = BrokerRegistration::Get();
-    registration.Unregister(descriptor);
+    registration.Unregister(descriptor_);
 }
 
 template <typename INTERFACE> inline sptr<INTERFACE> iface_cast(const sptr<IRemoteObject> &object)
