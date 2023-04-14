@@ -53,6 +53,7 @@ inline T *ConvertNativeValueTo(NativeValue *value)
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
 {
+    ZLOGI(LOG_LABEL, "[mem_free]RemoteObjectHolderFinalizeCb inter");
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
     if (holder == nullptr) {
         ZLOGW(LOG_LABEL, "RemoteObjectHolderFinalizeCb null holder");
@@ -61,12 +62,14 @@ static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
     holder->Lock();
     int32_t curAttachCount = holder->DecAttachCount();
     if (curAttachCount == 0) {
+        ZLOGI(LOG_LABEL, "[mem_free]RemoteObjectHolderFinalizeCb release holder");
         delete holder;
     }
 }
 
 static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
 {
+    ZLOGI(LOG_LABEL, "[mem_free]RemoteObjectDetachCb inter");
     (void)engine;
     (void)hint;
     return value;
@@ -74,6 +77,7 @@ static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
 
 static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void *hint)
 {
+    ZLOGI(LOG_LABEL, "[mem_free]RemoteObjectAttachCb inter");
     (void)hint;
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(value);
     if (holder == nullptr) {
@@ -115,6 +119,7 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
 
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
+    ZLOGI(LOG_LABEL, "[mem_free]RemoteObject_JS_Constructor inter");
     // new napi remote object
     size_t argc = 2;
     size_t expectedArgc = 1;
@@ -155,6 +160,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
+    ZLOGI(LOG_LABEL, "[mem_free]NAPIRemoteObject create");
     env_ = env;
     thisVar_ = thisVar;
     napi_create_reference(env, thisVar_, 1, &thisVarRef_);
@@ -163,7 +169,7 @@ NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
+    ZLOGI(LOG_LABEL, "[mem_free]NAPIRemoteObject Destructor");
     if (thisVarRef_ != nullptr) {
         napi_status status = napi_delete_reference(env_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
