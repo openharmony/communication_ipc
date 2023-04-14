@@ -20,10 +20,13 @@
 namespace OHOS {
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
     : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
-{}
+{
+    ZLOGI(LOG_LABEL, "[mem_free]NAPIRemoteObjectHolder create");
+}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
+    ZLOGI(LOG_LABEL, "[mem_free]NAPIRemoteObjectHolder free");
     // free the reference of object.
     cachedObject_ = nullptr;
     if (localInterfaceRef_ != nullptr) {
@@ -33,12 +36,13 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 
 sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
 {
+    ZLOGI(LOG_LABEL, "[mem_free]NAPIRemoteObjectHolder Get");
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
     sptr<NAPIRemoteObject> remoteObject = nullptr;
     if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_;
+        remoteObject = cachedObject_.promote();
     }
 
     if (remoteObject == nullptr) {
