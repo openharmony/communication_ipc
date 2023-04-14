@@ -686,7 +686,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest003, TestSize.Level1)
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::string deviceID("123456");
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
-    dBinderService->NoticeDeviceDie(deviceID);
+    EXPECT_EQ(dBinderService->NoticeDeviceDie(deviceID), DBINDER_SERVICE_NOTICE_DIE_ERR);
 }
 
 /**
@@ -758,9 +758,9 @@ HWTEST_F(DBinderServiceUnitTest, ProcessCallbackProxyTest001, TestSize.Level1)
     std::string deviceID("123456");
     binder_uintptr_t binderObject = 100;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
-    dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
+    bool res = dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     dBinderService->ProcessCallbackProxy(dBinderServiceStub);
-    EXPECT_EQ(0, 0);
+    EXPECT_TRUE(res);
 }
 
 /**
@@ -1212,6 +1212,7 @@ HWTEST_F(DBinderServiceUnitTest, StopThreadPool001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, AddAsynMessageTask001, TestSize.Level1)
 {
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
+    EXPECT_NE(message.get(), nullptr);
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     dBinderService->AddAsynMessageTask(message);
 }
