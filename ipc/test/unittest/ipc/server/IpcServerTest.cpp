@@ -227,9 +227,10 @@ HWTEST_F(IpcServerTest, IpcServerTest005, TestSize.Level0)
 HWTEST_F(IpcServerTest, IpcServerTest006, TestSize.Level0)
 {
     pthread_t pid;
-    pthread_create(&pid, nullptr, ThreadHandler, nullptr);
-    pthread_detach(pid);
-
+    int retCreate = pthread_create(&pid, nullptr, ThreadHandler, nullptr);
+    EXPECT_EQ(retCreate, 0);
+    int retDetach = pthread_detach(pid);
+    EXPECT_EQ(retDetach, 0);
     JoinWorkThread();
 }
 }  // namespace OHOS
