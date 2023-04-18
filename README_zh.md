@@ -48,7 +48,6 @@ IPC（Inter-Process Communication）与RPC（Remote Procedure Call）机制用�
 
 ```
 import rpc from "@ohos.rpc"
-import featureAbility from "@ohos.ability.featureAbility"
 ```
 
 **Native侧编译依赖**
@@ -75,11 +74,11 @@ external_deps = [
 
 1. 获取代理
 
-   使用ohos.ability.featureAbility提供的connectAbility方法绑定Ability，在参数里指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的情况，还需要指定所在设备的NetworkId。用户需要在服务端的onConnect方法里返回一个继承自ohos.rpc.RemoteObject的对象，此对象会在其onRemoteMessageRequest方法里接收到请求。
+   使用ohos.app.ability.UIAbility提供的globalThis.context.connectServiceExtensionAbility方法绑定Ability，在参数里指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的情况，还需要指定所在设备的NetworkId。用户需要在服务端的onConnect方法里返回一个继承自ohos.rpc.RemoteObject的对象，此对象会在其onRemoteMessageRequest方法里接收到请求。
 
 2. 发送请求
 
-   客户端在connectAbility参数指定的回调函数接收到代理对象后，使用ohos.rpc模块提供的方法完成RPC通信，其中MessageParcel提供了读写各种类型数据的方法，IRemoteObject提供了发送请求的方法，RemoteObject提供了处理请求的方法onRemoteRequest，用户需要重写。
+   客户端在globalThis.context.connectServiceExtensionAbility参数指定的回调函数接收到代理对象后，使用ohos.rpc模块提供的方法完成RPC通信，其中MessageParcel提供了读写各种类型数据的方法，IRemoteObject提供了发送请求的方法，RemoteObject提供了处理请求的方法onRemoteRequest，用户需要重写。
 
 **Native侧实现跨进程通信的基本步骤：**
 
@@ -107,14 +106,14 @@ external_deps = [
 
 **表 1**  JS侧IPC关键API
 
-| 模块                        | 方法                                                         | 功能说明                                    |
-| --------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
-| ohos.ability.featureAbility | connectAbility(request: Want, options:ConnectOptions ): number | 绑定指定的Ability，在回调函数里接收代理对象 |
-| ohos.rpc.RemoteObject       | onRemoteMessageRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): boolean \| Promise<boolean> | 服务端处理请求，返回结果                    |
-| ohos.rpc.IRemoteObject      | sendRequestAsync(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): Promise<SendRequestResult> | 发送请求，在期约里接收结果                  |
-| ohos.rpc.IRemoteObject      | sendRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption, callback: AsyncCallback<SendRequestResult>): void | 发送请求，在回调函数里接收结果              |
-| ohos.rpc.MessageParcel      | writeRemoteObject(object: IRemoteObject): boolean            | 序列化IRemoteObject对象                     |
-| ohos.rpc.MessageParcel      | readRemoteObject(): IRemoteObject                            | 反序列化IRemoteObject对象                   |
+| 模块                       | 方法                                                         | 功能说明                                    |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| ohos.app.ability.UIAbility | globalThis.context.connectServiceExtensionAbility(want: Want, options:ConnectOptions ): number | 绑定指定的Ability，在回调函数里接收代理对象 |
+| ohos.rpc.RemoteObject      | onRemoteMessageRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): boolean \| Promise<boolean> | 服务端处理请求，返回结果                    |
+| ohos.rpc.IRemoteObject     | sendRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption): Promise<SendRequestResult> | 发送请求，在期约里接收结果                  |
+| ohos.rpc.IRemoteObject     | sendRequest(code: number, data: MessageParcel, reply: MessageParcel, options: MessageOption, callback: AsyncCallback<SendRequestResult>): void | 发送请求，在回调函数里接收结果              |
+| ohos.rpc.MessageParcel     | writeRemoteObject(object: IRemoteObject): boolean            | 序列化IRemoteObject对象                     |
+| ohos.rpc.MessageParcel     | readRemoteObject(): IRemoteObject                            | 反序列化IRemoteObject对象                   |
 
 
 
@@ -157,11 +156,10 @@ external_deps = [
 
 **JS侧使用说明**
 
-1. 客户端构造变量want，指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的场景，还需要目标设备NetworkId。构造变量connect，指定绑定成功、绑定失败、断开连接时的回调函数。使用featureAbility提供的接口绑定Ability。
+1. 客户端构造变量want，指定要绑定的Ability所在应用的包名、组件名，如果是跨设备的场景，还需要目标设备NetworkId。构造变量connect，指定绑定成功、绑定失败、断开连接时的回调函数。使用UIAbility提供的接口绑定Ability。
 
    ```
    import rpc from "@ohos.rpc"
-   import featureAbility from "@ohos.ability.featureAbility"
    
    let proxy = null
    let connectId = null
@@ -182,7 +180,7 @@ external_deps = [
            proxy = null
        }
    }
-   connectId = featureAbility.connectAbility(want, connect)
+   connectId = globalThis.context.connectServiceExtensionAbility(want, connect)
    
    // 如果是跨设备绑定，可以使用deviceManager获取目标设备NetworkId
    import deviceManager from '@ohos.distributedHardware.deviceManager'
@@ -195,14 +193,14 @@ external_deps = [
            "deviceId": deviceId,
            "flags": 256
        }
-       connectId = featureAbility.connectAbility(want, connect)
+       connectId = globalThis.context.connectServiceExtensionAbility(want, connect)
    }
    // 第一个参数是本应用的包名，第二个参数是接收deviceManager的回调函数
    deviceManager.createDeviceManager("ohos.rpc.test", deviceManagerCallback)
    ```
-
    
-
+   
+   
 2. 服务端被绑定的Ability在onConnect方法里返回继承自rpc.RemoteObject的对象，该对象需要实现onRemoteMessageRequest方法，处理客户端的请求。
 
    ```
@@ -224,7 +222,7 @@ external_deps = [
 
    
 
-3. 客户端在onConnect回调里接收到代理对象，调用sendRequestAsync方法发起请求，在期约或者回调函数里接收结果。
+3. 客户端在onConnect回调里接收到代理对象，调用sendRequest方法发起请求，在期约或者回调函数里接收结果。
 
    ```
    import rpc from "@ohos.rpc"
@@ -233,7 +231,7 @@ external_deps = [
    let data = rpc.MessageParcel.create()
    let reply = rpc.MessageParcel.create()
    // 往data里写入参数
-   proxy.sendRequestAsync(1, data, reply, option)
+   proxy.sendRequest(1, data, reply, option)
        .then(function(result) {
            if (result.errCode != 0) {
                console.error("send request failed, errCode: " + result.errCode)
@@ -271,15 +269,15 @@ external_deps = [
 
    
 
-4. IPC通信结束后，使用featureAbility的接口断开连接。
+4. IPC通信结束后，使用UIAbility的接口断开连接。
 
    ```
    import rpc from "@ohos.rpc"
-   import featureAbility from "@ohos.ability.featureAbility"
-   function disconnectCallback() {
-       console.info("disconnect ability done")
-   }
-   featureAbility.disconnectAbility(connectId, disconnectCallback)
+   globalThis.context.disconnectServiceExtensionAbility(connectionId).then((data) => {
+       console.info('disconnectServiceExtensionAbility success');
+   }).catch((error) => {
+       console.error('disconnectServiceExtensionAbility failed');
+   })
    ```
 
    
@@ -442,5 +440,4 @@ external_deps = [
 [commonlibrary\_c\_utils](https://gitee.com/openharmony/commonlibrary_c_utils)
 
 [distributedschedule\_samgr](https://gitee.com/openharmony/distributedschedule_samgr)
-
 
