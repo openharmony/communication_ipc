@@ -18,7 +18,6 @@
 #include <string_ex.h>
 
 namespace OHOS {
-
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
     : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
 {}
