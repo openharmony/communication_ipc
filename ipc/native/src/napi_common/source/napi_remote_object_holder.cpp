@@ -15,17 +15,13 @@
 
 #include "napi_remote_object_holder.h"
 
-#include "ipc_debug.h"
-#include "log_tags.h"
 #include <string_ex.h>
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "NapiRemoteObjectHolder" };
 
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
     : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
-{
-}
+{}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
