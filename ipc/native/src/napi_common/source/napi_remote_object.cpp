@@ -163,6 +163,7 @@ NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
+    ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
     if (thisVarRef_ != nullptr) {
         napi_status status = napi_delete_reference(env_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
