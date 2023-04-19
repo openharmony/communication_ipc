@@ -61,11 +61,12 @@ static constexpr int HIDUMPER_SERVICE_UID = 1212;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
 {
+    ZLOGI(LABEL, "create, desc: %{public}s", Str16ToStr8(descriptor_).c_str());
 }
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGD(LABEL, "destroy, desc: %{public}s", Str16ToStr8(descriptor_).c_str());
+    ZLOGW(LABEL, "destroy, desc: %{public}s", Str16ToStr8(descriptor_).c_str());
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
