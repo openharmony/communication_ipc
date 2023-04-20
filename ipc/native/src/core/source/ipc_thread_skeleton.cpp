@@ -37,10 +37,12 @@ namespace IPC_SINGLE {
 using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
+std::recursive_mutex IPCThreadSkeleton::mutex_;
 
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCThreadSkeleton" };
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto *current = static_cast<IPCThreadSkeleton *>(args);
     auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
     if (it != current->invokers_.end()) {
@@ -81,6 +83,7 @@ IPCThreadSkeleton::IPCThreadSkeleton()
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     ZLOGE(LABEL, "IPCThreadSkeleton delete");
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);
@@ -95,6 +98,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         return nullptr;
     }
 
+    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto it = current->invokers_.find(proto);
     if (it != current->invokers_.end()) {
         invoker = it->second;
