@@ -52,6 +52,7 @@ public:
     void StopWorkThread(int proto);
 
 private:
+    static std::recursive_mutex mutex_;
     static pthread_key_t TLSKey_;
     static pthread_once_t TLSKeyOnce_;
     std::unordered_map<int, IRemoteInvoker *> invokers_;
