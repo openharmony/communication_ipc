@@ -39,11 +39,12 @@ public:
     virtual ~ErrorBase() = default;
     inline const std::string &GetErrorDesc(uint32_t error);
     virtual ErrorMap &GetErrorMap() = 0;
+
+    static constexpr const char *unknowCommand = "UNKNOWN COMMAND";
 };
 
 inline const std::string &ErrorBase::GetErrorDesc(uint32_t error)
 {
-    static constexpr const char *unknowCommand = "UNKNOWN COMMAND";
     ErrorMap::iterator found = GetErrorMap().find(error);
     if (found == GetErrorMap().end()) {
         return unknowCommand;
