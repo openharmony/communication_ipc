@@ -1031,7 +1031,6 @@ HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
-    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
 
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
