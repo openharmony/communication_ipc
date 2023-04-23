@@ -1003,10 +1003,22 @@ HWTEST_F(IPCObjectStubTest, CreateSessionNameTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, GetCallingTokenIDTest001, TestSize.Level1)
 {
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, GetCallerTokenID())
+        .WillRepeatedly(testing::Return(1));
+
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
     auto ret = testStub->GetCallingTokenID();
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, 1);
+    current->invokers_.clear();
+    delete invoker;
 }
 
 /**
@@ -1016,8 +1028,22 @@ HWTEST_F(IPCObjectStubTest, GetCallingTokenIDTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
 {
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, GetCallerTokenID())
+        .WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(*invoker, GetSelfTokenID())
+        .WillRepeatedly(testing::Return(1));
+
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
     auto ret = testStub->GetCallingFullTokenID();
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, 1);
+    current->invokers_.clear();
+    delete invoker;
 }
