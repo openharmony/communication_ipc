@@ -96,7 +96,7 @@ public:
 private:
     std::mutex mutex_;
     std::u16string descriptor_;
-    wptr<JRemoteObject> cachedObject_;
+    sptr<JRemoteObject> cachedObject_;
 };
 
 /*
@@ -250,7 +250,7 @@ sptr<JRemoteObject> JRemoteObjectHolder::Get(jobject object)
     // so it will not be freed util this reference released.
     sptr<JRemoteObject> remoteObject = nullptr;
     if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_.promote();
+        remoteObject = cachedObject_;
     }
 
     if (remoteObject == nullptr) {
