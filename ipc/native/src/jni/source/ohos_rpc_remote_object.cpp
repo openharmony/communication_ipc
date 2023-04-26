@@ -96,7 +96,7 @@ public:
 private:
     std::mutex mutex_;
     std::u16string descriptor_;
-    sptr<JRemoteObject> cachedObject_;
+    wptr<JRemoteObject> cachedObject_;
 };
 
 /*
@@ -248,16 +248,13 @@ sptr<JRemoteObject> JRemoteObjectHolder::Get(jobject object)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
-    sptr<JRemoteObject> remoteObject = nullptr;
-    if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_;
-    }
+    sptr<JRemoteObject> tmp = cachedObject_.promote();
 
-    if (remoteObject == nullptr) {
-        remoteObject = new JRemoteObject(object, descriptor_);
-        cachedObject_ = remoteObject;
+    if (tmp == nullptr) {
+        tmp = new JRemoteObject(object, descriptor_);
+        cachedObject_ = tmp;
     }
-    return remoteObject;
+    return tmp;
 }
 
 JRemoteProxyHolder::JRemoteProxyHolder() : list_(nullptr), object_(nullptr) {}
