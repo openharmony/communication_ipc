@@ -37,7 +37,6 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
     sptr<NAPIRemoteObject> tmp = cachedObject_.promote();
-
     if (tmp == nullptr) {
         tmp = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
         cachedObject_ = tmp;
