@@ -36,16 +36,13 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
-    sptr<NAPIRemoteObject> remoteObject = nullptr;
-    if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_;
-    }
+    sptr<NAPIRemoteObject> tmp = cachedObject_.promote();
 
-    if (remoteObject == nullptr) {
-        remoteObject = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
-        cachedObject_ = remoteObject;
+    if (tmp == nullptr) {
+        tmp = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
+        cachedObject_ = tmp;
     }
-    return remoteObject;
+    return tmp;
 }
 
 void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
