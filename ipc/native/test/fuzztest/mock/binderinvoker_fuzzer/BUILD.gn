@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,12 +16,11 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
+ohos_fuzztest("BinderInvokerFuzzTest") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/mock/dbinderdatabusinvoker_fuzzer"
+  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/mock/binderinvoker_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
-    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
     "//commonlibrary/c_utils/base/include",
     "//foundation/communication/ipc/utils/include",
     "//foundation/communication/ipc/ipc/native/c/rpc/include",
@@ -35,13 +34,11 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [
-    "dbinderdatabusinvoker_fuzzer.cpp",
-    "//foundation/communication/ipc/ipc/native/src/mock/source/hitrace_invoker.cpp",
-    ]
+  sources = [ "binderinvoker_fuzzer.cpp" ]
 
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
     "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
   ]
 
@@ -49,6 +46,7 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
     "c_utils:utils",
     "hitrace_native:libhitracechain",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
   ]
 }
 
@@ -58,7 +56,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":DBinderDatabusInvokerFuzzTest",
+    ":BinderInvokerFuzzTest",
   ]
 }
 
