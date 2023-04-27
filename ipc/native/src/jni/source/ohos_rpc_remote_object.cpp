@@ -249,7 +249,6 @@ sptr<JRemoteObject> JRemoteObjectHolder::Get(jobject object)
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
     sptr<JRemoteObject> tmp = cachedObject_.promote();
-
     if (tmp == nullptr) {
         tmp = new JRemoteObject(object, descriptor_);
         cachedObject_ = tmp;
