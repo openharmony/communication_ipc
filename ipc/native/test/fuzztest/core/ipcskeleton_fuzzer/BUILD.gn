@@ -18,11 +18,10 @@ import("//build/test.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("IPCSkeletonFuzzTest") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/core/ipcskeleton_fuzzer"
+  fuzz_config_file = "../ipcskeleton_fuzzer"
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/ipc/native/src/core/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
+    "../../../../src/core/include",
+    "../../../../c/rpc/include",
   ]
   cflags = [
     "-g",
@@ -34,9 +33,9 @@ ohos_fuzztest("IPCSkeletonFuzzTest") {
   sources = [ "ipcskeleton_fuzzer.cpp" ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+    "../../../../../../interfaces/innerkits/ipc_core:ipc_core",
+    "../../../../../../interfaces/innerkits/ipc_single:ipc_single",
+    "../../../../../../interfaces/innerkits/libdbinder:libdbinder",
   ]
 
   external_deps = [
