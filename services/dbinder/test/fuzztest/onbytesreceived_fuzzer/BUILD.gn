@@ -18,10 +18,9 @@ import("//build/test.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("OnBytesReceivedFuzzTest") {
   module_out_path = "ipc/service"
-  fuzz_config_file = "//foundation/communication/ipc/services/dbinder/test/fuzztest/onbytesreceived_fuzzer"
+  fuzz_config_file = "../onbytesreceived_fuzzer"
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include",
+    "../../../../../interfaces/innerkits/libdbinder/include",
   ]
   cflags = [
     "-g",
