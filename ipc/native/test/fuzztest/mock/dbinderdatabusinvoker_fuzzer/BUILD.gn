@@ -36,9 +36,9 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
     "-fstack-protector-strong",
   ]
   sources = [
-    "dbinderdatabusinvoker_fuzzer.cpp",
     "//foundation/communication/ipc/ipc/native/src/mock/source/hitrace_invoker.cpp",
-    ]
+    "dbinderdatabusinvoker_fuzzer.cpp",
+  ]
 
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
