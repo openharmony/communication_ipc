@@ -25,7 +25,7 @@
 namespace OHOS {
     bool AttachAppInfoToStubIndexTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
+        if (data == nullptr || size < sizeof(uint64_t)) {
             return false;
         }
 
@@ -61,8 +61,8 @@ namespace OHOS {
 
         sptr<IRemoteObject> remoteObj;
         IRemoteObject *stub = remoteObj.GetRefPtr();
-        int pid = *(reinterpret_cast<const uint32_t*>(data));;
-        int uid = *(reinterpret_cast<const uint32_t*>(data));;
+        int pid = *(reinterpret_cast<const uint32_t*>(data));
+        int uid = *(reinterpret_cast<const uint32_t*>(data));
         uint32_t tokenId = *(reinterpret_cast<const uint32_t*>(data));
         std::string deviceId = tmp;
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
