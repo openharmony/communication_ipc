@@ -18,14 +18,12 @@ import("//build/test.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("BinderInvokerFuzzTest") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/mock/binderinvoker_fuzzer"
+  fuzz_config_file = "../binderinvoker_fuzzer"
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/utils/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/src/core/include",
-    "//foundation/communication/ipc/ipc/native/src/mock/include",
+    "../../../../../../utils/include",
+    "../../../../c/rpc/include",
+    "../../../../src/core/include",
+    "../../../../src/mock/include",
   ]
   cflags = [
     "-g",
@@ -37,9 +35,9 @@ ohos_fuzztest("BinderInvokerFuzzTest") {
   sources = [ "binderinvoker_fuzzer.cpp" ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+    "../../../../../../interfaces/innerkits/ipc_core:ipc_core",
+    "../../../../../../interfaces/innerkits/ipc_single:ipc_single",
+    "../../../../../../interfaces/innerkits/libdbinder:libdbinder",
   ]
 
   external_deps = [
