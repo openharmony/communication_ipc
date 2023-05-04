@@ -34,7 +34,7 @@ public:
     bool Matches(napi_value object);
 
 protected:
-    virtual ~NAPIDeathRecipient();
+    virtual ~NAPIDeathRecipient() = default;
 
 private:
     struct OnRemoteDiedParam {
