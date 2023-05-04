@@ -25,7 +25,7 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size < sizeof(struct DHandleEntryTxRx)) {
             return false;
         }
         char tmp[DATA_SIZE_MAX] = {0};
