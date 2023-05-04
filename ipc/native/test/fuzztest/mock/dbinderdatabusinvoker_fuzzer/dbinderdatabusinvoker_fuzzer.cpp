@@ -237,20 +237,14 @@ namespace OHOS {
 
     bool MakeThreadProcessInfoTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size < sizeof(int32_t)) {
-            return false;
-        }
-
-        char tmp[BUFFER_SIZE_MAX] = {0};
-        if (memcpy_s(tmp, sizeof(tmp) - 1, data, size) != EOK) {
+        if (data == nullptr || size < sizeof(uint32_t)) {
             return false;
         }
 
         uint32_t handle = reinterpret_cast<uint32_t>(data);
-        const char *inBuffer = tmp;
-        uint32_t testsize = reinterpret_cast<uint32_t>(data);
+        const char* indata  = reinterpret_cast<const char*>(data);
         DBinderDatabusInvoker invoker;
-        std::shared_ptr<ThreadProcessInfo> processInfo = invoker.MakeThreadProcessInfo(handle, inBuffer, testsize);
+        std::shared_ptr<ThreadProcessInfo> processInfo = invoker.MakeThreadProcessInfo(handle, indata, size);
         if (processInfo == nullptr) {
             return false;
         }
