@@ -22,32 +22,24 @@
 #include "ipc_skeleton.h"
 
 namespace OHOS {
-    bool GetCallingTokenIDTest(const uint8_t* data, size_t size)
+    void GetCallingTokenIDTest(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
+            return;
         }
 
         IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-        uint32_t result = skeleton.GetCallingTokenID();
-        if (result == 0) {
-            return false;
-        }
-        return true;
+        skeleton.GetCallingTokenID();
     }
 
-    bool GetFirstTokenIDTest(const uint8_t* data, size_t size)
+    void GetFirstTokenIDTest(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
+            return;
         }
 
         IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-        uint32_t result = skeleton.GetFirstTokenID();
-        if (result == 0) {
-            return false;
-        }
-        return true;
+        skeleton.GetFirstTokenID();
     }
 }
 
