@@ -14,14 +14,16 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("GetTokenFromDataFuzzTest") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/c/gettokenfromdata_fuzzer"
+  fuzz_config_file = "$IPC_CORE_ROOT/test/fuzztest/c/gettokenfromdata_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
   ]
   cflags = [
     "-g",
@@ -33,9 +35,9 @@ ohos_fuzztest("GetTokenFromDataFuzzTest") {
   sources = [ "gettokenfromdata_fuzzer.cpp" ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
   ]
 
   external_deps = [
