@@ -33,7 +33,7 @@ executable("ipc_test_client") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single",
     "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
   ]
 

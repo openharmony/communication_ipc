@@ -13,28 +13,28 @@
 
 import("//build/lite/config/component/lite_component.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test"
-IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_TEST_CORE = "$SUBSYSTEM_DIR/ipc/test"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
 
 executable("samgr") {
   output_extension = "bin"
   output_dir = "$root_out_dir/test/ipc"
-  sources = [ "$SUBSYSTEM_DIR/ipc/samgr/samgr.c" ]
+  sources = [ "$IPC_TEST_CORE/ipc/samgr/samgr.c" ]
   include_dirs = [
     "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
-    "//foundation/communication/ipc/services/dbinder/c/include",
+    "$SUBSYSTEM_DIR/services/dbinder/c/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
-    "$SUBSYSTEM_DIR/ipc/include",
+    "$IPC_TEST_CORE/ipc/include",
   ]
   ldflags = [
     "-lstdc++",
     "-lpthread",
   ]
-  deps =
-      [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
 
   configs -= [ "//build/lite/config:clang_opt" ]
 }

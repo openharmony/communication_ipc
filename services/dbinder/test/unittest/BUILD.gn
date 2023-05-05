@@ -13,19 +13,19 @@
 
 import("//build/test.gni")
 
-# SUBSYSTEM_DIR = "//foundation/communication/ipc"
-# IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
 
 ohos_unittest("RPCDbinderTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//foundation/communication/ipc/ipc/native/c/manager/include",
-    "//foundation/communication/ipc/utils/include",
+    "$IPC_CORE_ROOT/c/manager/include",
+    "$SUBSYSTEM_DIR/utils/include",
     "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/src",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
   ]
 
   sources = [
@@ -38,7 +38,7 @@ ohos_unittest("RPCDbinderTest") {
   configs = []
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -49,8 +49,7 @@ ohos_unittest("RPCDbinderTest") {
     "ipc:libdbinder",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ###############################################################################
