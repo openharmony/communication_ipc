@@ -29,7 +29,7 @@ public:
     explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor);
     ~NAPIRemoteObjectHolder();
     sptr<NAPIRemoteObject> Get(napi_value object);
-    void Set(sptr<NAPIRemoteObject> object);
+    //void Set(sptr<NAPIRemoteObject> object);
     void attachLocalInterface(napi_value localInterface, std::string &descriptor);
     napi_value queryLocalInterface(std::string &descriptor);
     void Lock()

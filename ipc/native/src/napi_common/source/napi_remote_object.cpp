@@ -181,9 +181,11 @@ int NAPIRemoteObject::GetObjectType() const
     return OBJECT_TYPE_JAVASCRIPT;
 }
 
-napi_ref NAPIRemoteObject::GetJsObjectRef() const
+napi_value NAPIRemoteObject::GetJsObject() const
 {
-    return thisVarRef_;
+    napi_value ret = nullptr;
+    napi_get_reference_value(env_, thisVarRef_, &ret);
+    return ret;
 }
 
 void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
@@ -580,12 +582,13 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
 
     if (target->CheckObjectLegality()) {
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
-        ZLOGI(LOG_LABEL, "object type:%{public}d", tmp->GetObjectType());
+        ZLOGI(LOG_LABEL, "[mgttest]object type:%{public}d", tmp->GetObjectType());
         if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
-            ZLOGI(LOG_LABEL, "napi create js remote object");
+            //ZLOGI(LOG_LABEL, "napi create js remote object");
             sptr<NAPIRemoteObject> object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
+            return object->GetJsObject();
             // retrieve js remote object constructor
-            napi_value global = nullptr;
+           /* napi_value global = nullptr;
             napi_status status = napi_get_global(env, &global);
             NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
             napi_value constructor = nullptr;
@@ -608,7 +611,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
             napi_unwrap(env, jsRemoteObject, (void **)&holder);
             NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
             holder->Set(object);
-            return jsRemoteObject;
+            return jsRemoteObject;*/
         }
     }
 
