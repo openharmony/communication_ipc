@@ -44,11 +44,11 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     return tmp;
 }
 
-void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
+/*void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     cachedObject_ = object;
-}
+}*/
 
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)
 {
