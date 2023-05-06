@@ -15,6 +15,7 @@ import("//build/lite/config/component/lite_component.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder/c"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 config("ipc_rpc_interface") {
   include_dirs = [
@@ -80,6 +81,6 @@ if (ohos_kernel_type == "linux") {
       "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite",
     ]
     ldflags = [ "-lpthread" ]
-    deps = [ "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter" ]
+    deps = [ "$IPC_CORE_ROOT/c/adapter:rpc_adapter" ]
   }
 }
