@@ -14,7 +14,7 @@
 import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-DBINDER_TEST_ROOT = "//foundation/communication/ipc/services/dbinder/test"
+DBINDER_TEST_ROOT = "$SUBSYSTEM_DIR/services/dbinder/test"
 MODULE_OUTPUT_PATH = "ipc/services/dbinder"
 
 ###############################################################################
@@ -62,8 +62,7 @@ ohos_distributedtest("DbinderTest") {
   ]
 
   subsystem_name = "communication"
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/services/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/services/ohos_test.xml"
 }
 
 ohos_distributedtest("DbinderTestAgent") {
@@ -93,8 +92,7 @@ ohos_distributedtest("DbinderTestAgent") {
   ]
 
   subsystem_name = "communication"
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/services/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/services/ohos_test.xml"
 }
 
 ###############################################################################

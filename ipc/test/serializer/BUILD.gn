@@ -12,17 +12,20 @@
 # limitations under the License.
 
 import("//test/xts/tools/lite/build/suite_lite.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
+IPC_TEST_CORE = "$SUBSYSTEM_DIR/ipc/test"
+
 if (ohos_kernel_type == "linux") {
   hcpptest_suite("SerializerTest") {
     suite_name = "acts"
     sources = [ "utils_serializer_test.cpp" ]
     defines = [ "XTS_SUITE_TEST" ]
     include_dirs = [
-      "//foundation/communication/ipc/interfaces/innerkits/c/ipc/include",
-      "//foundation/communication/ipc/ipc/native/c/manager/include",
+      "$IPC_TEST_CORE/interfaces/innerkits/c/ipc/include",
+      "$IPC_CORE_ROOT/manager/include",
     ]
-    deps = [
-      "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single",
-    ]
+    deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
   }
 }
