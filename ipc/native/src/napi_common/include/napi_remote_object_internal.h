@@ -36,7 +36,7 @@ public:
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    napi_value GetJsObject() const;
+    napi_ref GetJsObjectRef() const;
 private:
     napi_env env_ = nullptr;
     napi_value thisVar_ = nullptr;
