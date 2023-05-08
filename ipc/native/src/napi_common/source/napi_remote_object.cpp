@@ -188,12 +188,17 @@ int NAPIRemoteObject::GetObjectType() const
     return OBJECT_TYPE_JAVASCRIPT;
 }
 
+napi_ref NAPIRemoteObject::GetJsObjectRef() const
+{
+    return thisVarRef_;
+}
+/*
 napi_value NAPIRemoteObject::GetJsObject() const
 {
     napi_value ret = nullptr;
     napi_get_reference_value(env_, thisVarRef_, &ret);
     return ret;
-}
+}*/
 
 void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
 {
