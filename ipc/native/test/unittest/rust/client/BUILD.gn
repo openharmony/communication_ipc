@@ -14,18 +14,17 @@
 import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-MODULE_OUTPUT_PATH = "ipc"
+MODULE_OUTPUT_PATH = "$SUBSYSTEM_DIR/ipc"
 
 ohos_rust_unittest("rust_ipc_test_client") {
   module_out_path = MODULE_OUTPUT_PATH
   sources = [ "src/main.rs" ]
   deps = [
+    "$MODULE_OUTPUT_PATH/native/test/unittest/rust/service:test_ipc_service",
     "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust",
-    "$SUBSYSTEM_DIR/ipc/native/test/unittest/rust/service:test_ipc_service",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 
   subsystem_name = "communication"
   part_name = "ipc"

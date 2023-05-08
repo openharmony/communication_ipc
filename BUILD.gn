@@ -42,13 +42,13 @@ config("ipc_util_config") {
 group("ipc_components") {
   if (os_level == "standard") {
     deps = [
-      "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-      "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-      "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
-      "//foundation/communication/ipc/interfaces/innerkits/rust:rust_ipc_component",
-      "//foundation/communication/ipc/ipc/native/src/core:ipc_common",
+      "$IPC_CORE_ROOT/src/core:ipc_common",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/rust:rust_ipc_component",
     ]
   } else {
-    deps = [ "//foundation/communication/ipc/interfaces/innerkits/c:rpc" ]
+    deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c:rpc" ]
   }
 }

@@ -14,14 +14,16 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("NoticeDeviceDieFuzzTest") {
   module_out_path = "ipc/service"
-  fuzz_config_file = "//foundation/communication/ipc/services/dbinder/test/fuzztest/noticedevicedie_fuzzer"
+  fuzz_config_file =
+      "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/noticedevicedie_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
     "//interfaces/innerkits/libdbinder/include",
   ]
   cflags = [

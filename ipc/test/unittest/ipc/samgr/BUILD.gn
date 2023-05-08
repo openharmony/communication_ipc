@@ -35,6 +35,5 @@ unittest("samgr") {
 
   sources = [ "IpcSamgrTest.cpp" ]
 
-  deps =
-      [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
 }

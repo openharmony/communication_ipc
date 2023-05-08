@@ -33,17 +33,6 @@ NAPIDeathRecipient::NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient
     NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, "failed to create ref to js death recipient");
 }
 
-NAPIDeathRecipient::~NAPIDeathRecipient()
-{
-    if (env_ != nullptr) {
-        if (deathRecipientRef_ != nullptr) {
-            napi_status status = napi_delete_reference(env_, deathRecipientRef_);
-            NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js death recipient");
-            deathRecipientRef_ = nullptr;
-        }
-    }
-}
-
 void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
     if (deathRecipientRef_ == nullptr) {
@@ -78,6 +67,9 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         if (returnVal == nullptr) {
             ZLOGE(LOG_LABEL, "failed to call function onRemoteDied");
         }
+
+        napi_status napiStatus = napi_delete_reference(param->env, param->deathRecipientRef);
+        NAPI_ASSERT_RETURN_VOID(param->env, napiStatus == napi_ok, "failed to delete ref to js death recipient");
         delete param;
         delete work;
     });
