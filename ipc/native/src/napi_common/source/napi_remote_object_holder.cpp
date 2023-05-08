@@ -19,7 +19,8 @@
 
 namespace OHOS {
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
-    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
+    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr)
+//    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
 {}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
@@ -44,11 +45,11 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     return tmp;
 }
 
-/*void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
+void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     cachedObject_ = object;
-}*/
+}
 
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)
 {

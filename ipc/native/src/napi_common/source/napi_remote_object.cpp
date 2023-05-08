@@ -31,7 +31,7 @@
 #include "napi_rpc_error.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "native_engine/native_value.h"
+//#include "native_engine/native_value.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
@@ -45,7 +45,7 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
 
-template<class T>
+/*template<class T>
 inline T *ConvertNativeValueTo(NativeValue *value)
 {
     return (value != nullptr) ? static_cast<T *>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
@@ -111,7 +111,7 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     holder->IncAttachCount();
     holder->Unlock();
     return reinterpret_cast<NativeValue *>(jsRemoteObject);
-}
+}*/
 
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
@@ -135,20 +135,27 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
     auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor));
-    auto nativeObj = ConvertNativeValueTo<NativeObject>(reinterpret_cast<NativeValue *>(thisVar));
+    /*auto nativeObj = ConvertNativeValueTo<NativeObject>(reinterpret_cast<NativeValue *>(thisVar));
     if (nativeObj == nullptr) {
         ZLOGE(LOG_LABEL, "Failed to get RemoteObject native object");
         delete holder;
         return nullptr;
     }
-    nativeObj->ConvertToNativeBindingObject(env, RemoteObjectDetachCb, RemoteObjectAttachCb, holder, nullptr);
+    nativeObj->ConvertToNativeBindingObject(env, RemoteObjectDetachCb, RemoteObjectAttachCb, holder, nullptr);*/
     // connect native object to js thisVar
-    napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
+    napi_status status = napi_wrap(
+        env, thisVar, holder,
+        [](napi_env env, void *data, void *hint) {
+            ZLOGI(LOG_LABEL, "NAPIRemoteObjectHolder destructed by js callback");
+            delete (reinterpret_cast<NAPIRemoteObjectHolder *>(data));
+        },
+        nullptr, nullptr);
+    //napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
-    if (NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar) == nullptr) {
+    /*if (NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar) == nullptr) {
         ZLOGE(LOG_LABEL, "RemoteObject_JS_Constructor create native object failed");
         return nullptr;
-    }
+    }*/
     return thisVar;
 }
 
@@ -586,9 +593,9 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
         if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
             //ZLOGI(LOG_LABEL, "napi create js remote object");
             sptr<NAPIRemoteObject> object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
-            return object->GetJsObject();
+            //return object->GetJsObject();
             // retrieve js remote object constructor
-           /* napi_value global = nullptr;
+            napi_value global = nullptr;
             napi_status status = napi_get_global(env, &global);
             NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
             napi_value constructor = nullptr;
@@ -611,7 +618,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
             napi_unwrap(env, jsRemoteObject, (void **)&holder);
             NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
             holder->Set(object);
-            return jsRemoteObject;*/
+            return jsRemoteObject;
         }
     }
 
