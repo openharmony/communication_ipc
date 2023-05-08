@@ -27,7 +27,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-
 class IRemoteInvoker {
 public:
     enum {

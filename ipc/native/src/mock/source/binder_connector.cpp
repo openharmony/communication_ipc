@@ -37,7 +37,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "BinderConnector" };
 std::mutex BinderConnector::skeletonMutex;
 constexpr int SZ_1_M = 1048576;

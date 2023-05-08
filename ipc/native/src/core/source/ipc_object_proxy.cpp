@@ -49,7 +49,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectProxy" };
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)

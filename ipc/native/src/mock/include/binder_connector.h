@@ -23,7 +23,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-
 class BinderConnector {
 public:
     static BinderConnector *GetInstance();
