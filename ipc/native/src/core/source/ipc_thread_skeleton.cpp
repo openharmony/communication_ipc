@@ -33,7 +33,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-
 using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
@@ -82,8 +81,8 @@ IPCThreadSkeleton::IPCThreadSkeleton()
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
-    ZLOGE(LABEL, "IPCThreadSkeleton delete");
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
+    ZLOGE(LABEL, "IPCThreadSkeleton delete");
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);
@@ -97,7 +96,6 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     if (current == nullptr) {
         return nullptr;
     }
-
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto it = current->invokers_.find(proto);
     if (it != current->invokers_.end()) {
