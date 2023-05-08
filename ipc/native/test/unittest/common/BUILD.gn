@@ -14,7 +14,8 @@
 import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
+IPC_TEST_ROOT = "$SUBSYSTEM_DIR/ipc/test"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
 
 ohos_unittest("IPCNativeUnitTest") {
@@ -23,11 +24,11 @@ ohos_unittest("IPCNativeUnitTest") {
   include_dirs = [
     "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/c/ipc_adapter/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include",
-    "//foundation/communication/ipc/native/src/core/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/c/ipc_adapter/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
+    "$SUBSYSTEM_DIR/native/src/core/include",
   ]
 
   sources = [
@@ -64,8 +65,7 @@ ohos_unittest("IPCNativeUnitTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("IPCFileDescOpsTest") {
@@ -73,11 +73,11 @@ ohos_unittest("IPCFileDescOpsTest") {
 
   include_dirs = [
     "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/c/ipc_adapter/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder/include",
-    "//foundation/communication/ipc/native/src/core/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/c/ipc_adapter/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
+    "$SUBSYSTEM_DIR/native/src/core/include",
   ]
 
   sources = [ "ipc_file_desc_unittest.cpp" ]
@@ -99,8 +99,7 @@ ohos_unittest("IPCFileDescOpsTest") {
     "ipc:ipc_core",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("BinderConnectorTest") {
@@ -127,8 +126,7 @@ ohos_unittest("BinderConnectorTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("BinderInvokerUnitTest") {
@@ -136,8 +134,8 @@ ohos_unittest("BinderInvokerUnitTest") {
 
   include_dirs = [
     "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/ipc/native/c/adapter/access_token/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
   ]
 
   sources = [ "binder_invoker_unittest.cpp" ]
@@ -160,8 +158,7 @@ ohos_unittest("BinderInvokerUnitTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("IPCHiTraceUnitTest") {
@@ -190,8 +187,7 @@ ohos_unittest("IPCHiTraceUnitTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 if (support_jsapi) {
@@ -199,7 +195,7 @@ if (support_jsapi) {
     module_out_path = MODULE_OUTPUT_PATH
 
     include_dirs = [
-      "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
       "//foundation/arkui/napi/interfaces/kits",
     ]
 
@@ -217,8 +213,7 @@ if (support_jsapi) {
       "ipc:ipc_napi_common",
     ]
 
-    resource_config_file =
-        "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+    resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
   }
 }
 
@@ -228,10 +223,10 @@ ohos_unittest("IPCMockUnitTest") {
   include_dirs = [
     "//utils/system/safwk/native/include",
     "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/ipc/native/src/mock/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/c/adapter/access_token/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
   ]
 
   sources = [ "ipc_binder_databus_invoker_unittest.cpp" ]
@@ -255,8 +250,7 @@ ohos_unittest("IPCMockUnitTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("InvokerFactoryTest") {
@@ -265,10 +259,10 @@ ohos_unittest("InvokerFactoryTest") {
   include_dirs = [
     "//utils/system/safwk/native/include",
     "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/ipc/native/src/mock/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/c/adapter/access_token/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
   ]
 
   sources = [ "invoker_factory_unittest.cpp" ]
@@ -292,8 +286,7 @@ ohos_unittest("InvokerFactoryTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("RPCFeatureUnitTest") {
@@ -302,11 +295,11 @@ ohos_unittest("RPCFeatureUnitTest") {
   include_dirs = [
     "//utils/system/safwk/native/include",
     "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/ipc/native/src/mock/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/c/adapter/access_token/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/src/",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
+    "$IPC_CORE_ROOT/c/rpc/src/",
   ]
 
   sources = [ "rpc_feature_set_unittest.cpp" ]
@@ -330,8 +323,7 @@ ohos_unittest("RPCFeatureUnitTest") {
     "samgr:samgr_proxy",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("IPCCInterfaceUnitTest") {
@@ -339,8 +331,8 @@ ohos_unittest("IPCCInterfaceUnitTest") {
 
   include_dirs = [
     "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/communication/ipc/ipc/native/src/c_wrapper/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/src/c_wrapper/include",
   ]
 
   sources = [
@@ -355,17 +347,16 @@ ohos_unittest("IPCCInterfaceUnitTest") {
   ]
 
   deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_c",
     "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//foundation/communication/ipc/interfaces/innerkits/rust:ipc_c",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [ "c_utils:utils" ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("IPCSoDlcloseTest") {
@@ -378,8 +369,7 @@ ohos_unittest("IPCSoDlcloseTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  resource_config_file =
-      "//foundation/communication/ipc/test/resource/ipc/ohos_test.xml"
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ###############################################################################

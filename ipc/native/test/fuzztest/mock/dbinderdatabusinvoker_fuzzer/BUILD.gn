@@ -14,19 +14,22 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
   module_out_path = "ipc/native"
-  fuzz_config_file = "//foundation/communication/ipc/ipc/native/test/fuzztest/mock/dbinderdatabusinvoker_fuzzer"
+  fuzz_config_file =
+      "$IPC_CORE_ROOT/test/fuzztest/mock/dbinderdatabusinvoker_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
     "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
     "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/utils/include",
-    "//foundation/communication/ipc/ipc/native/c/rpc/include",
-    "//foundation/communication/ipc/ipc/native/src/core/include",
-    "//foundation/communication/ipc/ipc/native/src/mock/include",
+    "$SUBSYSTEM_DIR/utils/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/src/core/include",
+    "$IPC_CORE_ROOT/src/mock/include",
   ]
   cflags = [
     "-g",
@@ -41,8 +44,9 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/libdbinder:libdbinder",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
   ]
 
   external_deps = [
