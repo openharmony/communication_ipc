@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,23 +14,12 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
-IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
-  module_out_path = "ipc/native"
-  fuzz_config_file =
-      "$IPC_CORE_ROOT/test/fuzztest/mock/dbinderdatabusinvoker_fuzzer"
-  include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
-    "//commonlibrary/c_utils/base/include",
-    "$SUBSYSTEM_DIR/utils/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/src/core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
-  ]
+ohos_fuzztest("OnBytesReceivedFuzzTest") {
+  module_out_path = "ipc/service"
+  fuzz_config_file = "../onbytesreceived_fuzzer"
+  include_dirs = [ "../../../../../interfaces/innerkits/libdbinder/include" ]
   cflags = [
     "-g",
     "-O0",
@@ -38,21 +27,11 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [
-    "//foundation/communication/ipc/ipc/native/src/mock/source/hitrace_invoker.cpp",
-    "dbinderdatabusinvoker_fuzzer.cpp",
-  ]
-
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
-  ]
-
+  sources = [ "onbytesreceived_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:libdbinder",
   ]
 }
 
@@ -62,9 +41,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":DBinderDatabusInvokerFuzzTest",
+    ":OnBytesReceivedFuzzTest",
   ]
 }
-
 ###############################################################################
-
