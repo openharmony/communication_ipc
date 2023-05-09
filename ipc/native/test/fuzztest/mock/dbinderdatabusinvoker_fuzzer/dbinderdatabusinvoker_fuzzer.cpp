@@ -241,7 +241,7 @@ namespace OHOS {
             return false;
         }
 
-        uint32_t handle = reinterpret_cast<uint32_t>(data);
+        uint32_t handle = *(reinterpret_cast<const uint32_t*>(data));
         const char* indata  = reinterpret_cast<const char*>(data);
         DBinderDatabusInvoker invoker;
         std::shared_ptr<ThreadProcessInfo> processInfo = invoker.MakeThreadProcessInfo(handle, indata, size);
@@ -258,7 +258,7 @@ namespace OHOS {
         }
 
         dbinder_transaction_data *tr = new dbinder_transaction_data();
-        uint32_t listenFd = reinterpret_cast<uint32_t>(data);
+        uint32_t listenFd = *(reinterpret_cast<const uint32_t*>(data));
         DBinderDatabusInvoker invoker;
         invoker.ProcessTransaction(tr, listenFd);
         return;
