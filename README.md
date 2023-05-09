@@ -257,8 +257,6 @@ DSoftBus subsystem
 
 [utils](https://gitee.com/openharmony/utils)
 
-[utils\_native](https://gitee.com/openharmony/utils_native)
-
 [distributedschedule\_samgr](https://gitee.com/openharmony/distributedschedule_samgr)
 
 
