@@ -20,9 +20,6 @@ config("libipc_common_private_config") {
 }
 
 ohos_shared_library("ipc_common") {
-  sanitize = {
-    integer_overflow = true
-  }
   include_dirs = [
     "$SUBSYSTEM_DIR/utils/include",
     "include",
