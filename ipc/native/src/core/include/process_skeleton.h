@@ -16,13 +16,14 @@
 #ifndef OHOS_IPC_PROCESS_SKELETON_H
 #define OHOS_IPC_PROCESS_SKELETON_H
 
+#include <map>
 #include <mutex>
+#include <shared_mutex>
 #include <refbase.h>
 
 #include "iremote_object.h"
 
 namespace OHOS {
-
 class ProcessSkeleton : public virtual RefBase {
 public:
 
@@ -32,15 +33,24 @@ public:
     void SetSamgrFlag(bool flag);
     bool GetSamgrFlag();
 
+    bool IsContainsObject(IRemoteObject *object);
+    sptr<IRemoteObject> QueryObject(const std::u16string &descriptor);
+    bool AttachObject(IRemoteObject *object, const std::u16string &descriptor);
+    bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
+
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
     ProcessSkeleton() = default;
-    ~ProcessSkeleton() = default;
+    ~ProcessSkeleton();
 
     static sptr<ProcessSkeleton> instance_;
     static std::mutex mutex_;
+    std::shared_mutex objMutex_;
     sptr<IRemoteObject> registryObject_ = nullptr;
     bool isSamgr_ = false;
+
+    std::map<std::u16string, wptr<IRemoteObject>> objects_;
+    std::map<IRemoteObject *, bool> isContainStub_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H

@@ -45,6 +45,7 @@ ohos_unittest("IPCNativeUnitTest") {
     "ipc_thread_skeleton_unittest.cpp",
     "iremote_object_unitest.cpp",
     "message_parcel_unittest.cpp",
+    "process_skeleton_unittest.cpp",
   ]
 
   configs = [
@@ -53,6 +54,7 @@ ohos_unittest("IPCNativeUnitTest") {
   ]
 
   deps = [
+    "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

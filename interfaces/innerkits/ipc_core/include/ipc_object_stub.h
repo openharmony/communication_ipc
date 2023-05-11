@@ -196,7 +196,6 @@ public:
      * @since 9
      */
     virtual int GetObjectType() const;
-
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Invoker the calling thread.
