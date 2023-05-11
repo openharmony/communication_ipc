@@ -15,6 +15,7 @@
 
 #include "ipc_process_skeleton.h"
 
+#include <functional>
 #include <securec.h>
 #include <unistd.h>
 #include <random>
@@ -23,6 +24,7 @@
 #include "ipc_debug.h"
 #include "ipc_types.h"
 
+#include "ipc_object_proxy.h"
 #include "ipc_thread_skeleton.h"
 #include "process_skeleton.h"
 #include "sys_binder.h"
@@ -37,7 +39,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-
 #ifndef CONFIG_IPC_SINGLE
 using namespace Communication;
 #endif
@@ -93,8 +94,6 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
     delete threadPool_;
     threadPool_ = nullptr;
 
-    objects_.clear();
-    isContainStub_.clear();
     rawData_.clear();
 #ifndef CONFIG_IPC_SINGLE
     threadLockInfo_.clear();
@@ -138,10 +137,11 @@ std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
 sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 {
     sptr<IRemoteObject> result = nullptr;
+
     std::u16string descriptor = MakeHandleDescriptor(handle);
     if (descriptor.length() == 0) {
         ZLOGE(LOG_LABEL, "make handle descriptor failed");
-        return nullptr;
+        return result;
     }
     {
         result = QueryObject(descriptor);
@@ -161,13 +161,14 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
             }
             // OnFirstStrongRef will be called.
             result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
+            if (result == nullptr) {
+                ZLOGE(LOG_LABEL, "new IPCObjectProxy failed!");
+                return result;
+            }
             AttachObject(result.GetRefPtr());
         }
     }
-
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
-    // When a new proxy is initializing, other thread will find an existed proxy and need to wait,
-    // this makes sure proxy has been initialized when ReadRemoteObject return.
     proxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
@@ -176,29 +177,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     }
 #endif
     return result;
-}
-
-bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
-{
-    if (maxThreadNum <= 0) {
-        ZLOGE(LOG_LABEL, "Set Invalid thread Number %d", maxThreadNum);
-        return false;
-    }
-
-    if (threadPool_ == nullptr) {
-        threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
-        if (threadPool_ == nullptr) {
-            ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
-            return false;
-        }
-    }
-    threadPool_->UpdateMaxThreadNum(maxThreadNum);
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-    if (invoker != nullptr) {
-        return invoker->SetMaxWorkThread(maxThreadNum);
-    }
-
-    return false;
 }
 
 bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
@@ -226,6 +204,29 @@ bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
     return ret;
 }
 
+bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
+{
+    if (maxThreadNum <= 0) {
+        ZLOGE(LOG_LABEL, "Set Invalid thread Number %d", maxThreadNum);
+        return false;
+    }
+
+    if (threadPool_ == nullptr) {
+        threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
+        if (threadPool_ == nullptr) {
+            ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
+            return false;
+        }
+    }
+    threadPool_->UpdateMaxThreadNum(maxThreadNum);
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+    if (invoker != nullptr) {
+        return invoker->SetMaxWorkThread(maxThreadNum);
+    }
+
+    return false;
+}
+
 bool IPCProcessSkeleton::SpawnThread(int policy, int proto)
 {
     if (threadPool_ != nullptr) {
@@ -245,72 +246,69 @@ bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
     return true;
 }
 
+
 bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
-    // check whether it is a valid IPCObjectStub object.
-    std::shared_lock<std::shared_mutex> lockGuard(mutex_);
-    auto it = isContainStub_.find(object);
-    if (it != isContainStub_.end()) {
-        return it->second;
+    if (object == nullptr) {
+        ZLOGE(LOG_LABEL, "object is null");
+        return false;
     }
-
-    return false;
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return false;
+    }
+    return current->IsContainsObject(object);
 }
 
 bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
-    (void)isContainStub_.erase(object);
-
+    if (object == nullptr) {
+        ZLOGE(LOG_LABEL, "object is null");
+        return false;
+    }
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
         return false;
     }
-    // This handle may have already been replaced with a new IPCObjectProxy,
-    // if someone failed the AttemptIncStrong.
-    auto iterator = objects_.find(descriptor);
-    if (iterator->second == object) {
-        objects_.erase(iterator);
-        return true;
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return false;
     }
-    return false;
+    return current->DetachObject(object, descriptor);
 }
 
 bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(mutex_);
-    (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
-
+    if (object == nullptr) {
+        ZLOGE(LOG_LABEL, "object is null");
+        return false;
+    }
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
         return false;
     }
-    // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
-    wptr<IRemoteObject> wp = object;
-    auto result = objects_.insert_or_assign(descriptor, wp);
-    return result.second;
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return false;
+    }
+    return current->AttachObject(object, descriptor);
 }
 
 sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descriptor)
 {
-    sptr<IRemoteObject> result = nullptr;
-    if (descriptor.empty()) {
-        return result;
+    if (descriptor.length() == 0) {
+        ZLOGE(LOG_LABEL, "enter descriptor is empty");
+        return nullptr;
     }
-
-    std::shared_lock<std::shared_mutex> lockGuard(mutex_);
-    IRemoteObject *remoteObject = nullptr;
-    auto it = objects_.find(descriptor);
-    if (it != objects_.end()) {
-        // Life-time of IPCObjectProxy is extended to WEAK
-        // now it's weak reference counted, so it's safe to get raw pointer
-        remoteObject = it->second.GetRefPtr();
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return nullptr;
     }
-    if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
-        return result;
-    }
-    result = remoteObject;
-    return result;
+    return current->QueryObject(descriptor);
 }
 
 #ifndef CONFIG_IPC_SINGLE
@@ -595,12 +593,12 @@ int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 
     return 0;
 }
+
 int IPCProcessSkeleton::GetSocketTotalThreadNum() const
 {
     if (threadPool_ != nullptr) {
         return threadPool_->GetSocketTotalThreadNum();
     }
-
     return 0;
 }
 
@@ -1181,7 +1179,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteOb
 
     return nullptr;
 }
-
 #endif
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
