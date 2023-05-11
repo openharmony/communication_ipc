@@ -48,9 +48,6 @@ config("libipc_c_private_config") {
 }
 
 ohos_shared_library("ipc_c") {
-  sanitize = {
-    integer_overflow = true
-  }
   include_dirs = [
     "$IPC_CORE_ROOT/src/c_wrapper/include",
     "$SUBSYSTEM_DIR/utils/include",

@@ -25,9 +25,6 @@ config("ipc_all_deps_config") {
 }
 
 ohos_shared_library("ipc_core") {
-  sanitize = {
-    integer_overflow = true
-  }
   version_script = "libipc_core_map"
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
