@@ -40,14 +40,14 @@ public:
     inline const std::string &GetErrorDesc(uint32_t error);
     virtual ErrorMap &GetErrorMap() = 0;
 
-    static constexpr const char *unknowCommand = "UNKNOWN COMMAND";
+    static constexpr const char *UNKNOWN_COMMAND = "UNKNOWN COMMAND";
 };
 
 inline const std::string &ErrorBase::GetErrorDesc(uint32_t error)
 {
     ErrorMap::iterator found = GetErrorMap().find(error);
     if (found == GetErrorMap().end()) {
-        return unknowCommand;
+        return UNKNOWN_COMMAND;
     } else {
         return found->second;
     }
