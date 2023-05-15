@@ -15,7 +15,6 @@
 
 #include "ipc_process_skeleton.h"
 
-#include <functional>
 #include <securec.h>
 #include <unistd.h>
 #include <random>
@@ -24,7 +23,6 @@
 #include "ipc_debug.h"
 #include "ipc_types.h"
 
-#include "ipc_object_proxy.h"
 #include "ipc_thread_skeleton.h"
 #include "process_skeleton.h"
 #include "sys_binder.h"

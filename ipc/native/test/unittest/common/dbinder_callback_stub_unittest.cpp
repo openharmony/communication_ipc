@@ -18,7 +18,6 @@
 
 #define private public
 #define protected public
-#include "binder_invoker.h"
 #include "dbinder_callback_stub.h"
 #include "ipc_types.h"
 #include "ipc_thread_skeleton.h"

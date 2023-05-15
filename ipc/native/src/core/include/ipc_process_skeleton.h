@@ -192,7 +192,7 @@ private:
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
     std::shared_mutex rawDataMutex_;
-    
+
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;
 
