@@ -16,11 +16,11 @@
 #ifndef IPC_C_ASHMEM_H
 #define IPC_C_ASHMEM_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
 
 struct CAshmem;
 typedef struct CAshmem CAshmem;
