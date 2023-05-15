@@ -603,7 +603,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     // need check size offset and capacity
     napi_value napiValue = nullptr;
     bool result = true;
-    uint32_t ashmemSize = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
+    int32_t ashmemSize = napiAshmem->GetAshmem()->GetAshmemSize();
     if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
@@ -659,7 +659,7 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
     }
 
     // need check size offset and capacity
-    uint32_t ashmemSize = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
+    int32_t ashmemSize = napiAshmem->GetAshmem()->GetAshmemSize();
     if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
