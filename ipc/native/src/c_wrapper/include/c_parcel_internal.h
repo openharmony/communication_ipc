@@ -16,11 +16,10 @@
 #ifndef IPC_C_PARCEL_INTERANL_H
 #define IPC_C_PARCEL_INTERANL_H
 
-#include "c_parcel.h"
-#include "c_ashmem_internal.h"
-
 #include <refbase.h>
 #include "message_parcel.h"
+#include "c_ashmem_internal.h"
+#include "c_parcel.h"
 
 struct MessageParcelHolder : public virtual OHOS::RefBase {
     explicit MessageParcelHolder(OHOS::MessageParcel *parcel = nullptr);
