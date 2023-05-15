@@ -14,6 +14,7 @@
  */
 
 #include "napi_ashmem.h"
+#include <limits>
 #include <unistd.h>
 #include "ipc_debug.h"
 #include "log_tags.h"
@@ -598,9 +599,19 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
+
     // need check size offset and capacity
-    bool result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
     napi_value napiValue = nullptr;
+    bool result = true;
+    uint32_t ashmemSize = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
+    if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
+        ZLOGE(LOG_LABEL, "invalid parameter.");
+        result = false;
+    } else {
+        result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
+    }
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
     return napiValue;
 }
@@ -646,7 +657,16 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
     }
+
     // need check size offset and capacity
+    uint32_t ashmemSize = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
+    if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
+        ZLOGE(LOG_LABEL, "invalid parameter");
+        return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
+    }
+
     napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
