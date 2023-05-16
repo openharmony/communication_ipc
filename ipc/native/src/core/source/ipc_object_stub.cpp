@@ -314,7 +314,7 @@ void IPCObjectStub::OnLastStrongRef(const void *objectId)
 #ifndef CONFIG_IPC_SINGLE
         // we only need to erase stub index here, commAuth and appInfo
         // has already been removed either in dbinder dec refcount case
-        // or OnSessionClosed, we also remove commAuth and appInfo in case of leak 
+        // or OnSessionClosed, we also remove commAuth and appInfo in case of leak
         current->DetachCommAuthInfoByStub(this);
         uint64_t stubIndex = current->EraseStubIndex(this);
         current->DetachAppInfoToStubIndex(stubIndex);
