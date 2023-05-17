@@ -50,6 +50,7 @@ if (support_jsapi) {
     install_images = [ system_base_dir ]
     relative_install_dir = "chipset-pub-sdk"
     subsystem_name = "communication"
+    innerapi_tags = [ "platformsdk" ]
     part_name = "ipc"
   }
 }
