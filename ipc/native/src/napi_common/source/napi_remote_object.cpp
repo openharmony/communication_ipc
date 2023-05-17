@@ -493,7 +493,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 
             ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
             // Check whether return_val is Promise
-            bool returnIsPromise = false;//
+            bool returnIsPromise = false;
             napi_is_promise(param->env, returnVal, &returnIsPromise);
             if (!returnIsPromise) {
                 ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
