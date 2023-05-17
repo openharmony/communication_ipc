@@ -287,7 +287,7 @@ void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, co
         return;
     }
     if (message->head.len != sizeof(struct DHandleEntryTxRx)) {
-        DBINDER_LOGE(LOG_LABEL, "msg head len error, len = %d", message->head.len);
+        DBINDER_LOGE(LOG_LABEL, "msg head len error, len = %u", message->head.len);
         return;
     }
     dBinderService_->AddAsynMessageTask(message);
