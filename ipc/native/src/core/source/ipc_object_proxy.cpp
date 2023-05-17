@@ -254,7 +254,6 @@ void IPCObjectProxy::WaitForInit()
             }
 #endif
         }
-
     }
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
