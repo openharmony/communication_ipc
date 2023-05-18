@@ -16,16 +16,14 @@
 #ifndef IPC_C_PARCEL_H
 #define IPC_C_PARCEL_H
 
-#include "c_ashmem.h"
-
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
+#include "c_ashmem.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdbool.h>
-#include <stdint.h>
 
 struct MessageParcelHolder;
 typedef struct MessageParcelHolder CParcel;
