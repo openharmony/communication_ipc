@@ -666,7 +666,6 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "invalid parameter");
         return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
     }
-
     napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
