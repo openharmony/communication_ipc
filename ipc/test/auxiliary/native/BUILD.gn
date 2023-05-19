@@ -17,9 +17,6 @@ IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 
 ohos_shared_library("ipc_test_helper") {
-  sanitize = {
-    integer_overflow = true
-  }
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "//utils/system/safwk/native/include",
@@ -107,9 +104,6 @@ ohos_executable("ipc_client_test") {
 }
 
 ohos_shared_library("ipc_test_helper_extra") {
-  sanitize = {
-    integer_overflow = true
-  }
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "//utils/system/safwk/native/include",
