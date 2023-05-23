@@ -300,7 +300,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient002, TestSize.Level
     binder_uintptr_t object = 11;
     DBinderServiceStub dBinderServiceStub(service, device, object);
 
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub();
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
     MessageParcel data;
     data.WriteRemoteObject(callbackStub);
     data.WriteString("");
@@ -321,7 +321,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient003, TestSize.Level
     binder_uintptr_t object = 11;
     DBinderServiceStub dBinderServiceStub(service, device, object);
 
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub();
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
     MessageParcel data;
     data.WriteRemoteObject(callbackStub);
     data.WriteString("test");
