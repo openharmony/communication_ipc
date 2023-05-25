@@ -24,7 +24,7 @@
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
             OHOS::IPCSkeleton*;
-            OHOS::IRemoteObject::IRemoteObject*;
+            OHOS::IRemoteObject*;
             "OHOS::MessageParcel::MessageParcel()";
             "OHOS::MessageParcel::MessageParcel(OHOS::Allocator*)";
             "OHOS::MessageParcel::~MessageParcel()";
