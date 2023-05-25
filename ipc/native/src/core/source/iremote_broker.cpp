@@ -101,7 +101,7 @@ sptr<IRemoteBroker> BrokerRegistration::NewInstance(const std::u16string &descri
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
 
     sptr<IRemoteBroker> broker;
-    if (object != nullptr) {
+    if (object != nullptr && descriptor == object->GetObjectDescriptor()) {
         if (object->IsProxyObject()) {
             auto it = creators_.find(descriptor);
             if (it != creators_.end()) {
