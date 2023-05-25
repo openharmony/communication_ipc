@@ -396,15 +396,21 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     napi_typeof(env, argv[1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
     uint32_t size = 0;
-    uint32_t offset = 0;
     napi_get_value_uint32(env, argv[0], &size);
-    size *= BYTE_SIZE_32;
+    uint32_t offset = 0;
     napi_get_value_uint32(env, argv[1], &offset);
-    offset *= BYTE_SIZE_32;
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
-    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
+
+    int32_t ashmemSize = napiAshmem->GetAshmem()->GetAshmemSize();
+    if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
+        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}u, offset = %{public}u", size, offset);
+        return nullptr;
+    }
+    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
     if (result == nullptr) {
         ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
         return nullptr;
@@ -449,18 +455,23 @@ napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t size = 0;
-    uint32_t offset = 0;
     napi_get_value_uint32(env, argv[0], &size);
-    size *= BYTE_SIZE_32;
+    uint32_t offset = 0;
     napi_get_value_uint32(env, argv[1], &offset);
-    offset *= BYTE_SIZE_32;
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
-    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
+    int32_t ashmemSize = napiAshmem->GetAshmem()->GetAshmemSize();
+    if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
+        (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
+        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}u, offset = %{public}u", size, offset);
+        return nullptr;
+    }
+    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size *= BYTE_SIZE_32, offset *= BYTE_SIZE_32);
     if (result == nullptr) {
         ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
         return nullptr;
@@ -607,7 +618,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter.");
+        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}u, offset = %{public}u", size, offset);
         result = false;
     } else {
         result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
@@ -663,7 +674,7 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
     if (size > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         offset > std::numeric_limits<int32_t>::max() / BYTE_SIZE_32 ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter");
+        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}u, offset = %{public}u", size, offset);
         return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
     }
     napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
