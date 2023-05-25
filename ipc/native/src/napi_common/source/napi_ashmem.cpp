@@ -410,7 +410,9 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}u, offset = %{public}u", size, offset);
         return nullptr;
     }
-    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
+    size *= BYTE_SIZE_32;
+    offset *= BYTE_SIZE_32
+    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
     if (result == nullptr) {
         ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
         return nullptr;
@@ -471,7 +473,9 @@ napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}u, offset = %{public}u", size, offset);
         return nullptr;
     }
-    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size *= BYTE_SIZE_32, offset *= BYTE_SIZE_32);
+    size *= BYTE_SIZE_32;
+    offset *= BYTE_SIZE_32
+    const void  *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
     if (result == nullptr) {
         ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
         return nullptr;
