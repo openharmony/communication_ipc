@@ -19,6 +19,9 @@ if (support_jsapi) {
   }
 
   ohos_shared_library("ipc_napi") {
+    sanitize = {
+      integer_overflow = true
+    }
     include_dirs = [
       "include",
       "../../../utils/include",
