@@ -284,9 +284,7 @@ bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
         return false;
     }
     std::u16string descriptor = object->GetObjectDescriptor();
-    if (descriptor.empty()) {
-        return false;
-    }
+
     auto current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "get process skeleton failed");
