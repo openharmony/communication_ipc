@@ -101,6 +101,9 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     std::unique_lock<std::shared_mutex> lockGuard(objMutex_);
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
+    if (descriptor.empty()) {
+        return false;
+    }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
     auto result = objects_.insert_or_assign(descriptor, wp);
