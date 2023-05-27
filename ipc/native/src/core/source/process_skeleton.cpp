@@ -22,10 +22,10 @@
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "ProcessSkeleton" };
 
-sptr<ProcessSkeleton> ProcessSkeleton::instance_ = nullptr;
+ProcessSkeleton* ProcessSkeleton::instance_ = nullptr;
 std::mutex ProcessSkeleton::mutex_;
 
-sptr<ProcessSkeleton> ProcessSkeleton::GetInstance()
+ProcessSkeleton* ProcessSkeleton::GetInstance()
 {
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> lockGuard(mutex_);

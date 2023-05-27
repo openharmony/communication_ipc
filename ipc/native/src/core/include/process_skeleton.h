@@ -27,7 +27,7 @@ namespace OHOS {
 class ProcessSkeleton : public virtual RefBase {
 public:
 
-    static sptr<ProcessSkeleton> GetInstance();
+    static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
     void SetSamgrFlag(bool flag);
@@ -43,7 +43,7 @@ private:
     ProcessSkeleton() = default;
     ~ProcessSkeleton();
 
-    static sptr<ProcessSkeleton> instance_;
+    static ProcessSkeleton* instance_;
     static std::mutex mutex_;
     std::shared_mutex objMutex_;
     sptr<IRemoteObject> registryObject_ = nullptr;
