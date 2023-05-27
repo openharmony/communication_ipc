@@ -523,7 +523,7 @@ int IPCObjectProxy::GetProtoInfo()
     MessageParcel data, reply;
     MessageOption option;
     int err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
-    if (err != ERR_NONE) {
+    if (err != ERR_NONE && err != -EBADMSG) {
         ZLOGW(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
         return IRemoteObject::IF_PROT_ERROR;
     }
