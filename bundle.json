@@ -1,6 +1,6 @@
 {
     "name": "@openharmony/ipc",
-    "version": "4.0",
+    "version": "3.0",
     "description": "ipc",
     "publishAs": "code-segment",
     "scripts": {
