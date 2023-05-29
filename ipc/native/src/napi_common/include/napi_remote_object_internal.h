@@ -60,6 +60,8 @@ private:
         int result;
     };
     int OnJsRemoteRequest(CallbackParam *jsParam);
+
+    static void RemoveParcelWrap(CallbackParam *param, bool isMessageSequence, napi_value jsData);
 };
 
 struct SendRequestParam {
