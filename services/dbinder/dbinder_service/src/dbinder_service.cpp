@@ -162,7 +162,10 @@ sptr<DBinderService> DBinderService::GetInstance()
 uint32_t DBinderService::GetSeqNumber()
 {
     std::lock_guard<std::mutex> lockGuard(instanceMutex_);
-    seqNumber_++; // can be overflow
+    if (seqNumber_ == std::numeric_limits<uint32_t>::max()) {
+        seqNumber_ = 0;
+    }
+    seqNumber_++;
     return seqNumber_;
 }
 
