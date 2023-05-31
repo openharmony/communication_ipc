@@ -659,10 +659,10 @@ void IPCProcessSkeleton::AddDataThreadInWait(const std::thread::id &threadId)
 uint64_t IPCProcessSkeleton::GetSeqNumber()
 {
     std::lock_guard<std::mutex> lockGuard(seqNumberMutex_);
-    seqNumber_++; // can be overflow, and seqNumber do not use 0
-    if (seqNumber_ == 0) {
-        seqNumber_++;
+    if (seqNumber_ == std::numeric_limits<uint64_t>::max()) {
+        seqNumber_ = 0;
     }
+    seqNumber_++;
     return seqNumber_;
 }
 
