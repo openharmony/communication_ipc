@@ -26,7 +26,8 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
     // free the reference of object.
-    cachedObject_ = nullptr;
+    sptrCachedObject_ = nullptr;
+    wptrCachedObject_ = nullptr;
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
@@ -37,10 +38,13 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
-    sptr<NAPIRemoteObject> tmp = cachedObject_.promote();
+    if (sptrCachedObject_ != nullptr) {
+        return sptrCachedObject_;
+    }
+    sptr<NAPIRemoteObject> tmp = wptrCachedObject_.promote();
     if (tmp == nullptr) {
         tmp = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
-        cachedObject_ = tmp;
+        wptrCachedObject_ = tmp;
     }
     return tmp;
 }
@@ -48,7 +52,12 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
 void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    cachedObject_ = object;
+    IPCObjectStub *tmp = static_cast<IPCObjectStub *>(object.GetRefPtr());
+    if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
+        wptrCachedObject_ = object;
+    } else {
+        sptrCachedObject_ = object;
+    }
 }
 
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)

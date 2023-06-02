@@ -64,7 +64,8 @@ private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
     std::u16string descriptor_;
-    wptr<NAPIRemoteObject> cachedObject_;
+    sptr<NAPIRemoteObject> sptrCachedObject_;
+    wptr<NAPIRemoteObject> wptrCachedObject_;
     napi_ref localInterfaceRef_;
     //int32_t attachCount_;
 };
