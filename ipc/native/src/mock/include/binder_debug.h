@@ -23,7 +23,7 @@ class BinderDebug : public ErrorBase {
 public:
     BinderDebug() = default;
     ~BinderDebug() = default;
-    static const std::string &ToString(uint32_t value);
+    static const std::string ToString(uint32_t value);
     virtual ErrorMap &GetErrorMap() override;
 };
 } // namespace OHOS
