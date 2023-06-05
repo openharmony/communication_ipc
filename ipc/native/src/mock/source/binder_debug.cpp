@@ -19,7 +19,7 @@
 #include "sys_binder.h"
 
 namespace OHOS {
-const std::string &BinderDebug::ToString(uint32_t value)
+const std::string BinderDebug::ToString(uint32_t value)
 {
     static BinderDebug instance;
     return instance.GetErrorDesc(value);
