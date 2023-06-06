@@ -321,23 +321,6 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
     napi_set_named_property(env, global, "activeStatus_", oldCallingInfo.activeStatus);
 }
 
-void NAPIRemoteObject::RemoveParcelWrap(CallbackParam *param, bool isMessageSequence, napi_value jsData)
-{
-    NAPI_MessageSequence *napiDataSequence = nullptr;
-    napi_remove_wrap(param->env, jsData, (void **)&napiDataSequence);
-    if (napiDataSequence == nullptr) {
-        ZLOGE(LOG_LABEL, "RemoveParcelWrap fail, wrap is empty!");
-        return;
-    }
-    if (isMessageSequence) {
-        ZLOGW(LOG_LABEL, "delete MessageSequence jsData");
-        delete reinterpret_cast<NAPI_MessageSequence *>(napiDataSequence);
-    } else {
-        ZLOGW(LOG_LABEL, "delete MessageParcel jsData");
-        delete reinterpret_cast<NAPI_MessageParcel *>(napiDataSequence);
-    }
-}
-
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
     uv_loop_s *loop = nullptr;
@@ -488,7 +471,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
-            RemoveParcelWrap(param, isOnRemoteMessageRequest, jsData);
             napi_close_handle_scope(param->env, scope);
             return;
         }
@@ -501,7 +483,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
-            RemoveParcelWrap(param, isOnRemoteMessageRequest, jsData);
             napi_close_handle_scope(param->env, scope);
             return;
         }
@@ -588,8 +569,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
-            RemoveParcelWrap(param, isOnRemoteMessageRequest, jsData);
-            RemoveParcelWrap(param, isOnRemoteMessageRequest, jsReply);
             napi_close_handle_scope(param->env, scope);
             return;
         } while (0);
@@ -597,8 +576,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         param->lockInfo->ready = true;
         param->lockInfo->condition.notify_all();
-        RemoveParcelWrap(param, isOnRemoteMessageRequest, jsData);
-        RemoveParcelWrap(param, isOnRemoteMessageRequest, jsReply);
         napi_close_handle_scope(param->env, scope);
     });
     std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
