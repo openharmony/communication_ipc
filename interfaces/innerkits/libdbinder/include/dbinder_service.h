@@ -325,6 +325,8 @@ private:
     bool SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
     uint16_t AllocFreeSocketPort();
     std::string GetLocalDeviceID();
+    binder_uintptr_t AddStubByTag(binder_uintptr_t stub);
+    binder_uintptr_t QueryStubPtr(binder_uintptr_t stub);
     bool CheckBinderObject(const sptr<DBinderServiceStub> &stub, binder_uintptr_t binderObject);
     bool HasDBinderStub(binder_uintptr_t binderObject);
     bool IsSameStubObject(const sptr<DBinderServiceStub> &stub, const std::u16string &service,
@@ -380,6 +382,10 @@ private:
     std::mutex threadPoolMutex_;
 
     uint32_t seqNumber_ = 0; /* indicate make remote binder message sequence number, and can be overflow */
+
+    /* indicate the stub flag used for negotiation with the peer end, and can be overflow */
+    binder_uintptr_t stubTagNum_ = 1;
+    std::map<binder_uintptr_t, binder_uintptr_t> mapDBinderStubRegisters_;
     std::list<sptr<DBinderServiceStub>> DBinderStubRegisted_;
     std::map<std::u16string, binder_uintptr_t> mapRemoteBinderObjects_;
     std::map<uint32_t, std::shared_ptr<struct ThreadLockInfo>> threadLockInfo_;
