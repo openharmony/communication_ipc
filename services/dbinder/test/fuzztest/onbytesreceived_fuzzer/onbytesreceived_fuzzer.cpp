@@ -32,7 +32,7 @@ namespace OHOS {
         if (memcpy_s(tmp, sizeof(tmp) - 1, data, size) != EOK) {
             return false;
         }
-        
+
         const char* testdata = tmp;
         std::shared_ptr<Session> session = nullptr;
         std::shared_ptr<DBinderRemoteListener> remoteListener = nullptr;
