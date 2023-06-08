@@ -140,7 +140,7 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     if (argc == argcExistingAshmem) {
         return GetAshmemFromExisting(env, info);
     }
-    
+
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_string) {
