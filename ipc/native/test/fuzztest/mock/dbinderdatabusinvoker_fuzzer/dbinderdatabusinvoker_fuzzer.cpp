@@ -261,6 +261,7 @@ namespace OHOS {
         uint32_t listenFd = *(reinterpret_cast<const uint32_t*>(data));
         DBinderDatabusInvoker invoker;
         invoker.ProcessTransaction(tr, listenFd);
+        delete tr;
         return;
     }
 
@@ -272,7 +273,9 @@ namespace OHOS {
 
         dbinder_transaction_data *tr = new dbinder_transaction_data();
         DBinderDatabusInvoker invoker;
-        return invoker.CheckTransactionData(tr);
+        bool ret = invoker.CheckTransactionData(tr);
+        delete tr;
+        return ret;
     }
 }
 
