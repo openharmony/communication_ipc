@@ -41,7 +41,7 @@ namespace OHOS {
         uint64_t stubIndex = *(reinterpret_cast<const uint64_t*>(data));
         uint32_t listenFd = *(reinterpret_cast<const uint32_t*>(data));
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        
+
         bool ret = current->AttachAppInfoToStubIndex(pid, uid, tokenId,
         deviceId, stubIndex, listenFd);
 
@@ -66,7 +66,7 @@ namespace OHOS {
         uint32_t tokenId = *(reinterpret_cast<const uint32_t*>(data));
         std::string deviceId = tmp;
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        
+
         bool ret = current->AttachCommAuthInfo(stub, pid, uid, tokenId,
         deviceId);
 
