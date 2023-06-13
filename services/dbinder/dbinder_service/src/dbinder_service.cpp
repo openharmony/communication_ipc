@@ -275,9 +275,11 @@ bool DBinderService::DeleteDBinderStub(const std::u16string &service, const std:
         return false;
     }
 
-    for (auto mapIt = mapDBinderStubRegisters_.begin(); mapIt != mapDBinderStubRegisters_.end(); mapIt++) {
+    for (auto mapIt = mapDBinderStubRegisters_.begin(); mapIt != mapDBinderStubRegisters_.end();) {
         if (mapIt->second == reinterpret_cast<binder_uintptr_t>((*it).GetRefPtr())) {
-            mapDBinderStubRegisters_.erase(mapIt);
+            mapIt = mapDBinderStubRegisters_.erase(mapIt);
+        } else {
+            ++mapIt;
         }
     }
     DBinderStubRegisted_.erase(it);
