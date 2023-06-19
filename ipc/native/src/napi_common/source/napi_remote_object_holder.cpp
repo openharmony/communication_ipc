@@ -18,10 +18,17 @@
 #include <string_ex.h>
 
 namespace OHOS {
-NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
-    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr)
-//    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
-{}
+NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
+{
+    ZLOGE(LOG_LABEL, "[memtest]NAPIRemoteObjectHolder created");
+    env_ = env;
+    descriptor_ = descriptor;
+    sptrCachedObject_ = nullptr;
+    wptrCachedObject_ = nullptr;
+	localInterfaceRef_ = nullptr;
+    attachCount_ = 1;
+    napi_create_reference(env, thisVar, 0, &jsObjectRef_);
+}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
@@ -33,7 +40,7 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
     }
 }
 
-sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
+sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
@@ -43,7 +50,7 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
     }
     sptr<NAPIRemoteObject> tmp = wptrCachedObject_.promote();
     if (tmp == nullptr) {
-        tmp = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
+        tmp = new NAPIRemoteObject(env_, jsObjectRef_, descriptor_);
         wptrCachedObject_ = tmp;
     }
     return tmp;

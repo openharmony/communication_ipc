@@ -26,7 +26,7 @@
 namespace OHOS {
 class NAPIRemoteObject : public IPCObjectStub {
 public:
-    NAPIRemoteObject(napi_env env, napi_value thisVar, const std::u16string &descriptor);
+    NAPIRemoteObject(napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor);
 
     ~NAPIRemoteObject() override;
 
@@ -38,6 +38,7 @@ public:
 
     napi_ref GetJsObjectRef() const;
 private:
+    std::u16string desc_;
     napi_env env_ = nullptr;
     napi_value thisVar_ = nullptr;
     static napi_value ThenCallback(napi_env env, napi_callback_info info);
