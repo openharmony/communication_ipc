@@ -14,8 +14,9 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/config/test.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test/unittest/ipc"
-IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_TEST_CORE = "$SUBSYSTEM_DIR/ipc/test/unittest/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
 
 unittest("ipc_server") {
   output_extension = "bin"
@@ -26,7 +27,7 @@ unittest("ipc_server") {
   ]
 
   include_dirs = [
-    "$SUBSYSTEM_DIR/include",
+    "$IPC_TEST_CORE/include",
     "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
@@ -35,6 +36,5 @@ unittest("ipc_server") {
 
   sources = [ "IpcServerTest.cpp" ]
 
-  deps =
-      [ "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
 }

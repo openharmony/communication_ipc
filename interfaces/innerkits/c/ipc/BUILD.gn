@@ -75,8 +75,8 @@ if (ohos_kernel_type == "liteos_m") {
       "$SUBSYSTEM_DIR/utils/include",
     ]
     deps = [
+      "$IPC_CORE_ROOT/adapter:rpc_adapter",
       "//foundation/communication/dsoftbus/sdk:softbus_client",
-      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
       "//kernel/liteos_m/components/net",
     ]
     defines = [ "RPC_SOFTBUS_TRANS" ]
@@ -128,7 +128,7 @@ if (ohos_kernel_type == "liteos_m") {
     cflags_cc = cflags
     public_deps = [
       ":rpc_log",
-      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
+      "$IPC_CORE_ROOT/adapter:rpc_adapter",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
   }
@@ -215,7 +215,7 @@ if (ohos_kernel_type == "liteos_m") {
     cflags_cc = cflags
     public_deps = [
       ":rpc_log",
-      "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
+      "$IPC_CORE_ROOT/adapter:rpc_adapter",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
     deps = [ "//foundation/communication/dsoftbus/sdk:softbus_client" ]

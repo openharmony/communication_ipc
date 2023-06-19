@@ -1,6 +1,6 @@
 {
     "name": "@openharmony/ipc",
-    "version": "3.1.0",
+    "version": "3.0",
     "description": "ipc",
     "publishAs": "code-segment",
     "scripts": {
@@ -105,6 +105,13 @@
                   "napi_remote_object.h"
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common/include"
+              }
+            },
+            {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/rust:ipc_rust",
+              "header": {
+                "header_files": [],
+                "header_base": []
               }
             }
         ],

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include "dbinder_databus_invoker.h"
 #include "sys_binder.h"
+
+#define private public
+#include "dbinder_base_invoker.h"
+#include "dbinder_databus_invoker.h"
+#undef private
 
 namespace OHOS {
     bool AcquireHandleTest(const uint8_t* data, size_t size)
@@ -230,6 +234,49 @@ namespace OHOS {
         }
         return true;
     }
+
+    bool MakeThreadProcessInfoTest(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr || size < sizeof(uint32_t)) {
+            return false;
+        }
+
+        uint32_t handle = *(reinterpret_cast<const uint32_t*>(data));
+        const char* indata  = reinterpret_cast<const char*>(data);
+        DBinderDatabusInvoker invoker;
+        std::shared_ptr<ThreadProcessInfo> processInfo = invoker.MakeThreadProcessInfo(handle, indata, size);
+        if (processInfo == nullptr) {
+            return false;
+        }
+        return true;
+    }
+
+    void ProcessTransactionTest(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr || size < sizeof(int32_t)) {
+            return;
+        }
+
+        dbinder_transaction_data *tr = new dbinder_transaction_data();
+        uint32_t listenFd = *(reinterpret_cast<const uint32_t*>(data));
+        DBinderDatabusInvoker invoker;
+        invoker.ProcessTransaction(tr, listenFd);
+        delete tr;
+        return;
+    }
+
+    bool CheckTransactionDataTest(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr || size == 0) {
+            return false;
+        }
+
+        dbinder_transaction_data *tr = new dbinder_transaction_data();
+        DBinderDatabusInvoker invoker;
+        bool ret = invoker.CheckTransactionData(tr);
+        delete tr;
+        return ret;
+    }
 }
 
 /* Fuzzer entry point */
@@ -252,5 +299,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::IsLocalCallingTest(data, size);
     OHOS::FlushCommandsTest(data, size);
     OHOS::ResetCallingIdentityTest(data, size);
+    OHOS::MakeThreadProcessInfoTest(data, size);
+    OHOS::ProcessTransactionTest(data, size);
+    OHOS::CheckTransactionDataTest(data, size);
     return 0;
 }

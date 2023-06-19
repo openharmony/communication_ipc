@@ -1036,6 +1036,15 @@ napi_value NAPI_MessageSequence::JS_writeParcelable(napi_env env, napi_callback_
     napi_value funcArg[1] = { thisVar };
     napi_value callResult = nullptr;
     napi_call_function(env, argv[ARGV_INDEX_0], prop, 1, funcArg, &callResult);
+    bool isPendingException = false;
+    napi_is_exception_pending(env, &isPendingException);
+    if (isPendingException) {
+        napi_value lastException = nullptr;
+        ZLOGE(LOG_LABEL, "call mashalling failed");
+        napi_get_and_clear_last_exception(env, &lastException);
+        napiSequence->nativeParcel_->RewindWrite(pos);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
+    }
     napi_typeof(env, callResult, &valueType);
     if (callResult != nullptr && valueType != napi_undefined) {
         return callResult;
@@ -2898,7 +2907,12 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
     // connect native object to js thisVar
     status = napi_wrap(
         env, thisVar, messageSequence,
-        [](napi_env env, void *data, void *hint) {},
+        [](napi_env env, void *data, void *hint) {
+            NAPI_MessageSequence *messageSequence = reinterpret_cast<NAPI_MessageSequence *>(data);
+            if (!messageSequence->owner) {
+                delete messageSequence;
+            }
+        },
         nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi wrap message parcel failed");
     return thisVar;

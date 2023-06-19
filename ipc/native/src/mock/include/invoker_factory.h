@@ -41,7 +41,6 @@ private:
     std::mutex factoryMutex_;
     std::unordered_map<int, InvokerCreator> creators_;
 };
-
 template <typename T> class InvokerDelegator {
 public:
     InvokerDelegator(int prot);

@@ -33,7 +33,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-
 void IPCSkeleton::JoinWorkThread()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();

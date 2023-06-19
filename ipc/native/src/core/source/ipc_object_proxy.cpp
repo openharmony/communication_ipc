@@ -49,7 +49,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectProxy" };
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
@@ -255,7 +254,6 @@ void IPCObjectProxy::WaitForInit()
             }
 #endif
         }
-
     }
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
@@ -525,7 +523,7 @@ int IPCObjectProxy::GetProtoInfo()
     MessageParcel data, reply;
     MessageOption option;
     int err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
-    if (err != ERR_NONE) {
+    if (err != ERR_NONE && err != -EBADMSG) {
         ZLOGW(LABEL, "GET_PROTO_INFO transact return error = %{public}d", err);
         return IRemoteObject::IF_PROT_ERROR;
     }

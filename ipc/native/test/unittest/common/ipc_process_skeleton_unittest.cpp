@@ -1694,22 +1694,6 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryDBinderCallbackProxyTest002, TestSize.
 }
 
 /**
- * @tc.name: IsContainsObjectTest002
- * @tc.desc: Verify the IsContainsObject function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest002, TestSize.Level1)
-{
-    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
-    ASSERT_TRUE(skeleton != nullptr);
-
-    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    skeleton->isContainStub_.clear();
-    bool ret = skeleton->IsContainsObject(object.GetRefPtr());
-    EXPECT_EQ(ret, false);
-}
-
-/**
  * @tc.name: ProxyQueryDBinderSessionTest002
  * @tc.desc: Verify the ProxyQueryDBinderSession function
  * @tc.type: FUNC

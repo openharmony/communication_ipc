@@ -344,6 +344,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "enter thread pool");
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
         napi_value onRemoteRequest = nullptr;
         napi_value thisVar = nullptr;
         napi_get_reference_value(param->env, param->thisVarRef, &thisVar);
@@ -353,6 +355,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
@@ -362,6 +365,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_valuetype type = napi_undefined;
@@ -375,6 +379,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
                 param->lockInfo->ready = true;
                 param->lockInfo->condition.notify_all();
+                napi_close_handle_scope(param->env, scope);
                 return;
             }
             isOnRemoteMessageRequest = false;
@@ -390,6 +395,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_value jsOptionConstructor = nullptr;
@@ -400,6 +406,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_value jsOption;
@@ -416,6 +423,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_value jsParcelConstructor = nullptr;
@@ -430,6 +438,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_value jsData;
@@ -443,6 +452,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         size_t argc3 = 1;
@@ -454,6 +464,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         napi_value jsReply;
@@ -467,6 +478,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         size_t argc4 = 1;
@@ -478,6 +490,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
+            napi_close_handle_scope(param->env, scope);
             return;
         }
         NAPI_CallingInfo oldCallingInfo;
@@ -500,7 +513,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 
             ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
             // Check whether return_val is Promise
-            bool returnIsPromise = false;//
+            bool returnIsPromise = false;
             napi_is_promise(param->env, returnVal, &returnIsPromise);
             if (!returnIsPromise) {
                 ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
@@ -563,12 +576,14 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
+            napi_close_handle_scope(param->env, scope);
             return;
         } while (0);
 
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         param->lockInfo->ready = true;
         param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
     });
     std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
     jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
@@ -811,6 +826,8 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         afterWorkCb = [](uv_work_t *work, int status) {
             ZLOGI(LOG_LABEL, "callback started");
             SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(param->env, &scope);
             napi_value result = MakeSendRequestResult(param);
             napi_value callback = nullptr;
             napi_get_reference_value(param->env, param->callback, &callback);
@@ -820,6 +837,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             napi_delete_reference(param->env, param->jsDataRef);
             napi_delete_reference(param->env, param->jsReplyRef);
             napi_delete_reference(param->env, param->callback);
+            napi_close_handle_scope(param->env, scope);
             delete param;
             delete work;
         };
@@ -827,6 +845,8 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         afterWorkCb = [](uv_work_t *work, int status) {
             ZLOGI(LOG_LABEL, "promise fullfilled");
             SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(param->env, &scope);
             napi_value result = MakeSendRequestResult(param);
             if (param->errCode == 0) {
                 napi_resolve_deferred(param->env, param->deferred, result);
@@ -836,6 +856,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             napi_delete_reference(param->env, param->jsCodeRef);
             napi_delete_reference(param->env, param->jsDataRef);
             napi_delete_reference(param->env, param->jsReplyRef);
+            napi_close_handle_scope(param->env, scope);
             delete param;
             delete work;
         };

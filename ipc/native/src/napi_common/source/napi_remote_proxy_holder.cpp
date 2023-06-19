@@ -33,17 +33,6 @@ NAPIDeathRecipient::NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient
     NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, "failed to create ref to js death recipient");
 }
 
-NAPIDeathRecipient::~NAPIDeathRecipient()
-{
-    if (env_ != nullptr) {
-        if (deathRecipientRef_ != nullptr) {
-            napi_status status = napi_delete_reference(env_, deathRecipientRef_);
-            NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js death recipient");
-            deathRecipientRef_ = nullptr;
-        }
-    }
-}
-
 void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
     if (deathRecipientRef_ == nullptr) {
@@ -67,6 +56,8 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "start to call onRmeoteDied");
         OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
         napi_value jsDeathRecipient = nullptr;
         napi_get_reference_value(param->env, param->deathRecipientRef, &jsDeathRecipient);
         NAPI_ASSERT_RETURN_VOID(param->env, jsDeathRecipient != nullptr, "failed to get js death recipient");
@@ -78,6 +69,10 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         if (returnVal == nullptr) {
             ZLOGE(LOG_LABEL, "failed to call function onRemoteDied");
         }
+
+        napi_status napiStatus = napi_delete_reference(param->env, param->deathRecipientRef);
+        napi_close_handle_scope(param->env, scope);
+        NAPI_ASSERT_RETURN_VOID(param->env, napiStatus == napi_ok, "failed to delete ref to js death recipient");
         delete param;
         delete work;
     });
