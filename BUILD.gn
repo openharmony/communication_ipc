@@ -23,6 +23,7 @@ config("ipc_util_config") {
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/src/core/include",
+    "$IPC_CORE_ROOT/src/common/include",
     "$IPC_CORE_ROOT/src/mock/include",
     "//commonlibrary/c_utils/base/include",
   ]
@@ -42,7 +43,7 @@ config("ipc_util_config") {
 group("ipc_components") {
   if (os_level == "standard") {
     deps = [
-      "$IPC_CORE_ROOT/src/core:ipc_common",
+      "$IPC_CORE_ROOT/src/common:ipc_common",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
       "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
