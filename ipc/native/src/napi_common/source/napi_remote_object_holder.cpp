@@ -20,12 +20,11 @@
 namespace OHOS {
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
 {
-    ZLOGE(LOG_LABEL, "[memtest]NAPIRemoteObjectHolder created");
     env_ = env;
     descriptor_ = descriptor;
     sptrCachedObject_ = nullptr;
     wptrCachedObject_ = nullptr;
-	localInterfaceRef_ = nullptr;
+    localInterfaceRef_ = nullptr;
     attachCount_ = 1;
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
 }
