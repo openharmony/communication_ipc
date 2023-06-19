@@ -13,19 +13,20 @@
 
 import("//build/lite/config/component/lite_component.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test"
-IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
+IPC_TEST_CORE = "$SUBSYSTEM_DIR/ipc/test"
 
 executable("ipc_test_server") {
   output_extension = "bin"
   output_dir = "$root_out_dir/test/ipc"
-  sources = [ "$SUBSYSTEM_DIR/ipc/server/ipc_test_server.c" ]
+  sources = [ "$IPC_TEST_CORE/ipc/server/ipc_test_server.c" ]
   include_dirs = [
     "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
-    "$SUBSYSTEM_DIR/ipc/include",
+    "$IPC_TEST_CORE/ipc/include",
   ]
   ldflags = [
     "-lstdc++",
@@ -33,7 +34,7 @@ executable("ipc_test_server") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/c/ipc:ipc_single",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single",
     "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
   ]
 

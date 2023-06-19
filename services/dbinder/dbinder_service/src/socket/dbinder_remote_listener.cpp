@@ -286,6 +286,10 @@ void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, co
         DBINDER_LOGE(LOG_LABEL, "memcpy copy failed");
         return;
     }
+    if (message->head.len != sizeof(struct DHandleEntryTxRx)) {
+        DBINDER_LOGE(LOG_LABEL, "msg head len error, len = %{public}u", message->head.len);
+        return;
+    }
     dBinderService_->AddAsynMessageTask(message);
 }
 } // namespace OHOS

@@ -423,7 +423,6 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest016, TestSize.Level1)
     EXPECT_CALL(*invoker, GetCallerUid())
         .WillRepeatedly(testing::Return(ALLOWED_UID - 1));
 
-
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_NE(result, IPC_STUB_INVALID_DATA_ERR);
     current->invokers_.clear();

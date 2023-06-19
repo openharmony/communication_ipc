@@ -19,6 +19,9 @@ if (support_jsapi) {
   }
 
   ohos_shared_library("ipc_napi") {
+    sanitize = {
+      integer_overflow = true
+    }
     include_dirs = [
       "include",
       "../../../utils/include",
@@ -50,6 +53,7 @@ if (support_jsapi) {
     install_images = [ system_base_dir ]
     relative_install_dir = "chipset-pub-sdk"
     subsystem_name = "communication"
+    innerapi_tags = [ "platformsdk" ]
     part_name = "ipc"
   }
 }

@@ -45,7 +45,6 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-
 #ifndef CONFIG_IPC_SINGLE
 struct SocketThreadLockInfo {
     std::mutex mutex;
@@ -90,12 +89,10 @@ public:
     static bool IsHandleMadeByUser(uint32_t handle);
 #endif
     bool SetMaxWorkThread(int maxThreadNum);
-
-    sptr<IRemoteObject> GetRegistryObject();
-
-    bool SpawnThread(int policy = IPCWorkThread::SPAWN_PASSIVE, int proto = IRemoteObject::IF_PROT_DEFAULT);
-
     std::u16string MakeHandleDescriptor(int handle);
+
+    bool OnThreadTerminated(const std::string &threadName);
+    bool SpawnThread(int policy = IPCWorkThread::SPAWN_PASSIVE, int proto = IRemoteObject::IF_PROT_DEFAULT);
 
     sptr<IRemoteObject> FindOrNewObject(int handle);
     bool IsContainsObject(IRemoteObject *object);
@@ -103,14 +100,14 @@ public:
     bool AttachObject(IRemoteObject *object);
     bool DetachObject(IRemoteObject *object);
 
-    bool OnThreadTerminated(const std::string &threadName);
-
+    sptr<IRemoteObject> GetRegistryObject();
     bool SetRegistryObject(sptr<IRemoteObject> &object);
+
+#ifndef CONFIG_IPC_SINGLE
     bool AttachRawData(uint32_t fd, std::shared_ptr<InvokerRawData> rawData);
     bool DetachRawData(uint32_t fd);
     std::shared_ptr<InvokerRawData> QueryRawData(uint32_t fd);
 
-#ifndef CONFIG_IPC_SINGLE
     sptr<IRemoteObject> GetSAMgrObject();
     std::shared_ptr<DBinderSessionObject> ProxyDetachDBinderSession(uint32_t handle, IPCObjectProxy *proxy);
     bool ProxyAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object);
@@ -127,7 +124,6 @@ public:
     std::shared_ptr<ThreadMessageInfo> QueryThreadBySeqNumber(uint64_t seqNumber);
     bool AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr<ThreadMessageInfo> messageInfo, int userWaitTime);
 
-    std::thread::id GetIdleSocketThread();
     int GetSocketIdleThreadNum() const;
     int GetSocketTotalThreadNum() const;
     int PopSocketIdFromThread(const std::thread::id &threadId);
@@ -195,10 +191,8 @@ private:
     IPCProcessSkeleton();
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
-    std::shared_mutex mutex_;
     std::shared_mutex rawDataMutex_;
-    std::map<std::u16string, wptr<IRemoteObject>> objects_;
-    std::map<IRemoteObject *, bool> isContainStub_;
+
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;
 

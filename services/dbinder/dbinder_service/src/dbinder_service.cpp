@@ -49,6 +49,7 @@ DBinderService::~DBinderService()
     StopRemoteListener();
 
     DBinderStubRegisted_.clear();
+    mapDBinderStubRegisters_.clear();
     mapRemoteBinderObjects_.clear();
     threadLockInfo_.clear();
     proxyObject_.clear();
@@ -162,7 +163,10 @@ sptr<DBinderService> DBinderService::GetInstance()
 uint32_t DBinderService::GetSeqNumber()
 {
     std::lock_guard<std::mutex> lockGuard(instanceMutex_);
-    seqNumber_++; // can be overflow
+    if (seqNumber_ == std::numeric_limits<uint32_t>::max()) {
+        seqNumber_ = 0;
+    }
+    seqNumber_++;
     return seqNumber_;
 }
 
@@ -172,6 +176,38 @@ bool DBinderService::IsDeviceIdIllegal(const std::string &deviceID)
         return true;
     }
     return false;
+}
+
+binder_uintptr_t DBinderService::AddStubByTag(binder_uintptr_t stub)
+{
+    std::lock_guard<std::mutex> lockGuard(handleEntryMutex_);
+
+    // the same stub needs add stubNum to mapDBinderStubRegisters_, the previous corresponding stubNum will be returned.
+    for (auto iter = mapDBinderStubRegisters_.begin(); iter != mapDBinderStubRegisters_.end(); iter++) {
+        if (iter->second == stub) {
+            return iter->first;
+        }
+    }
+    binder_uintptr_t stubTag = stubTagNum_++;
+    auto result = mapDBinderStubRegisters_.insert(
+        std::pair<binder_uintptr_t, binder_uintptr_t>(stubTag, stub));
+    if (result.second) {
+        return stubTag;
+    } else {
+        return 0;
+    }
+}
+
+binder_uintptr_t DBinderService::QueryStubPtr(binder_uintptr_t stubTag)
+{
+    std::lock_guard<std::mutex> lockGuard(handleEntryMutex_);
+
+    auto iter = mapDBinderStubRegisters_.find(stubTag);
+    if (iter != mapDBinderStubRegisters_.end()) {
+        return iter->second;
+    }
+
+    return 0;
 }
 
 bool DBinderService::CheckBinderObject(const sptr<DBinderServiceStub> &stub, binder_uintptr_t stubPtr)
@@ -237,6 +273,14 @@ bool DBinderService::DeleteDBinderStub(const std::u16string &service, const std:
     auto it = std::find_if(DBinderStubRegisted_.begin(), DBinderStubRegisted_.end(), checkStub);
     if (it == DBinderStubRegisted_.end()) {
         return false;
+    }
+
+    for (auto mapIt = mapDBinderStubRegisters_.begin(); mapIt != mapDBinderStubRegisters_.end();) {
+        if (mapIt->second == reinterpret_cast<binder_uintptr_t>((*it).GetRefPtr())) {
+            mapIt = mapDBinderStubRegisters_.erase(mapIt);
+        } else {
+            ++mapIt;
+        }
     }
     DBinderStubRegisted_.erase(it);
     return true;
@@ -325,7 +369,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     message->stubIndex           = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
     message->seqNumber           = seqNumber;
     message->binderObject        = stub->GetBinderObject();
-    message->stub                = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
+    message->stub                = AddStubByTag(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
     message->deviceIdInfo.tokenId = IPCSkeleton::GetCallingTokenID();
     message->pid                 = pid;
     message->uid                 = uid;
@@ -782,7 +826,7 @@ bool DBinderService::IsSameSession(std::shared_ptr<struct SessionInfo> oldSessio
 
 void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
 {
-    if (HasDBinderStub(replyMessage->stub) == false) {
+    if (HasDBinderStub(QueryStubPtr(replyMessage->stub)) == false) {
         DBINDER_LOGE(LOG_LABEL, "invalid stub object");
         return;
     }
@@ -817,7 +861,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         return;
     }
     // check whether need to update session
-    std::shared_ptr<struct SessionInfo> oldSession = QuerySessionObject(replyMessage->stub);
+    std::shared_ptr<struct SessionInfo> oldSession = QuerySessionObject(QueryStubPtr(replyMessage->stub));
     if (oldSession != nullptr) {
         if (IsSameSession(oldSession, session) == true) {
             DBINDER_LOGI(LOG_LABEL, "invoker remote session already, do nothing");
@@ -826,7 +870,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
             // ignore seqNumber overflow here, greater seqNumber means later request
             if (oldSession->seqNumber < session->seqNumber) {
                 // remote old session
-                if (!DetachSessionObject(replyMessage->stub)) {
+                if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
                     DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
                 }
             } else {
@@ -836,7 +880,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         }
     }
 
-    if (!AttachSessionObject(session, replyMessage->stub)) {
+    if (!AttachSessionObject(session, QueryStubPtr(replyMessage->stub))) {
         DBINDER_LOGE(LOG_LABEL, "attach SessionInfo fail");
         return;
     }

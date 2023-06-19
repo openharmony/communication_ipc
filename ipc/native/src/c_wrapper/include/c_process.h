@@ -16,14 +16,13 @@
 #ifndef IPC_C_PROCESS_H
 #define IPC_C_PROCESS_H
 
+#include <stdint.h>
 #include "c_parcel.h"
+#include "c_remote_object.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-#include "c_remote_object.h"
 
 CRemoteObject *GetContextManager(void);
 void JoinWorkThread(void);

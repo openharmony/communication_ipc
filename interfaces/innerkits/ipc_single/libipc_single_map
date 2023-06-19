@@ -24,7 +24,7 @@
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
             OHOS::IPCSkeleton*;
-            OHOS::IRemoteObject::IRemoteObject*;
+            OHOS::IRemoteObject*;
             "OHOS::MessageParcel::MessageParcel()";
             "OHOS::MessageParcel::MessageParcel(OHOS::Allocator*)";
             "OHOS::MessageParcel::~MessageParcel()";
@@ -78,6 +78,7 @@
             "OHOS::IRemoteObject::Unmarshalling(OHOS::Parcel&)";
             "OHOS::IRemoteObject::AsInterface()";
             "OHOS::IRemoteObject::IsProxyObject() const";
+            "OHOS::IRemoteObject::GetObjectDescriptor() const";
             "virtual thunk to OHOS::IRemoteObject::Marshalling(OHOS::Parcel&) const";
             "OHOS::IPC_SINGLE::IPCThreadSkeleton::JoinWorkThread(int)";
             "virtual thunk to OHOS::IRemoteObject::IsObjectDead() const";

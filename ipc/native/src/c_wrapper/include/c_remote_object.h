@@ -16,13 +16,12 @@
 #ifndef IPC_C_REMOTE_OBJECT_H
 #define IPC_C_REMOTE_OBJECT_H
 
+#include <stdint.h>
+#include "c_parcel.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-
-#include "c_parcel.h"
 
 struct CRemoteObjectHolder;
 typedef struct CRemoteObjectHolder CRemoteObject;
