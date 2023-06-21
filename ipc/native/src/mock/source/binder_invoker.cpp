@@ -140,13 +140,15 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
 #else
         if (flat->hdr.type == BINDER_TYPE_HANDLE && flat->cookie == IRemoteObject::IF_PROT_DATABUS
             && flat->handle < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-            MessageParcel data, reply;
+            MessageParcel data;
+            MessageParcel reply;
             MessageOption option;
             if (SendRequest(handle, GET_PID_UID, data, reply, option) != ERR_NONE) {
                 ZLOGE(LABEL, "get pid and uid failed");
                 return false;
             }
-            MessageParcel data2, reply2;
+            MessageParcel data2;
+            MessageParcel reply2;
             MessageOption option2;
             data2.WriteUint32(reply.ReadUint32()); // pid
             data2.WriteUint32(reply.ReadUint32()); // uid
@@ -822,7 +824,8 @@ void BinderInvoker::StopWorkThread()
 
 bool BinderInvoker::PingService(int32_t handle)
 {
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     int result = SendRequest(handle, PING_TRANSACTION, data, reply, option);
     return (result == ERR_NONE);
