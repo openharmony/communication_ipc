@@ -37,13 +37,13 @@ using ErrorMap = std::map<uint32_t, std::string>;
 class ErrorBase {
 public:
     virtual ~ErrorBase() = default;
-    inline const std::string &GetErrorDesc(uint32_t error);
+    inline const std::string GetErrorDesc(uint32_t error);
     virtual ErrorMap &GetErrorMap() = 0;
 
     static constexpr const char *UNKNOWN_COMMAND = "UNKNOWN COMMAND";
 };
 
-inline const std::string &ErrorBase::GetErrorDesc(uint32_t error)
+inline const std::string ErrorBase::GetErrorDesc(uint32_t error)
 {
     ErrorMap::iterator found = GetErrorMap().find(error);
     if (found == GetErrorMap().end()) {
@@ -57,7 +57,7 @@ class IPCError : public ErrorBase {
 public:
     IPCError() = default;
     ~IPCError() = default;
-    static const std::string &ToString(uint32_t value);
+    static const std::string ToString(uint32_t value);
     virtual ErrorMap &GetErrorMap() override;
 };
 } // namespace OHOS
