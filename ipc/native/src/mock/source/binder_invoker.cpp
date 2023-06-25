@@ -455,7 +455,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         data->InjectOffsets(tr->data.ptr.offsets, tr->offsets_size / sizeof(binder_size_t));
     }
     uint32_t &newflags = const_cast<uint32_t &>(tr->flags);
-    int isServerTraced = HitraceInvoker::TraceServerReceieve(tr->target.handle, tr->code, *data, newflags);
+    int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint32_t>(tr->target.handle), tr->code, *data, newflags);
     const pid_t oldPid = callerPid_;
     const auto oldUid = static_cast<const uid_t>(callerUid_);
     const uint64_t oldToken = callerTokenID_;
@@ -501,7 +501,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         ZLOGW(LABEL, "stub: %{public}s deal request code: %{public}u cost time: %{public}dms",
             service.c_str(), tr->code, duration);
     }
-    HitraceInvoker::TraceServerSend(tr->target.handle, tr->code, isServerTraced, newflags);
+    HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
