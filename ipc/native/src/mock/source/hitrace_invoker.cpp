@@ -37,7 +37,7 @@ bool HitraceInvoker::IsClientTraced(int32_t handle, uint32_t flags, const HiTrac
         ((flags & TF_ONE_WAY) ? traceId.IsFlagEnabled(HITRACE_FLAG_INCLUDE_ASYNC) : true));
 }
 
-HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel &data, uint32_t &flags,
+HiTraceId HitraceInvoker::TraceClientSend(uint64_t handle, uint32_t code, Parcel &data, uint32_t &flags,
     const HiTraceId &traceId)
 {
     HiTraceId childId = traceId;
@@ -68,7 +68,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
             return childId;
         }
         // tracepoint: CS(Client Send)
-        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%s handle=%d,code=%u",
+        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%s handle=%lu,code=%u",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
             handle, code);
         flags |= TF_HITRACE;
@@ -76,7 +76,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
     return childId;
 }
 
-void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t flags, const HiTraceId &traceId,
+void HitraceInvoker::TraceClientReceieve(uint64_t handle, uint32_t code, uint32_t flags, const HiTraceId &traceId,
     const HiTraceId &childId)
 {
     if (!(flags & TF_HITRACE)) {
@@ -88,7 +88,7 @@ void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t
             // restore thread trace id
             HiTraceChain::SetId(traceId);
             // tracepoint: CR(Client Receive)
-            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "%s handle=%d,code=%u", "SYNC", handle, code);
+            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "%s handle=%lu,code=%u", "SYNC", handle, code);
         }
     }
 }
