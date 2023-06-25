@@ -31,9 +31,9 @@ public:
 
     static void RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t oldReadPosition, uint8_t idLen);
 
-    static bool TraceServerReceieve(int32_t handle, uint32_t code, Parcel &data, uint32_t &flags);
+    static bool TraceServerReceieve(uint64_t handle, uint32_t code, Parcel &data, uint32_t &flags);
 
-    static void TraceServerSend(int32_t handle, uint32_t code, bool isServerTraced, uint32_t flags);
+    static void TraceServerSend(uint64_t handle, uint32_t code, bool isServerTraced, uint32_t flags);
 
 private:
     static const int PADDED_SIZE_OF_PARCEL = 4;
