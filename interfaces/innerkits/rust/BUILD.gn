@@ -68,7 +68,7 @@ ohos_shared_library("ipc_c") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
   ]
 
   output_extension = "so"

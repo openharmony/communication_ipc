@@ -36,7 +36,7 @@ ohos_shared_library("ipc_common") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
   ]
 
   innerapi_tags = [

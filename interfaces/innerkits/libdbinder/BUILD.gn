@@ -59,7 +59,7 @@ ohos_shared_library("libdbinder") {
   external_deps = [
     "c_utils:utils",
     "dsoftbus:softbus_client",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
   ]
   subsystem_name = "communication"
   part_name = "ipc"

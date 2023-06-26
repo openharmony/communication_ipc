@@ -35,7 +35,7 @@ ohos_fuzztest("SendDataToRemoteFuzzTest") {
   sources = [ "senddatatoremote_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:libdbinder",
   ]
 }

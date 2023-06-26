@@ -50,8 +50,8 @@ ohos_shared_library("rpc") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:hitrace_meter",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi_common",
   ]
