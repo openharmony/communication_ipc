@@ -65,8 +65,8 @@ ohos_shared_library("ipc_single") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
   ]
 
   innerapi_tags = [
