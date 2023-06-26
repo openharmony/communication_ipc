@@ -2901,7 +2901,12 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
     // connect native object to js thisVar
     status = napi_wrap(
         env, thisVar, messageSequence,
-        [](napi_env env, void *data, void *hint) {},
+        [](napi_env env, void *data, void *hint) {
+            NAPI_MessageSequence *messageSequence = reinterpret_cast<NAPI_MessageSequence *>(data);
+            if (!messageSequence->owner) {
+                delete messageSequence;
+            }
+        },
         nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi wrap message parcel failed");
     return thisVar;
