@@ -18,40 +18,55 @@
 #include <string_ex.h>
 
 namespace OHOS {
-NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
-    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
-{}
+NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
+{
+    env_ = env;
+    descriptor_ = descriptor;
+    sptrCachedObject_ = nullptr;
+    wptrCachedObject_ = nullptr;
+    localInterfaceRef_ = nullptr;
+    attachCount_ = 1;
+    napi_create_reference(env, thisVar, 0, &jsObjectRef_);
+}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
     // free the reference of object.
-    cachedObject_ = nullptr;
+    sptrCachedObject_ = nullptr;
+    wptrCachedObject_ = nullptr;
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
+    if (jsObjectRef_ != nullptr) {
+        napi_delete_reference(env_, jsObjectRef_);
+    }
 }
 
-sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
+sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
-    sptr<NAPIRemoteObject> remoteObject = nullptr;
-    if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_;
+    if (sptrCachedObject_ != nullptr) {
+        return sptrCachedObject_;
     }
-
-    if (remoteObject == nullptr) {
-        remoteObject = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
-        cachedObject_ = remoteObject;
+    sptr<NAPIRemoteObject> tmp = wptrCachedObject_.promote();
+    if (tmp == nullptr) {
+        tmp = new NAPIRemoteObject(env_, jsObjectRef_, descriptor_);
+        wptrCachedObject_ = tmp;
     }
-    return remoteObject;
+    return tmp;
 }
 
 void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    cachedObject_ = object;
+    IPCObjectStub *tmp = static_cast<IPCObjectStub *>(object.GetRefPtr());
+    if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
+        wptrCachedObject_ = object;
+    } else {
+        sptrCachedObject_ = object;
+    }
 }
 
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)

@@ -371,8 +371,8 @@ int IPCObjectStub::GetObjectType() const
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int result = ERR_NONE;
-    ZLOGD(LABEL, "IPCObjectStub::ProcessProto called, type = 0, normal stub object");
-    if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER)) {
+    ZLOGD(LABEL, "normal stub object, descriptor_=%{public}s", Str16ToStr8(descriptor_).c_str());
+    if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER) || !reply.WriteString16(descriptor_)) {
         ZLOGE(LABEL, "write to parcel fail");
         result = IPC_STUB_WRITE_PARCEL_ERR;
     }
