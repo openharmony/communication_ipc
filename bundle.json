@@ -23,7 +23,9 @@
       "features": [
         "ipc_feature_rpc_enabled"
       ],
-      "syscap":[],
+      "syscap":[
+        "SystemCapability.Communication.IPC.Core"
+      ],
       "rom": "500KB",
       "ram": "100KB",
       "deps": {
