@@ -17,7 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <inttypes.h>
+#include <cinttypes>
 
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
