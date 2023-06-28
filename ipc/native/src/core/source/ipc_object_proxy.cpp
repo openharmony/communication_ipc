@@ -530,6 +530,9 @@ int IPCObjectProxy::GetProtoInfo()
 
     switch (reply.ReadUint32()) {
         case IRemoteObject::IF_PROT_BINDER: {
+            remoteDescriptor_ = reply.ReadString16();
+            ZLOGD(LABEL, "it is normal binder, handle:%{public}u desc:%{public}s",
+                handle_, Str16ToStr8(remoteDescriptor_).c_str());
             break;
         }
         case IRemoteObject::IF_PROT_DATABUS: {

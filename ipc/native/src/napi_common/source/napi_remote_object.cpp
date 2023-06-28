@@ -60,6 +60,7 @@ static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
     }
     holder->Lock();
     int32_t curAttachCount = holder->DecAttachCount();
+    ZLOGI(LOG_LABEL, "NAPIRemoteObjectHolder destructed by js callback, curAttachCount:%{public}d", curAttachCount);
     if (curAttachCount == 0) {
         delete holder;
     }
@@ -134,7 +135,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
-    auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor));
+    auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor), thisVar);
     auto nativeObj = ConvertNativeValueTo<NativeObject>(reinterpret_cast<NativeValue *>(thisVar));
     if (nativeObj == nullptr) {
         ZLOGE(LOG_LABEL, "Failed to get RemoteObject native object");
@@ -145,17 +146,17 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     // connect native object to js thisVar
     napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
-    if (NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar) == nullptr) {
-        ZLOGE(LOG_LABEL, "RemoteObject_JS_Constructor create native object failed");
-        return nullptr;
-    }
     return thisVar;
 }
 
-NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::u16string &descriptor)
+NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
     env_ = env;
+    desc_ = descriptor;
+    napi_value thisVar = nullptr;
+    napi_get_reference_value(env, jsObjectRef, &thisVar);
+    NAPI_ASSERT_RETURN_VOID(env, thisVar != nullptr, "failed to get value from js RemoteObject ref");
     thisVar_ = thisVar;
     napi_create_reference(env, thisVar_, 1, &thisVarRef_);
     NAPI_ASSERT_RETURN_VOID(env, thisVarRef_ != nullptr, "failed to create ref to js RemoteObject");
@@ -163,7 +164,7 @@ NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
+    ZLOGI(LOG_LABEL, "NAPIRemoteObject destroyed, desc:%{public}s", Str16ToStr8(desc_).c_str());
     if (thisVarRef_ != nullptr) {
         napi_status status = napi_delete_reference(env_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
@@ -595,9 +596,9 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
 
     if (target->CheckObjectLegality()) {
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
-        ZLOGI(LOG_LABEL, "object type:%{public}d", tmp->GetObjectType());
-        if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
-            ZLOGI(LOG_LABEL, "napi create js remote object");
+        uint32_t objectType = tmp->GetObjectType();
+        ZLOGI(LOG_LABEL, "object type:%{public}d", objectType);
+        if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
             sptr<NAPIRemoteObject> object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
             // retrieve js remote object constructor
             napi_value global = nullptr;
@@ -659,7 +660,7 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             NAPIRemoteObjectHolder *holder = nullptr;
             napi_unwrap(env, object, (void **)&holder);
             NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
-            return holder != nullptr ? holder->Get(object) : nullptr;
+            return holder != nullptr ? holder->Get() : nullptr;
         }
 
         napi_value proxyConstructor = nullptr;
