@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <inttypes.h>
 
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
@@ -125,7 +126,7 @@ bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel 
             HiTraceChain::SetId(traceId);
             // tracepoint: SR(Server Receive)
             HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
-                "%s handle=%{public}zu,code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
+                "%s handle=%{public}" PRIu64 ",code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
                 handle, code);
         }
 
@@ -138,7 +139,7 @@ void HitraceInvoker::TraceServerSend(uint64_t handle, uint32_t code, bool isServ
 {
     if (isServerTraced) {
         // tracepoint: SS(Server Send)
-        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%{public}zu,code=%u",
+        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%{public}" PRIu64 ",code=%u",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
     }
     HiTraceChain::ClearId();
