@@ -37,9 +37,9 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
-    //if (jsObjectRef_ != nullptr) {
-    //    napi_delete_reference(env_, jsObjectRef_);
-    //}
+    if (jsObjectRef_ != nullptr) {
+        napi_delete_reference(env_, jsObjectRef_);
+    }
 }
 
 sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get()
