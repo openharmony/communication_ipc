@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cinttypes>
 
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
@@ -102,7 +103,7 @@ void HitraceInvoker::RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t o
     flags &= ~(uint32_t)TF_HITRACE;
 }
 
-bool HitraceInvoker::TraceServerReceieve(int32_t handle, uint32_t code, Parcel &data, uint32_t &flags)
+bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel &data, uint32_t &flags)
 {
     bool isServerTraced = (flags & TF_HITRACE) != 0;
     if (isServerTraced) {
@@ -125,7 +126,7 @@ bool HitraceInvoker::TraceServerReceieve(int32_t handle, uint32_t code, Parcel &
             HiTraceChain::SetId(traceId);
             // tracepoint: SR(Server Receive)
             HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
-                "%s handle=%d,code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
+                "%s handle=%{public}" PRIu64 ",code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
                 handle, code);
         }
 
@@ -134,11 +135,11 @@ bool HitraceInvoker::TraceServerReceieve(int32_t handle, uint32_t code, Parcel &
     return isServerTraced;
 }
 
-void HitraceInvoker::TraceServerSend(int32_t handle, uint32_t code, bool isServerTraced, uint32_t flags)
+void HitraceInvoker::TraceServerSend(uint64_t handle, uint32_t code, bool isServerTraced, uint32_t flags)
 {
     if (isServerTraced) {
         // tracepoint: SS(Server Send)
-        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%d,code=%u",
+        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%{public}" PRIu64 ",code=%u",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
     }
     HiTraceChain::ClearId();
