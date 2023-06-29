@@ -56,7 +56,7 @@ ohos_distributedtest("DbinderTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -87,7 +87,7 @@ ohos_distributedtest("DbinderTestAgent") {
   external_deps = [
     "c_utils:utils",
     "dsoftbus:softbus_client",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "samgr:samgr_proxy",
   ]
 
@@ -109,7 +109,7 @@ ohos_executable("dbinder_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "samgr:samgr_proxy",
   ]
 
@@ -132,7 +132,7 @@ ohos_executable("dbinder_send") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "samgr:samgr_proxy",
   ]
 
