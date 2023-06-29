@@ -62,7 +62,7 @@ ohos_unittest("IPCNativeUnitTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -97,7 +97,7 @@ ohos_unittest("IPCFileDescOpsTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
   ]
 
@@ -123,7 +123,7 @@ ohos_unittest("BinderConnectorTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -154,8 +154,8 @@ ohos_unittest("BinderInvokerUnitTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -183,8 +183,8 @@ ohos_unittest("IPCHiTraceUnitTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -211,7 +211,7 @@ if (support_jsapi) {
     ]
 
     external_deps = [
-      "hiviewdfx_hilog_native:libhilog",
+      "hilog:libhilog",
       "ipc:ipc_napi_common",
     ]
 
@@ -246,8 +246,8 @@ ohos_unittest("IPCMockUnitTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -282,8 +282,8 @@ ohos_unittest("InvokerFactoryTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -319,8 +319,8 @@ ohos_unittest("RPCFeatureUnitTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hitrace_native:libhitracechain",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]

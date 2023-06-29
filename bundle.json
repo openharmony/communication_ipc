@@ -31,8 +31,8 @@
       "deps": {
         "components": [
           "samgr",
-          "hitrace_native",
-          "hiviewdfx_hilog_native",
+          "hitrace",
+          "hilog",
           "c_utils",
           "access_token",
           "dsoftbus"
