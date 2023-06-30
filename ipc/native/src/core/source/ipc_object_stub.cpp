@@ -372,7 +372,7 @@ int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageP
 {
     int result = ERR_NONE;
     ZLOGD(LABEL, "normal stub object, descriptor_=%{public}s", Str16ToStr8(descriptor_).c_str());
-    if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER) || !reply.WriteString16(descriptor_)) {
+    if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER)) {
         ZLOGE(LABEL, "write to parcel fail");
         result = IPC_STUB_WRITE_PARCEL_ERR;
     }
