@@ -28,7 +28,7 @@ class NAPIRemoteObjectHolder : public RefBase {
 public:
     explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar);
     ~NAPIRemoteObjectHolder();
-    sptr<NAPIRemoteObject> Get();
+    sptr<NAPIRemoteObject> Get(napi_env envNew);
     void Set(sptr<NAPIRemoteObject> object);
     void attachLocalInterface(napi_value localInterface, std::string &descriptor);
     napi_value queryLocalInterface(std::string &descriptor);
