@@ -166,8 +166,8 @@ NAPIRemoteObject::NAPIRemoteObject(napi_env envNew, napi_env env, napi_ref jsObj
 NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGI(LOG_LABEL, "NAPIRemoteObject destroyed, desc:%{public}s", Str16ToStr8(desc_).c_str());
-    if (thisVarRef_ != nullptr) {
-        napi_status status = napi_delete_reference(envNew_, thisVarRef_);
+    if (thisVarRef_ != nullptr && envNew_ == env_) {
+        napi_status status = napi_delete_reference(env_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
         thisVarRef_ = nullptr;
     }
