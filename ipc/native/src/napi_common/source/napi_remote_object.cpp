@@ -149,7 +149,8 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-NAPIRemoteObject::NAPIRemoteObject(napi_env envNew, napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor)
+NAPIRemoteObject::NAPIRemoteObject(napi_env envNew, napi_env env, napi_ref jsObjectRef,
+    const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
     envNew_ = envNew;
