@@ -149,9 +149,10 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor)
+NAPIRemoteObject::NAPIRemoteObject(napi_env envNew, napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
+    envNew_ = envNew;
     env_ = env;
     desc_ = descriptor;
     napi_value thisVar = nullptr;
@@ -166,7 +167,7 @@ NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGI(LOG_LABEL, "NAPIRemoteObject destroyed, desc:%{public}s", Str16ToStr8(desc_).c_str());
     if (thisVarRef_ != nullptr) {
-        napi_status status = napi_delete_reference(env_, thisVarRef_);
+        napi_status status = napi_delete_reference(envNew_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
         thisVarRef_ = nullptr;
     }
@@ -185,6 +186,13 @@ int NAPIRemoteObject::GetObjectType() const
 napi_ref NAPIRemoteObject::GetJsObjectRef() const
 {
     return thisVarRef_;
+}
+
+void NAPIRemoteObject::SetNewEnv(napi_env env)
+{
+    if (envNew_ != env) {
+        ZLOGI(LOG_LABEL, "env updated");
+    }
 }
 
 void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
@@ -660,7 +668,7 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             NAPIRemoteObjectHolder *holder = nullptr;
             napi_unwrap(env, object, (void **)&holder);
             NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
-            return holder != nullptr ? holder->Get() : nullptr;
+            return holder != nullptr ? holder->Get(env) : nullptr;
         }
 
         napi_value proxyConstructor = nullptr;

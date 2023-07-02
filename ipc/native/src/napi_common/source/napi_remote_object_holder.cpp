@@ -42,7 +42,7 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
     }
 }
 
-sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get()
+sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_env envNew)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
@@ -52,9 +52,10 @@ sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get()
     }
     sptr<NAPIRemoteObject> tmp = wptrCachedObject_.promote();
     if (tmp == nullptr) {
-        tmp = new NAPIRemoteObject(env_, jsObjectRef_, descriptor_);
+        tmp = new NAPIRemoteObject(envNew, env_, jsObjectRef_, descriptor_);
         wptrCachedObject_ = tmp;
     }
+    tmp->SetNewEnv(envNew);
     return tmp;
 }
 
