@@ -30,13 +30,9 @@ ohos_rust_shared_library("ipc_rust") {
     "src/parcel/types.rs",
   ]
 
-  deps = [
-    ":ipc_c",
-  ]
+  deps = [ ":ipc_c" ]
 
-  external_deps = [
-    "hilog:hilog_rust",
-  ]
+  external_deps = [ "hilog:hilog_rust" ]
 
   crate_name = "ipc_rust"
   crate_type = "dylib"
