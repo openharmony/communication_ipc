@@ -43,9 +43,7 @@ ohos_shared_library("rpc") {
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
   ]
 
-  deps = [
-    "//third_party/libuv:uv",
-  ]
+  deps = [ "//third_party/libuv:uv" ]
 
   external_deps = [
     "c_utils:utils",
