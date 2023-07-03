@@ -43,8 +43,8 @@ if (support_jsapi) {
     ]
 
     deps = [
-      "//third_party/libuv:uv",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+      "//third_party/libuv:uv",
     ]
 
     external_deps = [
