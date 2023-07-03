@@ -194,7 +194,7 @@ void NAPIRemoteObject::SetNewEnv(napi_env envNew)
     if (envNew_ != envNew) {
         ZLOGI(LOG_LABEL, "env updated");
     }
-    envNew_ = envNew
+    envNew_ = envNew;
 }
 
 void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
