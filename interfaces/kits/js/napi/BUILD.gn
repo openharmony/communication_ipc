@@ -44,7 +44,6 @@ ohos_shared_library("rpc") {
   ]
 
   deps = [
-    "//foundation/arkui/napi:ace_napi",
     "//third_party/libuv:uv",
   ]
 
@@ -54,6 +53,7 @@ ohos_shared_library("rpc") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi_common",
+    "napi:ace_napi",
   ]
 
   relative_install_dir = "module"

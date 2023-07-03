@@ -35,9 +35,11 @@
           "hilog",
           "c_utils",
           "access_token",
-          "dsoftbus"
+          "dsoftbus",
+          "napi"
         ],
         "third_party": [
+          "libuv",
           "bounds_checking_function"
         ]
       },
