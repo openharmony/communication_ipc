@@ -13,6 +13,8 @@
 
 import("//build/ohos.gni")
 
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+
 if (support_jsapi) {
   config("napi_common_deps_config") {
     include_dirs = [ "include" ]
@@ -40,13 +42,15 @@ if (support_jsapi) {
       "../../../ipc/native/src/napi_common/source/napi_rpc_error.cpp",
     ]
 
-    deps = [ "//third_party/libuv:uv" ]
+    deps = [
+      "//third_party/libuv:uv",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+    ]
 
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
-      "ipc:ipc_core",
       "napi:ace_napi",
     ]
 
