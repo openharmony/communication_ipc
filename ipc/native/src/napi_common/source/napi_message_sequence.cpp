@@ -1016,7 +1016,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelable(napi_env env, napi_callback_
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     napi_valuetype valueType = napi_null;
@@ -1406,7 +1406,7 @@ napi_value NAPI_MessageSequence::JS_setSize(napi_env env, napi_callback_info inf
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->SetDataSize(static_cast<size_t>(value));
@@ -1444,7 +1444,7 @@ napi_value NAPI_MessageSequence::JS_setCapacity(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->SetDataCapacity(static_cast<size_t>(value));
@@ -1533,7 +1533,7 @@ napi_value NAPI_MessageSequence::JS_rewindRead(napi_env env, napi_callback_info 
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->RewindRead(static_cast<size_t>(pos));
@@ -1585,7 +1585,7 @@ napi_value NAPI_MessageSequence::JS_rewindWrite(napi_env env, napi_callback_info
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
         ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
     bool result = napiSequence->nativeParcel_->RewindWrite(static_cast<size_t>(pos));
@@ -2604,7 +2604,7 @@ napi_value NAPI_MessageSequence::JS_WriteAshmem(napi_env env, napi_callback_info
     napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
     sptr<Ashmem> nativeAshmem = napiAshmem->GetAshmem();
     NAPI_MessageSequence *napiSequence = nullptr;
