@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_IPC_WORK_THREAD_POOL_H
 #define OHOS_IPC_IPC_WORK_THREAD_POOL_H
 
+#include <condition_variable>
 #include <functional>
 #include <thread>
 #include <map>
@@ -55,6 +56,7 @@ public:
     void UpdateMaxThreadNum(int maxThreadNum);
     int GetSocketIdleThreadNum() const;
     int GetSocketTotalThreadNum() const;
+    void BlockUntilThreadAvailable();
 
 private:
     static constexpr int PROTO_NUM = 2;
@@ -65,6 +67,8 @@ private:
     int idleThreadNum_;
     int idleSocketThreadNum_;
     std::mutex mutex_;
+    int numWaitingForThreads_;
+    std::condition_variable cv_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThreadPool" };
 };
 #ifdef CONFIG_IPC_SINGLE

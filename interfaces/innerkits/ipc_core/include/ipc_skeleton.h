@@ -163,5 +163,18 @@ public:
      */
     static bool SetCallingIdentity(std::string &identity);
 };
+
+class IPCDfx {
+public:
+    IPCDfx() = default;
+    ~IPCDfx() = default;
+
+    /**
+     * @brief Block until idle ipc thread available.CAUTION: DO NOT USE IT ELSEWHERE EXPECT HICOLLIE!
+     * @return void
+     * @since 9
+     */
+    static void BlockUntilThreadAvailable();
+};
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_SKELETON_H
