@@ -43,10 +43,7 @@ ohos_shared_library("rpc") {
     "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
   ]
 
-  deps = [
-    "//foundation/arkui/napi:ace_napi",
-    "//third_party/libuv:uv",
-  ]
+  deps = [ "//third_party/libuv:uv" ]
 
   external_deps = [
     "c_utils:utils",
@@ -54,6 +51,7 @@ ohos_shared_library("rpc") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi_common",
+    "napi:ace_napi",
   ]
 
   relative_install_dir = "module"
