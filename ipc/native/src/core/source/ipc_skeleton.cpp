@@ -209,4 +209,12 @@ bool IPCSkeleton::SetCallingIdentity(std::string &identity)
 
     return true;
 }
+
+void IPCDfx::BlockUntilThreadAvailable()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current != nullptr) {
+        current->BlockUntilThreadAvailable();
+    }
+}
 }  // namespace OHOS

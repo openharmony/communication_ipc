@@ -102,6 +102,7 @@ public:
 
     sptr<IRemoteObject> GetRegistryObject();
     bool SetRegistryObject(sptr<IRemoteObject> &object);
+    void BlockUntilThreadAvailable();
 
 #ifndef CONFIG_IPC_SINGLE
     bool AttachRawData(uint32_t fd, std::shared_ptr<InvokerRawData> rawData);

@@ -307,6 +307,13 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descri
     return current->QueryObject(descriptor);
 }
 
+void IPCProcessSkeleton::BlockUntilThreadAvailable()
+{
+    if (threadPool_ != nullptr) {
+        threadPool_->BlockUntilThreadAvailable();
+    }
+}
+
 #ifndef CONFIG_IPC_SINGLE
 sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()
 {
