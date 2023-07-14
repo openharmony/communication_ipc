@@ -23,6 +23,7 @@
             OHOS::BrokerRegistration::Register*;
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
+            OHOS::IPCDfx*;
             OHOS::IPCSkeleton*;
             OHOS::IRemoteObject*;
             "OHOS::MessageParcel::MessageParcel()";
