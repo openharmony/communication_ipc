@@ -32,6 +32,7 @@ ohos_shared_library("ipc_core") {
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$IPC_CORE_ROOT/c/rpc/include",
+    "$IPC_CORE_ROOT/src/common/include",
     "$SUBSYSTEM_DIR/utils/include",
     "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
   ]
@@ -57,7 +58,6 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
     "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
     "$IPC_CORE_ROOT/src/core/source/stub_refcount_object.cpp",
-    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/dbinder_databus_invoker.cpp",
@@ -74,7 +74,7 @@ ohos_shared_library("ipc_core") {
 
   all_dependent_configs = [ ":ipc_all_deps_config" ]
 
-  deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
+  deps = [ "$IPC_CORE_ROOT/src/common:ipc_common" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
