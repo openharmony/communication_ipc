@@ -25,7 +25,6 @@ config("libdbinder_config") {
   include_dirs = [
     "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/common/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
     "$DBINDER_ROOT/dbinder_service/include",
   ]

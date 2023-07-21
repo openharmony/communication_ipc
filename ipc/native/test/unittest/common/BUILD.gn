@@ -54,7 +54,7 @@ ohos_unittest("IPCNativeUnitTest") {
   ]
 
   deps = [
-    "$IPC_CORE_ROOT/src/common:ipc_common",
+    "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -118,7 +118,6 @@ ohos_unittest("BinderConnectorTest") {
 
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "$SUBSYSTEM_DIR/ipc/native/src/common:ipc_common",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -150,7 +149,6 @@ ohos_unittest("BinderInvokerUnitTest") {
 
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "$SUBSYSTEM_DIR/ipc/native/src/common:ipc_common",
     "//third_party/googletest:gtest_main",
   ]
 
