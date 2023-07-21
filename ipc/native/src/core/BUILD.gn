@@ -27,10 +27,7 @@ ohos_shared_library("ipc_common") {
     "$SUBSYSTEM_DIR/utils/include",
     "include",
   ]
-  sources = [
-    "source/binder_connector.cpp",
-    "source/process_skeleton.cpp",
-  ]
+  sources = [ "source/process_skeleton.cpp" ]
 
   configs = [
     "$SUBSYSTEM_DIR:ipc_util_config",

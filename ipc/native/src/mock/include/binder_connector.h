@@ -20,6 +20,9 @@
 #include <mutex>
 
 namespace OHOS {
+#ifdef CONFIG_IPC_SINGLE
+namespace IPC_SINGLE {
+#endif
 class BinderConnector {
 public:
     static BinderConnector *GetInstance();
@@ -43,5 +46,8 @@ private:
     uint64_t featureSet_;
     uint64_t selfTokenID_;
 };
+#ifdef CONFIG_IPC_SINGLE
+} // namespace IPC_SINGLE
+#endif
 } // namespace OHOS
 #endif // OHOS_IPC_BINDER_CONNECTOR_H
