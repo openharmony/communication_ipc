@@ -537,22 +537,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
-            // Start to call promiseThen
-            napi_value thenReturnValue;
-            ret = napi_call_function(param->env, returnVal, promiseThen, 1, &thenValue, &thenReturnValue);
-            if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "PromiseThen got exception");
-                param->result = ERR_UNKNOWN_TRANSACTION;
-                break;
-            }
-            // Create promiseCatch
-            napi_value promiseCatch = nullptr;
-            napi_get_named_property(param->env, returnVal, "catch", &promiseCatch);
-            if (promiseCatch == nullptr) {
-                ZLOGE(LOG_LABEL, "get promiseCatch failed");
-                param->result = -1;
-                break;
-            }
             napi_value catchValue;
             ret = napi_create_function(param->env, "catchCallback",
                 NAPI_AUTO_LENGTH, CatchCallback, param, &catchValue);
@@ -561,15 +545,18 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
-            // Start to call promiseCatch
-            napi_value catchReturnValue;
-            ret = napi_call_function(param->env, returnVal, promiseCatch, 1, &catchValue, &catchReturnValue);
+            // Start to call promiseThen
+            napi_env env = param->env;
+            napi_value thenReturnValue;
+            constexpr uint32_t THEN_ARGC = 2;
+            napi_value thenArgv[THEN_ARGC] = {thenValue, catchValue};
+            ret = napi_call_function(env, returnVal, promiseThen, THEN_ARGC, thenArgv, &thenReturnValue);
             if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "PromiseCatch got exception");
+                ZLOGE(LOG_LABEL, "PromiseThen got exception");
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
-            napi_close_handle_scope(param->env, scope);
+            napi_close_handle_scope(env, scope);
             return;
         } while (0);
 
