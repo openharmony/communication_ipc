@@ -15,43 +15,111 @@
 
 #include "napi_remote_object_holder.h"
 
+#include <uv.h>
 #include <string_ex.h>
+#include "ipc_debug.h"
+#include "log_tags.h"
 
 namespace OHOS {
-NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
-    : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
-{}
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject_holder" };
+
+NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
+{
+    env_ = env;
+    jsThreadId_ = std::this_thread::get_id();
+    descriptor_ = descriptor;
+    sptrCachedObject_ = nullptr;
+    wptrCachedObject_ = nullptr;
+    localInterfaceRef_ = nullptr;
+    jsObjectRef_ = nullptr; 
+    attachCount_ = 1;
+    napi_create_reference(env, thisVar, 0, &jsObjectRef_);
+}
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
+    sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
+    if (tmp != nullptr) {
+        NAPIRemoteObject *object = static_cast<NAPIRemoteObject *>(tmp.GetRefPtr());
+        ZLOGI(LOG_LABEL, "reset env and napi_ref");
+        object->ResetJsEnv(); // when the abilty exits, do not need to delete ref during native destruct
+    }
     // free the reference of object.
-    cachedObject_ = nullptr;
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
+    if (jsObjectRef_ != nullptr) {
+        if (jsThreadId_ == std::this_thread::get_id()) {
+            napi_status napiStatus = napi_delete_reference(env_, jsObjectRef_);
+            if (napiStatus != napi_ok) {
+                ZLOGW(LOG_LABEL, "holder release, failed to delete ref");
+            }
+        } else {
+            uv_loop_s *loop = nullptr;
+            napi_get_uv_event_loop(env_, &loop);
+            uv_work_t *work = new(std::nothrow) uv_work_t;
+            if (work == nullptr) {
+                ZLOGW(LOG_LABEL, "failed to new work");
+                return;
+            }
+            DeleteJsRefParam *param = new DeleteJsRefParam {
+                .env = env_,
+                .thisVarRef = jsObjectRef_
+            };
+            work->data = reinterpret_cast<void *>(param);
+            uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+                DeleteJsRefParam *param = reinterpret_cast<DeleteJsRefParam *>(work->data);
+                napi_handle_scope scope = nullptr;
+                napi_open_handle_scope(param->env, &scope);
+                napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
+                if (napiStatus != napi_ok) {
+                    ZLOGE(LOG_LABEL, "failed to delete js ref on uv work");
+                }
+                napi_close_handle_scope(param->env, scope);
+                delete param;
+                delete work;
+            });
+        }
+        jsObjectRef_ = nullptr;
+    }
 }
 
-sptr<NAPIRemoteObject> NAPIRemoteObjectHolder::Get(napi_value jsRemoteObject)
+sptr<IRemoteObject> NAPIRemoteObjectHolder::Get()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // grab an strong reference to the object,
     // so it will not be freed util this reference released.
-    sptr<NAPIRemoteObject> remoteObject = nullptr;
-    if (cachedObject_ != nullptr) {
-        remoteObject = cachedObject_;
+    if (sptrCachedObject_ != nullptr) {
+        return sptrCachedObject_;
     }
 
-    if (remoteObject == nullptr) {
-        remoteObject = new NAPIRemoteObject(env_, jsRemoteObject, descriptor_);
-        cachedObject_ = remoteObject;
+    sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
+    if (tmp == nullptr) {
+        tmp = new NAPIRemoteObject(jsThreadId_, env_, jsObjectRef_, descriptor_);
+        wptrCachedObject_ = tmp;
     }
-    return remoteObject;
+    return tmp;
 }
 
-void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
+void NAPIRemoteObjectHolder::Set(sptr<IRemoteObject> object)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    cachedObject_ = object;
+    IPCObjectStub *tmp = static_cast<IPCObjectStub *>(object.GetRefPtr());
+    if (tmp->GetObjectType() == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
+        wptrCachedObject_ = object;
+    } else {
+        sptrCachedObject_ = object;
+    }
+}
+
+napi_ref NAPIRemoteObjectHolder::GetJsObjectRef() const
+{
+    return jsObjectRef_;
+}
+
+napi_env NAPIRemoteObjectHolder::GetJsObjectEnv() const
+{
+    return env_;
 }
 
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)
