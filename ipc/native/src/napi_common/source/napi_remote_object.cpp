@@ -44,12 +44,6 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
 static constexpr int WAIT_TIMEOUT_MS = 1000;
-struct OperateJsRefParam {
-    napi_env env;
-    napi_ref thisVarRef;
-    napi_ref outRef;
-    ThreadLockInfo *lockInfo;
-};
 
 template<class T>
 inline T *ConvertNativeValueTo(NativeValue *value)
@@ -238,7 +232,6 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
         OperateJsRefParam *param = new OperateJsRefParam {
             .env = env_,
             .thisVarRef = jsObjectRef,
-            .outRef = nullptr,
             .lockInfo = lockInfo.get()
         };
 
