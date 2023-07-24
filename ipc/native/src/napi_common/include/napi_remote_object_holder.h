@@ -62,11 +62,6 @@ public:
         return descriptor_;
     };
 
-    struct DeleteJsRefParam {
-        napi_env env;
-        napi_ref thisVarRef;
-    };
-
 private:
     std::mutex mutex_;
     napi_env env_ = nullptr;

@@ -63,12 +63,6 @@ private:
         ThreadLockInfo *lockInfo;
         int result;
     };
-    struct OperateJsRefParam {
-        napi_env env;
-        napi_ref thisVarRef;
-        napi_ref outRef;
-        ThreadLockInfo *lockInfo;
-    };
     int OnJsRemoteRequest(CallbackParam *jsParam);
 };
 
