@@ -31,7 +31,7 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
     sptrCachedObject_ = nullptr;
     wptrCachedObject_ = nullptr;
     localInterfaceRef_ = nullptr;
-    jsObjectRef_ = nullptr; 
+    jsObjectRef_ = nullptr;
     attachCount_ = 1;
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
 }
