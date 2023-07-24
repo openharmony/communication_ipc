@@ -44,9 +44,11 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
 static constexpr int WAIT_TIMEOUT_MS = 1000;
-struct DeleteJsRefParam {
+struct OperateJsRefParam {
     napi_env env;
     napi_ref thisVarRef;
+    napi_ref outRef;
+    ThreadLockInfo *lockInfo;
 };
 
 template<class T>
@@ -107,14 +109,14 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     napi_get_uv_event_loop(workerEnv, &loop);
     uv_work_t *work = new(std::nothrow) uv_work_t;
     NAPI_ASSERT_RETURN_VOID(workerEnv, work != nullptr, "cb failed to new work");
-    DeleteJsRefParam *param = new DeleteJsRefParam {
+    OperateJsRefParam *param = new OperateJsRefParam {
         .env = workerEnv,
         .thisVarRef = ref
     };
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
         ZLOGD(LOG_LABEL, "RemoteObjectHolderRefCb decrease on uv work thread");
-        DeleteJsRefParam *param = reinterpret_cast<DeleteJsRefParam *>(work->data);
+        OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
         DecreaseJsObjectRef(param->env, param->thisVarRef);
