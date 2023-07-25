@@ -322,6 +322,11 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     if (code == DUMP_TRANSACTION) {
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
     }
+
+    if (thisVarRef_ == nullptr || env_ == nullptr) {
+        ZLOGW(LOG_LABEL, "napi ref or env is nullptr");
+    }
+
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     CallbackParam *param = new CallbackParam {
         .env = env_,

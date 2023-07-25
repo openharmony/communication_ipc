@@ -37,7 +37,7 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
     localInterfaceRef_ = nullptr;
     jsObjectRef_ = nullptr;
     attachCount_ = 1;
-    napi_create_reference(env, thisVar, 0, &jsObjectRef_);
+    napi_create_reference(env, thisVar, 0, &jsObjectRef_); // weak ref, do not need to delete
 }
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
@@ -51,40 +51,6 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
     // free the reference of object.
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
-    }
-    if (jsObjectRef_ != nullptr) {
-        if (jsThreadId_ == std::this_thread::get_id()) {
-            napi_status napiStatus = napi_delete_reference(env_, jsObjectRef_);
-            if (napiStatus != napi_ok) {
-                ZLOGW(LOG_LABEL, "holder release, failed to delete ref");
-            }
-        } else {
-            uv_loop_s *loop = nullptr;
-            napi_get_uv_event_loop(env_, &loop);
-            uv_work_t *work = new(std::nothrow) uv_work_t;
-            if (work == nullptr) {
-                ZLOGW(LOG_LABEL, "failed to new work");
-                return;
-            }
-            DeleteJsRefParam *param = new DeleteJsRefParam {
-                .env = env_,
-                .thisVarRef = jsObjectRef_
-            };
-            work->data = reinterpret_cast<void *>(param);
-            uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
-                DeleteJsRefParam *param = reinterpret_cast<DeleteJsRefParam *>(work->data);
-                napi_handle_scope scope = nullptr;
-                napi_open_handle_scope(param->env, &scope);
-                napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
-                if (napiStatus != napi_ok) {
-                    ZLOGE(LOG_LABEL, "failed to delete js ref on uv work");
-                }
-                napi_close_handle_scope(param->env, scope);
-                delete param;
-                delete work;
-            });
-        }
-        jsObjectRef_ = nullptr;
     }
 }
 
