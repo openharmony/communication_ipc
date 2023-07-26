@@ -49,14 +49,17 @@ private:
 class RemoteServiceHolderStub: public OHOS::IPCObjectStub {
 public:
     explicit RemoteServiceHolderStub(std::u16string &desc, OnRemoteRequestCb callback,
-        const void *userData, OnRemoteObjectDestroyCb destroy);
+        const void *userData, OnRemoteObjectDestroyCb destroy, OnRemoteDumpCb dump);
     ~RemoteServiceHolderStub();
 
     int OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data,
         OHOS::MessageParcel &reply, OHOS::MessageOption &option) override;
 
+    int OnRemoteDump(uint32_t code, OHOS::MessageParcel &data,
+        OHOS::MessageParcel &reply, OHOS::MessageOption &option) override;
 private:
     OnRemoteRequestCb callback_;
+    OnRemoteDumpCb dumpCallback_;
     const void *userData_;
     OnRemoteObjectDestroyCb destroy_;
 };
