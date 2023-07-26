@@ -46,6 +46,13 @@ pub type OnRemoteRequest = unsafe extern "C" fn (
     reply: *mut CParcel
 ) -> i32;
 
+// Callback function type for OnRemoteDump() from native, this
+// callback will be called when native recive client IPC dump.
+pub type OnRemoteDump = unsafe extern "C" fn (
+    user_data: *mut c_void,
+    data: *const CParcel,
+) -> i32;
+
 // Callback function type for OnRemoteObjectDestroy() from native,
 // this callback will be called when native remote object destroyed.
 pub type OnRemoteObjectDestroy = unsafe extern "C" fn (
@@ -87,10 +94,28 @@ pub type OnStringArrayRead = unsafe extern "C" fn(
     len: u32 // C++ vector length
 ) -> bool;
 
+// Callback function type for CParcelReadString16Array() from native.
+// Rust side need read string one by one from native according calling
+// CParcelReadString16Element().
+pub type OnString16ArrayRead = unsafe extern "C" fn(
+    data: *const c_void, // C++ vector pointer
+    value: *mut c_void, // Rust vector pointer
+    len: u32 // C++ vector length
+) -> bool;
+
 // Callback function type for CParcelWriteStringArray() from native.
 // Rust side need write string one by one to native according calling
 // CParcelWriteStringElement().
 pub type OnStringArrayWrite = unsafe extern "C" fn(
+    array: *const c_void, // C++ vector pointer
+    value: *mut c_void, // Rust vector pointer
+    len: u32, // Rust vector length
+) -> bool;
+
+// Callback function type for CParcelWriteString16Array() from native.
+// Rust side need write string one by one to native according calling
+// CParcelWriteString16Element().
+pub type OnString16ArrayWrite = unsafe extern "C" fn(
     array: *const c_void, // C++ vector pointer
     value: *mut c_void, // Rust vector pointer
     len: u32, // Rust vector length
@@ -112,7 +137,7 @@ pub type OnCParcelReadElement = unsafe extern "C" fn (
 extern "C" {
     pub fn CreateRemoteStub(descripor: *const c_char, on_remote_request: OnRemoteRequest,
         on_remote_object_destroy: OnRemoteObjectDestroy,
-        user_data: *const c_void) -> *mut CRemoteObject;
+        user_data: *const c_void, on_remote_dump: OnRemoteDump) -> *mut CRemoteObject;
     pub fn RemoteObjectIncStrongRef(object: *mut CRemoteObject);
     pub fn RemoteObjectDecStrongRef(object: *mut CRemoteObject);
 
@@ -131,8 +156,7 @@ extern "C" {
         recipient: *mut CDeathRecipient) -> bool;
 
     pub fn IsProxyObject(object: *mut CRemoteObject) -> bool;
-    pub fn Dump(object: *mut CRemoteObject, fd: i32, value: *const c_void, len: i32,
-            writer: OnStringArrayWrite) -> i32;
+    pub fn Dump(object: *mut CRemoteObject, fd: i32, parcel: *mut CParcel) -> i32;
 
     pub fn IsObjectDead(object: *mut CRemoteObject) -> bool;
     pub fn GetInterfaceDescriptor(object: *mut CRemoteObject,
@@ -200,14 +224,20 @@ extern "C" {
         allocator: OnCParcelBytesAllocator::<f64>) -> bool;
     pub fn CParcelWriteStringArray(parcel: *mut CParcel, value: *const c_void, len: i32,
         writer: OnStringArrayWrite) -> bool;
+    pub fn CParcelWriteString16Array(parcel: *mut CParcel, value: *const c_void, len: i32,
+        writer: OnString16ArrayWrite) -> bool;
     pub fn CParcelWriteStringElement(data: *const c_void, value: *const c_char,
         len: i32) -> bool;
     pub fn CParcelWritU16stringElement(data: *const c_void, value: *const c_char,
         len: i32) -> bool;
     pub fn CParcelReadStringArray(parcel: *const CParcel, value: *mut c_void,
         reader: OnStringArrayRead) -> bool;
+    pub fn CParcelReadString16Array(parcel: *const CParcel, value: *mut c_void,
+        reader: OnString16ArrayRead) -> bool;
     pub fn CParcelReadStringElement(index: u32, data: *const c_void, value: *mut c_void,
         allocator: OnCParcelBytesAllocator::<u8>) -> bool;
+    pub fn CParcelReadString16Element(index: u32, data: *const c_void, value: *mut c_void,
+        allocator: OnCParcelBytesAllocator::<u16>) -> bool;
     pub fn CParcelWriteParcelableArray(parcel: *mut CParcel, value: *const c_void, len: i32,
         element_writer: OnCParcelWriteElement) -> bool;
     pub fn CParcelReadParcelableArray(parcel: *const CParcel, value: *mut c_void,

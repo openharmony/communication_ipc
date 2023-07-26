@@ -24,9 +24,13 @@ use ipc_rust::{
     get_calling_uid, String16, RemoteObj, IRemoteStub, get_local_device_id,
     get_calling_device_id, IpcStatusCode,
 };
-use test_ipc_service::{ITest, TestStub, IPC_TEST_SERVICE_ID, reverse, IFoo, FooStub, init_access_token};
+use test_ipc_service::{
+    ITest, TestStub, IPC_TEST_SERVICE_ID, IPC_TEST_STATUS_SUCCESS,
+    reverse, IFoo, FooStub, init_access_token, IPC_TEST_STATUS_FAILED,
+};
 use std::io::Write;
 use std::fs::OpenOptions;
+use std::os::fd::AsRawFd;
 use std::{thread, time};
 
 /// FooService type
@@ -110,7 +114,22 @@ impl ITest for TestService {
     }
 }
 
-impl IRemoteBroker for TestService {}
+impl IRemoteBroker for TestService {
+    /// Dump implementation of service rewrite ipc
+    fn dump(&self, _file: &FileDesc, _args: &mut Vec<String16>) -> i32 {
+        let fd = _file.as_raw_fd();
+        if fd < 0 {
+            println!("fd is invalid: {}", fd);
+            return IPC_TEST_STATUS_FAILED;
+        }
+
+        for arg in _args.as_slice() {
+            println!("{}", arg.get_string().as_str());
+            _file.as_ref().write_all(arg.get_string().as_str().as_bytes()).expect("write failed");
+        }
+        IPC_TEST_STATUS_SUCCESS
+    }
+}
 
 fn main() {
     init_access_token();

@@ -25,9 +25,9 @@
 using namespace OHOS;
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CRemoteObject" };
 
-RemoteServiceHolderStub::RemoteServiceHolderStub(std::u16string &desc,
-    OnRemoteRequestCb callback, const void *userData, OnRemoteObjectDestroyCb destroy)
-    : IPCObjectStub(desc), callback_(callback)
+RemoteServiceHolderStub::RemoteServiceHolderStub(std::u16string &desc, OnRemoteRequestCb callback,
+    const void *userData, OnRemoteObjectDestroyCb destroy, OnRemoteDumpCb dumpCallback)
+    : IPCObjectStub(desc), callback_(callback), dumpCallback_(dumpCallback)
     , userData_(userData), destroy_(destroy)
 {
 }
@@ -52,6 +52,20 @@ int RemoteServiceHolderStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel 
     CParcel parcelReply(&reply);
     return callback_(userData_, code, &parcelData, &parcelReply);
 }
+
+int RemoteServiceHolderStub::OnRemoteDump(uint32_t code, OHOS::MessageParcel &data,
+    OHOS::MessageParcel &reply, OHOS::MessageOption &option)
+{
+    (void)option;
+    (void)reply;
+    if (dumpCallback_ == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s: dumpCallback_ is null for code: %u\n", __func__, code);
+        return -1;
+    }
+    CParcel parcelData(&data);
+    return dumpCallback_(userData_, &parcelData);
+}
+
 
 CDeathRecipient::CDeathRecipient(OnDeathRecipientCb onDeathRecipient,
     OnDeathRecipientDestroyCb onDestroy, const void *userData)
@@ -92,7 +106,7 @@ bool IsValidRemoteObject(const CRemoteObject *object, const char *promot)
 }
 
 CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
-    OnRemoteObjectDestroyCb destroy, const void *userData)
+    OnRemoteObjectDestroyCb destroy, const void *userData, OnRemoteDumpCb dumpCallback)
 {
     if (desc == nullptr || callback == nullptr || destroy == nullptr) {
         return nullptr;
@@ -104,7 +118,7 @@ CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
     }
     std::u16string descriptor = Str8ToStr16(std::string(desc));
     holder->remote_ = new (std::nothrow) RemoteServiceHolderStub(
-        descriptor, callback, userData, destroy);
+        descriptor, callback, userData, destroy, dumpCallback);
     if (holder->remote_ == nullptr) {
         ZLOGE(LOG_LABEL, "%{public}s: new RemoteServiceHolderStub failed\n", __func__);
         delete holder;
@@ -223,18 +237,20 @@ bool IsProxyObject(CRemoteObject *object)
     return object->remote_->IsProxyObject();
 }
 
-int Dump(CRemoteObject *object, int fd, const void *value, int32_t len, OnStringArrayWrite writer)
+int Dump(CRemoteObject *object, int fd, CParcel *parcel)
 {
-    if (!IsValidRemoteObject(object, __func__) || writer == nullptr) {
+    if (!IsValidRemoteObject(object, __func__) || parcel == nullptr) {
         ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
         return -1;
     }
-    std::vector<std::u16string> stringVector;
-    if (len > 0 && !writer(reinterpret_cast<void *>(&stringVector), value, static_cast<uint32_t>(len))) {
-        ZLOGE(LOG_LABEL, "%{public}s: write string array to vector failed\n", __func__);
+    if (fd < 0) {
+        ZLOGE(LOG_LABEL, "%{public}s: fd is valid\n", __func__);
         return -1;
     }
-    return object->remote_->Dump(fd, stringVector);
+    std::vector<std::u16string> string16Vector;
+    parcel->parcel_->ReadString16Vector(&string16Vector);
+
+    return object->remote_->Dump(fd, string16Vector);
 }
 
 bool IsObjectDead(CRemoteObject *object)
