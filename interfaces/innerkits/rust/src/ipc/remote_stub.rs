@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
-use crate::{ipc_binding, IRemoteStub, IRemoteBroker, RemoteObj, BorrowedMsgParcel};
+use crate::{
+    ipc_binding, IRemoteStub, IRemoteBroker, IpcStatusCode,
+    RemoteObj, BorrowedMsgParcel, FileDesc, String16,
+};
 use crate::ipc_binding::{CRemoteObject, CParcel};
 use std::ffi::{c_void, CString, c_char};
 use std::ops::{Deref};
-use hilog_rust::{info, hilog, HiLogLabel, LogType};
+use hilog_rust::{info, error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
@@ -49,8 +52,9 @@ impl<T: IRemoteStub> RemoteStub<T> {
             // set rust object pointer to native, so we can figure out who deal
             // the request during on_remote_request().
             ipc_binding::CreateRemoteStub(descripor.as_ptr(), Self::on_remote_request,
-                Self::on_destroy, rust as *mut c_void)
+                Self::on_destroy, rust as *mut c_void, Self::on_dump)
         };
+
         if native.is_null() {
             None
         } else {
@@ -108,10 +112,40 @@ impl<T: IRemoteStub> RemoteStub<T> {
     unsafe extern "C" fn on_remote_request(user_data: *mut c_void, code: u32,
         data: *const CParcel, reply: *mut CParcel) -> i32 {
         let res = {
+            // BorrowedMsgParcel calls the correlation function from_raw must return as Some,
+            // direct deconstruction will not crash.
             let mut reply = BorrowedMsgParcel::from_raw(reply).unwrap();
             let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
             let rust_object: &T = &*(user_data as *mut T);
             rust_object.on_remote_request(code, &data, &mut reply)
+        };
+        res
+    }
+    /// # Safety
+    ///
+    /// The parameters passed in should ensure FFI safety
+    /// user_data pointer, data pointer and reply pointer on the c side must be guaranteed not to be null
+    unsafe extern "C" fn on_dump(user_data: *mut c_void, data: *const CParcel) -> i32 {
+        let res = {
+            let rust_object: &T = &*(user_data as *mut T);
+            // BorrowedMsgParcel calls the correlation functio from_raw must return as Some,
+            // direct deconstruction will not crash.
+            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
+            let file: FileDesc = match data.read::<FileDesc>() {
+                Ok(file) => file,
+                _ => {
+                    error!(LOG_LABEL, "read FileDesc failed");
+                    return IpcStatusCode::Failed as i32;
+                }
+            };
+            let mut args: Vec<String16> = match data.read::<Vec<String16>>() {
+                Ok(args) => args,
+                _ => {
+                    error!(LOG_LABEL, "read String16 array failed");
+                    return IpcStatusCode::Failed as i32;
+                }
+            };
+            rust_object.on_dump(&file, &mut args)
         };
         res
     }

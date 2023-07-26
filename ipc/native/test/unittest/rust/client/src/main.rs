@@ -33,6 +33,7 @@ use ipc_rust::{
 use ipc_rust::{Serialize, Deserialize, BorrowedMsgParcel, Ashmem};
 use test_ipc_service::{ITest, TestProxy, IPC_TEST_SERVICE_ID, IFoo, init_access_token};
 use std::fs::File;
+use std::os::fd::AsRawFd;
 
 fn get_test_service() -> RemoteObjRef<dyn ITest>
 {
@@ -786,8 +787,9 @@ fn test_is_proxy_object() {
 fn test_dump() {
     let object = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
     let args: &mut Vec<String16> = &mut Vec::new();
+    let file = File::create("data.txt").expect("create failed");
     args.push(String16::new("test.ipc.ITestService"));
-    let res = object.dump(0, args);
+    let res = object.dump(file.as_raw_fd(), args);
     assert_eq!(0, res);
 }
 

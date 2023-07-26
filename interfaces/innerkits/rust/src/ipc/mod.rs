@@ -17,7 +17,10 @@ pub mod remote_obj;
 pub mod remote_stub;
 pub mod macros;
 
-use crate::{BorrowedMsgParcel, MsgParcel, IpcResult, DeathRecipient,};
+use crate::{
+    BorrowedMsgParcel, MsgParcel, IpcResult, DeathRecipient,
+    FileDesc, IpcStatusCode,
+};
 use std::ops::{Deref};
 use std::cmp::Ordering;
 use crate::String16;
@@ -39,7 +42,7 @@ pub trait IRemoteObj {
     /// Determine whether it is a proxy object
     fn is_proxy(&self) -> bool;
 
-    /// Dump a service through a string
+    /// Dump a service through a String16
     fn dump(&self, fd: i32, args: &mut Vec<String16>) -> i32;
 
     /// Judge whether the object is dead
@@ -56,6 +59,9 @@ pub trait IRemoteStub: Send + Sync {
 
     /// Callback for deal IPC request
     fn on_remote_request(&self, code: u32, data: &BorrowedMsgParcel, reply: &mut BorrowedMsgParcel) -> i32;
+
+    /// Callback for IPC dump
+    fn on_dump(&self, file: &FileDesc, args: &mut Vec<String16>) -> i32;
 }
 
 /// Like C++ IRemoteBroker class
@@ -63,6 +69,11 @@ pub trait IRemoteBroker: Send + Sync {
     /// Convert self to RemoteObject
     fn as_object(&self) -> Option<RemoteObj> {
         panic!("This is not a RemoteObject.")
+    }
+    /// Default dump
+    fn dump(&self, _file: &FileDesc, _args: &mut Vec<String16>) -> i32 {
+        println!("This is the default dump function, and you can override it to implement your own dump function");
+        IpcStatusCode::Ok as i32
     }
 }
 

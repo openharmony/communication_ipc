@@ -618,6 +618,26 @@ bool CParcelWriteStringArray(CParcel *parcel, const void *value,
     return true;
 }
 
+bool CParcelWriteString16Array(CParcel *parcel, const void *value,
+    int32_t len, OnString16ArrayWrite writer)
+{
+    if (!IsValidParcel(parcel, __func__) || writer == nullptr) {
+        return false;
+    }
+    std::vector<std::u16string> string16Vector;
+    if (len > 0 && !writer(reinterpret_cast<void *>(&string16Vector),
+        value, static_cast<uint32_t>(len))) {
+        ZLOGE(LOG_LABEL, "%{public}s: write u16string array to vector failed\n", __func__);
+        return false;
+    }
+
+    if (!parcel->parcel_->WriteString16Vector(string16Vector)) {
+        ZLOGE(LOG_LABEL, "%{public}s: write u16string array to parcel failed\n", __func__);
+        return false;
+    }
+    return true;
+}
+
 bool CParcelWriteStringElement(void *data, const char *value, int32_t len)
 {
     std::vector<std::string> *stringVector = reinterpret_cast<std::vector<std::string> *>(data);
@@ -633,7 +653,7 @@ bool CParcelWriteStringElement(void *data, const char *value, int32_t len)
     return true;
 }
 
-bool CParcelWritU16stringElement(void *data, const char16_t *value, int32_t len)
+bool CParcelWritU16stringElement(void *data, const char *value, int32_t len)
 {
     std::vector<std::u16string> *u16stringVector = reinterpret_cast<std::vector<std::u16string> *>(data);
     if (u16stringVector == nullptr) {
@@ -644,7 +664,11 @@ bool CParcelWritU16stringElement(void *data, const char16_t *value, int32_t len)
         ZLOGE(LOG_LABEL, "%{public}s: string len is invalid: %d\n", __func__, len);
         return false;
     }
-    u16stringVector->push_back(std::u16string(value, len));
+
+    std::u16string u16str = std::wstring_convert< std::codecvt_utf8_utf16<char16_t>, char16_t >{}.from_bytes(
+        std::string(value, len));
+    u16stringVector->push_back(u16str);
+
     return true;
 }
 
@@ -660,6 +684,56 @@ bool CParcelReadStringArray(const CParcel *parcel, void *value, OnStringArrayRea
     }
     if (!reader(reinterpret_cast<void *>(&stringVector), value, stringVector.size())) {
         ZLOGE(LOG_LABEL, "%{public}s: read string to vector failed\n", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool CParcelReadString16Array(const CParcel *parcel, void *value, OnString16ArrayRead reader)
+{
+    if (!IsValidParcel(parcel, __func__) || reader == nullptr) {
+        return false;
+    }
+    std::vector<std::u16string> string16Vector;
+    if (!parcel->parcel_->ReadString16Vector(&string16Vector)) {
+        ZLOGE(LOG_LABEL, "%{public}s: read u16string array from parcel failed\n", __func__);
+        return false;
+    }
+    if (!reader(reinterpret_cast<void *>(&string16Vector), value, string16Vector.size())) {
+        ZLOGE(LOG_LABEL, "%{public}s: read u16string to vector failed\n", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool CParcelReadString16Element(uint32_t index, const void *data, void *value,
+    OnCParcelBytesAllocator16 allocator)
+{
+    if (data == nullptr || allocator == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s: invalid data and allocator\n", __func__);
+        return false;
+    }
+    const std::vector<std::u16string> *string16Vector =
+        reinterpret_cast<const std::vector<std::u16string> *>(data);
+
+    if (index >= string16Vector->size()) {
+        ZLOGE(LOG_LABEL, "%{public}s: invalid index: %u, size: %u\n", __func__,
+            index, static_cast<uint32_t>(string16Vector->size()));
+        return false;
+    }
+
+    const std::u16string &string16Value = (*string16Vector)[index];
+    int16_t *buffer = nullptr;
+    bool isSuccess = allocator(value, &buffer, string16Value.length());
+    if (!isSuccess) {
+        ZLOGE(LOG_LABEL, "%{public}s: allocate string16Value buffer failed\n", __func__);
+        return false;
+    }
+
+    if (string16Value.length() > 0 &&
+        memcpy_s(buffer, string16Value.length() * sizeof(char16_t),
+            string16Value.data(), string16Value.length() * sizeof(char16_t)) != EOK) {
+        ZLOGE(LOG_LABEL, "%{public}s: memcpy string16Value failed\n", __func__);
         return false;
     }
     return true;

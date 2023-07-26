@@ -43,6 +43,10 @@ pub fn reverse(mut value: i32) -> i32 {
 
 /// SA ID for "test.ipc.ITestService"
 pub const IPC_TEST_SERVICE_ID: i32 = 1118;
+/// Test service success status
+pub const IPC_TEST_STATUS_SUCCESS: i32 = 0;
+/// Test service failed status
+pub const IPC_TEST_STATUS_FAILED: i32 = -1;
 
 /// Function code of ITestService
 pub enum ITestCode {

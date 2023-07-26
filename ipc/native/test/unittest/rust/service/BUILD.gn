@@ -21,10 +21,11 @@ ohos_rust_shared_library("test_ipc_service") {
     "src/lib.rs",
   ]
 
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust",
-    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_rust" ]
+
+  external_deps = [
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
   ]
 
   crate_name = "test_ipc_service"

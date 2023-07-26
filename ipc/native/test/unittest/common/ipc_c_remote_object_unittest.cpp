@@ -90,15 +90,6 @@ static bool Bytes16Allocator(void *stringData, uint16_t **buffer, int32_t len)
     return true;
 }
 
-static bool StringArrayWrite(const void *array, const void *value, uint32_t len)
-{
-    if (value == nullptr || len < 0) {
-        return false;
-    }
-    array = value;
-    return true;
-}
-
 /**
  * @tc.name: CRemoteObjectRefCount
  * @tc.desc: Verify the CRemoteObject reference count functions
@@ -106,9 +97,9 @@ static bool StringArrayWrite(const void *array, const void *value, uint32_t len)
  */
 HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectRefCount, TestSize.Level1)
 {
-    CRemoteObject *remote = CreateRemoteStub(nullptr, OnRemoteRequest, OnRemoteObjectDestroy, nullptr);
+    CRemoteObject *remote = CreateRemoteStub(nullptr, OnRemoteRequest, OnRemoteObjectDestroy, nullptr, nullptr);
     EXPECT_EQ(remote, nullptr);
-    remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, nullptr);
+    remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, nullptr, nullptr);
     EXPECT_NE(remote, nullptr);
     RefBase *ref = static_cast<RefBase *>(remote);
     EXPECT_EQ(ref->GetSptrRefCount(), 1);
@@ -130,7 +121,7 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectRefCount, TestSize.Level1)
 HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectCompare, TestSize.Level1)
 {
     int8_t userData;
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData, nullptr);
     EXPECT_NE(remote, nullptr);
     EXPECT_FALSE(RemoteObjectLessThan(nullptr, remote));
     EXPECT_FALSE(RemoteObjectLessThan(remote, nullptr));
@@ -216,7 +207,7 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CDeathRecipientStub, TestSize.Level1)
     int8_t userData;
     CDeathRecipient *recipient = CreateDeathRecipient(OnDeathRecipient, OnDeathRecipientDestroy, &userData);
     EXPECT_NE(recipient, nullptr);
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData, nullptr);
     EXPECT_NE(remote, nullptr);
     EXPECT_FALSE(AddDeathRecipient(remote, recipient));
     EXPECT_FALSE(RemoveDeathRecipient(remote, recipient));
@@ -259,7 +250,7 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CDeathRecipient, TestSize.Level1)
 HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectIsProxyObject, TestSize.Level1)
 {
     int8_t userData;
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData, nullptr);
     EXPECT_NE(remote, nullptr);
 
     bool ret = IsProxyObject(remote);
@@ -274,7 +265,7 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectIsProxyObject, TestSize.Level1)
 HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectIsObjectDead, TestSize.Level1)
 {
     int8_t userData;
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData, nullptr);
     EXPECT_NE(remote, nullptr);
 
     bool ret = IsObjectDead(remote);
@@ -289,7 +280,7 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectIsObjectDead, TestSize.Level1)
 HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectGetInterfaceDescriptor, TestSize.Level1)
 {
     int8_t userData;
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData, nullptr);
     EXPECT_NE(remote, nullptr);
 
     void *data = nullptr;
@@ -308,10 +299,11 @@ HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectGetInterfaceDescriptor, TestSize
 HWTEST_F(IpcCRemoteObjectUnitTest, CRemoteObjectDump, TestSize.Level1)
 {
     int8_t userData;
-    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData);
+    CRemoteObject *remote = CreateRemoteStub(SERVICE_NAME, OnRemoteRequest, OnRemoteObjectDestroy, &userData, nullptr);
     EXPECT_NE(remote, nullptr);
 
-    const char *data = SERVICE_NAME;
-    int ret = Dump(remote, 0, reinterpret_cast<const void *>(&data), strlen(data), StringArrayWrite);
+    CParcel *parcel = CParcelObtain();
+    EXPECT_NE(parcel, nullptr);
+    int ret = Dump(remote, 0, parcel);
     EXPECT_EQ(ret, 0);
 }

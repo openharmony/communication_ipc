@@ -36,7 +36,8 @@
           "c_utils",
           "access_token",
           "dsoftbus",
-          "napi"
+          "napi",
+          "common"
         ],
         "third_party": [
           "libuv",

@@ -17,14 +17,21 @@
 
 use std::ptr;
 use crate::{
-    ipc_binding, IRemoteObj, DeathRecipient, IpcResult, IpcStatusCode,
-    MsgParcel, BorrowedMsgParcel, AsRawPtr, parcel::on_string16_writer,
+    ipc_binding, IRemoteObj, DeathRecipient, IpcResult,
+    MsgParcel, BorrowedMsgParcel, AsRawPtr, IpcStatusCode,
     parcel::vec_u16_to_string, parse_status_code,
 };
 use crate::ipc_binding::{CRemoteObject, CDeathRecipient};
 use crate::parcel::parcelable::{Serialize, Deserialize, allocate_vec_with_buffer};
-use std::ffi::{c_void};
+use std::ffi::{c_void, CString, c_char};
 use crate::String16;
+use hilog_rust::{error, hilog, HiLogLabel, LogType};
+
+const LOG_LABEL: HiLogLabel = HiLogLabel {
+    log_type: LogType::LogCore,
+    domain: 0xd001510,
+    tag: "RustRemoteObj"
+};
 
 pub mod death_recipient;
 pub mod cmp;
@@ -93,11 +100,24 @@ impl IRemoteObj for RemoteObj {
     }
 
     fn dump(&self, fd: i32, args: &mut Vec<String16>) -> i32 {
-        let slice = &args[..];
-        // SAFETY:
-        unsafe {
-            ipc_binding::Dump(self.as_inner(), fd, slice.as_ptr() as *const c_void,
-                slice.len().try_into().unwrap(), on_string16_writer)
+        let mut parcel = match MsgParcel::new() {
+            Some(parcel) => parcel,
+            None => {
+                error!(LOG_LABEL, "create MsgParcel failed");
+                return IpcStatusCode::Failed as i32;
+            }
+        };
+        match parcel.write::<Vec<String16>>(args) {
+            Ok(_) => {
+                // SAFETY: `parcel` always contains a valid pointer to a  `CParcel`
+                unsafe {
+                    ipc_binding::Dump(self.as_inner(), fd, parcel.into_raw())
+                }
+            }
+            _ => {
+                error!(LOG_LABEL, "create MsgParcel failed");
+                IpcStatusCode::Failed as i32
+            }
         }
     }
 

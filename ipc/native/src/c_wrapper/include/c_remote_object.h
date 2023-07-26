@@ -32,6 +32,7 @@ typedef struct CDeathRecipient CDeathRecipient;
 // Callback as remote stub
 typedef int (*OnRemoteRequestCb)(const void *userData, int code, 
     const CParcel *data, CParcel *reply);
+typedef int (*OnRemoteDumpCb)(const void *userData, const CParcel *data);
 typedef void (*OnRemoteObjectDestroyCb)(const void *userData);
 // Callback as death recipient
 typedef void (*OnDeathRecipientCb)(const void *userData);
@@ -40,7 +41,7 @@ typedef void (*OnDeathRecipientDestroyCb)(const void *userData);
 typedef bool (*On16BytesAllocator)(void *stringData, uint16_t **buffer, int32_t len);
 
 CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
-    OnRemoteObjectDestroyCb destroy, const void *userData);
+    OnRemoteObjectDestroyCb destroy, const void *userData, OnRemoteDumpCb dumpCallback);
 
 void RemoteObjectIncStrongRef(CRemoteObject *object);
 void RemoteObjectDecStrongRef(CRemoteObject *object);
@@ -58,8 +59,7 @@ bool AddDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient);
 bool RemoveDeathRecipient(CRemoteObject *object, CDeathRecipient *recipient);
 
 bool IsProxyObject(CRemoteObject *object);
-int Dump(CRemoteObject *object, int fd, const void *value,
-    int32_t len, OnStringArrayWrite writer);
+int Dump(CRemoteObject *object, int fd, CParcel *parcel);
 
 bool IsObjectDead(CRemoteObject *object);
 bool GetInterfaceDescriptor(CRemoteObject *object, void *value, On16BytesAllocator allocator);
