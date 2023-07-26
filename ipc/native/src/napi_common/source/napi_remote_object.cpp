@@ -324,7 +324,8 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     }
 
     if (thisVarRef_ == nullptr || env_ == nullptr) {
-        ZLOGW(LOG_LABEL, "napi ref or env is nullptr");
+        ZLOGE(LOG_LABEL, "ark native engine has been destructed");
+        return ERR_UNKNOWN_REASON;
     }
 
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
