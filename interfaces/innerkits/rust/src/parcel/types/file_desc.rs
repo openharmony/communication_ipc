@@ -140,8 +140,37 @@ impl DeOption for FileDesc {
 
 impl Deserialize for FileDesc {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
-        Deserialize::deserialize(parcel)
-            .transpose()
-            .unwrap_or(Err(IpcStatusCode::Failed))
+        let mut fd = -1i32;
+        // SAFETY:
+        // `parcel` always contains a valid pointer to an `CParcel`.
+        // `CParcelWriteFileDescriptor` accepts the value `-1` as the file
+        // descriptor to signify serializing a null file descriptor.
+        // The read function passes ownership of the file
+        // descriptor to its caller if it was non-null, so we must take
+        // ownership of the file and ensure that it is eventually closed.
+        let ok_status = unsafe {
+            ipc_binding::CParcelReadFileDescriptor(
+                parcel.as_raw(),
+                &mut fd,
+            )
+        };
+        if ok_status{
+            if fd < 0 {
+                error!(LOG_LABEL, "file descriptor is invalid from native");
+                Err(IpcStatusCode::Failed)
+            } else {
+                // SAFETY:
+                // At this point, we know that the file descriptor was
+                // not -1, so must be a valid, owned file descriptor which we
+                // can safely turn into a `File`.
+                let file = unsafe {
+                    File::from_raw_fd(fd)
+                };
+                Ok(FileDesc::new(file))
+            }
+        } else {
+            error!(LOG_LABEL, "read file descriptor failed from native");
+            Err(IpcStatusCode::Failed)
+        }
     }
 }

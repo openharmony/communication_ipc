@@ -32,6 +32,7 @@ struct CRemoteObjectHolder;
 typedef struct CRemoteObjectHolder CRemoteObject;
 
 typedef bool (*OnCParcelBytesAllocator)(void *stringData, char **buffer, int32_t len);
+typedef bool (*OnCParcelBytesAllocator16)(void *stringData, int16_t **buffer, int32_t len);
 typedef bool (*OnCParcelBoolAllocator)(void *value, bool **buffer, int32_t len);
 typedef bool (*OnCParcelInt8Allocator)(void *value, int8_t **buffer, int32_t len);
 typedef bool (*OnCParcelInt16Allocator)(void *value, int16_t **buffer, int32_t len);
@@ -41,7 +42,9 @@ typedef bool (*OnCParcelFloatAllocator)(void *value, float **buffer, int32_t len
 typedef bool (*OnCParcelDoubleAllocator)(void *value, double **buffer, int32_t len);
 typedef bool (*OnCParcelAllocator)(void *value, int32_t len);
 typedef bool (*OnStringArrayWrite)(const void *array, const void *value, uint32_t len);
+typedef bool (*OnString16ArrayWrite)(const void *array, const void *value, uint32_t len);
 typedef bool (*OnStringArrayRead)(const void *array, const void *value, uint32_t len);
+typedef bool (*OnString16ArrayRead)(const void *array, const void *value, uint32_t len);
 typedef bool (*OnCParcelWriteElement)(CParcel *value, const void *arr, unsigned long index);
 typedef bool (*OnCParcelReadElement)(const CParcel *value, void *arr, unsigned long index);
 
@@ -94,12 +97,17 @@ bool CParcelWriteDoubleArray(CParcel *parcel, const double *array, int32_t len);
 bool CParcelReadDoubleArray(const CParcel *parcel, void *value, OnCParcelDoubleAllocator allocator);
 bool CParcelWriteStringArray(CParcel *parcel, const void *value,
     int32_t len, OnStringArrayWrite writer);
+bool CParcelWriteString16Array(CParcel *parcel, const void *value,
+    int32_t len, OnString16ArrayWrite writer);
 bool CParcelWriteStringElement(void *data, const char *value, int32_t len);
-bool CParcelWritU16stringElement(void *data, const char16_t *value, int32_t len);
+bool CParcelWritU16stringElement(void *data, const char *value, int32_t len);
 
 bool CParcelReadStringArray(const CParcel *parcel, void *value, OnStringArrayRead reader);
+bool CParcelReadString16Array(const CParcel *parcel, void *value, OnString16ArrayRead reader);
 bool CParcelReadStringElement(uint32_t index, const void *data, void *value,
     OnCParcelBytesAllocator allocator);
+bool CParcelReadString16Element(uint32_t index, const void *data, void *value,
+    OnCParcelBytesAllocator16 allocator);
 
 bool CParcelWriteParcelableArray(CParcel *parcel, const void *value, int32_t len,
     OnCParcelWriteElement elementWriter);

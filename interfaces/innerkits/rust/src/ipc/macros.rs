@@ -97,6 +97,9 @@ macro_rules! define_remote_object {
                     }
                 }
             }
+            fn on_dump(&self, file: &$crate::FileDesc, args: &mut Vec<$crate::String16>) -> i32 {
+                self.0.dump(file, args)
+            }
         }
 
         impl $crate::FromRemoteObj for dyn $remote_broker {
