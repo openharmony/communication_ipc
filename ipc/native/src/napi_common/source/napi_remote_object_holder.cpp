@@ -30,7 +30,7 @@ struct DeleteJsRefParam {
 
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
     : env_(env), descriptor_(descriptor), sptrCachedObject_(nullptr), wptrCachedObject_(nullptr), localInterfaceRef_(nullptr),
-      jsObjectRef_(nullptr), attachCount_(1)
+      attachCount_(1), jsObjectRef_(nullptr)
 {
     jsThreadId_ = std::this_thread::get_id();
     // create weak ref, do not need to delete
