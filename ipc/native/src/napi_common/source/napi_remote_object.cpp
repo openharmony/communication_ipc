@@ -100,7 +100,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     napi_ref ref = holder->GetJsObjectRef();
     napi_env workerEnv = holder->GetJsObjectEnv();
     if (ref == nullptr || workerEnv == nullptr) {
-        ZLOGE(LOG_LABEL, "ref or env is null");
+        ZLOGE(LOG_LABEL, "ref or env is nullptr");
         return;
     }
     uv_loop_s *loop = nullptr;
