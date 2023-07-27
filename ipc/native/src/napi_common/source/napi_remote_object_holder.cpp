@@ -42,14 +42,8 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
-    sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
-    if (tmp != nullptr) {
-        NAPIRemoteObject *object = static_cast<NAPIRemoteObject *>(tmp.GetRefPtr());
-        ZLOGI(LOG_LABEL, "reset env and napi_ref");
-        object->ResetJsEnv(); // when the abilty exits, do not need to delete ref during native destruct
-    }
     // free the reference of object.
-    if (localInterfaceRef_ != nullptr) {
+    if (localInterfaceRef_ != nullptr && env_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
 }
@@ -64,7 +58,7 @@ sptr<IRemoteObject> NAPIRemoteObjectHolder::Get()
     }
 
     sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
-    if (tmp == nullptr) {
+    if (tmp == nullptr && env_ != nullptr) {
         tmp = new NAPIRemoteObject(jsThreadId_, env_, jsObjectRef_, descriptor_);
         wptrCachedObject_ = tmp;
     }
@@ -92,8 +86,24 @@ napi_env NAPIRemoteObjectHolder::GetJsObjectEnv() const
     return env_;
 }
 
+void NAPIRemoteObjectHolder::CleanJsEnv()
+{
+    env_ = nullptr;
+    jsObjectRef_ = nullptr;
+    sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
+    if (tmp != nullptr) {
+        NAPIRemoteObject *object = static_cast<NAPIRemoteObject *>(tmp.GetRefPtr());
+        ZLOGI(LOG_LABEL, "reset env and napi_ref");
+        object->ResetJsEnv();
+    }
+}
+
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)
 {
+    if (env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "Js env has been destructed");
+        return;
+    }
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
@@ -103,6 +113,10 @@ void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std
 
 napi_value NAPIRemoteObjectHolder::queryLocalInterface(std::string &descriptor)
 {
+    if (env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "Js env has been destructed");
+        return nullptr;
+    }
     if (!descriptor_.empty() && strcmp(Str16ToStr8(descriptor_).c_str(), descriptor.c_str()) == 0) {
         napi_value ret = nullptr;
         napi_get_reference_value(env_, localInterfaceRef_, &ret);

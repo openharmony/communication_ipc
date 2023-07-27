@@ -177,6 +177,15 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     holder->Unlock();
     return reinterpret_cast<NativeValue *>(jsRemoteObject);
 }
+static void OnEnvCleanUp(void *data)
+{
+    if (data == nullptr) {
+        ZLOGE(LOG_LABEL, "data is null");
+        return;
+    }
+    NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
+    holder->CleanJsEnv();
+}
 
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
@@ -210,6 +219,8 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     // connect native object to js thisVar
     napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
+    status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
+    NAPI_ASSERT(env, status == napi_ok, "add cleanup hook failed");
     return thisVar;
 }
 
@@ -257,7 +268,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
-    if (thisVarRef_ != nullptr) {
+    if (thisVarRef_ != nullptr && env_ != nullptr) {
         if (jsThreadId_ == std::this_thread::get_id()) {
             DecreaseJsObjectRef(env_, thisVarRef_);
         } else {
@@ -322,12 +333,6 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     if (code == DUMP_TRANSACTION) {
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
     }
-
-    if (thisVarRef_ == nullptr || env_ == nullptr) {
-        ZLOGE(LOG_LABEL, "ark native engine has been destructed");
-        return ERR_UNKNOWN_REASON;
-    }
-
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     CallbackParam *param = new CallbackParam {
         .env = env_,
@@ -448,6 +453,10 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
+    if (thisVarRef_ == nullptr || env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "Js env has been destructed");
+        return ERR_UNKNOWN_REASON;
+    }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
 

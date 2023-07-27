@@ -34,6 +34,7 @@ public:
     napi_value queryLocalInterface(std::string &descriptor);
     napi_ref GetJsObjectRef() const;
     napi_env GetJsObjectEnv() const;
+    void CleanJsEnv();
     void Lock()
     {
         mutex_.lock();
