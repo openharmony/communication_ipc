@@ -99,6 +99,10 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
 
     napi_ref ref = holder->GetJsObjectRef();
     napi_env workerEnv = holder->GetJsObjectEnv();
+    if (ref == nullptr || workerEnv == nullptr) {
+        ZLOGE(LOG_LABEL, "ref or env is null");
+        return;
+    }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(workerEnv, &loop);
     uv_work_t *work = new(std::nothrow) uv_work_t;
