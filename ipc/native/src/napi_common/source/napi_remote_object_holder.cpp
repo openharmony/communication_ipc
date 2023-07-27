@@ -22,22 +22,20 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject_holder" };
+
 struct DeleteJsRefParam {
     napi_env env;
     napi_ref thisVarRef;
 };
 
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
+    : env_(env), descriptor_(descriptor), sptrCachedObject_(nullptr), wptrCachedObject_(nullptr), localInterfaceRef_(nullptr),
+      jsObjectRef_(nullptr), attachCount_(1)
 {
-    env_ = env;
     jsThreadId_ = std::this_thread::get_id();
-    descriptor_ = descriptor;
-    sptrCachedObject_ = nullptr;
-    wptrCachedObject_ = nullptr;
-    localInterfaceRef_ = nullptr;
-    jsObjectRef_ = nullptr;
-    attachCount_ = 1;
-    napi_create_reference(env, thisVar, 0, &jsObjectRef_); // weak ref, do not need to delete
+    // create weak ref, do not need to delete
+    // increase ref count when the JS object will transfer to another thread or process 
+    napi_create_reference(env, thisVar, 0, &jsObjectRef_);
 }
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
