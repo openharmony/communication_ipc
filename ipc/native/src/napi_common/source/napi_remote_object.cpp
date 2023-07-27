@@ -134,8 +134,9 @@ static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
     napi_status napiStatus = napi_reference_ref(env, ref, &result);
     if (napiStatus != napi_ok) {
         ZLOGE(LOG_LABEL, "RemoteObjectDetachCb, failed to increase ref");
+    } else {
+        ZLOGI(LOG_LABEL, "RemoteObjectDetachCb, ref result:%{public}u", result);
     }
-    ZLOGI(LOG_LABEL, "RemoteObjectDetachCb, ref result:%{public}u", result);
     return value;
 }
 
@@ -223,6 +224,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     // connect native object to js thisVar
     napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
+    // register listener for env destruction
     status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
     NAPI_ASSERT(env, status == napi_ok, "add cleanup hook failed");
     return thisVar;
