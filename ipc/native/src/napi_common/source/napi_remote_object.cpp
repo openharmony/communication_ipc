@@ -43,7 +43,6 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
-static constexpr int WAIT_TIMEOUT_MS = 1000;
 
 template<class T>
 inline T *ConvertNativeValueTo(NativeValue *value)
@@ -100,7 +99,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     napi_ref ref = holder->GetJsObjectRef();
     napi_env workerEnv = holder->GetJsObjectEnv();
     if (ref == nullptr || workerEnv == nullptr) {
-        ZLOGE(LOG_LABEL, "ref or env is nullptr");
+        ZLOGE(LOG_LABEL, "ref or env is null");
         return;
     }
     uv_loop_s *loop = nullptr;
@@ -113,7 +112,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     };
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
-        ZLOGD(LOG_LABEL, "RemoteObjectHolderRefCb decrease on uv work thread");
+        ZLOGI(LOG_LABEL, "decrease on uv work thread");
         OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -121,7 +120,6 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
         napi_close_handle_scope(param->env, scope);
         delete param;
         delete work;
-        ZLOGI(LOG_LABEL, "RemoteObjectHolderRefCb end");
     });
 }
 
@@ -135,9 +133,9 @@ static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
     uint32_t result;
     napi_status napiStatus = napi_reference_ref(env, ref, &result);
     if (napiStatus != napi_ok) {
-        ZLOGI(LOG_LABEL, "RemoteObjectDetachCb, failed to increase ref");
+        ZLOGE(LOG_LABEL, "RemoteObjectDetachCb, failed to increase ref");
     }
-    ZLOGD(LOG_LABEL, "RemoteObjectDetachCb, ref result:%{public}u", result);
+    ZLOGI(LOG_LABEL, "RemoteObjectDetachCb, ref result:%{public}u", result);
     return value;
 }
 
@@ -181,6 +179,7 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     holder->Unlock();
     return reinterpret_cast<NativeValue *>(jsRemoteObject);
 }
+
 static void OnEnvCleanUp(void *data)
 {
     if (data == nullptr) {
@@ -188,6 +187,7 @@ static void OnEnvCleanUp(void *data)
         return;
     }
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
+    // js env has been destrcted, clear saved env info, and check befor use it
     holder->CleanJsEnv();
 }
 
@@ -262,8 +262,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
             napi_close_handle_scope(param->env, scope);
         });
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-        param->lockInfo->condition.wait_for(lock, std::chrono::milliseconds(WAIT_TIMEOUT_MS),
-            [&param]() -> bool { return param->lockInfo->ready; });
+        param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
         delete param;
         delete work;
     }
@@ -718,7 +717,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
         return nullptr;
     }
 
-    if (target->CheckObjectLegality()) {
+    if (!target->IsProxyObject()) {
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
         uint32_t objectType = tmp->GetObjectType();
         ZLOGI(LOG_LABEL, "create js object, type:%{public}d", objectType);
