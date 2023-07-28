@@ -38,14 +38,6 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
 }
 
-NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
-{
-    // free the reference of object.
-    if (localInterfaceRef_ != nullptr && env_ != nullptr) {
-        napi_delete_reference(env_, localInterfaceRef_);
-    }
-}
-
 sptr<IRemoteObject> NAPIRemoteObjectHolder::Get()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
@@ -102,10 +94,7 @@ void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std
         ZLOGE(LOG_LABEL, "Js env has been destructed");
         return;
     }
-    if (localInterfaceRef_ != nullptr) {
-        napi_delete_reference(env_, localInterfaceRef_);
-    }
-    napi_create_reference(env_, localInterface, 1, &localInterfaceRef_);
+    napi_create_reference(env_, localInterface, 0, &localInterfaceRef_);
     descriptor_ = Str8ToStr16(descriptor);
 }
 
