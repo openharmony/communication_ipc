@@ -26,12 +26,15 @@
 namespace OHOS {
 class NAPIRemoteObjectHolder : public RefBase {
 public:
-    explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor);
-    ~NAPIRemoteObjectHolder();
-    sptr<NAPIRemoteObject> Get(napi_value object);
-    void Set(sptr<NAPIRemoteObject> object);
+    explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar);
+    ~NAPIRemoteObjectHolder() = default;
+    sptr<IRemoteObject> Get();
+    void Set(sptr<IRemoteObject> object);
     void attachLocalInterface(napi_value localInterface, std::string &descriptor);
     napi_value queryLocalInterface(std::string &descriptor);
+    napi_ref GetJsObjectRef() const;
+    napi_env GetJsObjectEnv() const;
+    void CleanJsEnv();
     void Lock()
     {
         mutex_.lock();
@@ -63,10 +66,13 @@ public:
 private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
+    std::thread::id jsThreadId_;
     std::u16string descriptor_;
-    sptr<NAPIRemoteObject> cachedObject_;
+    sptr<IRemoteObject> sptrCachedObject_;
+    wptr<IRemoteObject> wptrCachedObject_;
     napi_ref localInterfaceRef_;
     int32_t attachCount_;
+    napi_ref jsObjectRef_;
 };
 } // namespace OHOS
 #endif // NAPI_REMOTE_OBJECT_HOLDER_H
