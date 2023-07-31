@@ -16,8 +16,12 @@
 #include "napi_remote_object_holder.h"
 
 #include <string_ex.h>
+#include "ipc_debug.h"
+#include "log_tags.h"
 
 namespace OHOS {
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject_holder" };
+
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor)
     : env_(env), descriptor_(descriptor), cachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1)
 {}
@@ -54,8 +58,22 @@ void NAPIRemoteObjectHolder::Set(sptr<NAPIRemoteObject> object)
     cachedObject_ = object;
 }
 
+void NAPIRemoteObjectHolder::CleanJsEnv()
+{
+    env_ = nullptr;
+    sptr<NAPIRemoteObject> object = cachedObject_;
+    if (object != nullptr) {
+        ZLOGI(LOG_LABEL, "reset env and napi_ref");
+        object->ResetJsEnv();
+    }
+}
+
 void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std::string &descriptor)
 {
+    if (env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "Js env has been destructed");
+        return;
+    }
     if (localInterfaceRef_ != nullptr) {
         napi_delete_reference(env_, localInterfaceRef_);
     }
@@ -65,6 +83,10 @@ void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std
 
 napi_value NAPIRemoteObjectHolder::queryLocalInterface(std::string &descriptor)
 {
+    if (env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "Js env has been destructed");
+        return nullptr;
+    }
     if (!descriptor_.empty() && strcmp(Str16ToStr8(descriptor_).c_str(), descriptor.c_str()) == 0) {
         napi_value ret = nullptr;
         napi_get_reference_value(env_, localInterfaceRef_, &ret);

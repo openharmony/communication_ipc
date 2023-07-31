@@ -113,6 +113,17 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     return reinterpret_cast<NativeValue *>(jsRemoteObject);
 }
 
+static void OnEnvCleanUp(void *data)
+{
+    if (data == nullptr) {
+        ZLOGE(LOG_LABEL, "data is null");
+        return;
+    }
+    NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
+    // js env has been destrcted, clear saved env info, and check befor use it
+    holder->CleanJsEnv();
+}
+
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
     // new napi remote object
@@ -149,6 +160,9 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "RemoteObject_JS_Constructor create native object failed");
         return nullptr;
     }
+    // register listener for env destruction
+    status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
+    NAPI_ASSERT(env, status == napi_ok, "add cleanup hook failed");
     return thisVar;
 }
 
@@ -164,7 +178,7 @@ NAPIRemoteObject::NAPIRemoteObject(napi_env env, napi_value thisVar, const std::
 NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
-    if (thisVarRef_ != nullptr) {
+    if (thisVarRef_ != nullptr && env_ != nullptr) {
         napi_status status = napi_delete_reference(env_, thisVarRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete ref to js RemoteObject");
         thisVarRef_ = nullptr;
@@ -184,6 +198,12 @@ int NAPIRemoteObject::GetObjectType() const
 napi_ref NAPIRemoteObject::GetJsObjectRef() const
 {
     return thisVarRef_;
+}
+
+void NAPIRemoteObject::ResetJsEnv()
+{
+    env_ = nullptr;
+    thisVarRef_ = nullptr;
 }
 
 void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
@@ -323,6 +343,10 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
+    if (thisVarRef_ == nullptr || env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "Js env has been destructed");
+        return ERR_UNKNOWN_REASON;
+    }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
 
