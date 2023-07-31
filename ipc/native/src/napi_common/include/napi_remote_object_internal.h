@@ -16,6 +16,8 @@
 #ifndef NAPI_IPC_OHOS_REMOTE_OBJECT_INTERNAL_H
 #define NAPI_IPC_OHOS_REMOTE_OBJECT_INTERNAL_H
 
+#include <thread>
+
 #include "ipc_object_stub.h"
 #include "iremote_object.h"
 #include "message_parcel.h"
@@ -24,9 +26,33 @@
 #include "napi_remote_object.h"
 
 namespace OHOS {
+struct ThreadLockInfo {
+    std::mutex mutex;
+    std::condition_variable condition;
+    bool ready = false;
+};
+
+struct CallbackParam {
+    napi_env env;
+    napi_ref thisVarRef;
+    uint32_t code;
+    MessageParcel *data;
+    MessageParcel *reply;
+    MessageOption *option;
+    CallingInfo callingInfo;
+    ThreadLockInfo *lockInfo;
+    int result;
+};
+
+struct OperateJsRefParam {
+    napi_env env;
+    napi_ref thisVarRef;
+    ThreadLockInfo *lockInfo;
+};
+
 class NAPIRemoteObject : public IPCObjectStub {
 public:
-    NAPIRemoteObject(napi_env env, napi_value thisVar, const std::u16string &descriptor);
+    NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor);
 
     ~NAPIRemoteObject() override;
 
@@ -41,26 +67,10 @@ public:
     void ResetJsEnv();
 private:
     napi_env env_ = nullptr;
-    napi_value thisVar_ = nullptr;
+    std::thread::id jsThreadId_;
     static napi_value ThenCallback(napi_env env, napi_callback_info info);
     static napi_value CatchCallback(napi_env env, napi_callback_info info);
     napi_ref thisVarRef_ = nullptr;
-    struct ThreadLockInfo {
-        std::mutex mutex;
-        std::condition_variable condition;
-        bool ready = false;
-    };
-    struct CallbackParam {
-        napi_env env;
-        napi_ref thisVarRef;
-        uint32_t code;
-        MessageParcel *data;
-        MessageParcel *reply;
-        MessageOption *option;
-        CallingInfo callingInfo;
-        ThreadLockInfo *lockInfo;
-        int result;
-    };
     int OnJsRemoteRequest(CallbackParam *jsParam);
 };
 
