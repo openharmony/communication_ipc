@@ -32,6 +32,7 @@ public:
     void Set(sptr<NAPIRemoteObject> object);
     void attachLocalInterface(napi_value localInterface, std::string &descriptor);
     napi_value queryLocalInterface(std::string &descriptor);
+    void CleanJsEnv();
     void Lock()
     {
         mutex_.lock();
