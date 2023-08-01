@@ -119,6 +119,10 @@ private:
                                             napi_value &thisVar, napi_value* argv);
     static napi_value JS_readParcelableArrayCallJsFunc(napi_env env, napi_value &element, napi_value &thisVar);
     static napi_value JS_checkWriteRawDataArgs(napi_env env, size_t argc, napi_value* argv);
+    static bool JS_WriteRawDataForArray(napi_env env, napi_value jsArray,
+                                        int32_t size, NAPI_MessageSequence *napiSequence);
+    static bool JS_WriteRawDataForTypedArray(napi_env env, napi_value jsTypedArray,
+                                             int32_t size, NAPI_MessageSequence *napiSequence);
 
     napi_env env_ = nullptr;
     bool owner;
