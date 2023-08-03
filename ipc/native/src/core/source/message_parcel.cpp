@@ -350,6 +350,8 @@ const void *MessageParcel::ReadRawData(size_t size)
 {
     int32_t bufferSize = ReadInt32();
     if (static_cast<unsigned int>(bufferSize) != size) {
+        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize %{public}d not equal the parameter size %{public}zu",
+            bufferSize, size);
         return nullptr;
     }
 
