@@ -441,7 +441,7 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
     if (checkArgsResult == nullptr) {
         return checkArgsResult;
     }
-    
+
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
@@ -564,7 +564,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
     if (checkArgsResult == nullptr) {
         return checkArgsResult;
     }
-    
+
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
@@ -772,7 +772,7 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
     if (checkArgsResult == nullptr) {
         return checkArgsResult;
     }
-    
+
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
@@ -2675,6 +2675,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteRawDataArgs(napi_env env, size_t a
         ZLOGE(LOG_LABEL, "requires 2 parameters");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
+    size_t length = 0;
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (!isArray) {
@@ -2682,25 +2683,34 @@ napi_value NAPI_MessageSequence::JS_checkWriteRawDataArgs(napi_env env, size_t a
         napi_is_typedarray(env, argv[ARGV_INDEX_0], &isTypedArray);
         if (!isTypedArray) {
             ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not array, not typedarray");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         } else {
             napi_typedarray_type type;
-            size_t length = 0;
             void *data = nullptr;
             napi_value arrayBuffer;
             size_t byteOffset = 0;
-            napi_get_typedarray_info(env, argv[ARGV_INDEX_0], &type, &length, &data, &arrayBuffer, &byteOffset);
-            if (type != napi_int32_array) {
-                ZLOGE(LOG_LABEL, "type mismatch for parameter 1, is typedarray, not napi_int32_array");
+            napi_status isGetArrayInfoOk =
+                napi_get_typedarray_info(env, argv[ARGV_INDEX_0], &type,, &data, &arrayBuffer, &byteOffset);
+            if (isGetArrayInfoOk != napi_ok || type != napi_int32_array) {
+                ZLOGE(LOG_LABEL,
+                    "error for parameter 1, is typedarray, not napi_int32_array or get info failed");
                 return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
             }
         }
+    } else {
+        napi_get_array_length(env, argv[ARGV_INDEX_0], &length);
     }
 
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+    int32_t size = 0;
+    napi_status isGetOk = napi_get_value_int32(env, argv[ARGV_INDEX_1], &size);
+    if (isGetOk != napi_ok || static_cast<int32_t>(length) < size) {
+        ZLOGE(LOG_LABEL, "error for parameter 2, array length less than parameter size or get failed");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
@@ -2813,6 +2823,10 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
         ZLOGE(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
+    if ((arraySize * BYTE_SIZE_32) != napiSequence->nativeParcel_->GetRawDataSize()) {
+        ZLOGE(LOG_LABEL, "check parameter error, the arraySize * BYTE_SIZE_32 != rawDataSize_");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
     const void *rawData = napiSequence->nativeParcel_->ReadRawData(arraySize * BYTE_SIZE_32);
     if (rawData == nullptr) {
         ZLOGE(LOG_LABEL, "rawData is null");
@@ -2828,18 +2842,15 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
     void *arrayBufferPtr = nullptr;
     size_t bufferSize = arraySize * BYTE_SIZE_32;
 
-    napi_create_arraybuffer(env, bufferSize, &arrayBufferPtr, &arrayBuffer);
-    bool isArrayBuffer = false;
-    napi_is_arraybuffer(env, arrayBuffer, &isArrayBuffer);
-    if (isArrayBuffer == false) {
+    napi_status isCreateBufferOk = napi_create_arraybuffer(env, bufferSize, &arrayBufferPtr, &arrayBuffer);
+    if (isCreateBufferOk != napi_ok) {
         ZLOGE(LOG_LABEL, "JS_ReadRawData create arrayBuffer failed");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    napi_create_typedarray(env, napi_int32_array, arraySize, arrayBuffer, 0, &result);
-    bool isTypedArray = false;
-    napi_is_typedarray(env, result, &isTypedArray);
-    if (isTypedArray == false) {
+    napi_status isCreateArrayOk =
+        napi_create_typedarray(env, napi_int32_array, arraySize, arrayBuffer, 0, &result);
+    if (isCreateArrayOk != napi_ok) {
         ZLOGE(LOG_LABEL, "JS_ReadRawData create Typedarray failed");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
