@@ -48,6 +48,9 @@ group("ipc_components") {
       "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
       "$SUBSYSTEM_DIR/interfaces/innerkits/rust:rust_ipc_component",
     ]
+    if (support_jsapi) {
+      deps += [ "$SUBSYSTEM_DIR/interfaces/kits/js/napi:rpc" ]
+    }
   } else {
     deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c:rpc" ]
   }
