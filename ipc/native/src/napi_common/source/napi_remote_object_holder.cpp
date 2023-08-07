@@ -23,10 +23,16 @@
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject_holder" };
 
-struct DeleteJsRefParam {
-    napi_env env;
-    napi_ref thisVarRef;
-};
+static void OnEnvCleanUp(void *data)
+{
+    if (data == nullptr) {
+        ZLOGE(LOG_LABEL, "data is null");
+        return;
+    }
+    NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
+    // js env has been destrcted, clear saved env info, and check befor use it
+    holder->CleanJsEnv();
+}
 
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
     : env_(env), descriptor_(descriptor), sptrCachedObject_(nullptr), wptrCachedObject_(nullptr),
@@ -36,6 +42,17 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
     // create weak ref, do not need to delete,
     // increase ref count when the JS object will transfer to another thread or process.
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
+
+    // register listener for env destruction
+    status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "add cleanup hook failed");
+    }
+}
+
+NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
+{
+    napi_remove_env_cleanup_hook(env_, OnEnvCleanUp, this);
 }
 
 sptr<IRemoteObject> NAPIRemoteObjectHolder::Get()

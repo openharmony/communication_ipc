@@ -27,7 +27,7 @@ namespace OHOS {
 class NAPIRemoteObjectHolder : public RefBase {
 public:
     explicit NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar);
-    ~NAPIRemoteObjectHolder() = default;
+    ~NAPIRemoteObjectHolder();
     sptr<IRemoteObject> Get();
     void Set(sptr<IRemoteObject> object);
     void attachLocalInterface(napi_value localInterface, std::string &descriptor);
