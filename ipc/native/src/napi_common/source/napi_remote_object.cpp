@@ -181,17 +181,6 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     return reinterpret_cast<NativeValue *>(jsRemoteObject);
 }
 
-static void OnEnvCleanUp(void *data)
-{
-    if (data == nullptr) {
-        ZLOGE(LOG_LABEL, "data is null");
-        return;
-    }
-    NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
-    // js env has been destrcted, clear saved env info, and check befor use it
-    holder->CleanJsEnv();
-}
-
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
 {
     // new napi remote object
@@ -224,9 +213,6 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     // connect native object to js thisVar
     napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
-    // register listener for env destruction
-    status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
-    NAPI_ASSERT(env, status == napi_ok, "add cleanup hook failed");
     return thisVar;
 }
 
