@@ -44,7 +44,7 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
 
     // register listener for env destruction
-    status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
+    napi_status status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, holder);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "add cleanup hook failed");
     }
