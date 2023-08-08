@@ -302,6 +302,7 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
         return false;
     }
     if (size <= MIN_RAWDATA_SIZE) {
+        rawDataSize_ = size;
         return WriteUnpadBuffer(data, size);
     }
     int fd = AshmemCreate("Parcel RawData", size);
@@ -349,13 +350,14 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
 const void *MessageParcel::ReadRawData(size_t size)
 {
     int32_t bufferSize = ReadInt32();
-    if (static_cast<unsigned int>(bufferSize) != size) {
+    if (static_cast<unsigned int>(bufferSize) < size) {
         ZLOGE(LOG_LABEL, "ReadRawData: the buffersize %{public}d not equal the parameter size %{public}zu",
             bufferSize, size);
         return nullptr;
     }
 
     if (static_cast<unsigned int>(bufferSize) <= MIN_RAWDATA_SIZE) {
+        rawDataSize_ = size;
         return ReadUnpadBuffer(size);
     }
 
@@ -366,6 +368,8 @@ const void *MessageParcel::ReadRawData(size_t size)
             // do nothing
         }
         if (rawDataSize_ != size) {
+            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}d"
+                " not equal the parameter size %{public}zu", rawDataSize_, size);
             return nullptr;
         }
         return rawData_.get();

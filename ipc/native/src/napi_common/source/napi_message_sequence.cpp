@@ -2711,7 +2711,6 @@ napi_value NAPI_MessageSequence::JS_checkWriteRawDataArgs(napi_env env, size_t a
     napi_status isGetOk = napi_get_value_int32(env, argv[ARGV_INDEX_1], &size);
     if (isGetOk != napi_ok || static_cast<int32_t>(length) < size) {
         ZLOGE(LOG_LABEL, "error for parameter 2, array length less than parameter size or get failed");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
     napi_value napiValue = nullptr;
@@ -2723,7 +2722,10 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
     int32_t size, NAPI_MessageSequence *napiSequence)
 {
     std::vector<int32_t> array;
-    for (size_t i = 0; i < size; i++) {
+    size_t length = 0;
+    napi_get_array_length(env, argv[ARGV_INDEX_0], &length);
+    int32_t writeSize = static_cast<int32_t>(size) > length ? length : static_cast<int32_t>(size);
+    for (size_t i = 0; i < writeSize; i++) {
         bool hasElement = false;
         napi_has_element(env, jsArray, i, &hasElement);
         if (!hasElement) {
@@ -2738,7 +2740,7 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
         napi_get_value_int32(env, element, &value);
         array.push_back(value);
     }
-    return napiSequence->nativeParcel_->WriteRawData(array.data(), size * BYTE_SIZE_32);
+    return napiSequence->nativeParcel_->WriteRawData(array.data(), writeSize * BYTE_SIZE_32);
 }
 
 bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value jsTypedArray,
@@ -2755,7 +2757,8 @@ bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value
         ZLOGE(LOG_LABEL, "typedarray get info failed");
         return false;
     }
-    return napiSequence->nativeParcel_->WriteRawData(data - byteOffset, BYTE_SIZE_32 * size);
+    int32_t writeSize = static_cast<uint32_t>(size) > arrayLength ? arrayLength : static_cast<uint32_t>(size);
+    return napiSequence->nativeParcel_->WriteRawData(data - byteOffset, BYTE_SIZE_32 * writeSize);
 }
 
 napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_info info)
@@ -2783,6 +2786,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (isArray) {
+
         result = JS_WriteRawDataForArray(env, argv[ARGV_INDEX_0], size, napiSequence);
     } else {
         result = JS_WriteRawDataForTypedArray(env, argv[ARGV_INDEX_0], size, napiSequence);
@@ -2821,6 +2825,8 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
         ZLOGE(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
+    size_t rawDataSize = napiSequence->nativeParcel_->GetRawDataSize();
+    size_t readSize =  rawDataSize > arraySize * BYTE_SIZE_32 ? arraySize * BYTE_SIZE_32 : rawDataSize;
     const void *rawData = napiSequence->nativeParcel_->ReadRawData(arraySize * BYTE_SIZE_32);
     if (rawData == nullptr) {
         ZLOGE(LOG_LABEL, "rawData is null");
@@ -2828,15 +2834,14 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
     }
     // [c++] rawData -> byteBuffer()[js]
     napi_value result = nullptr;
-    if (arraySize <= 0) {
+    if (readSize <= 0) {
         napi_create_array(env, &result);
         return result;
     }
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
-    size_t bufferSize = arraySize * BYTE_SIZE_32;
 
-    napi_status isCreateBufferOk = napi_create_arraybuffer(env, bufferSize, &arrayBufferPtr, &arrayBuffer);
+    napi_status isCreateBufferOk = napi_create_arraybuffer(env, readSize, &arrayBufferPtr, &arrayBuffer);
     if (isCreateBufferOk != napi_ok) {
         ZLOGE(LOG_LABEL, "JS_ReadRawData create arrayBuffer failed");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
@@ -2849,7 +2854,7 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    errno_t status = memcpy_s(arrayBufferPtr, bufferSize, rawData, bufferSize);
+    errno_t status = memcpy_s(arrayBufferPtr, readSize, rawData, readSize);
     NAPI_ASSERT(env, status == EOK, "JS_ReadRawData memcpy_s is failed");
     return result;
 }
