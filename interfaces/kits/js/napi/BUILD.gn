@@ -20,7 +20,7 @@ if (support_jsapi) {
     include_dirs = [ "$SUBSYSTEM_DIR/ipc/native/src/napi/include" ]
   }
 
-  ohos_shared_library("rpc") {
+  ohos_shared_library("ipc_rpc") {
     sanitize = {
       integer_overflow = true
     }
@@ -65,6 +65,6 @@ if (support_jsapi) {
 
 group("rpc") {
   if (support_jsapi) {
-    deps = [ ":rpc" ]
+    deps = [ ":ipc_rpc" ]
   }
 }
