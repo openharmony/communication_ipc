@@ -62,3 +62,9 @@ if (support_jsapi) {
     part_name = "ipc"
   }
 }
+
+group("rpc") {
+  if (support_jsapi) {
+    deps = [ ":rpc" ]
+  }
+}
