@@ -2723,8 +2723,8 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
 {
     std::vector<int32_t> array;
     size_t length = 0;
-    napi_get_array_length(env, argv[ARGV_INDEX_0], &length);
-    int32_t writeSize = static_cast<int32_t>(size) > length ? length : static_cast<int32_t>(size);
+    napi_get_array_length(env, jsArray, &length);
+    size_t writeSize = static_cast<size_t>(size) > length ? length : static_cast<size_t>(size);
     for (size_t i = 0; i < writeSize; i++) {
         bool hasElement = false;
         napi_has_element(env, jsArray, i, &hasElement);
@@ -2757,7 +2757,7 @@ bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value
         ZLOGE(LOG_LABEL, "typedarray get info failed");
         return false;
     }
-    int32_t writeSize = static_cast<uint32_t>(size) > arrayLength ? arrayLength : static_cast<uint32_t>(size);
+    int32_t writeSize = static_cast<int32_t>(arrayLength) > size ? size : static_cast<int32_t>(arrayLength);
     return napiSequence->nativeParcel_->WriteRawData(data - byteOffset, BYTE_SIZE_32 * writeSize);
 }
 
@@ -2786,7 +2786,6 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (isArray) {
-
         result = JS_WriteRawDataForArray(env, argv[ARGV_INDEX_0], size, napiSequence);
     } else {
         result = JS_WriteRawDataForTypedArray(env, argv[ARGV_INDEX_0], size, napiSequence);
@@ -2825,13 +2824,12 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
         ZLOGE(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
-    size_t rawDataSize = napiSequence->nativeParcel_->GetRawDataSize();
-    size_t readSize =  rawDataSize > arraySize * BYTE_SIZE_32 ? arraySize * BYTE_SIZE_32 : rawDataSize;
     const void *rawData = napiSequence->nativeParcel_->ReadRawData(arraySize * BYTE_SIZE_32);
     if (rawData == nullptr) {
         ZLOGE(LOG_LABEL, "rawData is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
+    size_t readSize = napiSequence->nativeParcel_->GetRawDataSize();
     // [c++] rawData -> byteBuffer()[js]
     napi_value result = nullptr;
     if (readSize <= 0) {
@@ -2848,7 +2846,7 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
     }
 
     napi_status isCreateArrayOk =
-        napi_create_typedarray(env, napi_int32_array, arraySize, arrayBuffer, 0, &result);
+        napi_create_typedarray(env, napi_int32_array, readSize / BYTE_SIZE_32, arrayBuffer, 0, &result);
     if (isCreateArrayOk != napi_ok) {
         ZLOGE(LOG_LABEL, "JS_ReadRawData create Typedarray failed");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
