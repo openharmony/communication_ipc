@@ -100,10 +100,6 @@ napi_env NAPIRemoteObjectHolder::GetJsObjectEnv() const
 
 void NAPIRemoteObjectHolder::CleanJsEnv()
 {
-    napi_status status = napi_remove_env_cleanup_hook(env_, OnEnvCleanUp, this);
-    if (status != napi_ok) {
-        ZLOGE(LOG_LABEL, "remove cleanup hook failed");
-    }
     env_ = nullptr;
     jsObjectRef_ = nullptr;
     sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
