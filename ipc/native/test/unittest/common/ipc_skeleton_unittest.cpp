@@ -496,6 +496,9 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
 HWTEST_F(IPCDfxTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
 {
     IPCDfx *ipcDfxTest = new IPCDfx();
+    if (ipcDfxTest == nullptr) {
+        return;
+    }
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
         ipcDfxTest->BlockUntilThreadAvailable();
