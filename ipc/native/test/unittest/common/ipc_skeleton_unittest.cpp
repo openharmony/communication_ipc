@@ -47,6 +47,14 @@ public:
     void TearDown();
 };
 
+class IPCDfxTest : public testing::Test {
+public:
+    static void SetUpTestCase(void);
+    static void TearDownTestCase(void);
+    void SetUp();
+    void TearDown();
+};
+
 void IPCSkeletonTest::SetUpTestCase()
 {
 }
@@ -60,6 +68,22 @@ void IPCSkeletonTest::SetUp()
 }
 
 void IPCSkeletonTest::TearDown()
+{
+}
+
+void IPCDfxTest::SetUpTestCase()
+{
+}
+
+void IPCDfxTest::TearDownTestCase()
+{
+}
+
+void IPCDfxTest::SetUp()
+{
+}
+
+void IPCDfxTest::TearDown()
 {
 }
 
@@ -462,4 +486,21 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
     ASSERT_TRUE(result);
     current->invokers_.clear();
     delete invoker;
+}
+
+/**
+ * @tc.name: BlockUntilThreadAvailableTest001
+ * @tc.desc: Verify the BlockUntilThreadAvailable function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDfxTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
+{
+    IPCDfx *ipcDfxTest = new IPCDfx();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current != nullptr) {
+        ipcDfxTest->BlockUntilThreadAvailable();
+        ASSERT_TRUE(current->threadPool_->idleThreadNum_ > 0);
+    }
+
+    delete ipcDfxTest;
 }
