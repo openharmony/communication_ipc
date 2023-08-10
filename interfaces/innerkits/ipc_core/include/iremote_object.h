@@ -45,7 +45,7 @@ public:
     enum {
         DATABUS_TYPE,
     };
-    class DeathRecipient : public RefBase {
+    class DeathRecipient : public virtual RefBase {
     public:
        /**
         * @brief Methods that enumerate death notifications.
