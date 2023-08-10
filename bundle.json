@@ -118,7 +118,7 @@
               }
             },
             {
-              "name": "//foundation/communication/ipc/interfaces/kits/js/napi:rpc",
+              "name": "//foundation/communication/ipc/interfaces/kits/js/napi:ipc_rpc",
               "header": {
                 "header_files": [
                   "napi_remote_object.h"
