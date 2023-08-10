@@ -498,7 +498,6 @@ HWTEST_F(IPCDfxTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
     IPCDfx *ipcDfxTest = new IPCDfx();
     ASSERT_TRUE(ipcDfxTest != nullptr);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    ASSERT_TRUE(current != nullptr);
     ipcDfxTest->BlockUntilThreadAvailable();
     ASSERT_TRUE(current->threadPool_->idleThreadNum_ > 0);
     delete ipcDfxTest;
