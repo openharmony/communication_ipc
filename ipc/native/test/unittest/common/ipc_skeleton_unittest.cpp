@@ -473,5 +473,8 @@ HWTEST_F(IPCSkeletonTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     IPCDfx::BlockUntilThreadAvailable();
+    if (current->threadPool_->idleThreadNum_ <= 0) {
+        current->threadPool_->cv_.notify_all();
+    }
     ASSERT_TRUE(current != nullptr);
 }
