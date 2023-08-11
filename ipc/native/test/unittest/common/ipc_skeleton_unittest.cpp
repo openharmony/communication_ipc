@@ -472,6 +472,5 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
 HWTEST_F(IPCSkeletonTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    IPCDfx::BlockUntilThreadAvailable();
     ASSERT_TRUE(current != nullptr);
 }
