@@ -471,10 +471,12 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
  */
 HWTEST_F(IPCSkeletonTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
 {
+    ZLOGE(LOG_LABEL, "BlockUntilThreadAvailableTest001 ENTER");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     IPCDfx::BlockUntilThreadAvailable();
     if (current->threadPool_->idleThreadNum_ <= 0) {
         current->threadPool_->cv_.notify_all();
     }
     ASSERT_TRUE(current != nullptr);
+    ZLOGE(LOG_LABEL, "BlockUntilThreadAvailableTest001 EXIT");
 }
