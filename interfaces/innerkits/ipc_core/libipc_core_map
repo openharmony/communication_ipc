@@ -69,7 +69,6 @@
             "OHOS::IRemoteObject::GetInterfaceDescriptor()";
             "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
-            "OHOS::IPCDfx::BlockUntilThreadAvailable()";
         };
     local:
         *;
