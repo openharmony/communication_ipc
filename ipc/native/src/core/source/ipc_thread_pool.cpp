@@ -149,14 +149,12 @@ void IPCWorkThreadPool::UpdateMaxThreadNum(int maxThreadNum)
 
 void IPCWorkThreadPool::BlockUntilThreadAvailable()
 {
-    ZLOGE(LOG_LABEL, "BlockUntilThreadAvailable enter");
     std::unique_lock<std::mutex> lock(mutex_);
     numWaitingForThreads_++;
     while (idleThreadNum_ <= 0) {
         cv_.wait(lock);
     }
     numWaitingForThreads_--;
-    ZLOGE(LOG_LABEL, "BlockUntilThreadAvailable exit");
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
