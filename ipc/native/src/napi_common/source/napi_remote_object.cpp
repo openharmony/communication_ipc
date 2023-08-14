@@ -938,6 +938,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             napi_delete_reference(param->env, param->jsCodeRef);
             napi_delete_reference(param->env, param->jsDataRef);
             napi_delete_reference(param->env, param->jsReplyRef);
+            napi_delete_reference(param->env, param->jsOptionRef);
             napi_delete_reference(param->env, param->callback);
             napi_close_handle_scope(param->env, scope);
             delete param;
@@ -958,6 +959,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             napi_delete_reference(param->env, param->jsCodeRef);
             napi_delete_reference(param->env, param->jsDataRef);
             napi_delete_reference(param->env, param->jsReplyRef);
+            napi_delete_reference(param->env, param->jsOptionRef);
             napi_close_handle_scope(param->env, scope);
             delete param;
             delete work;
@@ -982,6 +984,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
         .jsCodeRef = nullptr,
         .jsDataRef = nullptr,
         .jsReplyRef = nullptr,
+        .jsOptionRef = nullptr,
         .callback = nullptr,
         .env = env,
         .traceId = 0,
@@ -997,6 +1000,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
     napi_create_reference(env, argv[4], 1, &sendRequestParam->callback);
     std::thread t(StubExecuteSendRequest, env, sendRequestParam);
     t.detach();
@@ -1024,6 +1028,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
         .jsCodeRef = nullptr,
         .jsDataRef = nullptr,
         .jsReplyRef = nullptr,
+        .jsOptionRef = nullptr,
         .callback = nullptr,
         .env = env,
         .traceId = 0,
@@ -1039,6 +1044,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
     std::thread t(StubExecuteSendRequest, env, sendRequestParam);
     t.detach();
     return promise;
