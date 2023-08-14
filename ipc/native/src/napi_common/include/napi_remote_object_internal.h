@@ -86,6 +86,7 @@ struct SendRequestParam {
     napi_ref jsCodeRef;
     napi_ref jsDataRef;
     napi_ref jsReplyRef;
+    napi_ref jsOptionRef;
     napi_ref callback;
     napi_env env;
     std::string traceValue;

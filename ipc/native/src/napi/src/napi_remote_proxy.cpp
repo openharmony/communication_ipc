@@ -66,6 +66,7 @@ void SendRequestCbComplete(napi_env env, napi_status status, void *data)
     napi_delete_reference(env, param->jsCodeRef);
     napi_delete_reference(env, param->jsDataRef);
     napi_delete_reference(env, param->jsReplyRef);
+    napi_delete_reference(env, param->jsOptionRef);
     napi_delete_reference(env, param->callback);
     napi_delete_async_work(env, param->asyncWork);
     delete param;
@@ -85,6 +86,7 @@ void SendRequestPromiseComplete(napi_env env, napi_status status, void *data)
     napi_delete_reference(env, param->jsCodeRef);
     napi_delete_reference(env, param->jsDataRef);
     napi_delete_reference(env, param->jsReplyRef);
+    napi_delete_reference(env, param->jsOptionRef);
     napi_delete_async_work(env, param->asyncWork);
     delete param;
 }
@@ -106,6 +108,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         .jsCodeRef = nullptr,
         .jsDataRef = nullptr,
         .jsReplyRef = nullptr,
+        .jsOptionRef = nullptr,
         .callback = nullptr,
         .env = env,
         .traceId = 0,
@@ -122,6 +125,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
     napi_create_reference(env, argv[4], 1, &sendRequestParam->callback);
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
@@ -151,6 +155,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .jsCodeRef = nullptr,
         .jsDataRef = nullptr,
         .jsReplyRef = nullptr,
+        .jsOptionRef = nullptr,
         .callback = nullptr,
         .env = env,
         .traceId = 0,
@@ -167,6 +172,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
     napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
