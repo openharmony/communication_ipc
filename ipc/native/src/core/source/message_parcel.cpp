@@ -386,7 +386,7 @@ const void *MessageParcel::ReadRawData(size_t size)
             rawDataSize_, realReadSize);
         return nullptr;
     }
-    void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
+    void *ptr = ::mmap(nullptr, realReadSize, PROT_READ, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
         return nullptr;
