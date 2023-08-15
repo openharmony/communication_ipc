@@ -367,8 +367,8 @@ const void *MessageParcel::ReadRawData(size_t size)
             // do nothing
         }
         if (rawDataSize_ != realReadSize) {
-            ZLOGI(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}d"
-                " not equal the parameter size %{public}zu", rawDataSize_, size);
+            ZLOGI(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}zu"
+                " not equal realReadSize %{public}zu", rawDataSize_, realReadSize);
         }
         rawDataSize_ = realReadSize;
         return rawData_.get();
