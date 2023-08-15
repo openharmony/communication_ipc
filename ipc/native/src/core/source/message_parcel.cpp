@@ -349,13 +349,13 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
 
 const void *MessageParcel::ReadRawData(size_t size)
 {
-    int32_t bufferSize = ReadInt32();
-    if (static_cast<unsigned int>(bufferSize) != size) {
-        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize %{public}d not equal the parameter size %{public}zu",
+    size_t bufferSize =  static_cast<size_t>(ReadInt32());
+    if (bufferSize != size) {
+        ZLOGI(LOG_LABEL, "ReadRawData: the buffersize %{public}zu not equal the parameter size %{public}zu",
             bufferSize, size);
     }
-    size_t realReadSize = static_cast<size_t>(bufferSize) < size ? static_cast<size_t>(bufferSize) : size;
-    if (static_cast<size_t>(bufferSize) <= MIN_RAWDATA_SIZE) {
+    size_t realReadSize = bufferSize < size ? bufferSize : size;
+    if (bufferSize <= MIN_RAWDATA_SIZE) {
         rawDataSize_ = realReadSize;
         return ReadUnpadBuffer(realReadSize);
     }
@@ -367,7 +367,7 @@ const void *MessageParcel::ReadRawData(size_t size)
             // do nothing
         }
         if (rawDataSize_ != realReadSize) {
-            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}d"
+            ZLOGI(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}d"
                 " not equal the parameter size %{public}zu", rawDataSize_, size);
         }
         rawDataSize_ = realReadSize;
@@ -383,7 +383,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     if (ashmemSize < 0 || size_t(ashmemSize) < realReadSize) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
         ZLOGE(LOG_LABEL, "ashmemSize %{public}d less than realReadSize %{public}zu",
-            rawDataSize_, realReadSize);
+            ashmemSize, realReadSize);
         return nullptr;
     }
     void *ptr = ::mmap(nullptr, realReadSize, PROT_READ, MAP_SHARED, fd, 0);
