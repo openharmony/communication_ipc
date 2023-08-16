@@ -39,7 +39,7 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
       localInterfaceRef_(nullptr), attachCount_(1), jsObjectRef_(nullptr)
 {
     jsThreadId_ = std::this_thread::get_id();
-    // create weak ref, do not need to delete,
+    // create weak ref, need call napi_delete_reference to release memory,
     // increase ref count when the JS object will transfer to another thread or process.
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
 
@@ -56,6 +56,47 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
         napi_status status = napi_remove_env_cleanup_hook(env_, OnEnvCleanUp, this);
         if (status != napi_ok) {
             ZLOGE(LOG_LABEL, "remove cleanup hook failed");
+        }
+    }
+
+    if (localInterfaceRef_ != nullptr) {
+        napi_status napiStatus = napi_delete_reference(env_, localInterfaceRef_);
+        if (napiStatus != napi_ok) {
+            ZLOGE(LOG_LABEL, "failed to delete ref");
+        }
+    }
+
+    if (jsObjectRef_ != nullptr && env_ != nullptr) {
+        if (jsThreadId_ == std::this_thread::get_id()) {
+            napi_status napiStatus = napi_delete_reference(env_, jsObjectRef_);
+            if (napiStatus != napi_ok) {
+                ZLOGE(LOG_LABEL, "failed to delete ref");
+            }
+        } else {
+            uv_loop_s *loop = nullptr;
+            napi_get_uv_event_loop(env_, &loop);
+            uv_work_t *work = new(std::nothrow) uv_work_t;
+            if (work == nullptr) {
+                ZLOGE(LOG_LABEL, "failed to new work");
+                return;
+            }
+            OperateJsRefParam *param = new OperateJsRefParam {
+                .env = env_,
+                .thisVarRef = jsObjectRef_
+            };
+            work->data = reinterpret_cast<void *>(param);
+            uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+                OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
+                napi_handle_scope scope = nullptr;
+                napi_open_handle_scope(param->env, &scope);
+                napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
+                if (napiStatus != napi_ok) {
+                    ZLOGE(LOG_LABEL, "failed to delete ref on uv work");
+                }
+                napi_close_handle_scope(param->env, scope);
+                delete param;
+                delete work;
+            });
         }
     }
 }
@@ -115,6 +156,9 @@ void NAPIRemoteObjectHolder::attachLocalInterface(napi_value localInterface, std
     if (env_ == nullptr) {
         ZLOGE(LOG_LABEL, "Js env has been destructed");
         return;
+    }
+    if (localInterfaceRef_ != nullptr) {
+        napi_delete_reference(env_, localInterfaceRef_);
     }
     napi_create_reference(env_, localInterface, 0, &localInterfaceRef_);
     descriptor_ = Str8ToStr16(descriptor);
