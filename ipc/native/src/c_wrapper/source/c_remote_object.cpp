@@ -290,3 +290,36 @@ bool GetInterfaceDescriptor(CRemoteObject *object, void *value, On16BytesAllocat
     }
     return true;
 }
+
+CRemoteObject *CreateCRemoteObject(void *obj)
+{
+    if (obj == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
+        return nullptr;
+    }
+
+    CRemoteObject *holder = new (std::nothrow) CRemoteObjectHolder();
+    if (holder == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s: create proxy holder failed\n", __func__);
+        return nullptr;
+    }
+    sptr<IRemoteObject> sa = reinterpret_cast<IRemoteObject* >(obj);
+    holder->IncStrongRef(nullptr);
+    holder->remote_ = sa;
+
+    return holder;
+}
+
+void *GetCIRemoteObject(CRemoteObject* obj)
+{
+    if (!IsValidRemoteObject(obj, __func__)) {
+        ZLOGE(LOG_LABEL, "%{public}s: recipient is null\n", __func__);
+        return nullptr;
+    }
+
+    if (obj->remote_ == nullptr) {
+        ZLOGI(LOG_LABEL, "%{public}s: The pointer inside CRemoteObject is a null pointer\n", __func__);
+        return nullptr;
+    }
+    return obj->remote_.GetRefPtr();
+}

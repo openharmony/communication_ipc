@@ -30,7 +30,7 @@ struct CDeathRecipient;
 typedef struct CDeathRecipient CDeathRecipient;
 
 // Callback as remote stub
-typedef int (*OnRemoteRequestCb)(const void *userData, int code, 
+typedef int (*OnRemoteRequestCb)(const void *userData, int code,
     const CParcel *data, CParcel *reply);
 typedef int (*OnRemoteDumpCb)(const void *userData, const CParcel *data);
 typedef void (*OnRemoteObjectDestroyCb)(const void *userData);
@@ -40,6 +40,8 @@ typedef void (*OnDeathRecipientDestroyCb)(const void *userData);
 
 typedef bool (*On16BytesAllocator)(void *stringData, uint16_t **buffer, int32_t len);
 
+CRemoteObject *CreateCRemoteObject(void *obj);
+void *GetCIRemoteObject(CRemoteObject* obj);
 CRemoteObject *CreateRemoteStub(const char *desc, OnRemoteRequestCb callback,
     OnRemoteObjectDestroyCb destroy, const void *userData, OnRemoteDumpCb dumpCallback);
 

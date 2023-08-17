@@ -138,5 +138,5 @@ fn main() {
     add_service(&service.as_object().expect("get ITest service failed"),
         IPC_TEST_SERVICE_ID).expect("add server to samgr failed"); 
     println!("join to ipc work thread");
-    join_work_thread();   
+    join_work_thread();
 }

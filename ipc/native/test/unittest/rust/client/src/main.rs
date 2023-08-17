@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#![allow(clippy::needless_borrow)] 
+#![allow(clippy::needless_borrow)]
 #![allow(clippy::bool_assert_comparison)]
 #![allow(non_snake_case)]
 extern crate ipc_rust;
@@ -28,6 +28,7 @@ use ipc_rust::{
     get_self_token_id, get_calling_pid, get_calling_uid, IMsgParcel, IpcResult,
     RawData, set_max_work_thread, reset_calling_identity, set_calling_identity,
     is_local_calling, get_local_device_id, get_calling_device_id, IpcStatusCode,
+    RemoteObj,
 };
 
 use ipc_rust::{Serialize, Deserialize, BorrowedMsgParcel, Ashmem};
@@ -803,6 +804,18 @@ fn test_is_object_dead() {
 #[test]
 fn test_get_interface_descriptor() {
     let remote = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
+    let descriptor = String16::new(TestProxy::get_descriptor());
+    let ret = remote.interface_descriptor().expect("get interface descriptor failed");
+    assert_eq!(descriptor.get_string(), ret);
+}
+
+#[test]
+fn test_get_interface_descriptor_002() {
+    let remote = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
+    // SAFETY:
+    let remote = unsafe {
+        RemoteObj::from_raw_ciremoteobj(remote.as_raw_ciremoteobj()).unwrap()
+    };
     let descriptor = String16::new(TestProxy::get_descriptor());
     let ret = remote.interface_descriptor().expect("get interface descriptor failed");
     assert_eq!(descriptor.get_string(), ret);

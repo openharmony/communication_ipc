@@ -23,6 +23,11 @@ pub struct CRemoteObject {
 }
 
 #[repr(C)]
+pub struct CIRemoteObject {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
 pub struct CDeathRecipient {
     _private: [u8; 0],
 }
@@ -135,6 +140,8 @@ pub type OnCParcelReadElement = unsafe extern "C" fn (
 
 // C interface for IPC core object
 extern "C" {
+    pub fn CreateCRemoteObject(object: *mut c_void) -> *mut CRemoteObject;
+    pub fn GetCIRemoteObject(object: *mut CRemoteObject) -> *mut c_void;
     pub fn CreateRemoteStub(descripor: *const c_char, on_remote_request: OnRemoteRequest,
         on_remote_object_destroy: OnRemoteObjectDestroy,
         user_data: *const c_void, on_remote_dump: OnRemoteDump) -> *mut CRemoteObject;

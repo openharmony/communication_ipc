@@ -37,7 +37,8 @@
           "access_token",
           "dsoftbus",
           "napi",
-          "common"
+          "common",
+          "build_framework"
         ],
         "third_party": [
           "libuv",
