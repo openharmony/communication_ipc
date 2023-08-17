@@ -238,11 +238,19 @@ int MessageParcel::ReadFileDescriptor()
 
 void MessageParcel::ClearFileDescriptor()
 {
-    binder_size_t *object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
-    size_t objectNum = GetOffsetsSize();
-    uintptr_t data = GetData();
-    for (size_t i = 0; i < objectNum; i++) {
-        const flat_binder_object *flat = reinterpret_cast<flat_binder_object *>(data + object[i]);
+    size_t dataOffset = 0;
+    binder_size_t *object = nullptr;
+    const flat_binder_object *flat = nullptr;
+    for (size_t i = 0; i < GetOffsetsSize(); i++) {
+        object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
+        // data + size
+        dataOffset = object[i] + sizeof(flat_binder_object);
+        if (dataOffset > GetDataSize()) {
+            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu, dataSize:%{public}zu",
+                dataOffset, GetDataSize());
+            break;
+        }
+        flat = reinterpret_cast<flat_binder_object *>(GetData() + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
             ::close(flat->handle);
         }
@@ -251,11 +259,19 @@ void MessageParcel::ClearFileDescriptor()
 
 bool MessageParcel::ContainFileDescriptors() const
 {
-    binder_size_t *object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
-    size_t objectNum = GetOffsetsSize();
-    uintptr_t data = GetData();
-    for (size_t i = 0; i < objectNum; i++) {
-        const flat_binder_object *flat = reinterpret_cast<flat_binder_object *>(data + object[i]);
+    size_t dataOffset = 0;
+    binder_size_t *object = nullptr;
+    const flat_binder_object *flat = nullptr;
+    for (size_t i = 0; i < GetOffsetsSize(); i++) {
+        object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
+        // data + size
+        dataOffset = object[i] + sizeof(flat_binder_object);
+        if (dataOffset > GetDataSize()) {
+            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu, dataSize:%{public}zu",
+                dataOffset, GetDataSize());
+            break;
+        }
+        flat = reinterpret_cast<flat_binder_object *>(GetData() + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD) {
             return true;
         }
