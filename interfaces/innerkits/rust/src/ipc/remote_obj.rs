@@ -21,7 +21,7 @@ use crate::{
     MsgParcel, BorrowedMsgParcel, AsRawPtr, IpcStatusCode,
     parcel::vec_u16_to_string, parse_status_code,
 };
-use crate::ipc_binding::{CRemoteObject, CDeathRecipient};
+use crate::ipc_binding::{CRemoteObject, CDeathRecipient, CIRemoteObject};
 use crate::parcel::parcelable::{Serialize, Deserialize, allocate_vec_with_buffer};
 use std::ffi::{c_void, CString, c_char};
 use crate::String16;
@@ -58,6 +58,26 @@ impl RemoteObj {
     /// # Safety
     pub unsafe fn as_inner(&self) -> *mut CRemoteObject {
         self.0.as_ptr()
+    }
+
+    /// Convert an `RemoteObj` by `CIRemoteObject` pointer.
+    pub fn from_raw_ciremoteobj(obj: *mut CIRemoteObject) -> Option<RemoteObj> {
+        if obj.is_null() {
+            None
+        } else {
+            // SAFETY: he returned CIRemoteObject may be a null pointer
+            unsafe {
+                let sa = ipc_binding::CreateCRemoteObject(obj as *mut _ as *mut c_void);
+                RemoteObj::from_raw(sa)
+            }
+        }
+    }
+
+    /// Extract a raw `CIRemoteObject` pointer from this wrapper.
+    /// # Safety
+    /// The returned CIRemoteObject may be a null pointer
+    pub unsafe fn as_raw_ciremoteobj(&self) -> *mut CIRemoteObject {
+        ipc_binding::GetCIRemoteObject(self.0.as_ptr()) as *mut CIRemoteObject
     }
 }
 
