@@ -2699,17 +2699,15 @@ napi_value NAPI_MessageSequence::JS_checkWriteRawDataArgs(napi_env env, size_t a
 }
 
 bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsArray,
-    int32_t size, NAPI_MessageSequence *napiSequence)
+    uint32_t size, NAPI_MessageSequence *napiSequence)
 {
     std::vector<int32_t> array;
     uint32_t length = 0;
-    uint32_t sizePraemeter = static_cast<uint32_t>(size);
     napi_get_array_length(env, jsArray, &length);
-    if (length < sizePraemeter) {
-        ZLOGI(LOG_LABEL, "array length %{public}u less than parameter size %{public}u",
-            length, sizePraemeter);
+    if (length < size) {
+        ZLOGI(LOG_LABEL, "array length %{public}u less than parameter size %{public}u", length, size);
     }
-    uint32_t writeSize = sizePraemeter > length ? length : sizePraemeter;
+    uint32_t writeSize = size > length ? length : size;
     for (uint32_t i = 0; i < writeSize; i++) {
         bool hasElement = false;
         napi_has_element(env, jsArray, i, &hasElement);
@@ -2729,7 +2727,7 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
 }
 
 bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value jsTypedArray,
-    int32_t size, NAPI_MessageSequence *napiSequence)
+    size_t size, NAPI_MessageSequence *napiSequence)
 {
     napi_typedarray_type type;
     char *data = nullptr;
@@ -2742,12 +2740,11 @@ bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value
         ZLOGE(LOG_LABEL, "typedarray get info failed or not napi_int32_array");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    size_t sizeParameter = static_cast<size_t>(size);
-    if (arrayLength < sizeParameter) {
+    if (arrayLength < size) {
         ZLOGI(LOG_LABEL, "typedarray length %{public}zu less than parameter size %{public}zu",
-            arrayLength, sizeParameter);
+            arrayLength, size);
     }
-    size_t writeSize = sizeParameter > arrayLength ? arrayLength : sizeParameter;
+    size_t writeSize = size > arrayLength ? arrayLength : size;
     return napiSequence->nativeParcel_->WriteRawData(data - byteOffset, BYTE_SIZE_32 * writeSize);
 }
 
@@ -2779,9 +2776,9 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (isArray) {
-        result = JS_WriteRawDataForArray(env, argv[ARGV_INDEX_0], size, napiSequence);
+        result = JS_WriteRawDataForArray(env, argv[ARGV_INDEX_0], static_cast<uint32_t>(size), napiSequence);
     } else {
-        result = JS_WriteRawDataForTypedArray(env, argv[ARGV_INDEX_0], size, napiSequence);
+        result = JS_WriteRawDataForTypedArray(env, argv[ARGV_INDEX_0], static_cast<size_t>(size), napiSequence);
     }
 
     if (!result) {
