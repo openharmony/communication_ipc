@@ -2702,13 +2702,15 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
     int32_t size, NAPI_MessageSequence *napiSequence)
 {
     std::vector<int32_t> array;
-    size_t length = 0;
+    uint32_t length = 0;
+    uint32_t sizePraemeter = static_cast<uint32_t>(size);
     napi_get_array_length(env, jsArray, &length);
-    if (length < static_cast<size_t>(size)) {
-        ZLOGI(LOG_LABEL, "array length %{public}zu less than parameter size %{public}d", length, size);
+    if (length < sizePraemeter) {
+        ZLOGI(LOG_LABEL, "array length %{public}u less than parameter size %{public}u",
+            length, sizePraemeter);
     }
-    size_t writeSize = static_cast<size_t>(size) > length ? length : static_cast<size_t>(size);
-    for (size_t i = 0; i < writeSize; i++) {
+    uint32_t writeSize = sizePraemeter > length ? length : sizePraemeter;
+    for (uint32_t i = 0; i < writeSize; i++) {
         bool hasElement = false;
         napi_has_element(env, jsArray, i, &hasElement);
         if (!hasElement) {
@@ -2731,7 +2733,7 @@ bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value
 {
     napi_typedarray_type type;
     char *data = nullptr;
-    uint32_t arrayLength = 0;
+    size_t arrayLength = 0;
     napi_value arrayBuffer;
     size_t byteOffset = 0;
     napi_status isGet = napi_get_typedarray_info(env, jsTypedArray, &type,
@@ -2740,10 +2742,12 @@ bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value
         ZLOGE(LOG_LABEL, "typedarray get info failed or not napi_int32_array");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    if (arrayLength < static_cast<uint32_t>(size)) {
-        ZLOGI(LOG_LABEL, "typedarray length %{public}u less than parameter size %{public}d", arrayLength, size);
+    size_t sizeParameter = static_cast<size_t>(size);
+    if (arrayLength < sizeParameter) {
+        ZLOGI(LOG_LABEL, "typedarray length %{public}zu less than parameter size %{public}zu",
+            arrayLength, sizeParameter);
     }
-    uint32_t writeSize = static_cast<uint32_t>(size) > arrayLength ? arrayLength : static_cast<uint32_t>(size);
+    size_t writeSize = sizeParameter > arrayLength ? arrayLength : sizeParameter;
     return napiSequence->nativeParcel_->WriteRawData(data - byteOffset, BYTE_SIZE_32 * writeSize);
 }
 
