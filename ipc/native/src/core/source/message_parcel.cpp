@@ -243,7 +243,7 @@ void MessageParcel::ClearFileDescriptor()
     const flat_binder_object *flat = nullptr;
     for (size_t i = 0; i < GetOffsetsSize(); i++) {
         object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
-        // data + size
+        // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
             ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu, dataSize:%{public}zu",
@@ -264,7 +264,7 @@ bool MessageParcel::ContainFileDescriptors() const
     const flat_binder_object *flat = nullptr;
     for (size_t i = 0; i < GetOffsetsSize(); i++) {
         object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
-        // data + size
+        // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
             ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu, dataSize:%{public}zu",
