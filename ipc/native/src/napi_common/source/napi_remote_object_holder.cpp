@@ -52,24 +52,27 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
 
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
-    if (env_ != nullptr) {
-        napi_status status = napi_remove_env_cleanup_hook(env_, OnEnvCleanUp, this);
-        if (status != napi_ok) {
-            ZLOGE(LOG_LABEL, "remove cleanup hook failed");
-        }
+    if (env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "js env has been destructed");
+        return;
+    }
+
+    napi_status status = napi_remove_env_cleanup_hook(env_, OnEnvCleanUp, this);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "remove cleanup hook failed");
     }
 
     if (localInterfaceRef_ != nullptr) {
-        napi_status napiStatus = napi_delete_reference(env_, localInterfaceRef_);
-        if (napiStatus != napi_ok) {
+        status = napi_delete_reference(env_, localInterfaceRef_);
+        if (status != napi_ok) {
             ZLOGE(LOG_LABEL, "failed to delete ref");
         }
     }
 
-    if (jsObjectRef_ != nullptr && env_ != nullptr) {
+    if (jsObjectRef_ != nullptr) {
         if (jsThreadId_ == std::this_thread::get_id()) {
-            napi_status napiStatus = napi_delete_reference(env_, jsObjectRef_);
-            if (napiStatus != napi_ok) {
+            status = napi_delete_reference(env_, jsObjectRef_);
+            if (status != napi_ok) {
                 ZLOGE(LOG_LABEL, "failed to delete ref");
             }
         } else {
