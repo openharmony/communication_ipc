@@ -63,7 +63,7 @@ if (support_jsapi) {
   }
 }
 
-group("ipc_rpc") {
+group("ipc_js") {
   if (support_jsapi) {
     deps = [ ":rpc" ]
   }
