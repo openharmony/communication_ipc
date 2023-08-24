@@ -17,11 +17,16 @@
 
 use std::ffi::{c_char, c_void, c_ulong};
 
+/// CRemoteObject is a member of RemoteObject,
+/// RemoteObject always contained a native CRemoteObject pointer.
 #[repr(C)]
 pub struct CRemoteObject {
     _private: [u8; 0],
 }
 
+/// CIRemoteObject is a member of CRemoteObject,
+/// CRemoteObject always contained a native CIRemoteObject pointer.
+/// Please refer to the CRemoteObject object on side c
 #[repr(C)]
 pub struct CIRemoteObject {
     _private: [u8; 0],
