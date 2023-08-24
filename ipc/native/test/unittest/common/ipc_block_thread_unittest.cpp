@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 
 #include "ipc_process_skeleton.h"
+#include "ipc_skeleton.h"
 
 using namespace testing::ext;
 
