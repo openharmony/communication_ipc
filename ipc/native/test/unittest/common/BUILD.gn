@@ -377,7 +377,10 @@ ohos_unittest("IPCSoDlcloseTest") {
 ohos_unittest("IPCBlockThreadTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [ "$SUBSYSTEM_DIR/ipc/utils/include" ]
+  include_dirs = [
+    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
+    "$SUBSYSTEM_DIR/ipc/utils/include",
+  ]
 
   sources = [ "ipc_block_thread_unittest.cpp" ]
 
