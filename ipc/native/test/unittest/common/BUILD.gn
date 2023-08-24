@@ -378,7 +378,7 @@ ohos_unittest("IPCBlockThreadTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "$SUBSYSTEM_DIR/ipc/utils/include",
   ]
 
