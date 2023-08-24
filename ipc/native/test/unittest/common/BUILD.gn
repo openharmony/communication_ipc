@@ -395,6 +395,7 @@ group("unittest") {
   deps = [
     ":BinderConnectorTest",
     ":BinderInvokerUnitTest",
+    ":IPCBlockThreadTest",
     ":IPCCInterfaceUnitTest",
     ":IPCFileDescOpsTest",
     ":IPCHiTraceUnitTest",
@@ -403,7 +404,6 @@ group("unittest") {
     ":IPCSoDlcloseTest",
     ":InvokerFactoryTest",
     ":RPCFeatureUnitTest",
-    ":IPCBlockThreadTest",
   ]
   if (support_jsapi) {
     deps += [ ":IPCNapiUnitTest" ]
