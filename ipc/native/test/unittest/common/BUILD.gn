@@ -403,6 +403,7 @@ group("unittest") {
     ":IPCSoDlcloseTest",
     ":InvokerFactoryTest",
     ":RPCFeatureUnitTest",
+    ":IPCBlockThreadTest",
   ]
   if (support_jsapi) {
     deps += [ ":IPCNapiUnitTest" ]
