@@ -29,6 +29,10 @@ constexpr size_t BYTE_SIZE_32 = 4;
 
 NapiError NAPIAshmem::napiErr;
 
+static const size_t ARGV_INDEX_0 = 0;
+static const size_t ARGV_INDEX_1 = 1;
+static const size_t ARGV_INDEX_2 = 2;
+
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
     if (ashmem == nullptr) {
@@ -57,24 +61,24 @@ napi_value NAPIAshmem::CreateAshmem(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return nullptr;
     }
     size_t bufferSize = 0;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize == 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem name");
         return nullptr;
     }
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
         return nullptr;
     }
     int32_t ashmemSize = 0;
-    napi_get_value_int32(env, argv[1], &ashmemSize);
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &ashmemSize);
     if (ashmemSize <= 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem size");
         return nullptr;
@@ -104,10 +108,10 @@ napi_value NAPIAshmem::CreateAshmemFromExisting(napi_env env, napi_callback_info
     status = napi_get_named_property(env, global, "AshmemConstructor_", &constructor);
     NAPI_ASSERT(env, status == napi_ok, "get Ashmem constructor failed");
     bool isAshmem = false;
-    napi_instanceof(env, argv[0], constructor, &isAshmem);
+    napi_instanceof(env, argv[ARGV_INDEX_0], constructor, &isAshmem);
     NAPI_ASSERT(env, isAshmem == true, "parameter is not instanceof Ashmem");
     NAPIAshmem *napiAshmem = nullptr;
-    napi_unwrap(env, argv[0], (void **)&napiAshmem);
+    napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
@@ -142,26 +146,26 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     }
 
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize == 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem name");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
 
     int32_t ashmemSize = 0;
-    napi_get_value_int32(env, argv[1], &ashmemSize);
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &ashmemSize);
     if (ashmemSize <= 0) {
         ZLOGE(LOG_LABEL, "invalid ashmem size");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -211,13 +215,13 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
         return nullptr;
     }
     bool isAshmem = false;
-    napi_instanceof(env, argv[0], constructor, &isAshmem);
+    napi_instanceof(env, argv[ARGV_INDEX_0], constructor, &isAshmem);
     if (isAshmem == false) {
         ZLOGE(LOG_LABEL, "parameter is not instanceof Ashmem");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     NAPIAshmem *napiAshmem = nullptr;
-    napi_unwrap(env, argv[0], (void **)&napiAshmem);
+    napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -277,10 +281,10 @@ napi_value NAPIAshmem::MapAshmem(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
     uint32_t mapType = 0;
-    napi_get_value_uint32(env, argv[0], &mapType);
+    napi_get_value_uint32(env, argv[ARGV_INDEX_0], &mapType);
     NAPI_ASSERT(env, mapType <= MMAP_PROT_MAX, "napiAshmem mapType error");
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
@@ -302,13 +306,13 @@ napi_value NAPIAshmem::MapTypedAshmem(napi_env env, napi_callback_info info)
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t mapType = 0;
-    napi_get_value_uint32(env, argv[0], &mapType);
+    napi_get_value_uint32(env, argv[ARGV_INDEX_0], &mapType);
     if (mapType > MMAP_PROT_MAX) {
         ZLOGE(LOG_LABEL, "napiAshmem mapType error");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -391,14 +395,14 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
     int64_t size = 0;
-    napi_get_value_int64(env, argv[0], &size);
+    napi_get_value_int64(env, argv[ARGV_INDEX_0], &size);
     int64_t offset = 0;
-    napi_get_value_int64(env, argv[1], &offset);
+    napi_get_value_int64(env, argv[ARGV_INDEX_1], &offset);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
@@ -446,20 +450,20 @@ napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     int64_t size = 0;
-    napi_get_value_int64(env, argv[0], &size);
+    napi_get_value_int64(env, argv[ARGV_INDEX_0], &size);
     int64_t offset = 0;
-    napi_get_value_int64(env, argv[1], &offset);
+    napi_get_value_int64(env, argv[ARGV_INDEX_1], &offset);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
@@ -517,10 +521,10 @@ napi_value NAPIAshmem::SetProtection(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
     uint32_t protectionType = 0;
-    napi_get_value_uint32(env, argv[0], &protectionType);
+    napi_get_value_uint32(env, argv[ARGV_INDEX_0], &protectionType);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
@@ -542,13 +546,13 @@ napi_value NAPIAshmem::SetProtectionType(napi_env env, napi_callback_info info)
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     uint32_t protectionType = 0;
-    napi_get_value_uint32(env, argv[0], &protectionType);
+    napi_get_value_uint32(env, argv[ARGV_INDEX_0], &protectionType);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
@@ -582,25 +586,25 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 3, "requires 1 parameter");
     bool isArray = false;
-    napi_is_array(env, argv[0], &isArray);
+    napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
-    napi_typeof(env, argv[2], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_2], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 3");
 
     std::vector<int32_t> array;
     uint32_t arrayLength = 0;
-    napi_get_array_length(env, argv[0], &arrayLength);
+    napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
-        napi_has_element(env, argv[0], i, &hasElement);
+        napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         NAPI_ASSERT(env, hasElement == true, "parameter check error");
 
         napi_value element = nullptr;
-        napi_get_element(env, argv[0], i, &element);
+        napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
 
         int32_t value = 0;
         napi_get_value_int32(env, element, &value);
@@ -608,9 +612,9 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     }
 
     int64_t size = 0;
-    napi_get_value_int64(env, argv[1], &size);
+    napi_get_value_int64(env, argv[ARGV_INDEX_1], &size);
     int64_t offset = 0;
-    napi_get_value_int64(env, argv[2], &offset);
+    napi_get_value_int64(env, argv[ARGV_INDEX_2], &offset);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
@@ -644,18 +648,18 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
 
     std::vector<int32_t> array;
     uint32_t arrayLength = 0;
-    napi_get_array_length(env, argv[0], &arrayLength);
+    napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
-        napi_has_element(env, argv[0], i, &hasElement);
+        napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
         if (hasElement == false) {
             ZLOGE(LOG_LABEL, "parameter check error");
             return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
         }
 
         napi_value element = nullptr;
-        napi_get_element(env, argv[0], i, &element);
+        napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
 
         int32_t value = 0;
         napi_get_value_int32(env, element, &value);
@@ -663,9 +667,9 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
     }
 
     int64_t size = 0;
-    napi_get_value_int64(env, argv[1], &size);
+    napi_get_value_int64(env, argv[ARGV_INDEX_1], &size);
     int64_t offset = 0;
-    napi_get_value_int64(env, argv[2], &offset);
+    napi_get_value_int64(env, argv[ARGV_INDEX_2], &offset);
     NAPIAshmem *napiAshmem = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiAshmem);
     if (napiAshmem == nullptr) {
@@ -695,18 +699,18 @@ napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_va
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     bool isArray = false;
-    napi_is_array(env, argv[0], &isArray);
+    napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
     if (isArray == false) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
-    napi_typeof(env, argv[2], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_2], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 4");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -775,21 +779,21 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
     } else {
         NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
         napi_valuetype valueType = napi_null;
-        napi_typeof(env, argv[0], &valueType);
+        napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
         NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
-        napi_typeof(env, argv[1], &valueType);
+        napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
         NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
         size_t bufferSize = 0;
         size_t maxLen = 40960;
-        napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+        napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
         NAPI_ASSERT(env, bufferSize < maxLen, "string length too large");
         char stringValue[bufferSize + 1];
         size_t jsStringLength = 0;
-        napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
+        napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
         NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
         std::string ashmemName = stringValue;
         uint32_t ashmemSize = 0;
-        napi_get_value_uint32(env, argv[1], &ashmemSize);
+        napi_get_value_uint32(env, argv[ARGV_INDEX_1], &ashmemSize);
         // new napi Ashmem
         sptr<Ashmem> nativeAshmem = Ashmem::CreateAshmem(ashmemName.c_str(), ashmemSize);
         NAPI_ASSERT(env, nativeAshmem != nullptr, "invalid parameters");

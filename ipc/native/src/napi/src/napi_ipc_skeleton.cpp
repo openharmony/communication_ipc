@@ -143,10 +143,10 @@ napi_value NAPI_IPCSkeleton_flushCommands(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
 
-    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
+    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
     int32_t result = IPCSkeleton::FlushCommands(target);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, result, &napiValue));
@@ -166,13 +166,13 @@ napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info
     }
 
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
-    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
+    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
     IPCSkeleton::FlushCommands(target);
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -288,15 +288,15 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT_BASE(env, argc == expectedArgc, "requires 1 parameters", retValue);
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT_BASE(env, valueType == napi_string, "type mismatch for parameter 1", retValue);
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     NAPI_ASSERT_BASE(env, bufferSize < maxLen, "string length too large", retValue);
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT_BASE(env, jsStringLength == bufferSize, "string length wrong", retValue);
 
     std::string identity = stringValue;
