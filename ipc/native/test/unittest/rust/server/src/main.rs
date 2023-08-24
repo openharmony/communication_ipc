@@ -136,7 +136,7 @@ fn main() {
     // create stub
     let service = TestStub::new_remote_stub(TestService).expect("create TestService success");
     add_service(&service.as_object().expect("get ITest service failed"),
-        IPC_TEST_SERVICE_ID).expect("add server to samgr failed"); 
+        IPC_TEST_SERVICE_ID).expect("add server to samgr failed");
     println!("join to ipc work thread");
     join_work_thread();
 }
