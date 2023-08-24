@@ -325,6 +325,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 #endif
         return false;
     }
+    ZLOGD(LABEL, "handle: %{public}u add deathrecipient", handle_);
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
         if (!AddDbinderDeathRecipient()) {
@@ -375,6 +376,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             dbinderStatus = RemoveDbinderDeathRecipient();
         }
 #endif
+        ZLOGD(LABEL, "handle: %{public}u remove deathrecipient, res: %{public}d", handle_, status);
         return status && dbinderStatus;
     }
     return recipientErased;
