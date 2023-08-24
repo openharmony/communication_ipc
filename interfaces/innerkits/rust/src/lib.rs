@@ -48,6 +48,8 @@ pub use crate::process::{
     get_local_device_id, get_calling_device_id, reset_calling_identity,
 };
 
+pub use crate::ipc_binding::{CRemoteObject, CIRemoteObject};
+
 /// First request code available for user IPC request(inclusive)
 pub const FIRST_CALL_TRANSACTION: isize = 0x00000001;
 /// Last request code available for user IPC request(inclusive)
