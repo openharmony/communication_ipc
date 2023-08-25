@@ -19,6 +19,7 @@
 #include "ipc_skeleton.h"
 
 using namespace testing::ext;
+using namespace OHOS;
 
 class IpcBlockThreadTest : public testing::Test {
 public:
