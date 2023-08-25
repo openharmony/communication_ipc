@@ -374,12 +374,33 @@ ohos_unittest("IPCSoDlcloseTest") {
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
+ohos_unittest("IPCBlockThreadTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
+    "$SUBSYSTEM_DIR/utils/include",
+  ]
+
+  sources = [ "ipc_block_thread_unittest.cpp" ]
+
+  deps = [
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [ "ipc:ipc_single" ]
+
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
     ":BinderConnectorTest",
     ":BinderInvokerUnitTest",
+    ":IPCBlockThreadTest",
     ":IPCCInterfaceUnitTest",
     ":IPCFileDescOpsTest",
     ":IPCHiTraceUnitTest",
