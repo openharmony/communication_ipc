@@ -112,7 +112,7 @@ external_deps = [ "ipc:ipc_rust" ]
 
 1. 定义接口
 
-   从IPC框架的IRemoteBroker特征继承，定义一个业务自己的trait，在此trait中定义proxy和stub之间的IPC方法。
+   继承IPC框架的IRemoteBroker特征，定义一个业务自己的trait，在此trait中定义proxy和stub之间的IPC方法。
 
 2. 定义服务
 
@@ -345,7 +345,7 @@ external_deps = [ "ipc:ipc_rust" ]
        int TestPingAbility(const std::u16string &dummy) override;
    };
 
-   int TestServiceStub::OnRemoteRequest(uint32_t code,
+   int TestAbilityStub::OnRemoteRequest(uint32_t code,
        MessageParcel &data, MessageParcel &reply, MessageOption &option)
    {
        if (data.ReadInterfaceToken() != GetDescriptor()) { // 校验是否为本服务的接口描述符，避免中继攻击
@@ -469,7 +469,7 @@ external_deps = [ "ipc:ipc_rust" ]
 
 1. 定义接口
 
-   从IPC框架的IRemoteBroker特征继承，定义一个业务自己的trait，该trait中定义proxy和stub之间的IPC方法。示例如下定义了ICalc trait:
+   继承IPC框架IRemoteBroker特征，定义一个业务自己的trait，该trait中定义proxy和stub之间的IPC方法。示例如下定义了ICalc trait:
 
    ```
    /// Function between proxy and stub of ICalcService
@@ -526,7 +526,7 @@ external_deps = [ "ipc:ipc_rust" ]
 
    和c++ 定义的服务类似，Rust服务相关的类型有两个：
 
-   1）由业务提供名字，通过宏define_remote_object!定义，如本例中的CalStub。
+   1）由业务提供名字，通过宏define_remote_object!定义，如本例中的CalcStub。
 
    2）由业务定义，框架不关心其内容，只要求其必须实现步骤1中定义的接口trait，如本例中的CalcService。
 
@@ -580,13 +580,13 @@ external_deps = [ "ipc:ipc_rust" ]
 
    2.2 实现on_icalc_remote_request()方法
 
-   当服务收到IPC请求，IPC框架会回调该方法，业务中该方法中：
+   当服务收到IPC请求，IPC框架会回调该方法，业务在该方法中完成如下处理：
 
    1）完成参数的解析。
 
    2）调用具体的服务IPC方法。
 
-   3）将处理结果写会rely。
+   3）将处理结果写会reply。
 
    示例代码如下：
 
@@ -628,7 +628,7 @@ external_deps = [ "ipc:ipc_rust" ]
 
 3. 定义代理
 
-   代理的定义由业务提供名字，通过宏define_remote_object定义代理的类型，但是业务需要负责为代理实现ICalc。示例如下：
+   代理的定义由业务提供名字，通过宏define_remote_object定义代理的类型，业务需要为代理实现ICalc。示例如下：
 
    ```
    impl ICalc for CalcProxy {
@@ -677,11 +677,11 @@ external_deps = [ "ipc:ipc_rust" ]
 
    2）服务的描述符为“example.calc.ipc.ICalcService”。
 
-   3）Rust服务类型名为CalStub。
+   3）Rust服务类型名为CalcStub。
 
    4）服务处理IPC请求的入口方法为on_icalc_remote_request。
 
-   5）代理类型为CalProxy。
+   5）代理类型为CalcProxy。
 
    示例代码如下：
 
