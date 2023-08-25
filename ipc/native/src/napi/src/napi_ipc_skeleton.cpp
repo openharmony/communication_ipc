@@ -29,10 +29,8 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 static NapiError napiErr;
 
 static const size_t ARGV_INDEX_0 = 0;
-// static const size_t ARGV_INDEX_1 = 1;
 
 static const size_t ARGV_LENGTH_1 = 1;
-// static const size_t ARGV_LENGTH_2 = 2;
 static constexpr size_t UINT64_STRING_MAX_LEN = 20;
 
 napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info info)
