@@ -379,7 +379,7 @@ ohos_unittest("IPCBlockThreadTest") {
 
   include_dirs = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
-    "$SUBSYSTEM_DIR/ipc/utils/include",
+    "$SUBSYSTEM_DIR/utils/include",
   ]
 
   sources = [ "ipc_block_thread_unittest.cpp" ]
