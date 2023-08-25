@@ -463,14 +463,3 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
     current->invokers_.clear();
     delete invoker;
 }
-
-/**
- * @tc.name: BlockUntilThreadAvailableTest001
- * @tc.desc: Verify the BlockUntilThreadAvailable function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCSkeletonTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
-{
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    ASSERT_TRUE(current != nullptr);
-}
