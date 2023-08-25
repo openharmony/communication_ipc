@@ -43,8 +43,6 @@ static const size_t ARGV_INDEX_4 = 4;
 
 static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
-// static const size_t ARGV_LENGTH_3 = 3;
-// static const size_t ARGV_LENGTH_4 = 4;
 static const size_t ARGV_LENGTH_5 = 5;
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 

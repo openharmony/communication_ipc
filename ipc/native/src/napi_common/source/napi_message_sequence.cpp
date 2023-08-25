@@ -36,11 +36,9 @@ NapiError NAPI_MessageSequence::napiErr;
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
-// static const size_t ARGV_INDEX_2 = 2;
 
 static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
-// static const size_t ARGV_LENGTH_3 = 3;
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "NAPI_MessageSequence" };
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \

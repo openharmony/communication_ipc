@@ -43,10 +43,7 @@ static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
 static const size_t ARGV_INDEX_4 = 4;
 
-// static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
-// static const size_t ARGV_LENGTH_3 = 3;
-// static const size_t ARGV_LENGTH_4 = 4;
 static const size_t ARGV_LENGTH_5 = 5;
 void ExecuteSendRequest(napi_env env, void *data)
 {
