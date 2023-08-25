@@ -33,6 +33,9 @@ static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 
+static const size_t ARGV_LENGTH_1 = 1;
+static const size_t ARGV_LENGTH_2 = 2;
+static const size_t ARGV_LENGTH_3 = 3;
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
     if (ashmem == nullptr) {
@@ -57,7 +60,7 @@ napi_value NAPIAshmem::CreateAshmem(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
     napi_valuetype valueType = napi_null;
@@ -98,7 +101,7 @@ napi_value NAPIAshmem::CreateAshmem(napi_env env, napi_callback_info info)
 napi_value NAPIAshmem::CreateAshmemFromExisting(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {nullptr};
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
     napi_value global = nullptr;
@@ -134,7 +137,7 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     size_t argc = 2;
     size_t argcExistingAshmem = 1;
     size_t argcAshmem = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (!(argc == argcExistingAshmem || argc == argcAshmem)) {
         ZLOGE(LOG_LABEL, "requires 1 or 2 parameter");
@@ -200,7 +203,7 @@ napi_value NAPIAshmem::GetAshmemConstructor(napi_env env, napi_value* argv)
 napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {nullptr};
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
@@ -277,7 +280,7 @@ napi_value NAPIAshmem::MapAshmem(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
     napi_valuetype valueType = napi_null;
@@ -299,7 +302,7 @@ napi_value NAPIAshmem::MapTypedAshmem(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
@@ -391,7 +394,7 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
     size_t argc = 2;
-    napi_value argv[2] = {0};
+    napi_value argv[ARGV_LENGTH_2] = {0};
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
     napi_valuetype valueType = napi_null;
@@ -443,7 +446,7 @@ napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     size_t argc = 2;
     size_t argNum = 2;
-    napi_value argv[2] = {0};
+    napi_value argv[ARGV_LENGTH_2] = {0};
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argNum) {
         ZLOGE(LOG_LABEL, "requires 2 parameter");
@@ -517,7 +520,7 @@ napi_value NAPIAshmem::SetProtection(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
     napi_valuetype valueType = napi_null;
@@ -539,7 +542,7 @@ napi_value NAPIAshmem::SetProtectionType(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     size_t argc = 1;
     size_t argNum = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argNum) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
@@ -581,7 +584,7 @@ napi_value NAPIAshmem::UnmapAshmem(napi_env env, napi_callback_info info)
 napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
 {
     size_t argc = 3;
-    napi_value argv[3] = {0};
+    napi_value argv[ARGV_LENGTH_3] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 3, "requires 1 parameter");
@@ -638,7 +641,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
 napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
 {
     size_t argc = 3;
-    napi_value argv[3] = {0};
+    napi_value argv[ARGV_LENGTH_3] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     napi_value checkArgsResult = CheckWriteAshmemParams(env, argc, argv);
@@ -771,7 +774,7 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
 {
     napi_value thisVar = nullptr;
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPIAshmem *napiAshmem = nullptr;
     if (argc == 0) {

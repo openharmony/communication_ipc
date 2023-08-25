@@ -40,6 +40,12 @@ static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
 static const size_t ARGV_INDEX_4 = 4;
+
+static const size_t ARGV_LENGTH_1 = 1;
+static const size_t ARGV_LENGTH_2 = 2;
+// static const size_t ARGV_LENGTH_3 = 3;
+// static const size_t ARGV_LENGTH_4 = 4;
+static const size_t ARGV_LENGTH_5 = 5;
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static std::atomic<int32_t> bytraceId = 1000;
@@ -167,7 +173,7 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
     // create a new js remote object
     size_t argc = 1;
-    napi_value argv[1] = { jsDesc };
+    napi_value argv[ARGV_LENGTH_1] = { jsDesc };
     napi_value jsRemoteObject = nullptr;
     status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject when attach");
@@ -187,7 +193,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     // new napi remote object
     size_t argc = 2;
     size_t expectedArgc = 1;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc >= expectedArgc, "requires at least 1 parameters");
@@ -352,7 +358,7 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
 {
     ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
     size_t argc = 1;
-    napi_value argv[1] = {nullptr};
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
     CallbackParam *param = static_cast<CallbackParam *>(data);
@@ -376,7 +382,7 @@ napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info
 {
     ZLOGI(LOG_LABEL, "Async onReomteReuqest's returnVal is rejected");
     size_t argc = 1;
-    napi_value argv[1] = {nullptr};
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
     CallbackParam *param = static_cast<CallbackParam *>(data);
@@ -534,7 +540,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_create_int32(param->env, param->option->GetFlags(), &flags);
         napi_value waittime = nullptr;
         napi_create_int32(param->env, param->option->GetWaitTime(), &waittime);
-        napi_value argv[2] = { flags, waittime };
+        napi_value argv[ARGV_LENGTH_2] = { flags, waittime };
         napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
         if (jsOption == nullptr) {
             ZLOGE(LOG_LABEL, "new jsOption failed");
@@ -726,7 +732,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
             napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
             // create a new js remote object
             size_t argc = 1;
-            napi_value argv[1] = { jsDesc };
+            napi_value argv[ARGV_LENGTH_1] = { jsDesc };
             napi_value jsRemoteObject = nullptr;
             status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
             NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
@@ -792,7 +798,7 @@ static napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callb
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
@@ -819,7 +825,7 @@ static napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callbac
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {
@@ -1056,7 +1062,7 @@ static napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == argcPromise || argc == argcCallback, "requires 4 or 5 parameters");
@@ -1137,7 +1143,7 @@ static napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callba
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     napi_value checkArgsResult = NAPI_RemoteObject_checkSendMessageRequestArgs(env, argc, argcCallback, argcPromise,
@@ -1184,7 +1190,7 @@ static napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_call
 {
     size_t argc = 2;
     size_t expectedArgc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 2 parameters");
@@ -1240,7 +1246,7 @@ napi_value NAPI_RemoteObject_checkModifyLocalInterfaceArgs(napi_env env, size_t 
 static napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     napi_value checkArgsResult = NAPI_RemoteObject_checkModifyLocalInterfaceArgs(env, argc, argv);
