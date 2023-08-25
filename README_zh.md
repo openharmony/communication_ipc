@@ -17,7 +17,7 @@ IPC（Inter-Process Communication）与RPC（Remote Procedure Call）机制用�
 
 ## 系统架构<a name="section1950291414611"></a>
 
-**图 1**  IPC通信机制架构图<a name="fig312319321710"></a>  
+**图 1**  IPC通信机制架构图<a name="fig312319321710"></a>
 ![](figures/ipc-architecture.png "IPC通信机制架构图")
 
 ## 目录<a name="section161941989596"></a>
@@ -68,6 +68,12 @@ external_deps = [
 ]
 ```
 
+**Rust侧编译依赖**
+
+```
+external_deps = [ "ipc:ipc_rust" ]
+```
+
 ## 说明<a name="section1312121216216"></a>
 
 **JS侧实现跨进程通信基本步骤：**
@@ -101,6 +107,34 @@ external_deps = [
 5. 获取SA
 
 6. 通过SA的标识和设备NetworkId，从SAMgr获取Proxy，通过Proxy实现与Stub的跨进程通信。
+
+**Rust侧实现跨进程通信的基本步骤：**
+
+1. 定义接口
+
+   从IPC框架的IRemoteBroker特征继承，定义一个业务自己的trait，在此trait中定义proxy和stub之间的IPC方法。
+
+2. 定义服务
+
+   和c++ 定义的服务类似，Rust服务相关的类型有两个；
+
+   1）由业务提供名字，通过宏define_remote_object定义。
+
+   2）由业务定义，框架不关心其内容，只要求其必须实现步骤1中定义的接口trait。
+
+3. 定义代理
+
+   代理的定义由业务提供名字，通过宏define_remote_object定义代理的类型。
+
+4. 创建并注册服务
+
+   服务定义完成后，只有注册到samgr后，其他进程才能获取该服务的代理，完成和该服务的通信。
+
+5. 获取代理
+
+   通过向samgr发起请求，可以获取到指定服务的代理对象，之后便可以调用该代理对象的IPC方法实现和服务的通信。
+
+6. 测试服务能力
 
 ### 接口说明<a name="section1551164914237"></a>
 
@@ -160,10 +194,10 @@ external_deps = [
 
    ```
    import rpc from "@ohos.rpc"
-   
+
    let proxy = null
    let connectId = null
-   
+
    // 单个设备
    let want = {
        // 包名和组件名写实际的值
@@ -181,7 +215,7 @@ external_deps = [
        }
    }
    connectId = globalThis.context.connectServiceExtensionAbility(want, connect)
-   
+
    // 如果是跨设备绑定，可以使用deviceManager获取目标设备NetworkId
    import deviceManager from '@ohos.distributedHardware.deviceManager'
    function deviceManagerCallback(deviceManager) {
@@ -198,9 +232,9 @@ external_deps = [
    // 第一个参数是本应用的包名，第二个参数是接收deviceManager的回调函数
    deviceManager.createDeviceManager("ohos.rpc.test", deviceManagerCallback)
    ```
-   
-   
-   
+
+
+
 2. 服务端被绑定的Ability在onConnect方法里返回继承自rpc.RemoteObject的对象，该对象需要实现onRemoteMessageRequest方法，处理客户端的请求。
 
    ```
@@ -220,7 +254,7 @@ external_deps = [
    }
    ```
 
-   
+
 
 3. 客户端在onConnect回调里接收到代理对象，调用sendRequest方法发起请求，在期约或者回调函数里接收结果。
 
@@ -246,7 +280,7 @@ external_deps = [
            data.reclaim()
            reply.reclaim()
        })
-   
+
    // 使用回调函数
    function sendRequestCallback(result) {
        try {
@@ -267,7 +301,7 @@ external_deps = [
    proxy.sendRequest(1, data, reply, option, sendRequestCallback)
    ```
 
-   
+
 
 4. IPC通信结束后，使用UIAbility的接口断开连接。
 
@@ -280,7 +314,7 @@ external_deps = [
    })
    ```
 
-   
+
 
 **Native侧使用说明**
 
@@ -298,7 +332,7 @@ external_deps = [
    };
    ```
 
-   
+
 
 2. 定义和实现服务端TestAbilityStub
 
@@ -310,11 +344,11 @@ external_deps = [
        virtual int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
        int TestPingAbility(const std::u16string &dummy) override;
    };
-    
+
    int TestServiceStub::OnRemoteRequest(uint32_t code,
        MessageParcel &data, MessageParcel &reply, MessageOption &option)
    {
-       if (data.ReadInterfaceToken() != GetDescriptor()) { //校验是否为本服务的接口描述符，避免中继攻击
+       if (data.ReadInterfaceToken() != GetDescriptor()) { // 校验是否为本服务的接口描述符，避免中继攻击
            return -1;
        }
        switch (code) {
@@ -330,7 +364,7 @@ external_deps = [
    }
    ```
 
-   
+
 
 3. 定义服务端业务函数具体实现类TestAbility
 
@@ -339,13 +373,13 @@ external_deps = [
    public:
        int TestPingAbility(const std::u16string &dummy);
    }
-   
+
    int TestAbility::TestPingAbility(const std::u16string &dummy) {
        return 0;
    }
    ```
 
-   
+
 
 4. 定义和实现客户端TestAbilityProxy
 
@@ -359,16 +393,16 @@ external_deps = [
    private:
        static inline BrokerDelegator<TestAbilityProxy> delegator_; // 方便使用iface_cast宏
    }
-   
+
    TestAbilityProxy::TestAbilityProxy(const sptr<IRemoteObject> &impl)
        : IRemoteProxy<ITestAbility>(impl)
    {
    }
-   
+
    int TestAbilityProxy::TestPingService(const std::u16string &dummy) {
        MessageOption option;
        MessageParcel dataParcel, replyParcel;
-       if(!dataParcel.WriteInterfaceToken(GetDescriptor())) { //所有对外接口的proxy实现都要写入接口描述符，用于stub端检验
+       if(!dataParcel.WriteInterfaceToken(GetDescriptor())) { // 所有对外接口的proxy实现都要写入接口描述符，用于stub端检验
            return -1;
        }
        if(!dataParcel.WriteString16(dummy)) {
@@ -380,7 +414,7 @@ external_deps = [
    }
    ```
 
-   
+
 
 5. 同步调用与异步调用
 
@@ -393,7 +427,7 @@ external_deps = [
    option.setFlags(option.TF_ASYNC);
    ```
 
-   
+
 
 6. SA注册与启动
 
@@ -403,7 +437,7 @@ external_deps = [
    // 注册到本设备内
    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
    samgr->AddSystemAbility(said, new TestAbility());
-   
+
    // 在组网场景下，会被同步到其他设备上
    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
    ISystemAbilityManager::SAExtraProp saExtra;
@@ -411,7 +445,7 @@ external_deps = [
    int result = samgr->AddSystemAbility(said, new TestAbility(), saExtra);
    ```
 
-   
+
 
 7. SA获取与调用
 
@@ -422,14 +456,308 @@ external_deps = [
    sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
    sptr<IRemoteObject> remoteObject = samgr->GetSystemAbility(said);
    sptr<ITestAbility> testAbility = iface_cast<ITestAbility>(remoteObject); // 使用iface_cast宏转换成具体类型
-   
+
    // 获取其他设备注册的SA的Proxy
    sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
    sptr<IRemoteObject> remoteObject = samgr->GetSystemAbility(sdid, deviceId); // deviceId是指定设备的标识符
    sptr<TestAbilityProxy> proxy(new TestAbilityProxy(remoteObject)); // 直接构造具体Proxy
    ```
 
+**Rust侧使用说明**
 
+以下为CALCULATOR服务的完整开发步骤。
+
+1. 定义接口
+
+   从IPC框架的IRemoteBroker特征继承，定义一个业务自己的trait，该trait中定义proxy和stub之间的IPC方法。示例如下定义了ICalc trait:
+
+   ```
+   /// Function between proxy and stub of ICalcService
+   pub trait ICalc: IRemoteBroker {
+       /// Calc add num1 + num2
+       fn add(&self, num1: i32, num2: i32) -> IpcResult<i32>;
+       /// Calc sub num1 + num2
+       fn sub(&self, num1: i32, num2: i32) -> IpcResult<i32>;
+       /// Calc mul num1 + num2
+       fn mul(&self, num1: i32, num2: i32) -> IpcResult<i32>;
+       /// Calc div num1 + num2
+       fn div(&self, num1: i32, num2: i32) -> IpcResult<i32>;
+   }
+   ```
+
+   1.1 定义枚举ICalcCode
+
+   ICalcCode枚举中的变体表示calculator服务的不同功能。当然这一步不是必须的，但是为了提高代码的可读性，建议按照如下方法为每一个IPC方法定义code,示例如下：
+
+   ```
+   /// Function code of ICalcService
+   pub enum ICalcCode {
+       /// add
+       CodeAdd = FIRST_CALL_TRANSACTION, // 由IPC框架定义，值为1，建议业务使用该值作为第一个IPC方法的code
+       /// sub
+       CodeSub,
+       /// mul
+       CodeMul,
+       /// div
+       CodeDiv,
+   }
+   ```
+
+   1.2 ICalCode转换
+
+   ICalCode实现TryFrom trait，可以实现u32类型到CalCode枚举类型的转换。
+
+   ```
+   impl TryFrom<u32> for ICalcCode {
+       type Error = IpcStatusCode;
+       fn try_from(code: u32) -> IpcResult<Self> {
+           match code {
+               _ if code == ICalcCode::CodeAdd as u32 => Ok(ICalcCode::CodeAdd),
+               _ if code == ICalcCode::CodeSub as u32 => Ok(ICalcCode::CodeSub),
+               _ if code == ICalcCode::CodeMul as u32 => Ok(ICalcCode::CodeMul),
+               _ if code == ICalcCode::CodeDiv as u32 => Ok(ICalcCode::CodeDiv),
+               _ => Err(IpcStatusCode::Failed),
+           }
+       }
+   }
+   ```
+
+2. 定义服务
+
+   和c++ 定义的服务类似，Rust服务相关的类型有两个：
+
+   1）由业务提供名字，通过宏define_remote_object!定义，如本例中的CalStub。
+
+   2）由业务定义，框架不关心其内容，只要求其必须实现步骤1中定义的接口trait，如本例中的CalcService。
+
+   2.1 定义CalcService服务
+
+   CalcService的定义如下所示，实现了ICalc和IRemoteBroker特征，服务中没有任何成员，如有需要可以根据业务需要进行定义。
+
+   ```
+   /// example.calc.ipc.ICalcService type
+   pub struct CalcService;
+   // 实现ICalc特征
+   impl ICalc for CalcService {
+       fn add(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           Ok(add(&num1, &num2))
+       }
+       fn sub(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           Ok(sub(&num1, &num2))
+       }
+       fn mul(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           Ok(mul(&num1, &num2))
+       }
+       fn div(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           Ok(div(&num1, &num2))
+       }
+   }
+   // 实现IRemoteBroker特征
+   impl IRemoteBroker for CalcService {}
+   /// add num1 + num2
+   pub fn add(num1: &i32, num2: &i32) -> i32 {
+       num1 + num2
+   }
+   /// sub num1 + num2
+   pub fn sub(num1: &i32, num2: &i32) -> i32 {
+       num1 - num2
+   }
+   /// mul num1 + num2
+   pub fn mul(num1: &i32, num2: &i32) -> i32 {
+       num1 * num2
+   }
+   /// div num1 + num2
+   pub fn div(num1: &i32, num2: &i32) -> i32 {
+       match num2 {
+           0 => {
+               println!("Zero cannot be divided");
+               -1
+           },
+           _ => num1 / num2,
+       }
+   }
+   ```
+
+   2.2 实现on_icalc_remote_request()方法
+
+   当服务收到IPC请求，IPC框架会回调该方法，业务中该方法中：
+
+   1）完成参数的解析。
+
+   2）调用具体的服务IPC方法。
+
+   3）将处理结果写会rely。
+
+   示例代码如下：
+
+   ```
+   fn on_icalc_remote_request(stub: &dyn ICalc, code: u32, data: &BorrowedMsgParcel,
+       reply: &mut BorrowedMsgParcel) -> IpcResult<()> {
+       match code.try_into()? {
+           ICalcCode::CodeAdd => {
+               let num1: i32 = data.read().expect("Failed to read num1 in addition operation");
+               let num2: i32 = data.read().expect("Failed to read num2 in addition operation");
+               let ret = stub.add(num1, num2)?;
+               reply.write(&ret)?;
+               Ok(())
+           }
+           ICalcCode::CodeSub => {
+               let num1: i32 = data.read().expect("Failed to read num1 in subtraction operation");
+               let num2: i32 = data.read().expect("Failed to read num1 in subtraction operation");
+               let ret = stub.sub(num1, num2)?;
+               reply.write(&ret)?;
+               Ok(())
+           }
+           ICalcCode::CodeMul => {
+               let num1: i32 = data.read().expect("Failed to read num1 in multiplication operation");
+               let num2: i32 = data.read().expect("Failed to read num1 in multiplication operation");
+               let ret = stub.mul(num1, num2)?;
+               reply.write(&ret)?;
+               Ok(())
+           }
+           ICalcCode::CodeDiv => {
+               let num1: i32 = data.read().expect("Failed to read num1 in division  operation");
+               let num2: i32 = data.read().expect("Failed to read num1 in division  operation");
+               let ret = stub.div(num1, num2)?;
+               reply.write(&ret)?;
+               Ok(())
+           }
+       }
+   }
+   ```
+
+3. 定义代理
+
+   代理的定义由业务提供名字，通过宏define_remote_object定义代理的类型，但是业务需要负责为代理实现ICalc。示例如下：
+
+   ```
+   impl ICalc for CalcProxy {
+       fn add(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           let mut data = MsgParcel::new().expect("MsgParcel should success");
+           data.write(&num1)?;
+           data.write(&num2)?;
+           let reply = self.remote.send_request(ICalcCode::CodeAdd as u32,
+               &data, false)?;
+           let ret: i32 = reply.read().expect("need reply i32");
+           Ok(ret)
+       }
+       fn sub(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           let mut data = MsgParcel::new().expect("MsgParcel should success");
+           data.write(&num1)?;
+           data.write(&num2)?;
+           let reply = self.remote.send_request(ICalcCode::CodeSub as u32,
+               &data, false)?;
+           let ret: i32 = reply.read().expect("need reply i32");
+           Ok(ret)
+       }
+       fn mul(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           let mut data = MsgParcel::new().expect("MsgParcel should success");
+           data.write(&num1)?;
+           data.write(&num2)?;
+           let reply = self.remote.send_request(ICalcCode::CodeMul as u32,
+               &data, false)?;
+           let ret: i32 = reply.read().expect("need reply i32");
+           Ok(ret)
+       }
+       fn div(&self, num1: i32, num2: i32) -> IpcResult<i32> {
+           let mut data = MsgParcel::new().expect("MsgParcel should success");
+           data.write(&num1)?;
+           data.write(&num2)?;
+           let reply = self.remote.send_request(ICalcCode::CodeDiv as u32,
+               &data, false)?;
+           let ret: i32 = reply.read().expect("need reply i32");
+           Ok(ret)
+       }
+   }
+   ```
+
+   上述对象最终通过宏define_remote_object调用，将业务定义的类型和IPC框架进行结合，宏define_remote_object提供了如下几个关键信息：
+
+   1）服务的接口特征ICalc。
+
+   2）服务的描述符为“example.calc.ipc.ICalcService”。
+
+   3）Rust服务类型名为CalStub。
+
+   4）服务处理IPC请求的入口方法为on_icalc_remote_request。
+
+   5）代理类型为CalProxy。
+
+   示例代码如下：
+
+   ```
+   define_remote_object!(
+       ICalc["example.calc.ipc.ICalcService"] {
+           stub: CalcStub(on_icalc_remote_request),
+           proxy: CalcProxy,
+       }
+   );
+   ```
+
+4.  创建并注册服务
+
+   服务定义完成后，只有注册到samgr后，其他进程才能获取该服务的代理，然后完成和该服务的通信。示例代码如下：
+
+   ```
+   fn main() {
+       init_access_token();
+       // 创建服务对象，最终的服务对象为CalcStub
+       let service = CalcStub::new_remote_stub(CalcService).expect("create CalcService success");
+       // 向samgr注册服务
+       add_service(&service.as_object().expect("get ICalc service failed"),
+           EXAMPLE_IPC_CALC_SERVICE_ID).expect("add server to samgr failed");
+       println!("join to ipc work thread");
+       // 将主线程转换为IPC线程，至此服务所在进程陷入循环
+       join_work_thread();
+   }
+   ```
+
+   注意：add_service为IPC 框架提供的临时调试接口，该接口应该由samgr模块提供。
+
+5. 获取代理
+
+   通过向samgr发起请求，可以获取到指定服务的代理对象，之后便可以调用该代理对象的IPC方法实现和服务的通信。示例代码如下：
+
+   ```
+   fn get_calc_service() -> RemoteObjRef<dyn ICalc>
+   {
+       let object = get_service(EXAMPLE_IPC_CALC_SERVICE_ID).expect("get icalc service failed");
+       let remote = <dyn ICalc as FromRemoteObj>::try_from(object);
+       let remote = match remote {
+           Ok(x) => x,
+           Err(error) => {
+               println!("convert RemoteObj to CalcProxy failed: {}", error);
+               panic!();
+           }
+       };
+       remote
+   }
+   ```
+
+   注意：示例中的get_service()为IPC框架提供的临时接口，该接口由samgr模块提供。
+
+6. 测试Calculartor服务能力
+
+   当测试用例Calculator_Ability pass表示CalcService 服务能力ok。
+
+   ```
+   #[test]
+   fn calculator_ability() {
+       let remote = get_calc_service();
+       // add
+       let ret = remote.add(5, 5).expect("add failed");
+       assert_eq!(ret, 10);
+       // sub
+       let ret = remote.sub(5, 5).expect("sub failed");
+       assert_eq!(ret, 0);
+       // mul
+       let ret = remote.mul(5, 5).expect("mul failed");
+       assert_eq!(ret, 25);
+       // div
+       let ret = remote.div(5, 5).expect("div failed");
+       assert_eq!(ret, 1);
+   }
+   ```
 
 ## 相关仓<a name="section1371113476307"></a>
 
