@@ -25,6 +25,9 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
+
+static const size_t ARGV_LENGTH_1 = 1;
+static const size_t ARGV_LENGTH_2 = 2;
 /*
  * Get flags field from ohos.rpc.MessageOption.
  */
@@ -50,7 +53,7 @@ static napi_value NapiOhosRpcMessageOptionSetFlags(napi_env env, napi_callback_i
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     napi_valuetype valueType = napi_null;
@@ -93,7 +96,7 @@ static napi_value NapiOhosRpcMessageOptionSetAsync(napi_env env, napi_callback_i
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     napi_valuetype valueType = napi_null;
@@ -136,7 +139,7 @@ static napi_value NapiOhosRpcMessageOptionSetWaittime(napi_env env, napi_callbac
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     napi_valuetype valueType = napi_null;
@@ -157,7 +160,7 @@ static napi_value NapiOhosRpcMessageOptionSetWaittime(napi_env env, napi_callbac
 static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
 

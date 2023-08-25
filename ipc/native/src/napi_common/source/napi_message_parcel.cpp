@@ -34,6 +34,8 @@ constexpr size_t BYTE_SIZE_64 = 8;
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
 
+static const size_t ARGV_LENGTH_1 = 1;
+static const size_t ARGV_LENGTH_2 = 2;
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_messageParcel" };
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
@@ -98,7 +100,7 @@ std::shared_ptr<MessageParcel> NAPI_MessageParcel::GetMessageParcel()
 napi_value NAPI_MessageParcel::JS_writeByte(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -123,7 +125,7 @@ napi_value NAPI_MessageParcel::JS_writeByte(napi_env env, napi_callback_info inf
 napi_value NAPI_MessageParcel::JS_writeShort(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -148,7 +150,7 @@ napi_value NAPI_MessageParcel::JS_writeShort(napi_env env, napi_callback_info in
 napi_value NAPI_MessageParcel::JS_writeInt(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -173,7 +175,7 @@ napi_value NAPI_MessageParcel::JS_writeInt(napi_env env, napi_callback_info info
 napi_value NAPI_MessageParcel::JS_writeLong(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -198,7 +200,7 @@ napi_value NAPI_MessageParcel::JS_writeLong(napi_env env, napi_callback_info inf
 napi_value NAPI_MessageParcel::JS_writeFloat(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -223,7 +225,7 @@ napi_value NAPI_MessageParcel::JS_writeFloat(napi_env env, napi_callback_info in
 napi_value NAPI_MessageParcel::JS_writeDouble(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -248,7 +250,7 @@ napi_value NAPI_MessageParcel::JS_writeDouble(napi_env env, napi_callback_info i
 napi_value NAPI_MessageParcel::JS_writeBoolean(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -273,7 +275,7 @@ napi_value NAPI_MessageParcel::JS_writeBoolean(napi_env env, napi_callback_info 
 napi_value NAPI_MessageParcel::JS_writeChar(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -298,7 +300,7 @@ napi_value NAPI_MessageParcel::JS_writeChar(napi_env env, napi_callback_info inf
 napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -345,7 +347,7 @@ napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_inf
 napi_value NAPI_MessageParcel::JS_writeShortArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -391,7 +393,7 @@ napi_value NAPI_MessageParcel::JS_writeShortArray(napi_env env, napi_callback_in
 napi_value NAPI_MessageParcel::JS_writeIntArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -441,7 +443,7 @@ napi_value NAPI_MessageParcel::JS_writeIntArray(napi_env env, napi_callback_info
 napi_value NAPI_MessageParcel::JS_writeLongArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -489,7 +491,7 @@ napi_value NAPI_MessageParcel::JS_writeLongArray(napi_env env, napi_callback_inf
 napi_value NAPI_MessageParcel::JS_writeFloatArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -536,7 +538,7 @@ napi_value NAPI_MessageParcel::JS_writeFloatArray(napi_env env, napi_callback_in
 napi_value NAPI_MessageParcel::JS_writeDoubleArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -583,7 +585,7 @@ napi_value NAPI_MessageParcel::JS_writeDoubleArray(napi_env env, napi_callback_i
 napi_value NAPI_MessageParcel::JS_writeBooleanArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -630,7 +632,7 @@ napi_value NAPI_MessageParcel::JS_writeBooleanArray(napi_env env, napi_callback_
 napi_value NAPI_MessageParcel::JS_writeCharArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -676,7 +678,7 @@ napi_value NAPI_MessageParcel::JS_writeCharArray(napi_env env, napi_callback_inf
 napi_value NAPI_MessageParcel::JS_writeString(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -712,7 +714,7 @@ napi_value NAPI_MessageParcel::JS_writeString(napi_env env, napi_callback_info i
 napi_value NAPI_MessageParcel::JS_writeStringArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -773,7 +775,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
     napi_get_boolean(env, false, &result);
 
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -815,7 +817,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
     napi_get_boolean(env, false, &retValue);
 
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT_BASE(env, argc == 1, "requires 1 parameter", retValue);
@@ -874,7 +876,7 @@ napi_value NAPI_MessageParcel::JS_writeRemoteObjectArray(napi_env env, napi_call
     napi_get_boolean(env, false, &retValue);
 
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT_BASE(env, argc == 1, "requires 1 parameter", retValue);
@@ -1086,7 +1088,7 @@ napi_value NAPI_MessageParcel::JS_getCapacity(napi_env env, napi_callback_info i
 napi_value NAPI_MessageParcel::JS_setSize(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1112,7 +1114,7 @@ napi_value NAPI_MessageParcel::JS_setSize(napi_env env, napi_callback_info info)
 napi_value NAPI_MessageParcel::JS_setCapacity(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1189,7 +1191,7 @@ napi_value NAPI_MessageParcel::JS_getReadPosition(napi_env env, napi_callback_in
 napi_value NAPI_MessageParcel::JS_rewindRead(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1231,7 +1233,7 @@ napi_value NAPI_MessageParcel::JS_getWritePosition(napi_env env, napi_callback_i
 napi_value NAPI_MessageParcel::JS_rewindWrite(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1302,7 +1304,7 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
 
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1353,7 +1355,7 @@ napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_inf
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1404,7 +1406,7 @@ napi_value NAPI_MessageParcel::JS_readIntArray(napi_env env, napi_callback_info 
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1455,7 +1457,7 @@ napi_value NAPI_MessageParcel::JS_readLongArray(napi_env env, napi_callback_info
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_64, napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1506,7 +1508,7 @@ napi_value NAPI_MessageParcel::JS_readFloatArray(napi_env env, napi_callback_inf
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1557,7 +1559,7 @@ napi_value NAPI_MessageParcel::JS_readDoubleArray(napi_env env, napi_callback_in
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1608,7 +1610,7 @@ napi_value NAPI_MessageParcel::JS_readBooleanArray(napi_env env, napi_callback_i
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1660,7 +1662,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1711,7 +1713,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
     if (argc > 0) {
         NAPI_ASSERT(env, argc == 1, "type mismatch for parameter 1");
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiParcel);
-        napi_value argv[1] = {0};
+        napi_value argv[ARGV_LENGTH_1] = {0};
         void *data = nullptr;
         napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
 
@@ -1754,7 +1756,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceableArray(napi_env env, napi_callb
 {
     size_t argc = 1;
     napi_value thisVar = nullptr;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
@@ -1813,7 +1815,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
     napi_get_undefined(env, &result);
 
     size_t argc = 0;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
 
@@ -1857,7 +1859,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
 napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
@@ -1922,7 +1924,7 @@ napi_value NAPI_MessageParcel::JS_reclaim(napi_env env, napi_callback_info info)
 napi_value NAPI_MessageParcel::JS_writeRemoteObject(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -1965,7 +1967,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObject(napi_env env, napi_callback_i
 napi_value NAPI_MessageParcel::JS_writeInterfaceToken(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -2017,7 +2019,7 @@ napi_value NAPI_MessageParcel::JS_readInterfaceToken(napi_env env, napi_callback
 napi_value NAPI_MessageParcel::JS_CloseFileDescriptor(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameters");
@@ -2035,7 +2037,7 @@ napi_value NAPI_MessageParcel::JS_CloseFileDescriptor(napi_env env, napi_callbac
 napi_value NAPI_MessageParcel::JS_DupFileDescriptor(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameters");
@@ -2067,7 +2069,7 @@ napi_value NAPI_MessageParcel::JS_ContainFileDescriptors(napi_env env, napi_call
 napi_value NAPI_MessageParcel::JS_WriteFileDescriptor(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameters");
@@ -2102,7 +2104,7 @@ napi_value NAPI_MessageParcel::JS_ReadFileDescriptor(napi_env env, napi_callback
 napi_value NAPI_MessageParcel::JS_WriteAshmem(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -2159,7 +2161,7 @@ napi_value NAPI_MessageParcel::JS_ReadAshmem(napi_env env, napi_callback_info in
 napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
-    napi_value argv[2] = {0};
+    napi_value argv[ARGV_LENGTH_2] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
@@ -2201,7 +2203,7 @@ napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info 
 napi_value NAPI_MessageParcel::JS_ReadRawData(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameters");
@@ -2338,7 +2340,7 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
 {
     napi_value thisVar = nullptr;
     size_t argc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     MessageParcel *parcel = nullptr;

@@ -43,6 +43,11 @@ static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
 static const size_t ARGV_INDEX_4 = 4;
 
+// static const size_t ARGV_LENGTH_1 = 1;
+static const size_t ARGV_LENGTH_2 = 2;
+// static const size_t ARGV_LENGTH_3 = 3;
+// static const size_t ARGV_LENGTH_4 = 4;
+static const size_t ARGV_LENGTH_5 = 5;
 void ExecuteSendRequest(napi_env env, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
@@ -187,7 +192,7 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == argcPromise || argc == argcCallback, "requires 4 or 5 parameters");
@@ -284,7 +289,7 @@ napi_value NAPI_RemoteProxy_sendMessageRequest(napi_env env, napi_callback_info 
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argcPromise && argc != argcCallback) {
@@ -345,7 +350,7 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
     ZLOGI(LOG_LABEL, "add death recipient");
     size_t argc = 2;
     size_t expectedArgc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -418,7 +423,7 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
 {
     ZLOGI(LOG_LABEL, "register death recipient");
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -466,7 +471,7 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
 {
     ZLOGI(LOG_LABEL, "remove death recipient");
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     size_t expectedArgc = 2;
@@ -546,7 +551,7 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
 {
     ZLOGI(LOG_LABEL, "unregister death recipient");
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
