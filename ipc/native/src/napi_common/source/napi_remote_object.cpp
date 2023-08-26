@@ -39,6 +39,11 @@ static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
+static const size_t ARGV_INDEX_4 = 4;
+
+static const size_t ARGV_LENGTH_1 = 1;
+static const size_t ARGV_LENGTH_2 = 2;
+static const size_t ARGV_LENGTH_5 = 5;
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static std::atomic<int32_t> bytraceId = 1000;
@@ -166,7 +171,7 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
     // create a new js remote object
     size_t argc = 1;
-    napi_value argv[1] = { jsDesc };
+    napi_value argv[ARGV_LENGTH_1] = { jsDesc };
     napi_value jsRemoteObject = nullptr;
     status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject when attach");
@@ -186,20 +191,20 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     // new napi remote object
     size_t argc = 2;
     size_t expectedArgc = 1;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc >= expectedArgc, "requires at least 1 parameters");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     NAPI_ASSERT(env, bufferSize < maxLen, "string length too large");
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
     auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor), thisVar);
@@ -351,12 +356,12 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
 {
     ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
     size_t argc = 1;
-    napi_value argv[1] = {nullptr};
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
     CallbackParam *param = static_cast<CallbackParam *>(data);
     bool result = false;
-    napi_get_value_bool(param->env, argv[0], &result);
+    napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
     if (!result) {
         ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
         param->result = ERR_UNKNOWN_TRANSACTION;
@@ -375,7 +380,7 @@ napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info
 {
     ZLOGI(LOG_LABEL, "Async onReomteReuqest's returnVal is rejected");
     size_t argc = 1;
-    napi_value argv[1] = {nullptr};
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
     CallbackParam *param = static_cast<CallbackParam *>(data);
@@ -533,7 +538,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         napi_create_int32(param->env, param->option->GetFlags(), &flags);
         napi_value waittime = nullptr;
         napi_create_int32(param->env, param->option->GetWaitTime(), &waittime);
-        napi_value argv[2] = { flags, waittime };
+        napi_value argv[ARGV_LENGTH_2] = { flags, waittime };
         napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
         if (jsOption == nullptr) {
             ZLOGE(LOG_LABEL, "new jsOption failed");
@@ -725,7 +730,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
             napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
             // create a new js remote object
             size_t argc = 1;
-            napi_value argv[1] = { jsDesc };
+            napi_value argv[ARGV_LENGTH_1] = { jsDesc };
             napi_value jsRemoteObject = nullptr;
             status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
             NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
@@ -791,20 +796,20 @@ static napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callb
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 1");
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     NAPI_ASSERT(env, bufferSize < maxLen, "string length too large");
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
     NAPIRemoteObjectHolder *holder = nullptr;
@@ -818,7 +823,7 @@ static napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callbac
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {
@@ -826,21 +831,21 @@ static napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callbac
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_string) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -997,11 +1002,11 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
             StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
-    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
-    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
-    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
-    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
-    napi_create_reference(env, argv[4], 1, &sendRequestParam->callback);
+    napi_create_reference(env, argv[ARGV_INDEX_0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[ARGV_INDEX_1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[ARGV_INDEX_2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[ARGV_INDEX_3], 1, &sendRequestParam->jsOptionRef);
+    napi_create_reference(env, argv[ARGV_INDEX_4], 1, &sendRequestParam->callback);
     std::thread t(StubExecuteSendRequest, env, sendRequestParam);
     t.detach();
     napi_value result = nullptr;
@@ -1041,10 +1046,10 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
             StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
-    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
-    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
-    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
-    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
+    napi_create_reference(env, argv[ARGV_INDEX_0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[ARGV_INDEX_1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[ARGV_INDEX_2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[ARGV_INDEX_3], 1, &sendRequestParam->jsOptionRef);
     std::thread t(StubExecuteSendRequest, env, sendRequestParam);
     t.detach();
     return promise;
@@ -1055,31 +1060,31 @@ static napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == argcPromise || argc == argcCallback, "requires 4 or 5 parameters");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 2");
-    napi_typeof(env, argv[2], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_2], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 3");
-    napi_typeof(env, argv[3], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_3], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 4");
 
     NAPI_MessageParcel *data = nullptr;
-    napi_status status = napi_unwrap(env, argv[1], (void **)&data);
+    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], (void **)&data);
     NAPI_ASSERT(env, status == napi_ok, "failed to get data message parcel");
     NAPI_MessageParcel *reply = nullptr;
-    status = napi_unwrap(env, argv[2], (void **)&reply);
+    status = napi_unwrap(env, argv[ARGV_INDEX_2], (void **)&reply);
     NAPI_ASSERT(env, status == napi_ok, "failed to get reply message parcel");
     MessageOption *option = nullptr;
-    status = napi_unwrap(env, argv[3], (void **)&option);
+    status = napi_unwrap(env, argv[ARGV_INDEX_3], (void **)&option);
     NAPI_ASSERT(env, status == napi_ok, "failed to get message option");
     int32_t code = 0;
-    napi_get_value_int32(env, argv[0], &code);
+    napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
     if (argc == argcCallback) {
@@ -1136,7 +1141,7 @@ static napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callba
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     napi_value checkArgsResult = NAPI_RemoteObject_checkSendMessageRequestArgs(env, argc, argcCallback, argcPromise,
@@ -1145,25 +1150,25 @@ static napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callba
         return checkArgsResult;
     }
     NAPI_MessageSequence *data = nullptr;
-    napi_status status = napi_unwrap(env, argv[1], (void **)&data);
+    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], (void **)&data);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get data message sequence");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     NAPI_MessageSequence *reply = nullptr;
-    status = napi_unwrap(env, argv[2], (void **)&reply);
+    status = napi_unwrap(env, argv[ARGV_INDEX_2], (void **)&reply);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get data message sequence");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     MessageOption *option = nullptr;
-    status = napi_unwrap(env, argv[3], (void **)&option);
+    status = napi_unwrap(env, argv[ARGV_INDEX_3], (void **)&option);
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get message option");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int32_t code = 0;
-    napi_get_value_int32(env, argv[0], &code);
+    napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
     if (argc == argcCallback) {
@@ -1183,29 +1188,29 @@ static napi_value NAPI_RemoteObject_attachLocalInterface(napi_env env, napi_call
 {
     size_t argc = 2;
     size_t expectedArgc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 2 parameters");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for parameter 2");
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[1], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_1], nullptr, 0, &bufferSize);
     NAPI_ASSERT(env, bufferSize < maxLen, "string length too large");
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[1], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_1], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
 
     NAPIRemoteObjectHolder *holder = nullptr;
     napi_unwrap(env, thisVar, (void* *)&holder);
     NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
-    holder->attachLocalInterface(argv[0], descriptor);
+    holder->attachLocalInterface(argv[ARGV_INDEX_0], descriptor);
 
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -1239,7 +1244,7 @@ napi_value NAPI_RemoteObject_checkModifyLocalInterfaceArgs(napi_env env, size_t 
 static napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     napi_value checkArgsResult = NAPI_RemoteObject_checkModifyLocalInterfaceArgs(env, argc, argv);
@@ -1248,14 +1253,14 @@ static napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_call
     }
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[1], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_1], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[1], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_1], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -1268,7 +1273,7 @@ static napi_value NAPI_RemoteObject_modifyLocalInterface(napi_env env, napi_call
         ZLOGE(LOG_LABEL, "failed to get napi remote object holder");
         return nullptr;
     }
-    holder->attachLocalInterface(argv[0], descriptor);
+    holder->attachLocalInterface(argv[ARGV_INDEX_0], descriptor);
 
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
