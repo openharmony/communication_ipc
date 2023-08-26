@@ -41,7 +41,10 @@ static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
+static const size_t ARGV_INDEX_4 = 4;
 
+static const size_t ARGV_LENGTH_2 = 2;
+static const size_t ARGV_LENGTH_5 = 5;
 void ExecuteSendRequest(napi_env env, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
@@ -122,11 +125,11 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
             StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
-    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
-    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
-    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
-    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
-    napi_create_reference(env, argv[4], 1, &sendRequestParam->callback);
+    napi_create_reference(env, argv[ARGV_INDEX_0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[ARGV_INDEX_1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[ARGV_INDEX_2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[ARGV_INDEX_3], 1, &sendRequestParam->jsOptionRef);
+    napi_create_reference(env, argv[ARGV_INDEX_4], 1, &sendRequestParam->callback);
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
@@ -169,10 +172,10 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
             StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
         }
     }
-    napi_create_reference(env, argv[0], 1, &sendRequestParam->jsCodeRef);
-    napi_create_reference(env, argv[1], 1, &sendRequestParam->jsDataRef);
-    napi_create_reference(env, argv[2], 1, &sendRequestParam->jsReplyRef);
-    napi_create_reference(env, argv[3], 1, &sendRequestParam->jsOptionRef);
+    napi_create_reference(env, argv[ARGV_INDEX_0], 1, &sendRequestParam->jsCodeRef);
+    napi_create_reference(env, argv[ARGV_INDEX_1], 1, &sendRequestParam->jsDataRef);
+    napi_create_reference(env, argv[ARGV_INDEX_2], 1, &sendRequestParam->jsReplyRef);
+    napi_create_reference(env, argv[ARGV_INDEX_3], 1, &sendRequestParam->jsOptionRef);
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
@@ -186,31 +189,31 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == argcPromise || argc == argcCallback, "requires 4 or 5 parameters");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 2");
-    napi_typeof(env, argv[2], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_2], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 3");
-    napi_typeof(env, argv[3], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_3], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 4");
 
     NAPI_MessageParcel *data = nullptr;
-    napi_status status = napi_unwrap(env, argv[1], (void **)&data);
+    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], (void **)&data);
     NAPI_ASSERT(env, status == napi_ok, "failed to get data message parcel");
     NAPI_MessageParcel *reply = nullptr;
-    status = napi_unwrap(env, argv[2], (void **)&reply);
+    status = napi_unwrap(env, argv[ARGV_INDEX_2], (void **)&reply);
     NAPI_ASSERT(env, status == napi_ok, "failed to get reply message parcel");
     MessageOption *option = nullptr;
-    status = napi_unwrap(env, argv[3], (void **)&option);
+    status = napi_unwrap(env, argv[ARGV_INDEX_3], (void **)&option);
     NAPI_ASSERT(env, status == napi_ok, "failed to get message option");
     int32_t code = 0;
-    napi_get_value_int32(env, argv[0], &code);
+    napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
     napi_unwrap(env, thisVar, (void **)&proxyHolder);
@@ -283,7 +286,7 @@ napi_value NAPI_RemoteProxy_sendMessageRequest(napi_env env, napi_callback_info 
     size_t argc = 4;
     size_t argcCallback = 5;
     size_t argcPromise = 4;
-    napi_value argv[5] = { 0 };
+    napi_value argv[ARGV_LENGTH_5] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != argcPromise && argc != argcCallback) {
@@ -298,7 +301,7 @@ napi_value NAPI_RemoteProxy_sendMessageRequest(napi_env env, napi_callback_info 
         return checkArgsResult;
     }
     int32_t code = 0;
-    napi_get_value_int32(env, argv[0], &code);
+    napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -344,21 +347,21 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
     ZLOGI(LOG_LABEL, "add death recipient");
     size_t argc = 2;
     size_t expectedArgc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 2 parameter");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
     int32_t flag = 0;
-    napi_get_value_int32(env, argv[1], &flag);
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &flag);
 
     napi_value result;
-    if (argv[0] == nullptr) {
+    if (argv[ARGV_INDEX_0] == nullptr) {
         napi_get_boolean(env, false, &result);
         return result;
     }
@@ -377,7 +380,7 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
         return result;
     }
 
-    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
     if (target->AddDeathRecipient(nativeRecipient)) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
         if (list->Add(nativeRecipient)) {
@@ -417,7 +420,7 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
 {
     ZLOGI(LOG_LABEL, "register death recipient");
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -426,9 +429,9 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
         return checkArgsResult;
     }
     int32_t flag = 0;
-    napi_get_value_int32(env, argv[1], &flag);
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &flag);
 
-    if (argv[0] == nullptr) {
+    if (argv[ARGV_INDEX_0] == nullptr) {
         ZLOGE(LOG_LABEL, "invalid parameter 1");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -449,7 +452,7 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
     }
 
-    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
     if (target->AddDeathRecipient(nativeRecipient)) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
         if (list->Add(nativeRecipient)) {
@@ -465,24 +468,24 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
 {
     ZLOGI(LOG_LABEL, "remove death recipient");
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     size_t expectedArgc = 2;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 2 parameter");
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
-    napi_typeof(env, argv[1], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_1], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
     napi_value result;
-    if (argv[0] == nullptr) {
+    if (argv[ARGV_INDEX_0] == nullptr) {
         napi_get_boolean(env, false, &result);
         return result;
     }
     int32_t flag = 0;
-    napi_get_value_int32(env, argv[1], &flag);
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &flag);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
     napi_status status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
@@ -498,7 +501,7 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
         return result;
     }
     sptr<NAPIDeathRecipientList> list = proxyHolder->list_;
-    sptr<NAPIDeathRecipient> nativeRecipient = list->Find(argv[0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = list->Find(argv[ARGV_INDEX_0]);
     if (nativeRecipient == nullptr) {
         ZLOGE(LOG_LABEL, "recipient not found");
         napi_get_boolean(env, false, &result);
@@ -545,7 +548,7 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
 {
     ZLOGI(LOG_LABEL, "unregister death recipient");
     size_t argc = 2;
-    napi_value argv[2] = { 0 };
+    napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -554,7 +557,7 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
         return checkArgsResult;
     }
     int32_t flag = 0;
-    napi_get_value_int32(env, argv[1], &flag);
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &flag);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
     napi_status status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
@@ -574,7 +577,7 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     sptr<NAPIDeathRecipientList> list = proxyHolder->list_;
-    sptr<NAPIDeathRecipient> nativeRecipient = list->Find(argv[0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = list->Find(argv[ARGV_INDEX_0]);
     if (nativeRecipient == nullptr) {
         ZLOGE(LOG_LABEL, "recipient not found");
         return result;

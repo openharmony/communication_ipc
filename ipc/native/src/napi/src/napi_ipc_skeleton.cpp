@@ -29,7 +29,8 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 static NapiError napiErr;
 
 static const size_t ARGV_INDEX_0 = 0;
-static const size_t ARGV_INDEX_1 = 1;
+
+static const size_t ARGV_LENGTH_1 = 1;
 static constexpr size_t UINT64_STRING_MAX_LEN = 20;
 
 napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info info)
@@ -136,17 +137,17 @@ napi_value NAPI_IPCSkeleton_isLocalCalling(napi_env env, napi_callback_info info
 napi_value NAPI_IPCSkeleton_flushCommands(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
 
-    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
+    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
     int32_t result = IPCSkeleton::FlushCommands(target);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, result, &napiValue));
@@ -156,7 +157,7 @@ napi_value NAPI_IPCSkeleton_flushCommands(napi_env env, napi_callback_info info)
 napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
-    napi_value argv[1] = {0};
+    napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
@@ -166,13 +167,13 @@ napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info
     }
 
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_object) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
-    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
+    sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
     IPCSkeleton::FlushCommands(target);
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
@@ -283,20 +284,20 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
 
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT_BASE(env, argc == expectedArgc, "requires 1 parameters", retValue);
     napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[0], &valueType);
+    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT_BASE(env, valueType == napi_string, "type mismatch for parameter 1", retValue);
     size_t bufferSize = 0;
     size_t maxLen = 40960;
-    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     NAPI_ASSERT_BASE(env, bufferSize < maxLen, "string length too large", retValue);
     char stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT_BASE(env, jsStringLength == bufferSize, "string length wrong", retValue);
 
     std::string identity = stringValue;
@@ -423,7 +424,7 @@ napi_value NAPI_IPCSkeleton_restoreCallingIdentity(napi_env env, napi_callback_i
 
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[ARGV_INDEX_1] = { 0 };
+   napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {
