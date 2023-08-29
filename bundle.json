@@ -117,6 +117,15 @@
                 "header_files": [],
                 "header_base": []
               }
+            },
+            {
+              "name": "//foundation/communication/ipc/interfaces/kits/js/napi:ipc_js",
+              "header": {
+                "header_files": [
+                  "napi_remote_object.h"
+                ],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common/include"
+              }
             }
         ],
         "test": [
