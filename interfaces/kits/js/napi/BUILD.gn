@@ -12,50 +12,59 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+if (support_jsapi) {
+  SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+  config("rpc_public_config") {
+    visibility = [ ":*" ]
+    include_dirs = [ "$SUBSYSTEM_DIR/ipc/native/src/napi/include" ]
+  }
 
-config("rpc_public_config") {
-  visibility = [ ":*" ]
-  include_dirs = [ "$SUBSYSTEM_DIR/ipc/native/src/napi/include" ]
+  ohos_shared_library("rpc") {
+    sanitize = {
+      integer_overflow = true
+    }
+    version_script = "librpc_map"
+    include_dirs = [
+      "$SUBSYSTEM_DIR/utils/include",
+      "//foundation/arkui/napi/interfaces/kits",
+      "//foundation/arkui/napi/native_engine",
+      "//utils/system/safwk/native/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
+      "$SUBSYSTEM_DIR/ipc/native/c/adapter/access_token/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/napi_common/include",
+    ]
+    public_configs = [ ":rpc_public_config" ]
+
+    sources = [
+      "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ipc_skeleton.cpp",
+      "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
+      "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_proxy.cpp",
+      "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
+    ]
+
+    deps = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi_common",
+      "//third_party/libuv:uv",
+    ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
+      "napi:ace_napi",
+    ]
+
+    relative_install_dir = "module"
+
+    subsystem_name = "communication"
+    part_name = "ipc"
+  }
 }
 
-ohos_shared_library("rpc") {
-  sanitize = {
-    integer_overflow = true
+group("ipc_js") {
+  if (support_jsapi) {
+    deps = [ ":rpc" ]
   }
-  version_script = "librpc_map"
-  include_dirs = [
-    "$SUBSYSTEM_DIR/utils/include",
-    "//foundation/arkui/napi/interfaces/kits",
-    "//foundation/arkui/napi/native_engine",
-    "//utils/system/safwk/native/include",
-    "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
-    "$SUBSYSTEM_DIR/ipc/native/c/adapter/access_token/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi_common/include",
-  ]
-  public_configs = [ ":rpc_public_config" ]
-
-  sources = [
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ipc_skeleton.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_proxy.cpp",
-    "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_rpc_native_module.cpp",
-  ]
-
-  deps = [ "//third_party/libuv:uv" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "ipc:ipc_core",
-    "ipc:ipc_napi_common",
-    "napi:ace_napi",
-  ]
-
-  relative_install_dir = "module"
-
-  subsystem_name = "communication"
-  part_name = "ipc_js"
 }
