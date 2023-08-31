@@ -62,6 +62,16 @@ impl IntoRawFd for FileDesc {
     }
 }
 
+/// # Safety
+///
+/// An `FileDesc` is an immutable handle to File, which is thread-safe
+unsafe impl Send for FileDesc {}
+
+/// # Safety
+///
+/// An `FileDesc` is an immutable handle to File, which is thread-safe
+unsafe impl Sync for FileDesc {}
+
 impl PartialEq for FileDesc {
     // Since ParcelFileDescriptors own the FD, if this function ever returns true (and it is used to
     // compare two different objects), then it would imply that an FD is double-owned.
