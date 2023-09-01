@@ -66,7 +66,7 @@ private:
     static constexpr int SEND_MSG_TIMEOUT_MS = 200;
 
     DISALLOW_COPY_AND_MOVE(DBinderRemoteListener);
-    std::mutex busManagerMutex_;
+    std::mutex resourceMutex_;
     std::mutex serverSessionMutex_;
     std::mutex deviceMutex_;
     std::shared_ptr<ISessionService> softbusManager_;
