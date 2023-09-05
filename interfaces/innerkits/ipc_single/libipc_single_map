@@ -25,7 +25,9 @@
             OHOS::BrokerRegistration::NewInstance*;
             OHOS::IPCDfx*;
             OHOS::IPCSkeleton*;
+            OHOS::IPC_SINGLE::IPCThreadSkeleton*;
             OHOS::IRemoteObject*;
+            "OHOS::IPC_SINGLE::BinderInvoker::BinderInvoker()";
             "OHOS::MessageParcel::MessageParcel()";
             "OHOS::MessageParcel::MessageParcel(OHOS::Allocator*)";
             "OHOS::MessageParcel::~MessageParcel()";
@@ -90,6 +92,8 @@
             "OHOS::IRemoteObject::GetInterfaceDescriptor()";
             "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
+            "OHOS::IPC_SINGLE::InvokerFactory::Get()";
+            "OHOS::IPC_SINGLE::InvokerFactory::Register(int, std::__h::function<OHOS::IPC_SINGLE::IRemoteInvoker* ()>)";
         };
     local:
         *;

@@ -33,6 +33,14 @@ pub trait IRemoteObj {
     /// Send a IPC request to remote service
     fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> IpcResult<MsgParcel>;
 
+    /// Send asynchronous IPC requests to remote services,
+    /// The current interface will use ylong runtime to start a separate thread to execute requests
+    fn async_send_request<F, R>(&self, code: u32, data: MsgParcel, call_back: F)
+    where
+        F: FnOnce(MsgParcel) -> R,
+        F: Send + 'static,
+        R: Send + 'static,;
+
     /// Add a death recipient
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool;
 

@@ -233,3 +233,13 @@ pub fn reset_calling_identity() -> IpcResult<String>
         Err(IpcStatusCode::Failed)
     }
 }
+
+/// Determine whether the current thread is currently executing an incoming transaction.
+#[inline]
+pub fn is_handling_transaction() -> bool
+{
+    // SAFETY:
+    unsafe {
+        ipc_binding::IsHandlingTransaction()
+    }
+}
