@@ -20,12 +20,14 @@ macro_rules! define_remote_object {
         $remote_broker:path[$descriptor:expr] {
             stub: $stub:ident($on_remote_request:path),
             proxy: $proxy:ident,
+            $(async: $async_interface:ident,)?
         }
     } => {
         $crate::define_remote_object! {
             $remote_broker[$descriptor] {
                 stub: $stub($on_remote_request),
                 proxy: $proxy {},
+                $(async: $async_interface,)?
             }
         }
     };
@@ -36,6 +38,7 @@ macro_rules! define_remote_object {
             proxy: $proxy:ident {
                 $($item_name:ident: $item_type:ty = $item_init:expr),*
             },
+            $(async: $async_interface:ident,)?
         }
     } => {
         /// IPC proxy type
@@ -73,7 +76,10 @@ macro_rules! define_remote_object {
         impl $stub {
             /// Create a new remote stub service
             #[allow(dead_code)]
-            pub fn new_remote_stub<T: $remote_broker + Send + Sync + 'static>(obj: T) -> Option<$crate::RemoteStub<Self>> {
+            pub fn new_remote_stub<T>(obj: T) -> Option<$crate::RemoteStub<Self>>
+            where
+                T: $remote_broker + Send + Sync + 'static,
+            {
                 RemoteStub::new($stub(Box::new(obj)))
             }
         }
@@ -109,5 +115,23 @@ macro_rules! define_remote_object {
                 Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(&object)?)))
             }
         }
+
+        $(
+            // Async interface trait implementations.
+            impl<P: $crate::IpcAsyncPool> $crate::FromRemoteObj for dyn $async_interface<P> {
+                fn try_from(object: $crate::RemoteObj)
+                    -> $crate::IpcResult<$crate::RemoteObjRef<dyn $async_interface<P>>> {
+                    Ok($crate::RemoteObjRef::new(Box::new($proxy::from_remote_object(&object)?)))
+                }
+            }
+
+            impl<P: $crate::IpcAsyncPool> $crate::ToAsyncIpc<P> for dyn $remote_broker {
+                type Target = dyn $async_interface<P>;
+            }
+
+            impl<P: $crate::IpcAsyncPool> $crate::ToSyncIpc for dyn $async_interface<P> {
+                type Target = dyn $remote_broker;
+            }
+        )?
     };
 }
