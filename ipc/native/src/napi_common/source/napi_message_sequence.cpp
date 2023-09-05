@@ -2707,7 +2707,6 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
     napi_get_array_length(env, jsArray, &length);
     if (length < size) {
         ZLOGE(LOG_LABEL, "array length %{public}u less than parameter size %{public}u", length, size);
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     for (uint32_t i = 0; i < length; i++) {
         bool hasElement = false;
@@ -2809,9 +2808,11 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
     }
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
+    napi_value result = nullptr;
     if (arraySize <= 0) {
         ZLOGE(LOG_LABEL, "arraySize is %{public}d, error", arraySize);
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        napi_create_array(env, &result);
+        return result;
     }
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
@@ -2825,7 +2826,6 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
     // [c++] rawData -> byteBuffer()[js]
-    napi_value result = nullptr;
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
     size_t bufferSize = static_cast<size_t>(arraySize) * BYTE_SIZE_32;
