@@ -778,6 +778,7 @@ bool DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
     std::lock_guard<std::mutex> lock(threadLockMutex_);
     for (auto it = threadLockInfo_.begin(); it != threadLockInfo_.end();) {
         if (it->second->networkId != session->GetPeerDeviceId()) {
+            it++;
             continue;
         }
         std::unique_lock<std::mutex> lock(it->second->mutex);
