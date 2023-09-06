@@ -2705,9 +2705,6 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
     std::vector<int32_t> array;
     uint32_t length = 0;
     napi_get_array_length(env, jsArray, &length);
-    if (length < size) {
-        ZLOGE(LOG_LABEL, "array length %{public}u less than parameter size %{public}u", length, size);
-    }
     for (uint32_t i = 0; i < length; i++) {
         bool hasElement = false;
         napi_has_element(env, jsArray, i, &hasElement);
@@ -2722,6 +2719,14 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
         int32_t value = 0;
         napi_get_value_int32(env, element, &value);
         array.push_back(value);
+    }
+    if (length < size) {
+        uint32_t padSize = size - length;
+        ZLOGW(LOG_LABEL, "array length %{public}u less than parameter size %{public}u, "
+            " need pad %{public}u 0", length, size, padSize);
+        for (uint32_t i = 0; i < padSize; i++) {
+            array.push_back(0);
+        }
     }
     return napiSequence->nativeParcel_->WriteRawData(array.data(), size * BYTE_SIZE_32);
 }
