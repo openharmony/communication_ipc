@@ -424,7 +424,7 @@ napi_value NAPI_IPCSkeleton_restoreCallingIdentity(napi_env env, napi_callback_i
 
     size_t argc = 1;
     size_t expectedArgc = 1;
-   napi_value argv[ARGV_LENGTH_1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = { 0 };
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {
