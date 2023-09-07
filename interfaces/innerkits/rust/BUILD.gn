@@ -32,10 +32,7 @@ ohos_rust_shared_library("ipc_rust") {
 
   deps = [ ":ipc_c" ]
 
-  external_deps = [
-    "hilog:hilog_rust",
-    "ylong_runtime:ylong_runtime",
-  ]
+  external_deps = [ "hilog:hilog_rust" ]
 
   crate_name = "ipc_rust"
   crate_type = "dylib"
@@ -46,10 +43,7 @@ ohos_rust_shared_library("ipc_rust") {
 }
 
 config("libipc_c_private_config") {
-  cflags_cc = [
-    "-DCONFIG_IPC_SINGLE",
-    "-O2",
-  ]
+  cflags_cc = [ "-O2" ]
 }
 
 ohos_shared_library("ipc_c") {
