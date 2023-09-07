@@ -20,7 +20,6 @@
 #include "log_tags.h"
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
-#include "ipc_thread_skeleton.h"
 
 using namespace OHOS;
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CProcess" };
@@ -140,13 +139,4 @@ bool ResetCallingIdentity(void *value, OnCParcelBytesAllocator allocator)
         return false;
     }
     return true;
-}
-
-bool IsHandlingTransaction()
-{
-    if (OHOS::IPC_SINGLE::IPCThreadSkeleton::GetActiveInvoker() != nullptr) {
-        return true;
-    }
-
-    return false;
 }

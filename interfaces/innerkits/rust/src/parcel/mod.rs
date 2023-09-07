@@ -292,11 +292,6 @@ pub struct MsgParcel {
 /// An `MsgParcel` is an immutable handle to CParcel, which is thread-safe
 unsafe impl Send for MsgParcel {}
 
-/// # Safety
-///
-/// An `MsgParcel` is an immutable handle to CParcel, which is thread-safe
-unsafe impl Sync for MsgParcel {}
-
 impl IMsgParcel for MsgParcel {}
 
 impl MsgParcel {
@@ -378,6 +373,7 @@ pub struct BorrowedMsgParcel<'a> {
 impl<'a> IMsgParcel for BorrowedMsgParcel<'a> {}
 
 impl<'a> BorrowedMsgParcel<'a> {
+
     /// # Safety
     ///
     /// `*mut CParcel` must be a valid pointer
