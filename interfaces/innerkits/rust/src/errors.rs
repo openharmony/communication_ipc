@@ -74,11 +74,6 @@ pub enum IpcStatusCode {
 
 impl Error for IpcStatusCode {}
 
-/// # Safety
-///
-/// IpcStatusCode is an enumeration type that can exist in multiple threads.
-unsafe impl Send for IpcStatusCode {}
-
 impl fmt::Display for IpcStatusCode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {

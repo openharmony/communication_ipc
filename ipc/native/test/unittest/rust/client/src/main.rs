@@ -19,7 +19,6 @@
 extern crate ipc_rust;
 extern crate test_ipc_service;
 
-use test_ipc_service::ITestCode;
 use std::thread;
 use std::time::Duration;
 use std::io::{Read, SeekFrom, Seek};
@@ -29,35 +28,13 @@ use ipc_rust::{
     get_self_token_id, get_calling_pid, get_calling_uid, IMsgParcel, IpcResult,
     RawData, set_max_work_thread, reset_calling_identity, set_calling_identity,
     is_local_calling, get_local_device_id, get_calling_device_id, IpcStatusCode,
-    RemoteObj, is_handling_transaction, Ylong, Runtime, IpcAsyncRuntime,
-};
-
-use test_ipc_service::{
-    ITest, IATest, TestProxy, IPC_TEST_SERVICE_ID,
-    IFoo, init_access_token
+    RemoteObj,
 };
 
 use ipc_rust::{Serialize, Deserialize, BorrowedMsgParcel, Ashmem};
+use test_ipc_service::{ITest, TestProxy, IPC_TEST_SERVICE_ID, IFoo, init_access_token};
 use std::fs::File;
 use std::os::fd::AsRawFd;
-
-static mut STR: String = String::new();
-
-// Calling the callback function passed in by the asynchronous interface
-fn get_fd(parcel: MsgParcel) -> IpcResult<()> {
-    let fd: FileDesc = parcel.read().expect("need reply fd");
-    let mut info = String::new();
-    let mut file = File::from(fd);
-
-    file.seek(SeekFrom::Start(0)).expect("seek failed");
-    file.read_to_string(&mut info).expect("read string from fd failed");
-    // SAFETY:
-    unsafe {
-        STR = info.clone();
-        println!("file content: {}", STR);
-    }
-    Ok(())
-}
 
 fn get_test_service() -> RemoteObjRef<dyn ITest>
 {
@@ -71,29 +48,6 @@ fn get_test_service() -> RemoteObjRef<dyn ITest>
         }
     };
     remote
-}
-
-async fn get_async_test_service<T: FromRemoteObj + ?Sized + 'static>(name: i32) -> IpcResult<RemoteObjRef<T>> {
-    if is_handling_transaction() {
-        let object = get_service(name);
-        if let Ok(obj) = object {
-            return T::try_from(obj);
-        } else {
-            return Err(IpcStatusCode::Failed);
-        }
-    }
-
-    let res = Runtime::spawn_blocking(move || {
-        get_service(name)
-    }).await;
-
-    // The `is_panic` branch is not actually reachable in Android as we compile
-    // with `panic = abort`.
-    match res {
-        Ok(Ok(obj)) => T::try_from(obj),
-        Ok(Err(_)) => Err(IpcStatusCode::Failed),
-        Err(_) => Err(IpcStatusCode::Failed),
-    }
 }
 
 #[test]
@@ -865,134 +819,4 @@ fn test_get_interface_descriptor_002() {
     let descriptor = String16::new(TestProxy::get_descriptor());
     let ret = remote.interface_descriptor().expect("get interface descriptor failed");
     assert_eq!(descriptor.get_string(), ret);
-}
-
-#[cfg(test)]
-mod async_test {
-    use super::*;
-
-    #[test]
-    fn test_check_services_async() {
-        let object = get_service(IPC_TEST_SERVICE_ID);
-        object.expect("get itest service failed");
-        let handle = ylong_runtime::spawn(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        );
-        let _remote = ylong_runtime::block_on(handle).expect("get itest service failed");
-    }
-
-    #[test]
-    fn test_sync_request() {
-        let remote = ylong_runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        let value = ylong_runtime::block_on(
-            remote.test_sync_transaction(2019, 0) ).expect("sync ipc request failed");
-        assert_eq!(value, 9102);
-    }
-
-    #[test]
-    fn test_async_request() {
-        let remote = ylong_runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        ylong_runtime::block_on(remote.test_async_transaction(2019, 0)).expect("async ipc request failed");
-    }
-
-    #[test]
-    fn test_ping_service() {
-        let remote = Runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        let descriptor = String16::new(TestProxy::get_descriptor());
-        Runtime::block_on(remote.test_ping_service(&descriptor)).expect("ping TestService failed");
-    }
-
-    #[test]
-    fn test_fd() {
-        let remote = Runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        let fd: FileDesc = Runtime::block_on(remote.test_transact_fd()).expect("get server fd failed");
-        let mut info = String::new();
-        let mut file = File::from(fd);
-        file.seek(SeekFrom::Start(0)).expect("seek failed");
-        file.read_to_string(&mut info).expect("read string from fd failed");
-        println!("file content: {}", info);
-        assert_eq!(info, "Sever write!\n");
-    }
-
-    #[test]
-    fn test_loop_request() {
-        let remote = Runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        // start loop test, test times is 1000
-        let mut value = String::new();
-        let append = "0123456789abcdefghijklmnopqrstuvwxyz~!@#$%^&*()_+{}?/[]<>-='|~";
-        for _i in 1..=1000 {
-            value.push_str(append);
-            let len = Runtime::block_on(remote.test_transact_string(&value)).expect("transact string failed");
-            assert_eq!(value.len() as i32, len);
-        }
-    }
-
-    #[test]
-    fn test_parcel_interface_token() {
-        let remote = Runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        let token = InterfaceToken::new("Hello, Rust");
-        let echo_token = Runtime::block_on(remote.echo_interface_token(&token)).expect(
-            "echo normal interface token failed");
-        assert_eq!(token.get_token(), echo_token.get_token());
-
-        let token = InterfaceToken::new("");
-        let echo_token = Runtime::block_on(remote.echo_interface_token(&token)).expect(
-            "echo empty interface token failed");
-        assert_eq!(token.get_token(), echo_token.get_token());
-    }
-
-    #[test]
-    fn test_calling_info() {
-        let remote = Runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        let (token_id, first_token_id, pid, uid) =
-            Runtime::block_on(remote.echo_calling_info()).expect("echo calling info failed");
-        assert_eq!(token_id, get_self_token_id());
-        assert_eq!(first_token_id, get_first_token_id());
-        assert_eq!(pid, get_calling_pid());
-        assert_eq!(uid, get_calling_uid());
-    }
-
-    #[test]
-    fn test_get_device_id() {
-        assert_eq!(true, set_max_work_thread(3));
-        let identity_str: String = reset_calling_identity().expect("Failed to reset calling identity");
-        assert_eq!(true, set_calling_identity(identity_str));
-        assert_eq!(true, is_local_calling());
-
-        let remote = Runtime::block_on(
-            get_async_test_service::<dyn IATest<Ylong>>(IPC_TEST_SERVICE_ID)
-        ).expect("get itest service failed");
-        let (local_device_id, calling_device_id) =
-            Runtime::block_on(remote.test_get_device_id()).expect("test_get_device_id is failed");
-
-        assert_eq!(local_device_id, get_local_device_id().expect("Failed toget local device id"));
-        assert_eq!(calling_device_id, get_calling_device_id().expect("Failed to get calling device id"));
-    }
-}
-
-#[test]
-fn test_transact_fd_by_async() {
-    let object = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
-    let data = MsgParcel::new().expect("MsgParcel should success");
-    object.async_send_request(ITestCode::CodeTransactFd as u32, data, get_fd);
-
-    thread::sleep(Duration::from_secs(5)); // Waiting for asynchronous task execution to complete
-    // SAFETY:
-    unsafe {
-        assert_eq!(STR, "Sever write!\n");
-    }
 }
