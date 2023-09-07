@@ -279,7 +279,7 @@ HWTEST_F(MessageParcelTest, ReadRawDataTest004, TestSize.Level1)
     parcel.rawDataSize_ = 1;
     parcel.writeRawDataFd_ = 0;
     auto ret = parcel.ReadRawData(1);
-    ASSERT_TRUE(ret != nullptr);
+    ASSERT_TRUE(ret == nullptr);
 }
 
 /**
@@ -327,7 +327,7 @@ HWTEST_F(MessageParcelTest, ReadRawDataTest007, TestSize.Level1)
     parcel.writeRawDataFd_ = 0;
     parcel.rawData_ = std::make_shared<char>(MessageParcel::MIN_RAWDATA_SIZE + 1);
     auto ret = parcel.ReadRawData(MessageParcel::MIN_RAWDATA_SIZE + 1);
-    ASSERT_TRUE(ret != nullptr);
+    ASSERT_TRUE(ret == nullptr);
 }
 
 /**
@@ -342,7 +342,7 @@ HWTEST_F(MessageParcelTest, ReadRawDataTest008, TestSize.Level1)
     parcel.rawData_ = std::make_shared<char>(MessageParcel::MIN_RAWDATA_SIZE + 1);
     parcel.writeRawDataFd_ = 0;
     auto ret = parcel.ReadRawData(MessageParcel::MIN_RAWDATA_SIZE);
-    ASSERT_TRUE(ret != nullptr);
+    ASSERT_TRUE(ret == nullptr);
 }
 
 /**

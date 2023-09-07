@@ -308,7 +308,8 @@ std::u16string MessageParcel::ReadInterfaceToken()
 
 bool MessageParcel::WriteRawData(const void *data, size_t size)
 {
-    if (data == nullptr || size > MAX_RAWDATA_SIZE) {
+    if (data == nullptr || size > MAX_RAWDATA_SIZE || size == 0) {
+        ZLOGE(LOG_LABEL, "data is null or size:%{public}zu not ok", size);
         return false;
     }
     if (kernelMappedWrite_ != nullptr) {
@@ -365,15 +366,19 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
 
 const void *MessageParcel::ReadRawData(size_t size)
 {
+    if (size == 0) {
+        ZLOGE(LOG_LABEL, "the parameter size is 0");
+        return nullptr;
+    }
     size_t bufferSize =  static_cast<size_t>(ReadInt32());
     if (bufferSize != size) {
-        ZLOGI(LOG_LABEL, "ReadRawData: the buffersize %{public}zu not equal the parameter size %{public}zu",
+        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize %{public}zu not equal the parameter size %{public}zu",
             bufferSize, size);
+        return nullptr;
     }
-    size_t realReadSize = bufferSize < size ? bufferSize : size;
     if (bufferSize <= MIN_RAWDATA_SIZE) {
-        rawDataSize_ = realReadSize;
-        return ReadUnpadBuffer(realReadSize);
+        rawDataSize_ = size;
+        return ReadUnpadBuffer(size);
     }
 
     /* if rawDataFd_ == 0 means rawData is received from remote */
@@ -382,11 +387,11 @@ const void *MessageParcel::ReadRawData(size_t size)
         if (ReadFileDescriptor()) {
             // do nothing
         }
-        if (rawDataSize_ != realReadSize) {
-            ZLOGI(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}zu"
-                " not equal realReadSize %{public}zu", rawDataSize_, realReadSize);
+        if (rawDataSize_ != size) {
+            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}zu"
+                " not equal size %{public}zu", rawDataSize_, size);
+            return nullptr;
         }
-        rawDataSize_ = realReadSize;
         return rawData_.get();
     }
     int fd = ReadFileDescriptor();
@@ -396,19 +401,19 @@ const void *MessageParcel::ReadRawData(size_t size)
     readRawDataFd_ = fd;
 
     int ashmemSize = AshmemGetSize(fd);
-    if (ashmemSize < 0 || size_t(ashmemSize) < realReadSize) {
+    if (ashmemSize < 0 || size_t(ashmemSize) < size) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
-        ZLOGE(LOG_LABEL, "ashmemSize %{public}d less than realReadSize %{public}zu",
-            ashmemSize, realReadSize);
+        ZLOGE(LOG_LABEL, "ashmemSize %{public}d less than size %{public}zu",
+            ashmemSize, size);
         return nullptr;
     }
-    void *ptr = ::mmap(nullptr, realReadSize, PROT_READ, MAP_SHARED, fd, 0);
+    void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
         return nullptr;
     }
     kernelMappedRead_ = ptr;
-    rawDataSize_ = realReadSize;
+    rawDataSize_ = size;
     return ptr;
 }
 
