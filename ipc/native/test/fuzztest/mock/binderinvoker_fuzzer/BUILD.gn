@@ -17,7 +17,7 @@ import("//build/test.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("BinderInvokerFuzzTest") {
-  module_out_path = "ipc/native"
+  module_out_path = "ipc/ipc"
   fuzz_config_file = "../binderinvoker_fuzzer"
   include_dirs = [
     "../../../../../../utils/include",

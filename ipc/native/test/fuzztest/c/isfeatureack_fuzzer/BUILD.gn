@@ -19,7 +19,7 @@ IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("IsFeatureAckFuzzTest") {
-  module_out_path = "ipc/native"
+  module_out_path = "ipc/ipc"
   fuzz_config_file = "$IPC_CORE_ROOT/test/fuzztest/c/isfeatureack_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",

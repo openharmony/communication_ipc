@@ -18,7 +18,7 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("LoadSystemAbilityCompleteFuzzTest") {
-  module_out_path = "ipc/service"
+  module_out_path = "ipc/ipc"
   fuzz_config_file = "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/loadsystemabilitycomplete_fuzzer"
   include_dirs = [
     "//utils/system/safwk/native/include",
