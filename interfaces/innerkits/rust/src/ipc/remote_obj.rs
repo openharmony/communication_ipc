@@ -19,7 +19,8 @@ use std::ptr;
 use crate::{
     ipc_binding, IRemoteObj, DeathRecipient, IpcResult,
     MsgParcel, BorrowedMsgParcel, AsRawPtr, IpcStatusCode,
-    parcel::vec_u16_to_string, parse_status_code,
+    parcel::vec_u16_to_string, parse_status_code, Runtime,
+    IpcAsyncRuntime,
 };
 use crate::ipc_binding::{CRemoteObject, CDeathRecipient, CIRemoteObject};
 use crate::parcel::parcelable::{Serialize, Deserialize, allocate_vec_with_buffer};
@@ -94,6 +95,28 @@ impl IRemoteObj for RemoteObj {
                 Err(parse_status_code(result))
             }
         }
+    }
+
+    fn async_send_request<F, R>(&self, code: u32, data: MsgParcel, call_back: F)
+    where
+        F: FnOnce(MsgParcel) -> R,
+        F: Send + 'static,
+        R: Send + 'static,
+    {
+        let remote = self.clone();
+        Runtime::spawn_blocking(move || {
+            let reply = remote.send_request(code, &data, false);
+            match reply {
+                Ok(reply) => {
+                    call_back(reply);
+                    IpcStatusCode::Ok
+                },
+                _ => {
+                    error!(LOG_LABEL, "send_request failed");
+                    IpcStatusCode::Failed
+                }
+            }
+        });
     }
 
     // Add death Recipient
