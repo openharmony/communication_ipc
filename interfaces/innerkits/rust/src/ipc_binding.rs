@@ -315,4 +315,6 @@ extern "C" {
     pub fn GetLocalDeviceID(value: *mut c_void, allocator: OnCParcelBytesAllocator::<u8>) -> bool;
     pub fn GetCallingDeviceID(value: *mut c_void, allocator: OnCParcelBytesAllocator::<u8>) -> bool;
     pub fn ResetCallingIdentity(value: *mut c_void, allocator: OnCParcelBytesAllocator::<u8>) -> bool;
+
+    pub fn IsHandlingTransaction() -> bool;
 }

@@ -46,8 +46,10 @@ group("ipc_components") {
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
       "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/rust:rust_ipc_component",
     ]
+    if (!build_ohos_sdk) {
+      deps += [ "$SUBSYSTEM_DIR/interfaces/innerkits/rust:rust_ipc_component" ]
+    }
   } else {
     deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c:rpc" ]
   }

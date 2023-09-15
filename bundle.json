@@ -38,7 +38,8 @@
           "dsoftbus",
           "napi",
           "common",
-          "build_framework"
+          "build_framework",
+          "ylong_runtime"
         ],
         "third_party": [
           "libuv",
