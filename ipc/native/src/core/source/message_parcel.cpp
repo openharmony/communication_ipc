@@ -243,6 +243,10 @@ void MessageParcel::ClearFileDescriptor()
     const flat_binder_object *flat = nullptr;
     for (size_t i = 0; i < GetOffsetsSize(); i++) {
         object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
+        if (!object) {
+            ZLOGE(LOG_LABEL, "object get by GetObjectOffsets() is nullptr");
+            break;
+        }
         // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
@@ -250,7 +254,12 @@ void MessageParcel::ClearFileDescriptor()
                 dataOffset, GetDataSize());
             break;
         }
-        flat = reinterpret_cast<flat_binder_object *>(GetData() + object[i]);
+        uintptr_t data = GetData();
+        if (!data) {
+            ZLOGE(LOG_LABEL, "data get by GetData() is nullptr");
+            break;
+        }
+        flat = reinterpret_cast<flat_binder_object *>(data + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
             ::close(flat->handle);
         }
@@ -264,6 +273,10 @@ bool MessageParcel::ContainFileDescriptors() const
     const flat_binder_object *flat = nullptr;
     for (size_t i = 0; i < GetOffsetsSize(); i++) {
         object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
+        if (!object) {
+            ZLOGE(LOG_LABEL, "object get by GetObjectOffsets() is nullptr");
+            break;
+        }
         // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
@@ -271,7 +284,12 @@ bool MessageParcel::ContainFileDescriptors() const
                 dataOffset, GetDataSize());
             break;
         }
-        flat = reinterpret_cast<flat_binder_object *>(GetData() + object[i]);
+        uintptr_t data = GetData();
+        if (!data) {
+            ZLOGE(LOG_LABEL, "data get by GetData() is nullptr");
+            break;
+        }
+        flat = reinterpret_cast<flat_binder_object *>(data + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD) {
             return true;
         }
