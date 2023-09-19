@@ -49,12 +49,6 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
 
-template<class T>
-inline T *ConvertNativeValueTo(NativeValue *value)
-{
-    return (value != nullptr) ? static_cast<T *>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
-}
-
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
 {
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
@@ -128,7 +122,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     });
 }
 
-static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
+static void *RemoteObjectDetachCb(napi_env engine, void *value, void *hint)
 {
     (void)hint;
     napi_env env = reinterpret_cast<napi_env>(engine);
@@ -145,7 +139,7 @@ static void *RemoteObjectDetachCb(NativeEngine *engine, void *value, void *hint)
     return value;
 }
 
-static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void *hint)
+static napi_value RemoteObjectAttachCb(napi_env engine, void *value, void *hint)
 {
     (void)hint;
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(value);
@@ -183,7 +177,7 @@ static NativeValue *RemoteObjectAttachCb(NativeEngine *engine, void *value, void
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed when attach");
     holder->IncAttachCount();
     holder->Unlock();
-    return reinterpret_cast<NativeValue *>(jsRemoteObject);
+    return reinterpret_cast<napi_value>(jsRemoteObject);
 }
 
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
@@ -208,13 +202,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
     auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor), thisVar);
-    auto nativeObj = ConvertNativeValueTo<NativeObject>(reinterpret_cast<NativeValue *>(thisVar));
-    if (nativeObj == nullptr) {
-        ZLOGE(LOG_LABEL, "Failed to get RemoteObject native object");
-        delete holder;
-        return nullptr;
-    }
-    nativeObj->ConvertToNativeBindingObject(env, RemoteObjectDetachCb, RemoteObjectAttachCb, holder, nullptr);
+    napi_coerce_to_native_binding_object(env, thisVar, RemoteObjectDetachCb, RemoteObjectAttachCb, holder, nullptr);
     // connect native object to js thisVar
     napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
