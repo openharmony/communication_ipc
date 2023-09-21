@@ -243,7 +243,7 @@ void MessageParcel::ClearFileDescriptor()
     const flat_binder_object *flat = nullptr;
     for (size_t i = 0; i < GetOffsetsSize(); i++) {
         object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
-        if (!object) {
+        if (object == nullptr) {
             ZLOGE(LOG_LABEL, "object get by GetObjectOffsets() is nullptr");
             break;
         }
@@ -255,8 +255,8 @@ void MessageParcel::ClearFileDescriptor()
             break;
         }
         uintptr_t data = GetData();
-        if (!data) {
-            ZLOGE(LOG_LABEL, "data get by GetData() is nullptr");
+        if (data == 0) {
+            ZLOGE(LOG_LABEL, "data get by GetData() is invalid");
             break;
         }
         flat = reinterpret_cast<flat_binder_object *>(data + object[i]);
@@ -273,7 +273,7 @@ bool MessageParcel::ContainFileDescriptors() const
     const flat_binder_object *flat = nullptr;
     for (size_t i = 0; i < GetOffsetsSize(); i++) {
         object = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
-        if (!object) {
+        if (object == nullptr) {
             ZLOGE(LOG_LABEL, "object get by GetObjectOffsets() is nullptr");
             break;
         }
@@ -285,8 +285,8 @@ bool MessageParcel::ContainFileDescriptors() const
             break;
         }
         uintptr_t data = GetData();
-        if (!data) {
-            ZLOGE(LOG_LABEL, "data get by GetData() is nullptr");
+        if (data == 0) {
+            ZLOGE(LOG_LABEL, "data get by GetData() is invalid");
             break;
         }
         flat = reinterpret_cast<flat_binder_object *>(data + object[i]);
