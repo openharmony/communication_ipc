@@ -72,6 +72,7 @@ ohos_shared_library("ipc_single") {
   innerapi_tags = [
     "chipsetsdk",
     "platformsdk",
+    "sasdk",
   ]
   install_images = [ system_base_dir ]
 
