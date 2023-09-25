@@ -125,7 +125,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
 static void *RemoteObjectDetachCb(napi_env engine, void *value, void *hint)
 {
     (void)hint;
-    napi_env env = reinterpret_cast<napi_env>(engine);
+    napi_env env = engine;
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(value);
     napi_ref ref = holder->GetJsObjectRef();
 
@@ -149,7 +149,7 @@ static napi_value RemoteObjectAttachCb(napi_env engine, void *value, void *hint)
     }
     holder->Lock();
     ZLOGI(LOG_LABEL, "create js remote object when attach");
-    napi_env env = reinterpret_cast<napi_env>(engine);
+    napi_env env = engine;
     // retrieve js remote object constructor
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
@@ -177,7 +177,7 @@ static napi_value RemoteObjectAttachCb(napi_env engine, void *value, void *hint)
     NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed when attach");
     holder->IncAttachCount();
     holder->Unlock();
-    return reinterpret_cast<napi_value>(jsRemoteObject);
+    return jsRemoteObject;
 }
 
 napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
