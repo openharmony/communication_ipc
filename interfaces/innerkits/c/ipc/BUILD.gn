@@ -76,11 +76,12 @@ if (ohos_kernel_type == "liteos_m") {
     ]
     deps = [
       "$IPC_CORE_ROOT/adapter:rpc_adapter",
-      "//foundation/communication/dsoftbus/sdk:softbus_client",
       "//kernel/liteos_m/components/net",
     ]
     defines = [ "RPC_SOFTBUS_TRANS" ]
     ldflags = [ "-lpthread" ]
+
+    external_deps = [ "dsoftbus:softbus_client" ]
 
     if (enable_socket_trans) {
       sources -= [ "$IPC_CORE_ROOT/rpc/trans_adapter/src/rpc_softbus_trans.c" ]
@@ -218,7 +219,7 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/adapter:rpc_adapter",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
-    deps = [ "//foundation/communication/dsoftbus/sdk:softbus_client" ]
+    external_deps = [ "dsoftbus:softbus_client" ]
     defines = [ "RPC_SOFTBUS_TRANS" ]
     defines += [ "IPC_RESET_SKELETON" ]
 
@@ -227,7 +228,7 @@ if (ohos_kernel_type == "liteos_m") {
       sources +=
           [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/src/rpc_socket_trans.c" ]
       include_dirs += [ "$SUBSYSTEM_DIR/ipc/test/rpc/socket_trans/include" ]
-      deps -= [ "//foundation/communication/dsoftbus/sdk:softbus_client" ]
+      external_deps -= [ "dsoftbus:softbus_client" ]
       defines -= [ "RPC_SOFTBUS_TRANS" ]
       defines += [ "RPC_SOCKET_TRANS" ]
     }
