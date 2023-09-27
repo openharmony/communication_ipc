@@ -84,7 +84,11 @@ ohos_shared_library("ipc_core") {
     "hitrace:libhitracechain",
   ]
 
-  innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [
+    "platformsdk",
+    "sasdk",
+  ]
+
   install_images = [ system_base_dir ]
   subsystem_name = "communication"
   part_name = "ipc"
