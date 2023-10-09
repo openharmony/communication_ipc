@@ -340,7 +340,19 @@ void BinderInvoker::StartWorkLoop()
             break;
         }
         uint32_t cmd = input_.ReadUint32();
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        {
+            std::lock_guard<std::mutex> lockGuard(current->mutex_);
+            current->numExecuting_++;
+        }
         int userError = HandleCommands(cmd);
+        {
+            std::lock_guard<std::mutex> lockGuard(current->mutex_);
+            current->numExecuting_--;
+            if (current->numWaitingForThreads_ > 0) {
+                current->cv_.notify_all();
+            }
+        }
         if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
             break;
         }

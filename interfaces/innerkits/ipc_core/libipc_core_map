@@ -31,6 +31,7 @@
             OHOS::IPCFileDescriptor*;
             OHOS::MessageOption*;
             OHOS::InvokerFactory*;
+            OHOS::IPCDfx*;
             OHOS::IPCSkeleton*;
             OHOS::IRemoteObject*;
             OHOS::BinderInvoker*;

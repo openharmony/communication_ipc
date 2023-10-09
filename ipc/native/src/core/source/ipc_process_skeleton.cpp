@@ -309,9 +309,13 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descri
 
 void IPCProcessSkeleton::BlockUntilThreadAvailable()
 {
-    if (threadPool_ != nullptr) {
-        threadPool_->BlockUntilThreadAvailable();
+    std::unique_lock<std::mutex> lock(mutex_);
+    numWaitingForThreads_++;
+    ZLOGE(LOG_LABEL, "numExecuting_++ is %{public}d", numExecuting_);
+    while (numExecuting_ >= threadPool_->GetMaxThreadNum()) {
+        cv_.wait(lock);
     }
+    numWaitingForThreads_--;
 }
 
 #ifndef CONFIG_IPC_SINGLE

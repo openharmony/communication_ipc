@@ -23,7 +23,6 @@
             OHOS::BrokerRegistration::Register*;
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
-            OHOS::IPCDfx*;
             OHOS::IPCSkeleton*;
             OHOS::IPC_SINGLE::IPCThreadSkeleton*;
             OHOS::IRemoteObject*;
