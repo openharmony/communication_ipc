@@ -24,6 +24,7 @@
 #include "dbinder_remote_listener.h"
 #include "dbinder_error_code.h"
 #include "dbinder_sa_death_recipient.h"
+#include "ffrt.h"
 #include "softbus_bus_center.h"
 
 namespace OHOS {
@@ -58,9 +59,6 @@ DBinderService::~DBinderService()
     deathRecipients_.clear();
     loadSaReply_.clear();
     dbinderCallback_ = nullptr;
-    if (StopThreadPool() == false) {
-        DBINDER_LOGE(LOG_LABEL, "failed to stop thread pool");
-    }
     DBINDER_LOGI(LOG_LABEL, "dbinder service died");
 }
 
@@ -84,10 +82,6 @@ bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallbac
 
     bool result = StartRemoteListener();
     if (!result) {
-        return false;
-    }
-    if (StartThreadPool() == false) {
-        DBINDER_LOGE(LOG_LABEL, "failed to create thread pool");
         return false;
     }
     mainThreadCreated_ = true;
@@ -690,52 +684,10 @@ bool DBinderService::RegisterRemoteProxyInner(std::u16string serviceName, binder
     return result.second;
 }
 
-bool DBinderService::StartThreadPool()
-{
-    std::lock_guard<std::mutex> lock(threadPoolMutex_);
-    if (threadPoolStarted_) {
-        return true;
-    }
-    if (threadPool_ == nullptr) {
-        threadPool_ = std::make_unique<ThreadPool>("DBinderRemoteListener");
-    } else {
-        return false;
-    }
-    if (threadPool_->Start(threadPoolNumber_) != ERR_OK) {
-        threadPool_.reset();
-        return false;
-    }
-    threadPool_->SetMaxTaskNum(threadPoolNumber_);
-    threadPoolStarted_ = true;
-    return true;
-}
-
-bool DBinderService::StopThreadPool()
-{
-    std::lock_guard<std::mutex> lock(threadPoolMutex_);
-    if (threadPoolStarted_) {
-        threadPoolStarted_ = false;
-        threadPool_->Stop();
-        threadPool_.reset();
-    }
-    return true;
-}
-
-bool DBinderService::AddAsynTask(const ThreadPool::Task &f)
-{
-    if (threadPoolStarted_ && threadPool_ != nullptr) {
-        threadPool_->AddTask(f);
-        return true;
-    } else {
-        DBINDER_LOGE(LOG_LABEL, "failed to post async task");
-        return false;
-    }
-}
-
 void DBinderService::AddAsynMessageTask(std::shared_ptr<struct DHandleEntryTxRx> message)
 {
     auto task = std::bind(&DBinderService::OnRemoteMessageTask, this, message);
-    AddAsynTask(task);
+    ffrt::submit(task);
 }
 
 bool DBinderService::OnRemoteMessageTask(std::shared_ptr<struct DHandleEntryTxRx> message)

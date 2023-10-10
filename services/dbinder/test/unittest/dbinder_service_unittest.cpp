@@ -1166,44 +1166,6 @@ HWTEST_F(DBinderServiceUnitTest, SendMessageToRemote001, TestSize.Level1)
 }
 
 /**
- * @tc.name: StartThreadPool001
- * @tc.desc: Verify the StartThreadPool function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceUnitTest, StartThreadPool001, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->threadPoolStarted_ = true;
-    bool res1 = dBinderService->StartThreadPool();
-    EXPECT_EQ(res1, true);
-    dBinderService->threadPoolStarted_ = false;
-    dBinderService->threadPool_ = nullptr;
-    dBinderService->StartThreadPool();
-    dBinderService->threadPool_ = std::make_unique<ThreadPool>("DBinderRemoteListener");
-    bool res2 = dBinderService->StartThreadPool();
-    EXPECT_EQ(res2, true);
-}
-
-/**
- * @tc.name: StopThreadPool001
- * @tc.desc: Verify the StopThreadPool function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceUnitTest, StopThreadPool001, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->threadPoolStarted_ = true;
-    dBinderService->StartThreadPool();
-    dBinderService->threadPoolStarted_ = false;
-    bool res = dBinderService->StartThreadPool();
-    EXPECT_EQ(res, false);
-    bool res2 = dBinderService->StopThreadPool();
-    EXPECT_EQ(res2, true);
-    dBinderService->threadPoolStarted_ = true;
-    dBinderService->StopThreadPool();
-}
-
-/**
  * @tc.name: AddAsynMessageTask001
  * @tc.desc: Verify the AddAsynMessageTask function
  * @tc.type: FUNC

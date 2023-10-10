@@ -29,7 +29,6 @@
 #include "ipc_object_stub.h"
 #include "rpc_system_ability_callback.h"
 #include "Session.h"
-#include "thread_pool.h"
 
 using Communication::SoftBus::Session;
 
@@ -345,9 +344,6 @@ private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
     std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
     uint32_t GetSeqNumber();
-    bool StartThreadPool();
-    bool StopThreadPool();
-    bool AddAsynTask(const ThreadPool::Task &f);
     bool IsSameSession(std::shared_ptr<struct SessionInfo> oldSession, std::shared_ptr<struct SessionInfo> newSession);
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool CheckSystemAbilityId(int32_t systemAbilityId);
@@ -379,7 +375,6 @@ private:
     std::mutex threadLockMutex_;
     std::mutex callbackProxyMutex_;
     std::mutex deathNotificationMutex_;
-    std::mutex threadPoolMutex_;
 
     uint32_t seqNumber_ = 0; /* indicate make remote binder message sequence number, and can be overflow */
 
@@ -393,9 +388,6 @@ private:
     std::map<binder_uintptr_t, std::shared_ptr<struct SessionInfo>> sessionObject_;
     std::map<sptr<IRemoteObject>, DBinderServiceStub *> noticeProxy_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
-    bool threadPoolStarted_ = false;
-    int32_t threadPoolNumber_ = 4;
-    std::unique_ptr<ThreadPool> threadPool_ = nullptr;
     std::list<std::shared_ptr<struct DHandleEntryTxRx>> loadSaReply_;
     static constexpr int32_t FIRST_SYS_ABILITY_ID = 0x00000001;
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
