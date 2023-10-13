@@ -206,6 +206,7 @@ if (support_jsapi) {
 
     deps = [
       "//foundation/arkui/napi:ace_napi",
+      "//third_party/bounds_checking_function:libsec_shared",
       "//third_party/googletest:gmock_main",
       "//third_party/googletest:gtest_main",
     ]
