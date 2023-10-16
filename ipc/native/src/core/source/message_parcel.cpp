@@ -135,7 +135,7 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     }
     std::shared_ptr<DBinderSessionObject> sessionOfPeer = current->ProxyQueryDBinderSession(handle);
     if (sessionOfPeer == nullptr) {
-        ZLOGE(LOG_LABEL, "sessionOfPeer is null, handle: %{public}u, stubIndex: %{public}" PRIu64, handle, stubIndex);
+        ZLOGE(LOG_LABEL, "sessionOfPeer is null, handle:%{public}u, stubIndex:%{public}" PRIu64, handle, stubIndex);
         return false;
     }
     std::string peerName = sessionOfPeer->GetServiceName();

@@ -34,11 +34,13 @@ int DatabusSessionCallback::OnSessionOpened(std::shared_ptr<Session> session)
     }
 
     if (!session->IsServerSide()) {
-        ZLOGI(LOG_LABEL, "active end");
+        ZLOGI(LOG_LABEL, "active end, deviceId:%{public}s channelId:%{public}" PRId64,
+            IPCProcessSkeleton::ConvertToSecureString(session->GetPeerDeviceId()).c_str(), session->GetChannelId());
         return 0;
     }
 
-    ZLOGI(LOG_LABEL, "passive end");
+    ZLOGI(LOG_LABEL, "passive end, deviceId:%{public}s channelId:%{public}" PRId64,
+        IPCProcessSkeleton::ConvertToSecureString(session->GetPeerDeviceId()).c_str(), session->GetChannelId());
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
@@ -59,12 +61,14 @@ void DatabusSessionCallback::OnSessionClosed(std::shared_ptr<Session> session)
     }
 
     invoker->OnDatabusSessionClosed(session);
-    ZLOGI(LOG_LABEL, "end, channelId: %{public}" PRIu64, session->GetChannelId());
+    ZLOGI(LOG_LABEL, "end, deviceId:%{public}s channelId: %{public}" PRId64,
+        IPCProcessSkeleton::ConvertToSecureString(session->GetPeerDeviceId()).c_str(), session->GetChannelId());
 }
 
 void DatabusSessionCallback::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
 {
-    ZLOGI(LOG_LABEL, "OnBytesReceived len: %{public}u", static_cast<uint32_t>(len));
+    ZLOGI(LOG_LABEL, "channelId:%{public}" PRId64 " len:%{public}u",
+        session->GetChannelId(), static_cast<uint32_t>(len));
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {

@@ -82,7 +82,7 @@ public:
     ~IPCProcessSkeleton() override;
 
     static IPCProcessSkeleton *GetCurrent();
-    static std::string ConvertToSecureString(const std::string &deviceId);
+    static std::string ConvertToSecureString(const std::string &str);
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
@@ -184,7 +184,9 @@ public:
 
 public:
     static constexpr int DEFAULT_WORK_THREAD_NUM = 16;
-    static constexpr uint32_t DBINDER_HANDLE_BASE = 100000;
+    static constexpr uint32_t DBINDER_HANDLE_MAGIC = 6872; // 'D'(Binder) 'H'(andle)
+    static constexpr uint32_t DBINDER_HANDLE_BASE = 100000 * DBINDER_HANDLE_MAGIC;
+    static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
     static constexpr int ENCRYPT_LENGTH = 4;
 private:
@@ -228,7 +230,7 @@ private:
     std::list<std::thread::id> idleDataThreads_;
     std::list<std::shared_ptr<CommAuthInfo>> commAuth_;
 
-    uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 100000 */
+    uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
     uint64_t seqNumber_ = 0;
     std::string sessionName_ = std::string("");
     uint64_t randNum_;

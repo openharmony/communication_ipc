@@ -31,7 +31,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC,
 
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
     const std::string &localDevice, uint64_t stubIndex, uint32_t handle, uint32_t tokenId)
-    : IPCObjectStub(Str8ToStr16("DBinderCallback" + device + service)),
+    : IPCObjectStub(Str8ToStr16("DBinderCallback" + IPCProcessSkeleton::ConvertToSecureString(device) + service)),
       serviceName_(service),
       deviceID_(device),
       localDeviceID_(localDevice),
@@ -39,13 +39,14 @@ DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::
       handle_(handle),
       tokenId_(tokenId)
 {
-    ZLOGI(LOG_LABEL, "serviceName:%{public}s, deviceId:%{public}s, handle:%{public}u, stubIndex_:%{public}" PRIu64 "",
-        serviceName_.c_str(), deviceID_.c_str(), handle_, stubIndex_);
+    ZLOGD(LOG_LABEL, "created, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex_:%{public}" PRIu64,
+        serviceName_.c_str(), IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(), handle_, stubIndex_);
 }
 
 DBinderCallbackStub::~DBinderCallbackStub()
 {
-    ZLOGI(LOG_LABEL, "DBinderCallbackStub delete");
+    ZLOGD(LOG_LABEL, "destroyed, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex_:%{public}" PRIu64,
+        serviceName_.c_str(), IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(), handle_, stubIndex_);
     IPCProcessSkeleton::GetCurrent()->DetachDBinderCallbackStub(this);
 }
 
@@ -107,9 +108,9 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         ZLOGE(LOG_LABEL, "send auth info to remote fail");
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
-    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 ", peerDevice = %{public}s, "
-         "localDeviceID_ = %{public}s, serviceName_ = %{public}s, uid:%{public}d, pid:%{public}d, "
-         "tokenId: %{public}u, sessionName = %{public}s",
+    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s "
+         "localDeviceID_:%{public}s serviceName_:%{public}s uid:%{public}d pid:%{public}d, "
+         "tokenId:%{public}u sessionName:%{public}s",
         stubIndex_, IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(localDeviceID_).c_str(), serviceName_.c_str(), uid, pid, tokenId_,
         sessionName.c_str());
@@ -126,14 +127,14 @@ int32_t DBinderCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageOption &option)
 {
     int32_t result = ERR_NONE;
-    ZLOGI(LOG_LABEL, "code = %{public}u", code);
+    ZLOGI(LOG_LABEL, "code:%{public}u", code);
     switch (code) {
         case GET_PROTO_INFO: {
             result = ProcessProto(code, data, reply, option);
             break;
         }
         default: {
-            ZLOGI(LOG_LABEL, "unknown code = %{public}u", code);
+            ZLOGI(LOG_LABEL, "unknown code:%{public}u", code);
             result = DBINDER_CALLBACK_ERR;
             break;
         }

@@ -56,7 +56,7 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
         return false;
     }
     std::string threadName = MakeThreadName(proto);
-    ZLOGD(LOG_LABEL, "SpawnThread Name= %{public}s", threadName.c_str());
+    ZLOGD(LOG_LABEL, "name:%{public}s", threadName.c_str());
 
     if (threads_.find(threadName) == threads_.end()) {
         auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
@@ -68,11 +68,11 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
         threads_[threadName] = newThread;
         if (proto == IRemoteObject::IF_PROT_DEFAULT) {
             idleThreadNum_--;
-            ZLOGD(LOG_LABEL, "SpawnThread, now idleThreadNum_ =%d", idleThreadNum_);
+            ZLOGD(LOG_LABEL, "now idleThreadNum:%{public}d", idleThreadNum_);
         }
         if (proto == IRemoteObject::IF_PROT_DATABUS) {
             idleSocketThreadNum_--;
-            ZLOGD(LOG_LABEL, "SpawnThread, now idleSocketThreadNum_ =%d", idleSocketThreadNum_);
+            ZLOGD(LOG_LABEL, "now idleSocketThreadNum:%{public}d", idleSocketThreadNum_);
         }
         newThread->Start(policy, proto, threadName);
         return true;
@@ -110,7 +110,7 @@ bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
             idleSocketThreadNum_++;
         }
         threads_.erase(it);
-        ZLOGD(LOG_LABEL, "SpawnThread, now idleThreadNum_ =%d", idleSocketThreadNum_);
+        ZLOGD(LOG_LABEL, "now idleThreadNum_:%{public}d", idleSocketThreadNum_);
         return true;
     }
     return false;
