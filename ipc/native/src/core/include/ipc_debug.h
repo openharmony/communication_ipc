@@ -23,15 +23,15 @@
 
 namespace OHOS {
 #define ZLOGF(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+    (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define ZLOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define ZLOGW(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+    (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define ZLOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define ZLOGD(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}d: " fmt, __LINE__, ##args)
+    (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 
 using ErrorMap = std::map<uint32_t, std::string>;
 class ErrorBase {

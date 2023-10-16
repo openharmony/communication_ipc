@@ -68,6 +68,7 @@ bool BinderInvoker::AcquireHandle(int32_t handle)
     if (handle != 0) {
         (void)FlushCommands(nullptr);
     }
+    ZLOGD(LABEL, "handle:%{public}d", handle);
     return true;
 }
 
@@ -85,6 +86,7 @@ bool BinderInvoker::ReleaseHandle(int32_t handle)
         return false;
     }
     FlushCommands(nullptr);
+    ZLOGD(LABEL, "handle:%{public}d", handle);
     return true;
 }
 
@@ -121,7 +123,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "%{public}s: handle=%{public}d result = %{public}d", __func__, handle, error);
+        ZLOGE(LABEL, "handle:%{public}d result:%{public}d", handle, error);
     }
     return error;
 }
@@ -178,9 +180,10 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
 
 bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
 {
+    ZLOGD(LABEL, "for handle:%{public}d", handle);
     size_t rewindPos = output_.GetWritePosition();
     if (!output_.WriteInt32(BC_REQUEST_DEATH_NOTIFICATION)) {
-        ZLOGE(LABEL, "fail to write command field:%d", handle);
+        ZLOGE(LABEL, "fail to write command field, handle:%{public}d", handle);
         return false;
     }
 
@@ -234,7 +237,7 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
     // pass in nullptr directly
     int error = FlushCommands(nullptr);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "Remove Death Recipient handle =%{public}d result = %{public}d", handle, error);
+        ZLOGE(LABEL, "failed, handle:%{public}d error:%{public}d", handle, error);
         return false;
     }
 
@@ -274,6 +277,7 @@ int BinderInvoker::TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject>
 
 sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
 {
+    ZLOGI(LABEL, "get samgr object!");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
         return current->GetRegistryObject();
@@ -285,13 +289,13 @@ sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
 bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "%{public}s driver died", __func__);
+        ZLOGE(LABEL, "driver died");
         return false;
     }
 
     int error = binderConnector_->WriteBinder(BINDER_SET_MAX_THREADS, &maxThreadNum);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "SetMaxWorkThread error = %{public}d", error);
+        ZLOGE(LABEL, "SetMaxWorkThread error:%{public}d", error);
         return false;
     }
 
@@ -306,15 +310,15 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
     }
     int error = TransactWithDriver(false);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "fail to flush commands with error = %{public}d", error);
+        ZLOGE(LABEL, "fail to flush commands with error:%{public}d", error);
     }
 
     if (output_.GetDataSize() > 0) {
         error = TransactWithDriver(false);
-        ZLOGE(LABEL, "flush commands again with return value = %{public}d", error);
+        ZLOGE(LABEL, "flush commands again with return value:%{public}d", error);
     }
     if (error != ERR_NONE || output_.GetDataSize() > 0) {
-        ZLOGE(LABEL, "flush commands with error = %{public}d, left data size = %{public}zu", error,
+        ZLOGE(LABEL, "flush commands with error:%{public}d, left data size:%{public}zu", error,
             output_.GetDataSize());
     }
 
@@ -324,7 +328,7 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
 void BinderInvoker::ExitCurrentThread()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "%{public}s driver died when exit current thread", __func__);
+        ZLOGE(LABEL, "driver died when exit current thread");
         return;
     }
     binderConnector_->ExitCurrentThread(BINDER_THREAD_EXIT);
@@ -336,12 +340,13 @@ void BinderInvoker::StartWorkLoop()
     do {
         error = TransactWithDriver();
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
-            ZLOGE(LABEL, "returned unexpected error %d, aborting", error);
+            ZLOGE(LABEL, "returned unexpected error:%{public}d, aborting", error);
             break;
         }
         uint32_t cmd = input_.ReadUint32();
         int userError = HandleCommands(cmd);
         if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
+            ZLOGW(LABEL, "exit, userError:%{public}d", userError);
             break;
         }
     } while (error != -ECONNREFUSED && error != -EBADF && !stopWorkThread);
@@ -359,9 +364,9 @@ int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t resul
 
 void BinderInvoker::OnBinderDied()
 {
+    ZLOGD(LABEL, "enter");
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
-    ZLOGD(LABEL, "%s, enter", __func__);
     if (proxy != nullptr) {
         proxy->SendObituary();
     }
@@ -386,7 +391,7 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     RefCounter *refs = reinterpret_cast<RefCounter *>(refsPointer);
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((obj == nullptr) || (refs == nullptr)) {
-        ZLOGE(LABEL, "OnAcquireObject FAIL!");
+        ZLOGE(LABEL, "FAIL!");
         return;
     }
 
@@ -420,10 +425,10 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     RefCounter *refs = reinterpret_cast<RefCounter *>(refsPointer);
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((refs == nullptr) || (obj == nullptr)) {
-        ZLOGE(LABEL, "OnReleaseObject FAIL!");
+        ZLOGE(LABEL, "FAIL!");
         return;
     }
-    ZLOGD(LABEL, "OnReleaseObject refcount=%{public}d", refs->GetStrongRefCount());
+    ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
     if (cmd == BR_RELEASE) {
         obj->DecStrongRef(this);
     } else {
@@ -501,7 +506,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
         finish - start).count());
     if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-        ZLOGW(LABEL, "stub: %{public}s deal request code: %{public}u cost time: %{public}dms",
+        ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}dms",
             service.c_str(), tr->code, duration);
     }
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
@@ -566,6 +571,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 
     if (tr->flags & TF_STATUS_CODE) {
         int32_t status = *reinterpret_cast<const int32_t *>(tr->data.ptr.buffer);
+        ZLOGD(LABEL, "received status code:%{public}d, free the buffer", status);
         FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
         return status;
     }
@@ -642,6 +648,10 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
             error = IPC_INVOKER_ON_TRANSACT_ERR;
             break;
     }
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "cmd:%{public}u error:%{public}d", cmd, error);
+    }
+
     return error;
 }
 
@@ -650,14 +660,14 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     auto start = std::chrono::steady_clock::now();
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "HandleCommands cmd = %{public}u, error = %{public}d", cmd, error);
+        ZLOGE(LABEL, "HandleCommands cmd:%{public}u, error:%{public}d", cmd, error);
     }
     if (cmd != BR_TRANSACTION) {
         auto finish = std::chrono::steady_clock::now();
         int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
             finish - start).count());
         if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-            ZLOGW(LABEL, "HandleCommands cmd: %{public}u cost time: %{public}dms", cmd, duration);
+            ZLOGW(LABEL, "HandleCommands cmd:%{public}u cost time:%{public}dms", cmd, duration);
         }
     }
     return error;
@@ -671,7 +681,7 @@ void BinderInvoker::JoinThread(bool initiative)
     output_.WriteUint32(BC_EXIT_LOOPER);
     // pass in nullptr directly
     FlushCommands(nullptr);
-    ZLOGE(LABEL, "Current Thread %d is leaving", getpid());
+    ZLOGE(LABEL, "Current Thread %{public}d is leaving", getpid());
 }
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
@@ -679,7 +689,7 @@ void BinderInvoker::JoinProcessThread(bool initiative) {}
 int BinderInvoker::TransactWithDriver(bool doRead)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "%{public}s: Binder Driver died", __func__);
+        ZLOGE(LABEL, "Binder Driver died");
         return IPC_INVOKER_CONNECT_ERR;
     }
 
@@ -716,7 +726,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
         input_.RewindRead(0);
     }
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "TransactWithDriver result = %{public}d", error);
+        ZLOGE(LABEL, "fail, result:%{public}d", error);
     }
 
     return error;
@@ -839,14 +849,14 @@ bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
     }
 
     if (object->IsProxyObject()) {
-        ZLOGE(LABEL, "%{public}s: set wrong object!", __func__);
+        ZLOGE(LABEL, "set wrong object!");
         return false;
     }
 
     Parcel dummy;
     int result = binderConnector_->WriteBinder(BINDER_SET_CONTEXT_MGR, &dummy);
     if (result != ERR_NONE) {
-        ZLOGE(LABEL, "%{public}s:set registry fail, driver error %{public}d", __func__, result);
+        ZLOGE(LABEL, "set registry fail, driver error:%{public}d", result);
         return false;
     }
 
@@ -978,7 +988,7 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
 {
     const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object));
     if (buffer == nullptr) {
-        ZLOGE(LABEL, "UnflattenObject null object buffer");
+        ZLOGE(LABEL, "null object buffer");
         return nullptr;
     }
 
@@ -1002,7 +1012,7 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
             break;
         }
         default:
-            ZLOGE(LABEL, "%s: unknown binder type %u", __func__, flat->hdr.type);
+            ZLOGE(LABEL, "unknown binder type:%{public}u", flat->hdr.type);
             remoteObject = nullptr;
             break;
     }
@@ -1022,8 +1032,9 @@ int BinderInvoker::ReadFileDescriptor(Parcel &parcel)
     auto *flat = reinterpret_cast<const flat_binder_object *>(buffer);
     if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
         fd = flat->handle;
+        ZLOGD(LABEL, "fd:%{public}d", fd);
     } else {
-        ZLOGE(LABEL, "%s: unknown binder type %u", __func__, flat->hdr.type);
+        ZLOGE(LABEL, "unknown binder type:%{public}u", flat->hdr.type);
     }
 
     return fd;
@@ -1046,7 +1057,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
     int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, callerTokenID_);
     if (ret < 0) {
-        ZLOGE(LABEL, "%{public}s: sprintf callerTokenID_ %{public}" PRIu64 " failed", __func__, callerTokenID_);
+        ZLOGE(LABEL, "sprintf callerTokenID_:%{public}" PRIu64 " failed", callerTokenID_);
         return "";
     }
     std::string accessToken(buf);

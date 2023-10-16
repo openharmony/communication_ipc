@@ -160,7 +160,7 @@ uint32_t DBinderBaseInvoker<T>::TranslateHandleType(flat_binder_object *binderOb
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return 0;
     }
     std::shared_ptr<T> sessionOfPeer = nullptr;
@@ -190,7 +190,7 @@ template<class T> uint32_t DBinderBaseInvoker<T>::MakeRemoteHandle(std::shared_p
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return 0;
     }
 
@@ -231,7 +231,7 @@ bool DBinderBaseInvoker<T>::TranslateRemoteHandleType(flat_binder_object *binder
     uint32_t handle = QueryHandleBySession(sessionOfPeer);
     if (handle == 0) {
         handle = MakeRemoteHandle(sessionOfPeer);
-        ZLOGI(LOG_LABEL, "create new handle = %{public}u", handle);
+        ZLOGI(LOG_LABEL, "create new handle:%{public}u", handle);
         if (handle == 0) {
             ZLOGE(LOG_LABEL, "failed to create new handle");
             return false;
@@ -290,7 +290,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenSend(char *dataBuffer, bin
             }
 
             default: {
-                ZLOGE(LOG_LABEL, "do not support this type of translation");
+                ZLOGE(LOG_LABEL, "do not support this type:%{public}u of translation", binderObject->hdr.type);
                 // do nothing
                 break;
             }
@@ -316,20 +316,20 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(char *dataBuffer, bind
         switch (binderObject->hdr.type) {
             case BINDER_TYPE_BINDER: {
                 ClearBinderType(binderObject);
-                ZLOGE(LOG_LABEL, "recv an wrong stub object");
+                ZLOGE(LOG_LABEL, "receive an wrong stub object");
                 break;
             }
 
             case BINDER_TYPE_HANDLE: {
                 ClearHandleType(binderObject);
-                ZLOGE(LOG_LABEL, "recv an wrong proxy object");
+                ZLOGE(LOG_LABEL, "receive an wrong proxy object");
                 break;
             }
 
             case BINDER_TYPE_REMOTE_HANDLE: {
                 if (TranslateRemoteHandleType(binderObject, flatOffset + i * T::GetFlatSessionLen(),
                     SUPPORT_TOKENID_VERSION_NUM) != true) {
-                    ZLOGE(LOG_LABEL, "recv an wrong dbiner object");
+                    ZLOGE(LOG_LABEL, "receive an wrong dbiner object");
                     // do nothing, should translate other parcel object, such as fd should set to -1
                 }
                 break;
@@ -347,7 +347,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(char *dataBuffer, bind
                 break;
             }
             default: {
-                ZLOGE(LOG_LABEL, "do not support this type of translation");
+                ZLOGE(LOG_LABEL, "do not support this type:%{public}u of translation", binderObject->hdr.type);
                 // do nothing
                 break;
             }
@@ -366,19 +366,19 @@ bool DBinderBaseInvoker<T>::TranslateRawData(char *dataBuffer, MessageParcel &da
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return false;
     }
     std::shared_ptr<InvokerRawData> receivedRawData = current->QueryRawData(socketId);
     if (receivedRawData == nullptr) {
-        ZLOGE(LOG_LABEL, "cannot found rawData according to the socketId");
+    ZLOGE(LOG_LABEL, "cannot found rawData according to the socketId:%{public}u", socketId);
         return false;
     }
     std::shared_ptr<char> rawData = receivedRawData->GetData();
     size_t rawSize = receivedRawData->GetSize();
     current->DetachRawData(socketId);
     if (!data.RestoreRawData(rawData, rawSize)) {
-        ZLOGE(LOG_LABEL, "found rawData, but cannot restore them");
+        ZLOGE(LOG_LABEL, "found rawData, but cannot restore them, socketId:%{public}u", socketId);
         return false;
     }
     return true;
@@ -399,7 +399,7 @@ template <class T> uint64_t DBinderBaseInvoker<T>::GetUniqueSeqNumber(int cmd)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return 0;
     }
 
@@ -441,7 +441,7 @@ bool DBinderBaseInvoker<T>::ProcessRawData(std::shared_ptr<T> sessionObject, Mes
     size_t totalSize = sizeof(dbinder_transaction_data) + data.GetRawDataSize();
     transData.reset(reinterpret_cast<dbinder_transaction_data *>(::operator new(totalSize)));
     if (transData == nullptr) {
-        ZLOGE(LOG_LABEL, "fail to create raw buffer with length = %{public}zu", totalSize);
+        ZLOGE(LOG_LABEL, "fail to create raw buffer with length:%{public}zu", totalSize);
         return false;
     }
 
@@ -449,7 +449,7 @@ bool DBinderBaseInvoker<T>::ProcessRawData(std::shared_ptr<T> sessionObject, Mes
     int result = memcpy_s(reinterpret_cast<char *>(transData.get()) + sizeof(dbinder_transaction_data),
         totalSize - sizeof(dbinder_transaction_data), data.GetRawData(), data.GetRawDataSize());
     if (result != 0) {
-        ZLOGE(LOG_LABEL, "memcpy data fail size = %{public}zu", data.GetRawDataSize());
+        ZLOGE(LOG_LABEL, "memcpy data fail, size:%{public}zu", data.GetRawDataSize());
         return false;
     }
     result = OnSendRawData(sessionObject, transData.get(), totalSize);
@@ -475,19 +475,19 @@ bool DBinderBaseInvoker<T>::MoveMessageParcel2TransData(MessageParcel &data, std
                 reinterpret_cast<void *>(data.GetObjectOffsets()), data.GetOffsetsSize() * sizeof(binder_size_t));
         }
         if (memcpyResult != 0) {
-            ZLOGE(LOG_LABEL, "parcel data memcpy_s failed");
+            ZLOGE(LOG_LABEL, "parcel data memcpy_s failed, socketId:%{public}d", socketId);
             return false;
         }
         transData->offsets_size = data.GetOffsetsSize() * sizeof(binder_size_t);
         transData->offsets = transData->buffer_size;
 
         if (!CheckTransactionData(transData.get())) {
-            ZLOGE(LOG_LABEL, "check trans data fail");
+            ZLOGE(LOG_LABEL, "check trans data fail, socketId:%{public}d", socketId);
             return false;
         }
         if (!IRemoteObjectTranslateWhenSend(reinterpret_cast<char *>(transData->buffer), transData->buffer_size,
             data, socketId, sessionObject)) {
-            ZLOGE(LOG_LABEL, "translate object failed");
+            ZLOGE(LOG_LABEL, "translate object failed, socketId:%{public}d", socketId);
             return false;
         }
     } else {
@@ -511,13 +511,13 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
     std::shared_ptr<dbinder_transaction_data> transData = nullptr;
     transData.reset(reinterpret_cast<dbinder_transaction_data *>(::operator new(sendSize)));
     if (transData == nullptr) {
-        ZLOGE(LOG_LABEL, "new buffer failed of length = %{public}u", sendSize);
+        ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u", sendSize);
         return nullptr;
     }
     ConstructTransData(data, *transData, sendSize, seqNum, cmd, code, flags);
     transData->cookie = (handle == 0) ? 0 : sessionObject->GetStubIndex();
     if (MoveMessageParcel2TransData(data, sessionObject, transData, socketId, status) != true) {
-        ZLOGE(LOG_LABEL, "move parcel to transData failed, handle = %{public}d", handle);
+        ZLOGE(LOG_LABEL, "move parcel to transData failed, handle:%{public}d socketId:%{public}d", handle, socketId);
         return nullptr;
     }
     return transData;
@@ -546,14 +546,14 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
     if (writeCursor < 0 || readCursor < 0 || sendSize > sessionBuff->GetSendBufferSize() - writeCursor) {
         sessionBuff->ReleaseSendBufferLock();
-        ZLOGE(LOG_LABEL, "sender's data is large than idle buffer, writecursor: %{public}zd, readcursor: %{public}zd,\
-            sendSize: %{public}u, bufferSize: %{public}u",
+        ZLOGE(LOG_LABEL, "sender's data is large than idle buffer, writecursor:%{public}zd readcursor:%{public}zd,\
+            sendSize:%{public}u bufferSize:%{public}u",
             writeCursor, readCursor, sendSize, sessionBuff->GetSendBufferSize());
         return false;
     }
     if (memcpy_s(sendBuffer + writeCursor, sendSize, transData.get(), sendSize)) {
         sessionBuff->ReleaseSendBufferLock();
-        ZLOGE(LOG_LABEL, "fail to copy from tr to sendBuffer, parcelSize = %{public}u", sendSize);
+        ZLOGE(LOG_LABEL, "fail to copy from tr to sendBuffer, parcelSize:%{public}u", sendSize);
         return false;
     }
 
@@ -570,31 +570,32 @@ std::shared_ptr<T> DBinderBaseInvoker<T>::WriteTransaction(int cmd, uint32_t fla
 {
     std::shared_ptr<T> sessionObject = GetSessionObject(handle, socketId);
     if (sessionObject == nullptr) {
-        ZLOGE(LOG_LABEL, "session is not exist for listenFd = %d, handle = %d", socketId, handle);
+        ZLOGE(LOG_LABEL, "session is not exist for listenFd:%{public}d handle:%{public}d", socketId, handle);
         return nullptr;
     }
 
     uint64_t seqNum = GetUniqueSeqNumber(cmd);
     if (seqNum == 0) {
-        ZLOGE(LOG_LABEL, "seqNum invalid");
+        ZLOGE(LOG_LABEL, "seqNum invalid, listenFd:%{public}d handle:%{public}d", socketId, handle);
         return nullptr;
     }
     /* save seqNum for wait thread */
     seqNumber = seqNum;
     /* if MessageParcel has raw data, send raw data first, then send MessageParcel to peer */
     if (ProcessRawData(sessionObject, data, seqNum) != true) {
-        ZLOGE(LOG_LABEL, "send rawdata failed");
+        ZLOGE(LOG_LABEL, "send rawdata failed, listenFd:%{public}d handle:%{public}d", socketId, handle);
         return nullptr;
     }
     std::shared_ptr<dbinder_transaction_data> transData =
         ProcessNormalData(sessionObject, data, handle, socketId, seqNum, cmd, code, flags, status);
     if (transData == nullptr) {
-        ZLOGE(LOG_LABEL, "send normal data failed");
+        ZLOGE(LOG_LABEL, "send normal data failed, listenFd:%{public}d handle:%{public}d", socketId, handle);
         return nullptr;
     }
 
     if (MoveTransData2Buffer(sessionObject, transData) != true) {
-        ZLOGE(LOG_LABEL, "move transaction data to buffer failed");
+        ZLOGE(LOG_LABEL, "move transaction data to buffer failed, listenFd:%{public}d handle:%{public}d",
+            socketId, handle);
         return nullptr;
     }
     return sessionObject;
@@ -647,7 +648,7 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
 
     if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(messageInfo->buffer), messageInfo->bufferSize, *reply,
         messageInfo->socketId, nullptr)) {
-        ZLOGE(LOG_LABEL, "translate object failed");
+        ZLOGE(LOG_LABEL, "translate object failed, socketId:%{public}u", messageInfo->socketId);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
 
@@ -671,19 +672,22 @@ int DBinderBaseInvoker<T>::WaitForReply(uint64_t seqNumber, MessageParcel *reply
 
     std::shared_ptr<ThreadMessageInfo> messageInfo = MakeThreadMessageInfo(handle);
     if (messageInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "make thread message info failed, no memory");
+        ZLOGE(LOG_LABEL, "make thread message info failed, handle:%{public}u seq:%{public}" PRIu64,
+            handle, seqNumber);
         return RPC_BASE_INVOKER_WAIT_REPLY_ERR;
     }
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr, handle:%{public}u seq:%{public}" PRIu64,
+            handle, seqNumber);
         return RPC_BASE_INVOKER_WAIT_REPLY_ERR;
     }
     /* wait for reply */
     if (!current->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime)) {
         current->EraseThreadBySeqNumber(seqNumber);
-        ZLOGE(LOG_LABEL, "sender thread wait reply message time out");
+        ZLOGE(LOG_LABEL, "sender thread wait reply message time out, "
+            "waitTime:%{public}d handle:%{public}u seq:%{public}" PRIu64, userWaitTime, handle, seqNumber);
         return RPC_BASE_INVOKER_WAIT_REPLY_ERR;
     }
 
@@ -703,17 +707,17 @@ int DBinderBaseInvoker<T>::SendOrWaitForCompletion(int userWaitTime, uint64_t se
         return RPC_BASE_INVOKER_INVALID_DATA_ERR;
     }
     if (sessionOfPeer == nullptr) {
-        ZLOGE(LOG_LABEL, "current session is invalid");
+        ZLOGE(LOG_LABEL, "current session is invalid, seq:%{public}" PRIu64, seqNumber);
         return RPC_BASE_INVOKER_INVALID_DATA_ERR;
     }
     int result = OnSendMessage(sessionOfPeer);
     if (result != 0) {
-        ZLOGE(LOG_LABEL, "fail to send to remote session with error = %{public}d", result);
+        ZLOGE(LOG_LABEL, "fail to send to remote session, error:%{public}d seq:%{public}" PRIu64, result, seqNumber);
         return RPC_BASE_INVOKER_INVALID_DATA_ERR;
     }
     result = WaitForReply(seqNumber, reply, sessionOfPeer->GetSessionHandle(), userWaitTime);
     if (result != ERR_NONE) {
-        ZLOGE(LOG_LABEL, "dbinder wait for reply error: %{public}d", result);
+        ZLOGE(LOG_LABEL, "dbinder wait for reply result:%{public}d, seq:%{public}" PRIu64, result, seqNumber);
     }
     return result;
 }
@@ -735,7 +739,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     std::shared_ptr<T> session = WriteTransaction(BC_TRANSACTION, flags, handle, 0, code, data, seqNumber, 0);
     if (session == nullptr) {
         newData.RewindWrite(oldWritePosition);
-        ZLOGE(LOG_LABEL, "seqNumber can not be zero,handle=%d", handle);
+        ZLOGE(LOG_LABEL, "WriteTransaction fail, handle:%{public}d", handle);
 #ifndef BUILD_PUBLIC_VERSION
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
@@ -777,7 +781,7 @@ template <class T> int DBinderBaseInvoker<T>::SendReply(MessageParcel &reply, ui
         GetClientFd(), 0, reply, seqNumber, result);
 
     if (seqNumber == 0) {
-        ZLOGE(LOG_LABEL, "seqNumber can not be zero");
+        ZLOGE(LOG_LABEL, "WriteTransaction fail, seqNumber can not be zero");
         return RPC_BASE_INVOKER_SEND_REPLY_ERR;
     }
     SendOrWaitForCompletion(0, seqNumber, sessionObject, nullptr);
@@ -788,7 +792,7 @@ template <class T> std::shared_ptr<ThreadMessageInfo> DBinderBaseInvoker<T>::Mak
 {
     std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<struct ThreadMessageInfo>();
     if (messageInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "no memory");
+        ZLOGE(LOG_LABEL, "make ThreadMessageInfo fail");
         return nullptr;
     }
 
@@ -804,24 +808,29 @@ std::shared_ptr<ThreadProcessInfo> DBinderBaseInvoker<T>::MakeThreadProcessInfo(
     uint32_t size)
 {
     if (inBuffer == nullptr || size < sizeof(dbinder_transaction_data) || size > SOCKET_MAX_BUFF_SIZE) {
-        ZLOGE(LOG_LABEL, "buffer is null or size invalid");
+        ZLOGE(LOG_LABEL, "buffer is null or size:%{public}u invalid, handle:%{public}u", size, handle);
         return nullptr;
     }
 
-    std::shared_ptr<ThreadProcessInfo> processInfo = std::make_shared<ThreadProcessInfo>();
+    std::shared_ptr<ThreadProcessInfo> processInfo(new ThreadProcessInfo, [](ThreadProcessInfo *ptr) {
+        if (ptr != nullptr) {
+            delete ptr;
+            ptr = nullptr;
+        }
+    });
     if (processInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "make_shared processInfo fail");
+        ZLOGE(LOG_LABEL, "make ThreadProcessInfo fail, handle:%{public}u", handle);
         return nullptr;
     }
     std::shared_ptr<char> buffer(new (std::nothrow) char[size]);
     if (buffer == nullptr) {
-        ZLOGE(LOG_LABEL, "new buffer failed of length = %{public}u", size);
+        ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u handle:%{public}u ", size, handle);
         return nullptr;
     }
 
     int memcpyResult = memcpy_s(buffer.get(), size, inBuffer, size);
     if (memcpyResult != 0) {
-        ZLOGE(LOG_LABEL, "memcpy_s failed , size = %{public}u", size);
+        ZLOGE(LOG_LABEL, "memcpy_s failed , size:%{public}u handle:%{public}u", size, handle);
         return nullptr;
     }
 
@@ -835,7 +844,7 @@ template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(uint32_t handle,
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return;
     }
     std::shared_ptr<ThreadProcessInfo> processInfo = MakeThreadProcessInfo(handle, buffer, size);
@@ -848,8 +857,8 @@ template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(uint32_t handle,
         bool result = CreateProcessThread();
         if (!result) {
             int socketThreadNum = current->GetSocketTotalThreadNum();
-            ZLOGE(LOG_LABEL,
-                "create IO thread failed, current socket thread num=%d", socketThreadNum);
+            ZLOGE(LOG_LABEL, "create IO thread failed, current socket thread num:%{public}d handle:%{public}u",
+                socketThreadNum, handle);
             /* thread create too much, wait some thread be idle */
         }
         do {
@@ -869,17 +878,17 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return;
     }
 
     auto allocator = new (std::nothrow) DBinderSendAllocator();
     if (allocator == nullptr) {
-        ZLOGE(LOG_LABEL, "DBinderSendAllocator Creation failed");
+        ZLOGE(LOG_LABEL, "DBinderSendAllocator failed, listenFd:%{public}u", listenFd);
         return;
     }
     if (!data.SetAllocator(allocator)) {
-        ZLOGE(LOG_LABEL, "SetAllocator failed");
+        ZLOGE(LOG_LABEL, "SetAllocator failed, listenFd:%{public}u", listenFd);
         delete allocator;
         return;
     }
@@ -898,7 +907,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     uint32_t oldClientFd = GetClientFd();
     const uint32_t oldTokenId = GetCallerTokenID();
     if (CheckAndSetCallerInfo(listenFd, tr->cookie) != ERR_NONE) {
-        ZLOGE(LOG_LABEL, "check and set caller info failed, cmd: %{public}u", tr->code);
+        ZLOGE(LOG_LABEL, "check and set caller info failed, cmd:%{public}u listenFd:%{public}u", tr->code, listenFd);
         return;
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
@@ -910,12 +919,14 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         std::lock_guard<std::mutex> lockGuard(objectMutex_);
         auto *stub = current->QueryStubByIndex(tr->cookie);
         if (stub == nullptr) {
-            ZLOGE(LOG_LABEL, "stubIndex is invalid");
+            ZLOGE(LOG_LABEL, "stubIndex is invalid, listenFd:%{public}u seq:%{public}" PRIu64,
+                listenFd, senderSeqNumber);
             return;
         }
         if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data,
             listenFd, nullptr)) {
-            ZLOGE(LOG_LABEL, "translate object failed");
+            ZLOGE(LOG_LABEL, "translate object failed, listenFd:%{public}u seq:%{public}" PRIu64,
+                listenFd, senderSeqNumber);
             return;
         }
 
@@ -926,13 +937,14 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         // dbinder dec ref and thus stub will be destroyed
         int error = stubObject->SendRequest(tr->code, data, reply, option);
         if (error != ERR_NONE) {
-            ZLOGE(LOG_LABEL, "stub sendrequest failed, cmd: %{public}u, error: %{public}d", tr->code, error);
+            ZLOGW(LOG_LABEL, "stub sendrequest failed, cmd:%{public}u error:%{public}d"
+                "listenFd:%{public}u seq:%{public}" PRIu64, tr->code, error, listenFd, senderSeqNumber);
             // can not return;
         }
     }
 
     if (data.GetRawData() != nullptr) {
-        ZLOGE(LOG_LABEL, "delete raw data in process skeleton, fd: %{public}u", listenFd);
+        ZLOGW(LOG_LABEL, "delete raw data in process skeleton, listenFd:%{public}u", listenFd);
         current->DetachRawData(listenFd);
     }
     HitraceInvoker::TraceServerSend(tr->cookie, tr->code, isServerTraced, newflags);
@@ -954,13 +966,14 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "current ipc process skeleton is nullptr, can not wakeup thread");
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr, can not wakeup thread");
         return;
     }
 
     std::shared_ptr<ThreadMessageInfo> messageInfo = current->QueryThreadBySeqNumber(tr->seqNumber);
     if (messageInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "no thread waiting reply message of this seqNumber: %{public}llu", tr->seqNumber);
+        ZLOGE(LOG_LABEL, "no thread waiting reply message of this seqNumber:%{public}llu, listenFd:%{public}u",
+            tr->seqNumber, listenFd);
         /* messageInfo is null, no thread need to wakeup */
         return;
     }
@@ -968,7 +981,8 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     /* tr->sizeOfSelf > sizeof(dbinder_transaction_data) is checked in CheckTransactionData */
     messageInfo->buffer = new (std::nothrow) unsigned char[tr->sizeOfSelf - sizeof(dbinder_transaction_data)];
     if (messageInfo->buffer == nullptr) {
-        ZLOGE(LOG_LABEL, "some thread is waiting for reply message, but no memory");
+        ZLOGE(LOG_LABEL, "some thread is waiting for reply message, but no memory"
+            ", seqNumber:%{public}llu listenFd:%{public}u", tr->seqNumber, listenFd);
         /* wake up sender thread */
         current->WakeUpThreadBySeqNumber(tr->seqNumber, listenFd);
         return;
@@ -977,7 +991,8 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     int memcpyResult = memcpy_s(messageInfo->buffer, tr->sizeOfSelf - sizeof(dbinder_transaction_data), tr->buffer,
         tr->sizeOfSelf - sizeof(dbinder_transaction_data));
     if (memcpyResult != 0) {
-        ZLOGE(LOG_LABEL, "memcpy_s failed");
+        ZLOGE(LOG_LABEL, "memcpy_s failed, error:%{public}d seqNumber:%{public}llu listenFd:%{public}u",
+            memcpyResult, tr->seqNumber, listenFd);
         delete[](unsigned char *) messageInfo->buffer;
         messageInfo->buffer = nullptr;
         /* wake up sender thread even no memssage */
@@ -1005,13 +1020,14 @@ template <class T> void DBinderBaseInvoker<T>::OnTransaction(std::shared_ptr<Thr
     char *package = processInfo->buffer.get();
 
     if (package == nullptr || listenFd == 0) {
-        ZLOGE(LOG_LABEL, "package is null or listenFd invalid!");
+        ZLOGE(LOG_LABEL, "package is null or listenFd:%{public}u invalid!", listenFd);
         return;
     }
 
     dbinder_transaction_data *tr = reinterpret_cast<dbinder_transaction_data *>(package);
     if (tr->sizeOfSelf < sizeof(dbinder_transaction_data)) {
-        ZLOGE(LOG_LABEL, "package is invalid");
+        ZLOGE(LOG_LABEL, "package size:%{public}u is invalid, expected size:%{public}zu",
+            tr->sizeOfSelf, sizeof(dbinder_transaction_data));
         return;
     }
 
