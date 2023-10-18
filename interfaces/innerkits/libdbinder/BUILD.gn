@@ -59,6 +59,7 @@ ohos_shared_library("libdbinder") {
   external_deps = [
     "c_utils:utils",
     "dsoftbus:softbus_client",
+    "ffrt:libffrt",
     "hilog:libhilog",
   ]
   subsystem_name = "communication"

@@ -39,7 +39,8 @@
           "napi",
           "common",
           "build_framework",
-          "ylong_runtime"
+          "ylong_runtime",
+          "ffrt"
         ],
         "third_party": [
           "libuv",
