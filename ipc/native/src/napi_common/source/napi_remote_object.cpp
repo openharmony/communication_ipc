@@ -213,6 +213,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
+    ZLOGD(LOG_LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
     env_ = env;
     jsThreadId_ = jsThreadId;
     thisVarRef_ = jsObjectRef;
@@ -251,7 +252,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
+    ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
         if (jsThreadId_ == std::this_thread::get_id()) {
             DecreaseJsObjectRef(env_, thisVarRef_);
