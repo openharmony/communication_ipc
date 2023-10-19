@@ -70,7 +70,7 @@ bool BinderConnector::IsDriverAlive()
 
 bool BinderConnector::OpenDriver()
 {
-    int fd = open(deviceName_.c_str(), O_RDWR);
+    int fd = open(deviceName_.c_str(), O_RDWR | O_CLOEXEC);
     if (fd < 0) {
         ZLOGE(LABEL, "%{public}s:fail to open", __func__);
 #ifndef BUILD_PUBLIC_VERSION
