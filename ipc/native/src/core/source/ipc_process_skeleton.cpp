@@ -244,7 +244,6 @@ bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
     return true;
 }
 
-
 bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     if (object == nullptr) {
