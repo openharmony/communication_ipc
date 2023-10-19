@@ -123,11 +123,13 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &deviceId, const 
     }
 
     int ret = session->SendBytes(msg, msg->head.len);
-    DBINDER_LOGE(LOG_LABEL, "SendDataToRemote device: %{public}s ret: %{public}d",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), ret);
     if (ret != 0) {
+        DBINDER_LOGE(LOG_LABEL, "fail to  send bytes, ret:%{public}d channelId:%{public}" PRId64 " device::%{public}s",
+            ret, session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
         return false;
     }
+    DBINDER_LOGI(LOG_LABEL, "channelId:%{public}" PRId64 " device:%{public}s succ",
+            session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
     return true;
 }
 
@@ -146,9 +148,15 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
     }
 
     int result = session->SendBytes(msg, msg->head.len);
-    DBINDER_LOGE(LOG_LABEL, "SendDataReply device: %{public}s ret: %{public}d",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), result);
-    return ((result != 0) ? false : true);
+    if (result != 0) {
+        DBINDER_LOGE(LOG_LABEL, "fail to send bytes of reply, result:%{public}d device:%{public}s"
+            " channelId:%{public}" PRId64, result, DBinderService::ConvertToSecureDeviceID(deviceId).c_str(),
+            session->GetChannelId());
+            return false;
+    }
+    DBINDER_LOGD(LOG_LABEL, "channelId:%{public}" PRId64 " device: %{public}s",
+            session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+    return true;
 }
 
 bool DBinderRemoteListener::CloseDatabusSession(const std::string &deviceId)
@@ -253,8 +261,9 @@ void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, co
 {
     DBINDER_LOGI(LOG_LABEL, "OnBytesReceived len: %{public}u", static_cast<uint32_t>(len));
     if (data == nullptr || len != static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx))) {
-        DBINDER_LOGE(LOG_LABEL, "session has wrong input, peer session name = %s, data length = %zd",
-            session->GetPeerSessionName().c_str(), len);
+        DBINDER_LOGE(LOG_LABEL, "session has wrong input, data length = %{public}zd, "
+        "peer name:%{public}s, channelId:%{public}" PRId64,
+            len, session->GetPeerSessionName().c_str(), session->GetChannelId());
         // ignore the package
         return;
     }
@@ -266,7 +275,7 @@ void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, co
 
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
     if (message == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length = %{public}zu", sizeof(struct DHandleEntryTxRx));
+        DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length:%{public}zu", sizeof(struct DHandleEntryTxRx));
         return;
     }
     auto res = memcpy_s(message.get(), sizeof(struct DHandleEntryTxRx), data, sizeof(struct DHandleEntryTxRx));
@@ -278,6 +287,10 @@ void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, co
         DBINDER_LOGE(LOG_LABEL, "msg head len error, len = %{public}u", message->head.len);
         return;
     }
+    DBINDER_LOGD(LOG_LABEL, "channelId:%{public}" PRId64 "service:%{public}llu seq:%{public}u"
+        " stubIndex:%{public}" PRIu64 "code:%{public}u", session->GetChannelId(), message->binderObject,
+        message->seqNumber, message->stubIndex, message->dBinderCode);
+
     dBinderService_->AddAsynMessageTask(message);
 }
 } // namespace OHOS
