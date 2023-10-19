@@ -29,12 +29,14 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC,
 DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::string &device, binder_uintptr_t object)
     : IPCObjectStub(Str8ToStr16(device + service)), serviceName_(service), deviceID_(device), binderObject_(object)
 {
-    DBINDER_LOGI(LOG_LABEL, "new DBinderServiceStub created");
+    DBINDER_LOGD(LOG_LABEL, "created, service:%{public}s device:%{public}s",
+        serviceName_.c_str(), DBinderService::ConvertToSecureDeviceID(deviceID_).c_str());
 }
 
 DBinderServiceStub::~DBinderServiceStub()
 {
-    DBINDER_LOGI(LOG_LABEL, "DBinderServiceStub delete");
+    DBINDER_LOGD(LOG_LABEL, "destroyed, service:%{public}s device:%{public}s",
+        serviceName_.c_str(), DBinderService::ConvertToSecureDeviceID(deviceID_).c_str());
 }
 
 const std::string &DBinderServiceStub::GetServiceName()
@@ -113,12 +115,11 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
             break;
         }
         case DBINDER_OBITUARY_TRANSACTION: {
-            DBINDER_LOGE(LOG_LABEL, "%{public}s: recv DBINDER_OBITUARY_TRANSACTION", __func__);
             result = ProcessDeathRecipient(data, reply);
             break;
         }
         default: {
-            DBINDER_LOGI(LOG_LABEL, "unknown code = %{public}u", code);
+            DBINDER_LOGI(LOG_LABEL, "unknown code:%{public}u", code);
             result = DBINDER_SERVICE_UNKNOW_TRANS_ERR;
             break;
         }
@@ -130,7 +131,7 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 int32_t DBinderServiceStub::ProcessDeathRecipient(MessageParcel &data, MessageParcel &reply)
 {
     int32_t processType = data.ReadInt32();
-    DBINDER_LOGE(LOG_LABEL, "%{public}s: enter, processType:%{public}d", __func__, processType);
+    DBINDER_LOGD(LOG_LABEL, "recv, DBINDER_OBITUARY_TRANSACTION type:%{public}d", processType);
     if (processType == IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT) {
         return AddDbinderDeathRecipient(data, reply);
     }
@@ -152,8 +153,8 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
 
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     sptr<IRemoteObject::DeathRecipient> death(new DbinderDeathRecipient());
-    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s",
-        __func__, DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
+    DBINDER_LOGI(LOG_LABEL, "stub desc:%{public}s",
+        DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
 
     // If the client dies, notify DBS to delete information of callbackProxy
     if (!callbackProxy->AddDeathRecipient(death)) {
@@ -188,8 +189,8 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     }
 
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-    DBINDER_LOGE(LOG_LABEL, "%{public}s: stub desc:%{public}s",
-        __func__, DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
+    DBINDER_LOGE(LOG_LABEL, "stub desc:%{public}s",
+        DBinderService::ConvertToSecureDeviceID(Str16ToStr8(descriptor_)).c_str());
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "dBinder service is null");

@@ -142,7 +142,7 @@ public:
      * @return Returns the converted security device ID.
      * @since 9
      */
-    static std::string ConvertToSecureDeviceID(const std::string &deviceID);
+    static std::string ConvertToSecureDeviceID(const std::string &str);
 
     /**
      * @brief Start the DBinder service.
