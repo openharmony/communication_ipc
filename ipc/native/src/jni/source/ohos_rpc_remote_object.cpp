@@ -208,7 +208,7 @@ int JRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
         }
     }
     if (!res) {
-        ZLOGE(LABEL, "result:%{public}d", res);
+        ZLOGE(LABEL, "res:%{public}d", res);
         return ERR_UNKNOWN_TRANSACTION;
     }
     return ERR_NONE;
@@ -637,7 +637,7 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
     // it will automatically release managed memory when the life cycle ends.
     JRemoteProxyHolder *proxyHolder = reinterpret_cast<JRemoteProxyHolder *>(holder);
     if (proxyHolder == nullptr) {
-        ZLOGE(LABEL, "proxy is null");
+        ZLOGE(LABEL, "proxyHolder is null");
         return;
     }
     IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(proxyHolder->object_.GetRefPtr());
@@ -645,8 +645,8 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
         ZLOGE(LABEL, "proxy is null");
         return;
     }
-    ZLOGD(LABEL, "handle:%{public}u", Proxy->GetHandle());
-    std::unique_ptr<JRemoteProxyHolder> nativeHolder(proxyHolder);
+    ZLOGD(LABEL, "handle:%{public}u", proxy->GetHandle());
+    std::unique_ptr<JRemoteProxyHolder> nativeHolder(reinterpret_cast<JRemoteProxyHolder *>(holder));
 }
 
 /*

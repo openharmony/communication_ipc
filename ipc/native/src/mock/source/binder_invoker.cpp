@@ -158,14 +158,14 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
             data2.WriteString(current->GetLocalDeviceID()); // deviceId
             std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
             if (session == nullptr) {
-                ZLOGE(LABEL, "no session found for handle: %{public}d", flat->handle);
+                ZLOGE(LABEL, "no session found for handle:%{public}d", flat->handle);
                 return false;
             }
             data2.WriteUint64(session->GetStubIndex()); // stubIndex
             data2.WriteUint32(session->GetTokenId()); // tokenId
             IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
             if (invoker == nullptr) {
-                ZLOGE(LABEL, "%{public}s: invoker is null", __func__);
+                ZLOGE(LABEL, "invoker is null");
                 return false;
             }
             if (invoker->SendRequest(flat->handle, DBINDER_ADD_COMMAUTH, data2, reply2, option2) != ERR_NONE) {
@@ -660,7 +660,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     auto start = std::chrono::steady_clock::now();
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "HandleCommands cmd:%{public}u, error:%{public}d", cmd, error);
+        ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
     }
     if (cmd != BR_TRANSACTION) {
         auto finish = std::chrono::steady_clock::now();
@@ -681,7 +681,7 @@ void BinderInvoker::JoinThread(bool initiative)
     output_.WriteUint32(BC_EXIT_LOOPER);
     // pass in nullptr directly
     FlushCommands(nullptr);
-    ZLOGE(LABEL, "Current Thread %{public}d is leaving", getpid());
+    ZLOGE(LABEL, "Current Thread:%{public}d is leaving", getpid());
 }
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
@@ -1057,7 +1057,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
     int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, callerTokenID_);
     if (ret < 0) {
-        ZLOGE(LABEL, "sprintf callerTokenID_:%{public}" PRIu64 " failed", callerTokenID_);
+        ZLOGE(LABEL, "sprintf callerTokenID:%{public}" PRIu64 " failed", callerTokenID_);
         return "";
     }
     std::string accessToken(buf);

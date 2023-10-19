@@ -91,10 +91,10 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     auto iterator = objects_.find(descriptor);
     if (iterator != objects_.end()) {
         objects_.erase(iterator);
-        ZLOGE(LOG_LABEL, "erase desc:%{public}s", Str16ToStr8(descriptor).c_str());
+        ZLOGD(LOG_LABEL, "erase desc:%{public}s", Str16ToStr8(descriptor).c_str());
         return true;
     }
-    ZLOGE(LOG_LABEL, "not found, desc:%{public}s maybe has been updated", Str16ToStr8(descriptor).c_str());
+    ZLOGW(LOG_LABEL, "not found, desc:%{public}s maybe has been updated", Str16ToStr8(descriptor).c_str());
     return false;
 }
 
@@ -109,7 +109,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
     auto result = objects_.insert_or_assign(descriptor, wp);
-    ZLOGE(LOG_LABEL, "attac desc:%{public}s, inserted:%{public}d", Str16ToStr8(descriptor).c_str(), result.second);
+    ZLOGD(LOG_LABEL, "attac desc:%{public}s inserted:%{public}d", Str16ToStr8(descriptor).c_str(), result.second);
     return result.second;
 }
 

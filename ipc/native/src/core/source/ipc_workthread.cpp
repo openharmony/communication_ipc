@@ -56,7 +56,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
         ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d",
             threadObj->threadName_.c_str(), ret);
     } else {
-        ZLOGE(LOG_LABEL, "proto_:%{public}d, policy_:%{public}d, name:%{public}s",
+        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
             threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str());
     }
     if (invoker != nullptr) {
@@ -74,7 +74,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
                 invoker->JoinProcessThread(true);
                 break;
             default:
-                ZLOGE(LOG_LABEL, "policy_:%{public}d", threadObj->policy_);
+                ZLOGE(LOG_LABEL, "policy:%{public}d", threadObj->policy_);
                 break;
         }
     }
@@ -83,7 +83,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
     if (current != nullptr) {
         current->OnThreadTerminated(threadObj->threadName_);
     }
-    ZLOGW(LOG_LABEL, "exit, proto:%{public}d, policy:%{public}d, name:%{public}s",
+    ZLOGW(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s",
         threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str());
     return nullptr;
 }
@@ -106,7 +106,7 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "create thread failed");
     }
-    ZLOGD(LOG_LABEL, "create thread, policy:%{public}d, proto:%{public}d", policy, proto);
+    ZLOGD(LOG_LABEL, "create thread, policy:%{public}d proto:%{public}d", policy, proto);
     if (pthread_detach(threadId) != 0) {
         ZLOGE(LOG_LABEL, "detach error");
     }

@@ -55,7 +55,7 @@ napi_value NapiError::GetError(napi_env& env) const
     NAPI_CALL(env, napi_create_string_utf8(env, msg.c_str(), msg.size(), &napiMsg));
     NAPI_CALL(env, napi_create_error(env, napiCode, napiMsg, &napiError));
 
-    ZLOGD(LOG_LABEL, "throw error code: %{public}d, msg: %{public}s,", code, msg.c_str());
+    ZLOGD(LOG_LABEL, "throw error code:%{public}d, msg:%{public}s,", code, msg.c_str());
     return napiError;
 }
 

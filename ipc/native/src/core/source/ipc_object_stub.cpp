@@ -68,17 +68,6 @@ IPCObjectStub::~IPCObjectStub()
     ZLOGW(LABEL, "destroyed, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
 }
 
-int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
-{
-    int result = ERR_NONE;
-    ZLOGD(LABEL, "normal stub object, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
-    if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER) || !reply.WriteString16(descriptor_)) {
-        ZLOGE(LABEL, "write to parcel fail");
-        result = IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return result;
-}
-
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
 {
     if (deviceID.empty() || deviceID.length() > DEVICEID_LENGTH) {
@@ -95,7 +84,7 @@ int32_t IPCObjectStub::GetObjectRefCount()
 int IPCObjectStub::Dump(int fd, const std::vector<std::u16string> &args)
 {
     const size_t numArgs = args.size();
-    ZLOGE(LABEL, "Invalid call on Stub, fd:%{public}d, args:%{public}zu", fd, numArgs);
+    ZLOGE(LABEL, "Invalid call on Stub, fd:%{public}d args:%{public}zu", fd, numArgs);
     return ERR_NONE;
 }
 
@@ -105,7 +94,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     switch (code) {
 #ifndef CONFIG_IPC_SINGLE
         case DBINDER_OBITUARY_TRANSACTION: {
-            ZLOGW(LABEL, "recv DBINDER_OBITUARY_TRANSACTION");
+            ZLOGW(LABEL, "recv DBINDER_OBITUARY_TRANSACTION, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
             if (data.ReadInt32() == IRemoteObject::DeathRecipient::NOTICE_DEATH_RECIPIENT) {
                 result = NoticeServiceDie(data, reply, option);
             } else {
@@ -116,7 +105,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGE(LABEL, "unknown code:%{public}u descriptor:%{public}s", code, Str16ToStr8(descriptor_).c_str());
+            ZLOGE(LABEL, "unknown code:%{public}u desc:%{public}s", code, Str16ToStr8(descriptor_).c_str());
             break;
     }
     return result;
@@ -183,7 +172,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
 #ifndef CONFIG_IPC_SINGLE
         case INVOKE_LISTEN_THREAD: {
             if (!IPCSkeleton::IsLocalCalling() || IPCSkeleton::GetCallingUid() >= ALLOWED_UID) {
-                ZLOGE(LABEL, "INVOKE_LISTEN_THREAD unauthenticated user");
+                ZLOGE(LABEL, "INVOKE_LISTEN_THREAD unauthenticated user, desc:%{public}s",
+                    Str16ToStr8(descriptor_).c_str());
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
             }
@@ -210,7 +200,7 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             }
             uint32_t listenFd = invoker->GetClientFd();
             // update listenFd
-            ZLOGW(LABEL, "update app info, listenFd:%{public}u, stubIndex:%{public}" PRIu64 ", tokenId: %{public}u",
+            ZLOGW(LABEL, "update app info, listenFd:%{public}u stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
                 listenFd, stubIndex, tokenId);
             current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
             break;
@@ -245,7 +235,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
         }
         case DBINDER_ADD_COMMAUTH: {
             if (IPCSkeleton::IsLocalCalling() || IPCSkeleton::GetCallingUid() >= ALLOWED_UID) {
-                ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH unauthenticated user");
+                ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH unauthenticated user, desc:%{public}s",
+                    Str16ToStr8(descriptor_).c_str());
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
             }
@@ -378,6 +369,17 @@ int IPCObjectStub::GetObjectType() const
     return OBJECT_TYPE_NATIVE;
 }
 
+int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    int result = ERR_NONE;
+    ZLOGD(LABEL, "normal stub object, des:%{public}s", Str16ToStr8(descriptor_).c_str());
+    if (!reply.WriteUint32(IRemoteObject::IF_PROT_BINDER) || !reply.WriteString16(descriptor_)) {
+        ZLOGE(LABEL, "write to parcel fail");
+        result = IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return result;
+}
+
 #ifndef CONFIG_IPC_SINGLE
 int32_t IPCObjectStub::InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -407,7 +409,8 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     std::string sessionName = data.ReadString();
     uint32_t remoteTokenId = data.ReadUint32();
     if (IsDeviceIdIllegal(deviceId) || IsDeviceIdIllegal(remoteDeviceId) || sessionName.empty()) {
-        ZLOGE(LABEL, "device ID is invalid or session name nil");
+        ZLOGE(LABEL, "device ID is invalid or session name nil, desc:%{public}s",
+            Str16ToStr8(descriptor_).c_str());
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
@@ -418,19 +421,20 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     }
 
     if (!current->CreateSoftbusServer(sessionName)) {
-        ZLOGE(LABEL, "fail to create databus server");
+        ZLOGE(LABEL, "fail to create databus server, desc:%{public}s sessionName:%{public}s",
+            Str16ToStr8(descriptor_).c_str(), sessionName.c_str());
         return IPC_STUB_CREATE_BUS_SERVER_ERR;
     }
 
     uint64_t stubIndex = current->AddStubByIndex(this);
     if (stubIndex == 0) {
-        ZLOGE(LABEL, "add stub fail");
+        ZLOGE(LABEL, "add stub fail, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
     uint32_t selfTokenId = static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID());
-    ZLOGI(LABEL, "invoke databus thread, local deviceId:%{public}s, remote deviceId:%{public}s "
-        "stubIndex:%{public}" PRIu64 "sessionName:%{public}s",
+    ZLOGI(LABEL, "invoke databus thread, local deviceId:%{public}s remote deviceId:%{public}s "
+        "stubIndex:%{public}" PRIu64 " sessionName:%{public}s",
         IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(remoteDeviceId).c_str(), stubIndex, sessionName.c_str());
     if (!reply.WriteUint64(stubIndex) || !reply.WriteString(sessionName) || !reply.WriteString(deviceId) ||
@@ -462,7 +466,7 @@ int32_t IPCObjectStub::NoticeServiceDie(MessageParcel &data, MessageParcel &repl
 
     sptr<IPCObjectProxy> ipcProxy = current->QueryCallbackProxy(this);
     if (ipcProxy == nullptr) {
-        ZLOGE(LABEL, "ipc proxy is null");
+        ZLOGE(LABEL, "ipc proxy is null, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
@@ -478,7 +482,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
     uint64_t stubIndex = data.ReadUint64();
     uint32_t tokenId = data.ReadUint32();
     if (IsDeviceIdIllegal(remoteDeviceId)) {
-        ZLOGE(LABEL, "remote deviceId is null");
+        ZLOGE(LABEL, "remote deviceId is null, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
@@ -497,7 +501,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
         }
     }
     ZLOGW(LABEL, "add auth info, pid:%{public}u uid:%{public}u deviceId:%{public}s stubIndex:%{public}" PRIu64
-        ", tokenId:%{public}u", remotePid, remoteUid,
+        " tokenId:%{public}u", remotePid, remoteUid,
         IPCProcessSkeleton::ConvertToSecureString(remoteDeviceId).c_str(), stubIndex, tokenId);
     // mark listen fd as 0
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, tokenId, remoteDeviceId, stubIndex, 0)) {

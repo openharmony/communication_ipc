@@ -135,7 +135,7 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     }
     std::shared_ptr<DBinderSessionObject> sessionOfPeer = current->ProxyQueryDBinderSession(handle);
     if (sessionOfPeer == nullptr) {
-        ZLOGE(LOG_LABEL, "sessionOfPeer is null, handle:%{public}u, stubIndex:%{public}" PRIu64, handle, stubIndex);
+        ZLOGE(LOG_LABEL, "sessionOfPeer is null, handle:%{public}u stubIndex:%{public}" PRIu64, handle, stubIndex);
         return false;
     }
     std::string peerName = sessionOfPeer->GetServiceName();
@@ -250,7 +250,7 @@ void MessageParcel::ClearFileDescriptor()
         // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
-            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu, dataSize:%{public}zu",
+            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu dataSize:%{public}zu",
                 dataOffset, GetDataSize());
             break;
         }
@@ -280,7 +280,7 @@ bool MessageParcel::ContainFileDescriptors() const
         // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
-            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu, dataSize:%{public}zu",
+            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu dataSize:%{public}zu",
                 dataOffset, GetDataSize());
             break;
         }
@@ -390,7 +390,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     }
     size_t bufferSize =  static_cast<size_t>(ReadInt32());
     if (bufferSize != size) {
-        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize %{public}zu not equal the parameter size %{public}zu",
+        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize:%{public}zu not equal the parameter size:%{public}zu",
             bufferSize, size);
         return nullptr;
     }
@@ -406,8 +406,8 @@ const void *MessageParcel::ReadRawData(size_t size)
             // do nothing
         }
         if (rawDataSize_ != size) {
-            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize_ %{public}zu"
-                " not equal size %{public}zu", rawDataSize_, size);
+            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize:%{public}zu"
+                " not equal size:%{public}zu", rawDataSize_, size);
             return nullptr;
         }
         return rawData_.get();
@@ -421,7 +421,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     int ashmemSize = AshmemGetSize(fd);
     if (ashmemSize < 0 || size_t(ashmemSize) < size) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
-        ZLOGE(LOG_LABEL, "ashmemSize %{public}d less than size %{public}zu",
+        ZLOGE(LOG_LABEL, "ashmemSize:%{public}d less than size:%{public}zu",
             ashmemSize, size);
         return nullptr;
     }

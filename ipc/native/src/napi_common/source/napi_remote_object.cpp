@@ -213,6 +213,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
+    ZLOGD(LOG_LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
     env_ = env;
     jsThreadId_ = jsThreadId;
     thisVarRef_ = jsObjectRef;
@@ -251,7 +252,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    ZLOGI(LOG_LABEL, "NAPIRemoteObject Destructor");
+    ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
         if (jsThreadId_ == std::this_thread::get_id()) {
             DecreaseJsObjectRef(env_, thisVarRef_);
@@ -315,7 +316,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
 {
     ZLOGI(LOG_LABEL, "enter OnRemoteRequest");
     if (code == DUMP_TRANSACTION) {
-        ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
+        ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%{public}zu", data.GetReadableBytes());
     }
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     CallbackParam *param = new CallbackParam {
@@ -330,8 +331,8 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     };
 
     NAPI_RemoteObject_getCallingInfo(param->callingInfo);
-    ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u,"
-        "callingDeviceID:%{public}s, localDeviceId:%{public}s, localCalling:%{public}d",
+    ZLOGI(LOG_LABEL, "callingPid:%{public}u callingUid:%{public}u "
+        "callingDeviceID:%{public}s localDeviceId:%{public}s localCalling:%{public}d",
         param->callingInfo.callingPid, param->callingInfo.callingUid,
         param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
         param->callingInfo.isLocalCalling);

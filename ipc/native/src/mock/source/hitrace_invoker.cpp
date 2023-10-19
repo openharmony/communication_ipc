@@ -49,13 +49,13 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
         uint8_t idBytes[HITRACE_ID_LEN];
         size_t idLen = (size_t)(childId.ToBytes(idBytes, HITRACE_ID_LEN));
         if (idLen != HITRACE_ID_LEN) {
-            ZLOGE(TRACE_LABEL, "%{public}s:idLen not correct", __func__);
+            ZLOGE(TRACE_LABEL, "idLen not correct");
             return childId;
         }
 
         size_t oldWritePosition = data.GetWritePosition();
         if (!data.WriteBuffer(idBytes, idLen)) {
-            ZLOGE(TRACE_LABEL, "%{public}s:Write idBytes fail", __func__);
+            ZLOGE(TRACE_LABEL, "Write idBytes fail");
             // restore Parcel data
             data.RewindWrite(oldWritePosition);
             return childId;
@@ -63,7 +63,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
 
         // padded size of traceid
         if (!data.WriteUint8(data.GetWritePosition() - oldWritePosition)) {
-            ZLOGE(TRACE_LABEL, "%{public}s:Write idLen fail", __func__);
+            ZLOGE(TRACE_LABEL, "Write idLen fail");
             // restore Parcel data
             data.RewindWrite(oldWritePosition);
             return childId;
@@ -117,7 +117,7 @@ bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel 
             data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL - idLen);
             const uint8_t *idBytes = data.ReadUnpadBuffer(sizeof(HiTraceIdStruct));
             if (idBytes == nullptr) {
-                ZLOGE(TRACE_LABEL, "%{public}s:idBytes is null", __func__);
+                ZLOGE(TRACE_LABEL, "idBytes is null");
                 isServerTraced = 0;
                 RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
                 return isServerTraced;
