@@ -63,10 +63,6 @@ private:
 MessageParcel *JavaOhosRpcMessageParcelGetNative(JNIEnv *env, jobject object)
 {
     ZLOGD(LABEL, "enter");
-    if (g_jMessageParcel.nativeObject == nullptr) {
-        ZLOGE(LABEL, "g_jMessageParcel.nativeObject is null");
-        return nullptr;
-    }
     jlong nativeObject = env->GetLongField(object, g_jMessageParcel.nativeObject);
     return reinterpret_cast<MessageParcel *>(nativeObject);
 }
@@ -367,10 +363,6 @@ jint JNICALL Java_ohos_rpc_MessageParcel_nativeGetRawDataCapacity(JNIEnv *env, j
 void JavaOhosRpcMessageOptionSetNativeObjectOwner(JNIEnv *env, jobject object, jboolean value)
 {
     ZLOGD(LABEL, "enter");
-    if (g_jMessageParcel.nativeObjectOwner == nullptr) {
-        ZLOGD(LABEL, "nativeObjectOwner is null, set owner failed");
-        return;
-    }
     env->SetBooleanField(object, g_jMessageParcel.nativeObjectOwner, value);
 }
 
@@ -478,7 +470,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteAshmem(JNIEnv *env, jobj
 
     sptr<Ashmem> ashmem = Java_ohos_rpc_Ashmem_getSptrAshmem(env, object, id);
     if (ashmem == nullptr) {
-        ZLOGE(LABEL, "ashmem=null");
+        ZLOGE(LABEL, "ashmem is null");
         return JNI_FALSE;
     }
 

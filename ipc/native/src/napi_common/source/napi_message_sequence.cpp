@@ -619,7 +619,7 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
     if (checkArgsResult == nullptr) {
         return checkArgsResult;
     }
-    ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(arrayLength));
+    ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength:%{public}d", (int)(arrayLength));
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
@@ -1123,7 +1123,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelableArray(napi_env env, napi_call
         }
         napi_value callResult = JS_writeParcelableArrayCallJsFunc(env, element, thisVar);
         if (callResult == nullptr) {
-            ZLOGE(LOG_LABEL, "call mashalling failed, element index: %{public}zu", i);
+            ZLOGE(LOG_LABEL, "call mashalling failed, element index:%{public}zu", i);
             napiSequence->nativeParcel_->RewindWrite(pos);
             return callResult;
         }
@@ -2189,7 +2189,7 @@ napi_value NAPI_MessageSequence::JS_readParcelableArray(napi_env env, napi_callb
             napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
             napi_value callJsFuncResult = JS_readParcelableArrayCallJsFunc(env, element, thisVar);
             if (callJsFuncResult == nullptr) {
-                ZLOGE(LOG_LABEL, "call unmarshalling failed, element index: %{public}d", i);
+                ZLOGE(LOG_LABEL, "call unmarshalling failed, element index:%{public}d", i);
                 return callJsFuncResult;
             }
         }
@@ -2722,8 +2722,8 @@ bool NAPI_MessageSequence::JS_WriteRawDataForArray(napi_env env, napi_value jsAr
     }
     if (length < size) {
         uint32_t padSize = size - length;
-        ZLOGW(LOG_LABEL, "array length %{public}u less than parameter size %{public}u, "
-            " need pad %{public}u 0", length, size, padSize);
+        ZLOGW(LOG_LABEL, "array length:%{public}u less than parameter size:%{public}u"
+            " need pad:%{public}u 0", length, size, padSize);
         for (uint32_t i = 0; i < padSize; i++) {
             array.push_back(0);
         }
@@ -2746,7 +2746,7 @@ bool NAPI_MessageSequence::JS_WriteRawDataForTypedArray(napi_env env, napi_value
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     if (arrayLength < size) {
-        ZLOGE(LOG_LABEL, "typedarray length %{public}zu less than parameter size %{public}zu",
+        ZLOGE(LOG_LABEL, "typedarray length:%{public}zu less than parameter size:%{public}zu",
             arrayLength, size);
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -2774,7 +2774,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
     int32_t size = 0;
     napi_status isGetOk = napi_get_value_int32(env, argv[ARGV_INDEX_1], &size);
     if (isGetOk != napi_ok || size <= 0) {
-        ZLOGE(LOG_LABEL, "error for parameter 2 size is %{public}d , get failed", size);
+        ZLOGE(LOG_LABEL, "error for parameter 2 size is %{public}d, get failed", size);
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     bool result = false;

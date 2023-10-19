@@ -75,13 +75,13 @@ void JniHelperThrowException(JNIEnv *env, const char *className, const char *msg
 {
     jclass clazz = env->FindClass(className);
     if (!clazz) {
-        ZLOGE(LABEL, "Unable to find exception class %{public}s", className);
+        ZLOGE(LABEL, "Unable to find exception class:%{public}s", className);
         /* ClassNotFoundException now pending */
         return;
     }
 
     if (env->ThrowNew(clazz, msg) != JNI_OK) {
-        ZLOGE(LABEL, "Failed throwing '%{public}s' '%{public}s'", className, msg);
+        ZLOGE(LABEL, "Failed throwing className:%{public}s msg:%{public}s", className, msg);
         /* an exception, most likely OOM, will now be pending */
     }
 

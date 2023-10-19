@@ -64,7 +64,7 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGI(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
+    ZLOGD(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
@@ -94,7 +94,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
         return IPC_PROXY_INVALID_CODE_ERR;
     }
 
-    int32_t err = SendRequestInner(false, code, data, reply, option);
+    int err = SendRequestInner(false, code, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, Str16ToStr8(remoteDescriptor_));
     }
@@ -344,8 +344,6 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 #endif
         return false;
     }
-    ZLOGD(LABEL, "add deathrecipient, handle:%{public}d desc:%{public}s",
-        handle_, Str16ToStr8(remoteDescriptor_).c_str());
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
         if (!AddDbinderDeathRecipient()) {
@@ -400,7 +398,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             dbinderStatus = RemoveDbinderDeathRecipient();
         }
 #endif
-        ZLOGI(LABEL, "result:%{public}d, handle:%{public}d desc:%{public}s",
+        ZLOGI(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s",
             status && dbinderStatus, handle_, Str16ToStr8(remoteDescriptor_).c_str());
         return status && dbinderStatus;
     }
@@ -437,9 +435,11 @@ void IPCObjectProxy::SendObituary()
     const size_t size = toBeReport.size();
     for (size_t i = 0; i < size; i++) {
         sptr<DeathRecipient> recipient = toBeReport[i];
-        ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
-        recipient->OnRemoteDied(this);
-        ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
+        if (recipient != nullptr) {
+            ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
+            recipient->OnRemoteDied(this);
+            ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
+        }
     }
 }
 
@@ -471,7 +471,7 @@ int IPCObjectProxy::GetProto() const
 
 int32_t IPCObjectProxy::NoticeServiceDie()
 {
-    ZLOGW(LABEL, "handle:%{public}d", handle_);
+    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -527,7 +527,7 @@ void IPCObjectProxy::ReleaseProto()
             break;
         }
         default: {
-            ZLOGE(LABEL, "release invalid proto %{public}d", proto_);
+            ZLOGE(LABEL, "release invalid proto:%{public}d", proto_);
             break;
         }
     }
@@ -589,23 +589,27 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "get current fail");
+        ZLOGW(LABEL, "get current fail, handle:%{public}d desc:%{public}s",
+            handle_, Str16ToStr8(remoteDescriptor_).c_str());
         return false;
     }
 
     if (current->QueryCallbackStub(this) != nullptr) {
-        ZLOGW(LABEL, "already attach callback stub");
+        ZLOGW(LABEL, "already attach callback stub, handle:%{public}d desc:%{public}s",
+            handle_, Str16ToStr8(remoteDescriptor_).c_str());
         return true;
     }
 
     //note that cannot use this proxy's descriptor
     sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + remoteDescriptor_);
     if (callbackStub == nullptr) {
-        ZLOGE(LABEL, "create IPCObjectStub object failed");
+        ZLOGE(LABEL, "create IPCObjectStub object failed, handle:%{public}d desc:%{public}s",
+            handle_, Str16ToStr8(remoteDescriptor_).c_str());
         return false;
     }
     if (!current->AttachCallbackStub(this, callbackStub)) {
-        ZLOGW(LABEL, "already attach new callback stub");
+        ZLOGW(LABEL, "already attach new callback stub, handle:%{public}d desc:%{public}s",
+            handle_, Str16ToStr8(remoteDescriptor_).c_str());
         return false;
     }
 
@@ -632,10 +636,11 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
         ZLOGE(LABEL, "get current fail");
         return false;
     }
-    ZLOGW(LABEL, "handle:%{public}u", handle_);
+    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
     sptr<IPCObjectStub> callbackStub = current->DetachCallbackStub(this);
     if (callbackStub == nullptr) {
-        ZLOGE(LABEL, "get callbackStub fail");
+        ZLOGE(LABEL, "get callbackStub fail, handle:%{public}d desc:%{public}s",
+            handle_, Str16ToStr8(remoteDescriptor_).c_str());
         return false;
     }
 
@@ -711,8 +716,8 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
             ZLOGE(LABEL, "session is not exist, service:%{public}s devId:%{public}s",
                 serviceName.c_str(), IPCProcessSkeleton::ConvertToSecureString(peerID).c_str());
             dbinderSession->CloseDatabusSession();
+            return false;
         }
-        return false;
     }
     return true;
 }

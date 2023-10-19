@@ -371,7 +371,7 @@ bool DBinderBaseInvoker<T>::TranslateRawData(char *dataBuffer, MessageParcel &da
     }
     std::shared_ptr<InvokerRawData> receivedRawData = current->QueryRawData(socketId);
     if (receivedRawData == nullptr) {
-    ZLOGE(LOG_LABEL, "cannot found rawData according to the socketId:%{public}u", socketId);
+        ZLOGE(LOG_LABEL, "cannot found rawData according to the socketId:%{public}u", socketId);
         return false;
     }
     std::shared_ptr<char> rawData = receivedRawData->GetData();
@@ -717,7 +717,7 @@ int DBinderBaseInvoker<T>::SendOrWaitForCompletion(int userWaitTime, uint64_t se
     }
     result = WaitForReply(seqNumber, reply, sessionOfPeer->GetSessionHandle(), userWaitTime);
     if (result != ERR_NONE) {
-        ZLOGE(LOG_LABEL, "dbinder wait for reply result:%{public}d, seq:%{public}" PRIu64, result, seqNumber);
+        ZLOGE(LOG_LABEL, "dbinder wait for reply error:%{public}d seq:%{public}" PRIu64, result, seqNumber);
     }
     return result;
 }
@@ -824,7 +824,7 @@ std::shared_ptr<ThreadProcessInfo> DBinderBaseInvoker<T>::MakeThreadProcessInfo(
     }
     std::shared_ptr<char> buffer(new (std::nothrow) char[size]);
     if (buffer == nullptr) {
-        ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u handle:%{public}u ", size, handle);
+        ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u handle:%{public}u", size, handle);
         return nullptr;
     }
 
@@ -937,14 +937,15 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         // dbinder dec ref and thus stub will be destroyed
         int error = stubObject->SendRequest(tr->code, data, reply, option);
         if (error != ERR_NONE) {
-            ZLOGW(LOG_LABEL, "stub sendrequest failed, cmd:%{public}u error:%{public}d"
+            ZLOGW(LOG_LABEL, "stub sendrequest failed, cmd:%{public}u error:%{public}d "
                 "listenFd:%{public}u seq:%{public}" PRIu64, tr->code, error, listenFd, senderSeqNumber);
             // can not return;
         }
     }
 
     if (data.GetRawData() != nullptr) {
-        ZLOGW(LOG_LABEL, "delete raw data in process skeleton, listenFd:%{public}u", listenFd);
+        ZLOGW(LOG_LABEL, "delete raw data in process skeleton, listenFd:%{public}u seq:%{public}" PRIu64,
+            listenFd, senderSeqNumber);
         current->DetachRawData(listenFd);
     }
     HitraceInvoker::TraceServerSend(tr->cookie, tr->code, isServerTraced, newflags);
@@ -972,7 +973,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
 
     std::shared_ptr<ThreadMessageInfo> messageInfo = current->QueryThreadBySeqNumber(tr->seqNumber);
     if (messageInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "no thread waiting reply message of this seqNumber:%{public}llu, listenFd:%{public}u",
+        ZLOGE(LOG_LABEL, "no thread waiting reply message of this seqNumber:%{public}llu listenFd:%{public}u",
             tr->seqNumber, listenFd);
         /* messageInfo is null, no thread need to wakeup */
         return;

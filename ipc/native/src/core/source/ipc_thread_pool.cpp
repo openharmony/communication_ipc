@@ -110,7 +110,7 @@ bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
             idleSocketThreadNum_++;
         }
         threads_.erase(it);
-        ZLOGD(LOG_LABEL, "now idleThreadNum_:%{public}d", idleSocketThreadNum_);
+        ZLOGD(LOG_LABEL, "now idleThreadNum:%{public}d", idleSocketThreadNum_);
         return true;
     }
     return false;

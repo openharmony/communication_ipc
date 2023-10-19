@@ -39,13 +39,13 @@ DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::
       handle_(handle),
       tokenId_(tokenId)
 {
-    ZLOGD(LOG_LABEL, "created, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex_:%{public}" PRIu64,
+    ZLOGD(LOG_LABEL, "created, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex:%{public}" PRIu64,
         serviceName_.c_str(), IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(), handle_, stubIndex_);
 }
 
 DBinderCallbackStub::~DBinderCallbackStub()
 {
-    ZLOGD(LOG_LABEL, "destroyed, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex_:%{public}" PRIu64,
+    ZLOGD(LOG_LABEL, "destroyed, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex:%{public}" PRIu64,
         serviceName_.c_str(), IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(), handle_, stubIndex_);
     IPCProcessSkeleton::GetCurrent()->DetachDBinderCallbackStub(this);
 }
@@ -109,7 +109,7 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
     ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s "
-         "localDeviceID_:%{public}s serviceName_:%{public}s uid:%{public}d pid:%{public}d, "
+         "localDeviceID:%{public}s serviceName:%{public}s uid:%{public}d pid:%{public}d "
          "tokenId:%{public}u sessionName:%{public}s",
         stubIndex_, IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(localDeviceID_).c_str(), serviceName_.c_str(), uid, pid, tokenId_,
