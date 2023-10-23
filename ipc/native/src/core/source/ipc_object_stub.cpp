@@ -289,6 +289,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
         }
 #endif
         default:
+            lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count());
             result = OnRemoteRequest(code, data, reply, option);
             break;
     }
@@ -377,6 +379,11 @@ int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageP
         result = IPC_STUB_WRITE_PARCEL_ERR;
     }
     return result;
+}
+
+uint64_t IPCObjectStub::GetLastRequestTime()
+{
+    return lastRequestTime_;
 }
 
 #ifndef CONFIG_IPC_SINGLE
