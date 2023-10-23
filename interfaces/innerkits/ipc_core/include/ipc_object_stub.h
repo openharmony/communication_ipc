@@ -196,6 +196,13 @@ public:
      * @since 9
      */
     virtual int GetObjectType() const;
+
+    /**
+     * @brief Obtains the last request time.
+     * @return Returns the last request time.
+     * @since 9
+     */
+    uint64_t GetLastRequestTime();
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Invoker the calling thread.
@@ -251,6 +258,7 @@ private:
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
+    uint64_t lastRequestTime_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H
