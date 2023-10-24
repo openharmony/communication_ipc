@@ -44,7 +44,7 @@ napi_value NapiError::GetError(napi_env& env) const
         napi_get_undefined(env, &napiError);
         return napiError;
     }
-    
+
     napi_value napiCode = nullptr;
     std::string msg = napiErrMap_[errorCode_].errorMsg;
     int code = napiErrMap_[errorCode_].errorCode;
