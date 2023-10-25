@@ -147,6 +147,19 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest004, TestSize.Level1)
     EXPECT_EQ(result, ERR_NONE);
 }
 
+/**
+ * @tc.name: GetLastRequestTimeTest001
+ * @tc.desc: Verify the GetLastRequestTime function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    uint64_t ret = testStub->GetLastRequestTime();
+    ASSERT_TRUE(ret > 0);
+}
+
 #ifndef CONFIG_IPC_SINGLE
 /**
  * @tc.name: SendRequestTest005
