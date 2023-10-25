@@ -101,7 +101,8 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
     pthread_t threadId;
     int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, this);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "create thread failed");
+        ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
+        return;
     }
     ZLOGD(LOG_LABEL, "create thread, policy=%d, proto=%d", policy, proto);
     if (pthread_detach(threadId) != 0) {
