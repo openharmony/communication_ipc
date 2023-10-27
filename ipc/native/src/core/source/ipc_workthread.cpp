@@ -53,11 +53,12 @@ void *IPCWorkThread::ThreadHandler(void *args)
     threadObj->threadName_ += "_" + std::to_string(syscall(SYS_gettid));
     int32_t ret = prctl(PR_SET_NAME, threadObj->threadName_.c_str());
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "set thread name: %{public}s fail, ret: %{public}d",
+        ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d",
             threadObj->threadName_.c_str(), ret);
+    } else {
+        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
+            threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str());
     }
-    ZLOGD(LOG_LABEL, "proto_=%{public}d,policy_=%{public}d, name: %{public}s, ret: %{public}d",
-        threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str(), ret);
     if (invoker != nullptr) {
         switch (threadObj->policy_) {
             case SPAWN_PASSIVE:
@@ -73,7 +74,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
                 invoker->JoinProcessThread(true);
                 break;
             default:
-                ZLOGE(LOG_LABEL, "policy_ = %{public}d", threadObj->policy_);
+                ZLOGE(LOG_LABEL, "policy:%{public}d", threadObj->policy_);
                 break;
         }
     }
@@ -82,6 +83,8 @@ void *IPCWorkThread::ThreadHandler(void *args)
     if (current != nullptr) {
         current->OnThreadTerminated(threadObj->threadName_);
     }
+    ZLOGW(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s",
+        threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str());
     return nullptr;
 }
 
@@ -104,7 +107,7 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
         ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
         return;
     }
-    ZLOGD(LOG_LABEL, "create thread, policy=%d, proto=%d", policy, proto);
+    ZLOGD(LOG_LABEL, "create thread, policy:%{public}d proto:%{public}d", policy, proto);
     if (pthread_detach(threadId) != 0) {
         ZLOGE(LOG_LABEL, "detach error");
     }

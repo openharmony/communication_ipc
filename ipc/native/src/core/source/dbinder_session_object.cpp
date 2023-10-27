@@ -39,7 +39,8 @@ void DBinderSessionObject::CloseDatabusSession()
 {
     std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (session_ != nullptr && manager != nullptr) {
-        ZLOGI(LOG_LABEL, "close softbus session:%{public}" PRIu64 "", session_->GetChannelId());
+        ZLOGI(LOG_LABEL, "close softbus session, deviceId:%{public}s channelId:%{public}" PRId64,
+            IPCProcessSkeleton::ConvertToSecureString(session_->GetPeerDeviceId()).c_str(), session_->GetChannelId());
         (void)manager->CloseSession(session_);
     }
 }

@@ -188,7 +188,7 @@ int JRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     }
 
     if (code == DUMP_TRANSACTION) {
-        ZLOGE(LABEL, "DUMP_TRANSACTION data size:%zu", data.GetReadableBytes());
+        ZLOGE(LABEL, "DUMP_TRANSACTION data size:%{public}zu", data.GetReadableBytes());
     }
 
     jobject javaOption = JavaOhosRpcMessageOptionNewJavaObject(env.Get(), option.GetFlags(), option.GetWaitTime());
@@ -203,12 +203,12 @@ int JRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     if (code == SYSPROPS_TRANSACTION) {
         int result = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         if (result != ERR_NONE) {
-            ZLOGE(LABEL, "OnRemoteRequest res:%{public}d", result);
+            ZLOGE(LABEL, "result:%{public}d", result);
             return ERR_INVALID_DATA;
         }
     }
     if (!res) {
-        ZLOGE(LABEL, "OnRemoteRequest res:%{public}d", res);
+        ZLOGE(LABEL, "res:%{public}d", res);
         return ERR_UNKNOWN_TRANSACTION;
     }
     return ERR_NONE;
@@ -229,7 +229,7 @@ int JRemoteObject::OnRemoteDump(uint32_t code, MessageParcel &data, MessageParce
         res = JNI_FALSE;
     }
     env->DeleteLocalRef(javaOption);
-    ZLOGD(LABEL, "OnRemoteDump res:%d", res);
+    ZLOGD(LABEL, "res:%{public}d", res);
     return res ? ERR_NONE : ERR_UNKNOWN_TRANSACTION;
 }
 
@@ -280,7 +280,7 @@ JDeathRecipient::JDeathRecipient(jobject object)
 
 void JDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
-    ZLOGD(LABEL, "OnRemoteDied called");
+    ZLOGD(LABEL, "called");
     if (refObject_ == nullptr) {
         ZLOGE(LABEL, "Object has already removed");
         return;
@@ -326,6 +326,7 @@ bool JDeathRecipient::Matches(jobject object)
 
 JDeathRecipient::~JDeathRecipient()
 {
+    ZLOGD(LABEL, "enter");
     JNIEnvHelper env;
 
     if (env.Get() != nullptr) {
@@ -379,7 +380,7 @@ JRemoteProxyHolder *Java_ohos_rpc_getRemoteProxyHolder(JNIEnv *env, jobject obje
 
 jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject> target)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (target == nullptr) {
         ZLOGE(LABEL, "RemoteObject is null");
         return nullptr;
@@ -431,7 +432,7 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
 
 sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (object != nullptr) {
         if (env->IsInstanceOf(object, g_jRemoteStub.klass)) {
             JRemoteObjectHolder *holder =
@@ -455,7 +456,7 @@ sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject obj
  */
 jobject JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetContextObject(JNIEnv *env, jclass clazz)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
     if (object == nullptr) {
         ZLOGE(LABEL, "fatal error, could not get registry object");
@@ -634,7 +635,17 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
 {
     // Delegate sptr to manage memory,
     // it will automatically release managed memory when the life cycle ends.
-    ZLOGD(LABEL, "Call Free Proxy Holder");
+    JRemoteProxyHolder *proxyHolder = reinterpret_cast<JRemoteProxyHolder *>(holder);
+    if (proxyHolder == nullptr) {
+        ZLOGE(LABEL, "proxyHolder is null");
+        return;
+    }
+    IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(proxyHolder->object_.GetRefPtr());
+    if (proxy == nullptr) {
+        ZLOGE(LABEL, "proxy is null");
+        return;
+    }
+    ZLOGD(LABEL, "handle:%{public}u", proxy->GetHandle());
     std::unique_ptr<JRemoteProxyHolder> nativeHolder(reinterpret_cast<JRemoteProxyHolder *>(holder));
 }
 
@@ -646,7 +657,6 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
 jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobject object, jint code, jobject data,
     jobject reply, jobject option)
 {
-    ZLOGD(LABEL, "%s", __func__);
     MessageParcel *nativeData = JavaOhosRpcMessageParcelGetNative(env, data);
     if (nativeData == nullptr) {
         JniHelperThrowNullPointerException(env, "data field is null");
@@ -678,9 +688,13 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobjec
     }
 
     int result = target->SendRequest(code, *nativeData, *nativeReply, *nativeOption.get());
-    ZLOGD(LABEL, "nativeSendRequest result %d", result);
+    if (result != ERR_NONE) {
+        ZLOGE(LABEL, "failed, result:%{public}d", result);
+        return JNI_FALSE;
+    }
+    ZLOGD(LABEL, "success");
 
-    return (result == ERR_NONE) ? JNI_TRUE : JNI_FALSE;
+    return JNI_TRUE;
 }
 
 /*
@@ -691,6 +705,7 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobjec
 jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeAddDeathRecipient(JNIEnv *env, jobject object, jobject recipient,
     jint flags)
 {
+    ZLOGD(LABEL, "enter");
     if (recipient == nullptr) {
         JniHelperThrowNullPointerException(env, "the recipient is null");
         return JNI_FALSE;
@@ -725,6 +740,7 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeAddDeathRecipient(JNIEnv *env, 
 jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeRemoveDeathRecipient(JNIEnv *env, jobject object, jobject recipient,
     jint flags)
 {
+    ZLOGD(LABEL, "enter");
     if (recipient == nullptr) {
         JniHelperThrowNullPointerException(env, "the recipient is null");
         return JNI_FALSE;

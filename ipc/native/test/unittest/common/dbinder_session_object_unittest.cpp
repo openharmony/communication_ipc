@@ -88,6 +88,10 @@ HWTEST_F(DBinderSessionObjectTest, GetBusSessionTest001, TestSize.Level1)
     EXPECT_CALL(*sessionMock, GetSessionId())
         .WillRepeatedly(testing::Return(1));
 
+    std::string deviceId = "DeviceId";
+    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef(deviceId));
+
     auto session = object.GetBusSession();
     EXPECT_NE(session, nullptr);
     object.CloseDatabusSession();

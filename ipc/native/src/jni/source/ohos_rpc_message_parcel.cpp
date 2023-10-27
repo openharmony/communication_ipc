@@ -42,7 +42,7 @@ public:
     explicit AshmemSmartPointWrapper(const sptr<Ashmem> &ashmem) : ashmem_(ashmem)
     {
         if (ashmem == nullptr) {
-            ZLOGE(LABEL, "%s: ashmem is null", __func__);
+            ZLOGE(LABEL, "ashmem is null");
         }
     }
     ~AshmemSmartPointWrapper() = default;
@@ -62,7 +62,7 @@ private:
  */
 MessageParcel *JavaOhosRpcMessageParcelGetNative(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     jlong nativeObject = env->GetLongField(object, g_jMessageParcel.nativeObject);
     return reinterpret_cast<MessageParcel *>(nativeObject);
 }
@@ -110,7 +110,7 @@ static const JNINativeMethod sMethods[] = {
  */
 int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageParcel"));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageParcel");
@@ -146,7 +146,7 @@ int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
  */
 jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteRemoteObject(JNIEnv *env, jobject parcel, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, parcel);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for marshalling");
@@ -169,7 +169,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteRemoteObject(JNIEnv *env
  */
 jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadRemoteObject(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for unmarshalling");
@@ -186,7 +186,7 @@ jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadRemoteObject(JNIEnv *env, 
  */
 jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteFileDescriptor(JNIEnv *env, jobject object, jobject descriptor)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for marshalling");
@@ -204,7 +204,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteFileDescriptor(JNIEnv *e
  */
 jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadFileDescriptor(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "unable to get native parcel");
@@ -227,7 +227,7 @@ jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadFileDescriptor(JNIEnv *env
  */
 jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeContainFileDescriptors(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "unable to get native parcel");
@@ -246,7 +246,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeContainFileDescriptors(JNIEnv
 jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteInterfaceToken(JNIEnv *env, jobject object, jstring name,
     jint len)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for marshalling");
@@ -271,7 +271,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteInterfaceToken(JNIEnv *e
  */
 jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadInterfaceToken(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for marshalling");
@@ -362,7 +362,7 @@ jint JNICALL Java_ohos_rpc_MessageParcel_nativeGetRawDataCapacity(JNIEnv *env, j
  */
 void JavaOhosRpcMessageOptionSetNativeObjectOwner(JNIEnv *env, jobject object, jboolean value)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     env->SetBooleanField(object, g_jMessageParcel.nativeObjectOwner, value);
 }
 
@@ -373,7 +373,7 @@ void JavaOhosRpcMessageOptionSetNativeObjectOwner(JNIEnv *env, jobject object, j
  */
 jlong JNICALL Java_ohos_rpc_MessageParcel_nativeNewObject(JNIEnv *env, jobject object, jlong nativeObject)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeMessageParcel = nullptr;
     if (nativeObject != 0) {
         nativeMessageParcel = reinterpret_cast<MessageParcel *>(nativeObject);
@@ -400,7 +400,6 @@ jlong JNICALL Java_ohos_rpc_MessageParcel_nativeNewObject(JNIEnv *env, jobject o
         return 0L;
     }
     Parcel *nativeParcel = static_cast<Parcel *>(nativeMessageParcel);
-    ZLOGD(LABEL, "intSuperClass's native holder:%s", __func__);
     env->CallNonvirtualVoidMethod(object, superClass, superInit, reinterpret_cast<jlong>(nativeParcel));
 
     return reinterpret_cast<jlong>(nativeMessageParcel);
@@ -413,7 +412,7 @@ jlong JNICALL Java_ohos_rpc_MessageParcel_nativeNewObject(JNIEnv *env, jobject o
  */
 void JNICALL Java_ohos_rpc_MessageParcel_nativeFreeObject(JNIEnv *env, jobject object, jlong nativeObject)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     std::unique_ptr<MessageParcel> nativeParcel(reinterpret_cast<MessageParcel *>(nativeObject));
 }
 
@@ -424,7 +423,7 @@ void JNICALL Java_ohos_rpc_MessageParcel_nativeFreeObject(JNIEnv *env, jobject o
  */
 void JNICALL Java_ohos_rpc_MessageParcel_nativeCloseFileDescriptor(JNIEnv *env, jobject object, jobject descriptor)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (descriptor != nullptr) {
         int fd = JniHelperJavaIoGetFdFromFileDescriptor(env, descriptor);
         if (fd != INVALID_FD) {
@@ -441,7 +440,7 @@ void JNICALL Java_ohos_rpc_MessageParcel_nativeCloseFileDescriptor(JNIEnv *env, 
  */
 jobject JNICALL Java_ohos_rpc_MessageParcel_nativeDupFileDescriptor(JNIEnv *env, jobject object, jobject descriptor)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (descriptor != nullptr) {
         int fd = JniHelperJavaIoGetFdFromFileDescriptor(env, descriptor);
         int dupFd = INVALID_FD;
@@ -462,7 +461,7 @@ jobject JNICALL Java_ohos_rpc_MessageParcel_nativeDupFileDescriptor(JNIEnv *env,
  */
 jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteAshmem(JNIEnv *env, jobject object, jlong id)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for raw data");
@@ -471,7 +470,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteAshmem(JNIEnv *env, jobj
 
     sptr<Ashmem> ashmem = Java_ohos_rpc_Ashmem_getSptrAshmem(env, object, id);
     if (ashmem == nullptr) {
-        ZLOGE(LABEL, "%s: ashmem=null", __func__);
+        ZLOGE(LABEL, "ashmem is null");
         return JNI_FALSE;
     }
 
@@ -486,7 +485,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteAshmem(JNIEnv *env, jobj
  */
 jlong JNICALL Java_ohos_rpc_MessageParcel_nativeReadAshmem(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for rawData");
@@ -511,7 +510,7 @@ jlong JNICALL Java_ohos_rpc_MessageParcel_nativeReadAshmem(JNIEnv *env, jobject 
  */
 void JNICALL Java_ohos_rpc_MessageParcel_nativeReleaseAshmem(JNIEnv *env, jobject object, jlong id)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (id == 0) {
         return;
     }

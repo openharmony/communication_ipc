@@ -740,6 +740,11 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable002, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+
+    std::string peerSessionName = "PeerSessionName";
+    EXPECT_CALL(*sessionMock, GetPeerSessionName())
+        .WillRepeatedly(testing::ReturnRef(peerSessionName));
+
     const char *data = nullptr;
     testInvoker.OnMessageAvailable(sessionMock, data, 0);
     EXPECT_TRUE(data == nullptr);
