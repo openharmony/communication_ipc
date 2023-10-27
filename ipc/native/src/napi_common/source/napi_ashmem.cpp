@@ -39,7 +39,7 @@ static const size_t ARGV_LENGTH_3 = 3;
 NAPIAshmem::NAPIAshmem(sptr<Ashmem> &ashmem) : ashmem_(ashmem)
 {
     if (ashmem == nullptr) {
-        ZLOGE(LOG_LABEL, "%s: ashmem is null", __func__);
+        ZLOGE(LOG_LABEL, "ashmem is null");
     }
 }
 
@@ -414,7 +414,7 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     if (size < 0 || size > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         offset < 0 || offset > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}jd, offset = %{public}jd", size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
         return nullptr;
     }
     size *= BYTE_SIZE_32;
@@ -477,7 +477,7 @@ napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
     if (size < 0 || size > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         offset < 0 || offset > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}jd, offset = %{public}jd", size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
         return nullptr;
     }
     size *= BYTE_SIZE_32;
@@ -629,7 +629,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     if (size < 0 || size > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         offset < 0 || offset > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}jd, offset = %{public}jd", size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
         result = false;
     } else {
         result = napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);
@@ -685,7 +685,7 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
     if (size < 0 || size > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         offset < 0 || offset > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size = %{public}jd, offset = %{public}jd", size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
         return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
     }
     napiAshmem->GetAshmem()->WriteToAshmem(array.data(), size * BYTE_SIZE_32, offset * BYTE_SIZE_32);

@@ -455,7 +455,7 @@ napi_value NAPI_MessageParcel::JS_writeLongArray(napi_env env, napi_callback_inf
 
     uint32_t arrayLength = 0;
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
-    ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength = %{public}d", (int)(arrayLength));
+    ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength:%{public}d", (int)(arrayLength));
 
     NAPI_MessageParcel *napiParcel = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiParcel);
@@ -860,7 +860,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
         napi_call_function(env, element, prop, 1, funcArg, &callResult);
         napi_typeof(env, callResult, &valueType);
         if (callResult == nullptr || valueType == napi_undefined) {
-            ZLOGE(LOG_LABEL, "call mashalling failed, element index: %{public}zu", i);
+            ZLOGE(LOG_LABEL, "call mashalling failed, element index:%{public}zu", i);
             napiParcel->nativeParcel_->RewindWrite(pos);
             return retValue;
         }
@@ -1799,7 +1799,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceableArray(napi_env env, napi_callb
             napi_value callResult = nullptr;
             napi_call_function(env, element, prop, 1, funcArg, &callResult);
             if (callResult == nullptr) {
-                ZLOGE(LOG_LABEL, "call unmarshalling failed, element index: %{public}d", i);
+                ZLOGE(LOG_LABEL, "call unmarshalling failed, element index:%{public}d", i);
                 break;
             }
         }

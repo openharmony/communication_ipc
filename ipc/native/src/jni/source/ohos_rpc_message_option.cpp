@@ -31,7 +31,7 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJni" 
  */
 int JavaOhosRpcMessageOptionGetFlags(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if ((g_jMessageOption.flagsField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.flagsField);
     }
@@ -43,7 +43,7 @@ int JavaOhosRpcMessageOptionGetFlags(JNIEnv *env, jobject object)
  */
 int JavaOhosRpcMessageOptionGetWaitTime(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if ((g_jMessageOption.waitTimeField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.waitTimeField);
     }
@@ -55,7 +55,7 @@ int JavaOhosRpcMessageOptionGetWaitTime(JNIEnv *env, jobject object)
  */
 void JavaOhosRpcMessageOptionSetFlags(JNIEnv *env, jobject object, int flags)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (env != nullptr) {
         env->SetIntField(object, g_jMessageOption.flagsField, flags);
     }
@@ -66,7 +66,7 @@ void JavaOhosRpcMessageOptionSetFlags(JNIEnv *env, jobject object, int flags)
  */
 void JavaOhosRpcMessageOptionSetWaitTime(JNIEnv *env, jobject object, int waitTime)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "waitTime:%{public}s", waitTime);
     if (env != nullptr) {
         env->SetIntField(object, g_jMessageOption.waitTimeField, waitTime);
     }
@@ -77,7 +77,7 @@ void JavaOhosRpcMessageOptionSetWaitTime(JNIEnv *env, jobject object, int waitTi
  */
 jobject JavaOhosRpcMessageOptionNewJavaObject(JNIEnv *env, int flags, int waitTime)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     jobject option = nullptr;
     if (env != nullptr) {
         option = env->NewObject(g_jMessageOption.klazz, g_jMessageOption.initMethod, flags, waitTime);
@@ -90,7 +90,7 @@ jobject JavaOhosRpcMessageOptionNewJavaObject(JNIEnv *env, int flags, int waitTi
  */
 MessageOptionPtr JavaOhosRpcMessageOptionGetNative(JNIEnv *env, jobject object)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     int flags = JavaOhosRpcMessageOptionGetFlags(env, object);
     int waitTime = JavaOhosRpcMessageOptionGetWaitTime(env, object);
     auto option = std::make_shared<MessageOption>();
@@ -104,7 +104,7 @@ MessageOptionPtr JavaOhosRpcMessageOptionGetNative(JNIEnv *env, jobject object)
  */
 int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
 {
-    ZLOGD(LABEL, "%s", __func__);
+    ZLOGD(LABEL, "enter");
     if (env == nullptr) {
         return -1;
     }

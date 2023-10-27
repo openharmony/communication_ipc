@@ -72,18 +72,19 @@ IPCProcessSkeleton::IPCProcessSkeleton()
 #ifndef CONFIG_IPC_SINGLE
     std::random_device randDevice;
     std::default_random_engine baseRand { randDevice() };
-    std::uniform_int_distribution<> range(1, DBINDER_HANDLE_BASE * DBINDER_HANDLE_RANG);
+    std::uniform_int_distribution<> range(1, DBINDER_HANDLE_COUNT * DBINDER_HANDLE_RANG);
     int temp = range(baseRand);
     randNum_ = static_cast<uint64_t>(temp);
 #endif
 }
 
-std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &deviceId)
+std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
 {
-    if (strlen(deviceId.c_str()) <= ENCRYPT_LENGTH) {
+    size_t len = str.size();
+    if (len <= ENCRYPT_LENGTH) {
         return "****";
     }
-    return deviceId.substr(0, ENCRYPT_LENGTH) + "****" + deviceId.substr(strlen(deviceId.c_str()) - ENCRYPT_LENGTH);
+    return str.substr(0, ENCRYPT_LENGTH) + "****" + str.substr(len - ENCRYPT_LENGTH);
 }
 
 IPCProcessSkeleton::~IPCProcessSkeleton()
@@ -134,8 +135,8 @@ std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
 
 sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 {
+    bool newFlag = false;
     sptr<IRemoteObject> result = nullptr;
-
     std::u16string descriptor = MakeHandleDescriptor(handle);
     if (descriptor.length() == 0) {
         ZLOGE(LOG_LABEL, "make handle descriptor failed");
@@ -164,16 +165,18 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
                 return result;
             }
             AttachObject(result.GetRefPtr());
+            newFlag = true;
         }
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
     proxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
-        ZLOGE(LOG_LABEL, "init rpc proxy:%{public}d failed", handle);
+        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d", handle);
         return nullptr;
     }
 #endif
+    ZLOGD(LOG_LABEL, "handle:%{public}d proto:%{public}d new:%{public}d", handle, proxy->GetProto(), newFlag);
     return result;
 }
 
@@ -198,14 +201,14 @@ bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
         current->SetRegistryObject(object);
         current->SetSamgrFlag(true);
     }
-    ZLOGI(LOG_LABEL, "%{public}s set registry result is %{public}d", __func__, ret);
+    ZLOGI(LOG_LABEL, "set registry result:%{public}d", ret);
     return ret;
 }
 
 bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
 {
     if (maxThreadNum <= 0) {
-        ZLOGE(LOG_LABEL, "Set Invalid thread Number %d", maxThreadNum);
+        ZLOGE(LOG_LABEL, "Set Invalid thread Number:%{public}d", maxThreadNum);
         return false;
     }
 
@@ -357,8 +360,8 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
 
 bool IPCProcessSkeleton::IsHandleMadeByUser(uint32_t handle)
 {
-    if (handle >= DBINDER_HANDLE_BASE && handle <= (DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE)) {
-        ZLOGE(LOG_LABEL, "handle = %{public}u is make by user, not kernel", handle);
+    if (handle >= DBINDER_HANDLE_BASE && handle <= (DBINDER_HANDLE_BASE + DBINDER_HANDLE_COUNT)) {
+        ZLOGD(LOG_LABEL, "handle:%{public}u is make by user, not kernel", handle);
         return true;
     }
     return false;
@@ -368,12 +371,12 @@ uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(std::shared_ptr<DBinderSession
 {
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     uint32_t tempHandle = dBinderHandle_;
-    int count = DBINDER_HANDLE_BASE;
+    int count = DBINDER_HANDLE_COUNT;
     bool insertResult = false;
     do {
         count--;
         tempHandle++;
-        if (tempHandle > DBINDER_HANDLE_BASE + DBINDER_HANDLE_BASE) {
+        if (tempHandle > DBINDER_HANDLE_BASE + DBINDER_HANDLE_COUNT) {
             tempHandle = DBINDER_HANDLE_BASE;
         }
         insertResult = proxyToSession_.insert(std::pair<uint32_t,
@@ -396,20 +399,25 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     if (it != proxyToSession_.end() && it->second->GetProxy() == proxy) {
         tmp = it->second;
         proxyToSession_.erase(it);
+        ZLOGI(LOG_LABEL, "detach handle:%{public}u from session:%{public}" PRId64
+            " service:%{public}s stubIndex:%{public}" PRIu64, handle,
+            tmp->GetBusSession()->GetChannelId(), tmp->GetServiceName().c_str(),
+            tmp->GetStubIndex());
+    } else {
+        ZLOGW(LOG_LABEL, "detach handle:%{Public}u, not found", handle);
     }
-    ZLOGI(LOG_LABEL, "handle = %{public}u erase: %{public}d, not found: %{public}d", handle,
-        tmp != nullptr, it == proxyToSession_.end());
+   
     return tmp;
 }
 
 bool IPCProcessSkeleton::ProxyAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object)
 {
-    ZLOGI(LOG_LABEL, "attach handle = %{public}u to session: %{public}" PRIu64
-        " service: %{public}s, stubIndex: %{public}" PRIu64 " tokenId: %{public}u",
-        handle, object->GetBusSession()->GetChannelId(), object->GetServiceName().c_str(),
-        object->GetStubIndex(), object->GetTokenId());
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     auto result = proxyToSession_.insert(std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handle, object));
+    ZLOGI(LOG_LABEL, "attach handle:%{public}u to session:%{public}" PRId64
+        " service:%{public}s stubIndex:%{public}" PRIu64 " result:%{public}d",
+        handle, object->GetBusSession()->GetChannelId(), object->GetServiceName().c_str(),
+        object->GetStubIndex(), result.second);
     return result.second;
 }
 
@@ -428,8 +436,8 @@ bool IPCProcessSkeleton::ProxyMoveDBinderSession(uint32_t handle, IPCObjectProxy
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     auto it = proxyToSession_.find(handle);
     if (it != proxyToSession_.end()) {
-        ZLOGI(LOG_LABEL, "found session of handle = %{public}u old==null: %{public}d, old==new: %{public}d", handle,
-            it->second->GetProxy() == nullptr, it->second->GetProxy() == proxy);
+        ZLOGI(LOG_LABEL, "move proxy of handle:%{public}u old==new:%{public}d", handle,
+            it->second->GetProxy() == proxy);
         // moves ownership to this new proxy, so old proxy should not detach this session and stubIndex
         // see QueryHandleByDatabusSession
         it->second->SetProxy(proxy);
@@ -451,6 +459,7 @@ bool IPCProcessSkeleton::QueryProxyBySessionHandle(uint32_t handle, std::vector<
             proxyHandle.push_back(it->first);
         }
     }
+    ZLOGD(LOG_LABEL, "query proxys of session handle:%{public}u size:%{public}zu", handle, proxyHandle.size());
     return true;
 }
 
@@ -462,7 +471,7 @@ uint32_t IPCProcessSkeleton::QueryHandleByDatabusSession(const std::string &name
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
         if ((it->second->GetStubIndex() == stubIndex) && (it->second->GetDeviceId().compare(deviceId) == 0) &&
             (it->second->GetServiceName().compare(name) == 0)) {
-            ZLOGI(LOG_LABEL, "found session of handle = %{public}u", it->first);
+            ZLOGI(LOG_LABEL, "found handle:%{public}u of session, stubIndex:%{public}" PRIu64, it->first, stubIndex);
             // marks ownership not belong to the original proxy, In FindOrNewObject method,
             // we will find the original proxy and take ownership again if the original proxy is still existed.
             // Otherwise, if the original proxy is destroyed, it will not erase the session
@@ -494,8 +503,8 @@ bool IPCProcessSkeleton::StubDetachDBinderSession(uint32_t handle, uint32_t &tok
     auto it = dbinderSessionObjects_.find(handle);
     if (it != dbinderSessionObjects_.end()) {
         tokenId = it->second->GetTokenId();
-        ZLOGI(LOG_LABEL, "%{public}s: handle=%{public}u, stubIndex=%{public}" PRIu64 " tokenId=%{public}u",
-            __func__, handle, it->second->GetStubIndex(), tokenId);
+        ZLOGI(LOG_LABEL, "detach handle:%{public}u stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
+            handle, it->second->GetStubIndex(), tokenId);
         dbinderSessionObjects_.erase(it);
         return true;
     }
@@ -507,7 +516,7 @@ bool IPCProcessSkeleton::StubAttachDBinderSession(uint32_t handle, std::shared_p
     std::unique_lock<std::shared_mutex> lockGuard(databusSessionMutex_);
     auto result =
         dbinderSessionObjects_.insert(std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handle, object));
-    ZLOGI(LOG_LABEL, "handle=%{public}u, stubIndex=%{public}" PRIu64 " tokenId=%{public}u result=%{public}u",
+    ZLOGI(LOG_LABEL, "attach handle:%{public}u stubIndex:%{public}" PRIu64 " tokenId:%{public}u result:%{public}u",
         handle, object->GetStubIndex(), object->GetTokenId(), result.second);
     return result.second;
 }
@@ -712,8 +721,8 @@ void IPCProcessSkeleton::WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t ha
     }
 
     if (handle != messageInfo->socketId) {
-        ZLOGE(LOG_LABEL, "handle is not equal, handle = %{public}d, socketFd = %{public}u", handle,
-            messageInfo->socketId);
+        ZLOGE(LOG_LABEL, "handle is not equal, handle:%{public}d socketId:%{public}u",
+            handle, messageInfo->socketId);
         return;
     }
 
@@ -726,7 +735,7 @@ bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr
     int userWaitTime)
 {
     if (!AddThreadBySeqNumber(seqNumber, messageInfo)) {
-        ZLOGE(LOG_LABEL, "add seqNumber = %{public}" PRIu64 " failed", seqNumber);
+        ZLOGE(LOG_LABEL, "add seqNumber:%{public}" PRIu64 " failed", seqNumber);
         return false;
     }
 
@@ -734,8 +743,7 @@ bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr
     if (messageInfo->condition.wait_for(lock_unique, std::chrono::seconds(userWaitTime),
         [&messageInfo] { return messageInfo->ready; }) == false) {
         messageInfo->ready = false;
-        ZLOGE(LOG_LABEL, "socket thread timeout, seqNumber = %{public}" PRIu64 ", waittime = %{public}d",
-            seqNumber, userWaitTime);
+        ZLOGE(LOG_LABEL, "thread timeout, seqNumber:%{public}" PRIu64 " waittime:%{public}d", seqNumber, userWaitTime);
         return false;
     }
     messageInfo->ready = false;
@@ -832,8 +840,8 @@ bool IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
             appInfoToStubIndex_.erase(it);
         }
     }
-    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s stubIndex %{public}" PRIu64
-        " listenFd %{public}u result %{public}d", pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(),
+    ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s stubIndex:%{public}" PRIu64
+        " listenFd:%{public}u result:%{public}d", pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(),
         stubIndex, listenFd, result);
     return result;
 }
@@ -845,6 +853,9 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, u
     std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
+
+    uint32_t indexCnt = 0;
+    bool appInfoErase = false;
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
         std::map<uint64_t, uint32_t> stubIndexs = it->second;
@@ -852,16 +863,19 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, u
             if (it2->second == listenFd) {
                 indexs.push_back(it2->first);
                 it2 = stubIndexs.erase(it2);
+                indexCnt++;
             } else {
                 it2++;
             }
         }
         if (stubIndexs.empty()) {
             appInfoToStubIndex_.erase(it);
+            appInfoErase = true;
         }
     }
-    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s listenFd %{public}u",
-        pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), listenFd);
+    ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s listenFd:%{public}u"
+        " indexCnt:%{public}u appInfoErase:%{public}d",
+        pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), listenFd, indexCnt, appInfoErase);
     return indexs;
 }
 
@@ -871,8 +885,8 @@ void IPCProcessSkeleton::DetachAppInfoToStubIndex(uint64_t stubIndex)
 
     for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end();) {
         if (it->second.erase(stubIndex) > 0) {
-            ZLOGI(LOG_LABEL, "appInfo %{public}s stubIndex %{public}" PRIu64,
-                ConvertToSecureString(it->first).c_str(), stubIndex);
+            ZLOGI(LOG_LABEL, "earse stubIndex:%{public}" PRIu64 " of appInfo:%{public}s",
+                stubIndex, ConvertToSecureString(it->first).c_str());
         }
         if (it->second.size() == 0) {
             it = appInfoToStubIndex_.erase(it);
@@ -885,8 +899,8 @@ void IPCProcessSkeleton::DetachAppInfoToStubIndex(uint64_t stubIndex)
 bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
     const std::string &deviceId, uint64_t stubIndex, uint32_t listenFd)
 {
-    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s stubIndex %{public}" PRIu64
-        " listenFd %{public}u", pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), stubIndex, listenFd);
+    ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s stubIndex:%{public}" PRIu64
+        " listenFd:%{public}u", pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), stubIndex, listenFd);
     std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
@@ -905,7 +919,7 @@ bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
 bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
     const std::string &deviceId, uint32_t listenFd)
 {
-    ZLOGI(LOG_LABEL, "pid %{public}u uid %{public}u tokenId %{public}u deviceId %{public}s listenFd %{public}u",
+    ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s listenFd:%{public}u",
         pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), listenFd);
     std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
@@ -934,7 +948,7 @@ bool IPCProcessSkeleton::QueryAppInfoToStubIndex(uint32_t pid, uint32_t uid, uin
         auto it2 = it->second.find(stubIndex);
         // listenFd may be marked as 0
         if (it2 != it->second.end() && (it2->second == 0 || it2->second == listenFd)) {
-            ZLOGI(LOG_LABEL, "appInfo %{public}s stubIndex %{public}" PRIu64,
+            ZLOGD(LOG_LABEL, "found appInfo:%{public}s stubIndex:%{public}" PRIu64,
                 ConvertToSecureString(appInfo).c_str(), stubIndex);
             return true;
         }
@@ -998,7 +1012,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
     std::lock_guard<std::mutex> lockGuard(sessionNameMutex_);
 
     if (name.empty()) {
-        ZLOGE(LOG_LABEL, "get wrong session name = %s", name.c_str());
+        ZLOGE(LOG_LABEL, "get empty session name");
         return false;
     }
 
@@ -1016,7 +1030,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
     std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
     int ret = manager->CreateSessionServer(pkgName, name, callback);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "fail to create softbus server, maybe created already");
+        ZLOGE(LOG_LABEL, "CreateSessionServer fail, sessionName:%{public}s maybe created already", name.c_str());
     }
 
     if (name != sessionName_) {
@@ -1121,8 +1135,8 @@ bool IPCProcessSkeleton::QueryCommAuthInfo(int pid, int uid, uint32_t &tokenId, 
         tokenId = (*it)->GetRemoteTokenId();
         return true;
     }
-    ZLOGI(LOG_LABEL, "%{public}s: NOT exist, deviceId %{public}s pid %{public}u uid %{public}u",
-        __func__, ConvertToSecureString(deviceId).c_str(), pid, uid);
+    ZLOGE(LOG_LABEL, "NOT exist, deviceId:%{public}s pid:%{public}u uid:%{public}u",
+        IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(), pid, uid);
     tokenId = 0;
     return false;
 }

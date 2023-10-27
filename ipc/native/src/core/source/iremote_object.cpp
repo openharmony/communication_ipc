@@ -89,5 +89,4 @@ std::u16string IRemoteObject::GetInterfaceDescriptor()
 {
     return descriptor_;
 }
-
 } // namespace OHOS

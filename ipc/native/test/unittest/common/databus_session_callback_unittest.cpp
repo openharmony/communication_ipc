@@ -83,12 +83,14 @@ HWTEST_F(DbSessionCallbackUnitTest, OnSessionOpenedTest002, TestSize.Level1)
     std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
 
     EXPECT_CALL(*session, GetChannelId())
-        .Times(1)
-        .WillOnce(testing::Return(1));
+        .WillRepeatedly(testing::Return(1));
 
     EXPECT_CALL(*session, IsServerSide())
-        .Times(1)
-        .WillOnce(testing::Return(false));
+        .WillRepeatedly(testing::Return(false));
+
+    std::string deviceId = "DeviceId";
+    EXPECT_CALL(*session, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     DatabusSessionCallback dbSessionCallback;
     int ret = dbSessionCallback.OnSessionOpened(session);

@@ -59,7 +59,7 @@ void IPCFileDescriptor::SetFd(int fd)
 bool IPCFileDescriptor::Marshalling(Parcel &parcel) const
 {
     if (fd_ < 0) {
-        ZLOGE(LABEL, "%s:IPCFileDescriptor: fd %d is invalid", __func__, fd_);
+        ZLOGE(LABEL, "fd:%{public}d is invalid", fd_);
         return false;
     }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
