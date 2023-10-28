@@ -203,7 +203,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest002, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-    object.remoteDescriptor_ = u"test";
+    object.interfaceDesc_ = u"test";
     auto ret = object.GetInterfaceDescriptor();
     ASSERT_TRUE(ret.size() != 0);
 }
@@ -216,7 +216,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest003, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest004, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-    object.remoteDescriptor_ = u"test";
+    object.interfaceDesc_ = u"test";
     auto ret = object.GetInterfaceDescriptor();
     ASSERT_TRUE(ret.size() != 0);
 }
