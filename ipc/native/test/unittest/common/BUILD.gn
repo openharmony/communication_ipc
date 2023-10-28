@@ -390,7 +390,7 @@ ohos_unittest("IPCBlockThreadTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "ipc:ipc_single" ]
+  external_deps = [ "ipc:ipc_core" ]
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
