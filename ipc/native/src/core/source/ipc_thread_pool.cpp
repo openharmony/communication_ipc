@@ -30,8 +30,7 @@ IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
     : threadSequence_(0),
       maxThreadNum_(maxThreadNum + maxThreadNum),
       idleThreadNum_(maxThreadNum),
-      idleSocketThreadNum_(maxThreadNum),
-      numWaitingForThreads_(0)
+      idleSocketThreadNum_(maxThreadNum)
 {}
 
 IPCWorkThreadPool::~IPCWorkThreadPool()
@@ -103,9 +102,6 @@ bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
         }
         if (workThread->proto_ == IRemoteObject::IF_PROT_DEFAULT) {
             idleThreadNum_++;
-            if (numWaitingForThreads_ > 0) {
-                cv_.notify_all();
-            }
         } else if (workThread->proto_ == IRemoteObject::IF_PROT_DATABUS) {
             idleSocketThreadNum_++;
         }
@@ -145,16 +141,6 @@ void IPCWorkThreadPool::UpdateMaxThreadNum(int maxThreadNum)
     maxThreadNum_ = totalNum;
     idleThreadNum_ += diff / PROTO_NUM;
     idleSocketThreadNum_ += diff / PROTO_NUM;
-}
-
-void IPCWorkThreadPool::BlockUntilThreadAvailable()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    numWaitingForThreads_++;
-    while (idleThreadNum_ <= 0) {
-        cv_.wait(lock);
-    }
-    numWaitingForThreads_--;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

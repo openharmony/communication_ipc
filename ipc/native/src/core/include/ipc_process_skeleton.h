@@ -189,6 +189,10 @@ public:
     static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
     static constexpr int ENCRYPT_LENGTH = 4;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    int numExecuting_;
+    int numWaitingForThreads_;
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
     IPCProcessSkeleton();
