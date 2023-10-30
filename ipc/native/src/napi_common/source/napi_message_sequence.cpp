@@ -17,13 +17,13 @@
 
 #include <cstring>
 #include <unistd.h>
+
 #include "hilog/log.h"
+#include "ipc_debug.h"
 #include "log_tags.h"
 #include "napi_ashmem.h"
 #include "napi_remote_object.h"
 #include "string_ex.h"
-#include "ipc_debug.h"
-
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
