@@ -23,6 +23,7 @@
 #include "ashmem.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
+#include "ipc_debug.h"
 #include "ipc_file_descriptor.h"
 #include "ipc_process_skeleton.h"
 #include "iremote_invoker.h"
@@ -36,7 +37,6 @@
 #include "string"
 #include "sys_binder.h"
 #include "vector"
-#include "ipc_debug.h"
 
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_callback_stub.h"
