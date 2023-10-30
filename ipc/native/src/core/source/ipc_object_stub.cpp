@@ -258,7 +258,6 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             if (!reply.WriteString(sessionName)) {
                 ZLOGE(LABEL, "write to parcel fail");
                 result = IPC_STUB_INVALID_DATA_ERR;
-                break;
             }
             break;
         }
