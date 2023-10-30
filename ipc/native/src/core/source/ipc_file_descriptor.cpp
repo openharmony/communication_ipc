@@ -83,13 +83,14 @@ bool IPCFileDescriptor::Marshalling(Parcel &parcel, const sptr<IPCFileDescriptor
 IPCFileDescriptor *IPCFileDescriptor::Unmarshalling(Parcel &parcel)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-    int fd = -1;
+    int fd = INVALID_FD;
 
     if (invoker != nullptr) {
         fd = invoker->ReadFileDescriptor(parcel);
     }
 
     if (fd < 0) {
+        ZLOGE(LABEL, "fd:%{public}d is invalid", fd);
         return nullptr;
     }
 
