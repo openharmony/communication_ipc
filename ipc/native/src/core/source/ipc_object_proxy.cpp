@@ -135,8 +135,8 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
 
 std::u16string IPCObjectProxy::GetInterfaceDescriptor()
 {
-    if (!remoteDescriptor_.empty()) {
-        return remoteDescriptor_;
+    if (!interfaceDesc_.empty()) {
+        return interfaceDesc_;
     }
     if (handle_ == 0) {
         ZLOGD(LABEL, "handle == 0, do nothing");
@@ -151,9 +151,9 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, Str16ToStr8(remoteDescriptor_));
         return std::u16string();
     }
-    remoteDescriptor_ = reply.ReadString16();
+    interfaceDesc_ = reply.ReadString16();
 
-    return remoteDescriptor_;
+    return interfaceDesc_;
 }
 
 std::string IPCObjectProxy::GetSessionName()
