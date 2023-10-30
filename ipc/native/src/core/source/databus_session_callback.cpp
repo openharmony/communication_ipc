@@ -15,10 +15,10 @@
 
 #include "databus_session_callback.h"
 
-#include "ipc_thread_skeleton.h"
-#include "ipc_process_skeleton.h"
 #include "dbinder_databus_invoker.h"
 #include "ipc_debug.h"
+#include "ipc_process_skeleton.h"
+#include "ipc_thread_skeleton.h"
 #include "log_tags.h"
 
 namespace OHOS {
