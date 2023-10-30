@@ -1104,6 +1104,11 @@ bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int ui
     }
 
     std::shared_ptr<CommAuthInfo> authObject = std::make_shared<CommAuthInfo>(stub, pid, uid, tokenId, deviceId);
+    if (authObject == nullptr) {
+        ZLOGE(LOG_LABEL, "make_share CommonAuthInfo fail, device:%{public}s pid:%{public}d uid:%{public}d",
+            IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(), pid, uid);
+        return false;
+    }
     commAuth_.push_front(authObject);
     return true;
 }
@@ -1147,9 +1152,11 @@ bool IPCProcessSkeleton::QueryCommAuthInfo(int pid, int uid, uint32_t &tokenId, 
 
 void IPCProcessSkeleton::DetachCommAuthInfoByStub(IRemoteObject *stub)
 {
-    auto check = [&stub](const std::shared_ptr<CommAuthInfo> &auth) { return auth->GetStubObject() == stub; };
+    auto check = [&stub](const std::shared_ptr<CommAuthInfo> &auth) {
+        return (auth != nullptr) && (auth->GetStubObject() == stub);
+    };
     std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
-    commAuth_.remove_if(check);
+    commAuth_.erase(std::remove_if(commAuth_.begin(), commAuth_.end(), check), commAuth_.end());
 }
 
 bool IPCProcessSkeleton::AttachDBinderCallbackStub(sptr<IRemoteObject> proxy, sptr<DBinderCallbackStub> stub)
