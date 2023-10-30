@@ -104,6 +104,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
     if (descriptor.empty()) {
+        ZLOGE(LOG_LABEL, "descriptor is null");
         return false;
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
@@ -117,6 +118,7 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
 {
     sptr<IRemoteObject> result = nullptr;
     if (descriptor.empty()) {
+        ZLOGE(LOG_LABEL, "descriptor is null");
         return result;
     }
 
@@ -129,6 +131,7 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         remoteObject = it->second.GetRefPtr();
     }
     if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
+        ZLOGE(LOG_LABEL, "remote object is nullptr");
         return result;
     }
     result = remoteObject;
