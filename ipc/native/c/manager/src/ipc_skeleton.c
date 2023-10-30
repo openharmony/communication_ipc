@@ -22,6 +22,9 @@
 #include "securec.h"
 #include "utils_list.h"
 
+static const int COOKIE_NULL = 0;
+static const int INVALID_HANDLE = 0;
+
 // default is 4 max is 16
 int32_t SetMaxWorkThreadNum(int32_t maxThreadNum)
 {
@@ -71,7 +74,7 @@ int32_t SetContextObject(SvcIdentity target)
         RPC_LOG_ERROR("init ipc process skeleton failed.");
         return ERR_IPC_SKELETON_NOT_INIT;
     }
-    if (target.cookie == 0) {
+    if (target.cookie == COOKIE_NULL) {
         RPC_LOG_ERROR("samgr stub func is NULL.");
         return ERR_INVALID_PARAM;
     }
@@ -94,7 +97,7 @@ int32_t AddDeathRecipient(SvcIdentity target, OnRemoteDead deathFunc, void *args
         RPC_LOG_ERROR("init ipc process skeleton failed.");
         return ERR_IPC_SKELETON_NOT_INIT;
     }
-    if (target.handle < 0) {
+    if (target.handle < INVALID_HANDLE) {
         RPC_LOG_ERROR("add death recipient is invalid handle.");
         return ERR_INVALID_PARAM;
     }
@@ -107,7 +110,7 @@ int32_t RemoveDeathRecipient(SvcIdentity target, uint32_t cbId)
         RPC_LOG_ERROR("init ipc process skeleton failed.");
         return ERR_IPC_SKELETON_NOT_INIT;
     }
-    if (target.handle < 0) {
+    if (target.handle < INVALID_HANDLE) {
         RPC_LOG_ERROR("add death recipient is invalid handle.");
         return ERR_INVALID_PARAM;
     }
@@ -145,7 +148,7 @@ int32_t ReleaseSvc(SvcIdentity target)
         RPC_LOG_ERROR("init ipc process skeleton failed.");
         return ERR_IPC_SKELETON_NOT_INIT;
     }
-    if (target.handle <= 0) {
+    if (target.handle <= INVALID_HANDLE) {
         RPC_LOG_ERROR("release svc is invalid handle.");
         return ERR_INVALID_PARAM;
     }
