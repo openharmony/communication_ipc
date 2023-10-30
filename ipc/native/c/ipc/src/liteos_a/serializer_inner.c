@@ -19,9 +19,6 @@
 #include "lite_ipc.h"
 #include "serializer_inner.h"
 
-#define ALIGN_SZ 4
-#define IPC_IO_ALIGN(sz) (((sz) + ALIGN_SZ - 1) & (~(ALIGN_SZ - 1)))
-
 #define IPC_IO_RETURN_IF_FAIL(value)                                             \
     do {                                                                         \
         if (!(value)) {                                                          \
@@ -32,6 +29,16 @@
             return NULL;                                                         \
         }                                                                        \
     } while (0)
+
+thread_local uintptr_t g_objectStub = 0;
+
+uintptr_t GetObjectStub(uintptr_t cookie)
+{
+    if (cookie != NULL) {
+        g_objectStub = cookie;
+    }
+    return g_objectStub;
+}
 
 static SpecialObj* IoPushSpecObj(IpcIo* io)
 {
@@ -69,16 +76,6 @@ ERROR:
     return NULL;
 }
 
-thread_local uintptr_t g_objectStub_ = 0;
-
-uintptr_t GetObjectStub(uintptr_t cookie)
-{
-    if (cookie != NULL) {
-        g_objectStub_ = cookie;
-    }
-    return g_objectStub_;
-}
-
 static int32_t AddList(IpcObjectStub *stub, uint32_t *token, IpcCallback *ipcCallback)
 {
     int32_t ret = -1;
@@ -100,6 +97,7 @@ static int32_t AddList(IpcObjectStub *stub, uint32_t *token, IpcCallback *ipcCal
     }
     RPC_LOG_ERROR("anonymousApi memcpy_s failed");
     free(anonymousApi);
+    anonymousApi = NULL;
     pthread_mutex_unlock(&ipcCallback->mutex);
     return ret;
 }
@@ -126,7 +124,7 @@ bool WriteRemoteObject(IpcIo *io, const SvcIdentity *svc)
     }
     IpcObjectStub *stub = (IpcObjectStub *)ptr->content.svc.cookie;
     if (ptr->content.svc.token == SERVICE_TYPE_NORMAL) {
-        g_objectStub_ = stub;
+        g_objectStub = stub;
     } else if (ptr->content.svc.token == SERVICE_TYPE_ANONYMOUS) {
         IpcCallback *ipcCallback = GetIpcCb();
         uint32_t token;
