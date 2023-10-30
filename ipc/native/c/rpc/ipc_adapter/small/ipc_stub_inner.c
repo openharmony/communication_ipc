@@ -52,6 +52,7 @@ static int32_t MakeStubCached(IpcIo *reply, OnRemoteRequest func,
     stubObject->func = func;
     if (AddStubByIndex(stubObject) != ERR_NONE) {
         free(stubObject);
+        stubObject = NULL;
         return ERR_FAILED;
     }
 
@@ -96,6 +97,7 @@ static int32_t InvokerDataBusThread(IpcIo *data, IpcIo *reply, OnRemoteRequest f
 
     if (current->sessionName != NULL) {
         free(current->sessionName);
+        current->sessionName = NULL;
     }
     if (sessionNameLen == 0 || sessionNameLen > SERVICENAME_LENGTH) {
         RPC_LOG_ERROR("sessionNameLen invalid");
@@ -107,6 +109,7 @@ static int32_t InvokerDataBusThread(IpcIo *data, IpcIo *reply, OnRemoteRequest f
     }
     if (strcpy_s(current->sessionName, sessionNameLen + 1, sessionName) != EOK) {
         free(current->sessionName);
+        current->sessionName = NULL;
         return ERR_FAILED;
     }
 
@@ -146,6 +149,7 @@ int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
     } else {
         WriteString(reply, sessionName);
         free(sessionName);
+        sessionName = NULL;
         result = ERR_NONE;
     }
     return result;
@@ -180,11 +184,13 @@ int32_t GrantDataBusNameStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
     if (sprintf_s(sessionName, sessionNameLen + 1, "DBinder%d_%d", uid, pid) == -1) {
         RPC_LOG_ERROR("sessionName sprintf failed");
         free(sessionName);
+        sessionName = NULL;
         return ERR_FAILED;
     }
 
     WriteInt32(reply, IF_PROT_DATABUS);
     WriteString(reply, sessionName);
     free(sessionName);
+    sessionName = NULL;
     return ERR_NONE;
 }
