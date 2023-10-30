@@ -41,7 +41,7 @@ bool GetLocalDeviceID(void *value, OnCParcelBytesAllocator allocator);
 bool GetCallingDeviceID(void *value, OnCParcelBytesAllocator allocator);
 bool ResetCallingIdentity(void *value, OnCParcelBytesAllocator allocator);
 
-bool IsHandlingTransaction();
+bool IsHandlingTransaction(void);
 #ifdef __cplusplus
 }
 #endif

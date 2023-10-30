@@ -142,7 +142,7 @@ bool ResetCallingIdentity(void *value, OnCParcelBytesAllocator allocator)
     return true;
 }
 
-bool IsHandlingTransaction()
+bool IsHandlingTransaction(void)
 {
     if (OHOS::IPC_SINGLE::IPCThreadSkeleton::GetActiveInvoker() != nullptr) {
         return true;
