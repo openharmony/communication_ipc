@@ -468,7 +468,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
         if (onRemoteRequest == nullptr) {
@@ -478,7 +478,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_valuetype type = napi_undefined;
         napi_typeof(param->env, onRemoteRequest, &type);
@@ -492,7 +492,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 param->lockInfo->ready = true;
                 param->lockInfo->condition.notify_all();
                 napi_close_handle_scope(param->env, scope);
-                return;
+                return -1;
             }
             isOnRemoteMessageRequest = false;
         }
@@ -508,7 +508,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_value jsOptionConstructor = nullptr;
         napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
@@ -519,7 +519,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_value jsOption;
         size_t argc = 2;
@@ -536,7 +536,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_value jsParcelConstructor = nullptr;
         if (isOnRemoteMessageRequest) {
@@ -551,7 +551,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_value jsData;
         napi_value dataParcel;
@@ -565,7 +565,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         size_t argc3 = 1;
         napi_value argv3[1] = { dataParcel };
@@ -577,7 +577,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         napi_value jsReply;
         napi_value replyParcel;
@@ -591,7 +591,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         size_t argc4 = 1;
         napi_value argv4[1] = { replyParcel };
@@ -603,7 +603,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             param->lockInfo->ready = true;
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
-            return;
+            return -1;
         }
         NAPI_CallingInfo oldCallingInfo;
         NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
