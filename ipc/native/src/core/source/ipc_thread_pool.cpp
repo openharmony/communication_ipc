@@ -14,8 +14,10 @@
  */
 
 #include "ipc_thread_pool.h"
+
 #include <unistd.h>
 #include <sys/types.h>
+
 #include "ipc_debug.h"
 #include "log_tags.h"
 

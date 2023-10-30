@@ -15,18 +15,18 @@
 
 #include "ipc_process_skeleton.h"
 
-#include <securec.h>
-#include <unistd.h>
 #include <random>
+#include <securec.h>
 #include <sys/epoll.h>
-#include "string_ex.h"
-#include "ipc_debug.h"
-#include "ipc_types.h"
+#include <unistd.h>
 
+#include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
-#include "process_skeleton.h"
-#include "sys_binder.h"
+#include "ipc_types.h"
 #include "log_tags.h"
+#include "process_skeleton.h"
+#include "string_ex.h"
+#include "sys_binder.h"
 
 #ifndef CONFIG_IPC_SINGLE
 #include "databus_session_callback.h"
