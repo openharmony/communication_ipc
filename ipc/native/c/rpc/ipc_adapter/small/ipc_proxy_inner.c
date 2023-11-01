@@ -48,7 +48,6 @@ static void UpdateDatabusClientSession(int32_t handle, IpcIo *reply)
     if (handleToIndex == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession handleToIndex malloc failed");
         free(sessionObject);
-        sessionObject = NULL;
         return;
     }
     handleToIndex->handle = handle;
@@ -57,9 +56,7 @@ static void UpdateDatabusClientSession(int32_t handle, IpcIo *reply)
     if (AttachHandleToIndex(handleToIndex) != ERR_NONE) {
         RPC_LOG_ERROR("AttachHandleToIndex failed");
         free(sessionObject);
-        sessionObject = NULL;
         free(handleToIndex);
-        handleToIndex = NULL;
         return;
     }
 
@@ -67,9 +64,7 @@ static void UpdateDatabusClientSession(int32_t handle, IpcIo *reply)
         RPC_LOG_ERROR("create bus server fail name = %s, localID = %s", localBusName, localID);
         DetachHandleToIndex(handleToIndex);
         free(sessionObject);
-        sessionObject = NULL;
         free(handleToIndex);
-        handleToIndex = NULL;
         return;
     }
 
@@ -181,7 +176,6 @@ int32_t GetPidAndUidInfo(ProxyObject *proxyObject)
     if (strcpy_s(proxyObject->sessionName, len + 1, sessionName) != 0) {
         RPC_LOG_ERROR("GetPidAndUidInfo proxy name copy failed");
         free(proxyObject->sessionName);
-        proxyObject->sessionName = NULL;
         FreeBuffer((void *)ptr);
         return ERR_FAILED;
     }
@@ -230,7 +224,6 @@ char *GetDataBusName(void)
     if (strcpy_s(sessionName, len + 1, name) != EOK) {
         RPC_LOG_ERROR("GetDataBusName sessionName copy failed");
         free(sessionName);
-        sessionName = NULL;
         FreeBuffer((void *)ptr);
         return NULL;
     }

@@ -55,7 +55,6 @@ static void TlsDestructor(void *args)
     ThreadContext *threadContext = (ThreadContext *)args;
     RemoteInvoker *invoker = g_invoker[threadContext->proto];
     free(threadContext);
-    threadContext = NULL;
     if (invoker != NULL && invoker->ExitCurrentThread != NULL) {
         (invoker->ExitCurrentThread)();
     }
@@ -132,7 +131,6 @@ void DeinitThreadPool(ThreadPool *threadPool)
     pthread_mutex_destroy(&threadPool->lock);
     pthread_key_delete(g_localKey);
     free(threadPool);
-    threadPool = NULL;
     for (int32_t index = 0; index < PROTO_NUM; ++index) {
         DeinitRemoteInvoker(g_invoker[index], index);
         g_invoker[index] = NULL;
@@ -169,7 +167,6 @@ int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto)
     if (ret != 0) {
         pthread_mutex_unlock(&threadPool->lock);
         free(threadContext);
-        threadContext = NULL;
         RPC_LOG_ERROR("spawn new thread failed.");
         return ERR_FAILED;
     }

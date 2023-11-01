@@ -41,7 +41,6 @@ static void DeleteIpcSkeleton(IpcSkeleton *temp)
     }
     DeinitThreadPool(temp->threadPool);
     free(temp);
-    temp = NULL;
 }
 
 static IpcSkeleton* IpcProcessSkeleton()
@@ -54,7 +53,6 @@ static IpcSkeleton* IpcProcessSkeleton()
     temp->threadPool = InitThreadPool(SET_MAX_THREADS_DEFAULT);
     if (temp->threadPool == NULL) {
         free(temp);
-        temp = NULL;
         RPC_LOG_ERROR("init thread pool failed.");
         return NULL;
     }
@@ -187,7 +185,6 @@ int32_t DeleteHandle(int32_t handle)
             pthread_mutex_destroy(&node->lock);
             UtilsListDelete(&node->list);
             free(node);
-            node = NULL;
             break;
         }
     }
@@ -424,7 +421,6 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
     UtilsListDelete(&deathCallback->list);
     pthread_mutex_destroy(&deathCallback->lock);
     free(deathCallback);
-    deathCallback = NULL;
 }
 
 static void DeleteAllNode(void)
@@ -437,7 +433,6 @@ static void DeleteAllNode(void)
         pthread_mutex_destroy(&node->lock);
         UtilsListDelete(&node->list);
         free(node);
-        node = NULL;
     }
     pthread_mutex_unlock(&g_ipcSkeleton->lock);
 }

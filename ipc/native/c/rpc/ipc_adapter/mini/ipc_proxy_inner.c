@@ -52,13 +52,11 @@ static int32_t MakeInvokerListenReply(ProxyObject *proxyObject, uint64_t stubInd
     if (!WriteUint64(reply, stubIndex)) {
         RPC_LOG_ERROR("InvokerListenThread WriteUint64 failed");
         free((void *)ptr);
-        ptr = NULL;
         return ERR_FAILED;
     }
     if (!WriteString(reply, proxyObject->sessionName)) {
         RPC_LOG_ERROR("InvokerListenThread WriteString failed");
         free((void *)ptr);
-        ptr = NULL;
         return ERR_FAILED;
     }
     ((IpcIo *)reply)->bufferCur = ((IpcIo *)reply)->bufferBase;
@@ -85,7 +83,6 @@ int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID,
 
     if (current->sessionName != NULL) {
         free(current->sessionName);
-        current->sessionName = NULL;
     }
     if (sessionNameLen == 0 || sessionNameLen > SERVICENAME_LENGTH) {
         RPC_LOG_ERROR("sessionNameLen invalid");
@@ -101,7 +98,6 @@ int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID,
     }
     if (strcpy_s(current->sessionName, sessionNameLen + 1, proxyObject->sessionName) != EOK) {
         free(current->sessionName);
-        current->sessionName = NULL;
         return ERR_FAILED;
     }
 
@@ -115,7 +111,6 @@ int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID,
     stubObject->func = cookie->func;
     if (AddStubByIndex(stubObject) != ERR_NONE) {
         free(stubObject);
-        stubObject = NULL;
         return ERR_FAILED;
     }
 
@@ -143,7 +138,6 @@ int32_t GetPidAndUidInfo(ProxyObject *proxyObject)
     if (sprintf_s(proxyObject->sessionName, sessionNameLen + 1, "DBinder%d_%d", uid, pid) == -1) {
         RPC_LOG_ERROR("sessionName sprintf failed");
         free(proxyObject->sessionName);
-        proxyObject->sessionName = NULL;
         return ERR_FAILED;
     }
 
@@ -176,7 +170,6 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
     if (handleToIndex == NULL) {
         RPC_LOG_ERROR("UpdateDatabusClientSession handleToIndex malloc failed");
         free(sessionObject);
-        sessionObject = NULL;
         return proto;
     }
     handleToIndex->handle = svc->handle;
@@ -185,9 +178,7 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
     if (AttachHandleToIndex(handleToIndex) != ERR_NONE) {
         RPC_LOG_ERROR("AttachHandleToIndex failed");
         free(sessionObject);
-        sessionObject = NULL;
         free(handleToIndex);
-        handleToIndex = NULL;
         return proto;
     }
 
@@ -196,9 +187,7 @@ static int GetSessionFromDBinderService(SvcIdentity *svc)
             session->serviceName, session->deviceIdInfo.fromDeviceId);
         DetachHandleToIndex(handleToIndex);
         free(sessionObject);
-        sessionObject = NULL;
         free(handleToIndex);
-        handleToIndex = NULL;
         return proto;
     }
 
