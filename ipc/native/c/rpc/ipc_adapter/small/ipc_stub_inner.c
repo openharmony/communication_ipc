@@ -146,6 +146,7 @@ int32_t GetPidAndUidInfoStub(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
     } else {
         WriteString(reply, sessionName);
         free(sessionName);
+        sessionName = NULL;
         result = ERR_NONE;
     }
     return result;

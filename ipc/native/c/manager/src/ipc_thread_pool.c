@@ -131,6 +131,7 @@ void DeinitThreadPool(ThreadPool *threadPool)
     pthread_mutex_destroy(&threadPool->lock);
     pthread_key_delete(g_localKey);
     free(threadPool);
+    threadPool = NULL;
     for (int32_t index = 0; index < PROTO_NUM; ++index) {
         DeinitRemoteInvoker(g_invoker[index], index);
         g_invoker[index] = NULL;
