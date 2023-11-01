@@ -1144,7 +1144,6 @@ bool *ReadBoolVector(IpcIo *io, size_t *size)
         ptr = (int32_t *)IoPop(io, sizeof(int32_t));
         if (ptr == NULL) {
             free(val);
-            val = NULL;
             return NULL;
         }
         val[i] = (bool)(*ptr);
@@ -1193,7 +1192,6 @@ int16_t *ReadInt16Vector(IpcIo *io, size_t *size)
         ptr = (int32_t *)IoPop(io, sizeof(int32_t));
         if (ptr == NULL) {
             free(val);
-            val = NULL;
             return NULL;
         }
         val[i] = (int16_t)(*ptr);
