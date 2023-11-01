@@ -30,7 +30,7 @@
         }                                                                        \
     } while (0)
 
-thread_local uintptr_t g_objectStub = 0;
+thread_local uintptr_t g_objectStub = NULL;
 
 uintptr_t GetObjectStub(uintptr_t cookie)
 {
