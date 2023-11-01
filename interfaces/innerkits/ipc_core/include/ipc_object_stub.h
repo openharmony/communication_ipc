@@ -200,7 +200,7 @@ public:
     /**
      * @brief Obtains the last request time.
      * @return Returns the last request time.
-     * @since 9
+     * @since 11
      */
     uint64_t GetLastRequestTime();
 #ifndef CONFIG_IPC_SINGLE
