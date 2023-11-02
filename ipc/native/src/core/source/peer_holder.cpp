@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include "peer_holder.h"
+
 #include "iremote_object.h"
 #include "refbase.h"
-#include "peer_holder.h"
 
 namespace OHOS {
 PeerHolder::PeerHolder(const sptr<IRemoteObject> &object) : remoteObject_(object) {}

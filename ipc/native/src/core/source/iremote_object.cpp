@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
+#include "iremote_object.h"
+
+#include <string>
+
 #include "iremote_broker.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
 #include "parcel.h"
 #include "refbase.h"
-#include "string"
-#include "iremote_object.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
