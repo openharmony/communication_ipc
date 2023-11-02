@@ -15,12 +15,13 @@
 
 #include "iremote_object.h"
 
+#include <string>
+
 #include "iremote_broker.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
 #include "parcel.h"
 #include "refbase.h"
-#include "string"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
