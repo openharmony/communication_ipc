@@ -113,7 +113,7 @@ napi_value NAPI_MessageParcel::JS_writeByte(napi_env env, napi_callback_info inf
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiParcel);
     bool result = napiParcel->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
@@ -138,7 +138,7 @@ napi_value NAPI_MessageParcel::JS_writeShort(napi_env env, napi_callback_info in
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiParcel);
     bool result = napiParcel->nativeParcel_->WriteInt16(static_cast<int16_t>(value));
@@ -163,7 +163,7 @@ napi_value NAPI_MessageParcel::JS_writeInt(napi_env env, napi_callback_info info
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiParcel);
     bool result = napiParcel->nativeParcel_->WriteInt32(value);
@@ -188,7 +188,7 @@ napi_value NAPI_MessageParcel::JS_writeLong(napi_env env, napi_callback_info inf
     napi_get_value_int64(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_64, napiParcel);
     bool result = napiParcel->nativeParcel_->WriteInt64(value);
@@ -213,7 +213,7 @@ napi_value NAPI_MessageParcel::JS_writeFloat(napi_env env, napi_callback_info in
     napi_get_value_double(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, sizeof(double), napiParcel);
     bool result = napiParcel->nativeParcel_->WriteDouble(value);
@@ -238,7 +238,7 @@ napi_value NAPI_MessageParcel::JS_writeDouble(napi_env env, napi_callback_info i
     napi_get_value_double(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, sizeof(double), napiParcel);
     bool result = napiParcel->nativeParcel_->WriteDouble(value);
@@ -263,7 +263,7 @@ napi_value NAPI_MessageParcel::JS_writeBoolean(napi_env env, napi_callback_info 
     napi_get_value_bool(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiParcel);
     bool result = napiParcel->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
@@ -288,7 +288,7 @@ napi_value NAPI_MessageParcel::JS_writeChar(napi_env env, napi_callback_info inf
     napi_get_value_uint32(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32, napiParcel);
     bool result = napiParcel->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
@@ -315,7 +315,7 @@ napi_value NAPI_MessageParcel::JS_writeByteArray(napi_env env, napi_callback_inf
     NAPI_ASSERT(env, arrayLength < maxBytesLen, "write byte array length too large");
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_8 * (arrayLength + 1), napiParcel);
@@ -361,7 +361,7 @@ napi_value NAPI_MessageParcel::JS_writeShortArray(napi_env env, napi_callback_in
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiParcel);
@@ -407,7 +407,7 @@ napi_value NAPI_MessageParcel::JS_writeIntArray(napi_env env, napi_callback_info
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiParcel);
@@ -458,7 +458,7 @@ napi_value NAPI_MessageParcel::JS_writeLongArray(napi_env env, napi_callback_inf
     ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength:%{public}d", (int)(arrayLength));
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 + BYTE_SIZE_64 * arrayLength, napiParcel);
@@ -505,7 +505,7 @@ napi_value NAPI_MessageParcel::JS_writeFloatArray(napi_env env, napi_callback_in
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 + sizeof(double) * arrayLength, napiParcel);
@@ -552,7 +552,7 @@ napi_value NAPI_MessageParcel::JS_writeDoubleArray(napi_env env, napi_callback_i
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 + sizeof(double) * arrayLength, napiParcel);
@@ -599,7 +599,7 @@ napi_value NAPI_MessageParcel::JS_writeBooleanArray(napi_env env, napi_callback_
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiParcel);
@@ -646,7 +646,7 @@ napi_value NAPI_MessageParcel::JS_writeCharArray(napi_env env, napi_callback_inf
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * (arrayLength + 1), napiParcel);
@@ -685,7 +685,7 @@ napi_value NAPI_MessageParcel::JS_writeString(napi_env env, napi_callback_info i
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     napi_valuetype valueType = napi_null;
@@ -728,7 +728,7 @@ napi_value NAPI_MessageParcel::JS_writeStringArray(napi_env env, napi_callback_i
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     size_t pos = napiParcel->nativeParcel_->GetWritePosition();
@@ -782,7 +782,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     napi_valuetype valueType = napi_null;
@@ -829,7 +829,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", retValue);
 
     size_t pos = napiParcel->nativeParcel_->GetWritePosition();
@@ -882,7 +882,7 @@ napi_value NAPI_MessageParcel::JS_writeRemoteObjectArray(napi_env env, napi_call
     NAPI_ASSERT_BASE(env, argc == 1, "requires 1 parameter", retValue);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", retValue);
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
@@ -923,7 +923,7 @@ napi_value NAPI_MessageParcel::JS_readByte(napi_env env, napi_callback_info info
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     int8_t value = napiParcel->nativeParcel_->ReadInt8();
@@ -938,7 +938,7 @@ napi_value NAPI_MessageParcel::JS_readShort(napi_env env, napi_callback_info inf
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     int16_t value = napiParcel->nativeParcel_->ReadInt16();
@@ -953,7 +953,7 @@ napi_value NAPI_MessageParcel::JS_readInt(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     int32_t value = napiParcel->nativeParcel_->ReadInt32();
@@ -968,7 +968,7 @@ napi_value NAPI_MessageParcel::JS_readLong(napi_env env, napi_callback_info info
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     int64_t value = napiParcel->nativeParcel_->ReadInt64();
@@ -983,7 +983,7 @@ napi_value NAPI_MessageParcel::JS_readFloat(napi_env env, napi_callback_info inf
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     double value = napiParcel->nativeParcel_->ReadDouble();
@@ -998,7 +998,7 @@ napi_value NAPI_MessageParcel::JS_readDouble(napi_env env, napi_callback_info in
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     double value = napiParcel->nativeParcel_->ReadDouble();
@@ -1013,7 +1013,7 @@ napi_value NAPI_MessageParcel::JS_readBoolean(napi_env env, napi_callback_info i
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     int8_t value = napiParcel->nativeParcel_->ReadInt8();
@@ -1028,7 +1028,7 @@ napi_value NAPI_MessageParcel::JS_readChar(napi_env env, napi_callback_info info
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     uint8_t value = napiParcel->nativeParcel_->ReadUint8();
@@ -1043,7 +1043,7 @@ napi_value NAPI_MessageParcel::JS_readString(napi_env env, napi_callback_info in
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     std::u16string parcelString = napiParcel->nativeParcel_->ReadString16();
@@ -1060,7 +1060,7 @@ napi_value NAPI_MessageParcel::JS_getSize(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     size_t value = napiParcel->nativeParcel_->GetDataSize();
@@ -1076,7 +1076,7 @@ napi_value NAPI_MessageParcel::JS_getCapacity(napi_env env, napi_callback_info i
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     size_t value = napiParcel->nativeParcel_->GetDataCapacity();
@@ -1102,7 +1102,7 @@ napi_value NAPI_MessageParcel::JS_setSize(napi_env env, napi_callback_info info)
     napi_get_value_uint32(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     bool result = napiParcel->nativeParcel_->SetDataSize(static_cast<size_t>(value));
@@ -1128,7 +1128,7 @@ napi_value NAPI_MessageParcel::JS_setCapacity(napi_env env, napi_callback_info i
     napi_get_value_uint32(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     bool result = napiParcel->nativeParcel_->SetDataCapacity(static_cast<size_t>(value));
@@ -1147,7 +1147,7 @@ napi_value NAPI_MessageParcel::JS_getWritableBytes(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     size_t value = napiParcel->nativeParcel_->GetWritableBytes();
@@ -1163,7 +1163,7 @@ napi_value NAPI_MessageParcel::JS_getReadableBytes(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     size_t value = napiParcel->nativeParcel_->GetReadableBytes();
@@ -1179,7 +1179,7 @@ napi_value NAPI_MessageParcel::JS_getReadPosition(napi_env env, napi_callback_in
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     size_t value = napiParcel->nativeParcel_->GetReadPosition();
@@ -1205,7 +1205,7 @@ napi_value NAPI_MessageParcel::JS_rewindRead(napi_env env, napi_callback_info in
     napi_get_value_uint32(env, argv[ARGV_INDEX_0], &pos);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     bool result = napiParcel->nativeParcel_->RewindRead(static_cast<size_t>(pos));
@@ -1221,7 +1221,7 @@ napi_value NAPI_MessageParcel::JS_getWritePosition(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     size_t value = napiParcel->nativeParcel_->GetWritePosition();
@@ -1247,7 +1247,7 @@ napi_value NAPI_MessageParcel::JS_rewindWrite(napi_env env, napi_callback_info i
     napi_get_value_uint32(env, argv[ARGV_INDEX_0], &pos);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     bool result = napiParcel->nativeParcel_->RewindWrite(static_cast<size_t>(pos));
@@ -1261,7 +1261,7 @@ napi_value NAPI_MessageParcel::JS_writeNoException(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     napiParcel->nativeParcel_->WriteInt32(0);
     napi_value result = nullptr;
@@ -1276,7 +1276,7 @@ napi_value NAPI_MessageParcel::JS_readException(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t code = napiParcel->nativeParcel_->ReadInt32();
@@ -1295,7 +1295,7 @@ napi_value NAPI_MessageParcel::JS_readByteArray(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     uint32_t maxBytesLen = 40960;
@@ -1348,7 +1348,7 @@ napi_value NAPI_MessageParcel::JS_readShortArray(napi_env env, napi_callback_inf
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1399,7 +1399,7 @@ napi_value NAPI_MessageParcel::JS_readIntArray(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1450,7 +1450,7 @@ napi_value NAPI_MessageParcel::JS_readLongArray(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1501,7 +1501,7 @@ napi_value NAPI_MessageParcel::JS_readFloatArray(napi_env env, napi_callback_inf
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1552,7 +1552,7 @@ napi_value NAPI_MessageParcel::JS_readDoubleArray(napi_env env, napi_callback_in
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1603,7 +1603,7 @@ napi_value NAPI_MessageParcel::JS_readBooleanArray(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1655,7 +1655,7 @@ napi_value NAPI_MessageParcel::JS_readCharArray(napi_env env, napi_callback_info
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     uint32_t arrayLength = napiParcel->nativeParcel_->ReadUint32();
@@ -1706,7 +1706,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     uint32_t arrayLength = napiParcel->nativeParcel_->ReadUint32();
@@ -1761,7 +1761,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceableArray(napi_env env, napi_callb
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1820,7 +1820,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     int32_t arrayLength = napiParcel->nativeParcel_->ReadInt32();
@@ -1865,7 +1865,7 @@ napi_value NAPI_MessageParcel::JS_readSequenceable(napi_env env, napi_callback_i
     NAPI_ASSERT(env, argc == 1, "requires 1 parameter");
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     int32_t len = napiParcel->nativeParcel_->ReadInt32();
@@ -1912,7 +1912,7 @@ napi_value NAPI_MessageParcel::JS_reclaim(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_remove_wrap(env, thisVar, (void **)&napiParcel);
+    napi_remove_wrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     delete napiParcel;
 
@@ -1942,7 +1942,7 @@ napi_value NAPI_MessageParcel::JS_writeRemoteObject(napi_env env, napi_callback_
         return napiValue;
     }
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     bool result = napiParcel->nativeParcel_->WriteRemoteObject(remoteObject);
     NAPI_CALL(env, napi_get_boolean(env, result, &napiValue));
@@ -1956,7 +1956,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObject(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     sptr<IRemoteObject> value = napiParcel->nativeParcel_->ReadRemoteObject();
@@ -1988,7 +1988,7 @@ napi_value NAPI_MessageParcel::JS_writeInterfaceToken(napi_env env, napi_callbac
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
 
     std::string parcelString = stringValue;
@@ -2006,7 +2006,7 @@ napi_value NAPI_MessageParcel::JS_readInterfaceToken(napi_env env, napi_callback
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     std::u16string parcelString = napiParcel->nativeParcel_->ReadInterfaceToken();
@@ -2058,7 +2058,7 @@ napi_value NAPI_MessageParcel::JS_ContainFileDescriptors(napi_env env, napi_call
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     bool result = napiParcel->nativeParcel_->ContainFileDescriptors();
     napi_value napiValue = nullptr;
@@ -2079,7 +2079,7 @@ napi_value NAPI_MessageParcel::JS_WriteFileDescriptor(napi_env env, napi_callbac
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     bool result = napiParcel->nativeParcel_->WriteFileDescriptor(fd);
     napi_value napiValue = nullptr;
@@ -2093,7 +2093,7 @@ napi_value NAPI_MessageParcel::JS_ReadFileDescriptor(napi_env env, napi_callback
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     int32_t result = napiParcel->nativeParcel_->ReadFileDescriptor();
     napi_value napiValue;
@@ -2120,11 +2120,11 @@ napi_value NAPI_MessageParcel::JS_WriteAshmem(napi_env env, napi_callback_info i
     napi_instanceof(env, argv[ARGV_INDEX_0], constructor, &isAshmem);
     NAPI_ASSERT(env, isAshmem == true, "parameter is not instanceof Ashmem");
     NAPIAshmem *napiAshmem = nullptr;
-    napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&napiAshmem);
+    napi_unwrap(env, argv[ARGV_INDEX_0], reinterpret_cast<void **>(&napiAshmem));
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     sptr<Ashmem> nativeAshmem = napiAshmem->GetAshmem();
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
     bool result = napiParcel->nativeParcel_->WriteAshmem(nativeAshmem);
     napi_value napiValue = nullptr;
@@ -2139,7 +2139,7 @@ napi_value NAPI_MessageParcel::JS_ReadAshmem(napi_env env, napi_callback_info in
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     sptr<Ashmem> nativeAshmem = napiParcel->nativeParcel_->ReadAshmem();
     napi_value global = nullptr;
@@ -2152,7 +2152,7 @@ napi_value NAPI_MessageParcel::JS_ReadAshmem(napi_env env, napi_callback_info in
     status = napi_new_instance(env, constructor, 0, nullptr, &jsAshmem);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js Ashmem");
     NAPIAshmem *napiAshmem = nullptr;
-    napi_unwrap(env, jsAshmem, (void **)&napiAshmem);
+    napi_unwrap(env, jsAshmem, reinterpret_cast<void **>(&napiAshmem));
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
     napiAshmem->SetAshmem(nativeAshmem);
     return jsAshmem;
@@ -2192,7 +2192,7 @@ napi_value NAPI_MessageParcel::JS_WriteRawData(napi_env env, napi_callback_info 
     int32_t size = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_1], &size);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     bool result = napiParcel->nativeParcel_->WriteRawData(array.data(), size * BYTE_SIZE_32);
     napi_value napiValue = nullptr;
@@ -2213,7 +2213,7 @@ napi_value NAPI_MessageParcel::JS_ReadRawData(napi_env env, napi_callback_info i
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     const void *rawData = napiParcel->nativeParcel_->ReadRawData(arraySize * BYTE_SIZE_32);
     NAPI_ASSERT_BASE(env, rawData != nullptr, "rawData is null", nullptr);
@@ -2239,7 +2239,7 @@ napi_value NAPI_MessageParcel::JS_GetRawDataCapacity(napi_env env, napi_callback
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiParcel);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
     uint32_t result = napiParcel->nativeParcel_->GetRawDataCapacity();
     napi_value napiValue;
@@ -2345,7 +2345,7 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     MessageParcel *parcel = nullptr;
     if (argv[ARGV_INDEX_0] != nullptr) {
-        napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&parcel);
+        napi_unwrap(env, argv[ARGV_INDEX_0], reinterpret_cast<void **>(&parcel));
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }
     // new native parcel object
