@@ -14,10 +14,11 @@
  */
 
 #include "buffer_object.h"
-#include "securec.h"
-#include "sys_binder.h"
+
 #include "ipc_debug.h"
 #include "log_tags.h"
+#include "securec.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 BufferObject::BufferObject()
@@ -49,18 +50,17 @@ void BufferObject::UpdateSendBuffer(uint32_t userDataSize)
         ExpandSendBuffer(sendBuffSize_ + sendBuffSize_);
     }
     /* check whether buffer size is enough, if not, move write/read cursor to head */
-    if (sendBuffSize_ - sendBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE) {
-        /* writeCursor always bigger than readCursor */
-        if (sendBufferCursorW_ - sendBufferCursorR_ < sendBufferCursorR_) {
-            auto memcpyResult = memmove_s(sendBuffer_, sendBufferCursorW_ - sendBufferCursorR_,
-                sendBuffer_ + sendBufferCursorR_, sendBufferCursorW_ - sendBufferCursorR_);
-            if (memcpyResult != EOK) {
-                sendBufferCursorW_ = 0; // drop data in buffer, if memmove failed
-            } else {
-                sendBufferCursorW_ = sendBufferCursorW_ - sendBufferCursorR_;
-            }
-            sendBufferCursorR_ = 0;
+    /* writeCursor always bigger than readCursor */
+    if (sendBuffSize_ - sendBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE &&
+        sendBufferCursorW_ - sendBufferCursorR_ < sendBufferCursorR_) {
+        auto memcpyResult = memmove_s(sendBuffer_, sendBufferCursorW_ - sendBufferCursorR_,
+            sendBuffer_ + sendBufferCursorR_, sendBufferCursorW_ - sendBufferCursorR_);
+        if (memcpyResult != EOK) {
+            sendBufferCursorW_ = 0; // drop data in buffer, if memmove failed
+        } else {
+            sendBufferCursorW_ = sendBufferCursorW_ - sendBufferCursorR_;
         }
+        sendBufferCursorR_ = 0;
     }
 }
 
@@ -73,18 +73,17 @@ void BufferObject::UpdateReceiveBuffer()
         return;
     }
     /* check whether buffer size is enough, if not, move write/read cursor to head */
-    if (recvBuffSize_ - recvBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE) {
-        /* writeCursor always bigger than readCursor */
-        if (recvBufferCursorW_ - recvBufferCursorR_ < recvBufferCursorR_) {
-            auto memcpyResult = memmove_s(receiveBuffer_, recvBufferCursorW_ - recvBufferCursorR_,
-                receiveBuffer_ + recvBufferCursorR_, recvBufferCursorW_ - recvBufferCursorR_);
-            if (memcpyResult != EOK) {
-                recvBufferCursorW_ = 0; // drop data in buffer, if memmove failed
-            } else {
-                recvBufferCursorW_ = recvBufferCursorW_ - recvBufferCursorR_;
-            }
-            recvBufferCursorR_ = 0;
+    /* writeCursor always bigger than readCursor */
+    if (recvBuffSize_ - recvBufferCursorW_ < SOCKET_BUFF_RESERVED_SIZE &&
+        recvBufferCursorW_ - recvBufferCursorR_ < recvBufferCursorR_) {
+        auto memcpyResult = memmove_s(receiveBuffer_, recvBufferCursorW_ - recvBufferCursorR_,
+            receiveBuffer_ + recvBufferCursorR_, recvBufferCursorW_ - recvBufferCursorR_);
+        if (memcpyResult != EOK) {
+            recvBufferCursorW_ = 0; // drop data in buffer, if memmove failed
+        } else {
+            recvBufferCursorW_ = recvBufferCursorW_ - recvBufferCursorR_;
         }
+        recvBufferCursorR_ = 0;
     }
 }
 

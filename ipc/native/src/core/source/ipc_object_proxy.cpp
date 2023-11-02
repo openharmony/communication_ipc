@@ -573,12 +573,10 @@ int IPCObjectProxy::GetProtoInfo()
                 ZLOGE(LABEL, "UpdateDatabusClientSession failed");
                 return IRemoteObject::IF_PROT_ERROR;
             }
-            break;
         }
         default: {
             ZLOGE(LABEL, "get Invalid proto");
             return IRemoteObject::IF_PROT_ERROR;
-            break;
         }
     }
 

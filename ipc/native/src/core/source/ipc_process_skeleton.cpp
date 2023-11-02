@@ -15,18 +15,18 @@
 
 #include "ipc_process_skeleton.h"
 
-#include <securec.h>
-#include <unistd.h>
 #include <random>
+#include <securec.h>
 #include <sys/epoll.h>
-#include "string_ex.h"
-#include "ipc_debug.h"
-#include "ipc_types.h"
+#include <unistd.h>
 
+#include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
-#include "process_skeleton.h"
-#include "sys_binder.h"
+#include "ipc_types.h"
 #include "log_tags.h"
+#include "process_skeleton.h"
+#include "string_ex.h"
+#include "sys_binder.h"
 
 #ifndef CONFIG_IPC_SINGLE
 #include "databus_session_callback.h"
@@ -269,6 +269,7 @@ bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
     }
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
+        ZLOGE(LOG_LABEL, "descriptor is null");
         return false;
     }
     auto current = ProcessSkeleton::GetInstance();
@@ -834,13 +835,13 @@ bool IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
     bool result = false;
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        std::map<uint64_t, uint32_t> indexs = it->second;
-        auto it2 = indexs.find(stubIndex);
-        if (it2 != indexs.end() && it2->second == listenFd) {
-            indexs.erase(it2);
+        std::map<uint64_t, uint32_t> indexes = it->second;
+        auto it2 = indexes.find(stubIndex);
+        if (it2 != indexes.end() && it2->second == listenFd) {
+            indexes.erase(it2);
             result = true;
         }
-        if (indexs.empty()) {
+        if (indexes.empty()) {
             appInfoToStubIndex_.erase(it);
         }
     }
@@ -853,7 +854,7 @@ bool IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
 std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
     const std::string &deviceId, uint32_t listenFd)
 {
-    std::list<uint64_t> indexs;
+    std::list<uint64_t> indexes;
     std::string appInfo = deviceId + UIntToString(pid) + UIntToString(uid) + UIntToString(tokenId);
 
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
@@ -862,17 +863,17 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, u
     bool appInfoErase = false;
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        std::map<uint64_t, uint32_t> stubIndexs = it->second;
-        for (auto it2 = stubIndexs.begin(); it2 != stubIndexs.end();) {
+        std::map<uint64_t, uint32_t> stubIndexes = it->second;
+        for (auto it2 = stubIndexes.begin(); it2 != stubIndexes.end();) {
             if (it2->second == listenFd) {
-                indexs.push_back(it2->first);
-                it2 = stubIndexs.erase(it2);
+                indexes.push_back(it2->first);
+                it2 = stubIndexes.erase(it2);
                 indexCnt++;
             } else {
                 it2++;
             }
         }
-        if (stubIndexs.empty()) {
+        if (stubIndexes.empty()) {
             appInfoToStubIndex_.erase(it);
             appInfoErase = true;
         }
@@ -880,7 +881,7 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, u
     ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s listenFd:%{public}u"
         " indexCnt:%{public}u appInfoErase:%{public}d",
         pid, uid, tokenId, ConvertToSecureString(deviceId).c_str(), listenFd, indexCnt, appInfoErase);
-    return indexs;
+    return indexes;
 }
 
 void IPCProcessSkeleton::DetachAppInfoToStubIndex(uint64_t stubIndex)
@@ -931,9 +932,9 @@ bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
 
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        std::map<uint64_t, uint32_t> indexs = it->second;
+        std::map<uint64_t, uint32_t> indexes = it->second;
         // OnSessionOpen update listenFd
-        for (auto it2 = indexs.begin(); it2 != indexs.end(); it2++) {
+        for (auto it2 = indexes.begin(); it2 != indexes.end(); it2++) {
             it2->second = listenFd;
         }
     }

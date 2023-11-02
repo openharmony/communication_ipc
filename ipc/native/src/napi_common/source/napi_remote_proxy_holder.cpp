@@ -81,14 +81,12 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 bool NAPIDeathRecipient::Matches(napi_value object)
 {
     bool result = false;
-    if (object != nullptr) {
-        if (deathRecipientRef_ != nullptr) {
-            napi_value jsDeathRecipient = nullptr;
-            napi_get_reference_value(env_, deathRecipientRef_, &jsDeathRecipient);
-            napi_status status = napi_strict_equals(env_, object, jsDeathRecipient, &result);
-            if (status != napi_ok) {
-                ZLOGI(LOG_LABEL, "compares death recipients failed");
-            }
+    if (object != nullptr && deathRecipientRef_ != nullptr) {
+        napi_value jsDeathRecipient = nullptr;
+        napi_get_reference_value(env_, deathRecipientRef_, &jsDeathRecipient);
+        napi_status status = napi_strict_equals(env_, object, jsDeathRecipient, &result);
+        if (status != napi_ok) {
+            ZLOGI(LOG_LABEL, "compares death recipients failed");
         }
     }
     return result;

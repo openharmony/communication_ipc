@@ -17,13 +17,13 @@
 
 #include <cstring>
 #include <unistd.h>
+
 #include "hilog/log.h"
+#include "ipc_debug.h"
 #include "log_tags.h"
 #include "napi_ashmem.h"
 #include "napi_remote_object.h"
 #include "string_ex.h"
-#include "ipc_debug.h"
-
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -39,7 +39,11 @@ static const size_t ARGV_INDEX_1 = 1;
 
 static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
+static const size_t REQUIRED_ARGS_COUNT_1 = 1;  // "requires 1 parameter"
+
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "NAPI_MessageSequence" };
+
+#define MAX_BYTES_LENGTH 40960
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
     do {                                                                                               \
@@ -107,7 +111,7 @@ napi_value NAPI_MessageSequence::JS_writeByte(napi_env env, napi_callback_info i
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -145,7 +149,7 @@ napi_value NAPI_MessageSequence::JS_writeShort(napi_env env, napi_callback_info 
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -183,7 +187,7 @@ napi_value NAPI_MessageSequence::JS_writeInt(napi_env env, napi_callback_info in
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -221,7 +225,7 @@ napi_value NAPI_MessageSequence::JS_writeLong(napi_env env, napi_callback_info i
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -259,7 +263,7 @@ napi_value NAPI_MessageSequence::JS_writeFloat(napi_env env, napi_callback_info 
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -293,40 +297,8 @@ napi_value NAPI_MessageSequence::JS_writeFloat(napi_env env, napi_callback_info 
 
 napi_value NAPI_MessageSequence::JS_writeDouble(napi_env env, napi_callback_info info)
 {
-    size_t argc = 1;
-    napi_value argv[ARGV_LENGTH_1] = {0};
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
-        ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-
-    napi_valuetype valueType = napi_null;
-    napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
-    if (valueType != napi_number) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-
-    double value = 0;
-    napi_get_value_double(env, argv[ARGV_INDEX_0], &value);
-
-    NAPI_MessageSequence *napiSequence = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiSequence);
-    if (napiSequence == nullptr) {
-        ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
-    }
-    CHECK_WRITE_CAPACITY(env, sizeof(double), napiSequence);
-    bool result = napiSequence->nativeParcel_->WriteDouble(value);
-    if (!result) {
-        ZLOGE(LOG_LABEL, "write double failed");
-        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
-    }
-    napi_value napiValue = nullptr;
-    napi_get_undefined(env, &napiValue);
-    return napiValue;
+    // This function implementation is the same as JS_writeFloat
+    return NAPI_MessageSequence::JS_writeFloat(env, info);
 }
 
 napi_value NAPI_MessageSequence::JS_writeBoolean(napi_env env, napi_callback_info info)
@@ -335,7 +307,7 @@ napi_value NAPI_MessageSequence::JS_writeBoolean(napi_env env, napi_callback_inf
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -347,7 +319,7 @@ napi_value NAPI_MessageSequence::JS_writeBoolean(napi_env env, napi_callback_inf
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
-    bool value = 0;
+    bool value = false;
     napi_get_value_bool(env, argv[ARGV_INDEX_0], &value);
 
     NAPI_MessageSequence *napiSequence = nullptr;
@@ -373,7 +345,7 @@ napi_value NAPI_MessageSequence::JS_writeChar(napi_env env, napi_callback_info i
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -410,7 +382,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteByteArrayArgs(napi_env env,
                                                             napi_value* argv,
                                                             uint32_t &arrayLength)
 {
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -420,7 +392,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteByteArrayArgs(napi_env env,
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    uint32_t maxBytesLen = 40960;
+    uint32_t maxBytesLen = MAX_BYTES_LENGTH;
     napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
     if (arrayLength >= maxBytesLen) {
         ZLOGE(LOG_LABEL, "write byte array length too large");
@@ -440,6 +412,7 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteByteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -485,7 +458,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteArrayArgs(napi_env env,
                                                         napi_value* argv,
                                                         uint32_t &arrayLength)
 {
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -513,6 +486,7 @@ napi_value NAPI_MessageSequence::JS_writeShortArray(napi_env env, napi_callback_
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -563,6 +537,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -617,6 +592,7 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
     ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength:%{public}d", (int)(arrayLength));
@@ -669,6 +645,7 @@ napi_value NAPI_MessageSequence::JS_writeFloatArray(napi_env env, napi_callback_
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -720,6 +697,7 @@ napi_value NAPI_MessageSequence::JS_writeDoubleArray(napi_env env, napi_callback
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -771,6 +749,7 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -796,7 +775,7 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
 
-        bool value = 0;
+        bool value = false;
         napi_get_value_bool(env, element, &value);
 
         result = napiSequence->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
@@ -822,6 +801,7 @@ napi_value NAPI_MessageSequence::JS_writeCharArray(napi_env env, napi_callback_i
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -880,7 +860,7 @@ napi_value NAPI_MessageSequence::JS_writeString(napi_env env, napi_callback_info
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
-    size_t maxLen = 40960;
+    size_t maxLen = MAX_BYTES_LENGTH;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
@@ -920,7 +900,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteStringArrayElement(napi_env env,
                                                                  napi_value &element)
 {
     bool hasElement = false;
-    size_t maxSize = 40960;
+    size_t maxSize = MAX_BYTES_LENGTH;
     napi_has_element(env, argv[ARGV_INDEX_0], index, &hasElement);
     if (!hasElement) {
         ZLOGE(LOG_LABEL, "parameter check error");
@@ -955,6 +935,7 @@ napi_value NAPI_MessageSequence::JS_writeStringArray(napi_env env, napi_callback
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -1087,6 +1068,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelableArray(napi_env env, napi_call
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -1142,6 +1124,7 @@ napi_value NAPI_MessageSequence::JS_writeRemoteObjectArray(napi_env env, napi_ca
     uint32_t arrayLength = 0;
     napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -1278,20 +1261,8 @@ napi_value NAPI_MessageSequence::JS_readFloat(napi_env env, napi_callback_info i
 
 napi_value NAPI_MessageSequence::JS_readDouble(napi_env env, napi_callback_info info)
 {
-    size_t argc = 0;
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
-    NAPI_MessageSequence *napiSequence = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiSequence);
-    if (napiSequence == nullptr) {
-        ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
-    }
-
-    double value = napiSequence->nativeParcel_->ReadDouble();
-    napi_value napiValue = nullptr;
-    NAPI_CALL(env, napi_create_double(env, value, &napiValue));
-    return napiValue;
+    // This function implementation is the same as JS_readFloat
+    return NAPI_MessageSequence::JS_readFloat(env, info);
 }
 
 napi_value NAPI_MessageSequence::JS_readBoolean(napi_env env, napi_callback_info info)
@@ -1388,7 +1359,7 @@ napi_value NAPI_MessageSequence::JS_setSize(napi_env env, napi_callback_info inf
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -1426,7 +1397,7 @@ napi_value NAPI_MessageSequence::JS_setCapacity(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -1674,7 +1645,7 @@ napi_value NAPI_MessageSequence::JS_readByteArray(napi_env env, napi_callback_in
         ZLOGE(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
-    uint32_t maxBytesLen = 40960;
+    uint32_t maxBytesLen = MAX_BYTES_LENGTH;
     uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (arrayLength >= maxBytesLen) {
         ZLOGE(LOG_LABEL, "byte array length too large");
@@ -1685,6 +1656,7 @@ napi_value NAPI_MessageSequence::JS_readByteArray(napi_env env, napi_callback_in
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -1735,6 +1707,7 @@ napi_value NAPI_MessageSequence::JS_readShortArray(napi_env env, napi_callback_i
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -1786,6 +1759,7 @@ napi_value NAPI_MessageSequence::JS_readIntArray(napi_env env, napi_callback_inf
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -1837,6 +1811,7 @@ napi_value NAPI_MessageSequence::JS_readLongArray(napi_env env, napi_callback_in
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -1888,6 +1863,7 @@ napi_value NAPI_MessageSequence::JS_readFloatArray(napi_env env, napi_callback_i
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -1922,53 +1898,8 @@ napi_value NAPI_MessageSequence::JS_readFloatArray(napi_env env, napi_callback_i
 
 napi_value NAPI_MessageSequence::JS_readDoubleArray(napi_env env, napi_callback_info info)
 {
-    size_t argc = 0;
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
-
-    NAPI_MessageSequence *napiSequence = nullptr;
-    napi_unwrap(env, thisVar, (void **)&napiSequence);
-    if (napiSequence == nullptr) {
-        ZLOGE(LOG_LABEL, "napiSequence is null");
-        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
-    }
-
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
-    if (argc > 0) {
-        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
-        napi_value argv[ARGV_LENGTH_1] = {0};
-        napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
-        if (checkArgsResult == nullptr) {
-            return checkArgsResult;
-        }
-
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
-            double val = napiSequence->nativeParcel_->ReadDouble();
-            napi_value num = nullptr;
-            napi_create_double(env, val, &num);
-            napi_set_element(env, argv[ARGV_INDEX_0], i, num);
-        }
-        napi_value napiValue = nullptr;
-        NAPI_CALL(env, napi_get_boolean(env, true, &napiValue));
-        return napiValue;
-    }
-
-    if (arrayLength <= 0) {
-        napi_value result = nullptr;
-        napi_create_array(env, &result);
-        return result;
-    }
-    CHECK_READ_LENGTH(env, (size_t)arrayLength, sizeof(double), napiSequence);
-    napi_value result = nullptr;
-    napi_create_array_with_length(env, (size_t)arrayLength, &result);
-
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
-        double val = napiSequence->nativeParcel_->ReadDouble();
-        napi_value num = nullptr;
-        napi_create_double(env, val, &num);
-        napi_set_element(env, result, i, num);
-    }
-    return result;
+    // This function implementation is the same as JS_readFloatArray
+    return NAPI_MessageSequence::JS_readFloatArray(env, info);
 }
 
 napi_value NAPI_MessageSequence::JS_readBooleanArray(napi_env env, napi_callback_info info)
@@ -1990,6 +1921,7 @@ napi_value NAPI_MessageSequence::JS_readBooleanArray(napi_env env, napi_callback
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -2042,6 +1974,7 @@ napi_value NAPI_MessageSequence::JS_readCharArray(napi_env env, napi_callback_in
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -2093,6 +2026,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
 
@@ -2155,6 +2089,7 @@ napi_value NAPI_MessageSequence::JS_readParcelableArray(napi_env env, napi_callb
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
@@ -2220,6 +2155,7 @@ napi_value NAPI_MessageSequence::JS_readRemoteObjectArray(napi_env env, napi_cal
     if (argc > 0) { // uses passed in array
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
+            ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
         uint32_t length = 0;
@@ -2325,7 +2261,7 @@ napi_value NAPI_MessageSequence::JS_writeRemoteObject(napi_env env, napi_callbac
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -2385,7 +2321,7 @@ napi_value NAPI_MessageSequence::JS_writeInterfaceToken(napi_env env, napi_callb
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    if (argc != 1) {
+    if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -2396,7 +2332,7 @@ napi_value NAPI_MessageSequence::JS_writeInterfaceToken(napi_env env, napi_callb
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     size_t bufferSize = 0;
-    size_t maxSize = 40960;
+    size_t maxSize = MAX_BYTES_LENGTH;
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxSize) {
         ZLOGE(LOG_LABEL, "string length too large");
@@ -2761,6 +2697,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawData(napi_env env, napi_callback_inf
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     napi_value checkArgsResult = JS_checkWriteRawDataArgs(env, argc, argv);
     if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
 
