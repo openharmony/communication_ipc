@@ -90,7 +90,7 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
             if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(session->stubIndex) ||
                 !reply.WriteString(session->serviceName) || !reply.WriteString(session->deviceIdInfo.toDeviceId) ||
                 !reply.WriteString(session->deviceIdInfo.fromDeviceId) || !reply.WriteString(localBusName) ||
-                !reply.WriteUint32(session->deviceIdInfo.tokenId)) {
+                !reply.WriteUint32(session->deviceIdInfo.tokenId) || !reply.WriteString16(descriptor_)) {
                 DBINDER_LOGE(LOG_LABEL, "write to parcel fail");
                 return DBINDER_SERVICE_PROCESS_PROTO_ERR;
             }
