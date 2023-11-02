@@ -411,8 +411,8 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, napiAshmem != nullptr, "napiAshmem is null");
 
     uint32_t ashmemSize = (uint32_t)napiAshmem->GetAshmem()->GetAshmemSize();
-    if (size < 0 || size > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
-        offset < 0 || offset > (int64_t)(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
+    if (size < 0 || size > static_cast<int64_t>(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
+        offset < 0 || offset > static_cast<int64_t>(std::numeric_limits<int32_t>::max() / BYTE_SIZE_32) ||
         (size * BYTE_SIZE_32 + offset * BYTE_SIZE_32) > ashmemSize) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
         return nullptr;
