@@ -244,7 +244,7 @@ int Dump(CRemoteObject *object, int fd, CParcel *parcel)
         return -1;
     }
     if (fd < 0) {
-        ZLOGE(LOG_LABEL, "%{public}s: fd is invalid\n", __func__);
+        ZLOGE(LOG_LABEL, "%{public}s: fd is invalid", __func__);
         return -1;
     }
     std::vector<std::u16string> string16Vector;
