@@ -39,7 +39,7 @@ static int Reverse(int x)
     return result;
 }
 
-int TestService::Instantiate()
+int TestService::Instantiate(bool isEnableSerialInvokeFlag)
 {
     ZLOGD(LABEL, "%{public}s call in", __func__);
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -48,7 +48,8 @@ int TestService::Instantiate()
         return -ENODEV;
     }
 
-    sptr<IRemoteObject> newInstance = new TestService();
+    sptr<IRemoteObject> newInstance = new TestService(isEnableSerialInvokeFlag);
+
 #ifdef IPCSERVERTESTEXTRA
     int result = saMgr->AddSystemAbility(IPC_EXTRA_TEST_SERVICE, newInstance);
     ZLOGD(LABEL, "%{public}s: IPC_EXTRA_TEST_SERVICE result = %{public}d", __func__, result);
@@ -61,7 +62,7 @@ int TestService::Instantiate()
     return result;
 }
 
-TestService::TestService() : testFd_(INVALID_FD)
+TestService::TestService(bool serialInvokeFlag) : TestServiceStub(serialInvokeFlag), testFd_(INVALID_FD)
 {
 }
 
@@ -252,6 +253,11 @@ std::u16string TestService::TestAshmem(sptr<Ashmem> ashmem, int32_t contentSize)
 int TestService::TestNestingSend(int sendCode, int &replyCode)
 {
     (void)sendCode;
+    return 0;
+}
+
+int TestService::TestEnableSerialInvokeFlag()
+{
     return 0;
 }
 } // namespace OHOS

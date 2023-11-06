@@ -23,7 +23,7 @@
 namespace OHOS {
 template <typename INTERFACE> class IRemoteStub : public IPCObjectStub, public INTERFACE {
 public:
-    IRemoteStub();
+    IRemoteStub(bool serialInvokeFlag = false);
     virtual ~IRemoteStub() = default;
 
     /**
@@ -41,7 +41,8 @@ public:
     sptr<IRemoteBroker> AsInterface() override;
 };
 
-template <typename INTERFACE> IRemoteStub<INTERFACE>::IRemoteStub() : IPCObjectStub(INTERFACE::GetDescriptor()) {}
+template <typename INTERFACE> IRemoteStub<INTERFACE>::IRemoteStub(bool serialInvokeFlag)
+    : IPCObjectStub(INTERFACE::GetDescriptor(), serialInvokeFlag) {}
 
 template <typename INTERFACE> sptr<IRemoteBroker> IRemoteStub<INTERFACE>::AsInterface()
 {

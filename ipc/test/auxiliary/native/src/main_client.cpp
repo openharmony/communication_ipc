@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <thread>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "test_service_command.h"
@@ -32,6 +33,11 @@
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestClient" };
+
+void ThreadFunc(std::shared_ptr<TestServiceClient> testClient)
+{
+    testClient->TestEnableSerialInvokeFlag();
+}
 
 static void InitTokenId(void)
 {
@@ -71,7 +77,7 @@ int main(int argc, char *argv[])
     }
     std::vector<std::string> argvOptions;
     argvOptions = GetArgvOptions(argc, argv);
-    std::unique_ptr<TestServiceClient> testClient = std::make_unique<TestServiceClient>();
+    std::shared_ptr<TestServiceClient> testClient = std::make_shared<TestServiceClient>();
     if (testClient->ConnectService()) {
         return -1;
     }
@@ -108,6 +114,12 @@ int main(int argc, char *argv[])
         }
         case TestCommand::TEST_CMD_ASYNC_DUMP_SERVICE: {
             testClient->StartAsyncDumpService();
+            break;
+        }
+        case TestCommand::TEST_CMD_ENABLE_SERIAL_INVOKE_FLAG: {
+            std::thread temp(ThreadFunc, testClient);
+            testClient->TestEnableSerialInvokeFlag();
+            temp.join();
             break;
         }
         default:
