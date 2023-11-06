@@ -58,7 +58,8 @@ static constexpr pid_t ALLOWED_UID = 10000;
 static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 
-IPCObjectStub::IPCObjectStub(std::u16string descriptor) : IRemoteObject(descriptor)
+IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
+    : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag)
 {
     ZLOGD(LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
 }
@@ -289,6 +290,10 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
         }
 #endif
         default:
+            std::unique_lock<std::recursive_mutex> lockGuard(serialRecursiveMutex_, std::defer_lock);
+            if (serialInvokeFlag_) {
+                lockGuard.lock();
+            }
             lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
             result = OnRemoteRequest(code, data, reply, option);

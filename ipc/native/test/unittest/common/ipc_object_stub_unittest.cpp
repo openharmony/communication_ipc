@@ -471,6 +471,23 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest017, TestSize.Level1)
 }
 #endif
 
+/**
+ * @tc.name: SendRequestTest018
+ * @tc.desc: Sending requests in serial mode enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, SendRequestTest018, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub", true);
+    uint32_t code = LAST_CALL_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    int res = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
 #ifndef CONFIG_IPC_SINGLE
 
 /**

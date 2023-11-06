@@ -24,9 +24,9 @@ namespace OHOS {
 
 class TestService : public TestServiceStub {
 public:
-    TestService();
+    TestService(bool serialInvokeFlag = false);
     ~TestService();
-    static int Instantiate();
+    static int Instantiate(bool isEnableSerialInvokeFlag);
     int TestSyncTransaction(int data, int &rep, int delayTime = 0) override;
     int TestAsyncTransaction(int data, int timeout = 0) override;
     int TestAsyncCallbackTrans(int data, int &reply, int timeout) override;
@@ -50,6 +50,7 @@ public:
     int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) override;
     int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) override;
+    int TestEnableSerialInvokeFlag() override;
 private:
     int testFd_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestService" };
