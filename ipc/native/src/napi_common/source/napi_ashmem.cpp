@@ -428,17 +428,17 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
     napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
-    napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedarray);
+    napi_value typedArray = nullptr;
+    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedArray);
     bool isTypedArray = false;
-    napi_is_typedarray(env, typedarray, &isTypedArray);
+    napi_is_typedarray(env, typedArray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
     if (size == 0) {
-        return typedarray;
+        return typedArray;
     }
     errno_t status = memcpy_s(arrayBufferPtr, size, result, size);
     NAPI_ASSERT(env, status == EOK, "memcpy_s is failed");
-    return typedarray;
+    return typedArray;
 }
 
 napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
@@ -496,24 +496,24 @@ napi_value NAPIAshmem::TransferByteToJsData(napi_env env, uint32_t size, const v
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
     napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
-    napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedarray);
+    napi_value typedArray = nullptr;
+    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedArray);
     bool isTypedArray = false;
-    napi_is_typedarray(env, typedarray, &isTypedArray);
+    napi_is_typedarray(env, typedArray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
     if (isTypedArray == false) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
     if (size == 0) {
-        return typedarray;
+        return typedArray;
     }
     errno_t status = memcpy_s(arrayBufferPtr, size, result, size);
     if (status != EOK) {
         ZLOGE(LOG_LABEL, "memcpy_s is failed");
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
-    return typedarray;
+    return typedArray;
 }
 
 napi_value NAPIAshmem::SetProtection(napi_env env, napi_callback_info info)
