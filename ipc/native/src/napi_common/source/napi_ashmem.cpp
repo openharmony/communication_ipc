@@ -656,7 +656,7 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
-        if (hasElement == false) {
+        if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
             return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
         }
