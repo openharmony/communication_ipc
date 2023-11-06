@@ -92,10 +92,6 @@ int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID,
     if (current->sessionName == NULL) {
         return ERR_FAILED;
     }
-    if (sessionNameLen == 0 || sessionNameLen > SERVICENAME_LENGTH) {
-        RPC_LOG_ERROR("sessionNameLen invalid");
-        return ERR_FAILED;
-    }
     if (strcpy_s(current->sessionName, sessionNameLen + 1, proxyObject->sessionName) != EOK) {
         free(current->sessionName);
         return ERR_FAILED;
