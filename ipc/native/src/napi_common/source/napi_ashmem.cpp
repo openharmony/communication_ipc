@@ -703,7 +703,7 @@ napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_va
     }
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
-    if (isArray == false) {
+    if (!isArray) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
