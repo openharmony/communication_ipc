@@ -191,8 +191,8 @@ public:
     static constexpr int ENCRYPT_LENGTH = 4;
     std::mutex mutex_;
     std::condition_variable cv_;
-    int numExecuting_;
-    int numWaitingForThreads_;
+    int numExecuting_ = 0;
+    int numWaitingForThreads_ = 0;
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
     IPCProcessSkeleton();
