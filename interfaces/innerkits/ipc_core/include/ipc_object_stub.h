@@ -38,7 +38,7 @@ public:
         OBJECT_TYPE_JAVASCRIPT,
     };
 
-    explicit IPCObjectStub(std::u16string descriptor = std::u16string());
+    explicit IPCObjectStub(std::u16string descriptor = std::u16string(), bool serialInvokeFlag = false);
     ~IPCObjectStub();
 
     /**
@@ -258,6 +258,10 @@ private:
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
+
+private:
+    std::recursive_mutex serialRecursiveMutex_;
+    bool serialInvokeFlag_;
     uint64_t lastRequestTime_;
 };
 } // namespace OHOS

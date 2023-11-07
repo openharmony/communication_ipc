@@ -50,6 +50,7 @@ public:
         TRANS_MESSAGE_PARCEL_ADDPED = 19,
         TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT = 20,
         TRANS_ID_ACCESS_TOKENID_64 = 21,
+        TRANS_ENABLE_SERIAL_INVOKE_FLAG = 22,
     };
 public:
     virtual int TestSyncTransaction(int data, int &reply, int delayTime = 0) = 0;
@@ -74,14 +75,18 @@ public:
     virtual int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) = 0;
     virtual int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) = 0;
+    virtual int TestEnableSerialInvokeFlag() = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");
 };
 
 class TestServiceStub : public IRemoteStub<ITestService> {
 public:
+    TestServiceStub(bool serialInvokeFlag = false)
+        : IRemoteStub(serialInvokeFlag), serialInvokeFlag_(serialInvokeFlag) {}
     int OnRemoteRequest(uint32_t code,
         MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+    bool serialInvokeFlag_ = { false };
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceStub" };
     int TransferRawData(MessageParcel &data, MessageParcel &reply);
@@ -116,6 +121,7 @@ public:
     int TestMessageParcelAppend(MessageParcel &dst, MessageParcel &src) override;
     int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) override;
+    int TestEnableSerialInvokeFlag() override;
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceProxy" };

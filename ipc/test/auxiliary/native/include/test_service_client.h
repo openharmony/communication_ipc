@@ -40,6 +40,7 @@ public:
     void StartDumpService();
     void StartTestFileDescriptor();
     void StartAsyncDumpService();
+    void TestEnableSerialInvokeFlag();
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceClient" };
     sptr<ITestService> testService_;

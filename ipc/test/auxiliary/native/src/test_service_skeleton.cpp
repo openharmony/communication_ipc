@@ -16,12 +16,14 @@
 #include "test_service_skeleton.h"
 #include <cinttypes>
 #include <fcntl.h>
+#include <iostream>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <thread>
 #include "access_token_adapter.h"
 #include "ipc_debug.h"
 #include "string_ex.h"
@@ -36,9 +38,26 @@
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
 
+constexpr int32_t MAX_RECURSIVE_SENDS = 5;
+
 TestServiceProxy::TestServiceProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<ITestService>(impl)
 {
+}
+
+int TestServiceProxy::TestEnableSerialInvokeFlag()
+{
+    int error;
+    MessageOption option;
+    MessageParcel dataParcel, replyParcel;
+    std::string value = "testData";
+
+    ZLOGD(LABEL, "send to server data = %{public}s", value.c_str());
+    dataParcel.WriteString(value);
+    error = Remote()->SendRequest(TRANS_ENABLE_SERIAL_INVOKE_FLAG, dataParcel, replyParcel, option);
+    std::string reply = replyParcel.ReadString();
+    ZLOGD(LABEL, "get result from server data = %{public}s", reply.c_str());
+    return error;
 }
 
 int TestServiceProxy::TestSyncTransaction(int data, int &reply, int delayTime)
@@ -762,6 +781,38 @@ int TestServiceStub::OnRemoteRequest(uint32_t code,
             reply.WriteString(data.ReadString());
             reply.WriteRemoteObject(data.ReadRemoteObject());
             reply.WriteFileDescriptor(data.ReadFileDescriptor());
+            break;
+        }
+        case TRANS_ENABLE_SERIAL_INVOKE_FLAG: {
+            static int sendCount = 0;
+
+            if (sendCount == 0) {
+                if (serialInvokeFlag_) {
+                    std::cout<< "Enable serial invoke flag" << std::endl;
+                } else {
+                    std::cout<< "Not enable serial invoke flag" << std::endl;
+                }
+            }
+
+            reply.WriteString(data.ReadString());
+            sendCount++;
+
+            if (sendCount >= MAX_RECURSIVE_SENDS) {
+                break;
+            }
+
+            MessageOption option;
+            MessageParcel dataParcel, replyParcel;
+            std::string value = std::to_string(sendCount); // The last time was 4.
+
+            std::cout << "Current thread ID = " << std::this_thread::get_id();
+            std::cout << " Send to server data = " << value << std::endl;
+            dataParcel.WriteString(value);
+            ret = IPCObjectStub::SendRequest(TRANS_ENABLE_SERIAL_INVOKE_FLAG, dataParcel, replyParcel, option);
+            std::string result = replyParcel.ReadString();
+
+            std::cout << "Current thread ID = " << std::this_thread::get_id();
+            std::cout << " Get result from server data = " << result << std::endl;
             break;
         }
         default:
