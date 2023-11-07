@@ -14,6 +14,7 @@
  */
 
 #include "test_service_client.h"
+#include <iostream>
 #include <unistd.h>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
@@ -138,5 +139,20 @@ int TestServiceClient::StartLoopTest(int maxCount)
         return count;
     }
     return 0;
+}
+
+void TestServiceClient::TestEnableSerialInvokeFlag()
+{
+    ZLOGD(LABEL, "TestEnableSerialInvokeFlag");
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "Member variable testService_ Is a null pointer");
+        return;
+    }
+    int result = testService_->TestEnableSerialInvokeFlag();
+    if (result != 0) {
+        std::cout << "TestServiceClient::TestEnableSerialInvokeFlag function call failed" << std::endl;
+        return;
+    }
+    std::cout << "TestServiceClient::TestEnableSerialInvokeFlag function call successful" << std::endl;
 }
 } // namespace OHOS

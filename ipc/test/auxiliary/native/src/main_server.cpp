@@ -42,10 +42,14 @@ static void InitTokenId(void)
     SetSelfTokenID(tokenId);
 }
 
-int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
+int main(int argc, char *argv[])
 {
+    bool isEnableSerialInvokeFlag = false;
+    if (argc > 1) {
+        isEnableSerialInvokeFlag = true;
+    }
     InitTokenId();
-    TestService::Instantiate();
+    TestService::Instantiate(isEnableSerialInvokeFlag);
     ZLOGD(LABEL, "call  StartThreadPool");
     IPCSkeleton::JoinWorkThread();
 }
