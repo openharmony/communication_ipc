@@ -157,6 +157,26 @@ HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest001, TestSize.Level1)
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
     uint64_t ret = testStub->GetLastRequestTime();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetLastRequestTimeTest002
+ * @tc.desc: Verify the GetLastRequestTime function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = LAST_CALL_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    int res = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+
+    uint64_t ret = testStub->GetLastRequestTime();
     ASSERT_TRUE(ret > 0);
 }
 
