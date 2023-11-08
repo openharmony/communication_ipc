@@ -59,7 +59,7 @@ static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
-    : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag)
+    : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
     ZLOGD(LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
 }
