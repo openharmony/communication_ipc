@@ -103,6 +103,8 @@ public:
     sptr<IRemoteObject> GetRegistryObject();
     bool SetRegistryObject(sptr<IRemoteObject> &object);
     void BlockUntilThreadAvailable();
+    void LockForNumExecuting();
+    void UnlockForNumExecuting();
 
 #ifndef CONFIG_IPC_SINGLE
     bool AttachRawData(uint32_t fd, std::shared_ptr<InvokerRawData> rawData);
@@ -188,17 +190,18 @@ public:
     static constexpr uint32_t DBINDER_HANDLE_BASE = 100000 * DBINDER_HANDLE_MAGIC;
     static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
+    static constexpr int32_t FOUNDATION_UID = 5523;
     static constexpr int ENCRYPT_LENGTH = 4;
-    std::mutex mutex_;
-    std::condition_variable cv_;
-    int numExecuting_ = 0;
-    int numWaitingForThreads_ = 0;
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
     IPCProcessSkeleton();
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
     std::shared_mutex rawDataMutex_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    int numExecuting_ = 0;
+    int numWaitingForThreads_ = 0;
 
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;

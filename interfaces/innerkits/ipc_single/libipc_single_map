@@ -24,6 +24,8 @@
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
             OHOS::IPCSkeleton*;
+            OHOS::IPC_SINGLE::IPCProcessSkeleton::LockForNumExecuting;
+            OHOS::IPC_SINGLE::IPCProcessSkeleton::UnlockForNumExecuting;
             OHOS::IPC_SINGLE::IPCThreadSkeleton*;
             OHOS::IRemoteObject*;
             "OHOS::IPC_SINGLE::BinderInvoker::BinderInvoker()";

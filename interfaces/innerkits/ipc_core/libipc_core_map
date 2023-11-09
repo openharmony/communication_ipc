@@ -33,6 +33,8 @@
             OHOS::InvokerFactory*;
             OHOS::IPCDfx*;
             OHOS::IPCSkeleton*;
+            OHOS::IPCProcessSkeleton::LockForNumExecuting;
+            OHOS::IPCProcessSkeleton::UnlockForNumExecuting;
             OHOS::IRemoteObject*;
             OHOS::BinderInvoker*;
             OHOS::BrokerRegistration*;
