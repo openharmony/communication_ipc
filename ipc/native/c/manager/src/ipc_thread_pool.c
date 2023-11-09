@@ -66,8 +66,7 @@ static void ThreadContextDestructor(int32_t proto)
     pthread_mutex_lock(&threadPool->lock);
     if (proto == IF_PROT_BINDER) {
         ++threadPool->idleThreadNum;
-    }
-    if (proto == IF_PROT_DATABUS) {
+    } else if (proto == IF_PROT_DATABUS) {
         ++threadPool->idleSocketThreadNum;
     }
     pthread_mutex_unlock(&threadPool->lock);
@@ -175,8 +174,7 @@ int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto)
     pthread_detach(threadId);
     if (proto == IF_PROT_BINDER) {
         --threadPool->idleThreadNum;
-    }
-    if (proto == IF_PROT_DATABUS) {
+    } else if (proto == IF_PROT_DATABUS) {
         --threadPool->idleSocketThreadNum;
     }
     pthread_mutex_unlock(&threadPool->lock);
