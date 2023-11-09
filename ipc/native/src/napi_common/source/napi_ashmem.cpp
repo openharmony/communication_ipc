@@ -501,7 +501,7 @@ napi_value NAPIAshmem::TransferByteToJsData(napi_env env, uint32_t size, const v
     bool isTypedArray = false;
     napi_is_typedarray(env, typedArray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
-    if (isTypedArray == false) {
+    if (!isTypedArray) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
