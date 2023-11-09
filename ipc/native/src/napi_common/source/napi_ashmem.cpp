@@ -139,7 +139,7 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     size_t argcAshmem = 2;
     napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (!(argc == argcExistingAshmem || argc == argcAshmem)) {
+    if ((argc != argcExistingAshmem) && (argc != argcAshmem)) {
         ZLOGE(LOG_LABEL, "requires 1 or 2 parameter");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
