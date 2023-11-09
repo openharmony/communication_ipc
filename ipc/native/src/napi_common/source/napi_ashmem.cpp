@@ -139,7 +139,7 @@ napi_value NAPIAshmem::Create(napi_env env, napi_callback_info info)
     size_t argcAshmem = 2;
     napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (!(argc == argcExistingAshmem || argc == argcAshmem)) {
+    if ((argc != argcExistingAshmem) && (argc != argcAshmem)) {
         ZLOGE(LOG_LABEL, "requires 1 or 2 parameter");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
@@ -231,7 +231,7 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
     }
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
-    if (!((fd > 0) && (size > 0))) {
+    if (fd <= 0 || size <= 0) {
         ZLOGE(LOG_LABEL, "fd <= 0 or  size <= 0");
         return nullptr;
     }
@@ -428,17 +428,17 @@ napi_value NAPIAshmem::ReadFromAshmem(napi_env env, napi_callback_info info)
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
     napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
-    napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedarray);
+    napi_value typedArray = nullptr;
+    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedArray);
     bool isTypedArray = false;
-    napi_is_typedarray(env, typedarray, &isTypedArray);
+    napi_is_typedarray(env, typedArray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
     if (size == 0) {
-        return typedarray;
+        return typedArray;
     }
     errno_t status = memcpy_s(arrayBufferPtr, size, result, size);
     NAPI_ASSERT(env, status == EOK, "memcpy_s is failed");
-    return typedarray;
+    return typedArray;
 }
 
 napi_value NAPIAshmem::ReadAshmem(napi_env env, napi_callback_info info)
@@ -496,24 +496,24 @@ napi_value NAPIAshmem::TransferByteToJsData(napi_env env, uint32_t size, const v
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
     napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
-    napi_value typedarray = nullptr;
-    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedarray);
+    napi_value typedArray = nullptr;
+    napi_create_typedarray(env, napi_int32_array, size / BYTE_SIZE_32, arrayBuffer, 0, &typedArray);
     bool isTypedArray = false;
-    napi_is_typedarray(env, typedarray, &isTypedArray);
+    napi_is_typedarray(env, typedArray, &isTypedArray);
     NAPI_ASSERT(env, isTypedArray == true, "create  TypedArray failed");
-    if (isTypedArray == false) {
+    if (!isTypedArray) {
         ZLOGE(LOG_LABEL, "napiAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
     if (size == 0) {
-        return typedarray;
+        return typedArray;
     }
     errno_t status = memcpy_s(arrayBufferPtr, size, result, size);
     if (status != EOK) {
         ZLOGE(LOG_LABEL, "memcpy_s is failed");
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
-    return typedarray;
+    return typedArray;
 }
 
 napi_value NAPIAshmem::SetProtection(napi_env env, napi_callback_info info)
@@ -656,7 +656,7 @@ napi_value NAPIAshmem::WriteAshmem(napi_env env, napi_callback_info info)
     for (size_t i = 0; i < arrayLength; i++) {
         bool hasElement = false;
         napi_has_element(env, argv[ARGV_INDEX_0], i, &hasElement);
-        if (hasElement == false) {
+        if (!hasElement) {
             ZLOGE(LOG_LABEL, "parameter check error");
             return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
         }
@@ -703,7 +703,7 @@ napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_va
     }
     bool isArray = false;
     napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
-    if (isArray == false) {
+    if (!isArray) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }

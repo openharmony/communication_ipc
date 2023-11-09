@@ -102,7 +102,7 @@ static int32_t ProcessProto(uint32_t code, IpcIo *data, IpcIo *reply, MessageOpt
 
 static int32_t DBinderRemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption *option)
 {
-    int32_t ret;
+    int32_t ret = -1;
     switch (code) {
         case GET_PROTO_INFO: {
             ret = ProcessProto(code, data, reply, option);
@@ -110,7 +110,6 @@ static int32_t DBinderRemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, Me
         }
         default: {
             RPC_LOG_ERROR("unknown dbinder code %u", code);
-            ret = -1;
             break;
         }
     }
