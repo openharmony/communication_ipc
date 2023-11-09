@@ -145,13 +145,13 @@ static napi_value NapiOhosRpcMessageOptionSetWaittime(napi_env env, napi_callbac
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 1");
-    int32_t waittime = 0;
-    napi_status status = napi_get_value_int32(env, argv[ARGV_INDEX_0], &waittime);
+    int32_t waitTime = 0;
+    napi_status status = napi_get_value_int32(env, argv[ARGV_INDEX_0], &waitTime);
     NAPI_ASSERT(env, status == napi_ok, "failed to get int32 value");
     MessageOption *option = nullptr;
     napi_unwrap(env, thisVar, (void **)&option);
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
-    option->SetWaitTime(waittime);
+    option->SetWaitTime(waitTime);
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;
@@ -165,10 +165,10 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
 
     int flags = 0;
-    int waittime = 0;
+    int waitTime = 0;
     if (argc == 0) {
         flags = MessageOption::TF_SYNC;
-        waittime = MessageOption::TF_WAIT_TIME;
+        waitTime = MessageOption::TF_WAIT_TIME;
     } else if (argc == 1) {
         napi_valuetype valueType;
         napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
@@ -182,7 +182,7 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
             napi_get_value_int32(env, argv[ARGV_INDEX_0], &jsFlags);
             flags = jsFlags == 0 ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC;
         }
-        waittime = MessageOption::TF_WAIT_TIME;
+        waitTime = MessageOption::TF_WAIT_TIME;
     } else {
         napi_valuetype valueType = napi_null;
         napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
@@ -191,13 +191,13 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
         NAPI_ASSERT(env, valueType == napi_number, "type mismatch for parameter 2");
         int32_t jsFlags = 0;
         napi_get_value_int32(env, argv[ARGV_INDEX_0], &jsFlags);
-        int32_t jsWaittime = 0;
-        napi_get_value_int32(env, argv[ARGV_INDEX_1], &jsWaittime);
+        int32_t jsWaitTime = 0;
+        napi_get_value_int32(env, argv[ARGV_INDEX_1], &jsWaitTime);
         flags = jsFlags == 0 ? MessageOption::TF_SYNC : MessageOption::TF_ASYNC;
-        waittime = jsWaittime;
+        waitTime = jsWaitTime;
     }
 
-    auto messageOption = new MessageOption(flags, waittime);
+    auto messageOption = new MessageOption(flags, waitTime);
     // connect native message option to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, messageOption,
