@@ -321,6 +321,27 @@ void IPCProcessSkeleton::BlockUntilThreadAvailable()
     numWaitingForThreads_--;
 }
 
+void IPCProcessSkeleton::LockForNumExecuting()
+{
+    if (getuid() != FOUNDATION_UID) {
+        return;
+    }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    numExecuting_++;
+}
+
+void IPCProcessSkeleton::UnlockForNumExecuting()
+{
+    if (getuid() != FOUNDATION_UID) {
+        return;
+    }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    numExecuting_--;
+    if (numWaitingForThreads_ > 0) {
+        cv_.notify_all();
+    }
+}
+
 #ifndef CONFIG_IPC_SINGLE
 sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()
 {
