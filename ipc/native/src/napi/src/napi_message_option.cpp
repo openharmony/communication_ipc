@@ -37,7 +37,7 @@ static napi_value NapiOhosRpcMessageOptionGetFlags(napi_env env, napi_callback_i
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     MessageOption *option = nullptr;
-    napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     int flags = option->GetFlags();
     napi_value result = nullptr;
@@ -63,7 +63,7 @@ static napi_value NapiOhosRpcMessageOptionSetFlags(napi_env env, napi_callback_i
     napi_status status = napi_get_value_int32(env, argv[ARGV_INDEX_0], &flags);
     NAPI_ASSERT(env, status == napi_ok, "failed to get int32 value");
     MessageOption *option = nullptr;
-    napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     option->SetFlags(flags);
     napi_value result = nullptr;
@@ -80,7 +80,7 @@ static napi_value NapiOhosRpcMessageOptionIsAsync(napi_env env, napi_callback_in
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     MessageOption *option = nullptr;
-    napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     int flags = option->GetFlags();
     napi_value result = nullptr;
@@ -106,7 +106,7 @@ static napi_value NapiOhosRpcMessageOptionSetAsync(napi_env env, napi_callback_i
     napi_status status = napi_get_value_bool(env, argv[ARGV_INDEX_0], &flags);
     NAPI_ASSERT(env, status == napi_ok, "failed to get boolean value");
     MessageOption *option = nullptr;
-    napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     option->SetFlags(static_cast<int32_t>(flags));
     napi_value result = nullptr;
@@ -123,7 +123,7 @@ static napi_value NapiOhosRpcMessageOptionGetWaittime(napi_env env, napi_callbac
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPI_ASSERT(env, thisVar != nullptr, "failed to get js message option object");
     MessageOption *option = nullptr;
-    napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     int flags = option->GetWaitTime();
     napi_value result = nullptr;
@@ -149,7 +149,7 @@ static napi_value NapiOhosRpcMessageOptionSetWaittime(napi_env env, napi_callbac
     napi_status status = napi_get_value_int32(env, argv[ARGV_INDEX_0], &waitTime);
     NAPI_ASSERT(env, status == napi_ok, "failed to get int32 value");
     MessageOption *option = nullptr;
-    napi_unwrap(env, thisVar, (void **)&option);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, option != nullptr, "failed to get native message option");
     option->SetWaitTime(waitTime);
     napi_value result = nullptr;
