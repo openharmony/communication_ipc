@@ -204,19 +204,19 @@ napi_value NAPI_RemoteProxy_sendRequest(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 4");
 
     NAPI_MessageParcel *data = nullptr;
-    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], (void **)&data);
+    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], reinterpret_cast<void **>(&data));
     NAPI_ASSERT(env, status == napi_ok, "failed to get data message parcel");
     NAPI_MessageParcel *reply = nullptr;
-    status = napi_unwrap(env, argv[ARGV_INDEX_2], (void **)&reply);
+    status = napi_unwrap(env, argv[ARGV_INDEX_2], reinterpret_cast<void **>(&reply));
     NAPI_ASSERT(env, status == napi_ok, "failed to get reply message parcel");
     MessageOption *option = nullptr;
-    status = napi_unwrap(env, argv[ARGV_INDEX_3], (void **)&option);
+    status = napi_unwrap(env, argv[ARGV_INDEX_3], reinterpret_cast<void **>(&option));
     NAPI_ASSERT(env, status == napi_ok, "failed to get message option");
     int32_t code = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
     NAPI_ASSERT(env, proxyHolder != nullptr, "failed to get proxy holder");
     sptr<IRemoteObject> target = proxyHolder->object_;
     NAPI_ASSERT(env, target != nullptr, "invalid proxy object");
@@ -261,17 +261,17 @@ napi_value NAPI_RemoteProxy_checkSendMessageRequestArgs(napi_env env,
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
-    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], (void **)&data);
+    napi_status status = napi_unwrap(env, argv[ARGV_INDEX_1], reinterpret_cast<void **>(&data));
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get data message parcel");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    status = napi_unwrap(env, argv[ARGV_INDEX_2], (void **)&reply);
+    status = napi_unwrap(env, argv[ARGV_INDEX_2], reinterpret_cast<void **>(&reply));
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get reply message parcel");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    status = napi_unwrap(env, argv[ARGV_INDEX_3], (void **)&option);
+    status = napi_unwrap(env, argv[ARGV_INDEX_3], reinterpret_cast<void **>(&option));
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get message option");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -306,7 +306,7 @@ napi_value NAPI_RemoteProxy_sendMessageRequest(napi_env env, napi_callback_info 
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
     if (proxyHolder == nullptr) {
         ZLOGE(LOG_LABEL, "failed to get proxy holder");
         return result;
@@ -367,7 +367,7 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
     }
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
     NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
     if (proxyHolder == nullptr) {
         napi_get_boolean(env, false, &result);
@@ -437,7 +437,7 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
     }
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get proxy holder");
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
@@ -488,7 +488,7 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
     napi_get_value_int32(env, argv[ARGV_INDEX_1], &flag);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
     NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
     if (proxyHolder == nullptr) {
         napi_get_boolean(env, false, &result);
@@ -560,7 +560,7 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
     napi_get_value_int32(env, argv[ARGV_INDEX_1], &flag);
 
     NAPIRemoteProxyHolder *proxyHolder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&proxyHolder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get proxy holder");
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
@@ -597,7 +597,7 @@ napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&holder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&holder));
     NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
     napi_value result;
     if (holder == nullptr) {
@@ -620,7 +620,7 @@ napi_value NAPI_RemoteProxy_getDescriptor(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&holder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&holder));
     if (status != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to get proxy holder");
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
@@ -650,7 +650,7 @@ napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
-    napi_status status = napi_unwrap(env, thisVar, (void **)&holder);
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&holder));
     NAPI_ASSERT(env, status == napi_ok, "failed to get proxy holder");
     napi_value result;
     if (holder == nullptr) {
