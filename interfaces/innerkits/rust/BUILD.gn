@@ -17,18 +17,10 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 ohos_rust_shared_library("ipc_rust") {
-  sources = [
-    "src/errors.rs",
-    "src/ipc/macros.rs",
-    "src/ipc/mod.rs",
-    "src/ipc/remote_obj.rs",
-    "src/ipc/remote_stub.rs",
-    "src/ipc_binding.rs",
-    "src/lib.rs",
-    "src/parcel/mod.rs",
-    "src/parcel/parcelable.rs",
-    "src/parcel/types.rs",
-  ]
+  crate_name = "ipc_rust"
+  edition = "2021"
+
+  sources = [ "src/lib.rs" ]
 
   deps = [ ":ipc_c" ]
 
@@ -36,9 +28,6 @@ ohos_rust_shared_library("ipc_rust") {
     "hilog:hilog_rust",
     "ylong_runtime:ylong_runtime",
   ]
-
-  crate_name = "ipc_rust"
-  crate_type = "dylib"
 
   install_images = [ system_base_dir ]
   subsystem_name = "communication"
