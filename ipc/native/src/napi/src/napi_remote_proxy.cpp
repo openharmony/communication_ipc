@@ -133,7 +133,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
-        SendRequestCbComplete, reinterpret_cast<void *>sendRequestParam, &sendRequestParam->asyncWork));
+        SendRequestCbComplete, reinterpret_cast<void *>(sendRequestParam), &sendRequestParam->asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, sendRequestParam->asyncWork));
     napi_get_undefined(env, &result);
     return result;
