@@ -753,5 +753,15 @@ void IPCObjectProxy::ReleaseBinderProto()
 {
     // do nothing
 }
+
+uint32_t IPCObjectProxy::GetStrongRefCountForStub()
+{
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(IPCThreadSkeleton::GetDefaultInvoker());
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "get default invoker failed");
+        return 0;  // 0 means get failed
+    }
+    return invoker->GetStrongRefCountForStub(handle_);
+}
 #endif
 } // namespace OHOS
