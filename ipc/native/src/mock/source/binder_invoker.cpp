@@ -1090,6 +1090,24 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
     callerTokenID_ = std::stoull(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str());
     return true;
 }
+
+uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return 0;  // 0 means get failed
+    }
+    binder_node_info_for_ref info;
+    memset_s(&info, sizeof(binder_node_info_for_ref), 0, sizeof(binder_node_info_for_ref));
+
+    info.handle = handle;
+    int32_t result = binderConnector_->WriteBinder(BINDER_GET_NODE_INFO_FOR_REF, &info);
+    if(result != ERR_NONE) {
+        ZLOGE(LABEL, "%{public}s: WriteBinder failed, Error code %{public}d", __func__, result);
+        return 0;  // 0 means get failed
+    }
+
+    return info.strong_count;
+}
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif

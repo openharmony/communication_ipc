@@ -207,6 +207,13 @@ public:
      */
     std::u16string GetInterfaceDescriptor() override;
 
+    /**
+     * @brief get the stub strong ref count.
+     * @return 0 get failed; others the strong ref count of the stub.
+     * @since 11
+     */
+    uint32_t GetStrongRefCountForStub();
+
 private:
     void MarkObjectDied();
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
