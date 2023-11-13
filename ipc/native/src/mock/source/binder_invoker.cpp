@@ -1102,7 +1102,7 @@ uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
     info.handle = handle;
     int32_t result = binderConnector_->WriteBinder(BINDER_GET_NODE_INFO_FOR_REF, &info);
     if (result != ERR_NONE) {
-        ZLOGE(LABEL, "%{public}s: WriteBinder failed, Error code %{public}d", __func__, result);
+        ZLOGE(LABEL, "WriteBinder failed, Error code %{public}d", result);
         return 0;  // 0 means get failed
     }
 
