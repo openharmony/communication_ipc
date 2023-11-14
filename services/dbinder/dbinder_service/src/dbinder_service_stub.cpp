@@ -27,7 +27,8 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderServiceStub" };
 
 DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::string &device, binder_uintptr_t object)
-    : IPCObjectStub(Str8ToStr16(device + service)), serviceName_(service), deviceID_(device), binderObject_(object)
+    : IPCObjectStub(Str8ToStr16(DBinderService::ConvertToSecureDeviceID(device) + service)),
+    serviceName_(service), deviceID_(device), binderObject_(object)
 {
     DBINDER_LOGD(LOG_LABEL, "created, service:%{public}s device:%{public}s",
         serviceName_.c_str(), DBinderService::ConvertToSecureDeviceID(deviceID_).c_str());
@@ -90,7 +91,7 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
             if (!reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS) || !reply.WriteUint64(session->stubIndex) ||
                 !reply.WriteString(session->serviceName) || !reply.WriteString(session->deviceIdInfo.toDeviceId) ||
                 !reply.WriteString(session->deviceIdInfo.fromDeviceId) || !reply.WriteString(localBusName) ||
-                !reply.WriteUint32(session->deviceIdInfo.tokenId)) {
+                !reply.WriteUint32(session->deviceIdInfo.tokenId) || !reply.WriteString16(descriptor_)) {
                 DBINDER_LOGE(LOG_LABEL, "write to parcel fail");
                 return DBINDER_SERVICE_PROCESS_PROTO_ERR;
             }
