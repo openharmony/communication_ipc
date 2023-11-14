@@ -114,7 +114,7 @@ int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
     jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageParcel"));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageParcel");
-        return -1;
+        return JNI_ERR;
     }
     g_jMessageParcel.klazz = (jclass)env->NewGlobalRef(klazz);
     g_jMessageParcel.nativeObject = env->GetFieldID(g_jMessageParcel.klazz, "mNativeObject", "J");
@@ -124,7 +124,7 @@ int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageParcel.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return -1;
+        return JNI_ERR;
     }
     g_jMessageParcel.nativeObjectOwner = env->GetFieldID(g_jMessageParcel.klazz, "mOwnsNativeObject", "Z");
     if (g_jMessageParcel.nativeObjectOwner == nullptr) {
@@ -133,7 +133,7 @@ int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageParcel.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return -1;
+        return JNI_ERR;
     }
     return JkitRegisterNativeMethods(env, "ohos/rpc/MessageParcel", sMethods, NUM_METHODS(sMethods));
 }
@@ -331,7 +331,7 @@ jbyteArray JNICALL Java_ohos_rpc_MessageParcel_nativeReadRawData(JNIEnv *env, jo
     if (ptr != nullptr) {
         int result = memcpy_s(ptr, size, rawData, size);
         env->ReleasePrimitiveArrayCritical(bytes, ptr, 0);
-        if (result != 0) {
+        if (result != JNI_OK) {
             ZLOGE(LABEL, "copy raw data failed");
             env->DeleteLocalRef(bytes);
             return nullptr;
@@ -351,7 +351,7 @@ jint JNICALL Java_ohos_rpc_MessageParcel_nativeGetRawDataCapacity(JNIEnv *env, j
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for rawData");
-        return 0;
+        return JNI_OK;
     }
 
     return static_cast<jint>(nativeParcel->GetRawDataCapacity());
