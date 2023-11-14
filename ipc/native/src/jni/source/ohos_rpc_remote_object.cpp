@@ -886,7 +886,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     jclass clazz = env->FindClass("ohos/rpc/RemoteObject");
     if (clazz == nullptr) {
         ZLOGE(LABEL, "Could not find class:RemoteObject");
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteStub.klass = (jclass)env->NewGlobalRef(clazz);
@@ -901,7 +901,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteObject get method execTransact failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
         env->DeleteLocalRef(clazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteStub.methodDispatchDump = env->GetMethodID(clazz, "dispatchDump", "(IJJLohos/rpc/MessageOption;)Z");
@@ -909,7 +909,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteObject get method execTransact failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
         env->DeleteLocalRef(clazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteStub.fieldNativeHolder = env->GetFieldID(clazz, "mNativeHolder", "J");
@@ -917,7 +917,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteObject get field mNativeHolder failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
         env->DeleteLocalRef(clazz);
-        return -1;
+        return JNI_ERR;
     }
 
     return JkitRegisterNativeMethods(env, "ohos/rpc/RemoteObject", sObjectMethods, NUM_METHODS(sObjectMethods));
@@ -928,7 +928,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
     jclass clazz = env->FindClass("ohos/rpc/RemoteProxy");
     if (clazz == nullptr) {
         ZLOGE(LABEL, "Could not find class:RemoteProxy");
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteProxy.klass = (jclass)env->NewGlobalRef(clazz);
@@ -937,7 +937,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteProxy get method getInstance failed");
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
         env->DeleteLocalRef(clazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteProxy.methodSendObituary =
@@ -946,7 +946,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
         env->DeleteLocalRef(clazz);
         ZLOGE(LABEL, "JRemoteProxy get method sendObituary failed");
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteProxy.fieldNativeData = env->GetFieldID(clazz, "mNativeData", "J");
@@ -954,7 +954,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
         env->DeleteLocalRef(clazz);
         ZLOGE(LABEL, "JRemoteProxy get field mNativeData failed");
-        return -1;
+        return JNI_ERR;
     }
 
     return JkitRegisterNativeMethods(env, "ohos/rpc/RemoteProxy", sProxyMethods, NUM_METHODS(sProxyMethods));
@@ -1003,16 +1003,16 @@ int RegisterJavaRpcNativeMethods(JNIEnv *env)
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
     if (vm == nullptr) {
-        return -1;
+        return JNI_ERR;
     }
     if (!g_ipcNativeMethodsLoaded) {
         JNIEnv *env = NULL;
         if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_4) != JNI_OK) {
-            return -1;
+            return JNI_ERR;
         }
 
         if (RegisterJavaRpcNativeMethods(env) < 0) {
-            return -1;
+            return JNI_ERR;
         }
 
         JNIEnvHelper::nativeInit(vm);
