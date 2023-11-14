@@ -35,7 +35,7 @@ int JavaOhosRpcMessageOptionGetFlags(JNIEnv *env, jobject object)
     if ((g_jMessageOption.flagsField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.flagsField);
     }
-    return 0;
+    return JNI_OK;
 }
 
 /*
@@ -47,7 +47,7 @@ int JavaOhosRpcMessageOptionGetWaitTime(JNIEnv *env, jobject object)
     if ((g_jMessageOption.waitTimeField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.waitTimeField);
     }
-    return 0;
+    return JNI_OK;
 }
 
 /*
@@ -106,12 +106,12 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        return -1;
+        return JNI_ERR;
     }
     jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageOption"));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageOption");
-        return -1;
+        return JNI_ERR;
     }
     g_jMessageOption.klazz = (jclass)env->NewGlobalRef(klazz);
     g_jMessageOption.initMethod = env->GetMethodID(g_jMessageOption.klazz, "<init>", "(II)V");
@@ -121,7 +121,7 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageOption.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jMessageOption.flagsField = env->GetFieldID(g_jMessageOption.klazz, "mFlags", "I");
@@ -131,7 +131,7 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageOption.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jMessageOption.waitTimeField = env->GetFieldID(g_jMessageOption.klazz, "mWaitTime", "I");
@@ -141,8 +141,8 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageOption.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return -1;
+        return JNI_ERR;
     }
-    return 0;
+    return JNI_OK;
 }
 } // namespace OHOS
