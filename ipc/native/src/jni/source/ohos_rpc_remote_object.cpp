@@ -893,7 +893,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     if (g_jRemoteStub.klass == nullptr) {
         ZLOGE(LABEL, "JRemoteObject NewGlobalRef failed");
         env->DeleteLocalRef(clazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jRemoteStub.methodDispatchRequest = env->GetMethodID(clazz, "dispatchRequest", "(IJJLohos/rpc/MessageOption;)Z");
@@ -964,40 +964,40 @@ int RegisterJavaRpcNativeMethods(JNIEnv *env)
 {
     if (JniHelperRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JniHelper Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
     if (JavaOhosRpcMessageOptionRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register MessageOption Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
     if (JavaOhosRpcMessageParcelRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register MessageParcel Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
     if (JavaOhosRpcIpcSkeletonRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register IPCSkeleton Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
     if (JavaOhosRpcRemoteObjectRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JRemoteObject Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
     if (JavaOhosRpcRemoteProxyRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JRemoteProxy Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
     if (Java_ohos_utils_Parcel_registerNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JParcel Native Methods failed");
-        return -1;
+        return JNI_ERR;
     }
 
-    return 0;
+    return JNI_OK;
 }
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
