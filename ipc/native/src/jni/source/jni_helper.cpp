@@ -148,22 +148,22 @@ int JniHelperRegisterNativeMethods(JNIEnv *env)
 {
     g_jFileDescriptor.klazz = (jclass)env->NewGlobalRef(env->FindClass("java/io/FileDescriptor"));
     if (g_jFileDescriptor.klazz == nullptr) {
-        return -1;
+        return JNI_ERR;
     }
 
     g_jFileDescriptor.fileDescriptorCtor = env->GetMethodID(g_jFileDescriptor.klazz, "<init>", "()V");
     if (g_jFileDescriptor.fileDescriptorCtor == nullptr) {
         env->DeleteGlobalRef(g_jFileDescriptor.klazz);
-        return -1;
+        return JNI_ERR;
     }
 
     g_jFileDescriptor.descriptorField = env->GetFieldID(g_jFileDescriptor.klazz, "descriptor", "I");
     if (g_jFileDescriptor.descriptorField == nullptr) {
         env->DeleteGlobalRef(g_jFileDescriptor.klazz);
-        return -1;
+        return JNI_ERR;
     }
 
-    return 0;
+    return JNI_OK;
 }
 
 jobject JNIHelperGetJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject> &target)
