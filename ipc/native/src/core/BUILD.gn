@@ -37,6 +37,7 @@ ohos_shared_library("ipc_common") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
 
   innerapi_tags = [

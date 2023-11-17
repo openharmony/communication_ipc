@@ -40,7 +40,8 @@
           "common",
           "build_framework",
           "ylong_runtime",
-          "ffrt"
+          "ffrt",
+          "hisysevent"
         ],
         "third_party": [
           "libuv",

@@ -75,7 +75,7 @@ bool BinderConnector::OpenDriver()
         ZLOGE(LABEL, "fail to open:%{public}s errno:%{public}d", deviceName_.c_str(), errno);
 #ifndef BUILD_PUBLIC_VERSION
         ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE);
+            DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE, __FUNCTION__);
 #endif
         return false;
     }
@@ -103,7 +103,7 @@ bool BinderConnector::OpenDriver()
         driverFD_ = -1;
 #ifndef BUILD_PUBLIC_VERSION
         ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE);
+            DbinderErrorCode::OPEN_IPC_DRIVER_FAILURE, __FUNCTION__);
 #endif
         return false;
     }
@@ -135,7 +135,7 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
             ZLOGE(LABEL, "ioctl_binder returned EINTR");
 #ifndef BUILD_PUBLIC_VERSION
             ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
-                DbinderErrorCode::WRITE_IPC_DRIVER_FAILURE);
+                DbinderErrorCode::WRITE_IPC_DRIVER_FAILURE, __FUNCTION__);
 #endif
         }
     }

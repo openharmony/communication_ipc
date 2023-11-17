@@ -110,7 +110,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 #ifndef BUILD_PUBLIC_VERSION
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::TRANSACT_DATA_FAILURE);
+            DbinderErrorCode::TRANSACT_DATA_FAILURE, __FUNCTION__);
 #endif
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
@@ -986,7 +986,7 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
 #ifndef BUILD_PUBLIC_VERSION
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::FLATTEN_OBJECT_FAILURE);
+            DbinderErrorCode::FLATTEN_OBJECT_FAILURE, __FUNCTION__);
 #endif
     }
     return status;
