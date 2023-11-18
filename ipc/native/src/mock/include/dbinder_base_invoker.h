@@ -615,7 +615,7 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
 #ifndef BUILD_PUBLIC_VERSION
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::HANDLE_RECV_DATA_FAILURE);
+            DbinderErrorCode::HANDLE_RECV_DATA_FAILURE, __FUNCTION__);
 #endif
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
@@ -743,7 +743,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
 #ifndef BUILD_PUBLIC_VERSION
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::TRANSACT_DATA_FAILURE);
+            DbinderErrorCode::TRANSACT_DATA_FAILURE, __FUNCTION__);
 #endif
         return RPC_BASE_INVOKER_WRITE_TRANS_ERR;
     }

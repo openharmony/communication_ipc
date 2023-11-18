@@ -18,9 +18,15 @@
 
 #include <string>
 #ifndef BUILD_PUBLIC_VERSION
+#include "hisysevent.h"
 #include "hiview.h"
 #include "hievent.h"
 #endif
+
+#define EVENT_DOMAIN        "DSOFTBUS"
+#define EVENT_NAME          "IPC_BEHAVIOR"
+#define EVENT_PKG_NAME      "dsoftbus_ipc"
+#define EVENT_TYPE_BEHAVIOR 4
 
 namespace OHOS {
 class DbinderErrorCode {
@@ -116,24 +122,56 @@ public:
         RECEIVE_RPC_DATA_FAILURE,
         INVOKE_RPC_THREAD_FAILURE,
     };
+
+    // BIZ_SCENE
+    enum IpcEventScene {
+        IPC_COMMUNICATION = 1,
+    };
+
+    // BIZ_STAGE
+    enum IpcEventStage {
+        IPC_MESSAGE_RPOCESS = 1,
+    };
+
+    // BIZ_STATE
+    enum IpcEventState {
+        IPC_START = 1,
+        IPC_END,
+    };
+
+    // STAGE_RES
+    enum IpcEventResult {
+        IPC_RESULT_IDLE = 0,
+        IPC_RESULT_OK,
+        IPC_RESULT_FAILED,
+        IPC_RESULT_CANCELED,
+        IPC_RESULT_UNKNOWN,
+    };
 };
 
 #ifndef BUILD_PUBLIC_VERSION
-inline void ReportEvent(int code, const std::string &type, int num)
+inline void ReportEvent(int code, const std::string &type, int num, const char *func)
 {
     if (code == 0 || type.empty() || num == 0) {
         return;
     }
+    HiSysEventWrite(EVENT_DOMAIN, EVENT_NAME, EVENT_TYPE_BEHAVIOR, "ORG_PKG", EVENT_PKG_NAME, "BIZ_SCENE",
+        IPC_COMMUNICATION, "BIZ_STAGE", IPC_MESSAGE_RPOCESS, "STAGE_RES", IPC_RESULT_FAILED, "BIZ_STATE", IPC_STATE_END,
+        "FUNC", func, "ERROR_CODE", num);
     HiEvent hiEvent(code);
     hiEvent.PutInt(type, num);
     HiView::Report(hiEvent);
 }
 
-inline void ReportDriverEvent(int code, const std::string &type, int num, const std::string &errorType, int errorNum)
+inline void ReportDriverEvent(int code, const std::string &type, int num, const std::string &errorType, int errorNum,
+    const char *func)
 {
     if (code == 0 || type.empty() || num == 0 || errorType.empty() || errorNum == 0) {
         return;
     }
+    HiSysEventWrite(EVENT_DOMAIN, EVENT_NAME, EVENT_TYPE_BEHAVIOR, "ORG_PKG", EVENT_PKG_NAME, "BIZ_SCENE",
+        IPC_COMMUNICATION, "BIZ_STAGE", IPC_MESSAGE_RPOCESS, "STAGE_RES", IPC_RESULT_FAILED, "BIZ_STATE", IPC_STATE_END,
+        "FUNC", func, "ERROR_CODE", errorNum, "TYPE", num);
     HiEvent hiEvent(code);
     hiEvent.PutInt(type, num);
     hiEvent.PutInt(errorType, errorNum);
