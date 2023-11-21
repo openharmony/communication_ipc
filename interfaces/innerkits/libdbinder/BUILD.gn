@@ -61,6 +61,7 @@ ohos_shared_library("libdbinder") {
     "dsoftbus:softbus_client",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
   subsystem_name = "communication"
   part_name = "ipc"
