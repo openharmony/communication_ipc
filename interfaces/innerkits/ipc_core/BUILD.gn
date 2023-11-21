@@ -81,6 +81,7 @@ ohos_shared_library("ipc_core") {
     "c_utils:utils",
     "dsoftbus:softbus_client",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
   ]
 
