@@ -19,6 +19,7 @@
 
 #include "__mutex_base"
 #include "algorithm"
+#include "dbinder_error_code.h"
 #include "errors.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
@@ -337,11 +338,9 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
     if (!invoker->AddDeathRecipient(handle_, this)) {
         ZLOGE(LABEL, "fail to add binder death recipient, handle:%{public}d desc:%{public}s",
             handle_, Str16ToStr8(remoteDescriptor_).c_str());
-#ifndef BUILD_PUBLIC_VERSION
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
             DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
-#endif
         return false;
     }
 #ifndef CONFIG_IPC_SINGLE
@@ -349,11 +348,9 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         if (!AddDbinderDeathRecipient()) {
             ZLOGE(LABEL, "failed to add dbinder death recipient, handle:%{public}d desc:%{public}s",
                 handle_, Str16ToStr8(remoteDescriptor_).c_str());
-#ifndef BUILD_PUBLIC_VERSION
             ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
                 DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
                 DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
-#endif
             return false;
         }
     }
