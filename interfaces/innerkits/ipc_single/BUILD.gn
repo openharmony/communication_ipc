@@ -66,6 +66,7 @@ ohos_shared_library("ipc_single") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
   ]
 
