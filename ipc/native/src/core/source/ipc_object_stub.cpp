@@ -413,6 +413,7 @@ int32_t IPCObjectStub::InvokerThread(uint32_t code, MessageParcel &data, Message
 
 int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &reply)
 {
+    ZLOGI(LABEL, "enter");
     std::string deviceId = data.ReadString();
     uint32_t remotePid = data.ReadUint32();
     uint32_t remoteUid = data.ReadUint32();
@@ -528,6 +529,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
 
 std::string IPCObjectStub::GetSessionName()
 {
+    ZLOGI(LABEL, "enter");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LABEL, "get current is null");
@@ -546,6 +548,7 @@ std::string IPCObjectStub::GetSessionName()
 int32_t IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    ZLOGI(LABEL, "enter");
     int pid = IPCSkeleton::GetCallingPid();
     int uid = IPCSkeleton::GetCallingUid();
     std::string sessionName = CreateSessionName(uid, pid);
