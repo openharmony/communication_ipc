@@ -1625,16 +1625,16 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryDBinderCallbackStubTest001, TestSize.L
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
-    skeleton->dbinderSentCallback.clear();
+    skeleton->dbinderSentCallback_.clear();
 
     sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
     sptr<DBinderCallbackStub> stub = new DBinderCallbackStub(
         "serviceName", "peerDeviceID", "localDeviceID", 1, 1, 1);
-    skeleton->dbinderSentCallback[objectProxy] = stub;
+    skeleton->dbinderSentCallback_[objectProxy] = stub;
 
     auto ret = skeleton->QueryDBinderCallbackStub(objectProxy);
     EXPECT_NE(ret, nullptr);
-    skeleton->dbinderSentCallback.clear();
+    skeleton->dbinderSentCallback_.clear();
 }
 
 /**
@@ -1646,7 +1646,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryDBinderCallbackStubTest002, TestSize.L
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
-    skeleton->dbinderSentCallback.clear();
+    skeleton->dbinderSentCallback_.clear();
 
     sptr<IPCObjectProxy> objectProxy = new IPCObjectProxy(1);
 
@@ -1663,16 +1663,16 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryDBinderCallbackProxyTest001, TestSize.
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
-    skeleton->dbinderSentCallback.clear();
+    skeleton->dbinderSentCallback_.clear();
 
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
     sptr<DBinderCallbackStub> stub = new DBinderCallbackStub(
         "serviceName", "peerDeviceID", "localDeviceID", 1, 1, 1);
-    skeleton->dbinderSentCallback[object] = stub;
+    skeleton->dbinderSentCallback_[object] = stub;
 
     auto ret = skeleton->QueryDBinderCallbackStub(object);
     EXPECT_NE(ret, nullptr);
-    skeleton->dbinderSentCallback.clear();
+    skeleton->dbinderSentCallback_.clear();
 }
 
 
@@ -1685,7 +1685,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryDBinderCallbackProxyTest002, TestSize.
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
-    skeleton->dbinderSentCallback.clear();
+    skeleton->dbinderSentCallback_.clear();
 
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
 

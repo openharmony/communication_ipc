@@ -71,7 +71,7 @@ struct ThreadProcessInfo {
 };
 #endif
 
-class IPCProcessSkeleton : public virtual RefBase {
+class IPCProcessSkeleton {
 public:
     enum {
         LISTEN_THREAD_CREATE_OK, // Invoker family.
@@ -79,7 +79,7 @@ public:
         LISTEN_THREAD_CREATED_ALREADY,
         LISTEN_THREAD_CREATED_TIMEOUT
     };
-    ~IPCProcessSkeleton() override;
+    ~IPCProcessSkeleton();
 
     static IPCProcessSkeleton *GetCurrent();
     static std::string ConvertToSecureString(const std::string &str);
@@ -195,15 +195,32 @@ public:
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
     IPCProcessSkeleton();
+#ifndef CONFIG_IPC_SINGLE
+    void ClearDataResource();
+#endif
+
+    class DestroyInstance {
+    public:
+        ~DestroyInstance()
+        {
+            if (instance_ != nullptr) {
+                delete instance_;
+                instance_ = nullptr;
+            }
+        }
+    };
+
     static IPCProcessSkeleton *instance_;
     static std::mutex procMutex_;
-    std::shared_mutex rawDataMutex_;
+    static DestroyInstance destroyInstance_;
+    static std::atomic<bool> exitFlag_;
+
+    // for DFX
     std::mutex mutex_;
     std::condition_variable cv_;
     int numExecuting_ = 0;
     int numWaitingForThreads_ = 0;
 
-    std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     IPCWorkThreadPool *threadPool_ = nullptr;
 
 #ifndef CONFIG_IPC_SINGLE
@@ -215,7 +232,7 @@ private:
     std::mutex findThreadMutex_;
 
     std::recursive_mutex proxyToSessionMutex_;
-
+    std::shared_mutex rawDataMutex_;
     std::shared_mutex databusSessionMutex_;
     std::shared_mutex threadLockMutex_;
     std::shared_mutex callbackStubMutex_;
@@ -224,6 +241,7 @@ private:
     std::shared_mutex commAuthMutex_;
     std::shared_mutex dbinderSentMutex_;
 
+    std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     std::map<uint64_t, std::shared_ptr<ThreadMessageInfo>> seqNumberToThread_;
     std::map<uint64_t, IRemoteObject *> stubObjects_;
     std::map<std::thread::id, std::shared_ptr<SocketThreadLockInfo>> threadLockInfo_;
@@ -232,7 +250,7 @@ private:
     std::map<IPCObjectProxy *, sptr<IPCObjectStub>> noticeStub_;
     std::map<std::thread::id, std::vector<std::shared_ptr<ThreadProcessInfo>>> dataInfoQueue_; // key is threadId
     std::map<std::string, std::map<uint64_t, uint32_t>> appInfoToStubIndex_;
-    std::map<sptr<IRemoteObject>, wptr<DBinderCallbackStub>> dbinderSentCallback;
+    std::map<sptr<IRemoteObject>, wptr<DBinderCallbackStub>> dbinderSentCallback_;
 
     std::list<std::thread::id> idleDataThreads_;
     std::list<std::shared_ptr<CommAuthInfo>> commAuth_;
