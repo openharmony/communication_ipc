@@ -26,7 +26,6 @@
 #include "ipc_thread_pool.h"
 #include "iremote_object.h"
 #include "nocopyable.h"
-#include "refbase.h"
 #include "sys_binder.h"
 
 #ifndef CONFIG_IPC_SINGLE
@@ -96,9 +95,10 @@ public:
 
     sptr<IRemoteObject> FindOrNewObject(int handle);
     bool IsContainsObject(IRemoteObject *object);
-    sptr<IRemoteObject> QueryObject(const std::u16string &descriptor);
-    bool AttachObject(IRemoteObject *object);
+    sptr<IRemoteObject> QueryObject(const std::u16string &descriptor, bool lockFlag = true);
+    bool AttachObject(IRemoteObject *object, bool lockFlag = true);
     bool DetachObject(IRemoteObject *object);
+    sptr<IRemoteObject> GetProxyObject(int handle, bool &newFlag);
 
     sptr<IRemoteObject> GetRegistryObject();
     bool SetRegistryObject(sptr<IRemoteObject> &object);
