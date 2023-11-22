@@ -19,12 +19,23 @@
 #include <map>
 #include <mutex>
 #include <shared_mutex>
-#include <refbase.h>
 
 #include "iremote_object.h"
 
+#define CHECK_INSTANCE_EXIT(flag) \
+    if (flag) { \
+        ZLOGW(LOG_LABEL, "instance is exiting"); \
+        return; \
+    }
+
+#define CHECK_INSTANCE_EXIT_WITH_RETVAL(flag, retVal) \
+    if (flag) { \
+        ZLOGW(LOG_LABEL, "instance is exiting"); \
+        return retVal; \
+    }
+
 namespace OHOS {
-class ProcessSkeleton : public virtual RefBase {
+class ProcessSkeleton {
 public:
 
     static ProcessSkeleton* GetInstance();
@@ -34,17 +45,33 @@ public:
     bool GetSamgrFlag();
 
     bool IsContainsObject(IRemoteObject *object);
-    sptr<IRemoteObject> QueryObject(const std::u16string &descriptor);
-    bool AttachObject(IRemoteObject *object, const std::u16string &descriptor);
+    sptr<IRemoteObject> QueryObject(const std::u16string &descriptor, bool lockFlag);
+    bool AttachObject(IRemoteObject *object, const std::u16string &descriptor, bool lockFlag);
     bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
+    bool LockObjectMutex();
+    bool UnlockObjectMutex();
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
     ProcessSkeleton() = default;
     ~ProcessSkeleton();
 
+    class DestroyInstance {
+    public:
+        ~DestroyInstance()
+        {
+            if (instance_ != nullptr) {
+                delete instance_;
+                instance_ = nullptr;
+            }
+        }
+    };
+
     static ProcessSkeleton* instance_;
     static std::mutex mutex_;
+    static DestroyInstance destroyInstance_;
+    static std::atomic<bool> exitFlag_;
+
     std::shared_mutex objMutex_;
     sptr<IRemoteObject> registryObject_ = nullptr;
     bool isSamgr_ = false;
