@@ -340,7 +340,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, Str16ToStr8(remoteDescriptor_).c_str());
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
+            COMMON_DRIVER_SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
         return false;
     }
 #ifndef CONFIG_IPC_SINGLE
@@ -350,7 +350,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
                 handle_, Str16ToStr8(remoteDescriptor_).c_str());
             ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
                 DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-                DbinderErrorCode::SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
+                COMMON_DRIVER_SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
             return false;
         }
     }

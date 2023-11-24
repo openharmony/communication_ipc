@@ -109,7 +109,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ZLOGE(LABEL, "WriteTransaction ERROR");
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::TRANSACT_DATA_FAILURE, __FUNCTION__);
+            COMMON_DRIVER_TRANSACT_DATA_FAILURE, __FUNCTION__);
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -983,7 +983,7 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
         ZLOGE(LABEL, "Fail to flatten object");
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::FLATTEN_OBJECT_FAILURE, __FUNCTION__);
+            COMMON_DRIVER_FLATTEN_OBJECT_FAILURE, __FUNCTION__);
     }
     return status;
 }
