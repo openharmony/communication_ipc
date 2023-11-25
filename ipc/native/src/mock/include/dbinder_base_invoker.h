@@ -614,7 +614,7 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
         ZLOGE(LOG_LABEL, "receive buffer is nullptr");
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::HANDLE_RECV_DATA_FAILURE, __FUNCTION__);
+            COMMON_DRIVER_HANDLE_RECV_DATA_FAILURE, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
 
@@ -740,7 +740,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
         ZLOGE(LOG_LABEL, "WriteTransaction fail, handle:%{public}d", handle);
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            DbinderErrorCode::TRANSACT_DATA_FAILURE, __FUNCTION__);
+            COMMON_DRIVER_TRANSACT_DATA_FAILURE, __FUNCTION__);
         return RPC_BASE_INVOKER_WRITE_TRANS_ERR;
     }
 
