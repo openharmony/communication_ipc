@@ -33,18 +33,6 @@
 #include "softbus_bus_center.h"
 #endif
 
-#define CHECK_INSTANCE_EXIT(flag) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return; \
-    }
-
-#define CHECK_INSTANCE_EXIT_WITH_RETVAL(flag, retVal) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return retVal; \
-    }
-
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
@@ -201,37 +189,10 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     bool newFlag = false;
-    sptr<IRemoteObject> result = nullptr;
-    std::u16string descriptor = MakeHandleDescriptor(handle);
-    if (descriptor.length() == 0) {
-        ZLOGE(LOG_LABEL, "make handle descriptor failed");
+    sptr<IRemoteObject> result = GetProxyObject(handle, newFlag);
+    if (result == nullptr) {
+        ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d", handle);
         return result;
-    }
-    {
-        result = QueryObject(descriptor);
-        if (result == nullptr) {
-            // Either this is a new handle or attemptIncStrong failed(strong refcount has been decreased to zero),
-            // we need to create a new proxy and initialize it. Meanwhile, the old proxy is destroying concurrently.
-            if (handle == REGISTRY_HANDLE) {
-                IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-                if (invoker == nullptr) {
-                    ZLOGE(LOG_LABEL, "failed to get invoker");
-                    return nullptr;
-                }
-                if (!invoker->PingService(REGISTRY_HANDLE)) {
-                    ZLOGE(LOG_LABEL, "Registry is not exist");
-                    return nullptr;
-                }
-            }
-            // OnFirstStrongRef will be called.
-            result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
-            if (result == nullptr) {
-                ZLOGE(LOG_LABEL, "new IPCObjectProxy failed!");
-                return result;
-            }
-            AttachObject(result.GetRefPtr());
-            newFlag = true;
-        }
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
     proxy->WaitForInit();
@@ -242,6 +203,59 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     }
 #endif
     ZLOGD(LOG_LABEL, "handle:%{public}d proto:%{public}d new:%{public}d", handle, proxy->GetProto(), newFlag);
+    return result;
+}
+
+sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
+    sptr<IRemoteObject> result = nullptr;
+    std::u16string descriptor = MakeHandleDescriptor(handle);
+    if (descriptor.length() == 0) {
+        ZLOGE(LOG_LABEL, "make handle descriptor failed");
+        return result;
+    }
+
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return result;
+    }
+
+    if (!current->LockObjectMutex()) {
+        ZLOGE(LOG_LABEL, "LockObjectMutex failed!");
+        return result;
+    }
+    result = QueryObject(descriptor, false);
+    if (result != nullptr) {
+        current->UnlockObjectMutex();
+        return result;
+    }
+    // Either this is a new handle or attemptIncStrong failed(strong refcount has been decreased to zero),
+    // we need to create a new proxy and initialize it. Meanwhile, the old proxy is destroying concurrently.
+    if (handle == REGISTRY_HANDLE) {
+        IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+        if (invoker == nullptr) {
+            ZLOGE(LOG_LABEL, "failed to get invoker");
+            current->UnlockObjectMutex();
+            return result;
+        }
+        if (!invoker->PingService(REGISTRY_HANDLE)) {
+            ZLOGE(LOG_LABEL, "Registry is not exist");
+            current->UnlockObjectMutex();
+            return result;
+        }
+    }
+    // OnFirstStrongRef will be called.
+    result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
+    if (result == nullptr) {
+        ZLOGE(LOG_LABEL, "new IPCObjectProxy failed!");
+        current->UnlockObjectMutex();
+        return result;
+    }
+    AttachObject(result.GetRefPtr(), false);
+    newFlag = true;
+    current->UnlockObjectMutex();
     return result;
 }
 
@@ -351,7 +365,7 @@ bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
     return current->DetachObject(object, descriptor);
 }
 
-bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
+bool IPCProcessSkeleton::AttachObject(IRemoteObject *object, bool lockFlag)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (object == nullptr) {
@@ -365,10 +379,10 @@ bool IPCProcessSkeleton::AttachObject(IRemoteObject *object)
         ZLOGE(LOG_LABEL, "get process skeleton failed");
         return false;
     }
-    return current->AttachObject(object, descriptor);
+    return current->AttachObject(object, descriptor, lockFlag);
 }
 
-sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descriptor)
+sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descriptor, bool lockFlag)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     if (descriptor.length() == 0) {
@@ -380,7 +394,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descri
         ZLOGE(LOG_LABEL, "get process skeleton failed");
         return nullptr;
     }
-    return current->QueryObject(descriptor);
+    return current->QueryObject(descriptor, lockFlag);
 }
 
 void IPCProcessSkeleton::BlockUntilThreadAvailable()

@@ -24,12 +24,14 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC,
 
 ProcessSkeleton* ProcessSkeleton::instance_ = nullptr;
 std::mutex ProcessSkeleton::mutex_;
+ProcessSkeleton::DestroyInstance ProcessSkeleton::destroyInstance_;
+std::atomic<bool> ProcessSkeleton::exitFlag_ = false;
 
 ProcessSkeleton* ProcessSkeleton::GetInstance()
 {
-    if (instance_ == nullptr) {
+    if ((instance_ == nullptr) && !exitFlag_) {
         std::lock_guard<std::mutex> lockGuard(mutex_);
-        if (instance_ == nullptr) {
+        if ((instance_ == nullptr) && !exitFlag_) {
             instance_ = new (std::nothrow) ProcessSkeleton();
             if (instance_ == nullptr) {
                 ZLOGE(LOG_LABEL, "create ProcessSkeleton object failed");
@@ -42,19 +44,26 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
 
 ProcessSkeleton::~ProcessSkeleton()
 {
-    std::lock_guard<std::shared_mutex> lockGuard(objMutex_);
-    objects_.clear();
-    isContainStub_.clear();
+    ZLOGW(LOG_LABEL, "destroy");
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    exitFlag_ = true;
+    {
+        std::unique_lock<std::shared_mutex> objLock(objMutex_);
+        objects_.clear();
+        isContainStub_.clear();
+    }
 }
 
 sptr<IRemoteObject> ProcessSkeleton::GetRegistryObject()
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     return registryObject_;
 }
 
 void ProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
 {
+    CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     registryObject_ = object;
 }
@@ -71,6 +80,7 @@ bool ProcessSkeleton::GetSamgrFlag()
 
 bool ProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     // check whether it is a valid IPCObjectStub object.
     std::shared_lock<std::shared_mutex> lockGuard(objMutex_);
     auto it = isContainStub_.find(object);
@@ -83,6 +93,7 @@ bool ProcessSkeleton::IsContainsObject(IRemoteObject *object)
 
 bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &descriptor)
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(objMutex_);
     (void)isContainStub_.erase(object);
 
@@ -98,9 +109,13 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     return false;
 }
 
-bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &descriptor)
+bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &descriptor, bool lockFlag)
 {
-    std::unique_lock<std::shared_mutex> lockGuard(objMutex_);
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::unique_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+    if (lockFlag) {
+        lockGuard.lock();
+    }
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
     if (descriptor.empty()) {
@@ -114,7 +129,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     return result.second;
 }
 
-sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descriptor)
+sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descriptor, bool lockFlag)
 {
     sptr<IRemoteObject> result = nullptr;
     if (descriptor.empty()) {
@@ -122,7 +137,11 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         return result;
     }
 
-    std::shared_lock<std::shared_mutex> lockGuard(objMutex_);
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
+    std::shared_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+    if (lockFlag) {
+        lockGuard.lock();
+    }
     IRemoteObject *remoteObject = nullptr;
     auto it = objects_.find(descriptor);
     if (it != objects_.end()) {
@@ -136,5 +155,19 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
     }
     result = remoteObject;
     return result;
+}
+
+bool ProcessSkeleton::LockObjectMutex()
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    objMutex_.lock();
+    return true;
+}
+
+bool ProcessSkeleton::UnlockObjectMutex()
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    objMutex_.unlock();
+    return true;
 }
 } // namespace OHOS
