@@ -53,7 +53,7 @@ public:
     int TestEnableSerialInvokeFlag() override;
 private:
     int testFd_;
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestService" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "TestService" };
 };
 } // namespace OHOS
 #endif // OHOS_IPC_TEST_SERVICE_H

@@ -37,7 +37,7 @@ namespace IPC_SINGLE {
 #endif
 
 using namespace OHOS::HiviewDFX;
-static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "BinderInvoker" };
+static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER, "BinderInvoker" };
 enum {
     GET_SERVICE_TRANSACTION = 0x1,
     CHECK_SERVICE_TRANSACTION,

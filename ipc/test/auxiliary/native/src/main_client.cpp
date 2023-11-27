@@ -32,7 +32,7 @@
 
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestClient" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCTestClient" };
 
 void ThreadFunc(std::shared_ptr<TestServiceClient> testClient)
 {

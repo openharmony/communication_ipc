@@ -64,7 +64,7 @@ class IPCNativeUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCUnitTest" };
+    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCUnitTest" };
 
 private:
     static inline IPCTestHelper *g_globalHelper = { nullptr };

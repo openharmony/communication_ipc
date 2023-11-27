@@ -22,7 +22,7 @@
 #include "ipc_debug.h"
 
 using namespace OHOS;
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CParcel" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "CParcel" };
 
 MessageParcelHolder::MessageParcelHolder(OHOS::MessageParcel *parcel)
     : isExternal_(true)
