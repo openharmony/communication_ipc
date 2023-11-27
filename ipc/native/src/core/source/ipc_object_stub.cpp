@@ -57,6 +57,7 @@ static constexpr pid_t ALLOWED_UID = 10000;
 #endif
 static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
+static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
@@ -294,9 +295,17 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             if (serialInvokeFlag_) {
                 lockGuard.lock();
             }
+            auto start = std::chrono::steady_clock::now();
             lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
+                start.time_since_epoch()).count());
             result = OnRemoteRequest(code, data, reply, option);
+            auto finish = std::chrono::steady_clock::now();
+            int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                finish - start).count());
+            if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
+                ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}dms",
+                    Str16ToStr8(GetObjectDescriptor()).c_str(), code, duration);
+            }
             break;
     }
 
