@@ -23,7 +23,7 @@
 #include "ipc_thread_skeleton.h"
 
 using namespace OHOS;
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CProcess" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "CProcess" };
 
 CRemoteObject *GetContextManager(void)
 {
