@@ -224,7 +224,7 @@ int IPCObjectProxy::GetPidUid(MessageParcel &reply)
     return SendRequestInner(true, GET_PID_UID, data, reply, option);
 }
 
-void IPCObjectProxy::OnFirstStrongRef()
+void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
 {
     // IPC proxy: AcquireHandle->AttachObject
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
@@ -279,7 +279,7 @@ void IPCObjectProxy::WaitForInit()
 #endif
 }
 
-void IPCObjectProxy::OnLastStrongRef()
+void IPCObjectProxy::OnLastStrongRef(const void *objectId)
 {
     // IPC proxy: DetachObject->ReleaseHandle
     // RPC proxy: DecRef to Remote Stub->Close Session->DetachObject->ReleaseHandle
