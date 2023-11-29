@@ -486,8 +486,6 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     MessageOption option;
     uint32_t flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
     option.SetFlags(static_cast<int>(flagValue));
-    std::string service;
-    auto start = std::chrono::steady_clock::now();
     if (tr->target.ptr != 0) {
         auto *refs = reinterpret_cast<RefCounter *>(tr->target.ptr);
         int count = 0;
@@ -495,7 +493,6 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
             if (targetObject != nullptr) {
                 error = targetObject->SendRequest(tr->code, *data, reply, option);
-                service = Str16ToStr8(targetObject->GetObjectDescriptor());
                 targetObject->DecStrongRef(this);
             }
         }
@@ -506,14 +503,6 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         } else {
             error = targetObject->SendRequest(tr->code, *data, reply, option);
         }
-        service = "samgr";
-    }
-    auto finish = std::chrono::steady_clock::now();
-    int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        finish - start).count());
-    if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-        ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}dms",
-            service.c_str(), tr->code, duration);
     }
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
