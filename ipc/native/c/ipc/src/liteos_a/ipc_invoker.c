@@ -641,7 +641,6 @@ static void InvokerResetIpc(void)
 
     if (InitIpcConnector() == NULL) {
         RPC_LOG_ERROR("init liteipc invoker failed: %d.", errno);
-        return;
     }
 }
 
