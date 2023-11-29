@@ -28,7 +28,7 @@ struct JFileDescriptor {
     jfieldID descriptorField;
 } g_jFileDescriptor;
 
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJniHelper" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "IPCJniHelper" };
 
 JavaVM *JNIEnvHelper::javaVm_ = nullptr;
 // The JavaVM is a representation of the virtual machine on the JNI layer,

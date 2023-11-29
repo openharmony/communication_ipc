@@ -25,7 +25,7 @@ struct JMessageOption {
     jmethodID initMethod;
 } g_jMessageOption;
 
-static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJni" };
+static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "IPCJni" };
 /*
  * Get flags field from ohos.rpc.MessageOption.
  */

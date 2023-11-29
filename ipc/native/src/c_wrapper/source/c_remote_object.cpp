@@ -23,7 +23,7 @@
 #include "ipc_debug.h"
 
 using namespace OHOS;
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "CRemoteObject" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "CRemoteObject" };
 
 RemoteServiceHolderStub::RemoteServiceHolderStub(std::u16string &desc, OnRemoteRequestCb callback,
     const void *userData, OnRemoteObjectDestroyCb destroy, OnRemoteDumpCb dumpCallback)

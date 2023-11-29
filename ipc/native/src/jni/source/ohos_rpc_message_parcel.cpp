@@ -35,7 +35,7 @@ struct JMessageParcel {
     jfieldID nativeObjectOwner;
 } g_jMessageParcel;
 
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJni" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "IPCJni" };
 
 class AshmemSmartPointWrapper {
 public:

@@ -88,7 +88,7 @@ public:
         MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     bool serialInvokeFlag_ = { false };
 private:
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceStub" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "TestServiceStub" };
     int TransferRawData(MessageParcel &data, MessageParcel &reply);
     int ReplyRawData(MessageParcel &data, MessageParcel &reply);
     void TransferToNextProcess(MessageParcel &data, MessageParcel &reply);
@@ -124,7 +124,7 @@ public:
     int TestEnableSerialInvokeFlag() override;
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestServiceProxy" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "TestServiceProxy" };
 };
 
 class TestDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -135,7 +135,7 @@ public:
     static bool GotDeathRecipient();
     static bool gotDeathRecipient_;
 private:
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "TestDeathRecipient" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "TestDeathRecipient" };
 };
 
 } // namespace OHOS
