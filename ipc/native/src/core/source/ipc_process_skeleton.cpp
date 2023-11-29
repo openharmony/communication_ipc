@@ -42,7 +42,7 @@ using namespace Communication;
 #endif
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCProcessSkeleton" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PROC_SKELETON, "IPCProcessSkeleton" };
 
 std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
