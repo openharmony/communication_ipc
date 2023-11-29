@@ -38,7 +38,7 @@ pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
 std::recursive_mutex IPCThreadSkeleton::mutex_;
 
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCThreadSkeleton" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "IPCThreadSkeleton" };
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
