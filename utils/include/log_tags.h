@@ -24,6 +24,8 @@ const unsigned int LOG_ID_IPC_NAPI = LOG_ID_COMMUNICATION | 0x42C1;
 const unsigned int LOG_ID_IPC_BINDER = LOG_ID_COMMUNICATION | 0x42C2;
 const unsigned int LOG_ID_IPC_OTHER = LOG_ID_COMMUNICATION | 0x42C3;
 const unsigned int LOG_ID_IPC = LOG_ID_COMMUNICATION | 0x42C4;
+const unsigned int LOG_ID_IPC_PROXY = LOG_ID_COMMUNICATION | 0x42C5;
+const unsigned int LOG_ID_IPC_STUB = LOG_ID_COMMUNICATION | 0x42C6;
 
 const unsigned int LOG_ID_RPC = LOG_ID_COMMUNICATION | 0x18;
 
