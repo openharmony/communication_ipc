@@ -36,7 +36,7 @@ static const size_t ARGV_INDEX_1 = 1;
 
 static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_messageParcel" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_messageParcel" };
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                              \
     do {                                                                                               \

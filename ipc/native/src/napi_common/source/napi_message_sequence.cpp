@@ -41,7 +41,7 @@ static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
 static const size_t REQUIRED_ARGS_COUNT_1 = 1;  // "requires 1 parameter"
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "NAPI_MessageSequence" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "NAPI_MessageSequence" };
 
 #define MAX_BYTES_LENGTH 40960
 

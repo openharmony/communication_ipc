@@ -21,7 +21,7 @@
 #include "log_tags.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject_holder" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject_holder" };
 
 static void OnEnvCleanUp(void *data)
 {

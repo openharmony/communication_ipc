@@ -22,7 +22,7 @@
 
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestHelperJNI" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCTestHelperJNI" };
 
 static bool g_isTestHelperMethodRegistered = false;
 static struct ParcelDesc {

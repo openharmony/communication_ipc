@@ -26,7 +26,7 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThreadPool" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThreadPool" };
 
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
     : threadSequence_(0),

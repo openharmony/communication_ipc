@@ -50,7 +50,7 @@ namespace OHOS {
 using namespace IPC_SINGLE;
 #endif
 using namespace OHOS::HiviewDFX;
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCObjectStub" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_STUB, "IPCObjectStub" };
 #ifndef CONFIG_IPC_SINGLE
 // Authentication information can be added only for processes with system permission.
 static constexpr pid_t ALLOWED_UID = 10000;

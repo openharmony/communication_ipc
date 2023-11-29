@@ -30,7 +30,7 @@
 namespace OHOS {
 // the value should be equal to the set of parcel
 using namespace OHOS::HiviewDFX;
-static const HiLogLabel TRACE_LABEL = { LOG_CORE, LOG_ID_IPC, "BinderHiTrace" };
+static const HiLogLabel TRACE_LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderHiTrace" };
 
 bool HitraceInvoker::IsClientTraced(int32_t handle, uint32_t flags, const HiTraceId &traceId)
 {
