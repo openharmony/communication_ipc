@@ -20,7 +20,7 @@
 #include "string_ex.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "ProcessSkeleton" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "ProcessSkeleton" };
 
 ProcessSkeleton* ProcessSkeleton::instance_ = nullptr;
 std::mutex ProcessSkeleton::mutex_;
