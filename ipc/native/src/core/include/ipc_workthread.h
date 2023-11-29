@@ -50,7 +50,7 @@ private:
     std::thread thread_;
     std::string threadName_;
     static void *ThreadHandler(void *args);
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThread" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThread" };
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
