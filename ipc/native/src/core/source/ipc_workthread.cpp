@@ -37,7 +37,7 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "IPCWorkThread" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThread" };
 
 IPCWorkThread::IPCWorkThread(std::string threadName) : threadName_(std::move(threadName)) {}
 
