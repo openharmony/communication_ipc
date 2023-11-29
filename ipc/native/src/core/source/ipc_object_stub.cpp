@@ -346,6 +346,7 @@ bool IPCObjectStub::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 bool IPCObjectStub::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
+    (void)recipient;
     return false;
 }
 
