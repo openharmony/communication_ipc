@@ -155,7 +155,7 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
             data2.WriteUint32(reply.ReadUint32()); // uid
             IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
             if (current == nullptr) {
-                ZLOGE(LABEL, "current is null");
+                ZLOGE(LABEL, "current is null, failed to get current");
                 return false;
             }
             data2.WriteString(current->GetLocalDeviceID()); // deviceId
