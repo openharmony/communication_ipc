@@ -73,7 +73,7 @@ static bool WriteAndCheckArrayLength(CParcel *parcel, bool isNull, int32_t len)
 
 static bool ReadAndCheckArrayLength(const CParcel *parcel, int32_t &len)
 {
-    if(parcel == nullptr) {
+    if (parcel == nullptr) {
         ZLOGE(LOG_LABEL, "parcel is nullptr\n");
         return false;
     }

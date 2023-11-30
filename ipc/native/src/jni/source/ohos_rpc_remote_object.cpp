@@ -578,7 +578,7 @@ jboolean JNICALL Java_ohos_rpc_IPCSkeleton_nativeSetCallingIdentity(JNIEnv *env,
     jint len)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null");
+        ZLOGE(LABEL, "env is null, failed to set calling identity");
         return JNI_FALSE;
     }
     const char *identityUtf = env->GetStringUTFChars(identity, JNI_FALSE);
