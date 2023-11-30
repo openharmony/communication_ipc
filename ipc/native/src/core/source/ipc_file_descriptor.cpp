@@ -44,7 +44,6 @@ IPCFileDescriptor::IPCFileDescriptor(int fd) : Parcelable(true)
 IPCFileDescriptor::~IPCFileDescriptor()
 {
     fd_ = INVALID_FD;
-    close(fd_);
 }
 
 int IPCFileDescriptor::GetFd() const
