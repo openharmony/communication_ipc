@@ -506,6 +506,10 @@ jint JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetCallingUid(JNIEnv *env, jclass c
  */
 jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetCallingDeviceID(JNIEnv *env, jclass clazz)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not get calling device ID");
+        return nullptr;
+    }
     std::string deviceId = IPCSkeleton::GetCallingDeviceID();
     return env->NewStringUTF(deviceId.c_str());
 }
@@ -559,7 +563,7 @@ jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeResetCallingIdentity(JNIEnv *env
 {
     if (env == nullptr) {
         ZLOGE(LABEL, "env is null, could not reset calling identity");
-        return JNI_FALSE;
+        return nullptr;
     }
     std::string identity = IPCSkeleton::ResetCallingIdentity();
     return env->NewStringUTF(identity.c_str());
@@ -811,7 +815,7 @@ jstring JNICALL Java_ohos_rpc_RemoteProxy_nativeGetInterfaceDescriptor(JNIEnv *e
 {
     if (env == nullptr) {
         ZLOGE(LABEL, "env is null, could not get interface descriptor");
-        return nullptr;  //这里返回什么
+        return nullptr;
     }
     JRemoteProxyHolder *holder = Java_ohos_rpc_getRemoteProxyHolder(env, object);
     if (holder == nullptr) {
