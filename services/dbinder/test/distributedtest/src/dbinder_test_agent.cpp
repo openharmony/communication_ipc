@@ -28,7 +28,7 @@ using namespace OHOS;
 using namespace OHOS::DistributeSystemTest;
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderTestAgent" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "DbinderTestAgent" };
 
 class DbinderTestAgent : public DistributedAgent {
 public:

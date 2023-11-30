@@ -21,7 +21,7 @@
 #include "dbinder_error_code.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderRemoteListener" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DbinderRemoteListener" };
 
 DBinderRemoteListener::DBinderRemoteListener(const sptr<DBinderService> &dBinderService)
     : dBinderService_(dBinderService)
@@ -242,6 +242,7 @@ void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
         for (auto it = serverSessionMap_.begin(); it != serverSessionMap_.end(); it++) {
             if (it->second->GetChannelId() == session->GetChannelId()) {
                 serverSessionMap_.erase(it);
+                DBINDER_LOGI(LOG_LABEL, "close session end");
                 return;
             }
         }
@@ -255,6 +256,7 @@ void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
         }
         dBinderService_->ProcessOnSessionClosed(session);
     }
+    DBINDER_LOGI(LOG_LABEL, "close session end");
 }
 
 void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
