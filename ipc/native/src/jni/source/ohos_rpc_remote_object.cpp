@@ -381,6 +381,10 @@ JRemoteProxyHolder *Java_ohos_rpc_getRemoteProxyHolder(JNIEnv *env, jobject obje
 jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject> target)
 {
     ZLOGD(LABEL, "enter");
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null,could not get Java remote object");
+        return nullptr;
+    }
     if (target == nullptr) {
         ZLOGE(LABEL, "RemoteObject is null");
         return nullptr;
@@ -433,6 +437,10 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
 sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject object)
 {
     ZLOGD(LABEL, "enter");
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not get native remote object");
+        return nullptr;
+    }
     if (object != nullptr) {
         if (env->IsInstanceOf(object, g_jRemoteStub.klass)) {
             JRemoteObjectHolder *holder =
@@ -457,6 +465,10 @@ sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject obj
 jobject JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetContextObject(JNIEnv *env, jclass clazz)
 {
     ZLOGD(LABEL, "enter");
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not get context object");
+        return nullptr;
+    }
     sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
     if (object == nullptr) {
         ZLOGE(LABEL, "fatal error, could not get registry object");
@@ -505,6 +517,10 @@ jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetCallingDeviceID(JNIEnv *env, 
  */
 jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetLocalDeviceID(JNIEnv *env, jclass clazz)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not get local device ID");
+        return nullptr;
+    }
     std::string deviceId = IPCSkeleton::GetLocalDeviceID();
     return env->NewStringUTF(deviceId.c_str());
 }
@@ -526,6 +542,10 @@ jboolean JNICALL Java_ohos_rpc_IPCSkeleton_nativeIsLocalCalling(JNIEnv *env, jcl
  */
 jint JNICALL Java_ohos_rpc_IPCSkeleton_nativeFlushCommands(JNIEnv *env, jclass clazz, jobject object)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not flush commands");
+        return JNI_ERR;
+    }
     sptr<IRemoteObject> target = Java_ohos_rpc_getNativeRemoteObject(env, object);
     return static_cast<jint>(IPCSkeleton::FlushCommands(target));
 }
@@ -537,6 +557,10 @@ jint JNICALL Java_ohos_rpc_IPCSkeleton_nativeFlushCommands(JNIEnv *env, jclass c
  */
 jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeResetCallingIdentity(JNIEnv *env, jclass clazz)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not reset calling identity");
+        return JNI_FALSE;
+    }
     std::string identity = IPCSkeleton::ResetCallingIdentity();
     return env->NewStringUTF(identity.c_str());
 }
@@ -549,6 +573,10 @@ jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeResetCallingIdentity(JNIEnv *env
 jboolean JNICALL Java_ohos_rpc_IPCSkeleton_nativeSetCallingIdentity(JNIEnv *env, jclass clazz, jstring identity,
     jint len)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return JNI_FALSE;
+    }
     const char *identityUtf = env->GetStringUTFChars(identity, JNI_FALSE);
 
     if (identityUtf != nullptr) {
@@ -657,6 +685,10 @@ void JNICALL Java_ohos_rpc_RemoteProxy_nativeFreeProxyHolder(JNIEnv *env, jclass
 jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobject object, jint code, jobject data,
     jobject reply, jobject option)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not send request");
+        return JNI_FALSE;
+    }
     MessageParcel *nativeData = JavaOhosRpcMessageParcelGetNative(env, data);
     if (nativeData == nullptr) {
         JniHelperThrowNullPointerException(env, "data field is null");
@@ -777,6 +809,10 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeRemoveDeathRecipient(JNIEnv *en
  */
 jstring JNICALL Java_ohos_rpc_RemoteProxy_nativeGetInterfaceDescriptor(JNIEnv *env, jobject object)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not get interface descriptor");
+        return nullptr;  //这里返回什么
+    }
     JRemoteProxyHolder *holder = Java_ohos_rpc_getRemoteProxyHolder(env, object);
     if (holder == nullptr) {
         JniHelperThrowIllegalStateException(env, "Proxy has been finalized!");
@@ -878,11 +914,19 @@ static const JNINativeMethod sProxyMethods[] = {
 
 int JavaOhosRpcIpcSkeletonRegisterNativeMethods(JNIEnv *env)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not register native methods");
+        return JNI_ERR;
+    }
     return JkitRegisterNativeMethods(env, "ohos/rpc/IPCSkeleton", sMethods, NUM_METHODS(sMethods));
 }
 
 int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null, could not register native methods");
+        return JNI_ERR;
+    }
     jclass clazz = env->FindClass("ohos/rpc/RemoteObject");
     if (clazz == nullptr) {
         ZLOGE(LABEL, "Could not find class:RemoteObject");

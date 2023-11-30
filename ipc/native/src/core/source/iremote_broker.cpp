@@ -57,6 +57,10 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
     if (descriptor.empty()) {
         return false;
     }
+    if (object == nullptr) {
+        ZLOGE(LABEL, "the borker object is nullptr");
+        return false;
+    }
 
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     auto it = creators_.find(descriptor);
