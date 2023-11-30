@@ -425,6 +425,10 @@ void DeleteDeathCallback(DeathCallback *deathCallback)
 
 static void DeleteAllNode(void)
 {
+    if (g_ipcSkeleton == NULL) {
+        RPC_LOG_ERROR("invalid ipcSkeleton");
+        return;
+    }
     (void)pthread_mutex_lock(&g_ipcSkeleton->lock);
     DeathCallback *node = NULL;
     DeathCallback *next = NULL;
