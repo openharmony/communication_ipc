@@ -22,7 +22,8 @@
 namespace OHOS {
 using Communication::SoftBus::ISessionService;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderSaDeathRecipient" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER,
+    "DbinderSaDeathRecipient" };
 
 DbinderSaDeathRecipient::DbinderSaDeathRecipient(binder_uintptr_t binderObject) : binderObject_(binderObject)
 {

@@ -83,7 +83,7 @@ public:
     virtual void ClearRemoteDecTimes() = 0;
 
 private:
-    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC, "IDBinderTestService" };
+    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IDBinderTestService" };
 };
 
 class DBinderTestServiceStub : public IRemoteStub<IDBinderTestService> {
@@ -94,7 +94,7 @@ public:
     static uid_t GetLastCallingUid();
 
 private:
-    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestStub" };
+    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderTestStub" };
     static pid_t g_lastCallingPid;
     static pid_t g_lastCallinguid;
     sptr<IRemoteObject> recvProxy_;
@@ -147,7 +147,7 @@ public:
 
 private:
     static inline BrokerDelegator<DBinderTestServiceProxy> delegator_;
-    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestProxy" };
+    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderTestProxy" };
 };
 
 
@@ -161,7 +161,7 @@ public:
     static bool g_gotDeathRecipient;
 
 private:
-    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestDeathRecipient" };
+    static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderTestDeathRecipient" };
 };
 } // namespace OHOS
 #endif // OHOS_DBINDER_TEST_SERVICE_SKELETON_H

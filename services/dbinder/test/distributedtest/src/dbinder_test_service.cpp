@@ -30,7 +30,7 @@ using namespace OHOS::HiviewDFX;
 int DBinderTestService::destructTimes_ = 0;
 std::mutex DBinderTestService::destructTimesMutex_;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderTest" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "DbinderTest" };
 
 static int Reverse(int x)
 {

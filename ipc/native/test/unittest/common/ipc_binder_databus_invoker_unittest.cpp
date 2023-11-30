@@ -43,7 +43,7 @@ class IPCDbinderDataBusInvokerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCUnitTest" };
+    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCUnitTest" };
 
 private:
     static inline IPCTestHelper *g_globalHelper = { nullptr };
