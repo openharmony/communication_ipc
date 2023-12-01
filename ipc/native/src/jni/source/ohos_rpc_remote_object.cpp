@@ -382,7 +382,7 @@ jobject Java_ohos_rpc_getJavaRemoteObject(JNIEnv *env, const sptr<IRemoteObject>
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null,could not get Java remote object");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     if (target == nullptr) {
