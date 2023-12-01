@@ -106,32 +106,36 @@ void HitraceInvoker::RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t o
 bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel &data, uint32_t &flags)
 {
     bool isServerTraced = (flags & TF_HITRACE) != 0;
-    if (isServerTraced) {
-        size_t oldReadPosition = data.GetReadPosition();
-        // padded size(4 bytes) of uint8_t
-        data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL);
-        // the padded size of traceid
-        uint8_t idLen = data.ReadUint8();
-        if (idLen >= sizeof(HiTraceIdStruct)) {
-            // padded size(4 bytes) of uint8_t
-            data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL - idLen);
-            const uint8_t *idBytes = data.ReadUnpadBuffer(sizeof(HiTraceIdStruct));
-            if (idBytes == nullptr) {
-                ZLOGE(TRACE_LABEL, "idBytes is null");
-                isServerTraced = 0;
-                RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
-                return isServerTraced;
-            }
-            HiTraceId traceId(idBytes, sizeof(HiTraceIdStruct));
-            HiTraceChain::SetId(traceId);
-            // tracepoint: SR(Server Receive)
-            HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
-                "%s handle=%{public}" PRIu64 ",code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
-                handle, code);
-        }
-
-        RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
+    if (!isServerTraced) {
+        return isServerTraced;
     }
+    size_t oldReadPosition = data.GetReadPosition();
+    // padded size(4 bytes) of uint8_t
+    if (data.GetDataSize() < PADDED_SIZE_OF_PARCEL) {
+        ZLOGE(TRACE_LABEL, "The size of the data packet is less than 4");
+        return false;
+    }
+    data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL);
+    // the padded size of traceid
+    uint8_t idLen = data.ReadUint8();
+    if ((idLen >= sizeof(HiTraceIdStruct)) && (idLen <= (data.GetDataSize() - PADDED_SIZE_OF_PARCEL))) {
+        // padded size(4 bytes) of uint8_t
+        data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL - idLen);
+        const uint8_t *idBytes = data.ReadUnpadBuffer(sizeof(HiTraceIdStruct));
+        if (idBytes == nullptr) {
+            ZLOGE(TRACE_LABEL, "idBytes is null");
+            isServerTraced = false;
+            RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
+            return isServerTraced;
+        }
+        HiTraceId traceId(idBytes, sizeof(HiTraceIdStruct));
+        HiTraceChain::SetId(traceId);
+        // tracepoint: SR(Server Receive)
+        HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
+            "%s handle=%{public}" PRIu64 ",code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
+    }
+    RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
+
     return isServerTraced;
 }
 
