@@ -24,7 +24,7 @@ pub use parcelable::allocate_vec_with_buffer;
 use crate::{ipc_binding, IpcResult, IpcStatusCode};
 use crate::ipc_binding::{CParcel};
 use std::marker::PhantomData;
-use std::mem::{ManuallyDrop,MaybeUninit};
+use std::mem::{ManuallyDrop, MaybeUninit};
 use std::ops::{Drop};
 use std::ptr::{NonNull};
 use std::slice;
