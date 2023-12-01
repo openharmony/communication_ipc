@@ -66,7 +66,7 @@ MessageParcel *JavaOhosRpcMessageParcelGetNative(JNIEnv *env, jobject object)
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get native parcel");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     jlong nativeObject = env->GetLongField(object, g_jMessageParcel.nativeObject);
@@ -76,7 +76,7 @@ MessageParcel *JavaOhosRpcMessageParcelGetNative(JNIEnv *env, jobject object)
 sptr<Ashmem> Java_ohos_rpc_Ashmem_getSptrAshmem(JNIEnv *env, jobject object, jlong id)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get sptrAshmem");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     if (id == 0) {
@@ -122,7 +122,7 @@ int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
 {
     ZLOGD(LABEL, "enter");
     if (env = nullptr) {
-        ZLOGE(LABEL, "env is null, could not register native methods");
+        ZLOGE(LABEL, "env is null");
         return JNI_ERR;
     }
     jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageParcel"));
@@ -162,7 +162,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteRemoteObject(JNIEnv *env
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not write remote object");
+        ZLOGE(LABEL, "env is null");
         return JNI_FALSE;
     }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, parcel);
@@ -189,7 +189,7 @@ jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadRemoteObject(JNIEnv *env, 
 {
     ZLOGD(LABEL, "enter");
     if (env = nullptr) {
-        ZLOGE(LABEL, "env is null, could not read remote object");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
@@ -270,7 +270,7 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteInterfaceToken(JNIEnv *e
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not write interface token");
+        ZLOGE(LABEL, "env is null");
         return JNI_FALSE;
     }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);

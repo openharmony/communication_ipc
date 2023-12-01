@@ -439,7 +439,7 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
     if (jsParam == nullptr) {
-        ZLOGE(LOG_LABEL, "Js Param is null, could not request");
+        ZLOGE(LOG_LABEL, "Js Param is null");
         return ERR_UNKNOWN_REASON;
     }
     if (thisVarRef_ == nullptr || env_ == nullptr) {
@@ -916,7 +916,7 @@ napi_value MakeSendRequestResult(SendRequestParam *param)
 void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
 {
     if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "send request param is null, stub could not execute");
+        ZLOGE(LOG_LABEL, "param is null");
         return;
     }
     param->errCode = param->target->SendRequest(param->code,

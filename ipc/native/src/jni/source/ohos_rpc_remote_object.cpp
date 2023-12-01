@@ -438,7 +438,7 @@ sptr<IRemoteObject> Java_ohos_rpc_getNativeRemoteObject(JNIEnv *env, jobject obj
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get native remote object");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     if (object != nullptr) {
@@ -466,7 +466,7 @@ jobject JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetContextObject(JNIEnv *env, jc
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get context object");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
@@ -507,7 +507,7 @@ jint JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetCallingUid(JNIEnv *env, jclass c
 jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetCallingDeviceID(JNIEnv *env, jclass clazz)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get calling device ID");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     std::string deviceId = IPCSkeleton::GetCallingDeviceID();
@@ -522,7 +522,7 @@ jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetCallingDeviceID(JNIEnv *env, 
 jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeGetLocalDeviceID(JNIEnv *env, jclass clazz)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get local device ID");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     std::string deviceId = IPCSkeleton::GetLocalDeviceID();
@@ -547,7 +547,7 @@ jboolean JNICALL Java_ohos_rpc_IPCSkeleton_nativeIsLocalCalling(JNIEnv *env, jcl
 jint JNICALL Java_ohos_rpc_IPCSkeleton_nativeFlushCommands(JNIEnv *env, jclass clazz, jobject object)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not flush commands");
+        ZLOGE(LABEL, "env is null");
         return JNI_ERR;
     }
     sptr<IRemoteObject> target = Java_ohos_rpc_getNativeRemoteObject(env, object);
@@ -562,7 +562,7 @@ jint JNICALL Java_ohos_rpc_IPCSkeleton_nativeFlushCommands(JNIEnv *env, jclass c
 jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeResetCallingIdentity(JNIEnv *env, jclass clazz)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not reset calling identity");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     std::string identity = IPCSkeleton::ResetCallingIdentity();
@@ -578,7 +578,7 @@ jboolean JNICALL Java_ohos_rpc_IPCSkeleton_nativeSetCallingIdentity(JNIEnv *env,
     jint len)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, failed to set calling identity");
+        ZLOGE(LABEL, "env is null");
         return JNI_FALSE;
     }
     const char *identityUtf = env->GetStringUTFChars(identity, JNI_FALSE);
@@ -690,7 +690,7 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeSendRequest(JNIEnv *env, jobjec
     jobject reply, jobject option)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not send request");
+        ZLOGE(LABEL, "env is null");
         return JNI_FALSE;
     }
     MessageParcel *nativeData = JavaOhosRpcMessageParcelGetNative(env, data);
@@ -814,7 +814,7 @@ jboolean JNICALL Java_ohos_rpc_RemoteProxy_nativeRemoveDeathRecipient(JNIEnv *en
 jstring JNICALL Java_ohos_rpc_RemoteProxy_nativeGetInterfaceDescriptor(JNIEnv *env, jobject object)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not get interface descriptor");
+        ZLOGE(LABEL, "env is null");
         return nullptr;
     }
     JRemoteProxyHolder *holder = Java_ohos_rpc_getRemoteProxyHolder(env, object);
@@ -919,7 +919,7 @@ static const JNINativeMethod sProxyMethods[] = {
 int JavaOhosRpcIpcSkeletonRegisterNativeMethods(JNIEnv *env)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not register native methods");
+        ZLOGE(LABEL, "env is null");
         return JNI_ERR;
     }
     return JkitRegisterNativeMethods(env, "ohos/rpc/IPCSkeleton", sMethods, NUM_METHODS(sMethods));
@@ -928,7 +928,7 @@ int JavaOhosRpcIpcSkeletonRegisterNativeMethods(JNIEnv *env)
 int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
 {
     if (env == nullptr) {
-        ZLOGE(LABEL, "env is null, could not register native methods");
+        ZLOGE(LABEL, "env is null");
         return JNI_ERR;
     }
     jclass clazz = env->FindClass("ohos/rpc/RemoteObject");
