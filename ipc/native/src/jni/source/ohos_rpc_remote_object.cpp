@@ -577,8 +577,8 @@ jstring JNICALL Java_ohos_rpc_IPCSkeleton_nativeResetCallingIdentity(JNIEnv *env
 jboolean JNICALL Java_ohos_rpc_IPCSkeleton_nativeSetCallingIdentity(JNIEnv *env, jclass clazz, jstring identity,
     jint len)
 {
-    if (env == nullptr) {
-        ZLOGE(LABEL, "env is null");
+    if (env == nullptr || len < 0) {
+        ZLOGE(LABEL, "env is null or len < 0");
         return JNI_FALSE;
     }
     const char *identityUtf = env->GetStringUTFChars(identity, JNI_FALSE);
