@@ -269,8 +269,8 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteInterfaceToken(JNIEnv *e
     jint len)
 {
     ZLOGD(LABEL, "enter");
-    if (env == nullptr) {
-        ZLOGE(LABEL, "env is null");
+    if (env == nullptr || len < 0) {
+        ZLOGE(LABEL, "env is null or len < 0");
         return JNI_FALSE;
     }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
