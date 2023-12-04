@@ -785,7 +785,7 @@ static napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callb
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[ARGV_LENGTH_1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
@@ -812,7 +812,7 @@ static napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callbac
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[ARGV_LENGTH_1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {

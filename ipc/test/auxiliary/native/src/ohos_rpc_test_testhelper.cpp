@@ -264,7 +264,7 @@ int JTestHelpertRegisterNativeMethods(JNIEnv *env)
         return -1;
     }
 
-    g_jTestHelper.klass = (jclass)env->NewGlobalRef(clazz);
+    g_jTestHelper.klass = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
     g_jTestHelper.fieldNativeInstance = env->GetFieldID(clazz, "mNativeInstance", "J");
 
     if (g_jTestHelper.fieldNativeInstance == nullptr) {

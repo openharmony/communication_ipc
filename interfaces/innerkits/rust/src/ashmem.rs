@@ -194,7 +194,7 @@ impl Clone for Ashmem {
         unsafe {
             ipc_binding::CAshmemIncStrongRef(self.as_inner());
         }
-        // SAFETY: no `None` here, cause `self` is valid 
+        // SAFETY: no `None` here, cause `self` is valid
         Self(self.0)
     }
 }
