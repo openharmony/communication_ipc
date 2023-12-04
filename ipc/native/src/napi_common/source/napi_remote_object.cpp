@@ -33,7 +33,7 @@
 #include "napi_process_skeleton.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
@@ -789,7 +789,7 @@ static napi_value NAPI_RemoteObject_queryLocalInterface(napi_env env, napi_callb
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[ARGV_LENGTH_1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, argc == expectedArgc, "requires 1 parameters");
@@ -816,7 +816,7 @@ static napi_value NAPI_RemoteObject_getLocalInterface(napi_env env, napi_callbac
 {
     size_t argc = 1;
     size_t expectedArgc = 1;
-    napi_value argv[ARGV_LENGTH_1] = { 0 };
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != expectedArgc) {

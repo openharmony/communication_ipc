@@ -40,7 +40,7 @@ public:
     void TearDown();
 
 public:
-    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCFdTest" };
+    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCFdTest" };
 };
 
 void IPCFileDescOpsTest::SetUp() {}

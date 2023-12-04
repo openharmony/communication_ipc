@@ -30,7 +30,7 @@
 #include "unordered_map"
 
 namespace OHOS {
-[[maybe_unused]] static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "BrokerRegistration" };
+[[maybe_unused]] static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "BrokerRegistration" };
 BrokerRegistration &BrokerRegistration::Get()
 {
     static BrokerRegistration instance;

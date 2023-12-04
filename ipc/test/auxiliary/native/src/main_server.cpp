@@ -23,7 +23,7 @@
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
-[[maybe_unused]]static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestServer" };
+[[maybe_unused]]static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCTestServer" };
 
 static void InitTokenId(void)
 {

@@ -96,6 +96,7 @@ static int32_t InvokerDataBusThread(IpcIo *data, IpcIo *reply, OnRemoteRequest f
 
     if (current->sessionName != NULL) {
         free(current->sessionName);
+        current->sessionName = NULL;
     }
     if (sessionNameLen == 0 || sessionNameLen > SERVICENAME_LENGTH) {
         RPC_LOG_ERROR("sessionNameLen invalid");

@@ -31,7 +31,7 @@
 
 static std::atomic<int32_t> bytraceId = 1000;
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "napi_remoteObject" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
 
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 

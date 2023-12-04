@@ -33,7 +33,7 @@ using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
 namespace OHOS {
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJni" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "IPCJni" };
 
 class JDeathRecipientList;
 class JRemoteObjectHolder;
@@ -937,7 +937,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         return JNI_ERR;
     }
 
-    g_jRemoteStub.klass = (jclass)env->NewGlobalRef(clazz);
+    g_jRemoteStub.klass = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
     if (g_jRemoteStub.klass == nullptr) {
         ZLOGE(LABEL, "JRemoteObject NewGlobalRef failed");
         env->DeleteLocalRef(clazz);
@@ -979,7 +979,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         return JNI_ERR;
     }
 
-    g_jRemoteProxy.klass = (jclass)env->NewGlobalRef(clazz);
+    g_jRemoteProxy.klass = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
     g_jRemoteProxy.methodGetInstance = env->GetStaticMethodID(clazz, "getInstance", "(J)Lohos/rpc/RemoteProxy;");
     if (g_jRemoteProxy.methodGetInstance == nullptr) {
         ZLOGE(LABEL, "JRemoteProxy get method getInstance failed");
