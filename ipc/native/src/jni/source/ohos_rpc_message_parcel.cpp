@@ -111,12 +111,16 @@ static const JNINativeMethod sMethods[] = {
 int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
 {
     ZLOGD(LABEL, "enter");
-    jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageParcel"));
+    if (env = nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return JNI_ERR;
+    }
+    jclass klazz = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("ohos/rpc/MessageParcel")));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageParcel");
         return JNI_ERR;
     }
-    g_jMessageParcel.klazz = (jclass)env->NewGlobalRef(klazz);
+    g_jMessageParcel.klazz = reinterpret_cast<jclass>(env->NewGlobalRef(klazz));
     g_jMessageParcel.nativeObject = env->GetFieldID(g_jMessageParcel.klazz, "mNativeObject", "J");
     if (g_jMessageParcel.nativeObject == nullptr) {
         ZLOGE(LABEL, "could not Get mNativeObject field for MessageParcel");
