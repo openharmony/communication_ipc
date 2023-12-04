@@ -125,6 +125,7 @@ struct binder_node_info_for_ref {
 #define ACCESS_TOKENID_GET_TOKENID _IOR('A', 1, unsigned long long)
 #define ACCESS_TOKENID_GET_FTOKENID _IOR('A', 3, unsigned long long)
 #define ACCESS_TOKEN_FAETURE_MASK (1 << 0)
+#define SENDER_INFO_FAETURE_MASK (1 << 2)
 
 struct binder_feature_set {
     __u64 feature_set;
@@ -134,6 +135,11 @@ struct access_token {
     __u64 sender_tokenid;
     __u64 first_tokenid;
     __u64 reserved[2];
+};
+
+struct binder_sender_info {
+    struct access_token tokens;
+    __u64 sender_pid_nr;
 };
 
 #define BINDER_WRITE_READ _IOWR('b', 1, struct binder_write_read)
@@ -148,6 +154,7 @@ struct access_token {
 #define BINDER_SET_CONTEXT_MGR_EXT _IOW('b', 13, struct flat_binder_object)
 #define BINDER_FEATURE_SET _IOWR('b', 30, struct binder_feature_set)
 #define BINDER_GET_ACCESS_TOKEN _IOWR('b', 31, struct access_token)
+#define BINDER_GET_SENDER_INFO _IOWR('b', 32, struct binder_sender_info)
 
 enum transaction_flags {
     TF_ONE_WAY = 0x01,

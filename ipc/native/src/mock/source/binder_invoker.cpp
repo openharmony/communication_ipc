@@ -36,6 +36,8 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
+#define PIDUID_OFFSET 2
+
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
 enum {
@@ -45,7 +47,8 @@ enum {
 };
 
 BinderInvoker::BinderInvoker()
-    : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()), callerUid_(getuid()),
+    : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()),
+    callerRealPid_(getprocpid()), callerUid_(getuid()),
     callerTokenID_(0), firstTokenID_(0), status_(0)
 {
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
@@ -454,6 +457,20 @@ void BinderInvoker::GetAccessToken(uint64_t &callerTokenID, uint64_t &firstToken
     firstTokenID = token.first_tokenid;
 }
 
+void BinderInvoker::GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid)
+{
+    struct binder_sender_info sender{};
+    int error = binderConnector_->WriteBinder(BINDER_GET_SENDER_INFO, &sender);
+    if (error != ERR_NONE) {
+        sender.tokens.sender_tokenid = 0;
+        sender.tokens.first_tokenid = 0;
+        sender.sender_pid_nr = 0;
+    }
+    callerTokenID = sender.tokens.sender_tokenid;
+    firstTokenID = sender.tokens.first_tokenid;
+    realPid = static_cast<pid_t>(sender.sender_pid_nr);
+}
+
 void BinderInvoker::OnTransaction(const uint8_t *buffer)
 {
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
@@ -471,13 +488,17 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr->target.handle),
         tr->code, *data, newflags);
     const pid_t oldPid = callerPid_;
+    const pid_t oldRealPid = callerRealPid_;
     const auto oldUid = static_cast<const uid_t>(callerUid_);
     const uint64_t oldToken = callerTokenID_;
     const uint64_t oldFirstToken = firstTokenID_;
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
-    if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
+    callerRealPid_ = callerPid_;
+    if (binderConnector_ != nullptr && binderConnector_->IsRealPidSupported()) {
+        GetSenderInfo(callerTokenID_, firstTokenID_, callerRealPid_);
+    } else if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
         GetAccessToken(callerTokenID_, firstTokenID_);
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
@@ -509,6 +530,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         SendReply(reply, 0, error);
     }
     callerPid_ = oldPid;
+    callerRealPid_ = oldRealPid;
     callerUid_ = oldUid;
     callerTokenID_ = oldToken;
     firstTokenID_ = oldFirstToken;
@@ -885,6 +907,11 @@ pid_t BinderInvoker::GetCallerPid() const
     return callerPid_;
 }
 
+pid_t BinderInvoker::GetCallerRealPid() const
+{
+    return callerRealPid_;
+}
+
 uid_t BinderInvoker::GetCallerUid() const
 {
     return callerUid_;
@@ -1054,12 +1081,19 @@ std::string BinderInvoker::ResetCallingIdentity()
         return "";
     }
     std::string accessToken(buf);
+    ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010d", callerRealPid_);
+    if (ret < 0) {
+        ZLOGE(LABEL, "sprintf callerRealPid_:%{public}d failed", callerRealPid_);
+        return "";
+    }
+    std::string realPid(buf);
     std::string pidUid = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
         | static_cast<uint64_t>(callerPid_)));
     callerUid_ = static_cast<pid_t>(getuid());
     callerPid_ = getpid();
+    callerRealPid_ = getprocpid();
     callerTokenID_ = GetSelfTokenID();
-    return accessToken + pidUid;
+    return accessToken + realPid + pidUid;
 }
 
 bool BinderInvoker::SetCallingIdentity(std::string &identity)
@@ -1068,11 +1102,14 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
         return false;
     }
 
+    callerTokenID_ = std::stoull(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str());
+    callerRealPid_ =
+        static_cast<int>(std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN).c_str()));
     uint64_t pidUid =
-        std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN, identity.length() - ACCESS_TOKEN_MAX_LEN).c_str());
+        std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET,
+        identity.length() - ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET).c_str());
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
-    callerTokenID_ = std::stoull(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str());
     return true;
 }
 

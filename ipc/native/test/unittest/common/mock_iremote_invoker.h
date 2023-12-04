@@ -46,6 +46,7 @@ public:
     MOCK_METHOD1(SetRegistryObject, bool(sptr<IRemoteObject> &object));
     MOCK_METHOD0(StopWorkThread, void());
     MOCK_CONST_METHOD0(GetCallerPid, pid_t());
+    MOCK_CONST_METHOD0(GetCallerRealPid, pid_t());
     MOCK_CONST_METHOD0(GetCallerUid, uid_t());
     MOCK_CONST_METHOD0(GetCallerTokenID, uint64_t());
     MOCK_CONST_METHOD0(GetFirstCallerTokenID, uint64_t());
