@@ -33,6 +33,7 @@ public:
     void ExitCurrentThread(unsigned long request);
     bool IsDriverAlive();
     bool IsAccessTokenSupported();
+    bool IsRealPidSupported();
     uint64_t GetSelfTokenID();
     uint64_t GetSelfFirstCallerTokenID();
 private:

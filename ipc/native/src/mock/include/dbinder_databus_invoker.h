@@ -45,6 +45,7 @@ public:
     int ReadFileDescriptor(Parcel &parcel) override;
     bool WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnership) override;
     pid_t GetCallerPid() const override;
+    pid_t GetCallerRealPid() const override;
     uid_t GetCallerUid() const override;
     uint64_t GetCallerTokenID() const override;
     uint64_t GetFirstCallerTokenID() const override;

@@ -76,6 +76,8 @@ public:
 
     pid_t GetCallerPid() const override;
 
+    pid_t GetCallerRealPid() const override;
+
     uid_t GetCallerUid() const override;
 
     uint64_t GetCallerTokenID() const override;
@@ -116,6 +118,7 @@ protected:
     bool isMainWorkThread;
     bool stopWorkThread;
     pid_t callerPid_;
+    pid_t callerRealPid_;
     pid_t callerUid_;
     uint64_t callerTokenID_;
     uint64_t firstTokenID_;
@@ -151,6 +154,8 @@ private:
     bool TranslateDBinderProxy(int handle, MessageParcel &data);
 
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
+
+    void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
 
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
