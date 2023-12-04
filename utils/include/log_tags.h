@@ -17,32 +17,19 @@
 #define OHOS_COMMUNICATION_LOG_TAGS_H
 
 namespace OHOS {
-const unsigned int LOG_ID_COMMUNICATION = 0xD001500;
+const unsigned int LOG_ID_IPC_BASE = 0xD0057c0;
 
-const unsigned int LOG_ID_IPC = LOG_ID_COMMUNICATION | 0x10;
+const unsigned int LOG_ID_IPC_COMMON = LOG_ID_IPC_BASE | 0x01;
+const unsigned int LOG_ID_IPC_PROXY = LOG_ID_IPC_BASE | 0x02;
+const unsigned int LOG_ID_IPC_STUB = LOG_ID_IPC_BASE | 0x03;
+const unsigned int LOG_ID_IPC_THREAD_SKELETON = LOG_ID_IPC_BASE | 0x04;
+const unsigned int LOG_ID_IPC_PROC_SKELETON = LOG_ID_IPC_BASE | 0x05;
+const unsigned int LOG_ID_IPC_BINDER_INVOKER = LOG_ID_IPC_BASE | 0x06;
+const unsigned int LOG_ID_IPC_BINDER_CONNECT = LOG_ID_IPC_BASE | 0x07;
+const unsigned int LOG_ID_IPC_NAPI = LOG_ID_IPC_BASE | 0x08;
+const unsigned int LOG_ID_IPC_OTHER = LOG_ID_IPC_BASE | 0x09;
+const unsigned int LOG_ID_IPC_TEST = 0xD000F00;
 
-const unsigned int LOG_ID_RPC = LOG_ID_COMMUNICATION | 0x18;
-
-const unsigned int LOG_ID_DISC = LOG_ID_COMMUNICATION | 0x20;
-
-const unsigned int LOG_ID_DNET = LOG_ID_COMMUNICATION | 0x30;
-
-const unsigned int LOG_ID_SMARTNET = LOG_ID_COMMUNICATION | 0x40;
-
-const unsigned int LOG_ID_BLUETOOTH = LOG_ID_COMMUNICATION | 0x50;
-
-const unsigned int LOG_ID_WIFI = LOG_ID_COMMUNICATION | 0x60;
-const unsigned int LOG_ID_WIFI_HOTSPOT = LOG_ID_WIFI | 0x01;
-const unsigned int LOG_ID_WIFI_ENHANCER = LOG_ID_WIFI | 0x02;
-
-const unsigned int LOG_ID_NFC = LOG_ID_COMMUNICATION | 0x70;
-
-const unsigned int LOG_ID_NSTACK = LOG_ID_COMMUNICATION | 0x80;
-
-const unsigned int LOG_ID_RADIO = LOG_ID_COMMUNICATION | 0x90;
-
-const unsigned int LOG_ID_REMOTE_P2P = LOG_ID_COMMUNICATION | 0xA0;
-
-const unsigned int LOG_ID_NET_MANAGER = LOG_ID_COMMUNICATION | 0xB0;
+const unsigned int LOG_ID_RPC = LOG_ID_IPC_BASE | 0xA0;
 } // namespace OHOS
 #endif // OHOS_COMMUNICATION_LOG_TAGS_H

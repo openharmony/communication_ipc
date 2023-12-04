@@ -28,7 +28,7 @@ struct JFileDescriptor {
     jfieldID descriptorField;
 } g_jFileDescriptor;
 
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJniHelper" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "IPCJniHelper" };
 
 JavaVM *JNIEnvHelper::javaVm_ = nullptr;
 // The JavaVM is a representation of the virtual machine on the JNI layer,
@@ -150,7 +150,7 @@ int JniHelperRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "env is null");
         return JNI_ERR;
     }
-    g_jFileDescriptor.klazz = (jclass)env->NewGlobalRef(env->FindClass("java/io/FileDescriptor"));
+    g_jFileDescriptor.klazz = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("java/io/FileDescriptor")));
     if (g_jFileDescriptor.klazz == nullptr) {
         return JNI_ERR;
     }

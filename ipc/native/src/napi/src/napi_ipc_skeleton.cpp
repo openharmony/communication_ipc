@@ -24,7 +24,7 @@
 #include "native_engine/native_value.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC, "NapiIpcSkeleton" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "NapiIpcSkeleton" };
 
 static NapiError napiErr;
 

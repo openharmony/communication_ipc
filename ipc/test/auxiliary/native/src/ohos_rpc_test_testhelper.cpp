@@ -22,7 +22,7 @@
 
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCTestHelperJNI" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCTestHelperJNI" };
 
 static bool g_isTestHelperMethodRegistered = false;
 static struct ParcelDesc {
@@ -264,7 +264,7 @@ int JTestHelpertRegisterNativeMethods(JNIEnv *env)
         return -1;
     }
 
-    g_jTestHelper.klass = (jclass)env->NewGlobalRef(clazz);
+    g_jTestHelper.klass = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
     g_jTestHelper.fieldNativeInstance = env->GetFieldID(clazz, "mNativeInstance", "J");
 
     if (g_jTestHelper.fieldNativeInstance == nullptr) {

@@ -32,7 +32,7 @@ using namespace OHOS::HiviewDFX;
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCFileDescriptor" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCFileDescriptor" };
 
 IPCFileDescriptor::IPCFileDescriptor() : Parcelable(true), fd_(INVALID_FD) {}
 

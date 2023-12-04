@@ -25,7 +25,7 @@ struct JMessageOption {
     jmethodID initMethod;
 } g_jMessageOption;
 
-static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC, "IPCJni" };
+static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_OTHER, "IPCJni" };
 /*
  * Get flags field from ohos.rpc.MessageOption.
  */
@@ -108,12 +108,12 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
     if (env == nullptr) {
         return JNI_ERR;
     }
-    jclass klazz = (jclass)env->NewGlobalRef(env->FindClass("ohos/rpc/MessageOption"));
+    jclass klazz = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("ohos/rpc/MessageOption")));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageOption");
         return JNI_ERR;
     }
-    g_jMessageOption.klazz = (jclass)env->NewGlobalRef(klazz);
+    g_jMessageOption.klazz = reinterpret_cast<jclass>(env->NewGlobalRef(klazz));
     g_jMessageOption.initMethod = env->GetMethodID(g_jMessageOption.klazz, "<init>", "(II)V");
     if (g_jMessageOption.initMethod == nullptr) {
         ZLOGE(LABEL, "could not get initMethod from MessageOption");
