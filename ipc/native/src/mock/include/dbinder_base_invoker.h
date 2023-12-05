@@ -38,7 +38,8 @@
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderBaseInvoker" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_INVOKER,
+    "DBinderBaseInvoker" };
 
 template <class T> class DBinderBaseInvoker : public IRemoteInvoker {
 public:
