@@ -47,7 +47,7 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_RPC_PARCEL, "MessageParcel" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PARCEL, "MessageParcel" };
 
 void AcquireObject(flat_binder_object *flat, const void *cookie)
 {
