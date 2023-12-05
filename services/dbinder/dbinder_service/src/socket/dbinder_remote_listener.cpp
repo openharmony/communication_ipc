@@ -21,7 +21,8 @@
 #include "dbinder_error_code.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DbinderRemoteListener" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER,
+    "DbinderRemoteListener" };
 
 DBinderRemoteListener::DBinderRemoteListener(const sptr<DBinderService> &dBinderService)
     : dBinderService_(dBinderService)

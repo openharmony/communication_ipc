@@ -19,7 +19,7 @@
 #include "hilog/log.h"
 #include "log_tags.h"
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_RPC, LOG_TAG };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_RPC_COMMON, LOG_TAG };
 
 #define DBINDER_LOGF(LOG_LABEL, fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
