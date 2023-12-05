@@ -14,9 +14,11 @@
  */
 
 #include "ohos_rpc_message_parcel.h"
+
 #include <ashmem.h>
 #include <securec.h>
 #include <unistd.h>
+
 #include "ipc_debug.h"
 #include "ipc_file_descriptor.h"
 #include "jkit_utils.h"
@@ -63,12 +65,20 @@ private:
 MessageParcel *JavaOhosRpcMessageParcelGetNative(JNIEnv *env, jobject object)
 {
     ZLOGD(LABEL, "enter");
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return nullptr;
+    }
     jlong nativeObject = env->GetLongField(object, g_jMessageParcel.nativeObject);
     return reinterpret_cast<MessageParcel *>(nativeObject);
 }
 
 sptr<Ashmem> Java_ohos_rpc_Ashmem_getSptrAshmem(JNIEnv *env, jobject object, jlong id)
 {
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return nullptr;
+    }
     if (id == 0) {
         return nullptr;
     }
@@ -151,6 +161,10 @@ int JavaOhosRpcMessageParcelRegisterNativeMethods(JNIEnv *env)
 jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteRemoteObject(JNIEnv *env, jobject parcel, jobject object)
 {
     ZLOGD(LABEL, "enter");
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return JNI_FALSE;
+    }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, parcel);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for marshalling");
@@ -174,6 +188,10 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteRemoteObject(JNIEnv *env
 jobject JNICALL Java_ohos_rpc_MessageParcel_nativeReadRemoteObject(JNIEnv *env, jobject object)
 {
     ZLOGD(LABEL, "enter");
+    if (env = nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return nullptr;
+    }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for unmarshalling");
@@ -251,6 +269,10 @@ jboolean JNICALL Java_ohos_rpc_MessageParcel_nativeWriteInterfaceToken(JNIEnv *e
     jint len)
 {
     ZLOGD(LABEL, "enter");
+    if (env == nullptr || len < 0) {
+        ZLOGE(LABEL, "env is null or len < 0");
+        return JNI_FALSE;
+    }
     MessageParcel *nativeParcel = JavaOhosRpcMessageParcelGetNative(env, object);
     if (nativeParcel == nullptr) {
         ZLOGE(LABEL, "could not get native parcel for marshalling");

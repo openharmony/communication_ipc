@@ -154,6 +154,10 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
             data2.WriteUint32(reply.ReadUint32()); // pid
             data2.WriteUint32(reply.ReadUint32()); // uid
             IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+            if (current == nullptr) {
+                ZLOGE(LABEL, "current is null");
+                return false;
+            }
             data2.WriteString(current->GetLocalDeviceID()); // deviceId
             std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
             if (session == nullptr) {

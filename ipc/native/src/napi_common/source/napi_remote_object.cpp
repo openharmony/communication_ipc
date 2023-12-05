@@ -438,6 +438,10 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
+    if (jsParam == nullptr) {
+        ZLOGE(LOG_LABEL, "Js Param is null");
+        return ERR_UNKNOWN_REASON;
+    }
     if (thisVarRef_ == nullptr || env_ == nullptr) {
         ZLOGE(LOG_LABEL, "Js env has been destructed");
         return ERR_UNKNOWN_REASON;
@@ -888,6 +892,10 @@ static napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_in
 
 napi_value MakeSendRequestResult(SendRequestParam *param)
 {
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "send request param is null");
+        return nullptr;
+    }
     napi_value errCode = nullptr;
     napi_create_int32(param->env, param->errCode, &errCode);
     napi_value code = nullptr;
@@ -907,6 +915,10 @@ napi_value MakeSendRequestResult(SendRequestParam *param)
 
 void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
 {
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is null");
+        return;
+    }
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
     ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);
