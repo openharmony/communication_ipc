@@ -79,10 +79,12 @@ ohos_shared_library("ipc_core") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "dsoftbus:softbus_client",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
   ]
+  defines = [ "FFRT_IPC_ENABLE" ]
 
   innerapi_tags = [
     "platformsdk",
