@@ -30,6 +30,9 @@
 #include "log_tags.h"
 #include "string_ex.h"
 #include "sys_binder.h"
+#ifdef FFRT_IPC_ENABLE
+#include "c/ffrt_ipc.h"
+#endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -116,7 +119,13 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     if ((flags & TF_ONE_WAY) != 0) {
         error = WaitForCompletion(nullptr);
     } else {
+#ifdef FFRT_IPC_ENABLE
+        ffrt_this_task_set_legacy_mode(true);
+#endif
         error = WaitForCompletion(&reply);
+#ifdef FFRT_IPC_ENABLE
+        ffrt_this_task_set_legacy_mode(false);
+#endif
     }
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
     // restore Parcel data
