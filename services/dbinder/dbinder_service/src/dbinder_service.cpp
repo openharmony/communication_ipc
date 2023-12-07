@@ -32,7 +32,7 @@
 namespace OHOS {
 using namespace Communication;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderService" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DbinderService" };
 
 sptr<DBinderService> DBinderService::instance_ = nullptr;
 bool DBinderService::mainThreadCreated_ = false;

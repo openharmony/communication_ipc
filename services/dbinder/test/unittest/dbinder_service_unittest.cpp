@@ -38,7 +38,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderServiceUnitTest" };
+    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderServiceUnitTest" };
 };
 
 void DBinderServiceUnitTest::SetUp() {}

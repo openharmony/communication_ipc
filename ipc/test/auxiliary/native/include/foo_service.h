@@ -58,7 +58,7 @@ private:
     int asyncReply_ = { 0 };
     std::mutex mutex_;
     std::condition_variable cv_;
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "FooStub" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "FooStub" };
 };
 
 class FooProxy : public IRemoteProxy<IFoo> {
@@ -69,7 +69,7 @@ public:
     void SendAsyncReply(int &reply) override;
     int TestNestingSend(int sendCode) override;
 private:
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "FooProxy" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "FooProxy" };
     static inline BrokerDelegator<FooProxy> delegator_;
 };
 } // namespace OHOS

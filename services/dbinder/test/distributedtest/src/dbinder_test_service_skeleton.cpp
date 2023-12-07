@@ -29,7 +29,7 @@
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestServiceProxy" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderTestServiceProxy" };
 
 // set wait time for raw data
 static constexpr int RAW_DATA_TIMEOUT = 300;

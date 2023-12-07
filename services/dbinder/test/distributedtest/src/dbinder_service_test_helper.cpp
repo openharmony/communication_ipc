@@ -30,7 +30,7 @@
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderTestHelper" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "DbinderTestHelper" };
 
 pid_t GetPidByName(std::string taskName)
 {
