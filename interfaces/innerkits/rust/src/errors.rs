@@ -53,7 +53,11 @@ pub fn parse_status_code(code: i32) -> IpcStatusCode {
 }
 
 /// IPC unified status code
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Hash)]
+#[derive(Eq, PartialEq)]
+#[derive(Ord, PartialOrd)]
+#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub enum IpcStatusCode {
     /// success
     Ok = 1,

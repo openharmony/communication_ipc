@@ -63,7 +63,7 @@ impl DeathRecipient {
     where
         F: Fn() + Send + Sync + 'static,
     {
-        let callback = (callback as *const F).as_ref().unwrap();
+        let callback = (callback as *const F).as_ref().expect("Failed to convert callback to reference");
         callback();
     }
 
