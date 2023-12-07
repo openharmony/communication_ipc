@@ -110,6 +110,13 @@ public:
     virtual void UnlinkRemoteInvoker(void **data)
     {
     }
+
+    virtual int SendRequest(int handle, uint32_t code,
+                            MessageParcel &data, MessageParcel &reply,
+                            MessageOption &option, void *invokerData)
+    {
+        return SendRequest(handle, code, data, reply, option);
+    }
 #endif
 };
 #ifdef CONFIG_IPC_SINGLE

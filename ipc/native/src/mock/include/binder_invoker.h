@@ -121,6 +121,13 @@ public:
     void LinkRemoteInvoker(void **data) override;
 
     void UnlinkRemoteInvoker(void **data) override;
+
+    int SendRequest(int handle, uint32_t code,
+                    MessageParcel &data, MessageParcel &reply,
+                    MessageOption &option, void *invokerData) override;
+
+    bool CheckActvBinderAvailable(int handle, uint32_t code,
+                                  MessageOption &option, void *data);
 #endif // CONFIG_ACTV_BINDER
 
 protected:

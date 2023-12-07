@@ -108,8 +108,13 @@ HWTEST_F(IPCObjectProxyTest, SendRequestInnerTest001, TestSize.Level1)
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+#ifdef CONFIG_ACTV_BINDER
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_DEAD_OBJECT));
+#else
     EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
         .WillRepeatedly(testing::Return(ERR_DEAD_OBJECT));
+#endif
 
     auto ret = object.SendRequestInner(isLocal, code, data, reply, option);
     ASSERT_TRUE(ret == ERR_DEAD_OBJECT);
@@ -1280,7 +1285,7 @@ HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest003, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DATABUS;
     object->ReleaseDatabusProto();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    
+
     std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
