@@ -25,13 +25,24 @@ namespace IPC_SINGLE {
 #endif
 
 #ifdef CONFIG_ACTV_BINDER
+typedef void (*ActvBinderJoinThreadFunc)(bool initiative);
+
 class ActvBinderConnector {
 public:
+    static void *ActvThreadEntry(void *arg);
+
+    static void JoinActvThread(bool initiative);
+    static void SetJoinActvThreadFunc(ActvBinderJoinThreadFunc func);
+
     ActvBinderConnector();
 
     int InitActvBinder(int fd);
 
     bool isActvMgr_;
+
+private:
+    static std::mutex skeletonMutex_;
+    static ActvBinderJoinThreadFunc joinActvThreadFunc_;
 };
 #endif
 

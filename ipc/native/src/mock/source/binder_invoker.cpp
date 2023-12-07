@@ -52,6 +52,9 @@ BinderInvoker::BinderInvoker()
     callerTokenID_(0), firstTokenID_(0), status_(0)
 {
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
+#ifdef CONFIG_ACTV_BINDER
+    ActvBinderConnector::SetJoinActvThreadFunc(&BinderInvoker::JoinActvThread);
+#endif
     binderConnector_ = BinderConnector::GetInstance();
 }
 

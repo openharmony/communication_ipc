@@ -31,6 +31,9 @@
 // Allocate the extra memory for the actv binder transaction
 #define ACTV_BINDER_VM_SIZE                         (2 * 1024 * 1024)
 
+// Decrease this after introducing the elastic machinism
+#define ACTV_BINDER_DEFAULT_NR_THREADS              32
+
 #endif // CONFIG_ACTV_BINDER
 
 #endif // OHOS_IPC_ACTV_BINDER_H
