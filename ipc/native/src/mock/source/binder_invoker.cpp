@@ -1173,6 +1173,43 @@ void BinderInvoker::JoinActvThread(bool initiative)
         invoker->JoinThread(initiative);
     }
 }
+
+bool BinderInvoker::CheckActvBinderAvailable(int handle, uint32_t code,
+                                             MessageOption &option, void *data)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsActvBinderSupported())) {
+        return false;
+    }
+
+    bool avail = true;
+
+    if ((handle < 0) || ((handle & ACTV_BINDER_HANDLE_BIT) == 0)) {
+        avail = false;
+    } else if ((option.GetFlags() & TF_ONE_WAY) != 0) {
+        avail = false;
+    }
+
+    return avail;
+}
+
+int BinderInvoker::SendRequest(int handle, uint32_t code,
+                               MessageParcel &data, MessageParcel &reply,
+                               MessageOption &option, void *invokerData)
+{
+    int error = ERR_NONE;
+
+    if (CheckActvBinderAvailable(handle, code, option, invokerData)) {
+        bool useActvBinder = GetUseActvBinder();
+
+        SetUseActvBinder(true);
+        error = SendRequest(handle, code, data, reply, option);
+        SetUseActvBinder(useActvBinder);
+    } else {
+        error = SendRequest(handle, code, data, reply, option);
+    }
+
+    return error;
+}
 #endif // CONFIG_ACTV_BINDER
 
 #ifdef CONFIG_IPC_SINGLE

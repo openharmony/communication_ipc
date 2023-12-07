@@ -139,7 +139,11 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
         return ERR_NULL_OBJECT;
     }
 
+#ifdef CONFIG_ACTV_BINDER
+    int status = invoker->SendRequest(handle_, code, data, reply, option, invokerData_);
+#else
     int status = invoker->SendRequest(handle_, code, data, reply, option);
+#endif
     if (status == ERR_DEAD_OBJECT) {
         MarkObjectDied();
     }
