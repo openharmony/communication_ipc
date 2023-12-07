@@ -21,6 +21,9 @@
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
+#ifdef CONFIG_ACTV_BINDER
+#include "actv_binder.h"
+#endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -158,6 +161,25 @@ private:
 
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
+#ifdef CONFIG_ACTV_BINDER
+    inline void SetUseActvBinder(bool useActvBinder)
+    {
+        if ((binderConnector_ != nullptr) && binderConnector_->IsActvBinderSupported()) {
+            useActvBinder_ = useActvBinder;
+        }
+    }
+
+    inline bool GetUseActvBinder()
+    {
+        return useActvBinder_;
+    }
+
+    inline uint32_t GetBWRCommand()
+    {
+        return useActvBinder_ ? ACTV_BINDER_WRITE_READ : BINDER_WRITE_READ;
+    }
+#endif // CONFIG_ACTV_BINDER
+
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
@@ -168,6 +190,9 @@ private:
     BinderConnector *binderConnector_;
     uint32_t status_;
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
+#ifdef CONFIG_ACTV_BINDER
+    bool useActvBinder_ = false;
+#endif
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
