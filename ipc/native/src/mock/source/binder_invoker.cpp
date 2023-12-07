@@ -1162,6 +1162,17 @@ void BinderInvoker::UnlinkRemoteInvoker(void **data)
         *data = nullptr;
     }
 }
+
+void BinderInvoker::JoinActvThread(bool initiative)
+{
+    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
+
+    if (invoker != nullptr) {
+        invoker->SetUseActvBinder(true);
+        invoker->JoinThread(initiative);
+    }
+}
 #endif // CONFIG_ACTV_BINDER
 
 #ifdef CONFIG_IPC_SINGLE

@@ -116,6 +116,8 @@ public:
 #endif
 
 #ifdef CONFIG_ACTV_BINDER
+    static void JoinActvThread(bool initiative);
+
     void LinkRemoteInvoker(void **data) override;
 
     void UnlinkRemoteInvoker(void **data) override;
