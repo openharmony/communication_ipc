@@ -67,6 +67,7 @@ public:
     uint64_t GetSelfFirstCallerTokenID();
 #ifdef CONFIG_ACTV_BINDER
     bool IsActvBinderSupported();
+    const std::unordered_set<uint32_t> *GetActvBinderBlockedCodes(const std::string &desc);
 #endif
 private:
     static BinderConnector *instance_;
