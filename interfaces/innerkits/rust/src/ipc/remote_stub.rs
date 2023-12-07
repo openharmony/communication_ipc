@@ -115,7 +115,7 @@ impl<T: IRemoteStub> RemoteStub<T> {
             // BorrowedMsgParcel calls the correlation function from_raw must return as Some,
             // direct deconstruction will not crash.
             let mut reply = BorrowedMsgParcel::from_raw(reply).unwrap();
-            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
+            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).expect("MsgParcel should success");
             let rust_object: &T = &*(user_data as *mut T);
             rust_object.on_remote_request(code, &data, &mut reply)
         };
@@ -130,7 +130,7 @@ impl<T: IRemoteStub> RemoteStub<T> {
             let rust_object: &T = &*(user_data as *mut T);
             // BorrowedMsgParcel calls the correlation functio from_raw must return as Some,
             // direct deconstruction will not crash.
-            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
+            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).expect("MsgParcel should success");
             let file: FileDesc = match data.read::<FileDesc>() {
                 Ok(file) => file,
                 _ => {

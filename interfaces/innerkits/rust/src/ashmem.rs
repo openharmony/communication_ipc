@@ -231,7 +231,7 @@ impl Deserialize for Ashmem {
         } else {
             // SAFETY:
             unsafe {
-                let ashmem = Ashmem::from_raw(ptr).unwrap();
+                let ashmem = Ashmem::from_raw(ptr).expect("Ashmem should success");
                 Ok(ashmem)
             }
         }
