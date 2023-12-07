@@ -786,6 +786,9 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
     uint32_t cmd;
     bool continueLoop = true;
     int error = ERR_NONE;
+#ifdef CONFIG_ACTV_BINDER
+    bool useActvBinder = GetUseActvBinder();
+#endif
     while (continueLoop) {
         if ((error = TransactWithDriver()) < ERR_NONE) {
             break;
@@ -799,6 +802,15 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
                 if (reply == nullptr && acquireResult == nullptr) {
                     continueLoop = false;
                 }
+#ifdef CONFIG_ACTV_BINDER
+                /*
+                 * Currently, if there are no ready actvs for the actv binder
+                 * transaction, the binder transaction would fallback to the
+                 * procedure of the native binder in kernel. If going here, it
+                 * must be waiting for a reply of the native binder transaction.
+                 */
+                SetUseActvBinder(false);
+#endif
                 break;
             }
             case BR_DEAD_REPLY: // fall-through
@@ -844,6 +856,9 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
             }
         }
     }
+#ifdef CONFIG_ACTV_BINDER
+    SetUseActvBinder(useActvBinder);
+#endif
     return error;
 }
 
