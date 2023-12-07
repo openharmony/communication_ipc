@@ -70,7 +70,7 @@ public:
 private:
     std::mutex mutex_;
     std::map<std::string, pid_t> testPids_;
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCTestHelper" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCTestHelper" };
 };
 } // namespace OHOS
 #endif // OHOS_IPC_TEST_HELPER_H

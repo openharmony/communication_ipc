@@ -39,7 +39,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
-static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "BinderTraceUnitTest" };
+static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "BinderTraceUnitTest" };
 
 class BinderTraceTest : public testing::Test {
 public:

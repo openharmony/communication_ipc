@@ -45,7 +45,7 @@ using namespace testing::ext;
 using namespace OHOS::DistributeSystemTest;
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderTest" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "DbinderTest" };
 
 class DbinderTest : public DistributeTest {
 public:

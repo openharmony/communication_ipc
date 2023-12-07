@@ -24,7 +24,8 @@
 #include "ipc_skeleton.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DbinderServiceStub" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER_STUB,
+    "DbinderServiceStub" };
 
 DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::string &device, binder_uintptr_t object)
     : IPCObjectStub(Str8ToStr16(DBinderService::ConvertToSecureDeviceID(device) + service)),

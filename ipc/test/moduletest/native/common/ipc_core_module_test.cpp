@@ -38,7 +38,7 @@ using namespace OHOS::HiviewDFX;
 
 class IPCNativeFrameworkTest : public testing::Test {
 public:
-    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "IPCModuleTest" };
+    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCModuleTest" };
     static constexpr int saId = 3202;
     static constexpr int checkTimes = 1000;
     static void SetUpTestCase(void);

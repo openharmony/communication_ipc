@@ -27,7 +27,8 @@
 #include "sys_binder.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderCallbackStub" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_CB_STUB,
+    "DBinderCallbackStub" };
 
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
     const std::string &localDevice, uint64_t stubIndex, uint32_t handle, uint32_t tokenId)
