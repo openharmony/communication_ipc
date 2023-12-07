@@ -28,6 +28,9 @@
 
 #define ACTV_BINDER_FEATURE_MASK                    (1 << 1)
 
+// Allocate the extra memory for the actv binder transaction
+#define ACTV_BINDER_VM_SIZE                         (2 * 1024 * 1024)
+
 #endif // CONFIG_ACTV_BINDER
 
 #endif // OHOS_IPC_ACTV_BINDER_H

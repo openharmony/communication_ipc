@@ -23,6 +23,18 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
+
+#ifdef CONFIG_ACTV_BINDER
+class ActvBinderConnector {
+public:
+    ActvBinderConnector();
+
+    int InitActvBinder(int fd);
+
+    bool isActvMgr_;
+};
+#endif
+
 class BinderConnector {
 public:
     static BinderConnector *GetInstance();
@@ -48,6 +60,10 @@ private:
     int32_t version_;
     uint64_t featureSet_;
     uint64_t selfTokenID_;
+#ifdef CONFIG_ACTV_BINDER
+    size_t vmSize_;
+    ActvBinderConnector actvBinder_;
+#endif
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
