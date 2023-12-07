@@ -33,6 +33,9 @@
 #include "new"
 #include "string"
 #include "sys_binder.h"
+#ifdef CONFIG_ACTV_BINDER
+#include "actv_binder.h"
+#endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -54,7 +57,11 @@ BinderConnector::BinderConnector(const std::string &deviceName)
 BinderConnector::~BinderConnector()
 {
     if (vmAddr_ != MAP_FAILED) {
+#ifdef CONFIG_ACTV_BINDER
+        munmap(vmAddr_, vmSize_);
+#else
         munmap(vmAddr_, IPC_MMAP_SIZE);
+#endif
         vmAddr_ = MAP_FAILED;
     }
 
@@ -68,6 +75,31 @@ bool BinderConnector::IsDriverAlive()
 {
     return driverFD_ >= 0;
 }
+
+#ifdef CONFIG_ACTV_BINDER
+ActvBinderConnector::ActvBinderConnector()
+    : isActvMgr_(false)
+{
+}
+
+int ActvBinderConnector::InitActvBinder(int fd)
+{
+    if (!isActvMgr_) {
+        return 0;
+    }
+
+    int ret;
+    uint64_t poolCref;
+
+    ret = ioctl(fd, BINDER_SET_ACTVMGR, &poolCref);
+    if (ret != 0) {
+        ZLOGE(LABEL, "ActvBinder: set actv binder service failed, errno: %{public}d", errno);
+        return ret;
+    }
+
+    return 0;
+}
+#endif // CONFIG_ACTV_BINDER
 
 bool BinderConnector::OpenDriver()
 {
@@ -95,7 +127,12 @@ bool BinderConnector::OpenDriver()
     }
     ZLOGI(LABEL, "success to open:%{public}s fd:%{public}d", deviceName_.c_str(), fd);
     driverFD_ = fd;
+#ifdef CONFIG_ACTV_BINDER
+    vmSize_ = IPC_MMAP_SIZE + (actvBinder_.isActvMgr_ ? ACTV_BINDER_VM_SIZE : 0);
+    vmAddr_ = mmap(0, vmSize_, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
+#else
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
+#endif
     if (vmAddr_ == MAP_FAILED) {
         ZLOGE(LABEL, "fail to mmap");
         close(driverFD_);
@@ -104,6 +141,18 @@ bool BinderConnector::OpenDriver()
             KERNEL_DRIVER_OPEN_IPC_DRIVER_FAILURE, __FUNCTION__);
         return false;
     }
+#ifdef CONFIG_ACTV_BINDER
+    ret = actvBinder_.InitActvBinder(driverFD_);
+    if (ret != 0) {
+        munmap(vmAddr_, vmSize_);
+        vmAddr_ = MAP_FAILED;
+        vmSize_ = 0;
+
+        close(driverFD_);
+        driverFD_ = -1;
+        return false;
+    }
+#endif
     version_ = version;
     featureSet_ = featureSet;
     return true;
