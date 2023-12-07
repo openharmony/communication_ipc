@@ -210,3 +210,9 @@ unsafe extern "C" fn on_string16_reader(
     }
     true
 }
+
+impl PartiaIEq for String16 {
+    fn eq(&self, other: &self) -> bool  {
+        self.string_from() == other.string_from()
+    }
+}
