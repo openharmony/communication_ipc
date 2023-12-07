@@ -40,6 +40,9 @@ namespace IPC_SINGLE {
 #endif
 
 using namespace OHOS::HiviewDFX;
+#ifdef CONFIG_ACTV_BINDER
+static const std::unordered_set<uint32_t> g_ActvBinderAllBlockedCodeSet;
+#endif
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
 enum {
     GET_SERVICE_TRANSACTION = 0x1,
@@ -1138,6 +1141,9 @@ uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
 
 #ifdef CONFIG_ACTV_BINDER
 class ActvBinderInvokerData {
+public:
+    std::once_flag actvOnceFlag;
+    const std::unordered_set<uint32_t> *actvBinderBlockedCodes = nullptr;
 };
 
 void BinderInvoker::LinkRemoteInvoker(void **data)
@@ -1185,11 +1191,41 @@ bool BinderInvoker::CheckActvBinderAvailable(int handle, uint32_t code,
     }
 
     bool avail = true;
+    ActvBinderInvokerData *invokerData = reinterpret_cast<ActvBinderInvokerData *>(data);
 
     if ((handle < 0) || ((handle & ACTV_BINDER_HANDLE_BIT) == 0)) {
         avail = false;
     } else if ((option.GetFlags() & TF_ONE_WAY) != 0) {
         avail = false;
+    } else if (invokerData == nullptr) {
+        avail = false;
+    } else {
+        std::call_once(invokerData->actvOnceFlag, [&]() {
+            int error;
+            MessageParcel data;
+            MessageParcel reply;
+            MessageOption tmpOption;
+            bool useActvBinder = GetUseActvBinder();
+
+            SetUseActvBinder(true);
+            error = SendRequest(handle, INTERFACE_TRANSACTION, data, reply, tmpOption);
+            SetUseActvBinder(useActvBinder);
+
+            if (error == ERR_NONE) {
+                std::u16string desc = reply.ReadString16();
+
+                invokerData->actvBinderBlockedCodes = desc.empty() ? &g_ActvBinderAllBlockedCodeSet
+                    : binderConnector_->GetActvBinderBlockedCodes(Str16ToStr8(desc));
+            }
+        });
+
+        if (invokerData->actvBinderBlockedCodes != nullptr) {
+            const std::unordered_set<uint32_t> *codes = invokerData->actvBinderBlockedCodes;
+
+            if (codes->empty() || (codes->find(code) != codes->end())) {
+                avail = false;
+            }
+        }
     }
 
     return avail;

@@ -87,6 +87,14 @@ bool BinderConnector::IsDriverAlive()
 }
 
 #ifdef CONFIG_ACTV_BINDER
+const std::unordered_set<uint32_t> *BinderConnector::GetActvBinderBlockedCodes(const std::string &desc)
+{
+    auto iter = actvBinder_.actvBlockedCodes_.find(desc);
+    if (iter != actvBinder_.actvBlockedCodes_.end()) {
+        return &iter->second;
+    }
+    return nullptr;
+}
 
 std::mutex ActvBinderConnector::skeletonMutex_;
 ActvBinderJoinThreadFunc ActvBinderConnector::joinActvThreadFunc_ = nullptr;
