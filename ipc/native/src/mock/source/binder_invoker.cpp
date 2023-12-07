@@ -493,6 +493,10 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
         GetAccessToken(callerTokenID_, firstTokenID_);
     }
+#ifdef CONFIG_ACTV_BINDER
+    bool oldActvBinder = GetUseActvBinder();
+    SetUseActvBinder(false);
+#endif
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
     MessageParcel reply;
@@ -517,6 +521,9 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             error = targetObject->SendRequest(tr->code, *data, reply, option);
         }
     }
+#ifdef CONFIG_ACTV_BINDER
+    SetUseActvBinder(oldActvBinder);
+#endif
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
@@ -721,7 +728,11 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     bwr.write_consumed = 0;
     bwr.read_consumed = 0;
+#ifdef CONFIG_ACTV_BINDER
+    int error = binderConnector_->WriteBinder(GetBWRCommand(), &bwr);
+#else
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
+#endif
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
             // we still have some bytes not been handled.
