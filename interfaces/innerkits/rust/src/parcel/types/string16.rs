@@ -36,7 +36,7 @@ impl String16 {
     }
 
     /// Get packed String of String16
-    pub fn get_string(&self) -> String {
+    pub fn string_from(&self) -> String {
         String::from(&self.0)
     }
 }
