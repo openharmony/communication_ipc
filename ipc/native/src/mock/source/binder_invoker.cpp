@@ -56,6 +56,7 @@ BinderInvoker::BinderInvoker()
 {
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
 #ifdef CONFIG_ACTV_BINDER
+    ActvBinderConnector::AddSetActvHandlerInfoFunc(&BinderInvoker::SetActvHandlerInfo);
     ActvBinderConnector::SetJoinActvThreadFunc(&BinderInvoker::JoinActvThread);
 #endif
     binderConnector_ = BinderConnector::GetInstance();
@@ -514,6 +515,12 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         int count = 0;
         if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this, count))) {
             auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
+#ifdef CONFIG_ACTV_BINDER
+            if ((targetObject != nullptr) && oldActvBinder && (actvHandlerInfo_ != nullptr)) {
+                std::string service = Str16ToStr8(targetObject->GetObjectDescriptor());
+                actvHandlerInfo_->AddActvHandlerInfo(service, tr->code);
+            }
+#endif
             if (targetObject != nullptr) {
                 error = targetObject->SendRequest(tr->code, *data, reply, option);
                 targetObject->DecStrongRef(this);
@@ -528,6 +535,9 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         }
     }
 #ifdef CONFIG_ACTV_BINDER
+    if (oldActvBinder && (actvHandlerInfo_ != nullptr)) {
+        actvHandlerInfo_->ClrActvHandlerInfo();
+    }
     SetUseActvBinder(oldActvBinder);
 #endif
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
@@ -1180,6 +1190,17 @@ void BinderInvoker::JoinActvThread(bool initiative)
     if (invoker != nullptr) {
         invoker->SetUseActvBinder(true);
         invoker->JoinThread(initiative);
+    }
+}
+
+void BinderInvoker::SetActvHandlerInfo(uint32_t id)
+{
+    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
+    BinderConnector *connector = invoker->binderConnector_;
+
+    if ((connector != nullptr) && connector->IsActvBinderSupported()) {
+        invoker->actvHandlerInfo_ = connector->GetActvHandlerInfo(id);
     }
 }
 
