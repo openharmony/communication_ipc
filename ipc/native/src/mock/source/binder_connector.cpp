@@ -96,8 +96,59 @@ const std::unordered_set<uint32_t> *BinderConnector::GetActvBinderBlockedCodes(c
     return nullptr;
 }
 
+ActvHandlerInfo *BinderConnector::GetActvHandlerInfo(uint32_t id)
+{
+    const std::vector<ActvHandlerInfo *> &infos = actvBinder_.actvHandlerInfos_;
+    return ((id < infos.size()) ? infos[id] : nullptr);
+}
+
+ActvHandlerInfo::ActvHandlerInfo() : desc_(std::string())
+{
+}
+
+void ActvHandlerInfo::AddActvHandlerInfo(const std::string &desc, uint32_t code)
+{
+    std::lock_guard<std::mutex> lockGuard(lock_);
+
+    if (count_ != -1) {
+        ZLOGW(LABEL, "ActvBinder: thread %{public}d is in an old transaction %{public}s %{public}u, "
+                     "coming tr %{public}s %{public}u", tid_, desc_.c_str(), code_, desc.c_str(), code);
+    } else {
+        desc_  = desc;
+        code_  = code;
+        count_ = 0;
+        tid_   = ((tid_ == -1) ? gettid() : tid_);
+    }
+}
+
+void ActvHandlerInfo::ClrActvHandlerInfo()
+{
+    std::lock_guard<std::mutex> lockGuard(lock_);
+
+    desc_  = std::string();
+    code_  = 0;
+    count_ = -1;
+}
+
+void ActvHandlerInfo::ChkActvHandlerInfo(int32_t limit)
+{
+    std::lock_guard<std::mutex> lockGuard(lock_);
+
+    if (count_ == -1) {
+        return;
+    } else {
+        count_++;
+    }
+
+    if (count_ >= limit) {
+        ZLOGW(LABEL, "ActvBinder: thread %{public}d maybe in ABA dead lock, service=%{public}s "
+                     "code=%{public}u count=%{public}d", tid_, desc_.c_str(), code_, count_);
+    }
+}
+
 std::mutex ActvBinderConnector::skeletonMutex_;
 ActvBinderJoinThreadFunc ActvBinderConnector::joinActvThreadFunc_ = nullptr;
+ActvBinderSetHandlerInfoFunc ActvBinderConnector::setActvHandlerInfoFunc_ = nullptr;
 
 ActvBinderConnector::ActvBinderConnector()
     : isActvMgr_(false)
@@ -124,6 +175,26 @@ void ActvBinderConnector::SetJoinActvThreadFunc(ActvBinderJoinThreadFunc func)
     }
 }
 
+void ActvBinderConnector::SetActvHandlerInfo(uint32_t id)
+{
+    if (ActvBinderConnector::setActvHandlerInfoFunc_ != nullptr) {
+        ActvBinderConnector::setActvHandlerInfoFunc_(id);
+    } else {
+        ZLOGW(LABEL, "ActvBinder: no available func to set the actv handler info");
+    }
+}
+
+void ActvBinderConnector::AddSetActvHandlerInfoFunc(ActvBinderSetHandlerInfoFunc func)
+{
+    if (ActvBinderConnector::setActvHandlerInfoFunc_ == nullptr) {
+        std::lock_guard<std::mutex> lockGuard(skeletonMutex_);
+
+        if (ActvBinderConnector::setActvHandlerInfoFunc_ == nullptr) {
+            ActvBinderConnector::setActvHandlerInfoFunc_ = func;
+        }
+    }
+}
+
 void *ActvBinderConnector::ActvThreadEntry(void *arg)
 {
     int ret;
@@ -133,8 +204,32 @@ void *ActvBinderConnector::ActvThreadEntry(void *arg)
     if (ret != 0) {
         ZLOGE(LABEL, "ActvBinder: set thread name: %{public}s failed, errno: %{public}d", name.c_str(), errno);
     } else {
+        ActvBinderConnector::SetActvHandlerInfo(reinterpret_cast<uintptr_t>(arg));
         ActvBinderConnector::JoinActvThread(false);
         ZLOGW(LABEL, "ActvBinder: thread %{public}s exited", name.c_str());
+    }
+
+    return nullptr;
+}
+
+void *ActvBinderConnector::ABALockCheckThreadEntry(void *arg)
+{
+    int ret;
+    ActvBinderConnector *actvBinder = reinterpret_cast<ActvBinderConnector *>(arg);
+    const std::vector<ActvHandlerInfo *> &infos = actvBinder->actvHandlerInfos_;
+
+    ret = prctl(PR_SET_NAME, "ABALockChecker");
+    if (ret != 0) {
+        ZLOGE(LABEL, "ActvBinder: set thread name ABALockChecker failed, errno: %{public}d", errno);
+        return nullptr;
+    }
+
+    while (true) {
+        usleep(ACTV_BINDER_ABA_LOCK_CHK_INTVL);
+
+        for (uint32_t i = 0; i < infos.size(); i++) {
+            infos[i]->ChkActvHandlerInfo(ACTV_BINDER_ABA_LOCK_CHK_LIMIT);
+        }
     }
 
     return nullptr;
@@ -178,6 +273,15 @@ int ActvBinderConnector::InitActvBinder(int fd)
     }
 
     for (int i = 0; i < ACTV_BINDER_DEFAULT_NR_THREADS; i++) {
+        ActvHandlerInfo *info = new ActvHandlerInfo();
+        if (info == nullptr) {
+            ZLOGE(LABEL, "ActvBinder: prepare actv handler info for thread#%{public}d failed", i);
+            return -ENOMEM;
+        }
+        actvHandlerInfos_.push_back(info);
+    }
+
+    for (int i = 0; i < ACTV_BINDER_DEFAULT_NR_THREADS; i++) {
         ret = pthread_create(&thread, nullptr, &ActvBinderConnector::ActvThreadEntry, reinterpret_cast<void *>(i));
         if (ret != 0) {
             ZLOGE(LABEL, "ActvBinder: create thread#%{public}d failed, errno: %{public}d", i, errno);
@@ -189,6 +293,19 @@ int ActvBinderConnector::InitActvBinder(int fd)
             ZLOGE(LABEL, "ActvBinder: detach thread#%{public}d failed, errno: %{public}d", i, errno);
             return ret;
         }
+    }
+
+    ret = pthread_create(&thread, nullptr, &ActvBinderConnector::ABALockCheckThreadEntry,
+                         reinterpret_cast<void *>(this));
+    if (ret != 0) {
+        ZLOGE(LABEL, "ActvBinder: create checker thread failed, errno: %{public}d", errno);
+        return ret;
+    }
+
+    ret = pthread_detach(thread);
+    if (ret != 0) {
+        ZLOGE(LABEL, "ActvBinder: detach checker thread failed, errno: %{public}d", errno);
+        return ret;
     }
 
     return 0;

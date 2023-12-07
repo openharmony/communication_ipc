@@ -36,6 +36,10 @@
 
 #define ACTV_BINDER_SERVICES_CONFIG                 "/system/etc/libbinder_actv.json"
 
+// The interval for checking the ABA dead lock (unit: us)
+#define ACTV_BINDER_ABA_LOCK_CHK_INTVL              (10 * 1000 * 1000)
+#define ACTV_BINDER_ABA_LOCK_CHK_LIMIT              5
+
 #endif // CONFIG_ACTV_BINDER
 
 #endif // OHOS_IPC_ACTV_BINDER_H

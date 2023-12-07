@@ -118,6 +118,8 @@ public:
 #ifdef CONFIG_ACTV_BINDER
     static void JoinActvThread(bool initiative);
 
+    static void SetActvHandlerInfo(uint32_t id);
+
     void LinkRemoteInvoker(void **data) override;
 
     void UnlinkRemoteInvoker(void **data) override;
@@ -201,6 +203,7 @@ private:
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
+    ActvHandlerInfo *actvHandlerInfo_ = nullptr;
 #endif
 };
 #ifdef CONFIG_IPC_SINGLE
