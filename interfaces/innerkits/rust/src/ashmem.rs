@@ -24,7 +24,7 @@ use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustAshmem"
 };
 
@@ -194,7 +194,7 @@ impl Clone for Ashmem {
         unsafe {
             ipc_binding::CAshmemIncStrongRef(self.as_inner());
         }
-        // SAFETY: no `None` here, cause `self` is valid 
+        // SAFETY: no `None` here, cause `self` is valid
         Self(self.0)
     }
 }

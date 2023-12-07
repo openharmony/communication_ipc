@@ -19,7 +19,7 @@ use hilog_rust::{info, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustDeathRecipient"
 };
 

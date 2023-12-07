@@ -85,10 +85,10 @@ std::string IPCWorkThreadPool::MakeThreadName(int proto)
 {
     int sequence = threadSequence_.fetch_add(1, std::memory_order_relaxed);
     if (proto == IRemoteObject::IF_PROT_DATABUS) {
-        std::string threadName = "DRPC";
+        std::string threadName = "OS_DRPC";
         return threadName + "_" + std::to_string(sequence);
     } else {
-        std::string threadName = "IPC";
+        std::string threadName = "OS_IPC";
         return threadName + "_" + std::to_string(sequence);
     }
 }

@@ -146,7 +146,11 @@ jobject JniHelperJavaIoCreateFileDescriptor(JNIEnv *env, int fd)
 
 int JniHelperRegisterNativeMethods(JNIEnv *env)
 {
-    g_jFileDescriptor.klazz = (jclass)env->NewGlobalRef(env->FindClass("java/io/FileDescriptor"));
+    if (env == nullptr) {
+        ZLOGE(LABEL, "env is null");
+        return JNI_ERR;
+    }
+    g_jFileDescriptor.klazz = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("java/io/FileDescriptor")));
     if (g_jFileDescriptor.klazz == nullptr) {
         return JNI_ERR;
     }
