@@ -21,7 +21,7 @@ use crate::{
     BorrowedMsgParcel, MsgParcel, IpcResult, DeathRecipient,
     FileDesc, IpcStatusCode,
 };
-use std::ops::{Deref};
+use std::ops::Deref;
 use std::cmp::Ordering;
 use crate::String16;
 
