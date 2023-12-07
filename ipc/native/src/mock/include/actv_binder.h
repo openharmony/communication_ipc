@@ -34,6 +34,8 @@
 // Decrease this after introducing the elastic machinism
 #define ACTV_BINDER_DEFAULT_NR_THREADS              32
 
+#define ACTV_BINDER_SERVICES_CONFIG                 "/system/etc/libbinder_actv.json"
+
 #endif // CONFIG_ACTV_BINDER
 
 #endif // OHOS_IPC_ACTV_BINDER_H
