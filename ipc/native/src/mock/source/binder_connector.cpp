@@ -38,6 +38,10 @@
 #include "sys_binder.h"
 #ifdef CONFIG_ACTV_BINDER
 #include "actv_binder.h"
+
+#include <fstream>
+#include <unordered_set>
+#include <nlohmann/json.hpp>
 #endif
 
 namespace OHOS {
@@ -48,6 +52,9 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_CON
 std::mutex BinderConnector::skeletonMutex;
 constexpr int SZ_1_M = 1048576;
 constexpr int DOUBLE = 2;
+#ifdef CONFIG_ACTV_BINDER
+static const int PROC_NAME_LEN = 128;
+#endif
 static const int IPC_MMAP_SIZE = (SZ_1_M - sysconf(_SC_PAGE_SIZE) * DOUBLE);
 static constexpr const char *DRIVER_NAME = "/dev/binder";
 static constexpr const char *TOKENID_DEVNODE = "/dev/access_token_id";
@@ -125,6 +132,27 @@ void *ActvBinderConnector::ActvThreadEntry(void *arg)
     return nullptr;
 }
 
+char *ActvBinderConnector::GetProcName(char *buf, size_t len)
+{
+    int fd;
+    char *name = nullptr;
+
+    fd = open("/proc/self/cmdline", O_RDONLY);
+    if (fd != -1) {
+        ssize_t cnt;
+
+        cnt = read(fd, buf, len - 1);
+        if (cnt > 0) {
+            buf[cnt] = '\0';
+            name = buf;
+        }
+
+        close(fd);
+    }
+
+    return name;
+}
+
 int ActvBinderConnector::InitActvBinder(int fd)
 {
     if (!isActvMgr_) {
@@ -157,6 +185,96 @@ int ActvBinderConnector::InitActvBinder(int fd)
 
     return 0;
 }
+
+/*
+ * The JSON format of the /system/etc/libbinder_actv.json should be:
+ *
+ * {
+ *      "pname0": {
+ *          "serviceDesc0": [code0, code1, ...],
+ *          "serviceDesc1": [code0, code1, ...],
+ *          ...
+ *          "serviceDescN": [code0, code1, ...]
+ *      },
+ *      "pname1": {
+ *          "serviceDesc0": [code0, code1, ...],
+ *          "serviceDesc1": [code0, code1, ...],
+ *          ...
+ *          "serviceDescN": [code0, code1, ...]
+ *      },
+ *      ...
+ *      "pnameN": {
+ *          "serviceDesc0": [code0, code1, ...],
+ *          "serviceDesc1": [code0, code1, ...],
+ *          ...
+ *          "serviceDescN": [code0, code1, ...]
+ *      }
+ * }
+ *
+ * 1. Configure pname0 ~ pnameN as the actv binder service.
+ *
+ * 2. The interface specified by the serviceDesc0 ~ serviceDescN and the
+ *    code0 ~ codeN cannot be accessed through the Actv Binder IPC.
+ *
+ * 3. If no code0 ~ codeN specified for the serviceDescX, then all interfaces
+ *    of the serviceDescX cannot be accessed through the Actv Binder IPC.
+ *
+ * 4. If no serviceDescs are specified, then all interfaces in process of pnameX
+ *    are accessed through the Actv Binder IPC.
+ */
+void ActvBinderConnector::InitActvBinderConfig(uint64_t featureSet)
+{
+    if ((featureSet & ACTV_BINDER_FEATURE_MASK) == 0) {
+        return;
+    }
+
+    std::ifstream configFile(ACTV_BINDER_SERVICES_CONFIG);
+    if (!configFile.is_open()) {
+        ZLOGI(LABEL, "ActvBinder: no available config file %{public}s", ACTV_BINDER_SERVICES_CONFIG);
+        return;
+    }
+
+    char buffer[PROC_NAME_LEN];
+    char *procName = ActvBinderConnector::GetProcName(buffer, PROC_NAME_LEN);
+
+    if (procName == nullptr) {
+        ZLOGE(LABEL, "ActvBinder: get the process name of pid=%{public}d failed", getpid());
+        return;
+    }
+
+    nlohmann::json configData = nlohmann::json::parse(configFile, nullptr, false);
+    if (configData.is_discarded()) {
+        ZLOGE(LABEL, "ActvBinder: parse config file %{public}s failed", ACTV_BINDER_SERVICES_CONFIG);
+        return;
+    }
+
+    for (auto &procItem : configData.items()) {
+        if (isActvMgr_ == false) {
+            isActvMgr_ = (strcmp(procItem.key().c_str(), procName) == 0);
+            if (isActvMgr_) {
+                ZLOGI(LABEL, "ActvBinder: set %{public}s as the actv binder service", procName);
+            }
+        }
+
+        nlohmann::json &services = procItem.value();
+        for (auto &srvItem : services.items()) {
+            std::unordered_set<uint32_t> codeSet;
+            const std::string &desc = srvItem.key();
+            nlohmann::json &codes = srvItem.value();
+
+            codes.get_to(codeSet);
+
+            auto iter = actvBlockedCodes_.find(desc);
+            if (codeSet.empty() || (iter == actvBlockedCodes_.end())) {
+                actvBlockedCodes_[desc] = codeSet;
+            } else if (iter->second.empty()) {
+                /* block all codes */
+            } else {
+                iter->second.insert(codeSet.begin(), codeSet.end());
+            }
+        }
+    }
+}
 #endif // CONFIG_ACTV_BINDER
 
 bool BinderConnector::OpenDriver()
@@ -186,6 +304,8 @@ bool BinderConnector::OpenDriver()
     ZLOGI(LABEL, "success to open:%{public}s fd:%{public}d", deviceName_.c_str(), fd);
     driverFD_ = fd;
 #ifdef CONFIG_ACTV_BINDER
+    actvBinder_.InitActvBinderConfig(featureSet);
+
     vmSize_ = IPC_MMAP_SIZE + (actvBinder_.isActvMgr_ ? ACTV_BINDER_VM_SIZE : 0);
     vmAddr_ = mmap(0, vmSize_, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
 #else

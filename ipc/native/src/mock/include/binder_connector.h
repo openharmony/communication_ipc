@@ -18,6 +18,10 @@
 
 #include <string>
 #include <mutex>
+#ifdef CONFIG_ACTV_BINDER
+#include <unordered_set>
+#include <unordered_map>
+#endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -30,6 +34,7 @@ typedef void (*ActvBinderJoinThreadFunc)(bool initiative);
 class ActvBinderConnector {
 public:
     static void *ActvThreadEntry(void *arg);
+    static char *GetProcName(char *buf, size_t len);
 
     static void JoinActvThread(bool initiative);
     static void SetJoinActvThreadFunc(ActvBinderJoinThreadFunc func);
@@ -37,8 +42,10 @@ public:
     ActvBinderConnector();
 
     int InitActvBinder(int fd);
+    void InitActvBinderConfig(uint64_t featureSet);
 
     bool isActvMgr_;
+    std::unordered_map<std::string, std::unordered_set<uint32_t> > actvBlockedCodes_;
 
 private:
     static std::mutex skeletonMutex_;
