@@ -117,6 +117,13 @@ bool BinderConnector::IsAccessTokenSupported()
     return (featureSet_ & ACCESS_TOKEN_FAETURE_MASK) != 0;
 }
 
+#ifdef CONFIG_ACTV_BINDER
+bool BinderConnector::IsActvBinderSupported()
+{
+    return (IsDriverAlive() && ((featureSet_ & ACTV_BINDER_FEATURE_MASK) != 0));
+}
+#endif
+
 int BinderConnector::WriteBinder(unsigned long request, void *value)
 {
     int err = -EINTR;
