@@ -35,6 +35,9 @@ public:
     bool IsAccessTokenSupported();
     uint64_t GetSelfTokenID();
     uint64_t GetSelfFirstCallerTokenID();
+#ifdef CONFIG_ACTV_BINDER
+    bool IsActvBinderSupported();
+#endif
 private:
     static BinderConnector *instance_;
     static std::mutex skeletonMutex;

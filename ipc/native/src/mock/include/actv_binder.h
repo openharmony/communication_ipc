@@ -26,6 +26,8 @@
 
 #define ACTV_BINDER_WRITE_READ                      _IOWR('b', 97, struct binder_write_read)
 
+#define ACTV_BINDER_FEATURE_MASK                    (1 << 1)
+
 #endif // CONFIG_ACTV_BINDER
 
 #endif // OHOS_IPC_ACTV_BINDER_H
