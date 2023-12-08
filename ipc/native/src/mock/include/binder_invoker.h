@@ -112,6 +112,12 @@ public:
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif
 
+#ifdef CONFIG_ACTV_BINDER
+    void LinkRemoteInvoker(void **data) override;
+
+    void UnlinkRemoteInvoker(void **data) override;
+#endif // CONFIG_ACTV_BINDER
+
 protected:
     bool isMainWorkThread;
     bool stopWorkThread;

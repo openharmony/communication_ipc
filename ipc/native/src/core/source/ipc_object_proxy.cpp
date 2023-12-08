@@ -59,12 +59,24 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IP
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
+#ifdef CONFIG_ACTV_BINDER
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
+    if (invoker != nullptr) {
+        invoker->LinkRemoteInvoker(&invokerData_);
+    }
+#endif
     ZLOGD(LABEL, "create, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(descriptor_).c_str());
     ExtendObjectLifetime();
 }
 
 IPCObjectProxy::~IPCObjectProxy()
 {
+#ifdef CONFIG_ACTV_BINDER
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
+    if (invoker != nullptr) {
+        invoker->UnlinkRemoteInvoker(&invokerData_);
+    }
+#endif
     ZLOGI(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
 }
 
