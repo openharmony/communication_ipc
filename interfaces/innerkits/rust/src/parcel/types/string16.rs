@@ -17,7 +17,7 @@ use super::*;
 use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result, AsRawPtr};
 use std::convert::TryInto;
 use std::mem::MaybeUninit;
-use std::ffi::{CString};
+use std::ffi::CString;
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
