@@ -101,6 +101,16 @@ public:
     virtual int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) = 0;
 
 #endif
+
+#ifdef CONFIG_ACTV_BINDER
+    virtual void LinkRemoteInvoker(void **data)
+    {
+    }
+
+    virtual void UnlinkRemoteInvoker(void **data)
+    {
+    }
+#endif
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

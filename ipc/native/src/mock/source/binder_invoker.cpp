@@ -1106,6 +1106,38 @@ uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
 
     return info.strong_count;
 }
+
+#ifdef CONFIG_ACTV_BINDER
+class ActvBinderInvokerData {
+};
+
+void BinderInvoker::LinkRemoteInvoker(void **data)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsActvBinderSupported())) {
+        return;
+    }
+
+    if ((data != nullptr) && (*data == nullptr)) {
+        ActvBinderInvokerData *invokerData = new (std::nothrow) ActvBinderInvokerData();
+        if (invokerData != nullptr) {
+            *data = reinterpret_cast<void *>(invokerData);
+        }
+    }
+}
+
+void BinderInvoker::UnlinkRemoteInvoker(void **data)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsActvBinderSupported())) {
+        return;
+    }
+
+    if ((data != nullptr) && (*data != nullptr)) {
+        delete (reinterpret_cast<ActvBinderInvokerData *>(*data));
+        *data = nullptr;
+    }
+}
+#endif // CONFIG_ACTV_BINDER
+
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif
