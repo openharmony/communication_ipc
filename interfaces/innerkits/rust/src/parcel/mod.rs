@@ -22,11 +22,11 @@ pub use types::vec_to_string;
 pub use parcelable::allocate_vec_with_buffer;
 
 use crate::{ipc_binding, IpcResult, IpcStatusCode};
-use crate::ipc_binding::{CParcel};
+use crate::ipc_binding::CParcel;
 use std::marker::PhantomData;
 use std::mem::{ManuallyDrop, MaybeUninit};
-use std::ops::{Drop};
-use std::ptr::{NonNull};
+use std::ops::Drop;
+use std::ptr::NonNull;
 use std::slice;
 use crate::AsRawPtr;
 use crate::parcel::parcelable::{Serialize, Deserialize};
