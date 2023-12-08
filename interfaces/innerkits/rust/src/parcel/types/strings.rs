@@ -20,7 +20,8 @@ use crate::{
 };
 use std::convert::TryInto;
 use std::mem::MaybeUninit;
-use std::ffi::{CString};
+use std::ffi::CString;
+use std::ptr;
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
@@ -39,7 +40,7 @@ impl Serialize for str {
         let ret = unsafe {
             ipc_binding::CParcelWriteString(
                 parcel.as_mut_raw(),
-                self.as_ptr() as *const c_char,
+                self.as_ptr().cast::<c_char>(),
                 self.as_bytes().len().try_into().unwrap()
             )};
         status_result::<()>(ret as i32, ())
@@ -59,7 +60,7 @@ impl Deserialize for String {
         let ok_status = unsafe {
             ipc_binding::CParcelReadString(
                 parcel.as_raw(),
-                &mut vec as *mut _ as *mut c_void,
+                &mut vec.cast::<c_void>(),
                 allocate_vec_with_buffer::<u8>
             )
         };
@@ -78,7 +79,7 @@ impl SerArray for &str {
         let ret = unsafe {
             ipc_binding::CParcelWriteStringArray(
                 parcel.as_mut_raw(),
-                slice.as_ptr() as *const c_void,
+                slice.as_ptr().cast::<c_void>(),
                 slice.len().try_into().unwrap(),
                 on_str_writer,
             )
@@ -93,7 +94,7 @@ impl SerArray for String {
         let ret = unsafe {
             ipc_binding::CParcelWriteStringArray(
                 parcel.as_mut_raw(),
-                slice.as_ptr() as *const c_void,
+                slice.as_ptr().cast::<c_void>(),
                 slice.len().try_into().unwrap(),
                 on_string_writer,
             )
@@ -112,7 +113,7 @@ impl DeArray for String {
         let ok_status = unsafe {
             ipc_binding::CParcelReadStringArray(
                 parcel.as_raw(),
-                &mut vec as *mut _ as *mut c_void,
+                &mut vec.cast::<c_void>(),
                 on_string_reader,
             )
         };
@@ -154,7 +155,7 @@ unsafe extern "C" fn on_str_writer(
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
-                item.as_ptr() as *const c_char,
+                item.as_ptr().cast::<c_char>(),
                 item.as_bytes().len().try_into().unwrap())
         };
         if !ret {
@@ -189,7 +190,7 @@ unsafe extern "C" fn on_string_writer(
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
-                item.as_ptr() as *const c_char,
+                item.as_ptr().cast::<c_char>(),
                 item.as_bytes().len().try_into().unwrap())
         };
         if !ret {
@@ -215,7 +216,7 @@ unsafe extern "C" fn on_string_reader(
     // SAFETY:
     // Allocate Vec<String> capacity, data_len will set correctly by vec.push().
     unsafe { allocate_vec_maybeuninit::<String>(value, 0) };
-    let vec = &mut *(value as *mut Option<Vec<MaybeUninit<String>>>);
+    let vec = &mut *(value.cast::<Option<Vec<MaybeUninit<String>>>>());
     for index in 0..len {
         let mut vec_u8: Option<Vec<u8>> = None;
         // SAFETY:
@@ -223,7 +224,7 @@ unsafe extern "C" fn on_string_reader(
             ipc_binding::CParcelReadStringElement(
                 index,
                 data,
-                &mut vec_u8 as *mut _ as *mut c_void,
+                &mut vec_u8.cast::<c_void>(),
                 allocate_vec_with_buffer::<u8>
             )
         };
