@@ -19,6 +19,7 @@ use crate::{
 };
 use crate::parcel::{vec_to_string, allocate_vec_with_buffer};
 use std::ffi::{CString, c_char, c_void};
+use std::ptr;
 use hilog_rust::{info, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
@@ -182,7 +183,7 @@ pub fn get_local_device_id() -> IpcResult<String>
     // SAFETY:
     let ok_status = unsafe {
         ipc_binding::GetLocalDeviceID(
-            &mut vec as *mut _ as *mut c_void,
+            &mut vec.cast::<c_void>(),
             allocate_vec_with_buffer::<u8>
         )
     };
@@ -202,7 +203,7 @@ pub fn get_calling_device_id() -> IpcResult<String>
     // SAFETY:
     let ok_status = unsafe {
         ipc_binding::GetCallingDeviceID(
-            &mut vec as *mut _ as *mut c_void,
+            &mut vec.cast::<c_void>(),
             allocate_vec_with_buffer::<u8>
         )
     };
@@ -222,7 +223,7 @@ pub fn reset_calling_identity() -> IpcResult<String>
     // SAFETY:
     let ok_status = unsafe {
         ipc_binding::ResetCallingIdentity(
-            &mut vec as *mut _ as *mut c_void,
+            &mut vec.cast::<c_void>(),
             allocate_vec_with_buffer::<u8>
         )
     };
