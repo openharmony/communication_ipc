@@ -98,9 +98,9 @@ pub unsafe extern "C" fn allocate_vec_with_buffer<T>(
     let res = allocate_vec::<T>(value, len);
     // `buffer` will be assigned a mutable pointer to the allocated vector data
     // if this function returns true.
-    let vec = &mut *(value.cast::<Option<Vec<MaybeUninit<T>>>>());
+    let vec = &mut *(value as *mut Option<Vec<MaybeUninit<T>>>);
     if let Some(new_vec) = vec {
-        *buffer = new_vec.as_mut_ptr().cast::<T>();
+        *buffer = new_vec.as_mut_ptr() as *mut T;
     }
     res
 }
@@ -136,7 +136,7 @@ pub trait SerArray: Serialize + Sized {
         let ret = unsafe {
             ipc_binding::CParcelWriteParcelableArray(
                 parcel.as_mut_raw(),
-                slice.as_ptr().cast::<c_void>(),
+                slice.as_ptr() as *const c_void,
                 slice.len().try_into().unwrap(),
                 ser_element::<Self>,
             )
@@ -185,7 +185,7 @@ pub trait DeArray: Deserialize {
         let ok_status = unsafe {
             ipc_binding::CParcelReadParcelableArray(
                 parcel.as_raw(),
-                &mut vec.cast::<c_void>(),
+                &mut vec as *mut _ as *mut c_void,
                 allocate_vec::<Self>,
                 de_element::<Self>,
             )
@@ -226,12 +226,12 @@ unsafe extern "C" fn de_element<T: Deserialize>(
     // so the function signature matches what bindgen generates.
     let index = index as usize;
 
-    let vec = &mut *(array.cast::<Option<Vec<MaybeUninit<T>>>>());
+    let vec = &mut *(array as *mut Option<Vec<MaybeUninit<T>>>);
     let vec = match vec {
         Some(v) => v,
         None => return false,
     };
-    let parcel = match BorrowedMsgParcel::from_raw(parcel.cast::<_>()) {
+    let parcel = match BorrowedMsgParcel::from_raw(parcel as *mut _) {
         None => return false,
         Some(p) => p,
     };
@@ -264,7 +264,7 @@ pub(crate) unsafe fn allocate_vec_maybeuninit<T>(
     value: *mut c_void,
     len: u32,
 ) {
-    let vec = &mut *(value.cast::<Option<Vec<MaybeUninit<T>>>>());
+    let vec = &mut *(value as *mut Option<Vec<MaybeUninit<T>>>);
     let mut new_vec: Vec<MaybeUninit<T>> = Vec::with_capacity(len as usize);
 
     // SAFETY: this is safe because the vector contains MaybeUninit elements which can be uninitialized

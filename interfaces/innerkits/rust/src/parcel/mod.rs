@@ -35,16 +35,24 @@ use crate::parcel::parcelable::{Serialize, Deserialize};
 /// and BorrowedMsgParcel
 pub trait IMsgParcel: AsRawPtr<CParcel> {
     /// Get current data size in parcel
+    /// # Safety
+    ///
+    /// The self reference must be valid and point to a properly allocated CParcel object
     fn get_data_size(&self) -> u32 {
-        // SAFETY:
         unsafe {
             ipc_binding::CParcelGetDataSize(self.as_raw())
         }
     }
 
     /// Set current data size in parcel
+    /// # Safety
+    ///
+    /// The self reference must be valid and point to a properly allocated CParcel object.
+    /// Calling this function with an invalid self reference can lead to undefined behavior,
+    /// including memory access violations and data corruption.
+    /// Setting a data size larger than the actual allocated memory of the CParcel object
+    /// might lead to memory corruption and crashes.
     fn set_data_size(&mut self, new_size: u32) -> bool {
-        // SAFETY:
         unsafe {
             ipc_binding::CParcelSetDataSize(self.as_mut_raw(), new_size)
         }
@@ -254,21 +262,22 @@ impl RawData{
 
     /// The caller should ensure that the u8 slice can be
     /// correctly converted to other rust types
+    /// # Safety
+    ///
+    /// raw_ptr is valid in [0..len], the memory is matained by C++ Parcel.
+    /// unsafe notes:
+    /// 1. data is valid for reads for `len * mem::size_of::<u8>() `
+    /// 2. The entire memory range of this slice be contained within a single allocated object (From Cpp)
+    /// 3. data_ptr point to len consecutive properly initialized values of `u8`
+    /// 4. The total size `len * mem::size_of::<u8>()` of the slice is no larger than `isize::MAX`
     pub fn read(&self, start: u32, len: u32) -> IpcResult<&[u8]> {
         if len == 0 || len > self.len || start >= self.len || (start + len) > self.len {
             return Err(IpcStatusCode::Failed);
         }
-        // SAFETY:
-        // raw_ptr is valid in [0..len], the memory is matained by C++ Parcel.
         let data_ptr = unsafe {
             self.raw_ptr.add(start as usize)
         };
         if !data_ptr.is_null() {
-            // SAFETY:
-            // 1. data is valid for reads for `len * mem::size_of::<u8>() `
-            // 2. The entire memory range of this slice be contained within a single allocated object (From Cpp)
-            // 3. data_ptr point to len consecutive properly initialized values of `u8`
-            // 4. The total size `len * mem::size_of::<u8>()` of the slice is no larger than `isize::MAX`
             unsafe {
                 Ok(slice::from_raw_parts::<u8>(data_ptr, len as usize))
             }
