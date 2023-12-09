@@ -19,7 +19,6 @@ use crate::{
 };
 use crate::parcel::{vec_to_string, allocate_vec_with_buffer};
 use std::ffi::{CString, c_char, c_void};
-use std::ptr;
 use hilog_rust::{info, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
@@ -28,10 +27,14 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
     tag: "RustProcess"
 };
 
-/// Get proxy object of samgr
+/// This function retrieves the system-wide SamgrContextManager object.
+///
+/// # Safety
+///
+/// If no SamgrContextManager object is available, the function might return nullptr,
+/// causing the subsequent RemoteObj::from_raw call to fail.
 pub fn get_context_object() -> Option<RemoteObj>
 {
-    // SAFETY:
     unsafe {
         let samgr = ipc_binding::GetContextManager();
         RemoteObj::from_raw(samgr)
@@ -69,104 +72,137 @@ pub fn get_service(said: i32) -> IpcResult<RemoteObj>
     Ok(remote)
 }
 
-/// Make current thread join to the IPC/RPC work thread pool
+/// Make the current thread join the IPC/RPC work thread pool.
+///
+/// # Safety
+///
+/// It should only be called from a thread not already part of the pool.
+/// The potential blocking nature of the function and its impact on other threads.
 #[inline]
 pub fn join_work_thread()
 {
-    // SAFETY:
     unsafe {
         ipc_binding::JoinWorkThread();
     }
 }
 
-/// Exit current thread from IPC/RPC work thread pool
+/// Exit current thread from IPC/RPC work thread pool.
+///
+/// # Safety
+///
+/// It should only be called from a thread belonging to the pool.
+/// Prematurely exiting might leave pending requests unprocessed and cause unexpected behavior.
 #[inline]
 pub fn stop_work_thread()
 {
-    // SAFETY:
     unsafe {
         ipc_binding::StopWorkThread()
     }
 }
 
-/// Get calling token ID of caller
+/// Get the token ID of the calling process.
+///
+/// # Safety
+///
+/// Consider verifying it with additional security measures and context-based information when necessary.
 #[inline]
 pub fn get_calling_token_id() -> u64
 {
-    // SAFETY:
     unsafe {
         ipc_binding::GetCallingTokenId()
     }
 }
 
-/// Get first calling token ID of caller
+/// Get the first token ID from the calling process.
+///
+/// # Safety
+///
+/// Consider verifying it with additional security measures and context-based information when necessary.
 #[inline]
 pub fn get_first_token_id() -> u64
 {
-    // SAFETY:
     unsafe {
         ipc_binding::GetFirstToekenId()
     }
 }
 
-/// Get self token id of current process
+/// Get the token ID of the current process.
+///
+/// # Safety
+///
+/// Minimize its exposure, restrict access to authorized parties within your application.
 #[inline]
 pub fn get_self_token_id() -> u64
 {
-    // SAFETY:
     unsafe {
         ipc_binding::GetSelfToekenId()
     }
 }
 
-/// Get calling process id of caller
+/// Get the process ID of the calling process.
+///
+/// # Safety
+///
+/// The returned PID might be incorrect or invalid due to potential issues
+/// with the IPC mechanism or malicious attempts to manipulate it.
 #[inline]
 pub fn get_calling_pid() -> u64
 {
-    // SAFETY:
     unsafe {
         ipc_binding::GetCallingPid()
     }
 }
 
-/// Get calling user id of caller
+/// Get the user ID of the calling process.
+///
+/// # Safety
+///
+/// Minimize its exposure, restrict access to authorized parties,
+/// and implement robust security measures to prevent unauthorized leaks or manipulation.
 #[inline]
 pub fn get_calling_uid() -> u64
 {
-    // SAFETY:
     unsafe {
         ipc_binding::GetCallingUid()
     }
 }
 
 /// Set the maximum number of threads
+///
+/// # Safety
+///
+/// Setting an invalid or inappropriate value can lead to unexpected behavior,
+/// resource exhaustion, and system instability.
+/// Ensuring the provided value is valid and appropriate for the system resources and workload.
 #[inline]
 pub fn set_max_work_thread(max_thread_num: i32) -> bool
 {
-    // SAFETY:
     unsafe {
         ipc_binding::SetMaxWorkThreadNum(max_thread_num)
     }
 }
 
 /// Determine whether it is a local call
+///
+/// # Safety
 #[inline]
 pub fn is_local_calling() -> bool
 {
-    // SAFETY:
     unsafe {
         ipc_binding::IsLocalCalling()
     }
 }
 
-/// Set calling identity
+/// Set the calling identity for the current process.
+///
+/// # Safety
+///
+/// Ensuring the provided identity string is valid.
 #[inline]
 pub fn set_calling_identity(identity: String) -> bool
 {
     match CString::new(identity.as_str()) {
         Ok(name) => {
-            // SAFETY:
-            // Name is valid
             unsafe {
                 ipc_binding::SetCallingIdentity(name.as_ptr())
             }
@@ -175,15 +211,19 @@ pub fn set_calling_identity(identity: String) -> bool
     }
 }
 
-/// get local device id
+/// Get the local device ID of the current process.
+///
+/// # Safety
+///
+/// it's important to ensure that the vec contains valid data and is not null.
+/// The provided buffer size is sufficient to hold the returned data.
 #[inline]
 pub fn get_local_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
-    // SAFETY:
     let ok_status = unsafe {
         ipc_binding::GetLocalDeviceID(
-            &mut vec.cast::<c_void>(),
+            &mut vec as *mut _ as *mut c_void,
             allocate_vec_with_buffer::<u8>
         )
     };
@@ -195,15 +235,20 @@ pub fn get_local_device_id() -> IpcResult<String>
     }
 }
 
-/// get calling device id
+/// Get the device ID of the calling process.
+///
+/// # Safety
+///
+/// it's important to ensure that the vec contains valid data and is not null.
+/// The provided buffer size is sufficient to hold the returned data.
 #[inline]
 pub fn get_calling_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
-    // SAFETY:
+
     let ok_status = unsafe {
         ipc_binding::GetCallingDeviceID(
-            &mut vec.cast::<c_void>(),
+            &mut vec as *mut _ as *mut c_void,
             allocate_vec_with_buffer::<u8>
         )
     };
@@ -215,15 +260,20 @@ pub fn get_calling_device_id() -> IpcResult<String>
     }
 }
 
-/// reset calling identity
+/// Reset the calling identity of the current process.
+///
+/// # Safety
+///
+/// Be cautious when using this function and ensure that:
+/// * The provided buffer size is sufficient to hold the returned data.
+/// * The returned `String` is validated before using it.
 #[inline]
 pub fn reset_calling_identity() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
-    // SAFETY:
     let ok_status = unsafe {
         ipc_binding::ResetCallingIdentity(
-            &mut vec.cast::<c_void>(),
+            &mut vec as *mut _ as *mut c_void,
             allocate_vec_with_buffer::<u8>
         )
     };
@@ -236,6 +286,8 @@ pub fn reset_calling_identity() -> IpcResult<String>
 }
 
 /// Determine whether the current thread is currently executing an incoming transaction.
+///
+/// # Safety
 #[inline]
 pub fn is_handling_transaction() -> bool
 {
