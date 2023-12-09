@@ -333,9 +333,9 @@ mod parcel_type_test {
         parcel.write("").expect("write empty String16 failed");
 
         let read_hello_str: String16 = parcel.read().expect("read String16 failed");
-        assert_eq!(hello_str.string_from(), read_hello_str.string_from());
+        assert_eq!(hello_str.get_string(), read_hello_str.get_string());
         let read_empty_str: String16 = parcel.read().expect("read empty String16 failed");
-        assert_eq!(empty_str.string_from(), read_empty_str.string_from());
+        assert_eq!(empty_str.get_string(), read_empty_str.get_string());
     }
 
     #[test]
@@ -852,7 +852,7 @@ fn test_get_interface_descriptor() {
     let remote = get_service(IPC_TEST_SERVICE_ID).expect("get itest service failed");
     let descriptor = String16::new(TestProxy::get_descriptor());
     let ret = remote.interface_descriptor().expect("get interface descriptor failed");
-    assert_eq!(descriptor.string_from(), ret);
+    assert_eq!(descriptor.get_string(), ret);
 }
 
 #[test]
@@ -864,7 +864,7 @@ fn test_get_interface_descriptor_002() {
     };
     let descriptor = String16::new(TestProxy::get_descriptor());
     let ret = remote.interface_descriptor().expect("get interface descriptor failed");
-    assert_eq!(descriptor.string_from(), ret);
+    assert_eq!(descriptor.get_string(), ret);
 }
 
 #[cfg(test)]

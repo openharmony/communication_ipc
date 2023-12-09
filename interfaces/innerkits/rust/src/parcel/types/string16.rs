@@ -36,7 +36,7 @@ impl String16 {
     }
 
     /// Get packed String of String16
-    pub fn string_from(&self) -> String {
+    pub fn get_string(&self) -> String {
         String::from(&self.0)
     }
 }
@@ -213,6 +213,6 @@ unsafe extern "C" fn on_string16_reader(
 
 impl PartialEq for String16 {
     fn eq(&self, other: &Self) -> bool  {
-        self.string_from() == other.string_from()
+        self.get_string() == other.get_string()
     }
 }
