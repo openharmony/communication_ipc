@@ -61,7 +61,7 @@ impl ITest for TestService {
     }
 
     fn test_ping_service(&self, service_name: &String16) -> IpcResult<()> {
-        let name = service_name.string_from();
+        let name = service_name.get_string();
         println!("test_ping_service recv service name: {}", name);
         if name == TestStub::get_descriptor() {
             Ok(())
@@ -124,8 +124,8 @@ impl IRemoteBroker for TestService {
         }
 
         for arg in _args.as_slice() {
-            println!("{}", arg.string_from().as_str());
-            _file.as_ref().write_all(arg.string_from().as_str().as_bytes()).expect("write failed");
+            println!("{}", arg.get_string().as_str());
+            _file.as_ref().write_all(arg.get_string().as_str().as_bytes()).expect("write failed");
         }
         IPC_TEST_STATUS_SUCCESS
     }
