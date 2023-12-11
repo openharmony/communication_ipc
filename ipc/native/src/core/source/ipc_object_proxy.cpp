@@ -65,7 +65,7 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGD(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
+    ZLOGI(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()

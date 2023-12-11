@@ -62,7 +62,7 @@ static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGD(LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+    ZLOGI(LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
 }
 
 IPCObjectStub::~IPCObjectStub()
