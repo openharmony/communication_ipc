@@ -150,7 +150,6 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         remoteObject = it->second.GetRefPtr();
     }
     if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
-        ZLOGE(LOG_LABEL, "remote object is nullptr");
         return result;
     }
     result = remoteObject;
