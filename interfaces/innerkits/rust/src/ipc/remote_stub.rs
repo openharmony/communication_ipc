@@ -66,6 +66,8 @@ impl<T: IRemoteStub> RemoteStub<T> {
 impl<T: IRemoteStub> IRemoteBroker for RemoteStub<T> {
     fn as_object(&self) -> Option<RemoteObj> {
         // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
+        // Be mindful of potential memory leaks and manage reference counts carefully.
         unsafe {
             // add remote object reference count
             ipc_binding::RemoteObjectIncStrongRef(self.native);

@@ -40,6 +40,7 @@ impl Ashmem {
         }
         let c_name = CString::new(name).expect("ashmem name is invalid!");
         // SAFETY:
+        // requires ensuring the provided name is valid and not null-terminated within the string itself
         let native = unsafe {
             ipc_binding::CreateCAshmem(c_name.as_ptr(), size)
         };
@@ -191,6 +192,7 @@ impl Ashmem {
 impl Clone for Ashmem {
     fn clone(&self) -> Self {
         // SAFETY:
+        // Ensure `self` is a valid `Ashmem` object with a non-null internal pointer.
         unsafe {
             ipc_binding::CAshmemIncStrongRef(self.as_inner());
         }
@@ -202,6 +204,7 @@ impl Clone for Ashmem {
 impl Drop for Ashmem {
     fn drop(&mut self) {
         // SAFETY:
+        // Ensure `self` is a valid `Ashmem` object with a non-null internal pointer.
         unsafe {
             ipc_binding::CAshmemDecStrongRef(self.as_inner());
         }
@@ -223,6 +226,7 @@ impl Serialize for Ashmem {
 impl Deserialize for Ashmem {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         // SAFETY:
+        // Ensure `parcel` is a valid BorrowedMsgParcel.
         let ptr = unsafe {
             ipc_binding::CParcelReadAshmem(parcel.as_raw())
         };
@@ -230,6 +234,8 @@ impl Deserialize for Ashmem {
             Err(IpcStatusCode::Failed)
         } else {
             // SAFETY:
+            // constructs a new Ashmem object from a raw pointer
+            //  lead to undefined behavior if the pointer is invalid.
             unsafe {
                 let ashmem = Ashmem::from_raw(ptr).expect("Ashmem should success");
                 Ok(ashmem)

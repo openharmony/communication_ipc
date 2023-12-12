@@ -83,8 +83,10 @@ impl RemoteObj {
 }
 
 impl IRemoteObj for RemoteObj {
+    /// This function sends a request to a remote object with the specified code and data.
+    /// # Safety
+    /// Validate and ensure the validity of all pointers before using them.
     fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> IpcResult<MsgParcel> {
-        // SAFETY:
         unsafe {
             let mut reply = MsgParcel::new().expect("create reply MsgParcel not success");
             let result = ipc_binding::RemoteObjectSendRequest(self.as_inner(), code, data.as_raw(),
@@ -119,15 +121,19 @@ impl IRemoteObj for RemoteObj {
         });
     }
 
-    // Add death Recipient
+    /// Add death Recipient to a remote object.
+    /// # Safety
+    /// Validate and ensure the validity of all pointers before using them.
+
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
-        // SAFETY:
         unsafe {
             ipc_binding::AddDeathRecipient(self.as_inner(), recipient.as_mut_raw())
         }
     }
 
-    // remove death Recipients
+    /// remove death Recipients from a remote object.
+    /// # Safety
+    /// The death recipient will no longer be notified when the remote object is destroyed.
     fn remove_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
         // SAFETY:
         unsafe {
@@ -171,9 +177,12 @@ impl IRemoteObj for RemoteObj {
         }
     }
 
+    /// get the interface descriptor for a remote object.
+    /// # Safety
+    /// It's crucial here to ensure vec is valid and non-null before casting.
+    /// Ensure the provided buffer size is sufficient to hold the returned data.
     fn interface_descriptor(&self) -> IpcResult<String> {
         let mut vec: Option<Vec<u16>> = None;
-        // SAFETY:
         let ok_status = unsafe {
             ipc_binding::GetInterfaceDescriptor(
                 self.as_inner(),
@@ -203,10 +212,12 @@ impl Serialize for RemoteObj {
 }
 
 impl Deserialize for RemoteObj {
+    /// cast a BorrowedMsgParcel to a raw pointer.
+    /// # Safety
+    /// `Parcel` always contains a valid pointer to an `AParcel`.
+    /// We pass a valid, mutable pointer to `val`, a literal of type `$ty`,
+    /// and `$read_fn` will write the data into the memory pointed to by `val`.
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
-        // Safety: `Parcel` always contains a valid pointer to an
-        // `AParcel`. We pass a valid, mutable pointer to `val`, a
-        // literal of type `$ty`, and `$read_fn` will write the
         let object = unsafe {
             let remote = ipc_binding::CParcelReadRemoteObject(parcel.as_raw());
             Self::from_raw(remote)

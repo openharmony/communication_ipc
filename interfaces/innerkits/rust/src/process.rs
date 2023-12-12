@@ -27,7 +27,7 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
     tag: "RustProcess"
 };
 
-/// This function retrieves the system-wide SamgrContextManager object.
+/// Get proxy object of samgr.
 ///
 /// # Safety
 ///
@@ -185,6 +185,8 @@ pub fn set_max_work_thread(max_thread_num: i32) -> bool
 /// Determine whether it is a local call
 ///
 /// # Safety
+///
+/// Ensure proper usage within the context of the IPC binding system and its intended behavior.
 #[inline]
 pub fn is_local_calling() -> bool
 {
@@ -288,10 +290,11 @@ pub fn reset_calling_identity() -> IpcResult<String>
 /// Determine whether the current thread is currently executing an incoming transaction.
 ///
 /// # Safety
+///
+/// Ensure proper usage within the context of the IPC binding system and its intended behavior.
 #[inline]
 pub fn is_handling_transaction() -> bool
 {
-    // SAFETY:
     unsafe {
         ipc_binding::IsHandlingTransaction()
     }

@@ -149,7 +149,9 @@ pub unsafe extern "C" fn on_string16_writer(
     let slice: &[String16] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
-        // SAFETY:
+        // SAFETY: This function writes a String16 element to a parcel.
+        // 1. Ensure the `item` is valid within the slice bounds.
+        // 2. Ensure the `item.0` pointer is valid and non-null.
         let ret = unsafe {
             ipc_binding::CParcelWritU16stringElement(
                 array,
