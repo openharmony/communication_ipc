@@ -150,7 +150,8 @@ unsafe extern "C" fn on_str_writer(
     let slice: &[&str] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
-        // SAFETY:
+        // SAFETY: The C interface is assumed to handle the provided index correctly
+        // and not overrun the original slice.
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
@@ -185,7 +186,7 @@ unsafe extern "C" fn on_string_writer(
     let slice: &[String] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
-        // SAFETY:
+        // SAFETY: writes a String element to a parcel.
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
