@@ -116,7 +116,7 @@ unsafe extern "C" fn allocate_vec<T>(
     len: i32,
 ) -> bool {
     if len < 0 {
-        return true;
+        return false;
     }
     allocate_vec_maybeuninit::<T>(value, len as u32);
     true
