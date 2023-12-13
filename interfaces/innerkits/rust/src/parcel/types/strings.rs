@@ -220,6 +220,7 @@ unsafe extern "C" fn on_string_reader(
     for index in 0..len {
         let mut vec_u8: Option<Vec<u8>> = None;
         // SAFETY:
+        // This function reads a string element from a parcel and stores it in the provided vec_u8 pointer.
         let ok_status = unsafe {
             ipc_binding::CParcelReadStringElement(
                 index,
