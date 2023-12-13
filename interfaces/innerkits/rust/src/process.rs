@@ -27,14 +27,11 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
     tag: "RustProcess"
 };
 
-/// Get proxy object of samgr.
-///
-/// # Safety
-///
-/// If no SamgrContextManager object is available, the function might return nullptr,
-/// causing the subsequent RemoteObj::from_raw call to fail.
+/// Get proxy object of samgr
 pub fn get_context_object() -> Option<RemoteObj>
 {
+    // SAFETY: If no SamgrContextManager object is available, the function might return nullptr,
+    // causing the subsequent RemoteObj::from_raw call to fail.
     unsafe {
         let samgr = ipc_binding::GetContextManager();
         RemoteObj::from_raw(samgr)
@@ -72,139 +69,117 @@ pub fn get_service(said: i32) -> IpcResult<RemoteObj>
     Ok(remote)
 }
 
-/// Make the current thread join the IPC/RPC work thread pool.
-///
-/// # Safety
-///
-/// It should only be called from a thread not already part of the pool.
-/// The potential blocking nature of the function and its impact on other threads.
+/// Make the current thread join the IPC/RPC work thread pool
 #[inline]
 pub fn join_work_thread()
 {
+    //SAFETY:
+    // It should only be called from a thread not already part of the pool.
+    // The potential blocking nature of the function and its impact on other threads.
     unsafe {
         ipc_binding::JoinWorkThread();
     }
 }
 
-/// Exit current thread from IPC/RPC work thread pool.
-///
-/// # Safety
-///
-/// It should only be called from a thread belonging to the pool.
-/// Prematurely exiting might leave pending requests unprocessed and cause unexpected behavior.
+/// Exit current thread from IPC/RPC work thread pool
 #[inline]
 pub fn stop_work_thread()
 {
+    // SAFETY:
+    // It should only be called from a thread belonging to the pool.
+    // Prematurely exiting might leave pending requests unprocessed and cause unexpected behavior.
     unsafe {
         ipc_binding::StopWorkThread()
     }
 }
 
-/// Get the token ID of the calling process.
-///
-/// # Safety
-///
-/// Consider verifying it with additional security measures and context-based information when necessary.
+/// Get the token ID of caller
 #[inline]
 pub fn get_calling_token_id() -> u64
 {
+    // SAFETY:
+    // Consider verifying it with additional security measures and context-based information when necessary.
     unsafe {
         ipc_binding::GetCallingTokenId()
     }
 }
 
-/// Get the first token ID from the calling process.
-///
-/// # Safety
-///
-/// Consider verifying it with additional security measures and context-based information when necessary.
+/// Get the first token ID from the calling process
 #[inline]
 pub fn get_first_token_id() -> u64
 {
+    // SAFETY:
+    // Consider verifying it with additional security measures and context-based information when necessary.
     unsafe {
         ipc_binding::GetFirstToekenId()
     }
 }
 
-/// Get the token ID of the current process.
-///
-/// # Safety
-///
-/// Minimize its exposure, restrict access to authorized parties within your application.
+/// Get the token ID of the current process
 #[inline]
 pub fn get_self_token_id() -> u64
 {
+    // SAFETY:
+    // Minimize its exposure, restrict access to authorized parties within your application.
     unsafe {
         ipc_binding::GetSelfToekenId()
     }
 }
 
-/// Get the process ID of the calling process.
-///
-/// # Safety
-///
-/// The returned PID might be incorrect or invalid due to potential issues
-/// with the IPC mechanism or malicious attempts to manipulate it.
+/// Get the process ID of the caller
 #[inline]
 pub fn get_calling_pid() -> u64
 {
+    // SAFETY:
+    // The returned PID might be incorrect or invalid due to potential issues
+    // with the IPC mechanism or malicious attempts to manipulate it.
     unsafe {
         ipc_binding::GetCallingPid()
     }
 }
 
-/// Get the user ID of the calling process.
-///
-/// # Safety
-///
-/// Minimize its exposure, restrict access to authorized parties,
-/// and implement robust security measures to prevent unauthorized leaks or manipulation.
+/// Get the user ID of the caller
 #[inline]
 pub fn get_calling_uid() -> u64
 {
+    // SAFETY:
+    // Minimize its exposure, restrict access to authorized parties,
+    // and implement robust security measures to prevent unauthorized leaks or manipulation.
     unsafe {
         ipc_binding::GetCallingUid()
     }
 }
 
 /// Set the maximum number of threads
-///
-/// # Safety
-///
-/// Setting an invalid or inappropriate value can lead to unexpected behavior,
-/// resource exhaustion, and system instability.
-/// Ensuring the provided value is valid and appropriate for the system resources and workload.
 #[inline]
 pub fn set_max_work_thread(max_thread_num: i32) -> bool
 {
+    // SAFETY:
+    // Ensuring the provided value is valid and appropriate for the system resources and workload.
     unsafe {
         ipc_binding::SetMaxWorkThreadNum(max_thread_num)
     }
 }
 
 /// Determine whether it is a local call
-///
-/// # Safety
-///
-/// Ensure proper usage within the context of the IPC binding system and its intended behavior.
 #[inline]
 pub fn is_local_calling() -> bool
 {
+    // SAFETY:
+    // Ensure proper usage within the context of the IPC binding system and its intended behavior.
     unsafe {
         ipc_binding::IsLocalCalling()
     }
 }
 
-/// Set the calling identity for the current process.
-///
-/// # Safety
-///
-/// Ensuring the provided identity string is valid.
+/// Set calling identity
 #[inline]
 pub fn set_calling_identity(identity: String) -> bool
 {
     match CString::new(identity.as_str()) {
         Ok(name) => {
+            // SAFETY:
+            // Ensuring the provided identity string is valid.
             unsafe {
                 ipc_binding::SetCallingIdentity(name.as_ptr())
             }
@@ -213,16 +188,14 @@ pub fn set_calling_identity(identity: String) -> bool
     }
 }
 
-/// Get the local device ID of the current process.
-///
-/// # Safety
-///
-/// it's important to ensure that the vec contains valid data and is not null.
-/// The provided buffer size is sufficient to hold the returned data.
+/// get  local device id
 #[inline]
 pub fn get_local_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
+    // SAFETY:
+    // it's important to ensure that the vec contains valid data and is not null.
+    // The provided buffer size is sufficient to hold the returned data.
     let ok_status = unsafe {
         ipc_binding::GetLocalDeviceID(
             &mut vec as *mut _ as *mut c_void,
@@ -237,17 +210,14 @@ pub fn get_local_device_id() -> IpcResult<String>
     }
 }
 
-/// Get the device ID of the calling process.
-///
-/// # Safety
-///
-/// it's important to ensure that the vec contains valid data and is not null.
-/// The provided buffer size is sufficient to hold the returned data.
+///  get calling device id
 #[inline]
 pub fn get_calling_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
-
+    // SAFETY:
+    // it's important to ensure that the vec contains valid data and is not null.
+    // The provided buffer size is sufficient to hold the returned data.
     let ok_status = unsafe {
         ipc_binding::GetCallingDeviceID(
             &mut vec as *mut _ as *mut c_void,
@@ -262,17 +232,14 @@ pub fn get_calling_device_id() -> IpcResult<String>
     }
 }
 
-/// Reset the calling identity of the current process.
-///
-/// # Safety
-///
-/// Be cautious when using this function and ensure that:
-/// * The provided buffer size is sufficient to hold the returned data.
-/// * The returned `String` is validated before using it.
+/// reset calling identity
 #[inline]
 pub fn reset_calling_identity() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
+    // SAFETY:
+    // The provided buffer size is sufficient to hold the returned data.
+    // The returned `String` is validated before using it.
     let ok_status = unsafe {
         ipc_binding::ResetCallingIdentity(
             &mut vec as *mut _ as *mut c_void,
@@ -288,13 +255,11 @@ pub fn reset_calling_identity() -> IpcResult<String>
 }
 
 /// Determine whether the current thread is currently executing an incoming transaction.
-///
-/// # Safety
-///
-/// Ensure proper usage within the context of the IPC binding system and its intended behavior.
 #[inline]
 pub fn is_handling_transaction() -> bool
 {
+    // SAFETY:
+    // Ensure proper usage within the context of the IPC binding system and its intended behavior.
     unsafe {
         ipc_binding::IsHandlingTransaction()
     }
