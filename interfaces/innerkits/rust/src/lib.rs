@@ -27,7 +27,7 @@ mod ashmem;
 pub use crate::errors::{IpcResult, status_result, IpcStatusCode, parse_status_code};
 pub use crate::ipc::{
     IRemoteBroker, IRemoteObj, IRemoteStub, FromRemoteObj,
-    RemoteObjRef, remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient,remote_stub::RemoteStub,
+    RemoteObjRef, remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient, remote_stub::RemoteStub,
 };
 pub use crate::ipc_async::{
     IpcAsyncPool, IpcAsyncRuntime, ToAsyncIpc, ToSyncIpc,

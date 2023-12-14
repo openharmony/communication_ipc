@@ -171,17 +171,17 @@ impl IRemoteObj for RemoteObj {
 
     fn is_dead(&self) -> bool {
         // SAFETY:
+        //`object` always contains a valid pointer
         unsafe {
             ipc_binding::IsObjectDead(self.as_inner())
         }
     }
 
-    /// get the interface descriptor for a remote object.
-    /// # Safety
-    /// It's crucial here to ensure vec is valid and non-null before casting.
-    /// Ensure the provided buffer size is sufficient to hold the returned data.
     fn interface_descriptor(&self) -> IpcResult<String> {
         let mut vec: Option<Vec<u16>> = None;
+        // FAFETY: get the interface descriptor for a remote object.
+        // It's crucial here to ensure vec is valid and non-null before casting.
+        // Ensure the provided buffer size is sufficient to hold the returned data.
         let ok_status = unsafe {
             ipc_binding::GetInterfaceDescriptor(
                 self.as_inner(),
