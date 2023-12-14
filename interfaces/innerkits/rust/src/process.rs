@@ -116,7 +116,7 @@ pub fn get_first_token_id() -> u64
     }
 }
 
-/// Get the token ID of the current process
+/// Get self token id of current process
 #[inline]
 pub fn get_self_token_id() -> u64
 {
@@ -127,7 +127,7 @@ pub fn get_self_token_id() -> u64
     }
 }
 
-/// Get the process id of caller
+/// Get calling process id of caller
 #[inline]
 pub fn get_calling_pid() -> u64
 {
@@ -139,7 +139,7 @@ pub fn get_calling_pid() -> u64
     }
 }
 
-/// Get the user id of caller
+/// Get calling user id of caller
 #[inline]
 pub fn get_calling_uid() -> u64
 {

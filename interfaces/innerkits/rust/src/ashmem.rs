@@ -235,7 +235,7 @@ impl Deserialize for Ashmem {
         } else {
             // SAFETY:
             // constructs a new Ashmem object from a raw pointer
-            //  lead to undefined behavior if the pointer is invalid.
+            // lead to undefined behavior if the pointer is invalid.
             unsafe {
                 let ashmem = Ashmem::from_raw(ptr).expect("Ashmem should success");
                 Ok(ashmem)
