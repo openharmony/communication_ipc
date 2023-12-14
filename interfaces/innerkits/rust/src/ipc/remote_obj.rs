@@ -83,10 +83,9 @@ impl RemoteObj {
 }
 
 impl IRemoteObj for RemoteObj {
-    /// This function sends a request to a remote object with the specified code and data.
-    /// # Safety
-    /// Validate and ensure the validity of all pointers before using them.
     fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> IpcResult<MsgParcel> {
+        // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
         unsafe {
             let mut reply = MsgParcel::new().expect("create reply MsgParcel not success");
             let result = ipc_binding::RemoteObjectSendRequest(self.as_inner(), code, data.as_raw(),
@@ -121,20 +120,18 @@ impl IRemoteObj for RemoteObj {
         });
     }
 
-    /// Add death Recipient to a remote object.
-    /// # Safety
-    /// Validate and ensure the validity of all pointers before using them.
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
+        // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
         unsafe {
             ipc_binding::AddDeathRecipient(self.as_inner(), recipient.as_mut_raw())
         }
     }
 
-    /// remove death Recipients from a remote object.
-    /// # Safety
-    /// The death recipient will no longer be notified when the remote object is destroyed.
+    // remove death Recipients
     fn remove_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
         // SAFETY:
+        // The death recipient will no longer be notified when the remote object is destroyed.
         unsafe {
             ipc_binding::RemoveDeathRecipient(self.as_inner(), recipient.as_mut_raw())
         }
@@ -142,6 +139,7 @@ impl IRemoteObj for RemoteObj {
 
     fn is_proxy(&self) -> bool {
         // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
         unsafe {
             ipc_binding::IsProxyObject(self.as_inner())
         }
@@ -179,7 +177,7 @@ impl IRemoteObj for RemoteObj {
 
     fn interface_descriptor(&self) -> IpcResult<String> {
         let mut vec: Option<Vec<u16>> = None;
-        // FAFETY: get the interface descriptor for a remote object.
+        // SAFETY: get the interface descriptor for a remote object.
         // It's crucial here to ensure vec is valid and non-null before casting.
         // Ensure the provided buffer size is sufficient to hold the returned data.
         let ok_status = unsafe {
