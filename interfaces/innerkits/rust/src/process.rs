@@ -70,11 +70,11 @@ pub fn get_service(said: i32) -> IpcResult<RemoteObj>
     Ok(remote)
 }
 
-/// Make the current thread join the IPC/RPC work thread pool
+/// Make current thread join to the IPC/RPC work thread pool
 #[inline]
 pub fn join_work_thread()
 {
-    //SAFETY:
+    // SAFETY:
     // It should only be called from a thread not already part of the pool.
     // The potential blocking nature of the function and its impact on other threads.
     unsafe {
@@ -94,7 +94,7 @@ pub fn stop_work_thread()
     }
 }
 
-/// Get the token ID of caller
+/// Get calling token ID of caller
 #[inline]
 pub fn get_calling_token_id() -> u64
 {
@@ -105,7 +105,7 @@ pub fn get_calling_token_id() -> u64
     }
 }
 
-/// Get the first token ID from the calling process
+/// Get first calling token ID of caller
 #[inline]
 pub fn get_first_token_id() -> u64
 {
@@ -127,7 +127,7 @@ pub fn get_self_token_id() -> u64
     }
 }
 
-/// Get the process ID of the caller
+/// Get the process id of caller
 #[inline]
 pub fn get_calling_pid() -> u64
 {
@@ -139,7 +139,7 @@ pub fn get_calling_pid() -> u64
     }
 }
 
-/// Get the user ID of the caller
+/// Get the user id of caller
 #[inline]
 pub fn get_calling_uid() -> u64
 {
@@ -180,7 +180,7 @@ pub fn set_calling_identity(identity: String) -> bool
     match CString::new(identity.as_str()) {
         Ok(name) => {
             // SAFETY:
-            // Ensuring the provided identity string is valid.
+            // Name is valid
             unsafe {
                 ipc_binding::SetCallingIdentity(name.as_ptr())
             }
@@ -189,7 +189,7 @@ pub fn set_calling_identity(identity: String) -> bool
     }
 }
 
-/// get  local device id
+/// get local device id
 #[inline]
 pub fn get_local_device_id() -> IpcResult<String>
 {
@@ -211,7 +211,7 @@ pub fn get_local_device_id() -> IpcResult<String>
     }
 }
 
-///  get calling device id
+/// get calling device id
 #[inline]
 pub fn get_calling_device_id() -> IpcResult<String>
 {

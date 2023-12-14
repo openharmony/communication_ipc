@@ -35,24 +35,20 @@ use crate::parcel::parcelable::{Serialize, Deserialize};
 /// and BorrowedMsgParcel
 pub trait IMsgParcel: AsRawPtr<CParcel> {
     /// Get current data size in parcel
-    /// # Safety
-    ///
-    /// The self reference must be valid and point to a properly allocated CParcel object
     fn get_data_size(&self) -> u32 {
+        // SAFETY:
+        // The self reference must be valid and point to a properly allocated CParcel object
         unsafe {
             ipc_binding::CParcelGetDataSize(self.as_raw())
         }
     }
 
     /// Set current data size in parcel
-    /// # Safety
-    ///
-    /// The self reference must be valid and point to a properly allocated CParcel object.
-    /// Calling this function with an invalid self reference can lead to undefined behavior,
-    /// including memory access violations and data corruption.
-    /// Setting a data size larger than the actual allocated memory of the CParcel object
-    /// might lead to memory corruption and crashes.
     fn set_data_size(&mut self, new_size: u32) -> bool {
+        // SAFETY:
+        // The self reference must be valid and point to a properly allocated CParcel object.
+        // Calling this function with an invalid self reference can lead to undefined behavior,
+        // including memory access violations and data corruption.
         unsafe {
             ipc_binding::CParcelSetDataSize(self.as_mut_raw(), new_size)
         }
