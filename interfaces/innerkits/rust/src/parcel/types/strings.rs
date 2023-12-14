@@ -15,8 +15,8 @@
 
 use super::*;
 use crate::{
-    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result,
-    AsRawPtr
+    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode,
+    status_result, AsRawPtr
 };
 use std::convert::TryInto;
 use std::mem::MaybeUninit;

@@ -19,8 +19,11 @@ use crate::{
 };
 use crate::ipc_binding::{CRemoteObject, CParcel};
 use std::ffi::{c_void, CString, c_char};
-use std::ops::{Deref};
-use hilog_rust::{info, error, hilog, HiLogLabel, LogType};
+use std::ops::Deref;
+use hilog_rust::{
+    info, error, hilog, HiLogLabel,
+    LogType
+};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
