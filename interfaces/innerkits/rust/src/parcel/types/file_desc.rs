@@ -14,7 +14,10 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, status_result, IpcResult, IpcStatusCode};
+use crate::{
+    ipc_binding, BorrowedMsgParcel, AsRawPtr, status_result,
+    IpcResult, IpcStatusCode
+};
 
 use std::fs::File;
 use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};

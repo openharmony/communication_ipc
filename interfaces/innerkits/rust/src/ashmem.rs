@@ -14,8 +14,8 @@
  */
 
 use crate::{
-    ipc_binding, RawData, IpcResult, IpcStatusCode, BorrowedMsgParcel, status_result,
-    AsRawPtr
+    ipc_binding, RawData, IpcResult, IpcStatusCode,
+    BorrowedMsgParcel, status_result, AsRawPtr
 };
 use crate::ipc_binding::CAshmem;
 use std::ffi::{CString, c_char};
@@ -153,7 +153,7 @@ impl Ashmem {
     /// Write data to ashmem
     pub fn write(&self, data: &[u8], offset: i32) -> bool {
         let len = data.len() as i32;
-        if offset < 0 || offset >= len {
+        if (offset < 0) || (offset >= len) {
             error!(LOG_LABEL, "invalid offset: {}, len: {}", offset, len);
             return false;
         }

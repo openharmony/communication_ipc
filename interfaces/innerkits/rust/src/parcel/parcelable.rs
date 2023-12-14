@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-use crate::{IpcResult, IpcStatusCode, status_result, BorrowedMsgParcel, ipc_binding, AsRawPtr};
+use crate::{
+    IpcResult, IpcStatusCode, status_result, BorrowedMsgParcel,
+    ipc_binding, AsRawPtr
+};
 use std::mem::MaybeUninit;
 use std::ffi::{c_void, c_ulong};
 use std::ptr;

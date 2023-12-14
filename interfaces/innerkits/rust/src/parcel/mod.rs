@@ -263,7 +263,7 @@ impl RawData{
     /// The caller should ensure that the u8 slice can be
     /// correctly converted to other rust types
     pub fn read(&self, start: u32, len: u32) -> IpcResult<&[u8]> {
-        if len == 0 || len > self.len || start >= self.len || (start + len) > self.len {
+        if (len == 0) || (len > self.len) || (start >= self.len) || ((start + len) > self.len) {
             return Err(IpcStatusCode::Failed);
         }
         // SAFETY:

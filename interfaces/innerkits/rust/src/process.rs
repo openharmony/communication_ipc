@@ -14,8 +14,9 @@
  */
 
 use crate::{
-    ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterfaceToken, String16,
-    IpcResult, IpcStatusCode, parse_status_code,
+    ipc_binding, MsgParcel, RemoteObj, IRemoteObj,
+    InterfaceToken, String16, IpcResult, IpcStatusCode,
+    parse_status_code
 };
 use crate::parcel::{vec_to_string, allocate_vec_with_buffer};
 use std::ffi::{CString, c_char, c_void};
