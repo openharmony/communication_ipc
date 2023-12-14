@@ -58,6 +58,7 @@ pub fn parse_status_code(code: i32) -> IpcStatusCode {
 #[derive(Ord, PartialOrd)]
 #[derive(Clone, Copy)]
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum IpcStatusCode {
     /// success
     Ok = 1,

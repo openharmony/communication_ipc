@@ -124,7 +124,6 @@ impl IRemoteObj for RemoteObj {
     /// Add death Recipient to a remote object.
     /// # Safety
     /// Validate and ensure the validity of all pointers before using them.
-
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
         unsafe {
             ipc_binding::AddDeathRecipient(self.as_inner(), recipient.as_mut_raw())
@@ -212,12 +211,11 @@ impl Serialize for RemoteObj {
 }
 
 impl Deserialize for RemoteObj {
-    /// cast a BorrowedMsgParcel to a raw pointer.
-    /// # Safety
-    /// `Parcel` always contains a valid pointer to an `AParcel`.
-    /// We pass a valid, mutable pointer to `val`, a literal of type `$ty`,
-    /// and `$read_fn` will write the data into the memory pointed to by `val`.
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
+        // Safety:
+        // `Parcel` always contains a valid pointer to an `AParcel`.
+        // We pass a valid, mutable pointer to `val`, a literal of type `$ty`,
+        // and `$read_fn` will write the data into the memory pointed to by `val`.
         let object = unsafe {
             let remote = ipc_binding::CParcelReadRemoteObject(parcel.as_raw());
             Self::from_raw(remote)
