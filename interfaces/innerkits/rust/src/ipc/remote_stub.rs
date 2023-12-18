@@ -119,8 +119,14 @@ impl<T: IRemoteStub> RemoteStub<T> {
         let res = {
             // BorrowedMsgParcel calls the correlation function from_raw must return as Some,
             // direct deconstruction will not crash.
-            let mut reply = BorrowedMsgParcel::from_raw(reply).unwrap();
-            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).expect("MsgParcel should success");
+            let mut reply = BorrowedMsgParcel::from_raw(reply).expect("MsgParcel should success");
+            let data = match BorrowedMsgParcel::from_raw(data as *mut CParcel) {
+                Some(data) => data,
+                _ => {
+                    error!(LOG_LABEL, "Failed to create BorrowedMsgParcel from raw pointer");
+                    return IpcStatusCode::Failed as i32;
+                }
+            };
             let rust_object: &T = &*(user_data as *mut T);
             rust_object.on_remote_request(code, &data, &mut reply)
         };
@@ -135,7 +141,13 @@ impl<T: IRemoteStub> RemoteStub<T> {
             let rust_object: &T = &*(user_data as *mut T);
             // BorrowedMsgParcel calls the correlation functio from_raw must return as Some,
             // direct deconstruction will not crash.
-            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).expect("MsgParcel should success");
+            let data = match BorrowedMsgParcel::from_raw(data as *mut CParcel) {
+                Some(data) => data,
+                _ => {
+                    error!(LOG_LABEL, "Failed to create BorrowedMsgParcel from raw pointer");
+                    return IpcStatusCode::Failed as i32;
+                }
+            };
             let file: FileDesc = match data.read::<FileDesc>() {
                 Ok(file) => file,
                 _ => {
