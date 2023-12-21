@@ -2921,7 +2921,7 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
     napi_status status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     MessageParcel *parcel = nullptr;
-    if (argv[ARGV_INDEX_0] != nullptr) {
+    if (argc > 0) {
         napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&parcel);
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }
