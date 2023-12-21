@@ -45,7 +45,11 @@ ohos_shared_library("ipc_common") {
     "platformsdk_indirect",
   ]
 
-  install_images = [ system_base_dir ]
+  install_images = [
+    system_base_dir,
+    updater_base_dir,
+  ]
+
   subsystem_name = "communication"
   part_name = "ipc"
 }
