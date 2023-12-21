@@ -501,7 +501,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             break;
         }
         if (remoteObject == nullptr) {
-            SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_FOUND, replyMessage);
+            SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_FOUND, replyMessage);
             DBINDER_LOGE(LOG_LABEL, "GetSystemAbility from samgr error, saId:%{public}d", systemAbilityId);
             continue;
         }
@@ -511,7 +511,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             /* When the stub object dies, you need to delete the corresponding busName information */
             sptr<IRemoteObject::DeathRecipient> death(new DbinderSaDeathRecipient(binderObject));
             if (!saProxy->AddDeathRecipient(death)) {
-                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_FOUND, replyMessage);
+                SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_FOUND, replyMessage);
                 DBINDER_LOGE(LOG_LABEL, "fail to add death recipient");
                 continue;
             }
@@ -521,7 +521,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
         }
         std::string deviceId = replyMessage->deviceIdInfo.fromDeviceId;
         if (replyMessage->transType != IRemoteObject::DATABUS_TYPE) {
-            SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_INVOKE_FAILED, replyMessage);
+            SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_INVOKE_FAILED, replyMessage);
             DBINDER_LOGE(LOG_LABEL, "Invalid Message Type");
         } else {
             // peer device rpc version == 1, not support thokenId and message->deviceIdInfo.tokenId is random value
@@ -530,16 +530,16 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             uint32_t result = OnRemoteInvokerDataBusMessage(saProxy, replyMessage.get(), deviceId,
                 replyMessage->pid, replyMessage->uid, tokenId);
             if (result != 0) {
-                SendMessageToRemote(MESSAGE_AS_REMOTE_ERROR, result, replyMessage);
+                SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, result, replyMessage);
                 continue;
             }
-            SendMessageToRemote(MESSAGE_AS_REPLY, 0, replyMessage);
+            SendReplyMessageToRemote(MESSAGE_AS_REPLY, 0, replyMessage);
         }
     }
     DBINDER_LOGI(LOG_LABEL, "LoadSystemAbility complete");
 }
 
-void DBinderService::SendMessageToRemote(uint32_t dBinderCode, uint32_t reason,
+void DBinderService::SendReplyMessageToRemote(uint32_t dBinderCode, uint32_t reason,
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage)
 {
     std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
@@ -551,7 +551,7 @@ void DBinderService::SendMessageToRemote(uint32_t dBinderCode, uint32_t reason,
     if (dBinderCode == MESSAGE_AS_REMOTE_ERROR) {
         replyMessage->transType = reason; // reuse transType send back error code
     }
-    if (!remoteListener->SendDataToRemote(replyMessage->deviceIdInfo.fromDeviceId, replyMessage.get())) {
+    if (!remoteListener->SendDataReply(replyMessage->deviceIdInfo.fromDeviceId, replyMessage.get())) {
         DBINDER_LOGE(LOG_LABEL, "fail to send data from server DBS to client DBS");
     }
 }
