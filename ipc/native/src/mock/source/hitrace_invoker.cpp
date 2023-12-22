@@ -109,10 +109,14 @@ bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel 
     if (isServerTraced) {
         size_t oldReadPosition = data.GetReadPosition();
         // padded size(4 bytes) of uint8_t
+        if (data.GetDataSize() < PADDED_SIZE_OF_PARCEL) {
+            ZLOGE(TRACE_LABEL, "The size of the data packet is less than 4");
+            return false;
+        }
         data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL);
         // the padded size of traceid
         uint8_t idLen = data.ReadUint8();
-        if (idLen >= sizeof(HiTraceIdStruct)) {
+        if ((idLen >= sizeof(HiTraceIdStruct)) && (idLen <= (data.GetDataSize() - PADDED_SIZE_OF_PARCEL))) {
             // padded size(4 bytes) of uint8_t
             data.RewindRead(data.GetDataSize() - PADDED_SIZE_OF_PARCEL - idLen);
             const uint8_t *idBytes = data.ReadUnpadBuffer(sizeof(HiTraceIdStruct));
