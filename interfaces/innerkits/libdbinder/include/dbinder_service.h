@@ -353,7 +353,7 @@ private:
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
         std::shared_ptr<DHandleEntryTxRx> loadSaItem);
     std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
-    void SendMessageToRemote(uint32_t dBinderCode, uint32_t reason,
+    void SendReplyMessageToRemote(uint32_t dBinderCode, uint32_t reason,
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
 
 private:
