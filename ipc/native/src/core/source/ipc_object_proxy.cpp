@@ -251,7 +251,6 @@ void IPCObjectProxy::WaitForInit()
         if (!isFinishInit_) {
 #ifndef CONFIG_IPC_SINGLE
             if (UpdateProto() == IRemoteObject::IF_PROT_ERROR) {
-                ZLOGE(LABEL, "UpdateProto get IF_PROT_ERROR");
                 isRemoteDead_ = true;
             }
 #endif
@@ -306,7 +305,6 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
 void IPCObjectProxy::MarkObjectDied()
 {
     isRemoteDead_ = true;
-    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
 }
 
 bool IPCObjectProxy::IsObjectDead() const

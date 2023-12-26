@@ -90,14 +90,14 @@ NAPI_MessageSequence::NAPI_MessageSequence(napi_env env, napi_value thisVar, Mes
 
 NAPI_MessageSequence::~NAPI_MessageSequence()
 {
-    ZLOGI(LOG_LABEL, "NAPI_MessageSequence::Destructor");
+    ZLOGD(LOG_LABEL, "NAPI_MessageSequence::Destructor");
     nativeParcel_ = nullptr;
     env_ = nullptr;
 }
 
 void NAPI_MessageSequence::release(MessageParcel *parcel)
 {
-    ZLOGI(LOG_LABEL, "message parcel is created by others, do nothing");
+    ZLOGD(LOG_LABEL, "message parcel is created by others, do nothing");
 }
 
 std::shared_ptr<MessageParcel> NAPI_MessageSequence::GetMessageParcel()

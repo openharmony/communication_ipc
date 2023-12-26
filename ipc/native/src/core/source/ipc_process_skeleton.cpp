@@ -145,7 +145,6 @@ void IPCProcessSkeleton::ClearDataResource()
 
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
-    ZLOGW(LOG_LABEL, "destroy");
     std::lock_guard<std::mutex> lockGuard(procMutex_);
     exitFlag_ = true;
     delete threadPool_;
@@ -354,7 +353,6 @@ bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
     }
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
-        ZLOGE(LOG_LABEL, "descriptor is null");
         return false;
     }
     auto current = ProcessSkeleton::GetInstance();
