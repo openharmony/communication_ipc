@@ -107,7 +107,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGE(LABEL, "unknown code:%{public}u desc:%{public}s", code, Str16ToStr8(descriptor_).c_str());
+            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s", code, Str16ToStr8(descriptor_).c_str());
             break;
     }
     return result;
