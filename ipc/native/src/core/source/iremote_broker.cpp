@@ -80,7 +80,7 @@ sptr<IRemoteBroker> BrokerRegistration::NewInstance(const std::u16string &descri
             if (it != creators_.end()) {
                 broker = it->second(object);
             }
-        } else {
+        } else if (descriptor == object->GetObjectDescriptor) {
             broker = object->AsInterface().GetRefPtr();
         }
     }
