@@ -14,7 +14,10 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, AsRawPtr, status_result};
+use crate::{
+    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode,
+    AsRawPtr, status_result
+};
 use std::convert::TryInto;
 use std::ffi::{CString, c_char};
 use hilog_rust::{error, hilog, HiLogLabel, LogType};

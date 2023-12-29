@@ -14,8 +14,8 @@
  */
 
 use crate::{
-    ipc_binding, RawData, IpcResult, IpcStatusCode, BorrowedMsgParcel, status_result,
-    AsRawPtr
+    ipc_binding, RawData, IpcResult, IpcStatusCode,
+    BorrowedMsgParcel, status_result, AsRawPtr
 };
 use crate::ipc_binding::CAshmem;
 use std::ffi::{CString, c_char};
@@ -40,6 +40,7 @@ impl Ashmem {
         }
         let c_name = CString::new(name).expect("ashmem name is invalid!");
         // SAFETY:
+        // requires ensuring the provided name is valid and not null-terminated within the string itself
         let native = unsafe {
             ipc_binding::CreateCAshmem(c_name.as_ptr(), size)
         };
@@ -152,7 +153,7 @@ impl Ashmem {
     /// Write data to ashmem
     pub fn write(&self, data: &[u8], offset: i32) -> bool {
         let len = data.len() as i32;
-        if offset < 0 || offset >= len {
+        if (offset < 0) || (offset >= len) {
             error!(LOG_LABEL, "invalid offset: {}, len: {}", offset, len);
             return false;
         }
@@ -191,6 +192,7 @@ impl Ashmem {
 impl Clone for Ashmem {
     fn clone(&self) -> Self {
         // SAFETY:
+        // Ensure `self` is a valid `Ashmem` object with a non-null internal pointer.
         unsafe {
             ipc_binding::CAshmemIncStrongRef(self.as_inner());
         }
@@ -202,6 +204,7 @@ impl Clone for Ashmem {
 impl Drop for Ashmem {
     fn drop(&mut self) {
         // SAFETY:
+        // Ensure `self` is a valid `Ashmem` object with a non-null internal pointer.
         unsafe {
             ipc_binding::CAshmemDecStrongRef(self.as_inner());
         }
@@ -223,6 +226,7 @@ impl Serialize for Ashmem {
 impl Deserialize for Ashmem {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
         // SAFETY:
+        // Ensure `parcel` is a valid BorrowedMsgParcel.
         let ptr = unsafe {
             ipc_binding::CParcelReadAshmem(parcel.as_raw())
         };
@@ -230,9 +234,16 @@ impl Deserialize for Ashmem {
             Err(IpcStatusCode::Failed)
         } else {
             // SAFETY:
+            // constructs a new Ashmem object from a raw pointer
+            // lead to undefined behavior if the pointer is invalid.
             unsafe {
-                let ashmem = Ashmem::from_raw(ptr).unwrap();
-                Ok(ashmem)
+                match Ashmem::from_raw(ptr) {
+                    Some(ashmem) => Ok(ashmem),
+                    _ => {
+                        error!(LOG_LABEL, "Failed to create Ashmem object from raw pointer");
+                        Err(IpcStatusCode::Failed)
+                    }
+                }
             }
         }
     }

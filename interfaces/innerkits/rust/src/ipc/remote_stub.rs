@@ -19,8 +19,11 @@ use crate::{
 };
 use crate::ipc_binding::{CRemoteObject, CParcel};
 use std::ffi::{c_void, CString, c_char};
-use std::ops::{Deref};
-use hilog_rust::{info, error, hilog, HiLogLabel, LogType};
+use std::ops::Deref;
+use hilog_rust::{
+    info, error, hilog, HiLogLabel,
+    LogType
+};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
@@ -66,6 +69,8 @@ impl<T: IRemoteStub> RemoteStub<T> {
 impl<T: IRemoteStub> IRemoteBroker for RemoteStub<T> {
     fn as_object(&self) -> Option<RemoteObj> {
         // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
+        // Be mindful of potential memory leaks and manage reference counts carefully.
         unsafe {
             // add remote object reference count
             ipc_binding::RemoteObjectIncStrongRef(self.native);
@@ -114,8 +119,14 @@ impl<T: IRemoteStub> RemoteStub<T> {
         let res = {
             // BorrowedMsgParcel calls the correlation function from_raw must return as Some,
             // direct deconstruction will not crash.
-            let mut reply = BorrowedMsgParcel::from_raw(reply).unwrap();
-            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
+            let mut reply = BorrowedMsgParcel::from_raw(reply).expect("MsgParcel should success");
+            let data = match BorrowedMsgParcel::from_raw(data as *mut CParcel) {
+                Some(data) => data,
+                _ => {
+                    error!(LOG_LABEL, "Failed to create BorrowedMsgParcel from raw pointer");
+                    return IpcStatusCode::Failed as i32;
+                }
+            };
             let rust_object: &T = &*(user_data as *mut T);
             rust_object.on_remote_request(code, &data, &mut reply)
         };
@@ -130,7 +141,13 @@ impl<T: IRemoteStub> RemoteStub<T> {
             let rust_object: &T = &*(user_data as *mut T);
             // BorrowedMsgParcel calls the correlation functio from_raw must return as Some,
             // direct deconstruction will not crash.
-            let data = BorrowedMsgParcel::from_raw(data as *mut CParcel).unwrap();
+            let data = match BorrowedMsgParcel::from_raw(data as *mut CParcel) {
+                Some(data) => data,
+                _ => {
+                    error!(LOG_LABEL, "Failed to create BorrowedMsgParcel from raw pointer");
+                    return IpcStatusCode::Failed as i32;
+                }
+            };
             let file: FileDesc = match data.read::<FileDesc>() {
                 Ok(file) => file,
                 _ => {
