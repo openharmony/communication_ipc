@@ -73,7 +73,7 @@ bool BinderConnector::OpenDriver()
 {
     int fd = open(deviceName_.c_str(), O_RDWR | O_CLOEXEC);
     if (fd < 0) {
-        ZLOGE(LABEL, "fail to open:%{public}s errno:%{public}d", deviceName_.c_str(), errno);
+        ZLOGE(LABEL, "fail to open errno:%{public}d", errno);
         ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
             KERNEL_DRIVER_OPEN_IPC_DRIVER_FAILURE, __FUNCTION__);
         return false;
@@ -93,7 +93,7 @@ bool BinderConnector::OpenDriver()
         ZLOGE(LABEL, "Get Binder featureSet failed:%{public}d, disable all enhance feature.", errno);
         featureSet = 0;
     }
-    ZLOGI(LABEL, "success to open:%{public}s fd:%{public}d", deviceName_.c_str(), fd);
+    ZLOGD(LABEL, "success to open fd:%{public}d", fd);
     driverFD_ = fd;
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
     if (vmAddr_ == MAP_FAILED) {
