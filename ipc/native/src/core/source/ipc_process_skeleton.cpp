@@ -240,7 +240,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
             return result;
         }
         if (!invoker->PingService(REGISTRY_HANDLE)) {
-            ZLOGE(LOG_LABEL, "Registry is not exist");
             current->UnlockObjectMutex();
             return result;
         }
