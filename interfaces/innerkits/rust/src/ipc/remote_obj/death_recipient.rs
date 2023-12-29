@@ -63,7 +63,7 @@ impl DeathRecipient {
     where
         F: Fn() + Send + Sync + 'static,
     {
-        let callback = (callback as *const F).as_ref().unwrap();
+        let callback = (callback as *const F).as_ref().expect("Failed to convert callback to reference");
         callback();
     }
 
@@ -77,10 +77,11 @@ impl DeathRecipient {
     where
         F: Fn() + Send + Sync + 'static,
     {
-        if !callback.is_null() {
-            info!(LOG_LABEL, "death recipient on destroy");
-            drop(Box::from_raw(callback as *mut F));
+        if callback.is_null() {
+            return;
         }
+        info!(LOG_LABEL, "death recipient on destroy");
+        drop(Box::from_raw(callback as *mut F));
     }
 }
 

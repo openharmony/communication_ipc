@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-use crate::{IpcResult, IpcStatusCode, status_result, BorrowedMsgParcel, ipc_binding, AsRawPtr};
+use crate::{
+    IpcResult, IpcStatusCode, status_result, BorrowedMsgParcel,
+    ipc_binding, AsRawPtr
+};
 use std::mem::MaybeUninit;
 use std::ffi::{c_void, c_ulong};
 use std::ptr;
@@ -116,7 +119,7 @@ unsafe extern "C" fn allocate_vec<T>(
     len: i32,
 ) -> bool {
     if len < 0 {
-        return true;
+        return false;
     }
     allocate_vec_maybeuninit::<T>(value, len as u32);
     true
