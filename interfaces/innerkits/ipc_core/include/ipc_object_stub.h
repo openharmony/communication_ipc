@@ -251,7 +251,6 @@ public:
 private:
     int GetPidUid(MessageParcel &data, MessageParcel &reply);
     std::string GetSessionName();
-    std::string IpcConvertToString(const std::string &str);
     int32_t GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     std::string CreateSessionName(int uid, int pid);
@@ -259,6 +258,7 @@ private:
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
+    std::string IpcConvertToString(const std::string &str);
 
 private:
     std::recursive_mutex serialRecursiveMutex_;
