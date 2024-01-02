@@ -67,7 +67,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s", Str16ToStr8(IPCProcessSkeleton::IpcConvertToString(descriptor_)).c_str(), UIntToString(this).c_str());
+    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s", Str16ToStr8(IPCProcessSkeleton::IpcConvertToString(descriptor_)).c_str(), std::to_string(this).c_str());
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
@@ -399,16 +399,6 @@ int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageP
 uint64_t IPCObjectStub::GetLastRequestTime()
 {
     return lastRequestTime_;
-}
-
-std::string IPCObjectStub::UIntToString(uint32_t input)
-{
-    // 12: convert to fixed string length
-    char str[12] = {0};
-    if (sprintf_s(str, sizeof(str) / sizeof(str[0]), "%011u", input) <= EOK) {
-        ZLOGE(LOG_LABEL, "sprintf_s fail");
-    }
-    return str;
 }
 
 #ifndef CONFIG_IPC_SINGLE
