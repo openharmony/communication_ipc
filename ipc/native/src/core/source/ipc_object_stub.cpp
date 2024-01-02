@@ -67,7 +67,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s", IPCProcessSkeleton::IpcConvertToString(descriptor_).c_str(),UIntToString(this).c_str());
+    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s", IPCProcessSkeleton::IpcConvertToString(descriptor_).c_str(), UIntToString(this).c_str());
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
