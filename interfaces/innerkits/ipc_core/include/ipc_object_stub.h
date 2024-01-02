@@ -203,6 +203,13 @@ public:
      * @since 11
      */
     uint64_t GetLastRequestTime();
+
+    /**
+     * @brief Obtains string.
+     * @return Returns string.
+     * @since 11
+     */
+    std::string UIntToString(uint32_t input);
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Invoker the calling thread.
