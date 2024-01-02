@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
@@ -34,6 +35,9 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/c/rpc/include",
     "$SUBSYSTEM_DIR/utils/include",
   ]
+  if (ipc_feature_actv_binder_enabled) {
+    include_dirs += [ "//third_party/json/single_include" ]
+  }
   sources = [
     "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
     "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
