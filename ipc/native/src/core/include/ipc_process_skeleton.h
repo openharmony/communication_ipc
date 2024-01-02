@@ -82,7 +82,7 @@ public:
 
     static IPCProcessSkeleton *GetCurrent();
     static std::string ConvertToSecureString(const std::string &str);
-    static std::string IpcConvertToString(const std::string &str);
+    static std::u16string IpcConvertToString(const std::u16string &str);
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
