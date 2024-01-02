@@ -89,7 +89,7 @@ std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
     return str.substr(0, ENCRYPT_LENGTH) + "****" + str.substr(len - ENCRYPT_LENGTH);
 }
 
-std::u16string IpcConvertToString(const std::u16string &str)
+std::string IpcConvertToString(const std::string &str)
 {
     auto pos = str.find_last_of(".");
     if (pos != std::string::npos) {
