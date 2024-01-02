@@ -67,6 +67,14 @@ public:
     MOCK_METHOD0(GetSAMgrObject, sptr<IRemoteObject>());
     MOCK_METHOD2(TranslateIRemoteObject, int(int32_t cmd, const sptr<IRemoteObject> &obj));
 #endif
+
+#ifdef CONFIG_ACTV_BINDER
+    MOCK_METHOD1(LinkRemoteInvoker, void(void **data));
+    MOCK_METHOD1(UnlinkRemoteInvoker, void(void **data));
+    MOCK_METHOD6(SendRequest, int(int handle, uint32_t code,
+                                  MessageParcel &data, MessageParcel &reply,
+                                  MessageOption &option, void *invokerData));
+#endif
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
