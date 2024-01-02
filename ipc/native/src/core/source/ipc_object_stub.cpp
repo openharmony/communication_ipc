@@ -402,7 +402,7 @@ uint64_t IPCObjectStub::GetLastRequestTime()
     return lastRequestTime_;
 }
 
-std::string IpcConvertToString(const std::string &str)
+std::string IPCObjectStub::IpcConvertToString(const std::string &str)
 {
     auto pos = str.find_last_of(".");
     if (pos != std::string::npos) {
