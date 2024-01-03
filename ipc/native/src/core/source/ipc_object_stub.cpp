@@ -67,7 +67,8 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s", IPCProcessSkeleton::IpcConvertToString(Str16ToStr8(descriptor_)).c_str(),
+    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s",
+        IPCProcessSkeleton::IpcConvertToString(Str16ToStr8(descriptor_)).c_str(),
         std::to_string(reinterpret_cast<std::uintptr_t>(this)).c_str());
 }
 
