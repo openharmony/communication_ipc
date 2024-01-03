@@ -62,14 +62,16 @@ static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGI(LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+    ZLOGI(LABEL, "desc:%{public}s, %{public}" PRIu64 "",
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        reinterpret_cast<std::uintptr_t>(this));
 }
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "destroyed, desc:%{public}s, addr:%{public}s",
-        IPCProcessSkeleton::IpcConvertToString(Str16ToStr8(descriptor_)).c_str(),
-        std::to_string(reinterpret_cast<std::uintptr_t>(this)).c_str());
+    ZLOGW(LABEL, "desc:%{public}s, %{public}" PRIu64 "",
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        reinterpret_cast<std::uintptr_t>(this));
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
