@@ -203,13 +203,6 @@ public:
      * @since 11
      */
     uint64_t GetLastRequestTime();
-
-    /**
-     * @brief Obtains the convert string.
-     * @return Returns the convert string.
-     * @since 11
-     */
-    std::string IpcConvertToString(const std::string &str);
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Invoker the calling thread.
