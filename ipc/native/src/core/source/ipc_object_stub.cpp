@@ -58,20 +58,21 @@ static constexpr pid_t ALLOWED_UID = 10000;
 static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
+static constexpr int IPC_ADDR_MASK = 0xffffffff;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
     ZLOGI(LABEL, "desc:%{public}s, %{public}" PRIu64 "",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        reinterpret_cast<std::uintptr_t>(this) & 0xffff);
+        reinterpret_cast<std::uintptr_t>(this) & IPC_ADDR_MASK);
 }
 
 IPCObjectStub::~IPCObjectStub()
 {
     ZLOGW(LABEL, "desc:%{public}s, %{public}" PRIu64 "",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        reinterpret_cast<std::uintptr_t>(this) & 0xffff);
+        reinterpret_cast<std::uintptr_t>(this) & IPC_ADDR_MASK);
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
