@@ -107,15 +107,6 @@
               }
             },
             {
-              "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common:ipc_napi_common",
-              "header": {
-                "header_files": [
-                  "napi_remote_object.h"
-                ],
-                "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common/include"
-              }
-            },
-            {
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common:ipc_napi",
               "header": {
                 "header_files": [

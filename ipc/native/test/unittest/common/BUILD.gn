@@ -206,7 +206,7 @@ if (support_jsapi) {
 
     external_deps = [
       "hilog:libhilog",
-      "ipc:ipc_napi_common",
+      "ipc:ipc_napi",
       "napi:ace_napi",
     ]
 
