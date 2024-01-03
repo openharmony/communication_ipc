@@ -62,14 +62,14 @@ static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGI(LABEL, "desc:%{public}s, %{public}" PRIu64 "",
+    ZLOGI(LABEL, "desc:%{public}s, %{public}" PRIx64 "",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
         reinterpret_cast<std::uintptr_t>(this));
 }
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "desc:%{public}s, %{public}" PRIu64 "",
+    ZLOGW(LABEL, "desc:%{public}s, %{public}" PRIx64 "",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
         reinterpret_cast<std::uintptr_t>(this));
 }
