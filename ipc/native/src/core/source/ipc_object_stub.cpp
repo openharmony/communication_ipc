@@ -65,7 +65,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
 {
     ZLOGI(LABEL, "desc:%{public}s, %{public}" PRIu64,
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        (reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
+        reinterpret_cast<uintptr_t>(this) & IPC_OBJECT_MASK);
 }
 
 IPCObjectStub::~IPCObjectStub()
