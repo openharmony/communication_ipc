@@ -63,7 +63,7 @@ static constexpr int IPC_OBJECT_MASK = 0xffffffff;
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGI(LABEL, "desc:%{public}s, %{public}" PRIu64,
+    ZLOGI(LABEL, "desc:%{public}s, %{public}u",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
         static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(this)) & IPC_OBJECT_MASK);
 }
