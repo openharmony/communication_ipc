@@ -89,6 +89,15 @@ std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
     return str.substr(0, ENCRYPT_LENGTH) + "****" + str.substr(len - ENCRYPT_LENGTH);
 }
 
+std::string IPCProcessSkeleton::ConvertToSecureDesc(const std::string &str)
+{
+    auto pos = str.find_last_of(".");
+    if (pos != std::string::npos) {
+        return "*" + str.substr(pos);
+    }
+    return str;
+}
+
 #ifndef CONFIG_IPC_SINGLE
 void IPCProcessSkeleton::ClearDataResource()
 {
@@ -145,7 +154,6 @@ void IPCProcessSkeleton::ClearDataResource()
 
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
-    ZLOGW(LOG_LABEL, "destroy");
     std::lock_guard<std::mutex> lockGuard(procMutex_);
     exitFlag_ = true;
     delete threadPool_;
@@ -241,7 +249,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
             return result;
         }
         if (!invoker->PingService(REGISTRY_HANDLE)) {
-            ZLOGE(LOG_LABEL, "Registry is not exist");
             current->UnlockObjectMutex();
             return result;
         }
@@ -354,7 +361,6 @@ bool IPCProcessSkeleton::DetachObject(IRemoteObject *object)
     }
     std::u16string descriptor = object->GetObjectDescriptor();
     if (descriptor.empty()) {
-        ZLOGE(LOG_LABEL, "descriptor is null");
         return false;
     }
     auto current = ProcessSkeleton::GetInstance();

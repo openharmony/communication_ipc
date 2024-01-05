@@ -105,7 +105,7 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
         ZLOGD(LOG_LABEL, "erase desc:%{public}s", Str16ToStr8(descriptor).c_str());
         return true;
     }
-    ZLOGW(LOG_LABEL, "not found, desc:%{public}s maybe has been updated", Str16ToStr8(descriptor).c_str());
+    ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated", Str16ToStr8(descriptor).c_str());
     return false;
 }
 
