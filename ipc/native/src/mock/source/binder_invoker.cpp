@@ -137,9 +137,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
-    if (error != ERR_NONE) {
-        ZLOGE(LABEL, "handle:%{public}d result:%{public}d", handle, error);
-    }
     return error;
 }
 
