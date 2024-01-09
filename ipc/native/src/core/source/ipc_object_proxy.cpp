@@ -56,6 +56,8 @@ using namespace IPC_SINGLE;
         handle, error, (desc).c_str())
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
+static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
+
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
@@ -65,7 +67,9 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
         invoker->LinkRemoteInvoker(&invokerData_);
     }
 #endif
-    ZLOGD(LABEL, "create, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(descriptor_).c_str());
+    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
     ExtendObjectLifetime();
 }
 
@@ -77,7 +81,9 @@ IPCObjectProxy::~IPCObjectProxy()
         invoker->UnlinkRemoteInvoker(&invokerData_);
     }
 #endif
-    ZLOGI(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
+    ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
