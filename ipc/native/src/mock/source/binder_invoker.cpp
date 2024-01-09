@@ -717,7 +717,6 @@ void BinderInvoker::JoinProcessThread(bool initiative) {}
 int BinderInvoker::TransactWithDriver(bool doRead)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "Binder Driver died");
         return IPC_INVOKER_CONNECT_ERR;
     }
 
