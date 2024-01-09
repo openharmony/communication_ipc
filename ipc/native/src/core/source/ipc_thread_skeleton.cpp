@@ -16,6 +16,7 @@
 #include "ipc_thread_skeleton.h"
 
 #include <memory>
+#include <sys/syscall.h>
 
 #include "binder_invoker.h"
 #include "hilog/log_c.h"
@@ -45,7 +46,6 @@ void IPCThreadSkeleton::TlsDestructor(void *args)
     auto *current = static_cast<IPCThreadSkeleton *>(args);
     auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
     if (it != current->invokers_.end()) {
-        ZLOGW(LABEL, "thread exit, flush commands");
         BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(it->second);
         invoker->FlushCommands(nullptr);
         invoker->ExitCurrentThread();
@@ -82,7 +82,8 @@ IPCThreadSkeleton::IPCThreadSkeleton()
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
-    ZLOGE(LABEL, "IPCThreadSkeleton delete");
+    ZLOGI(LABEL, "IPCThreadSkeleton delete, pid:%{public}u, tid:%{public}u", static_cast<uint32_t>(getpid()),
+        static_cast<uint32_t>(syscall(SYS_gettid)));
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);
