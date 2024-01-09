@@ -82,7 +82,7 @@ IPCThreadSkeleton::IPCThreadSkeleton()
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
-    ZLOGI(LABEL, "IPCThreadSkeleton delete, pid:%{public}u, tid:%{public}u", static_cast<uint32_t>(getpid()),
+    ZLOGI(LABEL, "%{public}u_%{public}u", static_cast<uint32_t>(getpid()),
         static_cast<uint32_t>(syscall(SYS_gettid)));
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
