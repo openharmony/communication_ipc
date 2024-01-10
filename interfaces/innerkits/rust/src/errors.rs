@@ -20,7 +20,7 @@ use hilog_rust::{debug, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustStatus"
 };
 
@@ -53,7 +53,12 @@ pub fn parse_status_code(code: i32) -> IpcStatusCode {
 }
 
 /// IPC unified status code
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Hash)]
+#[derive(Eq, PartialEq)]
+#[derive(Ord, PartialOrd)]
+#[derive(Clone, Copy)]
+#[derive(Debug)]
+#[non_exhaustive]
 pub enum IpcStatusCode {
     /// success
     Ok = 1,

@@ -14,14 +14,17 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, AsRawPtr, status_result};
+use crate::{
+    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode,
+    AsRawPtr, status_result
+};
 use std::convert::TryInto;
 use std::ffi::{CString, c_char};
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustInterfaceToken"
 };
 

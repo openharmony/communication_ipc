@@ -22,8 +22,6 @@ ohos_unittest("IPCNativeUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
-    "//utils/system/safwk/native/include",
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/c/ipc_adapter/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
@@ -63,6 +61,7 @@ ohos_unittest("IPCNativeUnitTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -74,7 +73,6 @@ ohos_unittest("IPCFileDescOpsTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//utils/system/safwk/native/include",
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/c/ipc_adapter/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
@@ -107,7 +105,7 @@ ohos_unittest("IPCFileDescOpsTest") {
 ohos_unittest("BinderConnectorTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [ "//utils/system/safwk/native/include" ]
+  include_dirs = []
 
   sources = [ "ipc_connector_unittest.cpp" ]
 
@@ -135,7 +133,6 @@ ohos_unittest("BinderInvokerUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//utils/system/safwk/native/include",
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$IPC_CORE_ROOT/c/rpc/include",
   ]
@@ -166,7 +163,7 @@ ohos_unittest("BinderInvokerUnitTest") {
 ohos_unittest("IPCHiTraceUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [ "//utils/system/safwk/native/include" ]
+  include_dirs = []
 
   sources = [ "ipc_hitrace_unittest.cpp" ]
 
@@ -196,16 +193,12 @@ if (support_jsapi) {
   ohos_unittest("IPCNapiUnitTest") {
     module_out_path = MODULE_OUTPUT_PATH
 
-    include_dirs = [
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-      "//foundation/arkui/napi/interfaces/kits",
-    ]
+    include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
 
     sources = [ "ipc_napi_unittest.cpp" ]
     configs = []
 
     deps = [
-      "//foundation/arkui/napi:ace_napi",
       "//third_party/bounds_checking_function:libsec_shared",
       "//third_party/googletest:gmock_main",
       "//third_party/googletest:gtest_main",
@@ -213,7 +206,8 @@ if (support_jsapi) {
 
     external_deps = [
       "hilog:libhilog",
-      "ipc:ipc_napi_common",
+      "ipc:ipc_napi",
+      "napi:ace_napi",
     ]
 
     resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
@@ -224,8 +218,6 @@ ohos_unittest("IPCMockUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/src/mock/include",
     "$IPC_CORE_ROOT/c/rpc/include",
@@ -260,8 +252,6 @@ ohos_unittest("InvokerFactoryTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/src/mock/include",
     "$IPC_CORE_ROOT/c/rpc/include",
@@ -296,8 +286,6 @@ ohos_unittest("RPCFeatureUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/src/mock/include",
     "$IPC_CORE_ROOT/c/rpc/include",
@@ -333,7 +321,6 @@ ohos_unittest("IPCCInterfaceUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/src/c_wrapper/include",
   ]
@@ -351,13 +338,15 @@ ohos_unittest("IPCCInterfaceUnitTest") {
 
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_c",
-    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+  ]
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
@@ -378,10 +367,7 @@ ohos_unittest("IPCSoDlcloseTest") {
 ohos_unittest("IPCBlockThreadTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
-    "$SUBSYSTEM_DIR/utils/include",
-  ]
+  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
 
   sources = [ "ipc_block_thread_unittest.cpp" ]
 
@@ -390,7 +376,10 @@ ohos_unittest("IPCBlockThreadTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }

@@ -14,8 +14,9 @@
  */
 
 use crate::{
-    ipc_binding, MsgParcel, RemoteObj, IRemoteObj, InterfaceToken, String16,
-    IpcResult, IpcStatusCode, parse_status_code,
+    ipc_binding, MsgParcel, RemoteObj, IRemoteObj,
+    InterfaceToken, String16, IpcResult, IpcStatusCode,
+    parse_status_code
 };
 use crate::parcel::{vec_to_string, allocate_vec_with_buffer};
 use std::ffi::{CString, c_char, c_void};
@@ -23,14 +24,15 @@ use hilog_rust::{info, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustProcess"
 };
 
 /// Get proxy object of samgr
 pub fn get_context_object() -> Option<RemoteObj>
 {
-    // SAFETY:
+    // SAFETY: If no SamgrContextManager object is available, the function might return nullptr,
+    // causing the subsequent RemoteObj::from_raw call to fail.
     unsafe {
         let samgr = ipc_binding::GetContextManager();
         RemoteObj::from_raw(samgr)
@@ -73,6 +75,8 @@ pub fn get_service(said: i32) -> IpcResult<RemoteObj>
 pub fn join_work_thread()
 {
     // SAFETY:
+    // It should only be called from a thread not already part of the pool.
+    // The potential blocking nature of the function and its impact on other threads.
     unsafe {
         ipc_binding::JoinWorkThread();
     }
@@ -83,6 +87,8 @@ pub fn join_work_thread()
 pub fn stop_work_thread()
 {
     // SAFETY:
+    // It should only be called from a thread belonging to the pool.
+    // Prematurely exiting might leave pending requests unprocessed and cause unexpected behavior.
     unsafe {
         ipc_binding::StopWorkThread()
     }
@@ -93,6 +99,7 @@ pub fn stop_work_thread()
 pub fn get_calling_token_id() -> u64
 {
     // SAFETY:
+    // Consider verifying it with additional security measures and context-based information when necessary.
     unsafe {
         ipc_binding::GetCallingTokenId()
     }
@@ -103,6 +110,7 @@ pub fn get_calling_token_id() -> u64
 pub fn get_first_token_id() -> u64
 {
     // SAFETY:
+    // Consider verifying it with additional security measures and context-based information when necessary.
     unsafe {
         ipc_binding::GetFirstToekenId()
     }
@@ -113,6 +121,7 @@ pub fn get_first_token_id() -> u64
 pub fn get_self_token_id() -> u64
 {
     // SAFETY:
+    // Minimize its exposure, restrict access to authorized parties within your application.
     unsafe {
         ipc_binding::GetSelfToekenId()
     }
@@ -123,6 +132,8 @@ pub fn get_self_token_id() -> u64
 pub fn get_calling_pid() -> u64
 {
     // SAFETY:
+    // The returned PID might be incorrect or invalid due to potential issues
+    // with the IPC mechanism or malicious attempts to manipulate it.
     unsafe {
         ipc_binding::GetCallingPid()
     }
@@ -133,6 +144,8 @@ pub fn get_calling_pid() -> u64
 pub fn get_calling_uid() -> u64
 {
     // SAFETY:
+    // Minimize its exposure, restrict access to authorized parties,
+    // and implement robust security measures to prevent unauthorized leaks or manipulation.
     unsafe {
         ipc_binding::GetCallingUid()
     }
@@ -143,6 +156,7 @@ pub fn get_calling_uid() -> u64
 pub fn set_max_work_thread(max_thread_num: i32) -> bool
 {
     // SAFETY:
+    // Ensuring the provided value is valid and appropriate for the system resources and workload.
     unsafe {
         ipc_binding::SetMaxWorkThreadNum(max_thread_num)
     }
@@ -153,6 +167,7 @@ pub fn set_max_work_thread(max_thread_num: i32) -> bool
 pub fn is_local_calling() -> bool
 {
     // SAFETY:
+    // Ensure proper usage within the context of the IPC binding system and its intended behavior.
     unsafe {
         ipc_binding::IsLocalCalling()
     }
@@ -180,6 +195,8 @@ pub fn get_local_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     // SAFETY:
+    // it's important to ensure that the vec contains valid data and is not null.
+    // The provided buffer size is sufficient to hold the returned data.
     let ok_status = unsafe {
         ipc_binding::GetLocalDeviceID(
             &mut vec as *mut _ as *mut c_void,
@@ -200,6 +217,8 @@ pub fn get_calling_device_id() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     // SAFETY:
+    // it's important to ensure that the vec contains valid data and is not null.
+    // The provided buffer size is sufficient to hold the returned data.
     let ok_status = unsafe {
         ipc_binding::GetCallingDeviceID(
             &mut vec as *mut _ as *mut c_void,
@@ -220,6 +239,8 @@ pub fn reset_calling_identity() -> IpcResult<String>
 {
     let mut vec: Option<Vec<u8>> = None;
     // SAFETY:
+    // The provided buffer size is sufficient to hold the returned data.
+    // The returned `String` is validated before using it.
     let ok_status = unsafe {
         ipc_binding::ResetCallingIdentity(
             &mut vec as *mut _ as *mut c_void,
@@ -239,6 +260,7 @@ pub fn reset_calling_identity() -> IpcResult<String>
 pub fn is_handling_transaction() -> bool
 {
     // SAFETY:
+    // Ensure proper usage within the context of the IPC binding system and its intended behavior.
     unsafe {
         ipc_binding::IsHandlingTransaction()
     }

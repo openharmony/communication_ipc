@@ -57,10 +57,7 @@ if (support_jsapi) {
     innerapi_tags = [ "platformsdk" ]
     part_name = "ipc"
   }
-}
-
-group("ipc_napi_common") {
-  if (support_jsapi) {
-    deps = [ ":ipc_napi" ]
+} else {
+  ohos_shared_library("ipc_napi") {
   }
 }

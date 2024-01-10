@@ -17,7 +17,7 @@ use super::*;
 
 impl<T: Serialize> Serialize for Box<T> {
     fn serialize(&self, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
-        Serialize::serialize(&**self, parcel)
+        Serialize::serialize(&(**self), parcel)
     }
 }
 
@@ -29,7 +29,7 @@ impl<T: Deserialize> Deserialize for Box<T> {
 
 impl<T: SerOption> SerOption for Box<T> {
     fn ser_option(this: Option<&Self>, parcel: &mut BorrowedMsgParcel<'_>) -> IpcResult<()> {
-        SerOption::ser_option(this.map(|inner| &**inner), parcel)
+        SerOption::ser_option(this.map(|inner| &(**inner)), parcel)
     }
 }
 

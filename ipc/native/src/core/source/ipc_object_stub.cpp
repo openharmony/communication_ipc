@@ -58,16 +58,21 @@ static constexpr pid_t ALLOWED_UID = 10000;
 static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
+static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGD(LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+    ZLOGI(LABEL, "desc:%{public}s, %{public}u",
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
 }
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "destroyed, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+    ZLOGW(LABEL, "desc:%{public}s, %{public}u",
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
@@ -107,7 +112,7 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGE(LABEL, "unknown code:%{public}u desc:%{public}s", code, Str16ToStr8(descriptor_).c_str());
+            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s", code, Str16ToStr8(descriptor_).c_str());
             break;
     }
     return result;

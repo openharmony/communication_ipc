@@ -202,7 +202,7 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
     napi_status status = napi_wrap(
         env, thisVar, messageOption,
         [](napi_env env, void *data, void *hint) {
-            ZLOGI(LOG_LABEL, "NAPIMessageOption destructed by js callback");
+            ZLOGD(LOG_LABEL, "NAPIMessageOption destructed by js callback");
             delete (reinterpret_cast<MessageOption *>(data));
         },
         nullptr, nullptr);

@@ -21,6 +21,7 @@
         "mini"
       ],
       "features": [
+        "ipc_feature_actv_binder_enabled",
         "ipc_feature_rpc_enabled"
       ],
       "syscap":[
@@ -106,7 +107,7 @@
               }
             },
             {
-              "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common:ipc_napi_common",
+              "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common:ipc_napi",
               "header": {
                 "header_files": [
                   "napi_remote_object.h"

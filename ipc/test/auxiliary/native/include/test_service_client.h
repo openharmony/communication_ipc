@@ -42,7 +42,7 @@ public:
     void StartAsyncDumpService();
     void TestEnableSerialInvokeFlag();
 private:
-    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_TEST, "TestServiceClient" };
+    static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceClient" };
     sptr<ITestService> testService_;
 };
 } // namespace OHOS

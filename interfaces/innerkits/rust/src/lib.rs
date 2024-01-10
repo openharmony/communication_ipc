@@ -26,12 +26,12 @@ mod ashmem;
 // Export types of this crate
 pub use crate::errors::{IpcResult, status_result, IpcStatusCode, parse_status_code};
 pub use crate::ipc::{
-    IRemoteBroker, IRemoteObj, IRemoteStub, FromRemoteObj, RemoteObjRef,
-    remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient,
-    remote_stub::RemoteStub,
+    IRemoteBroker, IRemoteObj, IRemoteStub, FromRemoteObj,
+    RemoteObjRef, remote_obj::RemoteObj, remote_obj::death_recipient::DeathRecipient, remote_stub::RemoteStub,
 };
 pub use crate::ipc_async::{
-    IpcAsyncPool, IpcAsyncRuntime, ToAsyncIpc, ToSyncIpc, BoxFuture, Ylong, Runtime,
+    IpcAsyncPool, IpcAsyncRuntime, ToAsyncIpc, ToSyncIpc,
+    BoxFuture, Ylong, Runtime,
 };
 
 pub use crate::parcel::{
@@ -40,17 +40,18 @@ pub use crate::parcel::{
 };
 pub use crate::parcel::parcelable::{SerArray, DeArray};
 pub use crate::parcel::types::{
-    interface_token::InterfaceToken, file_desc::FileDesc,
-    string16::String16
+    interface_token::InterfaceToken, file_desc::FileDesc, string16::String16
 };
 pub use crate::ashmem::{
-    Ashmem, PROT_NONE, PROT_READ, PROT_WRITE, PROT_EXEC,
+    Ashmem, PROT_NONE, PROT_READ, PROT_WRITE,
+    PROT_EXEC,
 };
 pub use crate::process::{
-    get_context_object, add_service, get_service, join_work_thread, stop_work_thread,
-    get_calling_uid, get_calling_token_id, get_first_token_id, get_self_token_id,
-    get_calling_pid, set_max_work_thread, is_local_calling, set_calling_identity,
-    get_local_device_id, get_calling_device_id, reset_calling_identity, is_handling_transaction,
+    get_context_object, add_service, get_service, join_work_thread,
+    stop_work_thread, get_calling_uid, get_calling_token_id, get_first_token_id,
+    get_self_token_id, get_calling_pid, set_max_work_thread, is_local_calling,
+    set_calling_identity, get_local_device_id, get_calling_device_id, reset_calling_identity,
+    is_handling_transaction,
 };
 
 pub use crate::ipc_binding::{CRemoteObject, CIRemoteObject};

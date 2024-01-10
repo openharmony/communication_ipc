@@ -30,7 +30,7 @@ use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustRemoteObj"
 };
 
@@ -85,6 +85,7 @@ impl RemoteObj {
 impl IRemoteObj for RemoteObj {
     fn send_request(&self, code: u32, data: &MsgParcel, is_async: bool) -> IpcResult<MsgParcel> {
         // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
         unsafe {
             let mut reply = MsgParcel::new().expect("create reply MsgParcel not success");
             let result = ipc_binding::RemoteObjectSendRequest(self.as_inner(), code, data.as_raw(),
@@ -119,9 +120,9 @@ impl IRemoteObj for RemoteObj {
         });
     }
 
-    // Add death Recipient
     fn add_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
         // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
         unsafe {
             ipc_binding::AddDeathRecipient(self.as_inner(), recipient.as_mut_raw())
         }
@@ -130,6 +131,7 @@ impl IRemoteObj for RemoteObj {
     // remove death Recipients
     fn remove_death_recipient(&self, recipient: &mut DeathRecipient) -> bool {
         // SAFETY:
+        // The death recipient will no longer be notified when the remote object is destroyed.
         unsafe {
             ipc_binding::RemoveDeathRecipient(self.as_inner(), recipient.as_mut_raw())
         }
@@ -137,6 +139,7 @@ impl IRemoteObj for RemoteObj {
 
     fn is_proxy(&self) -> bool {
         // SAFETY:
+        // Validate and ensure the validity of all pointers before using them.
         unsafe {
             ipc_binding::IsProxyObject(self.as_inner())
         }
@@ -166,6 +169,7 @@ impl IRemoteObj for RemoteObj {
 
     fn is_dead(&self) -> bool {
         // SAFETY:
+        //`object` always contains a valid pointer
         unsafe {
             ipc_binding::IsObjectDead(self.as_inner())
         }
@@ -173,7 +177,9 @@ impl IRemoteObj for RemoteObj {
 
     fn interface_descriptor(&self) -> IpcResult<String> {
         let mut vec: Option<Vec<u16>> = None;
-        // SAFETY:
+        // SAFETY: get the interface descriptor for a remote object.
+        // It's crucial here to ensure vec is valid and non-null before casting.
+        // Ensure the provided buffer size is sufficient to hold the returned data.
         let ok_status = unsafe {
             ipc_binding::GetInterfaceDescriptor(
                 self.as_inner(),
@@ -204,9 +210,10 @@ impl Serialize for RemoteObj {
 
 impl Deserialize for RemoteObj {
     fn deserialize(parcel: &BorrowedMsgParcel<'_>) -> IpcResult<Self> {
-        // Safety: `Parcel` always contains a valid pointer to an
-        // `AParcel`. We pass a valid, mutable pointer to `val`, a
-        // literal of type `$ty`, and `$read_fn` will write the
+        // Safety:
+        // `Parcel` always contains a valid pointer to an `AParcel`.
+        // We pass a valid, mutable pointer to `val`, a literal of type `$ty`,
+        // and `$read_fn` will write the data into the memory pointed to by `val`.
         let object = unsafe {
             let remote = ipc_binding::CParcelReadRemoteObject(parcel.as_raw());
             Self::from_raw(remote)

@@ -15,17 +15,17 @@
 
 use super::*;
 use crate::{
-    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result,
-    AsRawPtr
+    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode,
+    status_result, AsRawPtr
 };
 use std::convert::TryInto;
 use std::mem::MaybeUninit;
-use std::ffi::{CString};
+use std::ffi::CString;
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustString"
 };
 
@@ -150,7 +150,8 @@ unsafe extern "C" fn on_str_writer(
     let slice: &[&str] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
-        // SAFETY:
+        // SAFETY: The C interface is assumed to handle the provided index correctly
+        // and not overrun the original slice.
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
@@ -185,7 +186,7 @@ unsafe extern "C" fn on_string_writer(
     let slice: &[String] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
-        // SAFETY:
+        // SAFETY: writes a String element to a parcel.
         let ret = unsafe {
             ipc_binding::CParcelWriteStringElement(
                 array,
@@ -219,6 +220,7 @@ unsafe extern "C" fn on_string_reader(
     for index in 0..len {
         let mut vec_u8: Option<Vec<u8>> = None;
         // SAFETY:
+        // This function reads a string element from a parcel and stores it in the provided vec_u8 pointer.
         let ok_status = unsafe {
             ipc_binding::CParcelReadStringElement(
                 index,

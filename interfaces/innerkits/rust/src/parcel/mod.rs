@@ -22,11 +22,11 @@ pub use types::vec_to_string;
 pub use parcelable::allocate_vec_with_buffer;
 
 use crate::{ipc_binding, IpcResult, IpcStatusCode};
-use crate::ipc_binding::{CParcel};
+use crate::ipc_binding::CParcel;
 use std::marker::PhantomData;
 use std::mem::{ManuallyDrop, MaybeUninit};
-use std::ops::{Drop};
-use std::ptr::{NonNull};
+use std::ops::Drop;
+use std::ptr::NonNull;
 use std::slice;
 use crate::AsRawPtr;
 use crate::parcel::parcelable::{Serialize, Deserialize};
@@ -37,6 +37,7 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
     /// Get current data size in parcel
     fn get_data_size(&self) -> u32 {
         // SAFETY:
+        // The self reference must be valid and point to a properly allocated CParcel object
         unsafe {
             ipc_binding::CParcelGetDataSize(self.as_raw())
         }
@@ -45,6 +46,9 @@ pub trait IMsgParcel: AsRawPtr<CParcel> {
     /// Set current data size in parcel
     fn set_data_size(&mut self, new_size: u32) -> bool {
         // SAFETY:
+        // The self reference must be valid and point to a properly allocated CParcel object.
+        // Calling this function with an invalid self reference can lead to undefined behavior,
+        // including memory access violations and data corruption.
         unsafe {
             ipc_binding::CParcelSetDataSize(self.as_mut_raw(), new_size)
         }
@@ -255,7 +259,7 @@ impl RawData{
     /// The caller should ensure that the u8 slice can be
     /// correctly converted to other rust types
     pub fn read(&self, start: u32, len: u32) -> IpcResult<&[u8]> {
-        if len == 0 || len > self.len || start >= self.len || (start + len) > self.len {
+        if (len == 0) || (len > self.len) || (start >= self.len) || ((start + len) > self.len) {
             return Err(IpcStatusCode::Failed);
         }
         // SAFETY:
@@ -263,7 +267,9 @@ impl RawData{
         let data_ptr = unsafe {
             self.raw_ptr.add(start as usize)
         };
-        if !data_ptr.is_null() {
+        if data_ptr.is_null() {
+            Err(IpcStatusCode::Failed)
+        } else {
             // SAFETY:
             // 1. data is valid for reads for `len * mem::size_of::<u8>() `
             // 2. The entire memory range of this slice be contained within a single allocated object (From Cpp)
@@ -272,8 +278,6 @@ impl RawData{
             unsafe {
                 Ok(slice::from_raw_parts::<u8>(data_ptr, len as usize))
             }
-        } else {
-            Err(IpcStatusCode::Failed)
         }
     }
 }
