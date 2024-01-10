@@ -685,6 +685,11 @@ pid_t DBinderDatabusInvoker::GetCallerPid() const
     return callerPid_;
 }
 
+pid_t DBinderDatabusInvoker::GetCallerRealPid() const
+{
+    return callerPid_;
+}
+
 void DBinderDatabusInvoker::SetStatus(uint32_t status)
 {
     status_ = status;

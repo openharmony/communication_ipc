@@ -89,6 +89,15 @@ pid_t IPCSkeleton::GetCallingPid()
     return getpid();
 }
 
+pid_t IPCSkeleton::GetCallingRealPid()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetCallerRealPid();
+    }
+    return getprocpid();
+}
+
 pid_t IPCSkeleton::GetCallingUid()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();

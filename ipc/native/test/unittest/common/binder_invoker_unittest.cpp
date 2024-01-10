@@ -480,6 +480,18 @@ HWTEST_F(BinderInvokerUnitTest, GetCallerPidTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetCallerRealPidTest001
+ * @tc.desc: Override GetCallerRealPid branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerRealPidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerRealPid_ = 1;
+    EXPECT_EQ(binderInvoker.GetCallerRealPid(), 1);
+}
+
+/**
  * @tc.name: GetCallerUidTest001
  * @tc.desc: Override GetCallerUid branch
  * @tc.type: FUNC
