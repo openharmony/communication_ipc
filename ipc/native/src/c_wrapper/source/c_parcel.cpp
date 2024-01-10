@@ -73,6 +73,10 @@ static bool WriteAndCheckArrayLength(CParcel *parcel, bool isNull, int32_t len)
 
 static bool ReadAndCheckArrayLength(const CParcel *parcel, int32_t &len)
 {
+    if (parcel == nullptr) {
+        ZLOGE(LOG_LABEL, "parcel is nullptr");
+        return false;
+    }
     if (!parcel->parcel_->ReadInt32(len)) {
         ZLOGE(LOG_LABEL, "%{public}s: read array length from native parcel failed\n", __func__);
         return false;

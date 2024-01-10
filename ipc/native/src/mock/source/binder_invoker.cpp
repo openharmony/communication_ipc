@@ -30,6 +30,9 @@
 #include "log_tags.h"
 #include "string_ex.h"
 #include "sys_binder.h"
+#ifdef FFRT_IPC_ENABLE
+#include "c/ffrt_ipc.h"
+#endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -39,6 +42,9 @@ namespace IPC_SINGLE {
 #define PIDUID_OFFSET 2
 
 using namespace OHOS::HiviewDFX;
+#ifdef CONFIG_ACTV_BINDER
+static const std::unordered_set<uint32_t> g_ActvBinderAllBlockedCodeSet;
+#endif
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
 enum {
     GET_SERVICE_TRANSACTION = 0x1,
@@ -52,6 +58,10 @@ BinderInvoker::BinderInvoker()
     callerTokenID_(0), firstTokenID_(0), status_(0)
 {
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
+#ifdef CONFIG_ACTV_BINDER
+    ActvBinderConnector::AddSetActvHandlerInfoFunc(&BinderInvoker::SetActvHandlerInfo);
+    ActvBinderConnector::SetJoinActvThreadFunc(&BinderInvoker::JoinActvThread);
+#endif
     binderConnector_ = BinderConnector::GetInstance();
 }
 
@@ -119,14 +129,17 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     if ((flags & TF_ONE_WAY) != 0) {
         error = WaitForCompletion(nullptr);
     } else {
+#ifdef FFRT_IPC_ENABLE
+        ffrt_this_task_set_legacy_mode(true);
+#endif
         error = WaitForCompletion(&reply);
+#ifdef FFRT_IPC_ENABLE
+        ffrt_this_task_set_legacy_mode(false);
+#endif
     }
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
-    if (error != ERR_NONE) {
-        ZLOGE(LABEL, "handle:%{public}d result:%{public}d", handle, error);
-    }
     return error;
 }
 
@@ -157,6 +170,10 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
             data2.WriteUint32(reply.ReadUint32()); // pid
             data2.WriteUint32(reply.ReadUint32()); // uid
             IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+            if (current == nullptr) {
+                ZLOGE(LABEL, "current is null");
+                return false;
+            }
             data2.WriteString(current->GetLocalDeviceID()); // deviceId
             std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
             if (session == nullptr) {
@@ -501,6 +518,10 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     } else if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
         GetAccessToken(callerTokenID_, firstTokenID_);
     }
+#ifdef CONFIG_ACTV_BINDER
+    bool oldActvBinder = GetUseActvBinder();
+    SetUseActvBinder(false);
+#endif
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = ERR_DEAD_OBJECT;
     MessageParcel reply;
@@ -512,6 +533,12 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
         int count = 0;
         if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this, count))) {
             auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
+#ifdef CONFIG_ACTV_BINDER
+            if ((targetObject != nullptr) && oldActvBinder && (actvHandlerInfo_ != nullptr)) {
+                std::string service = Str16ToStr8(targetObject->GetObjectDescriptor());
+                actvHandlerInfo_->AddActvHandlerInfo(service, tr->code);
+            }
+#endif
             if (targetObject != nullptr) {
                 error = targetObject->SendRequest(tr->code, *data, reply, option);
                 targetObject->DecStrongRef(this);
@@ -525,6 +552,12 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             error = targetObject->SendRequest(tr->code, *data, reply, option);
         }
     }
+#ifdef CONFIG_ACTV_BINDER
+    if (oldActvBinder && (actvHandlerInfo_ != nullptr)) {
+        actvHandlerInfo_->ClrActvHandlerInfo();
+    }
+    SetUseActvBinder(oldActvBinder);
+#endif
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
@@ -706,7 +739,6 @@ void BinderInvoker::JoinProcessThread(bool initiative) {}
 int BinderInvoker::TransactWithDriver(bool doRead)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "Binder Driver died");
         return IPC_INVOKER_CONNECT_ERR;
     }
 
@@ -730,7 +762,11 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     bwr.write_consumed = 0;
     bwr.read_consumed = 0;
+#ifdef CONFIG_ACTV_BINDER
+    int error = binderConnector_->WriteBinder(GetBWRCommand(), &bwr);
+#else
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
+#endif
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
             // we still have some bytes not been handled.
@@ -784,6 +820,9 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
     uint32_t cmd;
     bool continueLoop = true;
     int error = ERR_NONE;
+#ifdef CONFIG_ACTV_BINDER
+    bool useActvBinder = GetUseActvBinder();
+#endif
     while (continueLoop) {
         if ((error = TransactWithDriver()) < ERR_NONE) {
             break;
@@ -797,6 +836,15 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
                 if (reply == nullptr && acquireResult == nullptr) {
                     continueLoop = false;
                 }
+#ifdef CONFIG_ACTV_BINDER
+                /*
+                 * Currently, if there are no ready actvs for the actv binder
+                 * transaction, the binder transaction would fallback to the
+                 * procedure of the native binder in kernel. If going here, it
+                 * must be waiting for a reply of the native binder transaction.
+                 */
+                SetUseActvBinder(false);
+#endif
                 break;
             }
             case BR_DEAD_REPLY: // fall-through
@@ -842,6 +890,9 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
             }
         }
     }
+#ifdef CONFIG_ACTV_BINDER
+    SetUseActvBinder(useActvBinder);
+#endif
     return error;
 }
 
@@ -1130,6 +1181,130 @@ uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
 
     return info.strong_count;
 }
+
+#ifdef CONFIG_ACTV_BINDER
+class ActvBinderInvokerData {
+public:
+    std::once_flag actvOnceFlag;
+    const std::unordered_set<uint32_t> *actvBinderBlockedCodes = nullptr;
+};
+
+void BinderInvoker::LinkRemoteInvoker(void **data)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsActvBinderSupported())) {
+        return;
+    }
+
+    if ((data != nullptr) && (*data == nullptr)) {
+        ActvBinderInvokerData *invokerData = new (std::nothrow) ActvBinderInvokerData();
+        if (invokerData != nullptr) {
+            *data = reinterpret_cast<void *>(invokerData);
+        }
+    }
+}
+
+void BinderInvoker::UnlinkRemoteInvoker(void **data)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsActvBinderSupported())) {
+        return;
+    }
+
+    if ((data != nullptr) && (*data != nullptr)) {
+        delete (reinterpret_cast<ActvBinderInvokerData *>(*data));
+        *data = nullptr;
+    }
+}
+
+void BinderInvoker::JoinActvThread(bool initiative)
+{
+    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
+
+    if (invoker != nullptr) {
+        invoker->SetUseActvBinder(true);
+        invoker->JoinThread(initiative);
+    }
+}
+
+void BinderInvoker::SetActvHandlerInfo(uint32_t id)
+{
+    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
+    BinderConnector *connector = invoker->binderConnector_;
+
+    if ((connector != nullptr) && connector->IsActvBinderSupported()) {
+        invoker->actvHandlerInfo_ = connector->GetActvHandlerInfo(id);
+    }
+}
+
+bool BinderInvoker::CheckActvBinderAvailable(int handle, uint32_t code,
+                                             MessageOption &option, void *data)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsActvBinderSupported())) {
+        return false;
+    }
+
+    bool avail = true;
+    ActvBinderInvokerData *invokerData = reinterpret_cast<ActvBinderInvokerData *>(data);
+
+    if ((handle < 0) || ((handle & ACTV_BINDER_HANDLE_BIT) == 0)) {
+        avail = false;
+    } else if ((option.GetFlags() & TF_ONE_WAY) != 0) {
+        avail = false;
+    } else if (invokerData == nullptr) {
+        avail = false;
+    } else {
+        std::call_once(invokerData->actvOnceFlag, [&]() {
+            int error;
+            MessageParcel data;
+            MessageParcel reply;
+            MessageOption tmpOption;
+            bool useActvBinder = GetUseActvBinder();
+
+            SetUseActvBinder(true);
+            error = SendRequest(handle, INTERFACE_TRANSACTION, data, reply, tmpOption);
+            SetUseActvBinder(useActvBinder);
+
+            if (error == ERR_NONE) {
+                std::u16string desc = reply.ReadString16();
+
+                invokerData->actvBinderBlockedCodes = desc.empty() ? &g_ActvBinderAllBlockedCodeSet
+                    : binderConnector_->GetActvBinderBlockedCodes(Str16ToStr8(desc));
+            }
+        });
+
+        if (invokerData->actvBinderBlockedCodes != nullptr) {
+            const std::unordered_set<uint32_t> *codes = invokerData->actvBinderBlockedCodes;
+
+            if (codes->empty() || (codes->find(code) != codes->end())) {
+                avail = false;
+            }
+        }
+    }
+
+    return avail;
+}
+
+int BinderInvoker::SendRequest(int handle, uint32_t code,
+                               MessageParcel &data, MessageParcel &reply,
+                               MessageOption &option, void *invokerData)
+{
+    int error = ERR_NONE;
+
+    if (CheckActvBinderAvailable(handle, code, option, invokerData)) {
+        bool useActvBinder = GetUseActvBinder();
+
+        SetUseActvBinder(true);
+        error = SendRequest(handle, code, data, reply, option);
+        SetUseActvBinder(useActvBinder);
+    } else {
+        error = SendRequest(handle, code, data, reply, option);
+    }
+
+    return error;
+}
+#endif // CONFIG_ACTV_BINDER
+
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif

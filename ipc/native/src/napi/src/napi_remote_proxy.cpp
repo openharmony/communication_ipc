@@ -50,7 +50,7 @@ void ExecuteSendRequest(napi_env env, void *data)
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
-    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);
+    ZLOGD(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);
     if (param->traceId != 0) {
         FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
@@ -79,7 +79,7 @@ void SendRequestCbComplete(napi_env env, napi_status status, void *data)
 void SendRequestPromiseComplete(napi_env env, napi_status status, void *data)
 {
     SendRequestParam *param = reinterpret_cast<SendRequestParam *>(data);
-    ZLOGI(LOG_LABEL, "sendRequestPromise completed, errCode:%{public}d", param->errCode);
+    ZLOGD(LOG_LABEL, "sendRequestPromise completed, errCode:%{public}d", param->errCode);
     napi_value result = MakeSendRequestResult(param);
     if (param->errCode == 0) {
         napi_resolve_deferred(env, param->deferred, result);
@@ -683,7 +683,7 @@ napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
     napi_status status = napi_wrap(
         env, thisVar, proxyHolder,
         [](napi_env env, void *data, void *hint) {
-            ZLOGI(LOG_LABEL, "proxy holder destructed by js callback");
+            ZLOGD(LOG_LABEL, "proxy holder destructed by js callback");
             delete (reinterpret_cast<NAPIRemoteProxyHolder *>(data));
         },
         nullptr, nullptr);

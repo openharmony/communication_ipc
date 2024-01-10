@@ -314,7 +314,7 @@ void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
 
 int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ZLOGI(LOG_LABEL, "enter OnRemoteRequest");
+    ZLOGD(LOG_LABEL, "enter OnRemoteRequest");
     if (code == DUMP_TRANSACTION) {
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%{public}zu", data.GetReadableBytes());
     }
@@ -331,7 +331,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     };
 
     NAPI_RemoteObject_getCallingInfo(param->callingInfo);
-    ZLOGI(LOG_LABEL, "callingPid:%{public}u callingUid:%{public}u "
+    ZLOGD(LOG_LABEL, "callingPid:%{public}u callingUid:%{public}u "
         "callingDeviceID:%{public}s localDeviceId:%{public}s localCalling:%{public}d",
         param->callingInfo.callingPid, param->callingInfo.callingUid,
         param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
@@ -343,7 +343,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
 
 napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "call js onRemoteRequest done");
+    ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
@@ -438,6 +438,10 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
+    if (jsParam == nullptr) {
+        ZLOGE(LOG_LABEL, "Js Param is null");
+        return ERR_UNKNOWN_REASON;
+    }
     if (thisVarRef_ == nullptr || env_ == nullptr) {
         ZLOGE(LOG_LABEL, "Js env has been destructed");
         return ERR_UNKNOWN_REASON;
@@ -452,7 +456,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
-    ZLOGI(LOG_LABEL, "start nv queue work loop");
+    ZLOGD(LOG_LABEL, "start nv queue work loop");
     uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "enter thread pool");
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
@@ -888,6 +892,10 @@ static napi_value NAPI_RemoteObject_getCallingUid(napi_env env, napi_callback_in
 
 napi_value MakeSendRequestResult(SendRequestParam *param)
 {
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "send request param is null");
+        return nullptr;
+    }
     napi_value errCode = nullptr;
     napi_create_int32(param->env, param->errCode, &errCode);
     napi_value code = nullptr;
@@ -907,6 +915,10 @@ napi_value MakeSendRequestResult(SendRequestParam *param)
 
 void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
 {
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is null");
+        return;
+    }
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
     ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);

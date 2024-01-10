@@ -28,7 +28,7 @@ impl Ord for RemoteObj {
         let greater_than = unsafe {
             ipc_binding::RemoteObjectLessThan(other.0.as_ptr(), self.0.as_ptr())
         };
-        if !less_than && !greater_than {
+        if (!less_than) && (!greater_than) {
             Ordering::Equal
         } else if less_than {
             Ordering::Less

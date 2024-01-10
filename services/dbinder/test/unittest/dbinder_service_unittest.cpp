@@ -38,7 +38,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderServiceUnitTest" };
+    static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderServiceUnitTest" };
 };
 
 void DBinderServiceUnitTest::SetUp() {}
@@ -1145,20 +1145,20 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SendMessageToRemote001
- * @tc.desc: Verify the SendMessageToRemote function
+ * @tc.name: SendReplyMessageToRemote001
+ * @tc.desc: Verify the SendReplyMessageToRemote function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceUnitTest, SendMessageToRemote001, TestSize.Level1)
+HWTEST_F(DBinderServiceUnitTest, SendReplyMessageToRemote001, TestSize.Level1)
 {
     uint32_t dBinderCode = 4;
     uint32_t reason = 0;
     std::shared_ptr<DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
-    dBinderService->SendMessageToRemote(dBinderCode, reason, replyMessage);
+    dBinderService->SendReplyMessageToRemote(dBinderCode, reason, replyMessage);
     dBinderCode = 1;
-    dBinderService->SendMessageToRemote(dBinderCode, reason, replyMessage);
+    dBinderService->SendReplyMessageToRemote(dBinderCode, reason, replyMessage);
     DBinderService *temp = new DBinderService();
     DBinderService::instance_ = temp;
     dBinderService = DBinderService::GetInstance();

@@ -45,7 +45,7 @@ if (support_jsapi) {
 
     deps = [
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi_common",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi",
       "//third_party/libuv:uv",
     ]
 

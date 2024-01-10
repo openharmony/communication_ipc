@@ -56,16 +56,34 @@ using namespace IPC_SINGLE;
         handle, error, (desc).c_str())
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
+static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
+
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
-    ZLOGD(LABEL, "create, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(descriptor_).c_str());
+#ifdef CONFIG_ACTV_BINDER
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
+    if (invoker != nullptr) {
+        invoker->LinkRemoteInvoker(&invokerData_);
+    }
+#endif
+    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
     ExtendObjectLifetime();
 }
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGD(LABEL, "destroy, handle:%{public}u desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
+#ifdef CONFIG_ACTV_BINDER
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
+    if (invoker != nullptr) {
+        invoker->UnlinkRemoteInvoker(&invokerData_);
+    }
+#endif
+    ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
+        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
@@ -127,7 +145,11 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
         return ERR_NULL_OBJECT;
     }
 
+#ifdef CONFIG_ACTV_BINDER
+    int status = invoker->SendRequest(handle_, code, data, reply, option, invokerData_);
+#else
     int status = invoker->SendRequest(handle_, code, data, reply, option);
+#endif
     if (status == ERR_DEAD_OBJECT) {
         MarkObjectDied();
     }
@@ -251,7 +273,6 @@ void IPCObjectProxy::WaitForInit()
         if (!isFinishInit_) {
 #ifndef CONFIG_IPC_SINGLE
             if (UpdateProto() == IRemoteObject::IF_PROT_ERROR) {
-                ZLOGE(LABEL, "UpdateProto get IF_PROT_ERROR");
                 isRemoteDead_ = true;
             }
 #endif
@@ -306,7 +327,6 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
 void IPCObjectProxy::MarkObjectDied()
 {
     isRemoteDead_ = true;
-    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_, Str16ToStr8(remoteDescriptor_).c_str());
 }
 
 bool IPCObjectProxy::IsObjectDead() const

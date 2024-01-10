@@ -126,6 +126,7 @@ struct binder_node_info_for_ref {
 #define ACCESS_TOKENID_GET_FTOKENID _IOR('A', 3, unsigned long long)
 #define ACCESS_TOKEN_FAETURE_MASK (1 << 0)
 #define SENDER_INFO_FAETURE_MASK (1 << 2)
+//      ACTV_BINDER_FEATURE_MASK  (1 << 1)
 
 struct binder_feature_set {
     __u64 feature_set;

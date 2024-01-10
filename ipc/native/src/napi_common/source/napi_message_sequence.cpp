@@ -90,14 +90,14 @@ NAPI_MessageSequence::NAPI_MessageSequence(napi_env env, napi_value thisVar, Mes
 
 NAPI_MessageSequence::~NAPI_MessageSequence()
 {
-    ZLOGI(LOG_LABEL, "NAPI_MessageSequence::Destructor");
+    ZLOGD(LOG_LABEL, "NAPI_MessageSequence::Destructor");
     nativeParcel_ = nullptr;
     env_ = nullptr;
 }
 
 void NAPI_MessageSequence::release(MessageParcel *parcel)
 {
-    ZLOGI(LOG_LABEL, "message parcel is created by others, do nothing");
+    ZLOGD(LOG_LABEL, "message parcel is created by others, do nothing");
 }
 
 std::shared_ptr<MessageParcel> NAPI_MessageSequence::GetMessageParcel()
@@ -382,6 +382,10 @@ napi_value NAPI_MessageSequence::JS_checkWriteByteArrayArgs(napi_env env,
                                                             napi_value* argv,
                                                             uint32_t &arrayLength)
 {
+    if (argv == nullptr) {
+        ZLOGE(LOG_LABEL, "argv is nullptr");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
     if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -458,6 +462,10 @@ napi_value NAPI_MessageSequence::JS_checkWriteArrayArgs(napi_env env,
                                                         napi_value* argv,
                                                         uint32_t &arrayLength)
 {
+    if (argv == nullptr) {
+        ZLOGE(LOG_LABEL, "argv is nullptr");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
     if (argc != REQUIRED_ARGS_COUNT_1) {
         ZLOGE(LOG_LABEL, "requires 1 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -899,6 +907,10 @@ napi_value NAPI_MessageSequence::JS_checkWriteStringArrayElement(napi_env env,
                                                                  size_t &bufferSize,
                                                                  napi_value &element)
 {
+    if (argv == nullptr) {
+        ZLOGE(LOG_LABEL, "argv is nullptr");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
     bool hasElement = false;
     size_t maxSize = MAX_BYTES_LENGTH;
     napi_has_element(env, argv[ARGV_INDEX_0], index, &hasElement);
@@ -1615,6 +1627,10 @@ napi_value NAPI_MessageSequence::JS_checkReadArrayArgs(napi_env env,
                                                        napi_value &thisVar,
                                                        napi_value* argv)
 {
+    if (argv == nullptr) {
+        ZLOGE(LOG_LABEL, "argv is nullptr");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -2607,6 +2623,10 @@ napi_value NAPI_MessageSequence::JS_ReadAshmem(napi_env env, napi_callback_info 
 
 napi_value NAPI_MessageSequence::JS_checkWriteRawDataArgs(napi_env env, size_t argc, napi_value* argv)
 {
+    if (argv == nullptr) {
+        ZLOGE(LOG_LABEL, "argv is nullptr");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
     size_t expectedArgc = 2;
     if (argc != expectedArgc) {
         ZLOGE(LOG_LABEL, "requires 2 parameters");
@@ -2901,7 +2921,7 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
     napi_status status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     MessageParcel *parcel = nullptr;
-    if (argv[ARGV_INDEX_0] != nullptr) {
+    if (argc > 0) {
         napi_unwrap(env, argv[ARGV_INDEX_0], (void **)&parcel);
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }

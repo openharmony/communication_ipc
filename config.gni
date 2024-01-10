@@ -13,4 +13,5 @@
 
 declare_args() {
   ipc_feature_rpc_enabled = false
+  ipc_feature_actv_binder_enabled = true
 }

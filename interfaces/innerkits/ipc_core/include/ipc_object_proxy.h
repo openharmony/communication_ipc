@@ -315,6 +315,9 @@ private:
     bool isRemoteDead_;
     std::u16string remoteDescriptor_;
     std::u16string interfaceDesc_;
+#ifdef CONFIG_ACTV_BINDER
+    void *invokerData_ = nullptr;
+#endif
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_PROXY_H

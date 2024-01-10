@@ -21,6 +21,9 @@
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
+#ifdef CONFIG_ACTV_BINDER
+#include "actv_binder.h"
+#endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -114,6 +117,23 @@ public:
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif
 
+#ifdef CONFIG_ACTV_BINDER
+    static void JoinActvThread(bool initiative);
+
+    static void SetActvHandlerInfo(uint32_t id);
+
+    void LinkRemoteInvoker(void **data) override;
+
+    void UnlinkRemoteInvoker(void **data) override;
+
+    int SendRequest(int handle, uint32_t code,
+                    MessageParcel &data, MessageParcel &reply,
+                    MessageOption &option, void *invokerData) override;
+
+    bool CheckActvBinderAvailable(int handle, uint32_t code,
+                                  MessageOption &option, void *data);
+#endif // CONFIG_ACTV_BINDER
+
 protected:
     bool isMainWorkThread;
     bool stopWorkThread;
@@ -156,6 +176,24 @@ private:
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
+#ifdef CONFIG_ACTV_BINDER
+    inline void SetUseActvBinder(bool useActvBinder)
+    {
+        if ((binderConnector_ != nullptr) && binderConnector_->IsActvBinderSupported()) {
+            useActvBinder_ = useActvBinder;
+        }
+    }
+
+    inline bool GetUseActvBinder()
+    {
+        return useActvBinder_;
+    }
+
+    inline uint32_t GetBWRCommand()
+    {
+        return useActvBinder_ ? ACTV_BINDER_WRITE_READ : BINDER_WRITE_READ;
+    }
+#endif // CONFIG_ACTV_BINDER
 
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
@@ -167,6 +205,10 @@ private:
     BinderConnector *binderConnector_;
     uint32_t status_;
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
+#ifdef CONFIG_ACTV_BINDER
+    bool useActvBinder_ = false;
+    ActvHandlerInfo *actvHandlerInfo_ = nullptr;
+#endif
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

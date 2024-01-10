@@ -21,7 +21,7 @@
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC, "DBinderTestService" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderTestService" };
 
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {

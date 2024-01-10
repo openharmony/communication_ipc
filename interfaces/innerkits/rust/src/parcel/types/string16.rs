@@ -14,15 +14,18 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode, status_result, AsRawPtr};
+use crate::{
+    ipc_binding, BorrowedMsgParcel, IpcResult, IpcStatusCode,
+    status_result, AsRawPtr
+};
 use std::convert::TryInto;
 use std::mem::MaybeUninit;
-use std::ffi::{CString};
+use std::ffi::CString;
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustString16"
 };
 
@@ -149,7 +152,9 @@ pub unsafe extern "C" fn on_string16_writer(
     let slice: &[String16] = std::slice::from_raw_parts(value.cast(), len);
 
     for item in slice.iter().take(len) {
-        // SAFETY:
+        // SAFETY: This function writes a String16 element to a parcel.
+        // 1. Ensure the `item` is valid within the slice bounds.
+        // 2. Ensure the `item.0` pointer is valid and non-null.
         let ret = unsafe {
             ipc_binding::CParcelWritU16stringElement(
                 array,
@@ -209,4 +214,10 @@ unsafe extern "C" fn on_string16_reader(
         }
     }
     true
+}
+
+impl PartialEq for String16 {
+    fn eq(&self, other: &Self) -> bool  {
+        self.get_string() == other.get_string()
+    }
 }

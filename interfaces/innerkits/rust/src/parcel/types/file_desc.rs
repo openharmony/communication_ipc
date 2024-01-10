@@ -14,16 +14,19 @@
  */
 
 use super::*;
-use crate::{ipc_binding, BorrowedMsgParcel, AsRawPtr, status_result, IpcResult, IpcStatusCode};
+use crate::{
+    ipc_binding, BorrowedMsgParcel, AsRawPtr, status_result,
+    IpcResult, IpcStatusCode
+};
 
 use std::fs::File;
 use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
-use std::ffi::{CString};
+use std::ffi::CString;
 use hilog_rust::{error, hilog, HiLogLabel, LogType};
 
 const LOG_LABEL: HiLogLabel = HiLogLabel {
     log_type: LogType::LogCore,
-    domain: 0xd001510,
+    domain: 0xD0057CA,
     tag: "RustFileDesc"
 };
 
@@ -127,7 +130,7 @@ impl DeOption for FileDesc {
                 &mut fd,
             )
         };
-        if ok_status{
+        if ok_status {
             if fd < 0 {
                 error!(LOG_LABEL, "file descriptor is invalid from native");
                 Err(IpcStatusCode::Failed)
@@ -164,7 +167,7 @@ impl Deserialize for FileDesc {
                 &mut fd,
             )
         };
-        if ok_status{
+        if ok_status {
             if fd < 0 {
                 error!(LOG_LABEL, "file descriptor is invalid from native");
                 Err(IpcStatusCode::Failed)
