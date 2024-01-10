@@ -469,6 +469,10 @@ bool BinderConnector::IsAccessTokenSupported()
     return (featureSet_ & ACCESS_TOKEN_FAETURE_MASK) != 0;
 }
 
+bool BinderConnector::IsRealPidSupported()
+{
+    return (featureSet_ & SENDER_INFO_FAETURE_MASK) != 0;
+}
 #ifdef CONFIG_ACTV_BINDER
 bool BinderConnector::IsActvBinderSupported()
 {

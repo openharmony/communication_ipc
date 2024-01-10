@@ -63,6 +63,8 @@ public:
 
     virtual pid_t GetCallerPid() const = 0;
 
+    virtual pid_t GetCallerRealPid() const = 0;
+
     virtual uid_t GetCallerUid() const = 0;
 
     virtual uint64_t GetCallerTokenID() const = 0;

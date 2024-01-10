@@ -54,6 +54,13 @@ public:
     static pid_t GetCallingPid();
 
     /**
+     * @brief Get calling process id of caller.
+     * @return Returns the same init namespace PID of caller.
+     * @since 9
+     */
+    static pid_t GetCallingRealPid();
+
+    /**
      * @brief Get calling user id of caller.
      * @return Returns the UID of the caller.
      * @since 9
