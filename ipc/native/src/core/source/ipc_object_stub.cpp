@@ -42,7 +42,7 @@
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_databus_invoker.h"
 #include "dbinder_error_code.h"
-#include "ISessionService.h"
+#include "dbinder_softbus_client.h"
 #endif
 
 namespace OHOS {
@@ -612,18 +612,18 @@ int IPCObjectStub::GetPidUid(MessageParcel &data, MessageParcel &reply)
 
 std::string IPCObjectStub::CreateSessionName(int uid, int pid)
 {
-    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
-    if (softbusManager == nullptr) {
-        ZLOGE(LABEL, "fail to get softbus service");
+    auto &client = DBinderSoftbusClient::GetInstance();
+    auto manager = client.GetSessionService();
+    if (manager == nullptr) {
+        ZLOGE(LABEL, "GetSessionService fail");
         return "";
-    }
+     }
 
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
+    if (manager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
         ZLOGE(LABEL, "fail to Grant Permission softbus name");
         return "";
     }
-
     return sessionName;
 }
 

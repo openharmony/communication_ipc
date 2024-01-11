@@ -86,7 +86,6 @@ ohos_distributedtest("DbinderTestAgent") {
 
   external_deps = [
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "hilog:libhilog",
     "samgr:samgr_proxy",
   ]

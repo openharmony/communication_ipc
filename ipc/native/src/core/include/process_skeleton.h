@@ -22,18 +22,6 @@
 
 #include "iremote_object.h"
 
-#define CHECK_INSTANCE_EXIT(flag) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return; \
-    }
-
-#define CHECK_INSTANCE_EXIT_WITH_RETVAL(flag, retVal) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return retVal; \
-    }
-
 namespace OHOS {
 class ProcessSkeleton {
 public:

@@ -26,6 +26,7 @@
 #include "ipc_debug.h"
 #include "log_tags.h"
 #include "databus_session_callback.h"
+#include "dbinder_softbus_client.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -525,17 +526,19 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
         return false;
     }
 
-    std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
-    if (manager == nullptr) {
-        ZLOGE(LOG_LABEL, "fail to get softbus manager");
-        return false;
-    }
-
     std::string sessionName = current->GetDatabusName();
     if (sessionName.empty()) {
         ZLOGE(LOG_LABEL, "fail to get session name");
         return false;
     }
+
+    auto &client = DBinderSoftbusClient::GetInstance();
+    auto manager = client.GetSessionService();
+    if (manager == nullptr) {
+        ZLOGE(LOG_LABEL, "GetSessionService fail");
+        return false;
+    }
+
     std::shared_ptr<Session> session = manager->OpenSession(sessionName, sessionObject->GetServiceName(),
         sessionObject->GetDeviceId(), std::string(""), Session::TYPE_BYTES);
     if (session == nullptr) {
@@ -549,7 +552,6 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
         "channelId:%{public}" PRId64, sessionName.c_str(), sessionObject->GetServiceName().c_str(),
         IPCProcessSkeleton::ConvertToSecureString(sessionObject->GetDeviceId()).c_str(),
         session->GetChannelId());
-
     return true;
 }
 

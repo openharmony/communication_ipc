@@ -42,9 +42,20 @@ config("ipc_util_config") {
   }
 }
 
+config("dsoftbus_header_deps_config") {
+  include_dirs = [
+    "//foundation/communication/dsoftbus/interfaces/kits/bus_center",
+    "//foundation/communication/dsoftbus/interfaces/kits/common",
+    "//foundation/communication/dsoftbus/interfaces/kits/discovery",
+    "//foundation/communication/dsoftbus/interfaces/kits/transport",
+    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/include",
+  ]
+}
+
 group("ipc_components") {
   if (os_level == "standard") {
     deps = [
+      "$IPC_CORE_ROOT/src/core:dbinder_softbus_adaptor",
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",

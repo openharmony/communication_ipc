@@ -46,6 +46,7 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/core/source/databus_session_callback.cpp",
     "$IPC_CORE_ROOT/src/core/source/dbinder_callback_stub.cpp",
     "$IPC_CORE_ROOT/src/core/source/dbinder_session_object.cpp",
+    "$IPC_CORE_ROOT/src/core/source/dbinder_softbus_client.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_stub.cpp",
@@ -60,7 +61,6 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
     "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
     "$IPC_CORE_ROOT/src/core/source/stub_refcount_object.cpp",
-    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/dbinder_databus_invoker.cpp",
@@ -73,7 +73,10 @@ ohos_shared_library("ipc_core") {
     "$SUBSYSTEM_DIR:ipc_util_config",
     ":libipc_core_private_config",
   ]
-  public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
+  public_configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR:dsoftbus_header_deps_config",
+  ]
 
   all_dependent_configs = [ ":ipc_all_deps_config" ]
 
@@ -82,7 +85,6 @@ ohos_shared_library("ipc_core") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
