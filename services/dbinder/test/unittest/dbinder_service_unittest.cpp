@@ -24,13 +24,11 @@
 #include "rpc_log.h"
 #include "log_tags.h"
 #include "string_ex.h"
-#include "session_impl.h"
+#include "mock_session_impl.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-using Communication::SoftBus::Session;
-using Communication::SoftBus::SessionImpl;
 
 class DBinderServiceUnitTest : public testing::Test {
 public:
@@ -1047,8 +1045,10 @@ HWTEST_F(DBinderServiceUnitTest, FindDBinderStub001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosedTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
-    session->SetPeerDeviceId("networkId");
+    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
+    std::string deviceId = "networkId";
+    EXPECT_CALL(*session, GetPeerDeviceId())
+        .WillRepeatedly(testing::ReturnRef(deviceId));
     std::shared_ptr<OHOS::ThreadLockInfo> threadLockInfo = std::make_shared<OHOS::ThreadLockInfo>();
     uint32_t seqNumber = 10;
     dBinderService->AttachThreadLockInfo(seqNumber, "networkId", threadLockInfo);

@@ -52,12 +52,14 @@ ohos_shared_library("libdbinder") {
     "$DBINDER_ROOT/dbinder_service/src/dbinder_service_stub.cpp",
     "$DBINDER_ROOT/dbinder_service/src/socket/dbinder_remote_listener.cpp",
   ]
-  public_configs = [ ":libdbinder_config" ]
+  public_configs = [
+    ":libdbinder_config",
+    "$SUBSYSTEM_DIR:dsoftbus_header_deps_config",
+  ]
   configs = [ ":libdbinder_private_config" ]
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
   external_deps = [
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

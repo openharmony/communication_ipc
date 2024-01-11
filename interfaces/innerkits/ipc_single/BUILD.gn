@@ -50,7 +50,6 @@ ohos_shared_library("ipc_single") {
     "$IPC_CORE_ROOT/src/core/source/message_option.cpp",
     "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
     "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
-    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/hitrace_invoker.cpp",
