@@ -150,11 +150,7 @@ inline void ReportEvent(int code, const std::string &type, int num, const char *
     if (code == 0 || type.empty() || num == 0) {
         return;
     }
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "BIZ_SCENE",
-        DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES",
-        DbinderErrorCode::IPC_RESULT_FAILED, "BIZ_STATE", DbinderErrorCode::IPC_END, "FUNC", func, "ERROR_CODE",
-        abs(num));
+    return;
 }
 
 inline void ReportDriverEvent(int code, const std::string &type, int num, const std::string &errorType, int errorNum,
@@ -163,11 +159,7 @@ inline void ReportDriverEvent(int code, const std::string &type, int num, const 
     if (code == 0 || type.empty() || num == 0 || errorType.empty() || errorNum == 0) {
         return;
     }
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "BIZ_SCENE",
-        DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES",
-        DbinderErrorCode::IPC_RESULT_FAILED, "BIZ_STATE", DbinderErrorCode::IPC_END, "FUNC", func, "ERROR_CODE",
-        abs(errorNum), "TYPE", num);
+    return;
 }
 
 } // namespace OHOS
