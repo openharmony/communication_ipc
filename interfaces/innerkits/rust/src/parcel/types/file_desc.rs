@@ -30,7 +30,7 @@ const LOG_LABEL: HiLogLabel = HiLogLabel {
     tag: "RustFileDesc"
 };
 
-/// Rust version of the Java class android.os.ParcelFileDescriptor
+/// Rust version of the C++ class IPCFileDescriptor
 #[derive(Debug)]
 pub struct FileDesc(File);
 
