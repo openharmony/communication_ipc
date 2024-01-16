@@ -581,9 +581,6 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         PopLoadSaItem(replyMessage->deviceIdInfo.fromDeviceId, static_cast<int32_t>(replyMessage->stubIndex));
         return false;
     }
-
-    std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
-    loadSaReply_.push_back(replyMessage);
     return true;
 }
 
