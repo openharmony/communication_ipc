@@ -15,12 +15,16 @@
 
 #include "process_skeleton.h"
 
+#include <cinttypes>
+
 #include "log_tags.h"
 #include "ipc_debug.h"
 #include "string_ex.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "ProcessSkeleton" };
+static constexpr uint64_t DEAD_OBJECT_TIMEOUT = 20 * (60 * 1000); // min
+static constexpr uint64_t DEAD_OBJECT_CHECK_INTERVAL = 11 * (60 * 1000); // min
 
 ProcessSkeleton* ProcessSkeleton::instance_ = nullptr;
 std::mutex ProcessSkeleton::mutex_;
@@ -40,6 +44,12 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
         }
     }
     return instance_;
+}
+
+ProcessSkeleton::ProcessSkeleton()
+{
+    deadObjectClearThread_ = std::thread(std::bind(&ProcessSkeleton::DeadObjectClearLoop, this));
+    deadObjectClearThread_.detach();
 }
 
 ProcessSkeleton::~ProcessSkeleton()
@@ -125,7 +135,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
     auto result = objects_.insert_or_assign(descriptor, wp);
-    ZLOGD(LOG_LABEL, "attac desc:%{public}s inserted:%{public}d", Str16ToStr8(descriptor).c_str(), result.second);
+    ZLOGD(LOG_LABEL, "attach desc:%{public}s inserted:%{public}d", Str16ToStr8(descriptor).c_str(), result.second);
     return result.second;
 }
 
@@ -168,5 +178,73 @@ bool ProcessSkeleton::UnlockObjectMutex()
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     objMutex_.unlock();
     return true;
+}
+
+bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
+    auto result = deadObjectRecord_.insert_or_assign(object, objInfo);
+    ZLOGD(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s inserted:%{public}d",
+        reinterpret_cast<uintptr_t>(object), objInfo.handle, Str16ToStr8(objInfo.desc).c_str(), result.second);
+    return result.second;
+}
+
+bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
+    auto it = deadObjectRecord_.find(object);
+    if (it != deadObjectRecord_.end()) {
+        ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s", reinterpret_cast<uintptr_t>(object),
+            it->second.handle, Str16ToStr8(it->second.desc).c_str());
+        deadObjectRecord_.erase(it);
+        return true;
+    }
+    return false;
+}
+
+bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::shared_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
+    auto it = deadObjectRecord_.find(object);
+    if (it != deadObjectRecord_.end()) {
+        ZLOGE(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
+            reinterpret_cast<uintptr_t>(object), it->second.handle, Str16ToStr8(it->second.desc).c_str(),
+            it->second.deadTime);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        auto &info = it->second;
+        info.agingTime = curTime;
+        return true;
+    }
+    return false;
+}
+
+void ProcessSkeleton::DetachTimeoutDeadObject()
+{
+    CHECK_INSTANCE_EXIT(exitFlag_);
+    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end();) {
+        if (curTime - it->second.agingTime >= DEAD_OBJECT_TIMEOUT) {
+            ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
+                reinterpret_cast<uintptr_t>(it->first), it->second.handle, Str16ToStr8(it->second.desc).c_str(),
+                it->second.deadTime);
+            it = deadObjectRecord_.erase(it);
+            continue;
+        }
+        ++it;
+    }
+}
+
+void ProcessSkeleton::DeadObjectClearLoop()
+{
+    while (!exitFlag_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(DEAD_OBJECT_CHECK_INTERVAL));
+        DetachTimeoutDeadObject();
+    }
 }
 } // namespace OHOS
