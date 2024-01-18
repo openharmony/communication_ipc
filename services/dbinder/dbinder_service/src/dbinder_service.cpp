@@ -577,7 +577,6 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         static_cast<int32_t>(replyMessage->stubIndex));
     if (!isSaAvailable) {
         DBINDER_LOGE(LOG_LABEL, "fail to call the system ability");
-        std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
         PopLoadSaItem(replyMessage->deviceIdInfo.fromDeviceId, static_cast<int32_t>(replyMessage->stubIndex));
         return false;
     }
