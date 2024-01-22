@@ -33,7 +33,7 @@ ohos_shared_library("ipc_test_helper") {
 
   configs = [
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
   deps = [
@@ -57,7 +57,7 @@ ohos_executable("ipc_server_test") {
   sources = [ "./src/main_server.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -82,7 +82,7 @@ ohos_executable("ipc_client_test") {
   sources = [ "./src/main_client.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -122,7 +122,7 @@ ohos_shared_library("ipc_test_helper_extra") {
 
   configs = [
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
   deps = [
@@ -146,7 +146,7 @@ ohos_executable("ipc_server_test_extra") {
   sources = [ "./src/main_server.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 

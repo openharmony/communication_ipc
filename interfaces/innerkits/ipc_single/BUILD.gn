@@ -59,10 +59,10 @@ ohos_shared_library("ipc_single") {
   ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_single_private_config",
   ]
-  public_configs = [ "$SUBSYSTEM_DIR:ipc_util_config" ]
+  public_configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
 
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
 
