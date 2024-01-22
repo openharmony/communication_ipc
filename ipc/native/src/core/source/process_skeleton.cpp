@@ -46,12 +46,6 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
     return instance_;
 }
 
-ProcessSkeleton::ProcessSkeleton()
-{
-    deadObjectClearThread_ = std::thread(std::bind(&ProcessSkeleton::DeadObjectClearLoop, this));
-    deadObjectClearThread_.detach();
-}
-
 ProcessSkeleton::~ProcessSkeleton()
 {
     ZLOGW(LOG_LABEL, "destroy");
@@ -187,11 +181,13 @@ bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo& ob
     auto result = deadObjectRecord_.insert_or_assign(object, objInfo);
     ZLOGD(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s inserted:%{public}d",
         reinterpret_cast<uintptr_t>(object), objInfo.handle, Str16ToStr8(objInfo.desc).c_str(), result.second);
+    DetachTimeoutDeadObject();
     return result.second;
 }
 
 bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
 {
+    bool ret = false;
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
     auto it = deadObjectRecord_.find(object);
@@ -199,9 +195,10 @@ bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
         ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s", reinterpret_cast<uintptr_t>(object),
             it->second.handle, Str16ToStr8(it->second.desc).c_str());
         deadObjectRecord_.erase(it);
-        return true;
+        ret = true;
     }
-    return false;
+    DetachTimeoutDeadObject();
+    return ret;
 }
 
 bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
@@ -225,9 +222,13 @@ bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
 void ProcessSkeleton::DetachTimeoutDeadObject()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
-    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
+    // don't lock in the function.
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
+    if (curTime - deadObjectClearTime_ < DEAD_OBJECT_CHECK_INTERVAL) {
+        return;
+    }
+    deadObjectClearTime_ = curTime;
     for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end();) {
         if (curTime - it->second.agingTime >= DEAD_OBJECT_TIMEOUT) {
             ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
@@ -237,14 +238,6 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
             continue;
         }
         ++it;
-    }
-}
-
-void ProcessSkeleton::DeadObjectClearLoop()
-{
-    while (!exitFlag_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(DEAD_OBJECT_CHECK_INTERVAL));
-        DetachTimeoutDeadObject();
     }
 }
 } // namespace OHOS
