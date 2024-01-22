@@ -28,6 +28,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "log_tags.h"
+#include "process_skeleton.h"
 #include "string_ex.h"
 #include "sys_binder.h"
 #ifdef FFRT_IPC_ENABLE
@@ -394,7 +395,10 @@ void BinderInvoker::OnBinderDied()
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
     if (proxy != nullptr) {
-        proxy->SendObituary();
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        if ((current == nullptr) || !current->IsDeadObject(proxy)) {
+            proxy->SendObituary();
+        }
     }
 
     size_t rewindPos = output_.GetWritePosition();
@@ -418,6 +422,11 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((obj == nullptr) || (refs == nullptr)) {
         ZLOGE(LABEL, "FAIL!");
+        return;
+    }
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if ((current != nullptr) && current->IsDeadObject(obj)) {
+        ZLOGE(LABEL, "DeadObject");
         return;
     }
 
@@ -452,6 +461,11 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((refs == nullptr) || (obj == nullptr)) {
         ZLOGE(LABEL, "FAIL!");
+        return;
+    }
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if ((current != nullptr) && current->IsDeadObject(obj)) {
+        ZLOGE(LABEL, "DeadObject");
         return;
     }
     ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
@@ -540,8 +554,13 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             }
 #endif
             if (targetObject != nullptr) {
-                error = targetObject->SendRequest(tr->code, *data, reply, option);
-                targetObject->DecStrongRef(this);
+                ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+                if ((current != nullptr) && current->IsDeadObject(targetObject)) {
+                    ZLOGE(LABEL, "DeadObject");
+                } else {
+                    error = targetObject->SendRequest(tr->code, *data, reply, option);
+                    targetObject->DecStrongRef(this);
+                }
             }
         }
     } else {
