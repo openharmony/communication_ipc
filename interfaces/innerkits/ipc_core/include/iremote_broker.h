@@ -118,7 +118,6 @@ private:
     std::mutex creatorMutex_;
     std::unordered_map<std::u16string, Constructor> creators_;
     std::vector<uintptr_t> objects_;
-    std::atomic<bool> isUnloading = false;
 };
 
 template <typename T> class BrokerDelegator : public BrokerDelegatorBase {
