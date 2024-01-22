@@ -30,7 +30,7 @@ ohos_shared_library("ipc_common") {
   sources = [ "source/process_skeleton.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_common_private_config",
   ]
 
