@@ -456,8 +456,10 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
-    ZLOGD(LOG_LABEL, "start nv queue work loop");
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+    ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+    uv_queue_work(loop, work, [](uv_work_t *work) {
+        ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<CallbackParam *>(work->data))->code);
+    }, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "enter thread pool");
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
         napi_handle_scope scope = nullptr;
