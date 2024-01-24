@@ -29,9 +29,6 @@ ohos_shared_library("ipc_common") {
     "$SUBSYSTEM_DIR/utils/include",
     "include",
   ]
-  if (ipc_feature_actv_binder_enabled) {
-    include_dirs += [ "//third_party/json/single_include" ]
-  }
 
   sources = [
     "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
@@ -42,6 +39,8 @@ ohos_shared_library("ipc_common") {
     "$SUBSYSTEM_DIR:ipc_util_config",
     ":libipc_common_private_config",
   ]
+
+  deps = [ "//third_party/json:nlohmann_json_static" ]
 
   external_deps = [
     "c_utils:utils",
@@ -69,6 +68,10 @@ ohos_shared_library("dbinder_softbus_adaptor") {
   }
   include_dirs = [ "$IPC_CORE_ROOT/src/core/include" ]
   sources = [ "$IPC_CORE_ROOT/src/core/source/dbinder_softbus_adaptor.cpp" ]
+  configs = [
+    "$SUBSYSTEM_DIR:ipc_util_config",
+    ":libipc_common_private_config",
+  ]
   external_deps = [ "dsoftbus:softbus_client" ]
   innerapi_tags = [ "platformsdk_indirect" ]
   install_images = [

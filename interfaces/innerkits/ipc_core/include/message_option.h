@@ -25,7 +25,7 @@ public:
         TF_ASYNC = 0x01,
         TF_STATUS_CODE = 0x08,
         TF_ACCEPT_FDS = 0x10,
-        TF_WAIT_TIME = 0x4,
+        TF_WAIT_TIME = 0x8,
     };
     MessageOption(int flags = TF_SYNC, int waitTime = TF_WAIT_TIME);
     ~MessageOption() = default;

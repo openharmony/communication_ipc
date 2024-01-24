@@ -28,10 +28,39 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "log_tags.h"
+#include "process_skeleton.h"
 #include "string_ex.h"
 #include "sys_binder.h"
 #ifdef FFRT_IPC_ENABLE
 #include "c/ffrt_ipc.h"
+#endif
+
+#if defined(__arm__) || defined(__aarch64__)
+#define TLS_SLOT_MIGRATION_DISABLE_COUNT (-10)
+class ThreadMigrationDisabler {
+    unsigned long *GetTls()
+    {
+        unsigned long *tls = nullptr;
+#ifdef __aarch64__
+        asm("mrs %0, tpidr_el0" : "=r"(tls));
+#else
+        asm("mrc p15, 0, %0, c13, c0, 3" : "=r"(tls));
+#endif
+        return tls;
+    }
+
+public:
+    ThreadMigrationDisabler()
+    {
+        GetTls()[TLS_SLOT_MIGRATION_DISABLE_COUNT]++;
+    }
+    ~ThreadMigrationDisabler()
+    {
+        GetTls()[TLS_SLOT_MIGRATION_DISABLE_COUNT]--;
+    }
+};
+#else
+class ThreadMigrationDisabler {};
 #endif
 
 namespace OHOS {
@@ -114,6 +143,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HiTraceId traceId = HiTraceChain::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
+    
+    ThreadMigrationDisabler _d;
+
     if (!TranslateDBinderProxy(handle, data)) {
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
@@ -394,7 +426,10 @@ void BinderInvoker::OnBinderDied()
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
     if (proxy != nullptr) {
-        proxy->SendObituary();
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        if ((current == nullptr) || !current->IsDeadObject(proxy)) {
+            proxy->SendObituary();
+        }
     }
 
     size_t rewindPos = output_.GetWritePosition();
@@ -418,6 +453,11 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((obj == nullptr) || (refs == nullptr)) {
         ZLOGE(LABEL, "FAIL!");
+        return;
+    }
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if ((current != nullptr) && current->IsDeadObject(obj)) {
+        ZLOGE(LABEL, "DeadObject");
         return;
     }
 
@@ -452,6 +492,11 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((refs == nullptr) || (obj == nullptr)) {
         ZLOGE(LABEL, "FAIL!");
+        return;
+    }
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if ((current != nullptr) && current->IsDeadObject(obj)) {
+        ZLOGE(LABEL, "DeadObject");
         return;
     }
     ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
@@ -540,8 +585,13 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             }
 #endif
             if (targetObject != nullptr) {
-                error = targetObject->SendRequest(tr->code, *data, reply, option);
-                targetObject->DecStrongRef(this);
+                ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+                if ((current != nullptr) && current->IsDeadObject(targetObject)) {
+                    ZLOGE(LABEL, "DeadObject");
+                } else {
+                    error = targetObject->SendRequest(tr->code, *data, reply, option);
+                    targetObject->DecStrongRef(this);
+                }
             }
         }
     } else {
@@ -725,6 +775,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
 
 void BinderInvoker::JoinThread(bool initiative)
 {
+    ThreadMigrationDisabler _d;
     isMainWorkThread = initiative;
     output_.WriteUint32(initiative ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
     StartWorkLoop();

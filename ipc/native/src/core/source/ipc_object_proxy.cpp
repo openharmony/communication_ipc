@@ -34,6 +34,7 @@
 #include "message_option.h"
 #include "message_parcel.h"
 #include "mutex"
+#include "process_skeleton.h"
 #include "refbase.h"
 #include "string"
 #include "string_ex.h"
@@ -67,10 +68,15 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
         invoker->LinkRemoteInvoker(&invokerData_);
     }
 #endif
-    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
+    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), reinterpret_cast<uintptr_t>(this));
     ExtendObjectLifetime();
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "ProcessSkeleton is null");
+        return;
+    }
+    current->DetachDeadObject(this);
 }
 
 IPCObjectProxy::~IPCObjectProxy()
@@ -81,9 +87,18 @@ IPCObjectProxy::~IPCObjectProxy()
         invoker->UnlinkRemoteInvoker(&invokerData_);
     }
 #endif
-    ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
+    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+        reinterpret_cast<uintptr_t>(this));
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "ProcessSkeleton is null");
+        return;
+    }
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    DeadObjectInfo obj = { handle_, curTime, curTime, remoteDescriptor_ };
+    current->AttachDeadObject(this, obj);
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
