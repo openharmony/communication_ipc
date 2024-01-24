@@ -63,16 +63,31 @@ static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGI(LABEL, "desc:%{public}s, %{public}u",
+    ZLOGD(LABEL, "desc:%{public}s, %{public}zu",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
+        reinterpret_cast<uintptr_t>(this));
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "ProcessSkeleton is null");
+        return;
+    }
+    current->DetachDeadObject(this);
 }
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGW(LABEL, "desc:%{public}s, %{public}u",
+    ZLOGD(LABEL, "desc:%{public}s, %{public}zu",
         IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)) & IPC_OBJECT_MASK);
+        reinterpret_cast<uintptr_t>(this));
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "ProcessSkeleton is null");
+        return;
+    }
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    DeadObjectInfo obj = { -1, curTime, curTime, descriptor_ };
+    current->AttachDeadObject(this, obj);
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)

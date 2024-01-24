@@ -480,7 +480,8 @@ std::shared_ptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::strin
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     auto it = std::find_if(loadSaReply_.begin(), loadSaReply_.end(), checkSaItem);
     if (it == loadSaReply_.end()) {
-        DBINDER_LOGE(LOG_LABEL, "findSaItem failed");
+        DBINDER_LOGE(LOG_LABEL, "findSaItem failed saId:%{public}d, deviceId:%{public}s",
+            systemAbilityId, srcNetworkId.c_str());
         return nullptr;
     }
     std::shared_ptr<DHandleEntryTxRx> replymsg = (*it);
@@ -564,15 +565,17 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         return false;
     }
 
+    {
+        std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
+        loadSaReply_.push_back(replyMessage);
+    }
     bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
         static_cast<int32_t>(replyMessage->stubIndex));
     if (!isSaAvailable) {
         DBINDER_LOGE(LOG_LABEL, "fail to call the system ability");
+        PopLoadSaItem(replyMessage->deviceIdInfo.fromDeviceId, static_cast<int32_t>(replyMessage->stubIndex));
         return false;
     }
-
-    std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
-    loadSaReply_.push_back(replyMessage);
     return true;
 }
 

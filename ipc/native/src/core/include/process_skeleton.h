@@ -19,10 +19,18 @@
 #include <map>
 #include <mutex>
 #include <shared_mutex>
+#include <thread>
 
 #include "iremote_object.h"
 
 namespace OHOS {
+struct DeadObjectInfo {
+    int32_t handle;
+    uint64_t deadTime;
+    uint64_t agingTime;
+    std::u16string desc;
+};
+
 class ProcessSkeleton {
 public:
 
@@ -38,11 +46,16 @@ public:
     bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
     bool LockObjectMutex();
     bool UnlockObjectMutex();
+    bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
+    bool DetachDeadObject(IRemoteObject *object);
+    bool IsDeadObject(IRemoteObject *object);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
-    ProcessSkeleton() = default;
+    ProcessSkeleton();
     ~ProcessSkeleton();
+    void DetachTimeoutDeadObject();
+    void DeadObjectClearLoop();
 
     class DestroyInstance {
     public:
@@ -66,6 +79,10 @@ private:
 
     std::map<std::u16string, wptr<IRemoteObject>> objects_;
     std::map<IRemoteObject *, bool> isContainStub_;
+
+    std::shared_mutex deadObjectMutex_;
+    std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
+    std::thread deadObjectClearThread_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
