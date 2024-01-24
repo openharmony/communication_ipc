@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/ohos_var.gni")
 import("../config.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+SUBSYSTEM_DIR = "../"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 config("ipc_util_config") {
