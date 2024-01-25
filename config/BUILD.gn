@@ -1,0 +1,53 @@
+# Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos_var.gni")
+import("../config.gni")
+
+SUBSYSTEM_DIR = "../"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
+
+config("ipc_util_config") {
+  # header file path
+
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/src/core/include",
+    "$IPC_CORE_ROOT/src/mock/include",
+  ]
+
+  cflags = []
+  if (is_double_framework) {
+    cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
+  }
+  if (is_standard_system) {
+    cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
+  }
+  if (defined(build_public_version) && build_public_version) {
+    cflags += [ "-DBUILD_PUBLIC_VERSION" ]
+  }
+  if (ipc_feature_actv_binder_enabled) {
+    cflags += [ "-DCONFIG_ACTV_BINDER" ]
+  }
+}
+
+config("dsoftbus_header_deps_config") {
+  include_dirs = [
+    "//foundation/communication/dsoftbus/interfaces/kits/bus_center",
+    "//foundation/communication/dsoftbus/interfaces/kits/common",
+    "//foundation/communication/dsoftbus/interfaces/kits/discovery",
+    "//foundation/communication/dsoftbus/interfaces/kits/transport",
+    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/include",
+  ]
+}

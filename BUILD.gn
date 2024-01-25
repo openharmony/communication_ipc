@@ -18,40 +18,6 @@ import("./config.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
-config("ipc_util_config") {
-  # header file path
-
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
-  ]
-
-  cflags = []
-  if (is_double_framework) {
-    cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
-  }
-  if (is_standard_system) {
-    cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
-  }
-  if (defined(build_public_version) && build_public_version) {
-    cflags += [ "-DBUILD_PUBLIC_VERSION" ]
-  }
-  if (ipc_feature_actv_binder_enabled) {
-    cflags += [ "-DCONFIG_ACTV_BINDER" ]
-  }
-}
-
-config("dsoftbus_header_deps_config") {
-  include_dirs = [
-    "//foundation/communication/dsoftbus/interfaces/kits/bus_center",
-    "//foundation/communication/dsoftbus/interfaces/kits/common",
-    "//foundation/communication/dsoftbus/interfaces/kits/discovery",
-    "//foundation/communication/dsoftbus/interfaces/kits/transport",
-    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/include",
-  ]
-}
-
 group("ipc_components") {
   if (os_level == "standard") {
     deps = [

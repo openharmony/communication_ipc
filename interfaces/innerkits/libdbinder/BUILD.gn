@@ -54,7 +54,7 @@ ohos_shared_library("libdbinder") {
   ]
   public_configs = [
     ":libdbinder_config",
-    "$SUBSYSTEM_DIR:dsoftbus_header_deps_config",
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
   configs = [ ":libdbinder_private_config" ]
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
