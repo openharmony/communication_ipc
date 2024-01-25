@@ -36,7 +36,7 @@ ohos_unittest("RPCDbinderTest") {
     "dbinder_service_unittest.cpp",
   ]
 
-  configs = [ "$SUBSYSTEM_DIR:dsoftbus_header_deps_config" ]
+  configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
 
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",

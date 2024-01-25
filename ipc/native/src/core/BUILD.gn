@@ -36,7 +36,7 @@ ohos_shared_library("ipc_common") {
   ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_common_private_config",
   ]
 
@@ -69,7 +69,7 @@ ohos_shared_library("dbinder_softbus_adaptor") {
   include_dirs = [ "$IPC_CORE_ROOT/src/core/include" ]
   sources = [ "$IPC_CORE_ROOT/src/core/source/dbinder_softbus_adaptor.cpp" ]
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_common_private_config",
   ]
   external_deps = [ "dsoftbus:softbus_client" ]

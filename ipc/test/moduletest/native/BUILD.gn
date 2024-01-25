@@ -22,7 +22,7 @@ ohos_moduletest("IPCNativeFrameworksTest") {
   include_dirs = [ "//utils/system/safwk/native/include" ]
   sources = [ "./common/ipc_core_module_test.cpp" ]
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
   deps = [
