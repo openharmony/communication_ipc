@@ -13,25 +13,31 @@
 
 import("//build/ohos.gni")
 import("//build/ohos_var.gni")
-import("./config.gni")
+import("../config.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+SUBSYSTEM_DIR = "../"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
-group("ipc_components") {
-  if (os_level == "standard") {
-    deps = [
-      "$IPC_CORE_ROOT/src/core:ipc_common",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
-    ]
-    if (!build_ohos_sdk) {
-      deps += [
-        "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
-        "$SUBSYSTEM_DIR/interfaces/innerkits/rust:rust_ipc_component",
-      ]
-    }
-  } else {
-    deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c:rpc" ]
+config("ipc_util_config") {
+  # header file path
+
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/src/core/include",
+    "$IPC_CORE_ROOT/src/mock/include",
+  ]
+
+  cflags = []
+  if (is_double_framework) {
+    cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
+  }
+  if (is_standard_system) {
+    cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
+  }
+  if (defined(build_public_version) && build_public_version) {
+    cflags += [ "-DBUILD_PUBLIC_VERSION" ]
+  }
+  if (ipc_feature_actv_binder_enabled) {
+    cflags += [ "-DCONFIG_ACTV_BINDER" ]
   }
 }

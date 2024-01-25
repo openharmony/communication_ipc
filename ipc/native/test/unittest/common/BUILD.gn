@@ -47,7 +47,7 @@ ohos_unittest("IPCNativeUnitTest") {
   ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -83,7 +83,7 @@ ohos_unittest("IPCFileDescOpsTest") {
   sources = [ "ipc_file_desc_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -110,7 +110,7 @@ ohos_unittest("BinderConnectorTest") {
   sources = [ "ipc_connector_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -140,7 +140,7 @@ ohos_unittest("BinderInvokerUnitTest") {
   sources = [ "binder_invoker_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -168,7 +168,7 @@ ohos_unittest("IPCHiTraceUnitTest") {
   sources = [ "ipc_hitrace_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -227,7 +227,7 @@ ohos_unittest("IPCMockUnitTest") {
   sources = [ "ipc_binder_databus_invoker_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -261,7 +261,7 @@ ohos_unittest("InvokerFactoryTest") {
   sources = [ "invoker_factory_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -296,7 +296,7 @@ ohos_unittest("RPCFeatureUnitTest") {
   sources = [ "rpc_feature_set_unittest.cpp" ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
@@ -332,7 +332,7 @@ ohos_unittest("IPCCInterfaceUnitTest") {
   ]
 
   configs = [
-    "$SUBSYSTEM_DIR:ipc_util_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
