@@ -31,7 +31,6 @@
 #include "napi_rpc_error.h"
 #include "native_engine/native_value.h"
 #include "napi_process_skeleton.h"
-#include "process_skeleton.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
@@ -214,7 +213,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
-    ZLOGD(LOG_LABEL, "desc:%{public}s", ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+    ZLOGD(LOG_LABEL, "created, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
     env_ = env;
     jsThreadId_ = jsThreadId;
     thisVarRef_ = jsObjectRef;
@@ -253,7 +252,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    ZLOGD(LOG_LABEL, "desc:%{public}s", ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+    ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", Str16ToStr8(descriptor_).c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
         if (jsThreadId_ == std::this_thread::get_id()) {
             DecreaseJsObjectRef(env_, thisVarRef_);
