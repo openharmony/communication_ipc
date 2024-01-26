@@ -21,7 +21,6 @@
 #include <uv.h>
 
 #include "ipc_debug.h"
-#include "ipc_process_skeleton.h"
 #include "iremote_invoker.h"
 #include "log_tags.h"
 #include "napi/native_api.h"
@@ -32,6 +31,7 @@
 #include "napi_rpc_error.h"
 #include "native_engine/native_value.h"
 #include "napi_process_skeleton.h"
+#include "process_skeleton.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
@@ -214,7 +214,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     const std::u16string &descriptor)
     : IPCObjectStub(descriptor)
 {
-    ZLOGD(LOG_LABEL, "desc:%{public}s", IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+    ZLOGD(LOG_LABEL, "desc:%{public}s", ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
     env_ = env;
     jsThreadId_ = jsThreadId;
     thisVarRef_ = jsObjectRef;
@@ -253,7 +253,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
 NAPIRemoteObject::~NAPIRemoteObject()
 {
-    ZLOGD(LOG_LABEL, "desc:%{public}s", IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+    ZLOGD(LOG_LABEL, "desc:%{public}s", ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
         if (jsThreadId_ == std::this_thread::get_id()) {
             DecreaseJsObjectRef(env_, thisVarRef_);
@@ -458,7 +458,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     }
     work->data = reinterpret_cast<void *>(jsParam);
     ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s",
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
     uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<CallbackParam *>(work->data))->code);
     }, [](uv_work_t *work, int status) {
