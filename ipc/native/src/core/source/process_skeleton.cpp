@@ -112,11 +112,11 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     auto iterator = objects_.find(descriptor);
     if (iterator != objects_.end()) {
         objects_.erase(iterator);
-        ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+        ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
         return true;
     }
     ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated",
-        ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+        ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
     return false;
 }
 
@@ -137,7 +137,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     wptr<IRemoteObject> wp = object;
     auto result = objects_.insert_or_assign(descriptor, wp);
     ZLOGD(LOG_LABEL, "attach desc:%{public}s inserted:%{public}d",
-        ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), result.second);
+        ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), result.second);
     return result.second;
 }
 
