@@ -61,6 +61,7 @@ public:
     bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
     bool DetachDeadObject(IRemoteObject *object);
     bool IsDeadObject(IRemoteObject *object);
+    static std::string ConvertToSecureDesc(const std::string &str);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
