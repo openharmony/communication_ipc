@@ -69,7 +69,7 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     }
 #endif
     ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), reinterpret_cast<uintptr_t>(this));
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), reinterpret_cast<uintptr_t>(this));
     ExtendObjectLifetime();
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
@@ -88,7 +88,7 @@ IPCObjectProxy::~IPCObjectProxy()
     }
 #endif
     ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
         reinterpret_cast<uintptr_t>(this));
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
@@ -110,7 +110,7 @@ int32_t IPCObjectProxy::GetObjectRefCount()
         return reply.ReadInt32();
     }
     PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
     return 0;
 }
 
@@ -132,7 +132,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     int err = SendRequestInner(false, code, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
     }
     return err;
 }
@@ -147,7 +147,7 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
 {
     if (IsObjectDead()) {
         ZLOGD(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return ERR_DEAD_OBJECT;
     }
 
@@ -189,7 +189,7 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::u16string();
     }
     interfaceDesc_ = reply.ReadString16();
@@ -205,7 +205,7 @@ std::string IPCObjectProxy::GetSessionName()
     int err = SendRequestInner(false, GET_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::string("");
     }
     return reply.ReadString();
@@ -219,7 +219,7 @@ std::string IPCObjectProxy::GetGrantedSessionName()
     int err = SendRequestInner(false, GET_GRANTED_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::string("");
     }
 
@@ -247,7 +247,7 @@ std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
     int err = SendRequestInner(false, GET_SESSION_NAME_PID_UID, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::string("");
     }
 
@@ -286,7 +286,7 @@ void IPCObjectProxy::WaitForInit()
         // we may find the same proxy that has been marked as dead. Thus, we need to check again.
         if (IsObjectDead()) {
             ZLOGW(LABEL, "proxy is dead, init again, handle:%{public}d desc:%{public}s",
-                handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+                handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
             isRemoteDead_ = false;
             isFinishInit_ = false;
         }
@@ -360,13 +360,13 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (IsObjectDead()) {
         ZLOGE(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
     recipients_.push_back(recipient);
     if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return true;
     }
 
@@ -378,7 +378,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 
     if (!invoker->AddDeathRecipient(handle_, this)) {
         ZLOGE(LABEL, "fail to add binder death recipient, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
             DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
             COMMON_DRIVER_SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
@@ -388,7 +388,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
         if (!AddDbinderDeathRecipient()) {
             ZLOGE(LABEL, "failed to add dbinder death recipient, handle:%{public}d desc:%{public}s",
-                handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+                handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
             ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
                 DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
                 COMMON_DRIVER_SET_DEATH_RECIPIENT_FAILURE, __FUNCTION__);
@@ -397,7 +397,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
     }
 #endif
     ZLOGI(LABEL, "success, handle:%{public}d desc:%{public}s", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
     return true;
 }
 
@@ -407,7 +407,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
     if (IsObjectDead()) {
         ZLOGD(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
     bool recipientErased = false;
@@ -419,7 +419,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
     if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
         ZLOGI(LABEL, "death recipient is already unregistered, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return true;
     }
 
@@ -438,7 +438,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
         }
 #endif
         ZLOGI(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s", status && dbinderStatus, handle_,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return status && dbinderStatus;
     }
     return recipientErased;
@@ -447,7 +447,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 void IPCObjectProxy::SendObituary()
 {
     ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
@@ -512,7 +512,7 @@ int IPCObjectProxy::GetProto() const
 int32_t IPCObjectProxy::NoticeServiceDie()
 {
     ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -521,7 +521,7 @@ int32_t IPCObjectProxy::NoticeServiceDie()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return IPC_PROXY_TRANSACTION_ERR;
     }
 
@@ -550,7 +550,7 @@ int32_t IPCObjectProxy::IncRefToRemote()
     int32_t err = SendRequestInner(false, DBINDER_INCREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         // do nothing
     }
     return err;
@@ -603,14 +603,14 @@ int IPCObjectProxy::GetProtoInfo()
         case IRemoteObject::IF_PROT_BINDER: {
             remoteDescriptor_ = reply.ReadString16();
             ZLOGD(LABEL, "binder, handle:%{public}u desc:%{public}s",
-                handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+                handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
             break;
         }
         case IRemoteObject::IF_PROT_DATABUS: {
             if (UpdateDatabusClientSession(handle_, reply)) {
                 remoteDescriptor_ = reply.ReadString16();
                 ZLOGD(LABEL, "dbinder, handle:%{public}u desc:%{public}s",
-                    handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+                    handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
                 return IRemoteObject::IF_PROT_DATABUS;
             } else {
                 ZLOGE(LABEL, "UpdateDatabusClientSession failed");
@@ -631,13 +631,13 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGW(LABEL, "get current fail, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
 
     if (current->QueryCallbackStub(this) != nullptr) {
         ZLOGW(LABEL, "already attach callback stub, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return true;
     }
 
@@ -645,12 +645,12 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + remoteDescriptor_);
     if (callbackStub == nullptr) {
         ZLOGE(LABEL, "create IPCObjectStub object failed, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
     if (!current->AttachCallbackStub(this, callbackStub)) {
         ZLOGW(LABEL, "already attach new callback stub, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
 
@@ -663,7 +663,7 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         current->DetachCallbackStub(this);
         return false;
     }
@@ -679,11 +679,11 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
         return false;
     }
     ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_,
-        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
     sptr<IPCObjectStub> callbackStub = current->DetachCallbackStub(this);
     if (callbackStub == nullptr) {
         ZLOGE(LABEL, "get callbackStub fail, handle:%{public}d desc:%{public}s",
-            handle_, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
 
@@ -696,7 +696,7 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         // do nothing, even send request failed
     }
     return err == ERR_NONE;
@@ -778,7 +778,7 @@ void IPCObjectProxy::ReleaseDatabusProto()
     int err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         // do nothing, if this cmd failed, stub's refcount will be decreased when OnSessionClosed called
     }
 
