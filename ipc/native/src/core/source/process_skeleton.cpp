@@ -17,8 +17,9 @@
 
 #include <cinttypes>
 
-#include "log_tags.h"
 #include "ipc_debug.h"
+#include "ipc_process_skeleton.h"
+#include "log_tags.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -112,10 +113,12 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     auto iterator = objects_.find(descriptor);
     if (iterator != objects_.end()) {
         objects_.erase(iterator);
-        ZLOGD(LOG_LABEL, "erase desc:%{public}s", Str16ToStr8(descriptor).c_str());
+        ZLOGD(LOG_LABEL, "erase desc:%{public}s",
+            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
         return true;
     }
-    ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated", Str16ToStr8(descriptor).c_str());
+    ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated",
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
     return false;
 }
 
@@ -135,7 +138,8 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
     auto result = objects_.insert_or_assign(descriptor, wp);
-    ZLOGD(LOG_LABEL, "attach desc:%{public}s inserted:%{public}d", Str16ToStr8(descriptor).c_str(), result.second);
+    ZLOGD(LOG_LABEL, "attach desc:%{public}s inserted:%{public}d",
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), result.second);
     return result.second;
 }
 
@@ -186,7 +190,8 @@ bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo& ob
     std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
     auto result = deadObjectRecord_.insert_or_assign(object, objInfo);
     ZLOGD(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s inserted:%{public}d",
-        reinterpret_cast<uintptr_t>(object), objInfo.handle, Str16ToStr8(objInfo.desc).c_str(), result.second);
+        reinterpret_cast<uintptr_t>(object), objInfo.handle,
+        IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(objInfo.desc)).c_str(), result.second);
     return result.second;
 }
 
@@ -197,7 +202,7 @@ bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
     auto it = deadObjectRecord_.find(object);
     if (it != deadObjectRecord_.end()) {
         ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s", reinterpret_cast<uintptr_t>(object),
-            it->second.handle, Str16ToStr8(it->second.desc).c_str());
+            it->second.handle, IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str());
         deadObjectRecord_.erase(it);
         return true;
     }
@@ -211,8 +216,8 @@ bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
     auto it = deadObjectRecord_.find(object);
     if (it != deadObjectRecord_.end()) {
         ZLOGE(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-            reinterpret_cast<uintptr_t>(object), it->second.handle, Str16ToStr8(it->second.desc).c_str(),
-            it->second.deadTime);
+            reinterpret_cast<uintptr_t>(object), it->second.handle,
+            IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str(), it->second.deadTime);
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
         auto &info = it->second;
@@ -231,8 +236,8 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
     for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end();) {
         if (curTime - it->second.agingTime >= DEAD_OBJECT_TIMEOUT) {
             ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
-                reinterpret_cast<uintptr_t>(it->first), it->second.handle, Str16ToStr8(it->second.desc).c_str(),
-                it->second.deadTime);
+                reinterpret_cast<uintptr_t>(it->first), it->second.handle,
+                IPCProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str(), it->second.deadTime);
             it = deadObjectRecord_.erase(it);
             continue;
         }

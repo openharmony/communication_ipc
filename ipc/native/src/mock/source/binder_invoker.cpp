@@ -496,7 +496,7 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if ((current != nullptr) && current->IsDeadObject(obj)) {
-        ZLOGE(LABEL, "DeadObject");
+        ZLOGE(LABEL, "DeadObject %{public}zu", reinterpret_cast<uintptr_t>(obj));
         return;
     }
     ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
