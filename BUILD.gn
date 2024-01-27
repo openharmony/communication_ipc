@@ -16,14 +16,13 @@ import("//build/ohos_var.gni")
 import("./config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 group("ipc_components") {
   if (os_level == "standard") {
     deps = [
-      "$IPC_CORE_ROOT/src/core:ipc_common",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+      "$SUBSYSTEM_DIR/ipc/native/src/core:ipc_common",
     ]
     if (!build_ohos_sdk) {
       deps += [
