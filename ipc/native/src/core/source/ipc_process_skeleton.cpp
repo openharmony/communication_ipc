@@ -43,6 +43,9 @@ using namespace Communication;
 using namespace OHOS::HiviewDFX;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PROC_SKELETON, "IPCProcessSkeleton" };
+#ifndef CONFIG_IPC_SINGLE
+static constexpr int32_t DETACH_PROXY_REF_COUNT = 2;
+#endif
 
 std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
@@ -207,6 +210,9 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
         ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d", handle);
+        if (proxy->GetSptrRefCount() <= DETACH_PROXY_REF_COUNT) {
+            DetachObject(result.GetRefPtr());
+        }
         return nullptr;
     }
 #endif
@@ -532,7 +538,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     } else {
         ZLOGW(LOG_LABEL, "detach handle:%{Public}u, not found", handle);
     }
-   
+
     return tmp;
 }
 
