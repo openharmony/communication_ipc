@@ -57,7 +57,6 @@ public:
     virtual ~BrokerDelegatorBase() = default;
 
 public:
-    bool isSoUnloaded = false;
     std::u16string descriptor_;
 };
 
@@ -143,10 +142,6 @@ template <typename T> BrokerDelegator<T>::BrokerDelegator()
 
 template <typename T> BrokerDelegator<T>::~BrokerDelegator()
 {
-    if (!isSoUnloaded && !descriptor_.empty()) {
-        BrokerRegistration &registration = BrokerRegistration::Get();
-        registration.Unregister(descriptor_);
-    }
 }
 
 template <typename INTERFACE> inline sptr<INTERFACE> iface_cast(const sptr<IRemoteObject> &object)
