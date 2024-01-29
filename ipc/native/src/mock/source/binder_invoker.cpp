@@ -607,7 +607,8 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
                         std::chrono::steady_clock::now().time_since_epoch()).count());
                     ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
                         reinterpret_cast<uintptr_t>(targetObject),
-                        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(targetObject->GetObjectDescriptor())).c_str(), curTime);
+                        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(targetObject->GetObjectDescriptor())).c_str(),
+                        curTime);
                 } else {
                     error = targetObject->SendRequest(tr->code, *data, reply, option);
                     targetObject->DecStrongRef(this);
