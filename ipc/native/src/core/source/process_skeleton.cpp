@@ -213,9 +213,6 @@ bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
     std::shared_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
     auto it = deadObjectRecord_.find(object);
     if (it != deadObjectRecord_.end()) {
-        ZLOGE(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-            reinterpret_cast<uintptr_t>(object), it->second.handle,
-            ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str(), it->second.deadTime);
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
         auto &info = it->second;
