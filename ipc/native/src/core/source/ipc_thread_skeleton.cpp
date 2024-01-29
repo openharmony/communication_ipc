@@ -15,6 +15,7 @@
 
 #include "ipc_thread_skeleton.h"
 
+#include <cinttypes>
 #include <memory>
 #include <sys/syscall.h>
 
