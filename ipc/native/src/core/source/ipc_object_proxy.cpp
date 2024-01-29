@@ -134,7 +134,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     int err = SendRequestInner(false, code, data, reply, option);
     if (err != ERR_NONE) {
         if (err == lastErr_) {
-            if (lastErrCnt_++ % PRINT_ERR_CNT == 0) {
+            if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
                 isPrint = true;
             }
         } else {
