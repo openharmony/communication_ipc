@@ -92,15 +92,6 @@ std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
     return str.substr(0, ENCRYPT_LENGTH) + "****" + str.substr(len - ENCRYPT_LENGTH);
 }
 
-std::string IPCProcessSkeleton::ConvertToSecureDesc(const std::string &str)
-{
-    auto pos = str.find_last_of(".");
-    if (pos != std::string::npos) {
-        return "*" + str.substr(pos);
-    }
-    return str;
-}
-
 #ifndef CONFIG_IPC_SINGLE
 void IPCProcessSkeleton::ClearDataResource()
 {
