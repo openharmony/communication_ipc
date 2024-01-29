@@ -315,8 +315,8 @@ private:
     bool isRemoteDead_;
     std::u16string remoteDescriptor_;
     std::u16string interfaceDesc_;
-    int lastErr_;
-    int lastErrCnt_;
+    int lastErr_ = 0;
+    int lastErrCnt_ = 0;
 #ifdef CONIG_ACTV_BINDER
     void *invokerData_ = nullptr;
 #endif
