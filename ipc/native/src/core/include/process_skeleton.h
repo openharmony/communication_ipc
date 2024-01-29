@@ -65,10 +65,9 @@ public:
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
-    ProcessSkeleton();
+    ProcessSkeleton() = default;
     ~ProcessSkeleton();
     void DetachTimeoutDeadObject();
-    void DeadObjectClearLoop();
 
     class DestroyInstance {
     public:
@@ -95,7 +94,7 @@ private:
 
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
-    std::thread deadObjectClearThread_;
+    uint64_t deadObjectClearTime_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
