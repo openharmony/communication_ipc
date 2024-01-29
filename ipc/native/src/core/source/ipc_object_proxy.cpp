@@ -58,6 +58,7 @@ using namespace IPC_SINGLE;
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
+static constexpr int PRINT_ERR_CNT = 100;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
@@ -129,8 +130,20 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
         return IPC_PROXY_INVALID_CODE_ERR;
     }
 
+    bool isPrint = false;
     int err = SendRequestInner(false, code, data, reply, option);
     if (err != ERR_NONE) {
+        if (err == lastErr_) {
+            if (lasrErrCnt_++ % PRINT_ERR_CNT == 0) {
+                isPrint = true;
+            }
+        } else {
+            isPrint = true;
+            lasrErrCnt_ = 0;
+            lastErr_ = err;
+        }
+    }
+    if (isPrint) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
     }
