@@ -317,7 +317,7 @@ private:
     std::u16string interfaceDesc_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
-#ifdef CONIG_ACTV_BINDER
+#ifdef CONFIG_ACTV_BINDER
     void *invokerData_ = nullptr;
 #endif
 };
