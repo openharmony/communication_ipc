@@ -708,7 +708,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
     if (!target->IsProxyObject()) {
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
         uint32_t objectType = tmp->GetObjectType();
-        ZLOGI(LOG_LABEL, "create js object, type:%{public}d", objectType);
+        ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
         if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
             // retrieve js remote object constructor
             napi_value global = nullptr;

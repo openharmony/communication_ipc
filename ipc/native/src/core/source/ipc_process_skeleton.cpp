@@ -200,7 +200,8 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     proxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
-        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d", handle);
+        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d %{public}zu", handle,
+            reinterpret_cast<uintptr_t>(proxy));
         if (proxy->GetSptrRefCount() <= DETACH_PROXY_REF_COUNT) {
             DetachObject(result.GetRefPtr());
         }

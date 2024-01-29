@@ -48,7 +48,9 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
 
 ProcessSkeleton::~ProcessSkeleton()
 {
-    ZLOGW(LOG_LABEL, "destroy");
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGW(LOG_LABEL, "destroy time:%{public}" PRIu64, curTime);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     exitFlag_ = true;
     {
@@ -124,7 +126,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
     if (descriptor.empty()) {
-        ZLOGE(LOG_LABEL, "descriptor is null");
+        ZLOGE(LOG_LABEL, "descriptor is null %{public}zu", reinterpret_cast<uintptr_t>(object));
         return false;
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
