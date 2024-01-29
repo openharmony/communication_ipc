@@ -94,7 +94,7 @@ private:
 
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
-    uint64_t deadObjectClearTime_;
+    uint64_t deadObjectClearTime_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
