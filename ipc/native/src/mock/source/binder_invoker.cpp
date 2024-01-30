@@ -428,11 +428,10 @@ void BinderInvoker::OnBinderDied()
     if (proxy != nullptr) {
         ProcessSkeleton *current = ProcessSkeleton::GetInstance();
         if ((current != nullptr) && current->IsDeadObject(proxy)) {
-            uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
             ZLOGE(LABEL, "%{public}zu handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
                 reinterpret_cast<uintptr_t>(proxy), static_cast<int32_t>(proxy->GetHandle()),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(proxy->GetObjectDescriptor())).c_str(), curTime);
+                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(proxy->GetObjectDescriptor())).c_str(),
+                current->GetDeadTimeObject(proxy));
         }
         if ((current == nullptr) || !current->IsDeadObject(proxy)) {
             proxy->SendObituary();
@@ -464,11 +463,10 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if ((current != nullptr) && current->IsDeadObject(obj)) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
         ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
             reinterpret_cast<uintptr_t>(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(), curTime);
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(),
+            current->GetDeadTimeObject(obj));
         return;
     }
 
@@ -507,11 +505,10 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if ((current != nullptr) && current->IsDeadObject(obj)) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
         ZLOGD(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
             reinterpret_cast<uintptr_t>(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(), curTime);
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(),
+            current->GetDeadTimeObject(obj));
         return;
     }
     ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
@@ -602,12 +599,10 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             if (targetObject != nullptr) {
                 ProcessSkeleton *current = ProcessSkeleton::GetInstance();
                 if ((current != nullptr) && current->IsDeadObject(targetObject)) {
-                    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                        std::chrono::steady_clock::now().time_since_epoch()).count());
                     ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
                         reinterpret_cast<uintptr_t>(targetObject),
                         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(targetObject->GetObjectDescriptor())).c_str(),
-                        curTime);
+                        current->GetDeadTimeObject(targetObject));
                 } else {
                     error = targetObject->SendRequest(tr->code, *data, reply, option);
                     targetObject->DecStrongRef(this);
