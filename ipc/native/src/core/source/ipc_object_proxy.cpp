@@ -409,8 +409,9 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         }
     }
 #endif
-    ZLOGI(LABEL, "success, handle:%{public}d desc:%{public}s", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+    ZLOGI(LABEL, "success, handle:%{public}d desc:%{public}s %{public}zu", handle_,
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+        reinterpret_cast<uintptr_t>(this));
     return true;
 }
 
@@ -450,8 +451,9 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             dbinderStatus = RemoveDbinderDeathRecipient();
         }
 #endif
-        ZLOGI(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s", status && dbinderStatus, handle_,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ZLOGI(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}zu", status && dbinderStatus,
+            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+            reinterpret_cast<uintptr_t>(this));
         return status && dbinderStatus;
     }
     return recipientErased;
@@ -459,8 +461,9 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 void IPCObjectProxy::SendObituary()
 {
-    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}zu", handle_,
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+        reinterpret_cast<uintptr_t>(this));
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {

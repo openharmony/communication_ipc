@@ -15,6 +15,7 @@
 
 #include "ipc_thread_skeleton.h"
 
+#include <cinttypes>
 #include <memory>
 #include <sys/syscall.h>
 
@@ -105,7 +106,9 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         InvokerFactory &factory = InvokerFactory::Get();
         invoker = factory.newInstance(proto);
         if (invoker == nullptr) {
-            ZLOGE(LABEL, "invoker is NULL, proto:%{public}d", proto);
+            uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            ZLOGE(LABEL, "invoker is NULL, proto:%{public}d time:%{public}" PRIu64, proto, curTime);
             return nullptr;
         }
 
