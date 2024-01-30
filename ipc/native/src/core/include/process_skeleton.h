@@ -62,6 +62,7 @@ public:
     bool DetachDeadObject(IRemoteObject *object);
     bool IsDeadObject(IRemoteObject *object);
     static std::string ConvertToSecureDesc(const std::string &str);
+    uint64_t GetDeadTimeObject(IRemoteObject *object);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
