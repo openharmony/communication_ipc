@@ -128,8 +128,10 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 #endif
         default:
             result = IPC_STUB_UNKNOW_TRANS_ERR;
-            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s", code,
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
+            uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
+                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
             break;
     }
     return result;

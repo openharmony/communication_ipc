@@ -60,7 +60,7 @@ public:
     bool UnlockObjectMutex();
     bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
     bool DetachDeadObject(IRemoteObject *object);
-    bool IsDeadObject(IRemoteObject *object);
+    bool IsDeadObject(IRemoteObject *object, uint64_t &deadTime);
     static std::string ConvertToSecureDesc(const std::string &str);
 
 private:
@@ -94,7 +94,7 @@ private:
 
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
-    uint64_t deadObjectClearTime_;
+    uint64_t deadObjectClearTime_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
