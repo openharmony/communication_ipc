@@ -428,12 +428,12 @@ void BinderInvoker::OnBinderDied()
     if (proxy != nullptr) {
         ProcessSkeleton *current = ProcessSkeleton::GetInstance();
         uint64_t deadTime = 0;
-        if ((current != nullptr) && current->IsDeadObject(proxy, &deadTime)) {
+        if ((current != nullptr) && current->IsDeadObject(proxy, deadTime)) {
             ZLOGE(LABEL, "%{public}zu handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
                 reinterpret_cast<uintptr_t>(proxy), static_cast<int32_t>(proxy->GetHandle()),
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(proxy->GetObjectDescriptor())).c_str(), deadTime);
         }
-        if ((current == nullptr) || !current->IsDeadObject(proxy, &deadTime)) {
+        if ((current == nullptr) || !current->IsDeadObject(proxy, deadTime)) {
             proxy->SendObituary();
         }
     }
@@ -463,7 +463,7 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     uint64_t deadTime = 0;
-    if ((current != nullptr) && current->IsDeadObject(obj, &deadTime)) {
+    if ((current != nullptr) && current->IsDeadObject(obj, deadTime)) {
         ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
             reinterpret_cast<uintptr_t>(obj),
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(), deadTime);
@@ -505,7 +505,7 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     uint64_t deadTime = 0;
-    if ((current != nullptr) && current->IsDeadObject(obj, &deadTime)) {
+    if ((current != nullptr) && current->IsDeadObject(obj, deadTime)) {
         ZLOGD(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
             reinterpret_cast<uintptr_t>(obj),
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(), deadTime);
@@ -599,7 +599,7 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             if (targetObject != nullptr) {
                 ProcessSkeleton *current = ProcessSkeleton::GetInstance();
                 uint64_t deadTime = 0;
-                if ((current != nullptr) && current->IsDeadObject(targetObject, &deadTime)) {
+                if ((current != nullptr) && current->IsDeadObject(targetObject, deadTime)) {
                     ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
                         reinterpret_cast<uintptr_t>(targetObject),
                         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(targetObject->GetObjectDescriptor())).c_str(),
