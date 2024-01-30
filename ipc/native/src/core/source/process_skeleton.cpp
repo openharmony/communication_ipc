@@ -206,7 +206,7 @@ bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
     return ret;
 }
 
-bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
+bool ProcessSkeleton::IsDeadObject(IRemoteObject *object, uint64_t &deadTime)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::shared_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
@@ -216,6 +216,7 @@ bool ProcessSkeleton::IsDeadObject(IRemoteObject *object)
             std::chrono::steady_clock::now().time_since_epoch()).count());
         auto &info = it->second;
         info.agingTime = curTime;
+        deadTime = it->deadTime;
         return true;
     }
     return false;
@@ -250,16 +251,5 @@ std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)
         return "*" + str.substr(pos);
     }
     return str;
-}
-
-uint64_t GetDeadTimeObject(IRemoteObject *object)
-{
-    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
-    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
-    auto it = deadObjectRecord_.find(object);
-    if (it != deadObjectRecord_.end()) {
-        return it->deadTime;
-    }
-    return 0;
 }
 } // namespace OHOS
