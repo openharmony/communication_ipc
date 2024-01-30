@@ -251,4 +251,15 @@ std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)
     }
     return str;
 }
+
+uint64_t GetDeadTimeObject(IRemoteObject *object)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
+    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
+    auto it = deadObjectRecord_.find(object);
+    if (it != deadObjectRecord_.end()) {
+        return it->deadTime;
+    }
+    return 0;
+}
 } // namespace OHOS
