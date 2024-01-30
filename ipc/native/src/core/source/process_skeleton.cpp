@@ -216,7 +216,7 @@ bool ProcessSkeleton::IsDeadObject(IRemoteObject *object, uint64_t &deadTime)
             std::chrono::steady_clock::now().time_since_epoch()).count());
         auto &info = it->second;
         info.agingTime = curTime;
-        deadTime = it->deadTime;
+        deadTime = it->second.deadTime;
         return true;
     }
     return false;
