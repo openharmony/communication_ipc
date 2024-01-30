@@ -60,9 +60,8 @@ public:
     bool UnlockObjectMutex();
     bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
     bool DetachDeadObject(IRemoteObject *object);
-    bool IsDeadObject(IRemoteObject *object);
+    bool IsDeadObject(IRemoteObject *object, uint64_t &deadTime);
     static std::string ConvertToSecureDesc(const std::string &str);
-    uint64_t GetDeadTimeObject(IRemoteObject *object);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
