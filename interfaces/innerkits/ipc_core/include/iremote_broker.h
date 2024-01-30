@@ -57,6 +57,7 @@ public:
     virtual ~BrokerDelegatorBase() = default;
 
 public:
+    bool isSoUnloaded = false;
     std::u16string descriptor_;
 };
 
@@ -117,6 +118,7 @@ private:
     std::mutex creatorMutex_;
     std::unordered_map<std::u16string, Constructor> creators_;
     std::vector<uintptr_t> objects_;
+    std::atomic<bool> isUnloading = false;
 };
 
 template <typename T> class BrokerDelegator : public BrokerDelegatorBase {
@@ -142,6 +144,10 @@ template <typename T> BrokerDelegator<T>::BrokerDelegator()
 
 template <typename T> BrokerDelegator<T>::~BrokerDelegator()
 {
+    if (!isSoUnloaded && !descriptor_.empty()) {
+        BrokerRegistration &registration = BrokerRegistration::Get();
+        registration.Unregister(descriptor_);
+    }
 }
 
 template <typename INTERFACE> inline sptr<INTERFACE> iface_cast(const sptr<IRemoteObject> &object)
