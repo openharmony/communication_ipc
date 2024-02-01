@@ -44,6 +44,9 @@ using namespace Communication;
 using namespace OHOS::HiviewDFX;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PROC_SKELETON, "IPCProcessSkeleton" };
+#ifndef CONFIG_IPC_SINGLE
+static constexpr int32_t DETACH_PROXY_REF_COUNT = 2;
+#endif
 
 std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
@@ -88,15 +91,6 @@ std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
         return "****";
     }
     return str.substr(0, ENCRYPT_LENGTH) + "****" + str.substr(len - ENCRYPT_LENGTH);
-}
-
-std::string IPCProcessSkeleton::ConvertToSecureDesc(const std::string &str)
-{
-    auto pos = str.find_last_of(".");
-    if (pos != std::string::npos) {
-        return "*" + str.substr(pos);
-    }
-    return str;
 }
 
 #ifndef CONFIG_IPC_SINGLE
@@ -210,7 +204,11 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     proxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
-        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d", handle);
+        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d %{public}zu", handle,
+            reinterpret_cast<uintptr_t>(result.GetRefPtr()));
+        if (proxy->GetSptrRefCount() <= DETACH_PROXY_REF_COUNT) {
+            DetachObject(result.GetRefPtr());
+        }
         return nullptr;
     }
 #endif
@@ -531,7 +529,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     } else {
         ZLOGW(LOG_LABEL, "detach handle:%{Public}u, not found", handle);
     }
-   
+
     return tmp;
 }
 

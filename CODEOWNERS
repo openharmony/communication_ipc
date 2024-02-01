@@ -13,26 +13,32 @@
  * limitations under the License.
  */
 
+[Arch]
+BUILD.gn     luodonghui@huawei.com
+bundle.json  luodonghui@huawei.com
+Cargo.toml   luodonghui@huawei.com
+config.gni   luodonghui@huawei.com
+
+[Misc]
+figures/        luodonghui@huawei.com
+.gitignore      luodonghui@huawei.com
+CODEOWNERS      luodonghui@huawei.com
+README.md       luodonghui@huawei.com
+README_zh.md    luodonghui@huawei.com
+
 [All]
 *   luodonghui@huawei.com
 
-[Arch]
-./BUILD.gn     luodonghui@huawei.com zhangchunxin@huawei.com
-./bundle.json  luodonghui@huawei.com zhangchunxin@huawei.com
-./Cargo.toml   luodonghui@huawei.com zhangchunxin@huawei.com
-./config.gni   luodonghui@huawei.com zhangchunxin@huawei.com
-
 [JsApi]
-./interfaces/kits/js/         luodonghui@huawei.com zhangchunxin@huawei.com
-./ipc/native/src/napi/        luodonghui@huawei.com zhangchunxin@huawei.com
-./ipc/native/src/napi_common/ luodonghui@huawei.com zhangchunxin@huawei.com
+interfaces/kits/js/         luodonghui@huawei.com
+ipc/native/src/napi/        luodonghui@huawei.com
+ipc/native/src/napi_common/ luodonghui@huawei.com
 
 [InnerApi]
-./interfaces/innerkits/   luodonghui@huawei.com zhangchunxin@huawei.com
+interfaces/innerkits/   luodonghui@huawei.com
 
-[Misc]
-./figures/        luodonghui@huawei.com
-./.gitignore      luodonghui@huawei.com
-./CODEOWNERS      zhangchunxin@huawei.com
-./README.md       luodonghui@huawei.com
-./README_zh.md    luodonghui@huawei.com
+
+
+
+
+
