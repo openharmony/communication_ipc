@@ -31,8 +31,6 @@
 
 namespace OHOS {
 [[maybe_unused]] static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "BrokerRegistration" };
-static std::atomic<bool> g_isUnloading = false;
-
 BrokerRegistration &BrokerRegistration::Get()
 {
     static BrokerRegistration instance;
@@ -41,7 +39,7 @@ BrokerRegistration &BrokerRegistration::Get()
 
 BrokerRegistration::~BrokerRegistration()
 {
-    g_isUnloading = true;
+    isUnloading = true;
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     for (auto it = creators_.begin(); it != creators_.end();) {
         it = creators_.erase(it);
@@ -78,7 +76,7 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
 
 void BrokerRegistration::Unregister(const std::u16string &descriptor)
 {
-    if (g_isUnloading) {
+    if (isUnloading) {
         ZLOGE(LABEL, "BrokerRegistration is Unloading");
         return;
     }

@@ -77,7 +77,6 @@ public:
 
     static IPCProcessSkeleton *GetCurrent();
     static std::string ConvertToSecureString(const std::string &str);
-    static std::string ConvertToSecureDesc(const std::string &str);
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);

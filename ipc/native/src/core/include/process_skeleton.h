@@ -48,14 +48,14 @@ public:
     bool UnlockObjectMutex();
     bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
     bool DetachDeadObject(IRemoteObject *object);
-    bool IsDeadObject(IRemoteObject *object);
+    bool IsDeadObject(IRemoteObject *object, uint64_t &deadTime);
+    static std::string ConvertToSecureDesc(const std::string &str);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
-    ProcessSkeleton();
+    ProcessSkeleton() = default;
     ~ProcessSkeleton();
     void DetachTimeoutDeadObject();
-    void DeadObjectClearLoop();
 
     class DestroyInstance {
     public:
@@ -82,7 +82,7 @@ private:
 
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
-    std::thread deadObjectClearThread_;
+    uint64_t deadObjectClearTime_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
