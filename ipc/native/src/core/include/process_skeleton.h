@@ -60,7 +60,7 @@ public:
     bool UnlockObjectMutex();
     bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
     bool DetachDeadObject(IRemoteObject *object);
-    bool IsDeadObject(IRemoteObject *object, uint64_t &deadTime);
+    bool IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo);
     static std::string ConvertToSecureDesc(const std::string &str);
 
 private:
