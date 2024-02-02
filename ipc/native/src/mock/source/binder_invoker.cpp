@@ -427,13 +427,12 @@ void BinderInvoker::OnBinderDied()
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
     if (proxy != nullptr) {
         ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-        uint64_t deadTime = 0;
-        if ((current != nullptr) && current->IsDeadObject(proxy, deadTime)) {
+        DeadObjectInfo deadInfo;
+        if ((current != nullptr) && current->IsDeadObject(proxy, deadInfo)) {
             ZLOGE(LABEL, "%{public}zu handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-                reinterpret_cast<uintptr_t>(proxy), static_cast<int32_t>(proxy->GetHandle()),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(proxy->GetObjectDescriptor())).c_str(), deadTime);
-        }
-        if ((current == nullptr) || !current->IsDeadObject(proxy, deadTime)) {
+                reinterpret_cast<uintptr_t>(proxy), deadInfo.handle,
+                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+        } else {
             proxy->SendObituary();
         }
     }
@@ -462,11 +461,11 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    uint64_t deadTime = 0;
-    if ((current != nullptr) && current->IsDeadObject(obj, deadTime)) {
+    DeadObjectInfo deadInfo;
+    if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
         ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
             reinterpret_cast<uintptr_t>(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(), deadTime);
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         return;
     }
 
@@ -504,11 +503,11 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    uint64_t deadTime = 0;
-    if ((current != nullptr) && current->IsDeadObject(obj, deadTime)) {
+    DeadObjectInfo deadInfo;
+    if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
         ZLOGD(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
             reinterpret_cast<uintptr_t>(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(obj->GetObjectDescriptor())).c_str(), deadTime);
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         return;
     }
     ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
@@ -598,12 +597,11 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
 #endif
             if (targetObject != nullptr) {
                 ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-                uint64_t deadTime = 0;
-                if ((current != nullptr) && current->IsDeadObject(targetObject, deadTime)) {
+                DeadObjectInfo deadInfo;
+                if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
                     ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
                         reinterpret_cast<uintptr_t>(targetObject),
-                        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(targetObject->GetObjectDescriptor())).c_str(),
-                        deadTime);
+                        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
                 } else {
                     error = targetObject->SendRequest(tr->code, *data, reply, option);
                     targetObject->DecStrongRef(this);
