@@ -41,13 +41,9 @@ BrokerRegistration::~BrokerRegistration()
 {
     isUnloading = true;
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
-    for (auto it = creators_.begin(); it != creators_.end();) {
-        it = creators_.erase(it);
-    }
-    for (auto it1 = objects_.begin(); it1 != objects_.end();) {
+    for (auto it1 = objects_.begin(); it1 != objects_.end(); it1++) {
         BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(*it1);
         object->isSoUnloaded = true;
-        it1 = objects_.erase(it1);
     }
 }
 
