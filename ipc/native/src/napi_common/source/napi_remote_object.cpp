@@ -457,7 +457,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     }
     work->data = reinterpret_cast<void *>(jsParam);
     ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s", Str16ToStr8(descriptor_).c_str());
-    uv_queue_work(loop, work, [](uv_work_t *work) {
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {
         ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<CallbackParam *>(work->data))->code);
     }, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "enter thread pool");
@@ -689,7 +689,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         param->lockInfo->ready = true;
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
-    });
+    }, uv_qos_user_initiated);
     std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
     jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
     int ret = jsParam->result;
