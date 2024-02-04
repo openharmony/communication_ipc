@@ -207,7 +207,7 @@ bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
     return ret;
 }
 
-bool ProcessSkeleton::IsDeadObject(IRemoteObject *object, uint64_t &deadTime)
+bool ProcessSkeleton::IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::shared_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
@@ -217,7 +217,7 @@ bool ProcessSkeleton::IsDeadObject(IRemoteObject *object, uint64_t &deadTime)
             std::chrono::steady_clock::now().time_since_epoch()).count());
         auto &info = it->second;
         info.agingTime = curTime;
-        deadTime = info.deadTime;
+        deadInfo = info;
         return true;
     }
     return false;
