@@ -410,7 +410,10 @@ void IPCProcessSkeleton::BlockUntilThreadAvailable()
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::unique_lock<std::mutex> lock(mutex_);
     numWaitingForThreads_++;
-    ZLOGE(LOG_LABEL, "numExecuting_++ is %{public}d", numExecuting_);
+    constexpr size_t maxIPCThreadNum = 10;
+    if (numExecuting_ > maxIPCThreadNum) {
+        ZLOGE(LOG_LABEL, "numExecuting_++ is %{public}d", numExecuting_);
+    }
     while (numExecuting_ >= threadPool_->GetMaxThreadNum()) {
         cv_.wait(lock);
     }
