@@ -639,7 +639,7 @@ std::string IPCObjectStub::CreateSessionName(int uid, int pid)
     auto &client = DBinderSoftbusClient::GetInstance();
     auto manager = client.GetSessionService();
     if (manager == nullptr) {
-        ZLOGE(LABEL, "GetSessionService fail");
+        ZLOGE(LABEL, "GetSessionService fail, uid:%{public}d pid:%{public}d", uid, pid);
         return "";
      }
 

@@ -40,12 +40,11 @@ ohos_shared_library("ipc_common") {
     ":libipc_common_private_config",
   ]
 
-  deps = [ "//third_party/json:nlohmann_json_static" ]
-
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "json:nlohmann_json_static",
   ]
 
   innerapi_tags = [
