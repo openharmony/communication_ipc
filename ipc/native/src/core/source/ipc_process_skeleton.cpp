@@ -193,7 +193,9 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     bool newFlag = false;
     sptr<IRemoteObject> result = GetProxyObject(handle, newFlag);
     if (result == nullptr) {
-        ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d", handle);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
         return result;
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
