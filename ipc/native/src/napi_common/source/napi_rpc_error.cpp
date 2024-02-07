@@ -18,7 +18,7 @@
 #include "log_tags.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "NapiError" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_rpc_error" };
 
 std::map<int, errorInfo> NapiError::napiErrMap_ {
     {CHECK_PARAM_ERROR, errorInfo{401, "check param error"}},

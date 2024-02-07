@@ -45,6 +45,7 @@
             OHOS::IPCProcessSkeleton*;
             OHOS::DBinderDatabusInvoker*;
             OHOS::BufferObject*;
+            OHOS::BinderConnector*;
             OHOS::DatabusSessionCallback*;
             OHOS::DBinderCallbackStub*;
             OHOS::StubRefCountObject*;
@@ -52,7 +53,6 @@
             OHOS::IPCWorkThread*;
             OHOS::DBinderSessionObject*;
             OHOS::CommAuthInfo*;
-            OHOS::DBinderSoftbusClient*;
             "vtable for OHOS::BinderInvoker";
             "vtable for OHOS::DatabusSessionCallback";
             "virtual thunk to OHOS::IPCObjectStub::~IPCObjectStub()";
