@@ -19,11 +19,10 @@
 #include "ipc_types.h"
 #include "dbinder_log.h"
 #include "dbinder_error_code.h"
-#include "dbinder_softbus_client.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER,
-    "DBinderRemoteListener" };
+    "DbinderRemoteListener" };
 
 DBinderRemoteListener::DBinderRemoteListener(const sptr<DBinderService> &dBinderService)
     : dBinderService_(dBinderService)
@@ -39,23 +38,21 @@ DBinderRemoteListener::~DBinderRemoteListener()
 bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener> &listener)
 {
     std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
-    if (manager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "GetSessionService fail");
+    softbusManager_ = ISessionService::GetInstance();
+    if (softbusManager_ == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
         return false;
     }
-
     int pid = static_cast<int>(getpid());
     int uid = static_cast<int>(getuid());
-    if (manager->GrantPermission(uid, pid, OWN_SESSION_NAME) != ERR_NONE) {
+    if (softbusManager_->GrantPermission(uid, pid, OWN_SESSION_NAME) != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name:%{public}s", OWN_SESSION_NAME.c_str());
         return false;
     }
 
-    int ret = manager->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, listener);
+    int ret = softbusManager_->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, listener);
     if (ret != 0) {
-        DBINDER_LOGE(LOG_LABEL, "CreateSessionServer fail, ret:%{public}d", ret);
+        DBINDER_LOGE(LOG_LABEL, "fail to create softbus server with ret:%{public}d", ret);
         return false;
     }
     return true;
@@ -64,25 +61,23 @@ bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener>
 bool DBinderRemoteListener::StopListener()
 {
     std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
-    if (manager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "GetSessionService fail");
+    if (softbusManager_ == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
         return false;
     }
-
     for (auto it = clientSessionMap_.begin(); it != clientSessionMap_.end(); it++) {
         std::shared_ptr<Session> session = it->second;
         if (session != nullptr) {
-            manager->CloseSession(session);
+            softbusManager_->CloseSession(session);
         }
     }
     clientSessionMap_.clear();
-    int ret = manager->RemoveSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME);
+    int ret = softbusManager_->RemoveSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to remove softbus server");
         return false;
     }
+    softbusManager_ = nullptr;
     return true;
 }
 
@@ -168,16 +163,13 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
 bool DBinderRemoteListener::CloseDatabusSession(const std::string &deviceId)
 {
     std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
-    if (manager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "GetSessionService fail");
+    if (softbusManager_ == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
         return false;
     }
-
     auto it = clientSessionMap_.find(deviceId);
     if (it != clientSessionMap_.end()) {
-        bool result = manager->CloseSession(it->second) == 0;
+        bool result = softbusManager_->CloseSession(it->second) == 0;
         clientSessionMap_.erase(deviceId);
         DBINDER_LOGI(LOG_LABEL, "device:%{public}s offline, close session result:%{public}d",
             DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), result);
@@ -191,19 +183,16 @@ bool DBinderRemoteListener::CloseDatabusSession(const std::string &deviceId)
 std::shared_ptr<Session> DBinderRemoteListener::OpenSoftbusSession(const std::string &peerDeviceId)
 {
     std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
-    if (manager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "GetSessionService fail");
+    if (softbusManager_ == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
         return nullptr;
     }
-
     auto it = clientSessionMap_.find(peerDeviceId);
     if (it != clientSessionMap_.end()) {
         return it->second;
     }
 
-    std::shared_ptr<Session> session = manager->OpenSession(OWN_SESSION_NAME, PEER_SESSION_NAME,
+    std::shared_ptr<Session> session = softbusManager_->OpenSession(OWN_SESSION_NAME, PEER_SESSION_NAME,
         peerDeviceId, std::string(""), Session::TYPE_BYTES);
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "open session for dbinder service failed, device:%{public}s",

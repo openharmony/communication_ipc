@@ -24,6 +24,10 @@
 #endif
 
 namespace OHOS {
+#ifdef CONFIG_IPC_SINGLE
+namespace IPC_SINGLE {
+#endif
+
 #ifdef CONFIG_ACTV_BINDER
 typedef void (*ActvBinderJoinThreadFunc)(bool initiative);
 typedef void (*ActvBinderSetHandlerInfoFunc)(uint32_t id);
@@ -105,5 +109,8 @@ private:
     ActvBinderConnector actvBinder_;
 #endif
 };
+#ifdef CONFIG_IPC_SINGLE
+} // namespace IPC_SINGLE
+#endif
 } // namespace OHOS
 #endif // OHOS_IPC_BINDER_CONNECTOR_H

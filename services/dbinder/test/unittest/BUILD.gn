@@ -26,7 +26,6 @@ ohos_unittest("RPCDbinderTest") {
     "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/src",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/test/unittest/common",
   ]
 
   sources = [
@@ -36,16 +35,16 @@ ohos_unittest("RPCDbinderTest") {
     "dbinder_service_unittest.cpp",
   ]
 
-  configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
+  configs = []
 
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "dsoftbus:softbus_client",
     "hilog:libhilog",
     "ipc:libdbinder",
   ]

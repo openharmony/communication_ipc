@@ -21,10 +21,12 @@
 #include <mutex>
 
 #include "dbinder_service.h"
+#include "ISessionService.h"
 #include "Session.h"
 #include "ISessionListener.h"
 
 using Communication::SoftBus::ISessionListener;
+using Communication::SoftBus::ISessionService;
 using Communication::SoftBus::Session;
 
 namespace OHOS {
@@ -67,6 +69,7 @@ private:
     std::mutex resourceMutex_;
     std::mutex serverSessionMutex_;
     std::mutex deviceMutex_;
+    std::shared_ptr<ISessionService> softbusManager_;
     sptr<DBinderService> dBinderService_;
     std::map<std::string, std::shared_ptr<Session>> clientSessionMap_;
     std::map<std::string, std::shared_ptr<Session>> serverSessionMap_;

@@ -17,7 +17,6 @@
 
 #include <cinttypes>
 
-#include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 #include "string_ex.h"

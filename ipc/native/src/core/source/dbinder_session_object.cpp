@@ -15,13 +15,13 @@
 
 #include "dbinder_session_object.h"
 
-#include "dbinder_softbus_client.h"
 #include "ipc_process_skeleton.h"
+#include "ISessionService.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_SESSION_OBJ, "DBinderSessionObject" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_SESSION_OBJ, "dbinder_session_object" };
 
 DBinderSessionObject::DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,
     const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId)
@@ -37,14 +37,8 @@ DBinderSessionObject::~DBinderSessionObject()
 
 void DBinderSessionObject::CloseDatabusSession()
 {
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
-    if (manager == nullptr) {
-        ZLOGE(LOG_LABEL, "GetSessionService fail");
-        return;
-    }
-
-    if (session_ != nullptr) {
+    std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
+    if (session_ != nullptr && manager != nullptr) {
         ZLOGI(LOG_LABEL, "close softbus session, deviceId:%{public}s channelId:%{public}" PRId64,
             IPCProcessSkeleton::ConvertToSecureString(session_->GetPeerDeviceId()).c_str(), session_->GetChannelId());
         (void)manager->CloseSession(session_);
