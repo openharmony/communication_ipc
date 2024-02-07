@@ -42,8 +42,7 @@
           "build_framework",
           "ylong_runtime",
           "ffrt",
-          "hisysevent",
-          "json"
+          "hisysevent"
         ],
         "third_party": [
           "libuv",
