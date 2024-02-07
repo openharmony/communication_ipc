@@ -22,7 +22,6 @@ group("ipc_components") {
     deps = [
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
-      "$SUBSYSTEM_DIR/ipc/native/src/core:dbinder_softbus_adaptor",
       "$SUBSYSTEM_DIR/ipc/native/src/core:ipc_common",
     ]
     if (!build_ohos_sdk) {

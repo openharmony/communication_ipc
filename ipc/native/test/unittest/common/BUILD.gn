@@ -49,7 +49,6 @@ ohos_unittest("IPCNativeUnitTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
@@ -86,7 +85,6 @@ ohos_unittest("IPCFileDescOpsTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
@@ -114,11 +112,9 @@ ohos_unittest("BinderConnectorTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
-    "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gtest_main",
   ]
@@ -146,11 +142,9 @@ ohos_unittest("BinderInvokerUnitTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
-    "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "//third_party/googletest:gtest_main",
   ]
@@ -176,7 +170,6 @@ ohos_unittest("IPCHiTraceUnitTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
@@ -236,7 +229,6 @@ ohos_unittest("IPCMockUnitTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
@@ -271,7 +263,6 @@ ohos_unittest("InvokerFactoryTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
@@ -307,7 +298,6 @@ ohos_unittest("RPCFeatureUnitTest") {
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
   ]
 
   deps = [
@@ -365,8 +355,6 @@ ohos_unittest("IPCSoDlcloseTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   sources = [ "ipc_so_dlclose_unittest.cpp" ]
-
-  configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
 
   deps = [
     "//third_party/googletest:gmock_main",

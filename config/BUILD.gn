@@ -41,13 +41,3 @@ config("ipc_util_config") {
     cflags += [ "-DCONFIG_ACTV_BINDER" ]
   }
 }
-
-config("dsoftbus_header_deps_config") {
-  include_dirs = [
-    "//foundation/communication/dsoftbus/interfaces/kits/bus_center",
-    "//foundation/communication/dsoftbus/interfaces/kits/common",
-    "//foundation/communication/dsoftbus/interfaces/kits/discovery",
-    "//foundation/communication/dsoftbus/interfaces/kits/transport",
-    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/include",
-  ]
-}

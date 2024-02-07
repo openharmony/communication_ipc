@@ -20,7 +20,6 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-#include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
@@ -31,7 +30,7 @@
 
 #ifndef CONFIG_IPC_SINGLE
 #include "databus_session_callback.h"
-#include "dbinder_softbus_client.h"
+#include "softbus_bus_center.h"
 #endif
 
 namespace OHOS {
@@ -156,14 +155,11 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
-    if (manager == nullptr) {
-        ZLOGE(LOG_LABEL, "GetSessionService fail");
-        return;
+    std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
+    if (manager != nullptr) {
+        std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
+        (void)manager->RemoveSessionServer(pkgName, sessionName_);
     }
-    std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
-    (void)manager->RemoveSessionServer(pkgName, sessionName_);
 #endif
 }
 
@@ -480,8 +476,13 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
     std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
-    auto &client = DBinderSoftbusClient::GetInstance();
-    return client.GetLocalDeviceId(pkgName);
+    NodeBasicInfo nodeBasicInfo;
+    if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
+        ZLOGE(LOG_LABEL, "Get local node device info failed");
+        return "";
+    }
+    std::string networkId(nodeBasicInfo.networkId);
+    return networkId;
 }
 
 bool IPCProcessSkeleton::IsHandleMadeByUser(uint32_t handle)
@@ -1187,10 +1188,9 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         return false;
     }
 
-    auto &client = DBinderSoftbusClient::GetInstance();
-    auto manager = client.GetSessionService();
+    std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
     if (manager == nullptr) {
-        ZLOGE(LOG_LABEL, "GetSessionService fail");
+        ZLOGE(LOG_LABEL, "fail to get softbus manager");
         return false;
     }
 
@@ -1202,8 +1202,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
     std::string pkgName = std::string(DBINDER_SERVER_PKG_NAME) + "_" + std::to_string(getpid());
     int ret = manager->CreateSessionServer(pkgName, name, callback);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "CreateSessionServer fail:%{public}d, sessionName:%{public}s maybe created already",
-            ret, name.c_str());
+        ZLOGE(LOG_LABEL, "CreateSessionServer fail, sessionName:%{public}s maybe created already", name.c_str());
     }
 
     if (name != sessionName_) {

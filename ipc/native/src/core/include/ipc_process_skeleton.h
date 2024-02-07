@@ -32,7 +32,12 @@
 #include "comm_auth_info.h"
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
+#include "ISessionService.h"
+#include "Session.h"
 #include "stub_refcount_object.h"
+
+using Communication::SoftBus::ISessionService;
+using Communication::SoftBus::Session;
 #endif
 
 namespace OHOS {

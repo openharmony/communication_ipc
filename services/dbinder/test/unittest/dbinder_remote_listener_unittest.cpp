@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 #include "dbinder_service.h"
+#include "gtest/gtest.h"
 #include "rpc_log.h"
 #include "log_tags.h"
-#include "mock_session_impl.h"
+#include "session_impl.h"
 #define private public
 #include "dbinder_remote_listener.h"
 #undef private
@@ -27,9 +25,8 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-
-const std::string TEST_SESSION_NAME = "DBinderService";
-const std::string TEST_DEVICE_ID = "123";
+using Communication::SoftBus::Session;
+using Communication::SoftBus::SessionImpl;
 
 class DBinderRemoteListenerUnitTest : public testing::Test {
 public:
@@ -51,44 +48,24 @@ void DBinderRemoteListenerUnitTest::TearDownTestCase() {}
 HWTEST_F(DBinderRemoteListenerUnitTest, onsessionopened_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    std::string deviceId = "DeviceId";
-    EXPECT_CALL(*session, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(TEST_DEVICE_ID));
-    EXPECT_CALL(*session, IsServerSide())
-        .WillRepeatedly(testing::Return(false));
+    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
     EXPECT_EQ(dBinderRemoteListener_.OnSessionOpened(session), -DBINDER_SERVICE_WRONG_SESSION);
 }
 
 HWTEST_F(DBinderRemoteListenerUnitTest, onsessionopened_002, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(*session, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(TEST_SESSION_NAME));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(TEST_DEVICE_ID));
-    EXPECT_CALL(*session, IsServerSide())
-        .WillRepeatedly(testing::Return(false));
+    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
+    const std::string name = "DBinderService";
+    session->SetPeerSessionName(name);
     EXPECT_EQ(dBinderRemoteListener_.OnSessionOpened(session), 0);
 }
 
 HWTEST_F(DBinderRemoteListenerUnitTest, onsessionclosed_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(TEST_DEVICE_ID));
-    EXPECT_CALL(*session, IsServerSide())
-        .WillRepeatedly(testing::Return(true));
+    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
+    session->SetIsServer(true);
     dBinderRemoteListener_.OnSessionClosed(session);
     EXPECT_EQ(session->IsServerSide(), true);
 }
@@ -96,13 +73,8 @@ HWTEST_F(DBinderRemoteListenerUnitTest, onsessionclosed_001, TestSize.Level1)
 HWTEST_F(DBinderRemoteListenerUnitTest, onsessionclosed_002, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(TEST_DEVICE_ID));
-    EXPECT_CALL(*session, IsServerSide())
-        .WillRepeatedly(testing::Return(false));
+    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
+    session->SetIsServer(false);
     dBinderRemoteListener_.OnSessionClosed(session);
     EXPECT_EQ(session->IsServerSide(), false);
 }
@@ -110,13 +82,7 @@ HWTEST_F(DBinderRemoteListenerUnitTest, onsessionclosed_002, TestSize.Level1)
 HWTEST_F(DBinderRemoteListenerUnitTest, onbytesreceived_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(*session, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(TEST_SESSION_NAME));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(TEST_DEVICE_ID));
+    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
     const char* data = nullptr;
     auto len = sizeof(struct DHandleEntryTxRx);
     dBinderRemoteListener_.OnBytesReceived(session, data, len);
@@ -126,13 +92,7 @@ HWTEST_F(DBinderRemoteListenerUnitTest, onbytesreceived_001, TestSize.Level1)
 HWTEST_F(DBinderRemoteListenerUnitTest, onbytesreceived_002, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(*session, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(TEST_SESSION_NAME));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(TEST_DEVICE_ID));
+    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
     const char *data = "testdatas";
     ssize_t len = 0;
     dBinderRemoteListener_.OnBytesReceived(session, data, len);
@@ -192,12 +152,14 @@ HWTEST_F(DBinderRemoteListenerUnitTest, startlistener_002, TestSize.Level1)
 HWTEST_F(DBinderRemoteListenerUnitTest, StopListener_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    dBinderRemoteListener_.softbusManager_ = nullptr;
     EXPECT_EQ(dBinderRemoteListener_.StopListener(), false);
 }
 
 HWTEST_F(DBinderRemoteListenerUnitTest, StopListener_002, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
     EXPECT_EQ(dBinderRemoteListener_.StopListener(), false);
 }
 
@@ -212,6 +174,7 @@ HWTEST_F(DBinderRemoteListenerUnitTest, closedatabussession_002, TestSize.Level1
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
     const std::string deviceId = "123";
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
     EXPECT_EQ(dBinderRemoteListener_.CloseDatabusSession(deviceId), false);
 }
 
@@ -255,6 +218,7 @@ HWTEST_F(DBinderRemoteListenerUnitTest, OpenSoftbusSession_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
     const std::string peerDeviceId = "12345";
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
     EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
 }
 
@@ -262,6 +226,7 @@ HWTEST_F(DBinderRemoteListenerUnitTest, OpenSoftbusSession_002, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
     const std::string peerDeviceId = "";
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
     EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
 }
 
@@ -277,5 +242,6 @@ HWTEST_F(DBinderRemoteListenerUnitTest, GetPeerSession_002, TestSize.Level1)
     DBinderRemoteListener dBinderRemoteListener_(DBinderService::GetInstance());
     const std::string peerDeviceId = "12345";
     EXPECT_EQ(dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId), nullptr);
+    dBinderRemoteListener_.softbusManager_ = ISessionService::GetInstance();
     dBinderRemoteListener_.OpenSoftbusSession(peerDeviceId);
 }
