@@ -991,7 +991,7 @@ bool IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
     bool result = false;
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        std::map<uint64_t, uint32_t> indexes = it->second;
+        std::map<uint64_t, uint32_t> &indexes = it->second;
         auto it2 = indexes.find(stubIndex);
         if (it2 != indexes.end() && it2->second == listenFd) {
             indexes.erase(it2);
@@ -1020,7 +1020,7 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(uint32_t pid, u
     bool appInfoErase = false;
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        std::map<uint64_t, uint32_t> stubIndexes = it->second;
+        std::map<uint64_t, uint32_t> &stubIndexes = it->second;
         for (auto it2 = stubIndexes.begin(); it2 != stubIndexes.end();) {
             if (it2->second == listenFd) {
                 indexes.push_back(it2->first);
@@ -1092,7 +1092,7 @@ bool IPCProcessSkeleton::AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, ui
 
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
-        std::map<uint64_t, uint32_t> indexes = it->second;
+        std::map<uint64_t, uint32_t> &indexes = it->second;
         // OnSessionOpen update listenFd
         for (auto it2 = indexes.begin(); it2 != indexes.end(); it2++) {
             it2->second = listenFd;
