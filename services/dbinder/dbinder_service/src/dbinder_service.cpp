@@ -484,8 +484,8 @@ std::shared_ptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::strin
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     auto it = std::find_if(loadSaReply_.begin(), loadSaReply_.end(), checkSaItem);
     if (it == loadSaReply_.end()) {
-        DBINDER_LOGE(LOG_LABEL, "findSaItem failed saId:%{public}d, deviceId:%{public}s",
-            systemAbilityId, srcNetworkId.c_str());
+        DBINDER_LOGI(LOG_LABEL, "findSaItem failed saId:%{public}d, deviceId:%{public}s",
+            systemAbilityId, DBinderService::ConvertToSecureDeviceID(srcNetworkId).c_str());
         return nullptr;
     }
     std::shared_ptr<DHandleEntryTxRx> replymsg = (*it);
