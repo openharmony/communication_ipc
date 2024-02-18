@@ -23,6 +23,7 @@
 
 #include "dbinder_log.h"
 #include "dbinder_service_stub.h"
+#include "dbinder_softbus_client.h"
 #include "dbinder_remote_listener.h"
 #include "dbinder_error_code.h"
 #include "dbinder_sa_death_recipient.h"
@@ -32,7 +33,7 @@
 namespace OHOS {
 using namespace Communication;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DbinderService" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DBinderService" };
 
 sptr<DBinderService> DBinderService::instance_ = nullptr;
 bool DBinderService::mainThreadCreated_ = false;
@@ -67,13 +68,8 @@ DBinderService::~DBinderService()
 std::string DBinderService::GetLocalDeviceID()
 {
     std::string pkgName = "DBinderService";
-    NodeBasicInfo nodeBasicInfo;
-    if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        DBINDER_LOGE(LOG_LABEL, "Get local node device info failed");
-        return "";
-    }
-    std::string networkId(nodeBasicInfo.networkId);
-    return networkId;
+    auto &client = DBinderSoftbusClient::GetInstance();
+    return client.GetLocalDeviceId(pkgName);
 }
 
 bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallback> &callbackImpl)
@@ -601,18 +597,18 @@ std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)
 
 std::string DBinderService::CreateDatabusName(int uid, int pid)
 {
-    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
-    if (softbusManager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
+    auto &client = DBinderSoftbusClient::GetInstance();
+    auto manager = client.GetSessionService();
+    if (manager == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "GetSessionService fail");
         return "";
     }
 
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
+    if (manager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name");
         return "";
     }
-
     return sessionName;
 }
 
