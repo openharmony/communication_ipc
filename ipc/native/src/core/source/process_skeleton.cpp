@@ -87,6 +87,9 @@ bool ProcessSkeleton::GetSamgrFlag()
 bool ProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    if (object == nullptr) {
+        return false;
+    }
     // check whether it is a valid IPCObjectStub object.
     std::shared_lock<std::shared_mutex> lockGuard(objMutex_);
     auto it = isContainStub_.find(object);

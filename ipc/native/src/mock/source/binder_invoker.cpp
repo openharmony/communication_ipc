@@ -1138,9 +1138,6 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
     switch (flat->hdr.type) {
         case BINDER_TYPE_BINDER: {
             remoteObject = reinterpret_cast<IRemoteObject *>(flat->cookie);
-            if (!current->IsContainsObject(remoteObject)) {
-                remoteObject = nullptr;
-            }
             break;
         }
         case BINDER_TYPE_HANDLE: {
@@ -1149,9 +1146,12 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
         }
         default:
             ZLOGE(LABEL, "unknown binder type:%{public}u", flat->hdr.type);
-            remoteObject = nullptr;
             break;
     }
+
+    if (!current->IsContainsObject(remoteObject)) {
+                remoteObject = nullptr;
+            }
 
     return remoteObject;
 }
