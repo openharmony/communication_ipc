@@ -112,6 +112,7 @@ enum DBinderErrorCode {
     WRITE_PARCEL_FAILED         = 110,
     INVOKE_STUB_THREAD_FAILED   = 111,
     SESSION_NAME_INVALID        = 112,
+    SA_NOT_AVAILABLE            = 113,
 };
 
 // Description of thread locking information parameters.
