@@ -106,6 +106,8 @@ private:
     static napi_value JS_GetRawDataCapacity(napi_env env, napi_callback_info info);
     static napi_value JS_WriteRawData(napi_env env, napi_callback_info info);
     static napi_value JS_ReadRawData(napi_env env, napi_callback_info info);
+    static napi_value JS_WriteRawDataBuffer(napi_env env, napi_callback_info info);
+    static napi_value JS_ReadRawDataBuffer(napi_env env, napi_callback_info info);
 
     static napi_value JS_constructor(napi_env env, napi_callback_info info);
     static void release(MessageParcel *parcel);
