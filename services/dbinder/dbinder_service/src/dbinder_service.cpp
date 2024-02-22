@@ -21,11 +21,11 @@
 #include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
 
-#include "dbinder_log.h"
-#include "dbinder_service_stub.h"
-#include "dbinder_remote_listener.h"
 #include "dbinder_error_code.h"
+#include "dbinder_log.h"
+#include "dbinder_remote_listener.h"
 #include "dbinder_sa_death_recipient.h"
+#include "dbinder_service_stub.h"
 #include "ffrt.h"
 #include "softbus_bus_center.h"
 
@@ -322,11 +322,14 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     if (IsDeviceIdIllegal(deviceID) || serviceName.length() == 0) {
         DBINDER_LOGE(LOG_LABEL, "para is wrong, device length:%{public}zu, service length:%{public}zu",
             deviceID.length(), serviceName.length());
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return nullptr;
     }
     const std::string serviceNameStr8 = Str16ToStr8(serviceName);
     DBINDER_LOGI(LOG_LABEL, "service:%{public}s device:%{public}s", serviceNameStr8.c_str(),
         DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
+    DfxReportDeviceEvent(DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::IPC_RESULT_IDLE,
+        DBinderService::ConvertToSecureDeviceID(deviceID).c_str(), __FUNCTION__);
 
     sptr<DBinderServiceStub> dBinderServiceStub = FindOrNewDBinderStub(serviceName, deviceID,
         static_cast<binder_uintptr_t>(binderObject));
@@ -369,6 +372,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     if (IsDeviceIdIllegal(deviceID) || IsDeviceIdIllegal(localDevID)) {
         DBINDER_LOGE(LOG_LABEL, "wrong device id length, remote:%{public}zu local:%{public}zu",
             deviceID.length(), localDevID.length());
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
@@ -390,6 +394,7 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
         memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to copy memory, service:%{public}" PRIu64" seq:%{public}u",
             message->stubIndex, message->seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return false;
     }
     message->deviceIdInfo.fromDeviceId[localDevID.length()] = '\0';
@@ -402,12 +407,14 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
     if (remoteListener == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remoteListener is null, service:%{public}" PRIu64 " seq:%{public}u",
             message->stubIndex, message->seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_REMOTE_LISTENER_FAIL, __FUNCTION__);
         return false;
     }
     bool result = remoteListener->SendDataToRemote(deviceID, message.get());
     if (result != true) {
         DBINDER_LOGE(LOG_LABEL, "SendDataToRemote failed, service:%{public}" PRIu64" seq:%{public}u",
             message->stubIndex, message->seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_DATA_TO_REMOTE_FAIL, __FUNCTION__);
         return false;
     }
     return true;
@@ -418,12 +425,14 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
 {
     if (stub == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "stub is nullptr");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return STUB_INVALID;
     }
 
     bool result = SendEntryToRemote(stub, seqNumber, pid, uid);
     if (!result) {
         DBINDER_LOGE(LOG_LABEL, "SendEntryToRemote fail, seq:%{public}u", seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_ENTRY_TO_REMOTE_FAIL, __FUNCTION__);
         return SEND_MESSAGE_FAILED;
     }
 
@@ -432,6 +441,7 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     result = AttachThreadLockInfo(seqNumber, stub->GetDeviceID(), threadLockInfo);
     if (result != true) {
         DBINDER_LOGE(LOG_LABEL, "AttachThreadLockInfo fail, seq:%{public}u", seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ATTACH_THREADLOCK_FAIL, __FUNCTION__);
         return MAKE_THREADLOCK_FAILED;
     }
 
@@ -439,6 +449,7 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     if (threadLockInfo->condition.wait_for(lock, std::chrono::seconds(WAIT_FOR_REPLY_MAX_SEC),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
         DBINDER_LOGE(LOG_LABEL, "get remote data timeout, seq:%{public}u", seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_WAIT_REPLY_TIMEOUT, __FUNCTION__);
         DetachThreadLockInfo(seqNumber);
         threadLockInfo->ready = false;
         return WAIT_REPLY_TIMEOUT;
@@ -447,6 +458,7 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     auto session = QuerySessionObject(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "client find session is null, seq:%{public}u", seqNumber);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_QUERY_REPLY_SESSION_FAIL, __FUNCTION__);
         return QUERY_REPLY_SESSION_FAILED;
     }
     return DBINDER_OK;
@@ -514,6 +526,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
             if (!saProxy->AddDeathRecipient(death)) {
                 SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_FOUND, replyMessage);
                 DBINDER_LOGE(LOG_LABEL, "fail to add death recipient");
+                DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ADD_DEATH_RECIPIENT_FAIL, __FUNCTION__);
                 continue;
             }
             if (!AttachProxyObject(remoteObject, binderObject)) {
@@ -524,6 +537,7 @@ void DBinderService::LoadSystemAbilityComplete(const std::string& srcNetworkId, 
         if (replyMessage->transType != IRemoteObject::DATABUS_TYPE) {
             SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_INVOKE_FAILED, replyMessage);
             DBINDER_LOGE(LOG_LABEL, "Invalid Message Type");
+            DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         } else {
             // peer device rpc version == 1, not support thokenId and message->deviceIdInfo.tokenId is random value
             uint32_t tokenId = (replyMessage->head.version < RPC_TOKENID_SUPPORT_VERSION) ?
@@ -546,6 +560,7 @@ void DBinderService::SendReplyMessageToRemote(uint32_t dBinderCode, uint32_t rea
     std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
     if (remoteListener == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remoteListener is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_REMOTE_LISTENER_FAIL, __FUNCTION__);
         return;
     }
     replyMessage->dBinderCode = dBinderCode;
@@ -554,6 +569,7 @@ void DBinderService::SendReplyMessageToRemote(uint32_t dBinderCode, uint32_t rea
     }
     if (!remoteListener->SendDataReply(replyMessage->deviceIdInfo.fromDeviceId, replyMessage.get())) {
         DBINDER_LOGE(LOG_LABEL, "fail to send data from server DBS to client DBS");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_DATA_REPLAY_FAIL, __FUNCTION__);
     }
 }
 
@@ -566,6 +582,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
         DBINDER_LOGE(LOG_LABEL, "memcpy DHandleEntryTxRx fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return false;
     }
 
@@ -577,6 +594,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         static_cast<int32_t>(replyMessage->stubIndex));
     if (!isSaAvailable) {
         DBINDER_LOGE(LOG_LABEL, "fail to call the system ability");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CALL_SYSTEM_ABILITY_FAIL, __FUNCTION__);
         PopLoadSaItem(replyMessage->deviceIdInfo.fromDeviceId, static_cast<int32_t>(replyMessage->stubIndex));
         return false;
     }
@@ -587,11 +605,13 @@ std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)
 {
     if (proxy == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "proxy can not be null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return "";
     }
     std::string sessionName = proxy->GetSessionName();
     if (sessionName.empty()) {
         DBINDER_LOGE(LOG_LABEL, "grand session name failed");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRT_SESSION_NAME_FAIL, __FUNCTION__);
         return "";
     }
     DBINDER_LOGD(LOG_LABEL, "succ, handle:%{public}d sessionName:%{public}s",
@@ -604,12 +624,14 @@ std::string DBinderService::CreateDatabusName(int uid, int pid)
     std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
     if (softbusManager == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SOFTBUS_SERVICE_FAIL, __FUNCTION__);
         return "";
     }
 
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
     if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);
         return "";
     }
 
@@ -621,11 +643,13 @@ uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, st
 {
     if (IsDeviceIdIllegal(remoteDeviceId)) {
         DBINDER_LOGE(LOG_LABEL, "remote device id is error");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return DEVICEID_INVALID;
     }
     std::string sessionName = GetDatabusNameByProxy(proxy);
     if (sessionName.empty()) {
         DBINDER_LOGE(LOG_LABEL, "get bus name fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_BUS_NAME_FAIL, __FUNCTION__);
         return SESSION_NAME_NOT_FOUND;
     }
 
@@ -635,11 +659,15 @@ uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, st
         !data.WriteUint32(pid) || !data.WriteUint32(uid) || !data.WriteString(remoteDeviceId) ||
         !data.WriteString(sessionName) || !data.WriteUint32(tokenId)) {
         DBINDER_LOGE(LOG_LABEL, "write to parcel fail, handle:%{public}d", proxy->GetHandle());
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(),
+            RADAR_WRITE_PARCEL_FAIL, __FUNCTION__);
         return WRITE_PARCEL_FAILED;
     }
     int err = proxy->InvokeListenThread(data, reply);
     if (err != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "start service listen error:%{public}d handle:%{public}d", err, proxy->GetHandle());
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(),
+            RADAR_INVOKE_STUB_THREAD_FAIL, __FUNCTION__);
         return INVOKE_STUB_THREAD_FAILED;
     }
     uint64_t stubIndex = reply.ReadUint64();
@@ -650,6 +678,8 @@ uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, st
         DBINDER_LOGE(LOG_LABEL, "stubindex:%{public}" PRIu64 " or sessionName:%{public}s is invalid"
             " handle:%{public}d deviceId:%{public}s", stubIndex, serverSessionName.c_str(), proxy->GetHandle(),
             DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(),
+            RADAR_SESSION_NAME_INVALID, __FUNCTION__);
         return SESSION_NAME_INVALID;
     }
     replyMessage->dBinderCode = MESSAGE_AS_REPLY;
@@ -663,6 +693,7 @@ uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, st
     if (memcpy_s(replyMessage->serviceName, SERVICENAME_LENGTH, serverSessionName.data(),
         replyMessage->serviceNameLength) != 0) {
         DBINDER_LOGE(LOG_LABEL, "memcpy serviceName fail, handle:%{public}d", proxy->GetHandle());
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(), RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return SESSION_NAME_INVALID;
     }
     replyMessage->serviceName[replyMessage->serviceNameLength] = '\0';
@@ -773,6 +804,7 @@ bool DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
 
 bool DBinderService::OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage)
 {
+    DfxReportEvent(DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::IPC_RESULT_IDLE, __FUNCTION__);
     DBINDER_LOGI(LOG_LABEL, "invoke remote stubIndex:%{public}d error, type:%{public}u seq:%{public}u",
         static_cast<int32_t>(replyMessage->stubIndex), replyMessage->transType, replyMessage->seqNumber);
     WakeupThreadByStub(replyMessage->seqNumber);
@@ -812,18 +844,21 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
 {
     if (HasDBinderStub(QueryStubPtr(replyMessage->stub)) == false) {
         DBINDER_LOGE(LOG_LABEL, "invalid stub object");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_STUB_INVALID, __FUNCTION__);
         return;
     }
 
     std::shared_ptr<struct SessionInfo> session = std::make_shared<struct SessionInfo>();
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "new SessionInfo fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_IPC_NEW_SESSION_FAIL, __FUNCTION__);
         return;
     }
 
     if (memcpy_s(&session->deviceIdInfo, sizeof(struct DeviceIdInfo), &replyMessage->deviceIdInfo,
         sizeof(struct DeviceIdInfo)) != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return;
     }
     // remote device NOT support tokenId, clear random value
@@ -856,6 +891,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
                 // remote old session
                 if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
                     DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
+                    DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_SESSION_FAIL, __FUNCTION__);
                 }
             } else {
                 // do nothing, use old session, discard session got this time
@@ -866,6 +902,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
 
     if (!AttachSessionObject(session, QueryStubPtr(replyMessage->stub))) {
         DBINDER_LOGE(LOG_LABEL, "attach SessionInfo fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ATTACH_SESSION_FAIL, __FUNCTION__);
         return;
     }
 }
@@ -1085,6 +1122,12 @@ int32_t DBinderService::NoticeServiceDieInner(const std::u16string &serviceName,
 
 int32_t DBinderService::NoticeServiceDie(const std::u16string &serviceName, const std::string &deviceID)
 {
+    if (IsDeviceIdIllegal(deviceID)) {
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
+    } else {
+        DfxReportDeviceEvent(DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::IPC_RESULT_IDLE,
+            DBinderService::ConvertToSecureDeviceID(deviceID).c_str(), __FUNCTION__);
+    }
     std::lock_guard<std::mutex> lockGuard(deathNotificationMutex_);
     return NoticeServiceDieInner(serviceName, deviceID);
 }
@@ -1093,10 +1136,13 @@ int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
 {
     if (IsDeviceIdIllegal(deviceID)) {
         DBINDER_LOGE(LOG_LABEL, "deviceID length:%{public}zu", deviceID.length());
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
     DBINDER_LOGI(LOG_LABEL, "remote device:%{public}s is dead",
         DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
+    DfxReportDeviceEvent(DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::IPC_RESULT_IDLE,
+        DBinderService::ConvertToSecureDeviceID(deviceID).c_str(), __FUNCTION__);
 
     if (remoteListener_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remote listener is null");

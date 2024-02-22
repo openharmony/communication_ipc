@@ -18,9 +18,11 @@
 #include <cinttypes>
 #include "sys_binder.h"
 #include "string_ex.h"
+
+#include "dbinder_death_recipient.h"
+#include "dbinder_error_code.h"
 #include "dbinder_log.h"
 #include "dbinder_service.h"
-#include "dbinder_death_recipient.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
@@ -63,11 +65,13 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "DBinderService is nullptr");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SERVICE_NULL, __FUNCTION__);
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
     auto session = dBinderService->QuerySessionObject(reinterpret_cast<binder_uintptr_t>(this));
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "client find session is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_QUERY_SESSION_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
@@ -78,12 +82,14 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
     int pid = IPCSkeleton::GetCallingPid();
     if (uid < 0 || pid < 0) {
         DBINDER_LOGE(LOG_LABEL, "uid or pid err");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_UID_OR_PID_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
     std::string localBusName = dBinderService->CreateDatabusName(uid, pid);
     if (localBusName.empty()) {
         DBINDER_LOGE(LOG_LABEL, "local busname nil");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_BUS_NAME_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
 
@@ -94,12 +100,14 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
                 !reply.WriteString(session->deviceIdInfo.fromDeviceId) || !reply.WriteString(localBusName) ||
                 !reply.WriteUint32(session->deviceIdInfo.tokenId) || !reply.WriteString16(descriptor_)) {
                 DBINDER_LOGE(LOG_LABEL, "write to parcel fail");
+                DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_WRITE_TO_PARCEL_FAIL, __FUNCTION__);
                 return DBINDER_SERVICE_PROCESS_PROTO_ERR;
             }
             break;
         }
         default: {
             DBINDER_LOGE(LOG_LABEL, "Invalid Type");
+            DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_TYPE_INVALID, __FUNCTION__);
             return DBINDER_SERVICE_PROCESS_PROTO_ERR;
         }
     }
@@ -150,6 +158,7 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     if (object == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "received proxy is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_RECEIVED_PROXY_NULL, __FUNCTION__);
         return DBINDER_SERVICE_INVALID_DATA_ERR;
     }
 
@@ -161,22 +170,26 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
     // If the client dies, notify DBS to delete information of callbackProxy
     if (!callbackProxy->AddDeathRecipient(death)) {
         DBINDER_LOGE(LOG_LABEL, "fail to add death recipient");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ADD_DEATH_RECIPIENT_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "dBinder service is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SERVICE_NULL, __FUNCTION__);
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     if (!dBinderService->AttachDeathRecipient(object, death)) {
         DBINDER_LOGE(LOG_LABEL, "fail to attach death recipient");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ATTACH_DEATH_RECIPIENT_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
 
     if (!dBinderService->AttachCallbackProxy(object, this)) {
         DBINDER_LOGE(LOG_LABEL, "fail to attach callback proxy");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ATTACH_CALLBACK_PROXY_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_ADD_DEATH_ERR;
     }
     return ERR_NONE;
@@ -187,6 +200,7 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     if (object == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "received proxy is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_RECEIVED_PROXY_NULL, __FUNCTION__);
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
@@ -196,6 +210,7 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "dBinder service is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SERVICE_NULL, __FUNCTION__);
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
@@ -207,11 +222,13 @@ int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, Mes
 
     if (!dBinderService->DetachDeathRecipient(object)) {
         DBINDER_LOGE(LOG_LABEL, "fail to detach death recipient");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_DEATH_RECIPIENT_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
 
     if (!dBinderService->DetachCallbackProxy(object)) {
         DBINDER_LOGE(LOG_LABEL, "fail to detach callback proxy");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_CALLBACK_PROXY_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_REMOVE_DEATH_ERR;
     }
     return ERR_NONE;
