@@ -387,6 +387,10 @@ void BinderInvoker::ExitCurrentThread()
 
 void BinderInvoker::StartWorkLoop()
 {
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        ZLOGE(LABEL, "driver is died");
+        return;
+    }
     int error;
     do {
         error = TransactWithDriver();
@@ -882,6 +886,10 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
 
 int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResult)
 {
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        ZLOGE(LABEL, "driver is died");
+        return IPC_INVOKER_CONNECT_ERR;
+    }
     uint32_t cmd;
     bool continueLoop = true;
     int error = ERR_NONE;
