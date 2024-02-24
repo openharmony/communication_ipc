@@ -129,12 +129,6 @@ public:
         IPC_MESSAGE_RPOCESS = 1,
     };
 
-    // BIZ_STATE
-    enum IpcEventState {
-        IPC_START = 1,
-        IPC_END,
-    };
-
     // STAGE_RES
     enum IpcEventResult {
         IPC_RESULT_IDLE = 0,
@@ -145,21 +139,80 @@ public:
     };
 };
 
-inline void ReportEvent(int code, const std::string &type, int num, const char *func)
+inline void DfxReportFailEvent(int type, int errorCode, const char *func)
 {
-    if (code == 0 || type.empty() || num == 0) {
+    if (type == 0 || errorCode == 0) {
         return;
     }
-    return;
+
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME,
+        "FUNC", func, "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE",
+        DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED,
+        "ERROR_CODE", abs(errorCode), "TYPE", type);
 }
 
-inline void ReportDriverEvent(int code, const std::string &type, int num, const std::string &errorType, int errorNum,
-    const char *func)
+inline void DfxReportFailListenEvent(int type, int listenFd, int errorCode, const char *func)
 {
-    if (code == 0 || type.empty() || num == 0 || errorType.empty() || errorNum == 0) {
+    if (type == 0 || errorCode == 0) {
         return;
     }
-    return;
+
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME,
+        "FUNC", func, "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE",
+        DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED,
+        "ERROR_CODE", abs(errorCode), "LISTEN_FD", listenFd, "TYPE", type);
+}
+
+inline void DfxReportFailHandleEvent(int type, int handle, int errorCode, const char *func)
+{
+    if (type == 0 || errorCode == 0) {
+        return;
+    }
+
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME,
+        "FUNC", func, "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE",
+        DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED,
+        "ERROR_CODE", abs(errorCode), "HANDLE", handle, "TYPE", type);
+}
+
+inline void DfxReportFailDeviceEvent(int type, const std::string &device, int errorCode, const char *func)
+{
+    if (type == 0 || device.empty() || errorCode == 0) {
+        return;
+    }
+
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME,
+        "FUNC", func, "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE",
+        DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED,
+        "ERROR_CODE", abs(errorCode), "DEVICE", device, "TYPE", type);
+}
+
+inline void DfxReportEvent(int type, int stageRes, const char *func)
+{
+    if (type == 0) {
+        return;
+    }
+
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME,
+        "FUNC", func, "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE",
+        DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES", stageRes, "TYPE", type);
+}
+
+inline void DfxReportDeviceEvent(int type, int stageRes, const std::string &device, const char *func)
+{
+    if (type == 0 || device.empty()) {
+        return;
+    }
+
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME,
+        "FUNC", func, "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE",
+        DbinderErrorCode::IPC_MESSAGE_RPOCESS, "STAGE_RES", stageRes, "DEVICE", device, "TYPE", type);
 }
 
 } // namespace OHOS

@@ -14,11 +14,13 @@
  */
 
 #include "dbinder_remote_listener.h"
+
 #include <cinttypes>
 #include "securec.h"
-#include "ipc_types.h"
-#include "dbinder_log.h"
+
 #include "dbinder_error_code.h"
+#include "dbinder_log.h"
+#include "ipc_types.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER,
@@ -41,18 +43,21 @@ bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener>
     softbusManager_ = ISessionService::GetInstance();
     if (softbusManager_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SOFTBUS_SERVICE_FAIL, __FUNCTION__);
         return false;
     }
     int pid = static_cast<int>(getpid());
     int uid = static_cast<int>(getuid());
     if (softbusManager_->GrantPermission(uid, pid, OWN_SESSION_NAME) != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name:%{public}s", OWN_SESSION_NAME.c_str());
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);
         return false;
     }
 
     int ret = softbusManager_->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, listener);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to create softbus server with ret:%{public}d", ret);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
         return false;
     }
     return true;
@@ -114,12 +119,14 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &deviceId, const 
 {
     if (msg == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "msg is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
     std::shared_ptr<Session> session = OpenSoftbusSession(deviceId);
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "fail to open session");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_OPEN_SESSION_FAIL, __FUNCTION__);
         return false;
     }
 
@@ -127,6 +134,7 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &deviceId, const 
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes, ret:%{public}d channelId:%{public}" PRId64 " device:%{public}s",
             ret, session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         return false;
     }
     DBINDER_LOGI(LOG_LABEL, "channelId:%{public}" PRId64 " device:%{public}s succ",
@@ -138,6 +146,7 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
 {
     if (msg == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "msg is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
@@ -145,6 +154,8 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "failed to get peer session, device:%{public}s",
             DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+        DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
+            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), RADAR_GET_PEER_SESSION_FAIL, __FUNCTION__);
         return false;
     }
 
@@ -153,7 +164,9 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes of reply, result:%{public}d device:%{public}s"
             " channelId:%{public}" PRId64, result, DBinderService::ConvertToSecureDeviceID(deviceId).c_str(),
             session->GetChannelId());
-            return false;
+        DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
+            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), RADAR_SEND_BYTES_FAIL, __FUNCTION__);
+        return false;
     }
     DBINDER_LOGD(LOG_LABEL, "channelId:%{public}" PRId64 " device:%{public}s",
             session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
@@ -185,6 +198,7 @@ std::shared_ptr<Session> DBinderRemoteListener::OpenSoftbusSession(const std::st
     std::lock_guard<std::mutex> lockGuard(resourceMutex_);
     if (softbusManager_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return nullptr;
     }
     auto it = clientSessionMap_.find(peerDeviceId);
@@ -197,6 +211,8 @@ std::shared_ptr<Session> DBinderRemoteListener::OpenSoftbusSession(const std::st
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "open session for dbinder service failed, device:%{public}s",
             DBinderService::ConvertToSecureDeviceID(peerDeviceId).c_str());
+        DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
+            DBinderService::ConvertToSecureDeviceID(peerDeviceId).c_str(), RADAR_OPEN_SESSION_FAIL, __FUNCTION__);
         return nullptr;
     }
 
@@ -268,26 +284,31 @@ void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, co
             "peer name:%{public}s channelId:%{public}" PRId64,
             len, session->GetPeerSessionName().c_str(), session->GetChannelId());
         // ignore the package
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return;
     }
 
     if (dBinderService_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "dbinder service is not started");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SERVICE_NO_START, __FUNCTION__);
         return;
     }
 
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
     if (message == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length:%{public}zu", sizeof(struct DHandleEntryTxRx));
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_BUFFER_FAIL, __FUNCTION__);
         return;
     }
     auto res = memcpy_s(message.get(), sizeof(struct DHandleEntryTxRx), data, sizeof(struct DHandleEntryTxRx));
     if (res != 0) {
         DBINDER_LOGE(LOG_LABEL, "memcpy copy failed");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return;
     }
     if (message->head.len != sizeof(struct DHandleEntryTxRx)) {
         DBINDER_LOGE(LOG_LABEL, "msg head len error, len:%{public}u", message->head.len);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return;
     }
     DBINDER_LOGD(LOG_LABEL, "channelId:%{public}" PRId64 "service:%{public}llu seq:%{public}u"
