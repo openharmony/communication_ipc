@@ -14,18 +14,20 @@
  */
 
 #include "dbinder_databus_invoker.h"
+
 #include <cinttypes>
 #include "string_ex.h"
 #include "securec.h"
 #include "sys_binder.h"
 
+#include "databus_session_callback.h"
+#include "dbinder_error_code.h"
 #include "ipc_object_stub.h"
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
-#include "databus_session_callback.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -58,34 +60,40 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
 {
     if (remoteSession == nullptr) {
         ZLOGE(LOG_LABEL, "remote session is nullptr");
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return nullptr;
     }
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_IPC_PROCESS_SKELETON_NULL, __FUNCTION__);
         return nullptr;
     }
     sptr<IPCObjectProxy> ipcProxy = reinterpret_cast<IPCObjectProxy *>(current->FindOrNewObject(handle).GetRefPtr());
     if (ipcProxy == nullptr) {
         ZLOGE(LOG_LABEL, "attempt to send a invalid handle:%{public}u", handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_SEND_INVALID_HANDLE, __FUNCTION__);
         return nullptr;
     }
 
     if (ipcProxy->GetProto() != IRemoteObject::IF_PROT_BINDER) {
         ZLOGE(LOG_LABEL, "attempt to send a distributed proxy, handle:%{public}u", handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_SEND_DISTRIBUTED_PROXY, __FUNCTION__);
         return nullptr;
     }
 
     std::string sessionName = ipcProxy->GetSessionName();
     if (sessionName.empty()) {
         ZLOGE(LOG_LABEL, "get bus name error, handle:%{public}u", handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_GET_SESSION_NAME_FAIL, __FUNCTION__);
         return nullptr;
     }
 
     std::shared_ptr<Session> session = remoteSession->GetBusSession();
     if (session == nullptr) {
         ZLOGE(LOG_LABEL, "get databus session fail, handle:%{public}u", handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_GET_BUS_SESSION_FAIL, __FUNCTION__);
         return nullptr;
     }
 
@@ -96,17 +104,20 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         !data.WriteString(session->GetPeerDeviceId()) || !data.WriteString(sessionName) ||
         !data.WriteUint32(remoteSession->GetTokenId())) {
         ZLOGE(LOG_LABEL, "write to parcel fail, handle:%{public}u", handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_WRITE_TO_PARCEL_FAIL, __FUNCTION__);
         return nullptr;
     }
     int err = ipcProxy->InvokeListenThread(data, reply);
     if (err != ERR_NONE) {
         ZLOGE(LOG_LABEL, "start service listen error:%{public}d handle:%{public}u", err, handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_START_LISTEN_FAIL, __FUNCTION__);
         return nullptr;
     }
 
     uint64_t stubIndex = reply.ReadUint64();
     if (stubIndex == 0) {
         ZLOGE(LOG_LABEL, "stubindex error:%{public}" PRIu64 " handle:%{public}u", stubIndex, handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_STUB_INVALID, __FUNCTION__);
         return nullptr;
     }
     std::string serverName = reply.ReadString();
@@ -119,6 +130,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId, stubIndex, nullptr, peerTokenId);
     if (connectSession == nullptr) {
         ZLOGE(LOG_LABEL, "new server session fail, handle:%{public}u", handle);
+        DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_NEW_SERVER_SESSION_FAIL, __FUNCTION__);
         return nullptr;
     }
 

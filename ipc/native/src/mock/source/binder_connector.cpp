@@ -26,7 +26,6 @@
 
 #include "__mutex_base"
 #include "cerrno"
-#include "dbinder_error_code.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
 #include "iosfwd"
@@ -407,8 +406,6 @@ bool BinderConnector::OpenDriver()
     int fd = open(deviceName_.c_str(), O_RDWR | O_CLOEXEC);
     if (fd < 0) {
         ZLOGE(LABEL, "fail to open errno:%{public}d", errno);
-        ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
-            KERNEL_DRIVER_OPEN_IPC_DRIVER_FAILURE, __FUNCTION__);
         return false;
     }
     int32_t version = 0;
@@ -440,8 +437,6 @@ bool BinderConnector::OpenDriver()
         ZLOGE(LABEL, "fail to mmap");
         close(driverFD_);
         driverFD_ = -1;
-        ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
-            KERNEL_DRIVER_OPEN_IPC_DRIVER_FAILURE, __FUNCTION__);
         return false;
     }
 #ifdef CONFIG_ACTV_BINDER
@@ -493,8 +488,6 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
 
         if (err == -EINTR) {
             ZLOGE(LABEL, "ioctl_binder returned EINTR");
-            ReportEvent(DbinderErrorCode::KERNEL_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_CODE),
-                KERNEL_DRIVER_WRITE_IPC_DRIVER_FAILURE, __FUNCTION__);
         }
     }
 

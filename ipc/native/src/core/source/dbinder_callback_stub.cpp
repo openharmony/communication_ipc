@@ -17,6 +17,7 @@
 
 #include <cinttypes>
 
+#include "dbinder_error_code.h"
 #include "log_tags.h"
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
@@ -78,17 +79,20 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
     int pid = IPCSkeleton::GetCallingPid();
     if (uid < 0 || pid < 0) {
         ZLOGE(LOG_LABEL, "uid or pid err");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_UID_OR_PID_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
     }
     sptr<IRemoteObject> object = IPCProcessSkeleton::GetCurrent()->GetSAMgrObject();
     if (object == nullptr) {
         ZLOGE(LOG_LABEL, "get sa object is null");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SA_OBJECT_NULL, __FUNCTION__);
         return DBINDER_CALLBACK_READ_OBJECT_ERR;
     }
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     std::string sessionName = samgr->GetSessionNameForPidUid(uid, pid);
     if (sessionName.empty()) {
         ZLOGE(LOG_LABEL, "grans session name failed");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SESSION_NAME_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_WRONG_SESSION;
     }
 
@@ -97,16 +101,19 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
     if (!authData.WriteUint32(pid) || !authData.WriteUint32(uid) || !authData.WriteString(localDeviceID_) ||
         !authData.WriteUint64(stubIndex_) || !authData.WriteUint32(tokenId_)) {
         ZLOGE(LOG_LABEL, "write to MessageParcel fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return ERR_INVALID_DATA;
     }
     IRemoteInvoker *dbinderInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
     if (dbinderInvoker == nullptr) {
         ZLOGE(LOG_LABEL, "no databus thread and invoker");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_RPC_DATABUS_INVOKER_ERR, __FUNCTION__);
         return RPC_DATABUS_INVOKER_ERR;
     }
     int err = dbinderInvoker->SendRequest(handle_, DBINDER_ADD_COMMAUTH, authData, authReply, authOption);
     if (err != ERR_NONE) {
         ZLOGE(LOG_LABEL, "send auth info to remote fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_BINDER_CALLBACK_AUTHCOMM_ERR, __FUNCTION__);
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
     ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s "
@@ -119,6 +126,7 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         !reply.WriteString(serviceName_) || !reply.WriteString(deviceID_) || !reply.WriteString(localDeviceID_) ||
         !reply.WriteString(sessionName) || !reply.WriteUint32(tokenId_)) {
         ZLOGE(LOG_LABEL, "write to parcel fail");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return ERR_INVALID_DATA;
     }
     return 0;
