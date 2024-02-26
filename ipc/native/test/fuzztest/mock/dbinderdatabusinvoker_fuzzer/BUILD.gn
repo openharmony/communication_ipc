@@ -52,6 +52,7 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
   ]
 }

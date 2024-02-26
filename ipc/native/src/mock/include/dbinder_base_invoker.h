@@ -572,12 +572,14 @@ std::shared_ptr<T> DBinderBaseInvoker<T>::WriteTransaction(int cmd, uint32_t fla
     std::shared_ptr<T> sessionObject = GetSessionObject(handle, socketId);
     if (sessionObject == nullptr) {
         ZLOGE(LOG_LABEL, "session is not exist for listenFd:%{public}d handle:%{public}d", socketId, handle);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, socketId, RADAR_GET_SESSION_FAIL, __FUNCTION__);
         return nullptr;
     }
 
     uint64_t seqNum = GetUniqueSeqNumber(cmd);
     if (seqNum == 0) {
         ZLOGE(LOG_LABEL, "seqNum invalid, listenFd:%{public}d handle:%{public}d", socketId, handle);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, socketId, RADAR_SEQ_INVALID, __FUNCTION__);
         return nullptr;
     }
     /* save seqNum for wait thread */
@@ -585,18 +587,22 @@ std::shared_ptr<T> DBinderBaseInvoker<T>::WriteTransaction(int cmd, uint32_t fla
     /* if MessageParcel has raw data, send raw data first, then send MessageParcel to peer */
     if (ProcessRawData(sessionObject, data, seqNum) != true) {
         ZLOGE(LOG_LABEL, "send rawdata failed, listenFd:%{public}d handle:%{public}d", socketId, handle);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, socketId, RADAR_SEND_RAW_DATA_FAIL, __FUNCTION__);
         return nullptr;
     }
     std::shared_ptr<dbinder_transaction_data> transData =
         ProcessNormalData(sessionObject, data, handle, socketId, seqNum, cmd, code, flags, status);
     if (transData == nullptr) {
         ZLOGE(LOG_LABEL, "send normal data failed, listenFd:%{public}d handle:%{public}d", socketId, handle);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, socketId, RADAR_SEND_NORMAL_DATA_FAIL, __FUNCTION__);
         return nullptr;
     }
 
     if (MoveTransData2Buffer(sessionObject, transData) != true) {
         ZLOGE(LOG_LABEL, "move transaction data to buffer failed, listenFd:%{public}d handle:%{public}d",
             socketId, handle);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, socketId,
+            RADAR_MOVE_TRANS_DATA_TO_BUFFER_FAIL, __FUNCTION__);
         return nullptr;
     }
     return sessionObject;
@@ -608,14 +614,13 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
 {
     if (reply == nullptr) {
         ZLOGE(LOG_LABEL, "no need reply, free the buffer");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_NO_NEED_REPLY, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
 
     if (messageInfo == nullptr) {
         ZLOGE(LOG_LABEL, "receive buffer is nullptr");
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
-            DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            COMMON_DRIVER_HANDLE_RECV_DATA_FAILURE, __FUNCTION__);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_RECEIVE_BUFFER_NULL, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
 
@@ -625,15 +630,18 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
     }
     if (messageInfo->buffer == nullptr) {
         ZLOGE(LOG_LABEL, "need reply message, but buffer is nullptr");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_BUFFER_NULL, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
     auto allocator = new (std::nothrow) DBinderRecvAllocator();
     if (allocator == nullptr) {
         ZLOGE(LOG_LABEL, "create DBinderRecvAllocator object failed");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_RECV_ALLOCATOR_FAIL, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
     if (!reply->SetAllocator(allocator)) {
         ZLOGE(LOG_LABEL, "SetAllocator failed");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SET_ALLOCATOR_FAIL, __FUNCTION__);
         delete allocator;
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
@@ -648,6 +656,7 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
     if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(messageInfo->buffer), messageInfo->bufferSize, *reply,
         messageInfo->socketId, nullptr)) {
         ZLOGE(LOG_LABEL, "translate object failed, socketId:%{public}u", messageInfo->socketId);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_TRANSLATE_OBJECT_FAIL, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;
     }
 
@@ -739,9 +748,6 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     if (session == nullptr) {
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LOG_LABEL, "WriteTransaction fail, handle:%{public}d", handle);
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
-            DbinderErrorCode::RPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            COMMON_DRIVER_TRANSACT_DATA_FAILURE, __FUNCTION__);
         return RPC_BASE_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -876,16 +882,19 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_IPC_PROCESS_SKELETON_NULL, __FUNCTION__);
         return;
     }
 
     auto allocator = new (std::nothrow) DBinderSendAllocator();
     if (allocator == nullptr) {
         ZLOGE(LOG_LABEL, "DBinderSendAllocator failed, listenFd:%{public}u", listenFd);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SEND_ALLOCATOR_FAIL, __FUNCTION__);
         return;
     }
     if (!data.SetAllocator(allocator)) {
         ZLOGE(LOG_LABEL, "SetAllocator failed, listenFd:%{public}u", listenFd);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SET_ALLOCATOR_FAIL, __FUNCTION__);
         delete allocator;
         return;
     }
@@ -905,6 +914,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     const uint32_t oldTokenId = GetCallerTokenID();
     if (CheckAndSetCallerInfo(listenFd, tr->cookie) != ERR_NONE) {
         ZLOGE(LOG_LABEL, "check and set caller info failed, cmd:%{public}u listenFd:%{public}u", tr->code, listenFd);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_CHECK_AND_SET_CALLER_FAIL, __FUNCTION__);
         return;
     }
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
@@ -918,12 +928,14 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         if (stub == nullptr) {
             ZLOGE(LOG_LABEL, "stubIndex is invalid, listenFd:%{public}u seq:%{public}" PRIu64,
                 listenFd, senderSeqNumber);
+            DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_STUB_INVALID, __FUNCTION__);
             return;
         }
         if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data,
             listenFd, nullptr)) {
             ZLOGE(LOG_LABEL, "translate object failed, listenFd:%{public}u seq:%{public}" PRIu64,
                 listenFd, senderSeqNumber);
+            DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_TRANSLATE_FAIL, __FUNCTION__);
             return;
         }
 
@@ -965,6 +977,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr, can not wakeup thread");
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_IPC_PROCESS_SKELETON_NULL, __FUNCTION__);
         return;
     }
 
@@ -972,6 +985,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     if (messageInfo == nullptr) {
         ZLOGE(LOG_LABEL, "no thread waiting reply message of this seqNumber:%{public}llu listenFd:%{public}u",
             tr->seqNumber, listenFd);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SEQ_MESSAGE_NULL, __FUNCTION__);
         /* messageInfo is null, no thread need to wakeup */
         return;
     }
@@ -981,6 +995,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     if (messageInfo->buffer == nullptr) {
         ZLOGE(LOG_LABEL, "some thread is waiting for reply message, but no memory"
             ", seqNumber:%{public}llu listenFd:%{public}u", tr->seqNumber, listenFd);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SEQ_MESSAGE_BUFFER_NULL, __FUNCTION__);
         /* wake up sender thread */
         current->WakeUpThreadBySeqNumber(tr->seqNumber, listenFd);
         return;
@@ -991,6 +1006,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     if (memcpyResult != 0) {
         ZLOGE(LOG_LABEL, "memcpy_s failed, error:%{public}d seqNumber:%{public}llu listenFd:%{public}u",
             memcpyResult, tr->seqNumber, listenFd);
+        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         delete[](unsigned char *) messageInfo->buffer;
         messageInfo->buffer = nullptr;
         /* wake up sender thread even no memssage */
