@@ -596,6 +596,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         DBINDER_LOGE(LOG_LABEL, "fail to call the system ability");
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CALL_SYSTEM_ABILITY_FAIL, __FUNCTION__);
         PopLoadSaItem(replyMessage->deviceIdInfo.fromDeviceId, static_cast<int32_t>(replyMessage->stubIndex));
+        SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_AVAILABLE, replyMessage);
         return false;
     }
     return true;
@@ -805,7 +806,7 @@ bool DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
 bool DBinderService::OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage)
 {
     DfxReportEvent(DbinderErrorCode::RPC_DRIVER, DbinderErrorCode::IPC_RESULT_IDLE, __FUNCTION__);
-    DBINDER_LOGI(LOG_LABEL, "invoke remote stubIndex:%{public}d error, type:%{public}u seq:%{public}u",
+    DBINDER_LOGI(LOG_LABEL, "invoke remote stubIndex:%{public}d fail, error:%{public}u seq:%{public}u",
         static_cast<int32_t>(replyMessage->stubIndex), replyMessage->transType, replyMessage->seqNumber);
     WakeupThreadByStub(replyMessage->seqNumber);
     DetachThreadLockInfo(replyMessage->seqNumber);
