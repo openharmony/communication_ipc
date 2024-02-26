@@ -20,7 +20,6 @@
 
 #include "access_token_adapter.h"
 #include "binder_debug.h"
-#include "dbinder_error_code.h"
 #include "hilog/log.h"
 #include "hitrace_invoker.h"
 #include "ipc_object_proxy.h"
@@ -152,9 +151,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
         newData.RewindWrite(oldWritePosition);
         ZLOGE(LABEL, "WriteTransaction ERROR");
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
-            DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            COMMON_DRIVER_TRANSACT_DATA_FAILURE, __FUNCTION__);
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -387,6 +383,10 @@ void BinderInvoker::ExitCurrentThread()
 
 void BinderInvoker::StartWorkLoop()
 {
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        ZLOGE(LABEL, "driver is died");
+        return;
+    }
     int error;
     do {
         error = TransactWithDriver();
@@ -882,6 +882,10 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
 
 int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResult)
 {
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        ZLOGE(LABEL, "driver is died");
+        return IPC_INVOKER_CONNECT_ERR;
+    }
     uint32_t cmd;
     bool continueLoop = true;
     int error = ERR_NONE;
@@ -1113,9 +1117,6 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
     bool status = parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
     if (!status) {
         ZLOGE(LABEL, "Fail to flatten object");
-        ReportDriverEvent(DbinderErrorCode::COMMON_DRIVER_ERROR, std::string(DbinderErrorCode::ERROR_TYPE),
-            DbinderErrorCode::IPC_DRIVER, std::string(DbinderErrorCode::ERROR_CODE),
-            COMMON_DRIVER_FLATTEN_OBJECT_FAILURE, __FUNCTION__);
     }
     return status;
 }
