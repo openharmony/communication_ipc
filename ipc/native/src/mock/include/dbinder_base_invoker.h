@@ -96,6 +96,7 @@ public:
     virtual int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) = 0;
     virtual int OnSendRawData(std::shared_ptr<T> session, const void *data, size_t size) = 0;
     bool CheckTransactionData(const dbinder_transaction_data *tr) const;
+    std::mutex &GetObjectMutex();
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
@@ -125,6 +126,9 @@ private:
     std::shared_ptr<ThreadProcessInfo> MakeThreadProcessInfo(uint32_t handle, const char *buffer, uint32_t size);
     std::shared_ptr<ThreadMessageInfo> MakeThreadMessageInfo(uint32_t handle);
     uint32_t MakeRemoteHandle(std::shared_ptr<T> session);
+
+private:
+    std::mutex objectMutex_;
 };
 
 template<class T>
@@ -901,27 +905,32 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
 
     const uint32_t flags = tr->flags;
     uint64_t senderSeqNumber = tr->seqNumber;
-    auto *stub = current->QueryStubByIndex(tr->cookie);
-    if (stub == nullptr) {
-        ZLOGE(LOG_LABEL, "stubIndex is invalid");
-        return;
-    }
-    if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data,
-        listenFd, nullptr)) {
-        ZLOGE(LOG_LABEL, "translate object failed");
-        return;
+    int error = ERR_NONE;
+    {
+        std::lock_guard<std::mutex> lockGuard(objectMutex_);
+        auto *stub = current->QueryStubByIndex(tr->cookie);
+        if (stub == nullptr) {
+            ZLOGE(LOG_LABEL, "stubIndex is invalid");
+            return;
+        }
+        if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data,
+            listenFd, nullptr)) {
+            ZLOGE(LOG_LABEL, "translate object failed");
+            return;
+        }
+
+        auto *stubObject = reinterpret_cast<IPCObjectStub *>(stub);
+        MessageOption option;
+        option.SetFlags(flags);
+        // cannot use stub any more after SendRequest because this cmd may be
+        // dbinder dec ref and thus stub will be destroyed
+        int error = stubObject->SendRequest(tr->code, data, reply, option);
+        if (error != ERR_NONE) {
+            ZLOGE(LOG_LABEL, "stub sendrequest failed, cmd: %{public}u, error: %{public}d", tr->code, error);
+            // can not return;
+        }
     }
 
-    auto *stubObject = reinterpret_cast<IPCObjectStub *>(stub);
-    MessageOption option;
-    option.SetFlags(flags);
-    // cannot use stub any more after SendRequest because this cmd may be
-    // dbinder dec ref and thus stub will be destroyed
-    int error = stubObject->SendRequest(tr->code, data, reply, option);
-    if (error != ERR_NONE) {
-        ZLOGE(LOG_LABEL, "stub sendrequest failed, cmd: %{public}u, error: %{public}d", tr->code, error);
-        // can not return;
-    }
     if (data.GetRawData() != nullptr) {
         ZLOGE(LOG_LABEL, "delete raw data in process skeleton, fd: %{public}u", listenFd);
         current->DetachRawData(listenFd);
@@ -1058,5 +1067,11 @@ template <class T> bool DBinderBaseInvoker<T>::CheckTransactionData(const dbinde
 
     return true;
 }
+
+template <class T> std::mutex &DBinderBaseInvoker<T>::GetObjectMutex()
+{
+    return objectMutex_;
+}
+
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_BASE_INVOKER_H
