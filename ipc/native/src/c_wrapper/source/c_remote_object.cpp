@@ -27,8 +27,8 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_
 
 RemoteServiceHolderStub::RemoteServiceHolderStub(std::u16string &desc, OnRemoteRequestCb callback,
     const void *userData, OnRemoteObjectDestroyCb destroy, OnRemoteDumpCb dumpCallback)
-    : IPCObjectStub(desc), callback_(callback), dumpCallback_(dumpCallback)
-    , userData_(userData), destroy_(destroy)
+    : IPCObjectStub(desc), callback_(callback), dumpCallback_(dumpCallback),
+      userData_(userData), destroy_(destroy)
 {
 }
 
@@ -69,9 +69,7 @@ int RemoteServiceHolderStub::OnRemoteDump(uint32_t code, OHOS::MessageParcel &da
 
 CDeathRecipient::CDeathRecipient(OnDeathRecipientCb onDeathRecipient,
     OnDeathRecipientDestroyCb onDestroy, const void *userData)
-    : userData_(userData)
-    , onDeathRecipient_(onDeathRecipient)
-    , onDestroy_(onDestroy)
+    : userData_(userData), onDeathRecipient_(onDeathRecipient), onDestroy_(onDestroy)
 {
 }
 
