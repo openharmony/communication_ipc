@@ -2812,7 +2812,7 @@ napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info
 
 napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callback_info info)
 {
-    size_t argc = 0;
+    size_t argc = ARGV_LENGTH_2;
     napi_value argv[ARGV_LENGTH_2] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
@@ -2869,7 +2869,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callba
 
 napi_value NAPI_MessageSequence::JS_ReadRawDataBuffer(napi_env env, napi_callback_info info)
 {
-    size_t argc = 0;
+    size_t argc = ARGV_LENGTH_1;
     napi_value argv[ARGV_LENGTH_1] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
@@ -2917,7 +2917,6 @@ napi_value NAPI_MessageSequence::JS_ReadRawDataBuffer(napi_env env, napi_callbac
     NAPI_ASSERT(env, status == EOK, "JS_ReadRawDataBuffer memcpy_s fail");
     return arrayBuffer;
 }
-
 
 napi_value NAPI_MessageSequence::JS_GetRawDataCapacity(napi_env env, napi_callback_info info)
 {
