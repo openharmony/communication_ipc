@@ -721,13 +721,8 @@ napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_va
     return nullptr;
 }
 
-
-napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
+napi_value NAPIAshmem::CheckWriteToAshmemParams(napi_env env, size_t argc, napi_value* argv)
 {
-    size_t argc = 3;
-    napi_value argv[ARGV_LENGTH_3] = {0};
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != ARGV_LENGTH_3) {
         ZLOGE(LOG_LABEL, "requires 3 parameter");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -736,7 +731,7 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     bool isArrayBuffer = false;
     napi_is_arraybuffer(env, argv[ARGV_INDEX_0], &isArrayBuffer);
     if (!isArrayBuffer) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not array, not ArrayBuffer");
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not ArrayBuffer");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
@@ -751,6 +746,19 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 3");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
+    }
+    return nullptr;
+}
+
+napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGV_LENGTH_3;
+    napi_value argv[ARGV_LENGTH_3] = {0};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    napi_value checkArgsResult = CheckWriteToAshmemParams(env, argc, argv);
+    if (checkArgsResult != nullptr) {
+        return checkArgsResult;
     }
 
     void *data = nullptr;
@@ -789,12 +797,8 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
+napi_value NAPIAshmem::CheckReadFromAshmemParams(napi_env env, size_t argc, napi_value* argv)
 {
-    size_t argc = ARGV_LENGTH_2;
-    napi_value argv[ARGV_LENGTH_2] = {0};
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != ARGV_LENGTH_2) {
         ZLOGE(LOG_LABEL, "requires 2 parameter");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -809,6 +813,20 @@ napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 2");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
+    }
+    return nullptr;
+}
+
+napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGV_LENGTH_2;
+    napi_value argv[ARGV_LENGTH_2] = {0};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+
+    napi_value checkArgsResult = CheckReadFromAshmemParams(env, argc, argv);
+    if (checkArgsResult != nullptr) {
+        return checkArgsResult;
     }
 
     int64_t size = 0;
