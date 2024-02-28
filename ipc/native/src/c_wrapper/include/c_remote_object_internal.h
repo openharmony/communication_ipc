@@ -46,7 +46,7 @@ private:
     OnDeathRecipientDestroyCb onDestroy_;
 };
 
-class RemoteServiceHolderStub: public OHOS::IPCObjectStub {
+class RemoteServiceHolderStub : public OHOS::IPCObjectStub {
 public:
     explicit RemoteServiceHolderStub(std::u16string &desc, OnRemoteRequestCb callback,
         const void *userData, OnRemoteObjectDestroyCb destroy, OnRemoteDumpCb dump);

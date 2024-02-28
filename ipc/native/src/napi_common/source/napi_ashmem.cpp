@@ -580,7 +580,7 @@ napi_value NAPIAshmem::WriteToAshmem(napi_env env, napi_callback_info info)
     napi_value argv[3] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, argc == 3, "requires 1 parameter");
+    NAPI_ASSERT(env, argc == 3, "requires 3 parameter");
     bool isArray = false;
     napi_is_array(env, argv[0], &isArray);
     NAPI_ASSERT(env, isArray == true, "type mismatch for parameter 1");
