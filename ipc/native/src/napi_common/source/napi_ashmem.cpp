@@ -724,7 +724,7 @@ napi_value NAPIAshmem::CheckWriteAshmemParams(napi_env env, size_t argc, napi_va
 
 napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
 {
-    size_t argc = 0;
+    size_t argc = 3;
     napi_value argv[ARGV_LENGTH_3] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
@@ -791,7 +791,7 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
 
 napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
 {
-    size_t argc = 0;
+    size_t argc = ARGV_LENGTH_2;
     napi_value argv[ARGV_LENGTH_2] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
