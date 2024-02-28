@@ -125,7 +125,7 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &deviceId, const 
 
     int ret = session->SendBytes(msg, msg->head.len);
     DBINDER_LOGE(LOG_LABEL, "SendDataToRemote device: %{public}s ret: %{public}d",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), ret);
+                 DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), ret);
     if (ret != 0) {
         return false;
     }
@@ -148,7 +148,7 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
 
     int result = session->SendBytes(msg, msg->head.len);
     DBINDER_LOGE(LOG_LABEL, "SendDataReply device: %{public}s ret: %{public}d",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), result);
+                 DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), result);
     return ((result != 0) ? false : true);
 }
 

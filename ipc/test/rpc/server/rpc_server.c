@@ -37,7 +37,7 @@ enum {
 static const int32_t g_saID = 16;
 static const uint32_t IPC_LENGTH = 128;
 
-int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("server OnRemoteRequestOne called....");
