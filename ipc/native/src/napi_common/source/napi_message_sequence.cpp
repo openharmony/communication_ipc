@@ -2824,7 +2824,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callba
     bool isArrayBuffer = false;
     napi_is_arraybuffer(env, argv[ARGV_INDEX_0], &isArrayBuffer);
     if (!isArrayBuffer) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not array, not ArrayBuffer");
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not ArrayBuffer");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 

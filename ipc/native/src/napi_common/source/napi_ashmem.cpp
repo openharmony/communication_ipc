@@ -823,7 +823,6 @@ napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
     napi_value argv[ARGV_LENGTH_2] = {0};
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-
     napi_value checkArgsResult = CheckReadFromAshmemParams(env, argc, argv);
     if (checkArgsResult != nullptr) {
         return checkArgsResult;
@@ -844,19 +843,23 @@ napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
-        return nullptr;
+        return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
 
     const void *result = napiAshmem->GetAshmem()->ReadFromAshmem(size, offset);
     if (result == nullptr) {
         ZLOGE(LOG_LABEL, "ashmem->ReadFromAshmem returns null");
-        return nullptr;
+        return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
     
     napi_value arrayBuffer = nullptr;
     void *arrayBufferPtr = nullptr;
     size_t bufferSize = static_cast<size_t>(size);
-    napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
+    napi_status isCreateBufferOk = napi_create_arraybuffer(env, size, &arrayBufferPtr, &arrayBuffer);
+    if (isCreateBufferOk != napi_ok) {
+        ZLOGE(LOG_LABEL, "ReadDataFromAshmem create arrayBuffer failed");
+        return napiErr.ThrowError(env, errorDesc::READ_FROM_ASHMEM_ERROR);
+    }
     errno_t status = memcpy_s(arrayBufferPtr, bufferSize, result, bufferSize);
     if (status != EOK) {
         ZLOGE(LOG_LABEL, "memcpy_s is failed");
