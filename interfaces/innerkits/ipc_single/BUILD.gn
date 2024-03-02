@@ -32,7 +32,9 @@ ohos_shared_library("ipc_single") {
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$SUBSYSTEM_DIR/utils/include",
   ]
-
+  if (ipc_feature_actv_binder_enabled) {
+    include_dirs += [ "//third_party/json/single_include" ]
+  }
   sources = [
     "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
@@ -48,6 +50,7 @@ ohos_shared_library("ipc_single") {
     "$IPC_CORE_ROOT/src/core/source/message_option.cpp",
     "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
     "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
+    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/hitrace_invoker.cpp",

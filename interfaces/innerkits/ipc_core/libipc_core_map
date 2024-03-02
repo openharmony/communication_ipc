@@ -45,6 +45,7 @@
             OHOS::IPCProcessSkeleton*;
             OHOS::DBinderDatabusInvoker*;
             OHOS::BufferObject*;
+            OHOS::BinderConnector*;
             OHOS::DatabusSessionCallback*;
             OHOS::DBinderCallbackStub*;
             OHOS::StubRefCountObject*;
