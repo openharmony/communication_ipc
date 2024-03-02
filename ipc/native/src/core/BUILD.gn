@@ -14,7 +14,6 @@
 import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 config("libipc_common_private_config") {
   cflags_cc = [ "-O2" ]
@@ -28,10 +27,7 @@ ohos_shared_library("ipc_common") {
     "$SUBSYSTEM_DIR/utils/include",
     "include",
   ]
-  sources = [
-    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
-    "source/process_skeleton.cpp",
-  ]
+  sources = [ "source/process_skeleton.cpp" ]
 
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
@@ -42,7 +38,6 @@ ohos_shared_library("ipc_common") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "json:nlohmann_json_static",
   ]
 
   innerapi_tags = [
