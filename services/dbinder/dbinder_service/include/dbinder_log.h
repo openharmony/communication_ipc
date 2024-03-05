@@ -22,15 +22,20 @@
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_RPC_COMMON, LOG_TAG };
 
 #define DBINDER_LOGF(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    HILOG_IMPL(LOG_CORE, LOG_FATAL, LOG_LABEL.domain, LOG_LABEL.tag, \
+        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define DBINDER_LOGE(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    HILOG_IMPL(LOG_CORE, LOG_ERROR, LOG_LABEL.domain, LOG_LABEL.tag, \
+        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define DBINDER_LOGW(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    HILOG_IMPL(LOG_CORE, LOG_WARN, LOG_LABEL.domain, LOG_LABEL.tag, \
+        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define DBINDER_LOGI(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    HILOG_IMPL(LOG_CORE, LOG_INFO, LOG_LABEL.domain, LOG_LABEL.tag, \
+        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 #define DBINDER_LOGD(LOG_LABEL, fmt, args...) \
-    (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    HILOG_IMPL(LOG_CORE, LOG_DEBUG, LOG_LABEL.domain, LOG_LABEL.tag, \
+        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
 
 
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDRR_LOG_H
