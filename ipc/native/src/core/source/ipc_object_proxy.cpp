@@ -331,11 +331,11 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
     ClearDeathRecipients();
     // This proxy is going to be destroyed, so we need to decrease refcount of binder_ref.
     // It may has been replace with a new proxy, thus we have no need to check result.
-    current->DetachObject(this);
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
     if (invoker != nullptr) {
         invoker->ReleaseHandle(handle_);
     }
+    current->DetachObject(this);
 }
 
 /* mutex_ should be called before set or get isRemoteDead_ status */
