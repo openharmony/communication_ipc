@@ -27,8 +27,6 @@ if (support_jsapi) {
     version_script = "librpc_map"
     include_dirs = [
       "$SUBSYSTEM_DIR/utils/include",
-      "//foundation/arkui/napi/interfaces/kits",
-      "//foundation/arkui/napi/native_engine",
       "//utils/system/safwk/native/include",
       "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
       "$SUBSYSTEM_DIR/ipc/native/c/adapter/access_token/include",
@@ -46,13 +44,13 @@ if (support_jsapi) {
     deps = [
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi",
-      "//third_party/libuv:uv",
     ]
 
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
+      "libuv:uv",
       "napi:ace_napi",
     ]
 
