@@ -31,7 +31,7 @@ typedef struct {
 
 static UTILS_DL_LIST *g_saList = NULL;
 
-int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
+static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 {
     if (g_saList == NULL) {
         return ERR_FAILED;
@@ -47,7 +47,7 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     return ERR_NONE;
 }
 
-int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
+static int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
     (void)deviceId;
     SvcInfo* node = NULL;
@@ -64,7 +64,7 @@ int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
     return ERR_FAILED;
 }
 
-int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+static int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
