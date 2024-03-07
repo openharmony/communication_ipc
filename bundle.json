@@ -42,12 +42,12 @@
           "build_framework",
           "ylong_runtime",
           "ffrt",
+          "libuv",
+          "bounds_checking_function",
           "hisysevent",
           "json"
         ],
         "third_party": [
-          "libuv",
-          "bounds_checking_function"
         ]
       },
       "build": {

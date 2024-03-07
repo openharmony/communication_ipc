@@ -40,15 +40,13 @@ if (support_jsapi) {
       "../../../ipc/native/src/napi_common/source/napi_rpc_error.cpp",
     ]
 
-    deps = [
-      "../../../interfaces/innerkits/ipc_core:ipc_core",
-      "//third_party/libuv:uv",
-    ]
+    deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
 
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
+      "libuv:uv",
       "napi:ace_napi",
     ]
 
