@@ -28,7 +28,7 @@
 
 static IClientProxy *g_serverProxy = NULL;
 
-void ServerDeadCallback(void *arg)
+static void ServerDeadCallback(void *arg)
 {
     RPC_LOG_INFO("====== server dead ServerDeadCallback called ======");
 }
@@ -175,7 +175,7 @@ static IClientProxy *GetServerProxy(void)
     return clientProxy;
 }
 
-void __attribute__((weak)) HOS_SystemInit(void)
+static void __attribute__((weak)) HOS_SystemInit(void)
 {
     SAMGR_Bootstrap();
     return;
