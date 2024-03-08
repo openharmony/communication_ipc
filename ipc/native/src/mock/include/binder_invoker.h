@@ -21,6 +21,7 @@
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
+#include "process_skeleton.h"
 #ifdef CONFIG_ACTV_BINDER
 #include "actv_binder.h"
 #endif
@@ -40,7 +41,7 @@ public:
 
     BinderInvoker();
 
-    ~BinderInvoker() = default;
+    ~BinderInvoker();
 
     bool AcquireHandle(int32_t handle) override;
 
@@ -91,7 +92,7 @@ public:
 
     uint64_t GetSelfFirstCallerTokenID() const override;
 
-    uint32_t GetStatus() const override;
+    uint32_t GetStatus() override;
 
     bool IsLocalCalling() override;
 
@@ -205,6 +206,7 @@ private:
     BinderConnector *binderConnector_;
     uint32_t status_;
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
+    InvokerProcInfo invokerInfo_;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
     ActvHandlerInfo *actvHandlerInfo_ = nullptr;

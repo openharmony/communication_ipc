@@ -51,7 +51,7 @@ public:
     uint64_t GetFirstCallerTokenID() const override;
     uint64_t GetSelfTokenID() const override;
     uint64_t GetSelfFirstCallerTokenID() const override;
-    uint32_t GetStatus() const override;
+    uint32_t GetStatus() override;
     virtual uint32_t GetClientFd() const override;
     bool IsLocalCalling() override;
     std::string GetLocalDeviceID() override;

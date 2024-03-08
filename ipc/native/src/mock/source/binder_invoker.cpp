@@ -27,7 +27,6 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "log_tags.h"
-#include "process_skeleton.h"
 #include "string_ex.h"
 #include "sys_binder.h"
 #ifdef FFRT_IPC_ENABLE
@@ -85,12 +84,20 @@ BinderInvoker::BinderInvoker()
     callerRealPid_(getprocpid()), callerUid_(getuid()),
     callerTokenID_(0), firstTokenID_(0), status_(0)
 {
+    invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
+        reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
 #ifdef CONFIG_ACTV_BINDER
     ActvBinderConnector::AddSetActvHandlerInfoFunc(&BinderInvoker::SetActvHandlerInfo);
     ActvBinderConnector::SetJoinActvThreadFunc(&BinderInvoker::JoinActvThread);
 #endif
     binderConnector_ = BinderConnector::GetInstance();
+    ZLOGD(LABEL, "created %{public}zu", reinterpret_cast<uintptr_t>(this));
+}
+
+BinderInvoker::~BinderInvoker()
+{
+    ZLOGD(LABEL, "created %{public}zu", reinterpret_cast<uintptr_t>(this));
 }
 
 bool BinderInvoker::AcquireHandle(int32_t handle)
@@ -574,6 +581,13 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     } else if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
         GetAccessToken(callerTokenID_, firstTokenID_);
     }
+    // sync caller information to another binderinvoker
+    InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
+        reinterpret_cast<uintptr_t>(this) };
+    auto current = ProcessSkeleton::GetInstance();
+    if (current != nullptr) {
+        current->AttachInvokerProcInfo(true, invokerInfo);
+    }
 #ifdef CONFIG_ACTV_BINDER
     bool oldActvBinder = GetUseActvBinder();
     SetUseActvBinder(false);
@@ -596,8 +610,8 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
             }
 #endif
             if (targetObject != nullptr) {
-                ProcessSkeleton *current = ProcessSkeleton::GetInstance();
                 DeadObjectInfo deadInfo;
+                current = ProcessSkeleton::GetInstance();
                 if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
                     ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
                         reinterpret_cast<uintptr_t>(targetObject),
@@ -631,6 +645,13 @@ void BinderInvoker::OnTransaction(const uint8_t *buffer)
     callerUid_ = oldUid;
     callerTokenID_ = oldToken;
     firstTokenID_ = oldFirstToken;
+    // restore caller information to another binderinvoker
+    invokerInfo = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
+        reinterpret_cast<uintptr_t>(this) };
+    current = ProcessSkeleton::GetInstance();
+    if (current != nullptr) {
+        current->AttachInvokerProcInfo(true, invokerInfo);
+    }
     SetStatus(oldStatus);
 }
 
@@ -1024,30 +1045,48 @@ void BinderInvoker::BinderAllocator::Dealloc(void *data)
 
 pid_t BinderInvoker::GetCallerPid() const
 {
+    // when the current caller information is self, obtain another binderinvoker
+    auto pid = getpid();
+    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+        return invokerInfo_.pid;
+    }
     return callerPid_;
 }
 
 pid_t BinderInvoker::GetCallerRealPid() const
 {
+    auto pid = getpid();
+    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+        return invokerInfo_.realPid;
+    }
     return callerRealPid_;
 }
 
 uid_t BinderInvoker::GetCallerUid() const
 {
+    auto pid = getpid();
+    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+        return invokerInfo_.uid;
+    }
     return callerUid_;
 }
 
 uint64_t BinderInvoker::GetCallerTokenID() const
 {
     // If a process does NOT have a tokenid, the UID should be returned accordingly.
-    if (callerTokenID_ == 0) {
-        return callerUid_;
+    auto pid = getpid();
+    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+        return (invokerInfo_.tokenId == 0) ? invokerInfo_.uid : invokerInfo_.tokenId;
     }
-    return callerTokenID_;
+    return (callerTokenID_ == 0) ? callerUid_ : callerTokenID_;
 }
 
 uint64_t BinderInvoker::GetFirstCallerTokenID() const
 {
+    auto pid = getpid();
+    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+        return invokerInfo_.firstTokenId;
+    }
     return firstTokenID_;
 }
 
@@ -1069,8 +1108,15 @@ uint64_t BinderInvoker::GetSelfFirstCallerTokenID() const
     return (selfFirstCallerTokenId == 0) ? static_cast<uint32_t>(getuid()) : selfFirstCallerTokenId;
 }
 
-uint32_t BinderInvoker::GetStatus() const
+uint32_t BinderInvoker::GetStatus()
 {
+    if (status_ != BinderInvoker::ACTIVE_INVOKER) {
+        auto current = ProcessSkeleton::GetInstance();
+        if (current != nullptr) {
+            bool flag = current->QueryInvokerProcInfo(true, invokerInfo_) && (getpid() != invokerInfo_.pid);
+            return flag ? BinderInvoker::ACTIVE_INVOKER : BinderInvoker::IDLE_INVOKER;
+        }
+    }
     return status_;
 }
 
@@ -1191,21 +1237,34 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
 
 std::string BinderInvoker::ResetCallingIdentity()
 {
+    pid_t tempPid = callerPid_;
+    pid_t tempRealPid = callerRealPid_;
+    pid_t tempUid = callerUid_;
+    uint64_t tempTokenId = callerTokenID_;
+
+    auto pid = getpid();
+    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+        tempPid = invokerInfo_.pid;
+        tempRealPid = invokerInfo_.realPid;
+        tempUid = invokerInfo_.uid;
+        tempTokenId = invokerInfo_.tokenId;
+    }
+
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
-    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, callerTokenID_);
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, tempTokenId);
     if (ret < 0) {
-        ZLOGE(LABEL, "sprintf callerTokenID:%{public}" PRIu64 " failed", callerTokenID_);
+        ZLOGE(LABEL, "sprintf callerTokenID:%{public}" PRIu64 " failed", tempTokenId);
         return "";
     }
     std::string accessToken(buf);
-    ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010d", callerRealPid_);
+    ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010d", tempRealPid);
     if (ret < 0) {
-        ZLOGE(LABEL, "sprintf callerRealPid_:%{public}d failed", callerRealPid_);
+        ZLOGE(LABEL, "sprintf callerRealPid_:%{public}d failed", tempRealPid);
         return "";
     }
     std::string realPid(buf);
-    std::string pidUid = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
-        | static_cast<uint64_t>(callerPid_)));
+    std::string pidUid = std::to_string(((static_cast<uint64_t>(tempUid) << PID_LEN)
+        | static_cast<uint64_t>(tempPid)));
     callerUid_ = static_cast<pid_t>(getuid());
     callerPid_ = getpid();
     callerRealPid_ = getprocpid();

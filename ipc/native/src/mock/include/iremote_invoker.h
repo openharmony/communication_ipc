@@ -75,7 +75,7 @@ public:
 
     virtual uint64_t GetSelfFirstCallerTokenID() const = 0;
 
-    virtual uint32_t GetStatus() const = 0;
+    virtual uint32_t GetStatus() = 0;
 
     virtual bool IsLocalCalling() = 0;
 
