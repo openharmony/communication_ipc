@@ -502,16 +502,17 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
         ZLOGE(LABEL, "FAIL!");
         return;
     }
-    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    DeadObjectInfo deadInfo;
-    if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
-        ZLOGD(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
-            reinterpret_cast<uintptr_t>(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
-        return;
-    }
+
     ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
     if (cmd == BR_RELEASE) {
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        DeadObjectInfo deadInfo;
+        if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
+            ZLOGD(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
+                reinterpret_cast<uintptr_t>(obj),
+                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+            return;
+        }
         obj->DecStrongRef(this);
     } else {
         refs->DecWeakRefCount(this);
