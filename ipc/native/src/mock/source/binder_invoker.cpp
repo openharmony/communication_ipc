@@ -690,25 +690,24 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
         return status;
     }
 
-    if (tr->data_size > 0) {
-        auto allocator = new (std::nothrow) BinderAllocator();
-        if (allocator == nullptr) {
-            ZLOGE(LABEL, "create BinderAllocator object failed");
-            return IPC_INVOKER_INVALID_DATA_ERR;
-        }
-        if (!reply->SetAllocator(allocator)) {
-            ZLOGD(LABEL, "SetAllocator failed");
-            delete allocator;
-            FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
-            return IPC_INVOKER_INVALID_DATA_ERR;
-        }
-        reply->ParseFrom(tr->data.ptr.buffer, tr->data_size);
+    auto allocator = new (std::nothrow) BinderAllocator();
+    if (allocator == nullptr) {
+        ZLOGE(LABEL, "create BinderAllocator object failed");
+        return IPC_INVOKER_INVALID_DATA_ERR;
     }
+    if (!reply->SetAllocator(allocator)) {
+        ZLOGD(LABEL, "SetAllocator failed");
+        delete allocator;
+        FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
+        return IPC_INVOKER_INVALID_DATA_ERR;
+    }
+    reply->ParseFrom(tr->data.ptr.buffer, tr->data_size);
 
     if (tr->offsets_size > 0) {
         reply->InjectOffsets(tr->data.ptr.offsets, tr->offsets_size / sizeof(binder_size_t));
         reply->SetClearFdFlag();
     }
+
     return ERR_NONE;
 }
 
