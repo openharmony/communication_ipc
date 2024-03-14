@@ -52,7 +52,7 @@ public:
     MOCK_CONST_METHOD0(GetFirstCallerTokenID, uint64_t());
     MOCK_CONST_METHOD0(GetSelfTokenID, uint64_t());
     MOCK_CONST_METHOD0(GetSelfFirstCallerTokenID, uint64_t());
-    MOCK_CONST_METHOD0(GetStatus, uint32_t());
+    MOCK_METHOD0(GetStatus, uint32_t());
     MOCK_METHOD0(IsLocalCalling, bool());
     MOCK_METHOD0(GetLocalDeviceID, std::string());
     MOCK_CONST_METHOD0(GetCallerDeviceID, std::string());

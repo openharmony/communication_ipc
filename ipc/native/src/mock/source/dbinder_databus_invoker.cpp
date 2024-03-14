@@ -707,7 +707,7 @@ void DBinderDatabusInvoker::SetStatus(uint32_t status)
     status_ = status;
 }
 
-uint32_t DBinderDatabusInvoker::GetStatus() const
+uint32_t DBinderDatabusInvoker::GetStatus()
 {
     return status_;
 }
