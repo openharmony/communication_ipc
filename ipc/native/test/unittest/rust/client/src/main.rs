@@ -87,7 +87,7 @@ async fn get_async_test_service<T: FromRemoteObj + ?Sized + 'static>(name: i32) 
         get_service(name)
     }).await;
 
-    // The `is_panic` branch is not actually reachable in Android as we compile
+    // The `is_panic` branch is not actually reachable as we compile
     // with `panic = abort`.
     match res {
         Ok(Ok(obj)) => T::try_from(obj),
