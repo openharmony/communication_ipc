@@ -39,12 +39,10 @@ namespace IPC_SINGLE {
 using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
-std::recursive_mutex IPCThreadSkeleton::mutex_;
 
-static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "IPCThreadSkeleton" };
+static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "IPCThreadSkeleton" };
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
-    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
     auto *current = static_cast<IPCThreadSkeleton *>(args);
     auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
     if (it != current->invokers_.end()) {
@@ -63,27 +61,33 @@ void IPCThreadSkeleton::MakeTlsKey()
 IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
 {
     pthread_once(&TLSKeyOnce_, IPCThreadSkeleton::MakeTlsKey);
+
     IPCThreadSkeleton *current = nullptr;
     void *curTLS = pthread_getspecific(TLSKey_);
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
+        CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
     } else {
         current = new (std::nothrow) IPCThreadSkeleton();
     }
-
     return current;
 }
 
 IPCThreadSkeleton::IPCThreadSkeleton()
 {
-    ZLOGD(LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
+    ZLOGD(LOG_LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
     pthread_setspecific(TLSKey_, this);
 }
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
-    ZLOGD(LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
-    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
+    exitFlag_ = true;
+    pthread_setspecific(TLSKey_, nullptr);
+    while (usingFlag_.load()) {
+        ZLOGI(LOG_LABEL, "%{public}zu is using, wait a moment", reinterpret_cast<uintptr_t>(this));
+        usleep(1);
+    }
+    ZLOGD(LOG_LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);
@@ -93,11 +97,13 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
 IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    IRemoteInvoker *invoker = nullptr;
     if (current == nullptr) {
         return nullptr;
     }
-    std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
+
+    current->usingFlag_ = true;
+    IRemoteInvoker *invoker = nullptr;
     auto it = current->invokers_.find(proto);
     if (it != current->invokers_.end()) {
         invoker = it->second;
@@ -105,9 +111,10 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         InvokerFactory &factory = InvokerFactory::Get();
         invoker = factory.newInstance(proto);
         if (invoker == nullptr) {
+            current->usingFlag_ = false;
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            ZLOGE(LABEL, "invoker is NULL, proto:%{public}d time:%{public}" PRIu64, proto, curTime);
+            ZLOGE(LOG_LABEL, "invoker is NULL, proto:%{public}d time:%{public}" PRIu64, proto, curTime);
             return nullptr;
         }
 
@@ -115,6 +122,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         current->invokers_.insert(std::make_pair(proto, invoker));
     }
 
+    current->usingFlag_ = false;
     return invoker;
 }
 
@@ -136,7 +144,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetActiveInvoker()
 IRemoteInvoker *IPCThreadSkeleton::GetProxyInvoker(IRemoteObject *object)
 {
     if (object == nullptr) {
-        ZLOGE(LABEL, "proxy is invalid");
+        ZLOGE(LOG_LABEL, "proxy is invalid");
         return nullptr;
     }
     if (!object->IsProxyObject()) {
