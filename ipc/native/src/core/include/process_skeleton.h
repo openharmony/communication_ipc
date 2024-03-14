@@ -19,7 +19,6 @@
 #include <map>
 #include <mutex>
 #include <shared_mutex>
-#include <thread>
 
 #include "iremote_object.h"
 
@@ -43,9 +42,18 @@ struct DeadObjectInfo {
     std::u16string desc;
 };
 
+struct InvokerProcInfo {
+    pid_t pid;
+    pid_t realPid;
+    pid_t uid;
+    uint64_t tokenId;
+    uint64_t firstTokenId;
+    uintptr_t invoker;
+};
+
 class ProcessSkeleton {
 public:
-
+    static std::string ConvertToSecureDesc(const std::string &str);
     static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
@@ -58,10 +66,11 @@ public:
     bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
     bool LockObjectMutex();
     bool UnlockObjectMutex();
-    bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo);
+    bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo &objInfo);
     bool DetachDeadObject(IRemoteObject *object);
     bool IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo);
-    static std::string ConvertToSecureDesc(const std::string &str);
+    bool AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
+    bool QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
@@ -95,6 +104,9 @@ private:
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
     uint64_t deadObjectClearTime_ = 0;
+
+    std::shared_mutex invokerProcMutex_;
+    std::map<std::string, InvokerProcInfo> invokerProcInfo_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H

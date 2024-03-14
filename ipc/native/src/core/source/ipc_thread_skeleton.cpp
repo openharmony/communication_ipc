@@ -30,6 +30,7 @@
 #include "log_tags.h"
 #include "new"
 #include "pthread.h"
+#include "process_skeleton.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -61,10 +62,8 @@ void IPCThreadSkeleton::MakeTlsKey()
 
 IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
 {
-    IPCThreadSkeleton *current = nullptr;
-
     pthread_once(&TLSKeyOnce_, IPCThreadSkeleton::MakeTlsKey);
-
+    IPCThreadSkeleton *current = nullptr;
     void *curTLS = pthread_getspecific(TLSKey_);
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
@@ -77,14 +76,14 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
 
 IPCThreadSkeleton::IPCThreadSkeleton()
 {
+    ZLOGD(LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
     pthread_setspecific(TLSKey_, this);
 }
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
+    ZLOGD(LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
     std::lock_guard<std::recursive_mutex> lockGuard(mutex_);
-    ZLOGI(LABEL, "%{public}u_%{public}u", static_cast<uint32_t>(getpid()),
-        static_cast<uint32_t>(syscall(SYS_gettid)));
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);

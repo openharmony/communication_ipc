@@ -16,6 +16,7 @@
 #include "process_skeleton.h"
 
 #include <cinttypes>
+#include <unistd.h>
 
 #include "ipc_debug.h"
 #include "log_tags.h"
@@ -181,7 +182,7 @@ bool ProcessSkeleton::UnlockObjectMutex()
     return true;
 }
 
-bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo& objInfo)
+bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo &objInfo)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
@@ -245,6 +246,34 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
         }
         ++it;
     }
+}
+
+bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::unique_lock<std::shared_mutex> lockGuard(invokerProcMutex_);
+    std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
+    auto result = invokerProcInfo_.insert_or_assign(key, invokeInfo);
+    auto &info = result.first->second;
+    ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+        info.invoker, info.pid, info.realPid, info.uid, info.tokenId, info.firstTokenId);
+    return result.second;
+}
+
+bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::shared_lock<std::shared_mutex> lockGuard(invokerProcMutex_);
+    std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
+    auto it = invokerProcInfo_.find(key);
+    if (it == invokerProcInfo_.end()) {
+        return false;
+    }
+    invokeInfo = it->second;
+    ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+        invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
+        invokeInfo.firstTokenId);
+    return true;
 }
 
 std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)

@@ -533,7 +533,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
             tmp->GetBusSession()->GetChannelId(), tmp->GetServiceName().c_str(),
             tmp->GetStubIndex());
     } else {
-        ZLOGW(LOG_LABEL, "detach handle:%{Public}u, not found", handle);
+        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found", handle);
     }
 
     return tmp;
