@@ -14,6 +14,7 @@
  */
 
 #include "napi_ashmem.h"
+#include <cinttypes>
 #include <limits>
 #include <unistd.h>
 #include "ipc_debug.h"
@@ -781,10 +782,10 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     }
 
     uint32_t ashmemSize = (uint32_t)napiAshmem->GetAshmem()->GetAshmemSize();
-    if (size < 0 || size > std::numeric_limits<int32_t>::max() ||
+    if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}" PRId64 " offset:%{public}" PRId64, size, offset);
         return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
     }
 
@@ -839,10 +840,10 @@ napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
     uint32_t ashmemSize = (uint32_t)napiAshmem->GetAshmem()->GetAshmemSize();
-    if (size < 0 || size > std::numeric_limits<int32_t>::max() ||
+    if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}jd offset:%{public}jd", size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}" PRId64 " offset:%{public}" PRId64, size, offset);
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
 

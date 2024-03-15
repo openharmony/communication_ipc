@@ -15,6 +15,7 @@
 
 #include "napi_message_sequence.h"
 
+#include <cinttypes>
 #include <cstring>
 #include <unistd.h>
 
@@ -2846,7 +2847,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callba
     int64_t size = 0;
     napi_status isGetOk = napi_get_value_int64(env, argv[ARGV_INDEX_1], &size);
     if (isGetOk != napi_ok || size <= 0 || size > byteLength) {
-        ZLOGE(LOG_LABEL, "error for parameter 2 size is %{public}jd", size);
+        ZLOGE(LOG_LABEL, "error for parameter 2 size is %{public}" PRId64, size);
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
@@ -2888,7 +2889,7 @@ napi_value NAPI_MessageSequence::JS_ReadRawDataBuffer(napi_env env, napi_callbac
     napi_get_value_int64(env, argv[ARGV_INDEX_0], &arraySize);
     napi_value result = nullptr;
     if (arraySize <= 0) {
-        ZLOGE(LOG_LABEL, "arraySize is %{public}jd, error", arraySize);
+        ZLOGE(LOG_LABEL, "arraySize is %{public}" PRId64 ", error", arraySize);
         napi_create_array(env, &result);
         return result;
     }
