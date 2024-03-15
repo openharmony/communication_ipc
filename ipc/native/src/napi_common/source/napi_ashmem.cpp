@@ -785,7 +785,7 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}" PRId64 "offset:%{public}" PRId64, size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}" PRId64 " offset:%{public}" PRId64, size, offset);
         return napiErr.ThrowError(env, OHOS::errorDesc::WRITE_TO_ASHMEM_ERROR);
     }
 
@@ -843,7 +843,7 @@ napi_value NAPIAshmem::ReadDataFromAshmem(napi_env env, napi_callback_info info)
     if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize) {
-        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}" PRId64 "offset:%{public}" PRId64, size, offset);
+        ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}" PRId64 " offset:%{public}" PRId64, size, offset);
         return napiErr.ThrowError(env, OHOS::errorDesc::READ_FROM_ASHMEM_ERROR);
     }
 
