@@ -36,7 +36,7 @@ DBinderRemoteListener::~DBinderRemoteListener()
 
 bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener> &listener)
 {
-    std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
+    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
     softbusManager_ = ISessionService::GetInstance();
     if (softbusManager_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
@@ -59,8 +59,7 @@ bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener>
 
 bool DBinderRemoteListener::StopListener()
 {
-    ClearDeviceLock();
-    std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
+    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
     if (softbusManager_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
         return false;
@@ -154,8 +153,7 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
 
 bool DBinderRemoteListener::CloseDatabusSession(const std::string &deviceId)
 {
-    EraseDeviceLock(deviceId);
-    std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
+    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
     if (softbusManager_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
         return false;
@@ -175,23 +173,16 @@ bool DBinderRemoteListener::CloseDatabusSession(const std::string &deviceId)
 
 std::shared_ptr<Session> DBinderRemoteListener::OpenSoftbusSession(const std::string &peerDeviceId)
 {
-    {
-        std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
-        if (softbusManager_ == nullptr) {
-            DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
-            return nullptr;
-        }
-        auto it = clientSessionMap_.find(peerDeviceId);
-        if (it != clientSessionMap_.end()) {
-            return it->second;
-        }
-    }
-    std::shared_ptr<DeviceLock> lockInfo = QueryOrNewDeviceLock(peerDeviceId);
-    if (lockInfo == nullptr) {
+    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
+    if (softbusManager_ == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
         return nullptr;
     }
-    // OpenSession is not thread-safe
-    std::lock_guard<std::mutex> lock_unique(lockInfo->mutex);
+    auto it = clientSessionMap_.find(peerDeviceId);
+    if (it != clientSessionMap_.end()) {
+        return it->second;
+    }
+
     std::shared_ptr<Session> session = softbusManager_->OpenSession(OWN_SESSION_NAME, PEER_SESSION_NAME,
         peerDeviceId, std::string(""), Session::TYPE_BYTES);
     if (session == nullptr) {
@@ -199,10 +190,8 @@ std::shared_ptr<Session> DBinderRemoteListener::OpenSoftbusSession(const std::st
             DBinderService::ConvertToSecureDeviceID(peerDeviceId).c_str());
         return nullptr;
     }
-    {
-        std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
-        clientSessionMap_.insert(std::pair<std::string, std::shared_ptr<Session>>(peerDeviceId, session));
-    }
+
+    clientSessionMap_.insert(std::pair<std::string, std::shared_ptr<Session>>(peerDeviceId, session));
     return session;
 }
 
@@ -249,8 +238,7 @@ void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
             }
         }
     } else {
-        EraseDeviceLock(session->GetPeerDeviceId());
-        std::lock_guard<std::mutex> lockGuard(busManagerMutex_);
+        std::lock_guard<std::mutex> lockGuard(resourceMutex_);
         for (auto it = clientSessionMap_.begin(); it != clientSessionMap_.end(); it++) {
             if (it->second->GetChannelId() == session->GetChannelId()) {
                 clientSessionMap_.erase(it);

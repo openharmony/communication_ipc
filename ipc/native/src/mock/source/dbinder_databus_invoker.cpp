@@ -547,6 +547,7 @@ bool DBinderDatabusInvoker::OnDatabusSessionServerSideClosed(std::shared_ptr<Ses
     // detach info whose listen fd equals the given one
     std::list<uint64_t> stubIndexs = current->DetachAppInfoToStubIndex(session->GetPeerPid(), session->GetPeerUid(),
         tokenId, session->GetPeerDeviceId(), IPCProcessSkeleton::ConvertChannelID2Int(channelId));
+    std::lock_guard<std::mutex> lockGuard(GetObjectMutex());
     for (auto it = stubIndexs.begin(); it != stubIndexs.end(); it++) {
         // note that we canont remove mapping from stub to index here because other session may still be used
         IRemoteObject *stub = current->QueryStubByIndex(*it);
