@@ -30,6 +30,7 @@ ohos_shared_library("ipc_common") {
   ]
   sources = [
     "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
+    "source/ipc_payload_statistics_impl.cpp",
     "source/process_skeleton.cpp",
   ]
 

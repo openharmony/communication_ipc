@@ -24,6 +24,7 @@
             OHOS::BrokerRegistration::Unregister*;
             OHOS::BrokerRegistration::NewInstance*;
             OHOS::IPCSkeleton*;
+            OHOS::IPCPayloadStatistics*;
             OHOS::IPC_SINGLE::IPCProcessSkeleton::LockForNumExecuting;
             OHOS::IPC_SINGLE::IPCProcessSkeleton::UnlockForNumExecuting;
             OHOS::IPC_SINGLE::IPCThreadSkeleton*;
