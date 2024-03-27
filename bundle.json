@@ -59,6 +59,7 @@
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
               "header": {
                 "header_files": [
+                  "ipc_payload_statistics.h",
                   "ipc_types.h",
                   "ipc_skeleton.h",
                   "iremote_object.h",
@@ -80,6 +81,7 @@
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
               "header": {
                 "header_files": [
+                  "ipc_payload_statistics.h",
                   "ipc_types.h",
                   "ipc_skeleton.h",
                   "iremote_object.h",

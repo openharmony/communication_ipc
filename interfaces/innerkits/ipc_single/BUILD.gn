@@ -38,6 +38,7 @@ ohos_shared_library("ipc_single") {
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_stub.cpp",
+    "$IPC_CORE_ROOT/src/core/source/ipc_payload_statistics.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_process_skeleton.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_skeleton.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_thread_pool.cpp",
