@@ -23,6 +23,7 @@
 #include "hilog/log_cpp.h"
 #include "iosfwd"
 #include "ipc_debug.h"
+#include "ipc_payload_statistics_impl.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
@@ -57,7 +58,8 @@ static constexpr pid_t ALLOWED_UID = 10000;
 #endif
 static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
-static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
+static constexpr int COEFF_MILLI_TO_MICRO = 1000;
+static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500 * COEFF_MILLI_TO_MICRO; // 500 ms
 static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
@@ -324,12 +326,22 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
                 start.time_since_epoch()).count());
             result = OnRemoteRequest(code, data, reply, option);
             auto finish = std::chrono::steady_clock::now();
-            int duration = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            uint32_t duration = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(
                 finish - start).count());
             if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-                ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}dms",
+                ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}ums",
                     ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(GetObjectDescriptor())).c_str(),
-                    code, duration);
+                    code, duration / COEFF_MILLI_TO_MICRO);
+            }
+
+            IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
+            if (instance.GetStatisticsStatus()) {
+                int32_t currentPid = IPCSkeleton::GetCallingPid();
+                std::u16string currentDesc = GetObjectDescriptor();
+                int32_t currentCode = code;
+                if (!instance.UpdatePayloadInfo(currentPid, currentDesc, currentCode, duration)) {
+                    ZLOGE(LABEL, "Process load information update failed");
+                }
             }
             break;
     }

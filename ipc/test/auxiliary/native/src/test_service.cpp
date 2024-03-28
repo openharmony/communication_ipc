@@ -14,10 +14,14 @@
  */
 
 #include "test_service.h"
-#include <unistd.h>
+
 #include <fcntl.h>
+#include <iostream>
+#include <unistd.h>
+
 #include "ipc_skeleton.h"
 #include "ipc_debug.h"
+#include "ipc_payload_statistics.h"
 #include "string_ex.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -240,6 +244,31 @@ int TestService::Dump(int fd, const std::vector<std::u16string> &args)
         context.append(1, '\r');
         writeCount = write(fd, context.data(), context.size());
     }
+
+    if (!IPCPayloadStatistics::GetStatisticsStatus()) {
+        IPCPayloadStatistics::StartStatistics();
+    }
+
+    std::cout << " ---------------------------------------- "<< std::endl;
+    std::cout << " TotalCount = " << IPCPayloadStatistics::GetTotalCount();
+    std::cout << " TotalCost = " << IPCPayloadStatistics::GetTotalCost() << std::endl;
+    std::vector<int32_t> pidVec = IPCPayloadStatistics::GetPids();
+    for (int32_t &val : pidVec) {
+        std::cout << " Pid = " << val << std::endl;
+        std::cout << " PidCount = " << IPCPayloadStatistics::GetCount(val)
+            << " PidCost = " << IPCPayloadStatistics::GetCost(val) << std::endl;
+        std::vector<IPCInterfaceInfo> infoVec = IPCPayloadStatistics::GetDescriptorCodes(val);
+        for (auto &info : infoVec) {
+            std::cout << " desc = " << Str16ToStr8(info.desc) << " code = " << info.code;
+            std::cout << " DescCount = " << IPCPayloadStatistics::GetDescriptorCodeCount(val, info.desc, info.code);
+            IPCPayloadCost payloadCost = IPCPayloadStatistics::GetDescriptorCodeCost(val, info.desc, info.code);
+            std::cout << " DescTotalCost = " << payloadCost.totalCost;
+            std::cout << " DescMaxCost = " << payloadCost.maxCost;
+            std::cout << " DescMinCost = " << payloadCost.minCost;
+            std::cout << " DescAverCost = " << payloadCost.averCost << std::endl;
+        }
+    }
+    std::cout << " ---------------------------------------- "<< std::endl;
 
     return writeCount > 0 ? ERR_NONE : ERR_TRANSACTION_FAILED;
 }
