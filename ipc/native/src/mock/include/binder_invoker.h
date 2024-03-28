@@ -207,6 +207,8 @@ private:
     uint32_t status_;
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
     InvokerProcInfo invokerInfo_;
+    int lastErr_ = 0;
+    int lastErrCnt_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
     ActvHandlerInfo *actvHandlerInfo_ = nullptr;
