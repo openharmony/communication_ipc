@@ -801,7 +801,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
         } else {
             isPrint = true;
             lastErrCnt_ = 0;
-            lastErr_ = err;
+            lastErr_ = error;
         }
     }
     if (isPrint) {
