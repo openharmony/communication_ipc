@@ -78,6 +78,7 @@ enum {
     CHECK_SERVICE_TRANSACTION,
     ADD_SERVICE_TRANSACTION,
 };
+static constexpr int PRINT_ERR_CNT = 100;
 
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()),
@@ -149,7 +150,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     HiTraceId traceId = HiTraceChain::GetId();
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
-    
+
     ThreadMigrationDisabler _d;
 
     if (!TranslateDBinderProxy(handle, data)) {
@@ -783,9 +784,6 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
             error = IPC_INVOKER_ON_TRANSACT_ERR;
             break;
     }
-    if (error != ERR_NONE) {
-        ZLOGE(LABEL, "cmd:%{public}u error:%{public}d", cmd, error);
-    }
 
     return error;
 }
@@ -793,8 +791,20 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     auto start = std::chrono::steady_clock::now();
+    bool isPrint = false;
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
+        if (error == lastErr_) {
+            if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
+                isPrint = true;
+            }
+        } else {
+            isPrint = true;
+            lastErrCnt_ = 0;
+            lastErr_ = err;
+        }
+    }
+    if (isPrint) {
         ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
     }
     if (cmd != BR_TRANSACTION) {
