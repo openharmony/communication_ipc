@@ -448,7 +448,7 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     std::unique_lock<std::mutex> lock(threadLockInfo->mutex);
     if (threadLockInfo->condition.wait_for(lock, std::chrono::seconds(WAIT_FOR_REPLY_MAX_SEC),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
-        DBINDER_LOGE(LOG_LABEL, "get remote data timeout, seq:%{public}u", seqNumber);
+        DBINDER_LOGE(LOG_LABEL, "get remote data timeout or ssession is closed, seq:%{public}u", seqNumber);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_WAIT_REPLY_TIMEOUT, __FUNCTION__);
         DetachThreadLockInfo(seqNumber);
         threadLockInfo->ready = false;
@@ -796,7 +796,7 @@ bool DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
             continue;
         }
         std::unique_lock<std::mutex> lock(it->second->mutex);
-        it->second->ready = true;
+        it->second->ready = false;
         it->second->condition.notify_all();
         it = threadLockInfo_.erase(it);
     }
