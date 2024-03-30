@@ -141,7 +141,6 @@ int TestService::TestGetFileDescriptor()
 
     testFd_ = open("/data/test.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
-
     if (testFd_ == INVALID_FD) {
         ZLOGE(LABEL, "%s(%d):open failed.", __func__, __LINE__);
         return !INVALID_FD;

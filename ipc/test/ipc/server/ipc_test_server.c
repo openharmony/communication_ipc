@@ -70,7 +70,7 @@ static TaskConfig GetTaskConfig(Service *service)
     return config;
 }
 
-int32_t ServerOpAdd(IpcIo *req, IpcIo *reply)
+static int32_t ServerOpAdd(IpcIo *req, IpcIo *reply)
 {
     RPC_LOG_INFO("[ipc_test_server] ServerOpAdd called");
     if (req == NULL || reply == NULL) {
@@ -86,7 +86,7 @@ int32_t ServerOpAdd(IpcIo *req, IpcIo *reply)
     return 0;
 }
 
-int32_t ServerOpSub(IpcIo *req, IpcIo *reply)
+static int32_t ServerOpSub(IpcIo *req, IpcIo *reply)
 {
     RPC_LOG_INFO("[ipc_test_server] ServerOpSub called");
     if (req == NULL || reply == NULL) {
@@ -102,7 +102,7 @@ int32_t ServerOpSub(IpcIo *req, IpcIo *reply)
     return 0;
 }
 
-int32_t ServerOpMulit(IpcIo *req, IpcIo *reply)
+static int32_t ServerOpMulit(IpcIo *req, IpcIo *reply)
 {
     RPC_LOG_INFO("[ipc_test_server] ServerOpMulit called");
     if (req == NULL || reply == NULL) {
@@ -152,7 +152,7 @@ static IPCSaService g_ipcSaService = {
     IPROXY_END,
 };
 
-void __attribute__((weak)) HOS_SystemInit(void)
+static void __attribute__((weak)) HOS_SystemInit(void)
 {
     SAMGR_Bootstrap();
     return;
