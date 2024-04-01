@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <pthread.h>
 
 #define private public
 #define protected public
@@ -66,6 +67,19 @@ void IPCObjectStubTest::SetUp()
 void IPCObjectStubTest::TearDown()
 {
 }
+
+typedef struct GetLastRequestTimeParamStruct {
+    sptr<IPCObjectStub> obj;
+    int ret;
+} ParamStruct;
+
+void *GetLastRequestTimeTestThreadFunc(void *args)
+{
+    ParamStruct* paramStruct = reinterpret_cast<ParamStruct *>(args);
+    paramStruct->ret = paramStruct->obj->GetLastRequestTime();
+    return nullptr;
+}
+
 
 /**
  * @tc.name: OnRemoteDumpTest001
@@ -179,6 +193,76 @@ HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest002, TestSize.Level1)
     uint64_t ret = testStub->GetLastRequestTime();
     ASSERT_TRUE(ret > 0);
 }
+
+/**
+ * @tc.name: GetLastRequestTimeTest003
+ * @tc.desc: Verify the GetLastRequestTime function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest003, TestSize.Level1)
+{
+    uint32_t code = LAST_CALL_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    int times = 1000;
+    vector<sptr<IPCObjectStub>> objectVector;
+    for (int i = 0; i < times; i++) {
+        std::string descriptor = "testStub1" + std::to_string(i);
+        sptr<IPCObjectStub> testStub = new IPCObjectStub(Str8ToStr16(descriptor));
+        objectVector.push_back(testStub);
+    }
+    for (int i = 0; i < times; i++) {
+        objectVector[i]->SendRequest(code, data, reply, option);
+    }
+
+    for (int i = 0; i < times; i++) {
+        uint64_t ret = objectVector[i]->GetLastRequestTime();
+        ASSERT_TRUE(ret > 0);
+    }
+}
+
+/**
+ * @tc.name: GetLastRequestTimeTest004
+ * @tc.desc: Verify the GetLastRequestTime function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest004, TestSize.Level1)
+{
+    uint32_t code = LAST_CALL_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    testStub->SendRequest(code, data, reply, option);
+    uint64_t ret = testStub->GetLastRequestTime();
+    ASSERT_TRUE(ret > 0);
+    ParamStruct s1;
+    ParamStruct s2;
+    memset_s(&s1, sizeof(ParamStruct), 0, sizeof(ParamStruct));
+    memset_s(&s2, sizeof(ParamStruct), 0, sizeof(ParamStruct));
+    s1.obj = testStub;
+    s1.ret = 0;
+    s2.obj = testStub;
+    s2.ret = 0;
+    pthread_t thread1, thread2;
+    int ret1 = pthread_create(&thread1, NULL, GetLastRequestTimeTestThreadFunc, &s1);
+    int ret2 = pthread_create(&thread2, NULL, GetLastRequestTimeTestThreadFunc, &s2);
+
+    if (ret1 == 0) {
+        pthread_join(thread1, NULL);
+    }
+    if (ret2 == 0) {
+        pthread_join(thread2, NULL);
+    }
+    EXPECT_NE(s1.ret, 0);
+    EXPECT_NE(s2.ret, 0);
+    EXPECT_EQ(s1.ret, s2.ret);
+    EXPECT_EQ(s1.ret, ret);
+}
+
 
 #ifndef CONFIG_IPC_SINGLE
 /**
