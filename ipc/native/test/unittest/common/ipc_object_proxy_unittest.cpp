@@ -1317,3 +1317,13 @@ HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest004, TestSize.Level1)
     object->ReleaseDatabusProto();
     ASSERT_TRUE(object->handle_ != 0);
 }
+
+HWTEST_F(IPCObjectProxyTest, GetStrongRefCountForStubTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+    uint32_t count = object->GetStrongRefCountForStub();
+    ASSERT_TRUE(count == 0);
+}

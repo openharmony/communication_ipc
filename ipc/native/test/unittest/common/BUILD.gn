@@ -68,6 +68,8 @@ ohos_unittest("IPCNativeUnitTest") {
     "samgr:samgr_proxy",
   ]
 
+  ldflags = [ "-lpthread" ]
+
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
