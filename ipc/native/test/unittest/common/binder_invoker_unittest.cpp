@@ -650,3 +650,29 @@ HWTEST_F(BinderInvokerUnitTest, GetCallerTokenIDTest003, TestSize.Level1)
     auto ret = binderInvoker.GetCallerTokenID();
     EXPECT_EQ(ret, 1);
 }
+
+/**
+ * @tc.name: GetStrongRefCountForStubTest001
+ * @tc.desc: Override GetStrongRefCountForStub branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetStrongRefCountForStubTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint32_t count = binderInvoker.GetStrongRefCountForStub(0);
+    EXPECT_EQ(count, 0);
+}
+
+/**
+ * @tc.name: GetStrongRefCountForStubTest002
+ * @tc.desc: Override GetStrongRefCountForStub branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetStrongRefCountForStubTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderInvoker.binderConnector_ = binderConnector;
+    uint32_t count = binderInvoker.GetStrongRefCountForStub(0);
+    EXPECT_EQ(count, 0);
+}
