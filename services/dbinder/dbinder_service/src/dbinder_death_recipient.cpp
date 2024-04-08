@@ -20,8 +20,6 @@
 #include "log_tags.h"
 
 namespace OHOS {
-using Communication::SoftBus::ISessionService;
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DbinderDeathRecipient" };
 
 void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)

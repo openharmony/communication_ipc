@@ -29,8 +29,6 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-using Communication::SoftBus::Session;
-using Communication::SoftBus::SessionImpl;
 
 class DBinderServiceUnitTest : public testing::Test {
 public:
