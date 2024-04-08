@@ -1,25 +1,23 @@
-/*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (C) 2024 Huawei Device Co., Ltd.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 use super::*;
 
 extern crate ylong_runtime;
 
 use std::future::Future;
-use crate::is_handling_transaction;
-use crate::errors::{IpcStatusCode};
+
+use crate::errors::IpcStatusCode;
 
 /// Use the Ylong `spawn_blocking` pool
 pub enum Ylong {}
@@ -36,13 +34,15 @@ impl IpcAsyncPool for Ylong {
         A: Send + 'static,
         B: Send + 'a,
     {
-        if is_handling_transaction() {
-            // We are currently on the thread pool for a binder server, so we should execute the
-            // transaction on the current thread so that the binder kernel driver is able to apply
-            // its deadlock prevention strategy to the sub-call.
+        if crate::process::is_handling_transaction() {
+            // We are currently on the thread pool for a binder server, so we should execute
+            // the transaction on the current thread so that the binder kernel
+            // driver is able to apply its deadlock prevention strategy to the
+            // sub-call.
             //
-            // This shouldn't cause issues with blocking the thread as only one task will run in a
-            // call to `block_on`, so there aren't other tasks to block.
+            // This shouldn't cause issues with blocking the thread as only one task will
+            // run in a call to `block_on`, so there aren't other tasks to
+            // block.
             let result = spawn_this();
             Box::pin(after_handle(result))
         } else {
@@ -59,7 +59,8 @@ impl IpcAsyncPool for Ylong {
     }
 }
 
-/// Wrapper around Ylong runtime types for providing a runtime to a binder server.
+/// Wrapper around Ylong runtime types for providing a runtime to a binder
+/// server.
 pub struct Runtime;
 
 impl IpcAsyncRuntime for Runtime {
@@ -81,9 +82,7 @@ impl IpcAsyncRuntime for Runtime {
         ylong_runtime::spawn_blocking(task)
     }
 
-    fn block_on<F: Future>(future: F) -> F::Output
-    {
+    fn block_on<F: Future>(future: F) -> F::Output {
         ylong_runtime::block_on(future)
     }
 }
-

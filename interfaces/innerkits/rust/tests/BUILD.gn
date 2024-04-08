@@ -1,0 +1,62 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+ohos_rust_unittest("rust_ipc_ut_test") {
+  module_out_path = "ipc/ipc_rust"
+
+  sources = [ "../src/lib.rs" ]
+  deps = [
+    "../../rust:ipc_rust_cxx",
+    "//third_party/rust/crates/cxx:lib",
+  ]
+
+  external_deps = [
+    "hilog:hilog_rust",
+    "ylong_runtime:ylong_runtime",
+  ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
+
+ohos_rust_systemtest("rust_ipc_sdv_test") {
+  module_out_path = "ipc/ipc_rust"
+
+  rustflags = [ "--cfg=gn_test" ]
+
+  sources = [ "entry.rs" ]
+
+  deps = [
+    "../../rust:ipc_rust",
+    "c:ipc_rust_test_c",
+  ]
+
+  external_deps = [
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "hilog:hilog_rust",
+  ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":rust_ipc_sdv_test",
+    ":rust_ipc_ut_test",
+  ]
+}
