@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,15 +11,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[package]
-name = "ipc"
-version = "1.0.0"
-edition = "2021"
-license = "Apache-2.0"
-description = "ipc"
-repository = "https://gitee.com/openharmony/communication_ipc"
+import("//build/ohos.gni")
 
-[dependencies]
-ylong_runtime = { git = "https://gitee.com/openharmony/commonlibrary_rust_ylong_runtime", features = ["macros", "fs", "net", "sync", "time"] }
-hilog_rust = { git = "https://gitee.com/openharmony/hiviewdfx_hilog.git" }
-cxx = "1.0.115"
+config("libipc_c_private_config") {
+  cflags_cc = [
+    "-DCONFIG_IPC_SINGLE",
+    "-O2",
+  ]
+}
+
+ohos_static_library("ipc_rust_test_c") {
+  include_dirs = [ "include" ]
+
+  sources = [ "src/ipc_rust_test.cpp" ]
+  configs = [ ":libipc_c_private_config" ]
+  deps = [ "../../../ipc_single:ipc_single" ]
+
+  external_deps = [ "c_utils:utils" ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
