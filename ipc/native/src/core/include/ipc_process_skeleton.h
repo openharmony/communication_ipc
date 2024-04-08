@@ -153,7 +153,8 @@ public:
     void DetachCommAuthInfoByStub(IRemoteObject *stub);
     void DetachCommAuthInfoBySocketId(const int32_t socketId);
     bool QueryCommAuthInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId);
-    void UpdateCommAuthSocketInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId, const int32_t socketId);
+    void UpdateCommAuthSocketInfo(int pid, int uid, uint32_t &tokenId,const std::string &deviceId,
+        const int32_t socketId);
     bool AddDataThreadToIdle(const std::thread::id &threadId);
     bool DeleteDataThreadFromIdle(const std::thread::id &threadId);
     std::thread::id GetIdleDataThread();

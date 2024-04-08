@@ -47,5 +47,5 @@ HWTEST_F(DBinderRemoteListenerUnitTest, CreateClientSocket_001, TestSize.Level1)
 {
     DBinderRemoteListener dBinderRemoteListener;
     std::string networkId = "";
-    EXPECT_EQ(dBinderRemoteListener.CreateClientSocket(networkId), INVALID_ID);
+    EXPECT_EQ(dBinderRemoteListener.CreateClientSocket(networkId), SOCKET_ID_INVALID);
 }

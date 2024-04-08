@@ -50,7 +50,7 @@ void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
         socket, DBinderService::ConvertToSecureDeviceID(info.networkId).c_str(), info.name);
 
     int32_t socketId = GetPeerSocketId(info.networkId);
-    if (socketId != INVALID_ID) {
+    if (socketId != SOCKET_ID_INVALID) {
         Shutdown(socketId);
     }
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
@@ -133,21 +133,17 @@ void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, ui
 
 int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetworkId)
 {
-    DBINDER_LOGI(LOG_LABEL, "create socket");
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
         auto it = clientSocketInfos_.find(peerNetworkId);
         if (it != clientSocketInfos_.end()) {
             return it->second;
         }
-
-        DBINDER_LOGI(LOG_LABEL, "not find device:%{public}s",
-            DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
     }
 
     std::shared_ptr<DeviceLock> lockInfo = QueryOrNewDeviceLock(peerNetworkId);
     if (lockInfo == nullptr) {
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
     std::lock_guard<std::mutex> lockUnique(lockInfo->mutex);
     SocketInfo socketInfo = {
@@ -160,7 +156,7 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
     int32_t socketId = Socket(socketInfo);
     if (socketId <= 0) {
         DBINDER_LOGE(LOG_LABEL, "create socket error, socket is invalid");
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
 
     int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
@@ -168,7 +164,7 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketid:%{public}d, peerNetworkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
         Shutdown(socketId);
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
 
     DBINDER_LOGI(LOG_LABEL, "Bind ok socketid:%{public}d,  peerNetworkId:%{public}s",
@@ -186,10 +182,9 @@ int32_t DBinderRemoteListener::GetPeerSocketId(const std::string &peerNetworkId)
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
     auto it = serverSocketInfos_.find(peerNetworkId);
     if (it != serverSocketInfos_.end()) {
-        DBINDER_LOGI(LOG_LABEL, "find socketid %{public}d", it->second);
         return it->second;
     }
-    return INVALID_ID;
+    return SOCKET_ID_INVALID;
 }
 
 bool DBinderRemoteListener::StartListener()
@@ -217,7 +212,7 @@ bool DBinderRemoteListener::StartListener()
     ret = Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "Listen failed, ret:%{public}d", ret);
-	DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
+	    DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
         Shutdown(socketId);
         return false;
     }
@@ -307,7 +302,7 @@ bool DBinderRemoteListener::SendDataReply(const std::string &networkId, const st
     }
 
     int32_t socketId = GetPeerSocketId(networkId);
-    if (socketId == INVALID_ID) {
+    if (socketId == SOCKET_ID_INVALID) {
         DBINDER_LOGE(LOG_LABEL, "failed to get peer SocketId, device:%{public}s",
             DBinderService::ConvertToSecureDeviceID(networkId).c_str());
         DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,

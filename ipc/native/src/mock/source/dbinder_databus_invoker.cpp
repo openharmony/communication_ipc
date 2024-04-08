@@ -180,7 +180,8 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::QueryClientSessionO
         ZLOGE(LOG_LABEL, "no session attach to this proxy:%{public}u", databusHandle);
         return nullptr;
     }
-    ZLOGI(LOG_LABEL, " socketid :%{public}u, sessionOfPeer->socketid:%{public}u", databusHandle, sessionOfPeer->GetSocketId());
+    ZLOGI(LOG_LABEL, "socketid :%{public}u, sessionOfPeer->socketid:%{public}u",
+        databusHandle, sessionOfPeer->GetSocketId());
     return sessionOfPeer;
 }
 
@@ -259,7 +260,7 @@ bool DBinderDatabusInvoker::CreateProcessThread()
 
 void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize)
 {
-    ZLOGI(LOG_LABEL, "socketId:%{public}d, size:%{public}u",socketId, dataSize);
+    ZLOGI(LOG_LABEL, "socketId:%{public}d, size:%{public}u", socketId, dataSize);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
@@ -366,7 +367,7 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
         ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64 " size:%{public}zd socketId:%{public}d",
             ret, seqNumber_, size, socketId);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
-	sessionBuff->ReleaseSendBufferLock();
+	    sessionBuff->ReleaseSendBufferLock();
         return ret;
     }
 
@@ -397,7 +398,7 @@ int DBinderDatabusInvoker::OnSendRawData(std::shared_ptr<DBinderSessionObject> s
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "fail, ret:%{public}d seq:%{public}" PRIu64 " size:%{public}zu socketId:%{public}d",
             ret, seqNumber_, size, socketId);
-	return ret;
+        return ret;
     }
 
     ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zu socketId:%{public}d",
@@ -616,7 +617,6 @@ void DBinderDatabusInvoker::OnDatabusSessionServerSideClosed(int32_t socketId)
         ZLOGI(LOG_LABEL, "socketid: %{public}d", socketId);
     }
     ZLOGI(LOG_LABEL, "socketid: %{public}d ret:%{public}d", socketId, ret);
-
 }
 
 uint32_t DBinderDatabusInvoker::QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session)

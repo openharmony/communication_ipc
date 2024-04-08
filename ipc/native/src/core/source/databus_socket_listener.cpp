@@ -42,7 +42,7 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
     ZLOGI(LABEL, "socketId:%{public}d, deviceId:%{public}s", socket,
         IPCProcessSkeleton::ConvertToSecureString(info.networkId).c_str());
 
-    std::string peerName = info.name;    
+    std::string peerName = info.name;
     std::string networkId = info.networkId;
     std::string str = peerName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
     std::string peerUid = str.substr(0, str.find("_"));
@@ -121,13 +121,13 @@ int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
     int32_t socketId = Socket(serverSocketInfo);
     if (socketId <= 0) {
         ZLOGE(LABEL, "create socket server error, socket is invalid");
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
     int32_t ret = Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
     if (ret != 0) {
         ZLOGE(LABEL, "Listen failed, ret:%{public}d", ret);
         Shutdown(socketId);
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
     ZLOGI(LABEL, "Listen ok, socketId:%{public}d, ownName:%{public}s", socketId, ownName.c_str());
     return socketId;
@@ -135,9 +135,8 @@ int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
 
 int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
     const std::string &peerName, const std::string &networkId)
-{    
+{
     std::string pkgName = std::string(DBINDER_PKG_NAME) + "_" + std::to_string(getpid());
-
     SocketInfo socketInfo = {
         .name =  const_cast<char*>(ownName.c_str()),
         .peerName = const_cast<char*>(peerName.c_str()),
@@ -148,7 +147,7 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
     int32_t socketId = Socket(socketInfo);
     if (socketId <= 0) {
         ZLOGE(LABEL, "create socket error, socket is invalid");
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
     int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
     if (ret != ERR_NONE) {
@@ -157,7 +156,7 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
             ret, socketId, ownName.c_str(), peerName.c_str(),
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str());
         Shutdown(socketId);
-        return INVALID_ID;
+        return SOCKET_ID_INVALID;
     }
     ZLOGI(LABEL, "Bind succ, own:%{public}s peer:%{public}s deviceId:%{public}s "
         "socketId:%{public}d", ownName.c_str(), peerName.c_str(),
