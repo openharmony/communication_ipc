@@ -16,13 +16,61 @@ import("//build/ohos.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
+rust_cxx("ipc_cxx_gen") {
+  sources = [
+    "src/parcel/wrapper.rs",
+    "src/remote/wrapper.rs",
+    "src/skeleton.rs",
+  ]
+}
+
+config("libipc_c_private_config") {
+  cflags_cc = [
+    "-DCONFIG_IPC_SINGLE",
+    "-O2",
+  ]
+}
+
+ohos_static_library("ipc_rust_cxx") {
+  sources = [
+    "src/cxx/parcel_wrapper.cpp",
+    "src/cxx/remote_object_wrapper.cpp",
+    "src/cxx/skeleton_wrapper.cpp",
+  ]
+  sources += get_target_outputs(":ipc_cxx_gen")
+
+  include_dirs = [
+    "include",
+    "${target_gen_dir}/src",
+  ]
+
+  configs = [ ":libipc_c_private_config" ]
+
+  deps = [
+    ":ipc_cxx_gen",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+    "//third_party/rust/crates/cxx:cxx_cppdeps",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
+
 ohos_rust_shared_library("ipc_rust") {
-  crate_name = "ipc_rust"
+  crate_name = "ipc"
   edition = "2021"
 
   sources = [ "src/lib.rs" ]
 
-  deps = [ ":ipc_c" ]
+  deps = [
+    ":ipc_rust_cxx",
+    "//third_party/rust/crates/cxx:lib",
+  ]
 
   external_deps = [
     "hilog:hilog_rust",
@@ -32,13 +80,6 @@ ohos_rust_shared_library("ipc_rust") {
   install_images = [ system_base_dir ]
   subsystem_name = "communication"
   part_name = "ipc"
-}
-
-config("libipc_c_private_config") {
-  cflags_cc = [
-    "-DCONFIG_IPC_SINGLE",
-    "-O2",
-  ]
 }
 
 ohos_shared_library("ipc_c") {

@@ -1,267 +1,78 @@
-/*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (C) 2024 Huawei Device Co., Ltd.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-use crate::{
-    ipc_binding, MsgParcel, RemoteObj, IRemoteObj,
-    InterfaceToken, String16, IpcResult, IpcStatusCode,
-    parse_status_code
-};
-use crate::parcel::{vec_to_string, allocate_vec_with_buffer};
-use std::ffi::{CString, c_char, c_void};
-use hilog_rust::{info, hilog, HiLogLabel, LogType};
+//! IPC process
 
-const LOG_LABEL: HiLogLabel = HiLogLabel {
-    log_type: LogType::LogCore,
-    domain: 0xD0057CA,
-    tag: "RustProcess"
-};
+use std::ffi::c_void;
+use std::mem::MaybeUninit;
+use std::ptr;
 
-/// Get proxy object of samgr
-pub fn get_context_object() -> Option<RemoteObj>
-{
-    // SAFETY: If no SamgrContextManager object is available, the function might return nullptr,
-    // causing the subsequent RemoteObj::from_raw call to fail.
-    unsafe {
-        let samgr = ipc_binding::GetContextManager();
-        RemoteObj::from_raw(samgr)
-    }
-}
+use crate::skeleton::ffi::IsHandlingTransaction;
 
-/// Add a service to samgr
-pub fn add_service(service: &RemoteObj, said: i32) -> IpcResult<()>
-{
-    let samgr = get_context_object().expect("samgr is not null");
-    let mut data = MsgParcel::new().expect("MsgParcel is not null");
-    data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
-    data.write(&said)?;
-    data.write(service)?;
-    data.write(&false)?;
-    data.write(&0)?;
-    data.write(&String16::new(""))?;
-    data.write(&String16::new(""))?;
-    let reply = samgr.send_request(3, &data, false)?;
-    let reply_value: i32 = reply.read()?;
-    info!(LOG_LABEL, "register service result: {}", reply_value);
-    if reply_value == 0 { Ok(())} else { Err(parse_status_code(reply_value)) }
-}
-
-/// Get a service proxy from samgr
-pub fn get_service(said: i32) -> IpcResult<RemoteObj>
-{
-    let samgr = get_context_object().expect("samgr is not null");
-    let mut data = MsgParcel::new().expect("MsgParcel is not null");
-    data.write(&InterfaceToken::new("ohos.samgr.accessToken"))?;
-    data.write(&said)?;
-    let reply = samgr.send_request(2, &data, false)?;
-    let remote: RemoteObj = reply.read()?;
-    info!(LOG_LABEL, "get service success");
-    Ok(remote)
-}
-
-/// Make current thread join to the IPC/RPC work thread pool
+/// Determine whether the current thread is currently executing an incoming
+/// transaction.
 #[inline]
-pub fn join_work_thread()
-{
+pub fn is_handling_transaction() -> bool {
     // SAFETY:
-    // It should only be called from a thread not already part of the pool.
-    // The potential blocking nature of the function and its impact on other threads.
-    unsafe {
-        ipc_binding::JoinWorkThread();
-    }
+    // Ensure proper usage within the context of the IPC binding system and its
+    // intended behavior.
+    IsHandlingTransaction()
 }
 
-/// Exit current thread from IPC/RPC work thread pool
-#[inline]
-pub fn stop_work_thread()
-{
-    // SAFETY:
-    // It should only be called from a thread belonging to the pool.
-    // Prematurely exiting might leave pending requests unprocessed and cause unexpected behavior.
-    unsafe {
-        ipc_binding::StopWorkThread()
+/// Callback to allocate a vector for parcel array read functions.
+///
+/// # Safety
+///
+/// The opaque data pointer passed to the array read function must be a mutable
+/// pointer to an `Option<Vec<MaybeUninit<T>>>`.
+pub unsafe extern "C" fn allocate_vec_with_buffer<T>(
+    value: *mut c_void,
+    buffer: *mut *mut T,
+    len: i32,
+) -> bool {
+    let res = allocate_vec::<T>(value, len);
+    // `buffer` will be assigned a mutable pointer to the allocated vector data
+    // if this function returns true.
+    let vec = &mut *(value as *mut Option<Vec<MaybeUninit<T>>>);
+    if let Some(new_vec) = vec {
+        *buffer = new_vec.as_mut_ptr() as *mut T;
     }
+    res
 }
 
-/// Get calling token ID of caller
-#[inline]
-pub fn get_calling_token_id() -> u64
-{
-    // SAFETY:
-    // Consider verifying it with additional security measures and context-based information when necessary.
-    unsafe {
-        ipc_binding::GetCallingTokenId()
+/// Callback to allocate a vector for parcel array read functions.
+///
+/// # Safety
+///
+/// The opaque data pointer passed to the array read function must be a mutable
+/// pointer to an `Option<Vec<MaybeUninit<T>>>`.
+unsafe extern "C" fn allocate_vec<T>(value: *mut c_void, len: i32) -> bool {
+    if len < 0 {
+        return false;
     }
+    allocate_vec_maybeuninit::<T>(value, len as u32);
+    true
 }
 
-/// Get first calling token ID of caller
-#[inline]
-pub fn get_first_token_id() -> u64
-{
-    // SAFETY:
-    // Consider verifying it with additional security measures and context-based information when necessary.
-    unsafe {
-        ipc_binding::GetFirstToekenId()
-    }
-}
+/// # Safety
+///
+/// Ensure that the value pointer is not null
+pub(crate) unsafe fn allocate_vec_maybeuninit<T>(value: *mut c_void, len: u32) {
+    let vec = &mut *(value as *mut Option<Vec<MaybeUninit<T>>>);
+    let mut new_vec: Vec<MaybeUninit<T>> = Vec::with_capacity(len as usize);
 
-/// Get self token id of current process
-#[inline]
-pub fn get_self_token_id() -> u64
-{
-    // SAFETY:
-    // Minimize its exposure, restrict access to authorized parties within your application.
-    unsafe {
-        ipc_binding::GetSelfToekenId()
-    }
-}
-
-/// Get calling process id of caller
-#[inline]
-pub fn get_calling_pid() -> u64
-{
-    // SAFETY:
-    // The returned PID might be incorrect or invalid due to potential issues
-    // with the IPC mechanism or malicious attempts to manipulate it.
-    unsafe {
-        ipc_binding::GetCallingPid()
-    }
-}
-
-/// Get calling user id of caller
-#[inline]
-pub fn get_calling_uid() -> u64
-{
-    // SAFETY:
-    // Minimize its exposure, restrict access to authorized parties,
-    // and implement robust security measures to prevent unauthorized leaks or manipulation.
-    unsafe {
-        ipc_binding::GetCallingUid()
-    }
-}
-
-/// Set the maximum number of threads
-#[inline]
-pub fn set_max_work_thread(max_thread_num: i32) -> bool
-{
-    // SAFETY:
-    // Ensuring the provided value is valid and appropriate for the system resources and workload.
-    unsafe {
-        ipc_binding::SetMaxWorkThreadNum(max_thread_num)
-    }
-}
-
-/// Determine whether it is a local call
-#[inline]
-pub fn is_local_calling() -> bool
-{
-    // SAFETY:
-    // Ensure proper usage within the context of the IPC binding system and its intended behavior.
-    unsafe {
-        ipc_binding::IsLocalCalling()
-    }
-}
-
-/// Set calling identity
-#[inline]
-pub fn set_calling_identity(identity: String) -> bool
-{
-    match CString::new(identity.as_str()) {
-        Ok(name) => {
-            // SAFETY:
-            // Name is valid
-            unsafe {
-                ipc_binding::SetCallingIdentity(name.as_ptr())
-            }
-        },
-        Err(_) => false,
-    }
-}
-
-/// get local device id
-#[inline]
-pub fn get_local_device_id() -> IpcResult<String>
-{
-    let mut vec: Option<Vec<u8>> = None;
-    // SAFETY:
-    // it's important to ensure that the vec contains valid data and is not null.
-    // The provided buffer size is sufficient to hold the returned data.
-    let ok_status = unsafe {
-        ipc_binding::GetLocalDeviceID(
-            &mut vec as *mut _ as *mut c_void,
-            allocate_vec_with_buffer::<u8>
-        )
-    };
-
-    if ok_status {
-        vec_to_string(vec)
-    } else {
-        Err(IpcStatusCode::Failed)
-    }
-}
-
-/// get calling device id
-#[inline]
-pub fn get_calling_device_id() -> IpcResult<String>
-{
-    let mut vec: Option<Vec<u8>> = None;
-    // SAFETY:
-    // it's important to ensure that the vec contains valid data and is not null.
-    // The provided buffer size is sufficient to hold the returned data.
-    let ok_status = unsafe {
-        ipc_binding::GetCallingDeviceID(
-            &mut vec as *mut _ as *mut c_void,
-            allocate_vec_with_buffer::<u8>
-        )
-    };
-
-    if ok_status {
-        vec_to_string(vec)
-    } else {
-        Err(IpcStatusCode::Failed)
-    }
-}
-
-/// reset calling identity
-#[inline]
-pub fn reset_calling_identity() -> IpcResult<String>
-{
-    let mut vec: Option<Vec<u8>> = None;
-    // SAFETY:
-    // The provided buffer size is sufficient to hold the returned data.
-    // The returned `String` is validated before using it.
-    let ok_status = unsafe {
-        ipc_binding::ResetCallingIdentity(
-            &mut vec as *mut _ as *mut c_void,
-            allocate_vec_with_buffer::<u8>
-        )
-    };
-
-    if ok_status {
-        vec_to_string(vec)
-    } else {
-        Err(IpcStatusCode::Failed)
-    }
-}
-
-/// Determine whether the current thread is currently executing an incoming transaction.
-#[inline]
-pub fn is_handling_transaction() -> bool
-{
-    // SAFETY:
-    // Ensure proper usage within the context of the IPC binding system and its intended behavior.
-    unsafe {
-        ipc_binding::IsHandlingTransaction()
-    }
+    // SAFETY: this is safe because the vector contains MaybeUninit elements which
+    // can be uninitialized
+    new_vec.set_len(len as usize);
+    ptr::write(vec, Some(new_vec));
 }
