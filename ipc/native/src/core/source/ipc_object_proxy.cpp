@@ -17,8 +17,6 @@
 
 #include <cstdint>
 
-#include <iostream>
-
 #include "__mutex_base"
 #include "algorithm"
 #include "errors.h"
@@ -60,8 +58,6 @@ using namespace IPC_SINGLE;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 static constexpr int PRINT_ERR_CNT = 100;
-
-using namespace std;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)

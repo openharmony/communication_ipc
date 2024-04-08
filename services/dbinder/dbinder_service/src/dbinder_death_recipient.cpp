@@ -16,7 +16,6 @@
 #include "dbinder_death_recipient.h"
 #include "dbinder_service.h"
 #include "dbinder_log.h"
-#include "ISessionService.h"
 #include "log_tags.h"
 
 namespace OHOS {
