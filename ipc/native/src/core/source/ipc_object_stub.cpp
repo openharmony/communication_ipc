@@ -501,7 +501,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
         ZLOGE(LABEL, "write to parcel fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    // mark listen fd as 0 
+    // mark listen fd as 0
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteTokenId, remoteDeviceId, stubIndex, 0)) {
         ZLOGW(LABEL, "app info already existed, replace with 0");
     }
