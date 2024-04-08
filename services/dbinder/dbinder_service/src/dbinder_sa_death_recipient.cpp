@@ -16,12 +16,9 @@
 #include "dbinder_sa_death_recipient.h"
 #include "dbinder_service.h"
 #include "dbinder_log.h"
-#include "ISessionService.h"
 #include "log_tags.h"
 
 namespace OHOS {
-using Communication::SoftBus::ISessionService;
-
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER,
     "DbinderSaDeathRecipient" };
 

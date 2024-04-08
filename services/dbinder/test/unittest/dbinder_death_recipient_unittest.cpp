@@ -25,8 +25,6 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-using Communication::SoftBus::Session;
-using Communication::SoftBus::SessionImpl;
 
 class DbinderDeathRecipientUnitTest : public testing::Test {
 public:
