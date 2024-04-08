@@ -43,7 +43,6 @@
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_databus_invoker.h"
 #include "dbinder_error_code.h"
-#include "ISessionService.h"
 #endif
 
 namespace OHOS {
@@ -226,11 +225,11 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
             }
-            uint32_t listenFd = invoker->GetClientFd();
+            int32_t listenFd = invoker->GetClientFd();
             // update listenFd
-            ZLOGW(LABEL, "update app info, listenFd:%{public}u stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
+            ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
                 listenFd, stubIndex, tokenId);
-            current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
+            bool ret = current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
             break;
         }
         case DBINDER_DECREFS_TRANSACTION: {
@@ -253,7 +252,7 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
                 result = IPC_STUB_INVALID_DATA_ERR;
                 break;
             }
-            uint32_t listenFd = invoker->GetClientFd();
+            int32_t listenFd = invoker->GetClientFd();
             // detach info whose listen fd equals the given one
             if (current->DetachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd)) {
                 current->DetachCommAuthInfo(this, callerPid, callerUid, tokenId, callerDevId);
@@ -479,7 +478,6 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
         ZLOGE(LABEL, "IPCProcessSkeleton is nullptr");
         return IPC_STUB_CURRENT_NULL_ERR;
     }
-
     if (!current->CreateSoftbusServer(sessionName)) {
         ZLOGE(LABEL, "fail to create databus server, desc:%{public}s sessionName:%{public}s",
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), sessionName.c_str());
@@ -503,7 +501,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
         ZLOGE(LABEL, "write to parcel fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    // mark listen fd as 0
+    // mark listen fd as 0 
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteTokenId, remoteDeviceId, stubIndex, 0)) {
         ZLOGW(LABEL, "app info already existed, replace with 0");
     }
@@ -648,14 +646,9 @@ int IPCObjectStub::GetPidUid(MessageParcel &data, MessageParcel &reply)
 
 std::string IPCObjectStub::CreateSessionName(int uid, int pid)
 {
-    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
-    if (softbusManager == nullptr) {
-        ZLOGE(LABEL, "fail to get softbus service");
-        return "";
-    }
-
-    std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
+    std::string sessionName = DBINDER_SOCKET_NAME_PREFIX +
+        std::to_string(uid) + std::string("_") + std::to_string(pid);
+    if (DBinderGrantPermission(uid, pid, sessionName.c_str()) != ERR_NONE) {
         ZLOGE(LABEL, "fail to Grant Permission softbus name");
         return "";
     }

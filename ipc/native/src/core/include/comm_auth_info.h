@@ -29,6 +29,8 @@ public:
     int GetRemoteUid() const;
     uint32_t GetRemoteTokenId() const;
     std::string GetRemoteDeviceId() const;
+    int32_t GetRemoteSocketId() const;
+    void SetRemoteSocketId(const int32_t socketId);
 
 private:
     IRemoteObject *stub_;
@@ -36,6 +38,7 @@ private:
     int remoteUid_;
     uint32_t tokenId_;
     std::string deviceId_;
+    int32_t socketId_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_COMMAUTHINFO_H

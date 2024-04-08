@@ -28,9 +28,6 @@
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "rpc_system_ability_callback.h"
-#include "Session.h"
-
-using Communication::SoftBus::Session;
 
 namespace OHOS {
 class DBinderRemoteListener;
@@ -300,7 +297,7 @@ public:
      * @return Returns <b>true</b> if the shutdown is successful; returns <b>false</b> otherwise.
      * @since 9
      */
-    bool ProcessOnSessionClosed(std::shared_ptr<Session> session);
+    bool ProcessOnSessionClosed(const std::string &networkId);
 
 private:
     static std::shared_ptr<DBinderRemoteListener> GetRemoteListener();

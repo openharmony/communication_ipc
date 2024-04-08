@@ -25,7 +25,6 @@
 #include "iremote_object.h"
 #include "mock_iremote_invoker.h"
 #include "mock_iremote_object.h"
-#include "mock_session_impl.h"
 #undef private
 
 using namespace testing::ext;
@@ -894,7 +893,6 @@ HWTEST_F(IPCObjectProxyTest, CheckHaveSessionTest001, TestSize.Level1)
     object->isRemoteDead_ = false;
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
     int64_t stubIndex = 1;
@@ -902,7 +900,7 @@ HWTEST_F(IPCObjectProxyTest, CheckHaveSessionTest001, TestSize.Level1)
     uint32_t tokenId = 1;
 
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
-        sessionMock, serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+        serviceName, serverDeviceId, stubIndex, proxy, tokenId);
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     auto session = current->proxyToSession_[1] = dbinderSessionObject;
@@ -952,8 +950,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest002, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -986,8 +984,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest003, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1020,8 +1018,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest004, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 0;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1053,8 +1051,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest005, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1066,9 +1064,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest005, TestSize.Level1)
     reply.WriteUint32(rpcFeatureSet);
 
     IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
-        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+        serviceName, peerID, 1, object.GetRefPtr(), 1);
     processCurrent->proxyToSession_[0] = dbinderSessionObject;
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
@@ -1095,8 +1092,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest006, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1108,10 +1105,9 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest006, TestSize.Level1)
     reply.WriteUint32(rpcFeatureSet);
 
     IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
 
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
-        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+        serviceName, peerID, 1, object.GetRefPtr(), 1);
     processCurrent->proxyToSession_[0] = dbinderSessionObject;
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
@@ -1138,8 +1134,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest007, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1151,9 +1147,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest007, TestSize.Level1)
     reply.WriteUint32(rpcFeatureSet);
 
     IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
-        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+        serviceName, peerID, 1, object.GetRefPtr(), 1);
     processCurrent->proxyToSession_[0] = dbinderSessionObject;
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
@@ -1180,8 +1175,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest008, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 0;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1217,8 +1212,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest009, TestSize.Level1)
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
-    reply.ReadUint64(stubIndex);
-    std::string serviceName =  "testserviceName";
+    reply.WriteUint64(stubIndex);
+    std::string serviceName = "DBinder111_222";
     reply.WriteString(serviceName);
     std::string peerID =  "testpeerID";
     reply.WriteString(peerID);
@@ -1230,9 +1225,8 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest009, TestSize.Level1)
     reply.WriteUint32(rpcFeatureSet);
 
     IPCProcessSkeleton *processCurrent = IPCProcessSkeleton::GetCurrent();
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
-        sessionMock, serviceName, peerID, 1, object.GetRefPtr(), 1);
+        serviceName, peerID, 1, object.GetRefPtr(), 1);
     processCurrent->proxyToSession_[0] = dbinderSessionObject;
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
@@ -1286,14 +1280,13 @@ HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest003, TestSize.Level1)
     object->ReleaseDatabusProto();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
 
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    std::string serviceName = "testserviceName";
+    std::string serviceName = "DBinder111_222";
     std::string serverDeviceId = "testserverDeviceId";
     int64_t stubIndex = 1;
     IPCObjectProxy *proxy = object.GetRefPtr();
     uint32_t tokenId = 1;
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(
-        sessionMock, serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+        serviceName, serverDeviceId, stubIndex, proxy, tokenId);
 
     auto session = current->proxyToSession_[1] = dbinderSessionObject;
     ASSERT_TRUE(object->handle_ != 0);
@@ -1316,14 +1309,4 @@ HWTEST_F(IPCObjectProxyTest, ReleaseDatabusProtoTest004, TestSize.Level1)
     current->proxyToSession_.clear();
     object->ReleaseDatabusProto();
     ASSERT_TRUE(object->handle_ != 0);
-}
-
-HWTEST_F(IPCObjectProxyTest, GetStrongRefCountForStubTest001, TestSize.Level1)
-{
-    sptr<IPCObjectProxy> object = new IPCObjectProxy(
-        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
-
-    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
-    uint32_t count = object->GetStrongRefCountForStub();
-    ASSERT_TRUE(count == 0);
 }

@@ -17,63 +17,68 @@
 #define OHOS_IPC_DBINDER_REMOTE_LISTENER_H
 
 #include <string>
+#include <sys/types.h>
+#include <unistd.h>
 #include <map>
 #include <mutex>
 
 #include "dbinder_service.h"
-#include "ISessionService.h"
-#include "Session.h"
-#include "ISessionListener.h"
 
-using Communication::SoftBus::ISessionListener;
-using Communication::SoftBus::ISessionService;
-using Communication::SoftBus::Session;
+#include "inner_socket.h"
+#include "socket.h"
 
 namespace OHOS {
 struct DeviceLock {
     std::mutex mutex;
 };
 
-class DBinderRemoteListener : public ISessionListener {
+class DBinderRemoteListener {
 public:
-    DBinderRemoteListener(const sptr<DBinderService> &dBinderService);
+    DBinderRemoteListener();
     ~DBinderRemoteListener();
-    int OnSessionOpened(std::shared_ptr<Session> session) override;
-    void OnSessionClosed(std::shared_ptr<Session> session) override;
-    void OnMessageReceived(std::shared_ptr<Session> session, const char *data, ssize_t len) override {};
-    void OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len) override;
-    bool OnDataAvailable(std::shared_ptr<Session> session, uint32_t status) override
-    {
-        return false;
-    };
 
-    bool SendDataToRemote(const std::string &deviceId, const struct DHandleEntryTxRx *msg);
-    bool SendDataReply(const std::string &deviceId, const struct DHandleEntryTxRx *msg);
-    bool StartListener(std::shared_ptr<DBinderRemoteListener> &listener);
+    static void ServerOnBind(int32_t socket, PeerSocketInfo info);
+    static void ServerOnShutdown(int32_t socket, ShutdownReason reason);
+    static void ClientOnBind(int32_t socket, PeerSocketInfo info);
+    static void ClientOnShutdown(int32_t socket, ShutdownReason reason);
+    static void OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen);
+
+    bool StartListener();
     bool StopListener();
-    bool CloseDatabusSession(const std::string &deviceId);
+    bool SendDataToRemote(const std::string &networkId, const struct DHandleEntryTxRx *msg);
+    bool SendDataReply(const std::string &networkId, const struct DHandleEntryTxRx *msg);
+    bool ShutdownSocket(const std::string &networkId);
 
 private:
-    std::shared_ptr<Session> OpenSoftbusSession(const std::string &deviceId);
-    std::shared_ptr<Session> GetPeerSession(const std::string &peerDeviceId);
-    std::shared_ptr<DeviceLock> QueryOrNewDeviceLock(const std::string &deviceId);
-    void ClearDeviceLock();
-    void EraseDeviceLock(const std::string &deviceId);
+    DISALLOW_COPY_AND_MOVE(DBinderRemoteListener);
 
+    std::shared_ptr<DeviceLock> QueryOrNewDeviceLock(const std::string &networkId);
+    void ClearDeviceLock();
+    void EraseDeviceLock(const std::string &networkId);
+    int32_t CreateClientSocket(const std::string &peerNetworkId);
+    static int32_t GetPeerSocketId(const std::string &peerNetworkId);
+
+    const std::string DBINDER_SERVER_PKG_NAME = "DBinderBus";
     const std::string OWN_SESSION_NAME = "DBinderService";
     const std::string PEER_SESSION_NAME = "DBinderService";
-    static constexpr int PACKET_SIZE = 64 * 1024;
-    static constexpr int SEND_MSG_TIMEOUT_MS = 200;
 
-    DISALLOW_COPY_AND_MOVE(DBinderRemoteListener);
-    std::mutex resourceMutex_;
-    std::mutex serverSessionMutex_;
-    std::mutex deviceMutex_;
-    std::shared_ptr<ISessionService> softbusManager_;
-    sptr<DBinderService> dBinderService_;
-    std::map<std::string, std::shared_ptr<Session>> clientSessionMap_;
-    std::map<std::string, std::shared_ptr<Session>> serverSessionMap_;
+    static constexpr QosTV QOS_TV[] = {
+        { .qos = QOS_TYPE_MIN_BW, .value = RPC_QOS_TYPE_MIN_BW },
+        { .qos = QOS_TYPE_MAX_LATENCY, .value = RPC_QOS_TYPE_MAX_LATENCY },
+        { .qos = QOS_TYPE_MIN_LATENCY, .value = RPC_QOS_TYPE_MIN_LATENCY }
+    };
+    static constexpr uint32_t QOS_COUNT = static_cast<uint32_t>(sizeof(QOS_TV) / sizeof(QosTV));
+
+    int32_t listenSocketId_ = INVALID_ID;
+    ISocketListener clientListener_ {};
+    ISocketListener serverListener_ {};
     std::map<std::string, std::shared_ptr<DeviceLock>> deviceLockMap_;
+    std::mutex deviceMutex_;
+
+    static inline std::mutex clientSocketMutex_;
+    static inline std::mutex serverSocketMutex_;
+    static inline std::map<std::string, int32_t> clientSocketInfos_ {}; /* <networkId, socketId> */
+    static inline std::map<std::string, int32_t> serverSocketInfos_ {}; /* <networkId, socketId> */
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_REMOTE_LISTENER_H

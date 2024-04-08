@@ -30,7 +30,6 @@
 #include "softbus_bus_center.h"
 
 namespace OHOS {
-using namespace Communication;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER, "DbinderService" };
 
@@ -99,13 +98,13 @@ bool DBinderService::StartRemoteListener()
         return true;
     }
 
-    remoteListener_ = std::make_shared<DBinderRemoteListener>(GetInstance());
+    remoteListener_ = std::make_shared<DBinderRemoteListener>();
     if (remoteListener_ == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "failed to create remote listener");
         return false;
     }
 
-    if (remoteListener_->StartListener(remoteListener_) != true) {
+    if (remoteListener_->StartListener() != true) {
         StopRemoteListener();
         return false;
     }
@@ -120,7 +119,7 @@ bool DBinderService::ReStartRemoteListener()
         DBINDER_LOGE(LOG_LABEL, "restart remote listener got null");
         return false;
     }
-    if (remoteListener_->StartListener(remoteListener_) != true) {
+    if (remoteListener_->StartListener() != true) {
         DBINDER_LOGE(LOG_LABEL, "restart dbinder server failed");
         StopRemoteListener();
         return false;
@@ -622,15 +621,8 @@ std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)
 
 std::string DBinderService::CreateDatabusName(int uid, int pid)
 {
-    std::shared_ptr<ISessionService> softbusManager = ISessionService::GetInstance();
-    if (softbusManager == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SOFTBUS_SERVICE_FAIL, __FUNCTION__);
-        return "";
-    }
-
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (softbusManager->GrantPermission(uid, pid, sessionName) != ERR_NONE) {
+    if (DBinderGrantPermission(uid, pid, sessionName.c_str()) != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name");
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);
         return "";
@@ -783,15 +775,11 @@ bool DBinderService::OnRemoteMessageTask(std::shared_ptr<struct DHandleEntryTxRx
     return result;
 }
 
-bool DBinderService::ProcessOnSessionClosed(std::shared_ptr<Session> session)
+bool DBinderService::ProcessOnSessionClosed(const std::string &networkId)
 {
-    if (session == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "ERROR!Session is nullptr!");
-        return false;
-    }
     std::lock_guard<std::mutex> lock(threadLockMutex_);
     for (auto it = threadLockInfo_.begin(); it != threadLockInfo_.end();) {
-        if (it->second->networkId != session->GetPeerDeviceId()) {
+        if (it->second->networkId != networkId) {
             it++;
             continue;
         }
@@ -1150,8 +1138,8 @@ int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
         return DBINDER_SERVICE_NOTICE_DIE_ERR;
     }
 
-    if (!remoteListener_->CloseDatabusSession(deviceID)) {
-        DBINDER_LOGE(LOG_LABEL, "close databus session fail");
+    if (!remoteListener_->ShutdownSocket(deviceID)) {
+        DBINDER_LOGE(LOG_LABEL, "Shutdown fail");
         // do nothing
     }
 

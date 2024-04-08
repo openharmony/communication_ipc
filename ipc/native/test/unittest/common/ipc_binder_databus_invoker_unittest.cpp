@@ -24,7 +24,6 @@
 #define private public
 #include "dbinder_databus_invoker.h"
 #undef private
-#include "mock_session_impl.h"
 #include "mock_iremote_invoker.h"
 #include "dbinder_session_object.h"
 
@@ -36,7 +35,6 @@ const std::string DEVICE_ID_TEST = "deviceidTest";
 const std::string SESSION_NAME_TEST = "sessionNameTest";
 const std::string PEER_SESSION_NAME_TEST = "peerSessionNameTest";
 const std::string SERVICE_NAME_TEST = "serviceNameTest";
-const uint32_t ID_LENGTH = 64;
 }
 
 class IPCDbinderDataBusInvokerTest : public testing::Test {
@@ -277,7 +275,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, NewSessionOfBinderProxy002, TestSize.Leve
 {
     uint32_t handle = 0;
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     EXPECT_TRUE (remoteSession != nullptr);
 
     DBinderDatabusInvoker testInvoker;
@@ -294,7 +292,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, NewSessionOfBinderProxy003, TestSize.Leve
 {
     uint32_t handle = REGISTRY_HANDLE;
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     EXPECT_TRUE (remoteSession != nullptr);
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -330,7 +328,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy002, TestSize.Level1)
 {
     uint32_t handle = 0;
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     DBinderDatabusInvoker testInvoker;
     bool res = testInvoker.AuthSession2Proxy(handle, remoteSession);
     EXPECT_FALSE(res);
@@ -345,9 +343,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, AuthSession2Proxy003, TestSize.Level1)
 {
     uint32_t handle = 0;
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    remoteSession->SetBusSession(nullptr);
-    EXPECT_TRUE(remoteSession->GetBusSession() == nullptr);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
 
     DBinderDatabusInvoker testInvoker;
     bool res = testInvoker.AuthSession2Proxy(handle, remoteSession);
@@ -365,7 +361,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, QuerySessionOfBinderProxy001, TestSize.Le
     std::string serverName = "serverName";
     std::string deviceId = "7001005458323933328a519c2fa83800";
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(serverName, deviceId, 1, nullptr, 1);
     EXPECT_TRUE (remoteSession != nullptr);
 
     DBinderDatabusInvoker testInvoker;
@@ -399,7 +395,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, QueryClientSessionObjectTest002, TestSize
     EXPECT_TRUE (current != nullptr);
 
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     EXPECT_TRUE (remoteSession != nullptr);
     bool ret = current->StubAttachDBinderSession(handle, remoteSession);
     EXPECT_TRUE(ret);
@@ -433,9 +429,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, QueryServerSessionObjectTest002, TestSize
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     EXPECT_TRUE (current != nullptr);
 
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(sessionMock, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     EXPECT_TRUE (remoteSession != nullptr);
     bool ret = current->ProxyAttachDBinderSession(handle, remoteSession);
     EXPECT_TRUE(ret);
@@ -515,7 +510,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, MakeDefaultServerSessionObjectTest001, Te
     DBinderDatabusInvoker testInvoker;
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    auto object = std::make_shared<DBinderSessionObject>(nullptr, serviceName, serverDeviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, 1, nullptr, 1);
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.MakeDefaultServerSessionObject(1, object);
     EXPECT_EQ(ret, nullptr);
 
@@ -539,44 +534,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlushCommandsTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnDatabusSessionClosedTest001
- * @tc.desc: OnDatabusSessionClosed
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnDatabusSessionClosedTest001, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<Session> session = nullptr;
-    bool ret = testInvoker.OnDatabusSessionClosed(session);
-    EXPECT_FALSE(ret);
-}
-
-/**
- * @tc.name: OnDatabusSessionClosedTest002
- * @tc.desc: OnDatabusSessionClosed
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnDatabusSessionClosedTest002, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-
-    EXPECT_CALL(*sessionMock, GetMySessionName())
-        .WillRepeatedly(testing::ReturnRef(SESSION_NAME_TEST));
-
-    EXPECT_CALL(*sessionMock, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(PEER_SESSION_NAME_TEST));
-
-    EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillRepeatedly(testing::Return(0X0000000000FFFFFFULL));
-
-    bool ret = testInvoker.OnDatabusSessionClosed(sessionMock);
-    EXPECT_FALSE(ret);
-    ret = testInvoker.OnDatabusSessionClosed(sessionMock);
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name: OnReceiveNewConnectionTest001
  * @tc.desc: OnReceiveNewConnection
  * @tc.type: FUNC
@@ -584,80 +541,22 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnDatabusSessionClosedTest002, TestSize.L
 HWTEST_F(IPCDbinderDataBusInvokerTest, OnReceiveNewConnectionTest001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-
-    EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillRepeatedly(testing::Return(0X0000000000FFFFFFULL));
-
-    EXPECT_CALL(*sessionMock, GetPeerPid())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(PEER_SESSION_NAME_TEST));
-
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(DEVICE_ID_TEST));
-
-    bool ret = testInvoker.OnReceiveNewConnection(sessionMock);
-    EXPECT_FALSE(ret);
-}
-
-/**
- * @tc.name: OnReceiveNewConnectionTest002
- * @tc.desc: OnReceiveNewConnection
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnReceiveNewConnectionTest002, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-
-    EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillRepeatedly(testing::Return(-1));
-
-    ASSERT_TRUE(IPCProcessSkeleton::ConvertChannelID2Int(sessionMock->GetChannelId()) == 0);
-
-    bool ret = testInvoker.OnReceiveNewConnection(sessionMock);
-    EXPECT_FALSE(ret);
-}
-
-/**
- * @tc.name: OnReceiveNewConnectionTest003
- * @tc.desc: OnReceiveNewConnection
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnReceiveNewConnectionTest003, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-
-    EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerPid())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(PEER_SESSION_NAME_TEST));
-
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(DEVICE_ID_TEST));
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    auto handle = IPCProcessSkeleton::ConvertChannelID2Int(sessionMock->GetChannelId());
+    auto handle = 1;
     
     IPCObjectProxy *ipcProxy = new IPCObjectProxy(handle, u"testproxy");
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(sessionMock, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, ipcProxy, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, ipcProxy, 1);
     current->dbinderSessionObjects_[handle] = sessionObject;
 
-    bool ret = testInvoker.OnReceiveNewConnection(sessionMock);
+    int32_t socketId = 1;
+    int peerPid = 1;
+    int peerUid = 1;
+    std::string peerName = SERVICE_NAME_TEST;
+    std::string networkId = DEVICE_ID_TEST;
+    bool ret = testInvoker.OnReceiveNewConnection(socketId, peerPid, peerUid,
+        peerName, networkId);
     EXPECT_FALSE(ret);
     current->dbinderSessionObjects_.clear();
     sessionObject->proxy_ = nullptr;
@@ -719,117 +618,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, TranslateIRemoteObjectTest001, TestSize.L
 }
 
 /**
- * @tc.name: OnMessageAvailable001
- * @tc.desc: OnMessageAvailable
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable001, TestSize.Level1)
-{
-    std::shared_ptr<Session> session = nullptr;
-    DBinderDatabusInvoker testInvoker;;
-    testInvoker.OnMessageAvailable(session, nullptr, 0);
-    EXPECT_TRUE(session == nullptr);
-}
-
-/**
- * @tc.name: OnMessageAvailable002
- * @tc.desc: OnMessageAvailable return at first branch
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable002, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-
-    std::string peerSessionName = "PeerSessionName";
-    EXPECT_CALL(*sessionMock, GetPeerSessionName())
-        .WillRepeatedly(testing::ReturnRef(peerSessionName));
-
-    const char *data = nullptr;
-    testInvoker.OnMessageAvailable(sessionMock, data, 0);
-    EXPECT_TRUE(data == nullptr);
-
-    uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
-    dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    ASSERT_TRUE(tmp != nullptr);
-    memset_s(tmp, size, 0, size);
-
-    data = reinterpret_cast<const char *>(tmp);
-    ssize_t len = 0;
-    testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_TRUE(len < static_cast<ssize_t>(sizeof(dbinder_transaction_data)));
-
-    len = static_cast<ssize_t>(MAX_RAWDATA_SIZE) + 1;
-    testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_TRUE(len > static_cast<ssize_t>(MAX_RAWDATA_SIZE));
-    free(tmp);
-}
-
-/**
- * @tc.name: OnMessageAvailable003
- * @tc.desc: OnMessageAvailable return tr->sizeOfSelf in HasRawDataPackage
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable003, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
-    dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    ASSERT_TRUE(tmp != nullptr);
-    memset_s(tmp, size, 0, size);
-
-    tmp->magic = DBINDER_MAGICWORD;
-    tmp->cmd = BC_SEND_RAWDATA;
-    tmp->sizeOfSelf = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;;
-    
-    const char *data = reinterpret_cast<const char *>(tmp);
-    ssize_t len = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
-    EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillOnce(testing::Return(0X0000000000FFFFFFULL))
-        .WillRepeatedly(testing::Return(0));
-
-    testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_TRUE(tmp->sizeOfSelf == static_cast<uint32_t>(len));
-    free(tmp);
-}
-
-/**
- * @tc.name: OnMessageAvailable004
- * @tc.desc: OnMessageAvailable return 0 in HasRawDataPackage
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable004, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
-    dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
-    ASSERT_TRUE(tmp != nullptr);
-    memset_s(tmp, size, 0, size);
-
-    EXPECT_CALL(*sessionMock, GetChannelId())
-        .WillOnce(testing::Return(0X0000000000FFFFFFULL))
-        .WillRepeatedly(testing::Return(0));
-
-    tmp->magic = 0;
-    const char *data = reinterpret_cast<const char *>(tmp);
-    ssize_t len = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
-
-    testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_FALSE(tmp->magic == DBINDER_MAGICWORD);
-
-    tmp->magic = DBINDER_MAGICWORD;
-    testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_TRUE(tmp->magic == DBINDER_MAGICWORD);
-
-    tmp->cmd = BC_SEND_RAWDATA;
-    testInvoker.OnMessageAvailable(sessionMock, data, len);
-    EXPECT_TRUE(tmp->cmd == BC_SEND_RAWDATA);
-    free(tmp);
-}
-
-/**
  * @tc.name: OnRawDataAvailable001
  * @tc.desc: OnRawDataAvailable
  * @tc.type: FUNC
@@ -837,7 +625,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable004, TestSize.Level1)
 HWTEST_F(IPCDbinderDataBusInvokerTest, OnRawDataAvailable001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
+    int32_t socketId = 1;
     uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
     ASSERT_TRUE(tmp != nullptr);
@@ -848,15 +636,15 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnRawDataAvailable001, TestSize.Level1)
     tmp->sizeOfSelf = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     const char *data = reinterpret_cast<const char *>(tmp);
     uint32_t dataSize = sizeof(dbinder_transaction_data);
-    testInvoker.OnRawDataAvailable(sessionMock, data, dataSize);
+    testInvoker.OnRawDataAvailable(socketId, data, dataSize);
     EXPECT_FALSE(dataSize - sizeof(dbinder_transaction_data) > 0);
 
     dataSize = MAX_RAWDATA_SIZE + 1;
-    testInvoker.OnRawDataAvailable(sessionMock, data, dataSize);
+    testInvoker.OnRawDataAvailable(socketId, data, dataSize);
     EXPECT_FALSE(dataSize <= MAX_RAWDATA_SIZE);
 
     dataSize = SOCKET_MAX_BUFF_SIZE;
-    testInvoker.OnRawDataAvailable(sessionMock, data, dataSize);
+    testInvoker.OnRawDataAvailable(socketId, data, dataSize);
     EXPECT_TRUE(dataSize > sizeof(dbinder_transaction_data) && dataSize <= MAX_RAWDATA_SIZE);
     free(tmp);
 }
@@ -910,7 +698,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo001, TestSize.Level1
     uint32_t handle = 1;
     uint64_t stubIndex = 1;
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->StubAttachDBinderSession(handle, sessionObject);
 
@@ -918,7 +706,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo001, TestSize.Level1
     EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 
     ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
-    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_STUB_INDEX);
 }
 
 /**
@@ -933,14 +721,12 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo002, TestSize.Level1
     uint64_t stubIndex = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->StubAttachDBinderSession(handle, sessionObject);
 
     int ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
-    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_STUB_INDEX);
 }
 
 /**
@@ -952,7 +738,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UpdateClientSession001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     bool ret = testInvoker.UpdateClientSession(sessionObject);
     EXPECT_EQ(ret, false);
 }
@@ -980,7 +766,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage002, TestSize.Level1)
     DBinderDatabusInvoker testInvoker;
 
     std::shared_ptr<DBinderSessionObject> sessionOfPeer =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     int ret = testInvoker.OnSendMessage(sessionOfPeer);
     EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
@@ -993,9 +779,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage002, TestSize.Level1)
 HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage003, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::shared_ptr<DBinderSessionObject> sessionOfPeer =
-        std::make_shared<DBinderSessionObject>(sessionMock, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
 
     std::shared_ptr<BufferObject> sessionBuff = std::make_shared<BufferObject>();
     sessionBuff->sendBufferCursorW_ = 8;
@@ -1006,7 +791,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage003, TestSize.Level1)
 
     sessionOfPeer->buff_ = sessionBuff;
     int ret = testInvoker.OnSendMessage(sessionOfPeer);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 
 /**
@@ -1032,7 +817,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendRawData002, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     size_t size = 0;
     int ret = testInvoker.OnSendRawData(session, nullptr, size);
     EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
@@ -1045,14 +830,12 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendRawData002, TestSize.Level1)
  */
 HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendRawData003, TestSize.Level1)
 {
-    DBinderDatabusInvoker testInvoker;
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    session->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     size_t size = 0;
+    DBinderDatabusInvoker testInvoker;
     int ret = testInvoker.OnSendRawData(session, nullptr, size);
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 
 /**
@@ -1153,7 +936,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession001, TestSize.Level1)
     DBinderDatabusInvoker testInvoker;
     std::string serverDeviceId;
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, serverDeviceId, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, serverDeviceId, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
     char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
@@ -1174,7 +957,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession002, TestSize.Level1)
     DBinderDatabusInvoker testInvoker;
     std::string serviceName;
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, serviceName, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(serviceName, DEVICE_ID_TEST, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
     char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
@@ -1194,7 +977,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession003, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
     char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
@@ -1248,7 +1031,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, QueryHandleBySession001, TestSize.Level1)
     
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     current->proxyToSession_[1] = session;
 
     uint32_t ret = testInvoker.QueryHandleBySession(session);
@@ -1267,7 +1050,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, QueryHandleBySession002, TestSize.Level1)
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->proxyToSession_.clear();
     std::shared_ptr<DBinderSessionObject> session =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     uint32_t ret = testInvoker.QueryHandleBySession(session);
 
     EXPECT_EQ(ret, 0);
@@ -1340,20 +1123,12 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo003, TestSize.Level1
     uint64_t stubIndex = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->dbinderSessionObjects_[handle] = sessionObject;
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(-1));
-
-    std::string deviceId = "deviceId";
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     int ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
-    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_STUB_INDEX);
     current->dbinderSessionObjects_.clear();
 }
 
@@ -1369,20 +1144,12 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo004, TestSize.Level1
     uint64_t stubIndex = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->dbinderSessionObjects_[handle] = sessionObject;
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(1));
-
-    std::string deviceId('c', ID_LENGTH + 1);
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     int ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
-    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_STUB_INDEX);
     current->dbinderSessionObjects_.clear();
 }
 
@@ -1399,36 +1166,26 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo005, TestSize.Level1
     uint32_t pid = 1;
     uint32_t uid = 1;
     uint32_t tokenId = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->dbinderSessionObjects_[handle] = sessionObject;
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerPid())
-        .WillRepeatedly(testing::Return(1));
-
-    std::string deviceId = "deviceId";
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     skeleton->appInfoToStubIndex_.clear();
 
+    std::string deviceId = "deviceId";
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
 
     int ret = testInvoker.CheckAndSetCallerInfo(handle, stubIndex);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, RPC_DATABUS_INVOKER_INVALID_STUB_INDEX);
     current->dbinderSessionObjects_.clear();
 }
 
@@ -1446,30 +1203,19 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CheckAndSetCallerInfo006, TestSize.Level1
     uint32_t pid = 1;
     uint32_t uid = 1;
     uint32_t tokenId = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->dbinderSessionObjects_[handle] = sessionObject;
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(2));
-
-    EXPECT_CALL(*sessionMock, GetPeerPid())
-        .WillRepeatedly(testing::Return(2));
-
-    std::string deviceId = "deviceId";
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     skeleton->appInfoToStubIndex_.clear();
-
+    std::string deviceId = "deviceId";
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1492,30 +1238,19 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, ConnectRemoteObject2Session002, TestSize.
     uint32_t pid = 1;
     uint32_t uid = 1;
     uint32_t tokenId = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->dbinderSessionObjects_[handle] = sessionObject;
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(1));
-
-    EXPECT_CALL(*sessionMock, GetPeerPid())
-        .WillRepeatedly(testing::Return(1));
-
-    std::string deviceId = "deviceId";
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     skeleton->appInfoToStubIndex_.clear();
-
+    std::string deviceId = "deviceId";
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1540,30 +1275,19 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, ConnectRemoteObject2Session003, TestSize.
     uint32_t pid = 1;
     uint32_t uid = 1;
     uint32_t tokenId = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
 
     std::shared_ptr<DBinderSessionObject> sessionObject =
-        std::make_shared<DBinderSessionObject>(nullptr, SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    sessionObject->session_ = sessionMock;
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->dbinderSessionObjects_[handle] = sessionObject;
-    EXPECT_CALL(*sessionMock, GetPeerUid())
-        .WillRepeatedly(testing::Return(2));
-
-    EXPECT_CALL(*sessionMock, GetPeerPid())
-        .WillRepeatedly(testing::Return(2));
-
-    std::string deviceId = "deviceId";
-    EXPECT_CALL(*sessionMock, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
 
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     skeleton->appInfoToStubIndex_.clear();
-
+    std::string deviceId = "deviceId";
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1704,38 +1428,4 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession006, TestSize.Level1)
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM - 1;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
     EXPECT_NE(ret, nullptr);
-}
-
-/**
- * @tc.name: OnDatabusSessionServerSideClosed001
- * @tc.desc: OnDatabusSessionServerSideClosed
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, OnDatabusSessionServerSideClosed001, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-
-    std::shared_ptr<MockSessionImpl> session = std::make_shared<MockSessionImpl>();
-    uint32_t pid = 1;
-    uint32_t uid = 1;
-    uint32_t tokenId = 0;
-    std::string deviceId = "test";
-    EXPECT_CALL(*session, GetChannelId())
-        .WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(*session, GetPeerPid())
-        .WillRepeatedly(testing::Return(pid));
-    EXPECT_CALL(*session, GetPeerUid())
-        .WillRepeatedly(testing::Return(uid));
-    EXPECT_CALL(*session, GetPeerDeviceId())
-        .WillRepeatedly(testing::ReturnRef(deviceId));
-
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-
-    std::string appInfo =
-        deviceId + current->UIntToString(pid) +
-        current->UIntToString(uid) + current->UIntToString(tokenId);
-
-    current->appInfoToStubIndex_[appInfo] = { { 1, 1 } };
-    auto ret = testInvoker.OnDatabusSessionServerSideClosed(session);
-    EXPECT_EQ(ret, true);
 }

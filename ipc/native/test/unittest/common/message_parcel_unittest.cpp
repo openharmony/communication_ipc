@@ -23,7 +23,6 @@
 #include "ipc_process_skeleton.h"
 #include "message_option.h"
 #include "message_parcel.h"
-#include "mock_session_impl.h"
 #undef private
 
 using namespace testing::ext;
@@ -111,8 +110,7 @@ HWTEST_F(MessageParcelTest, WriteDBinderProxyTest001, TestSize.Level1)
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
 
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(sessionMock, "name", "deviceId", 1, nullptr, 1);
+    auto dbinderSessionObject = std::make_shared<DBinderSessionObject>("name", "deviceId", 1, nullptr, 1);
     current->proxyToSession_[handle] = dbinderSessionObject;
     auto ret = parcel.WriteDBinderProxy(object, handle, stubIndex);
     EXPECT_EQ(ret, true);

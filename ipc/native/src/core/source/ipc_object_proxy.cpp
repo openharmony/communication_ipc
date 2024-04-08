@@ -17,6 +17,8 @@
 
 #include <cstdint>
 
+#include <iostream>
+
 #include "__mutex_base"
 #include "algorithm"
 #include "errors.h"
@@ -58,6 +60,8 @@ using namespace IPC_SINGLE;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 static constexpr int PRINT_ERR_CNT = 100;
+
+using namespace std;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
@@ -744,19 +748,23 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
         return false;
     }
 
+    std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
+    std::string peerUid = str.substr(0, str.find("_"));
+    std::string peerPid = str.substr(str.find("_") + 1);
+
     std::shared_ptr<DBinderSessionObject> dbinderSession = std::make_shared<DBinderSessionObject>(
-        nullptr, serviceName, peerID, stubIndex, this, peerTokenId);
+        serviceName, peerID, stubIndex, this, peerTokenId);
     if (dbinderSession == nullptr) {
         ZLOGE(LABEL, "make DBinderSessionObject fail!");
         return false;
     }
-
+    dbinderSession->SetPeerPid(std::stoi(peerPid));
+    dbinderSession->SetPeerUid(std::stoi(peerUid));
     if (!current->CreateSoftbusServer(localBusName)) {
         ZLOGE(LABEL, "create softbus server fail, name:%{public}s localID:%{public}s", localBusName.c_str(),
             IPCProcessSkeleton::ConvertToSecureString(localID).c_str());
         return false;
     }
-
     if (!invoker->UpdateClientSession(dbinderSession)) {
         // no need to remove softbus server
         ZLOGE(LABEL, "update server session object fail!");
