@@ -69,7 +69,7 @@ private:
     };
     static constexpr uint32_t QOS_COUNT = static_cast<uint32_t>(sizeof(QOS_TV) / sizeof(QosTV));
 
-    int32_t listenSocketId_ = INVALID_ID;
+    int32_t listenSocketId_ = SOCKET_ID_INVALID;
     ISocketListener clientListener_ {};
     ISocketListener serverListener_ {};
     std::map<std::string, std::shared_ptr<DeviceLock>> deviceLockMap_;

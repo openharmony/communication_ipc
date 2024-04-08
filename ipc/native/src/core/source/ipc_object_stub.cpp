@@ -229,7 +229,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             // update listenFd
             ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
                 listenFd, stubIndex, tokenId);
-            bool ret = current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
+            bool ret = current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId,
+                stubIndex, listenFd);
             break;
         }
         case DBINDER_DECREFS_TRANSACTION: {
