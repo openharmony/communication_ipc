@@ -1057,7 +1057,7 @@ pid_t BinderInvoker::GetCallerPid() const
 {
     // when the current caller information is self, obtain another binderinvoker
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.pid;
     }
     return callerPid_;
@@ -1066,7 +1066,7 @@ pid_t BinderInvoker::GetCallerPid() const
 pid_t BinderInvoker::GetCallerRealPid() const
 {
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.realPid;
     }
     return callerRealPid_;
@@ -1075,7 +1075,7 @@ pid_t BinderInvoker::GetCallerRealPid() const
 uid_t BinderInvoker::GetCallerUid() const
 {
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.uid;
     }
     return callerUid_;
@@ -1085,7 +1085,7 @@ uint64_t BinderInvoker::GetCallerTokenID() const
 {
     // If a process does NOT have a tokenid, the UID should be returned accordingly.
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return (invokerInfo_.tokenId == 0) ? invokerInfo_.uid : invokerInfo_.tokenId;
     }
     return (callerTokenID_ == 0) ? callerUid_ : callerTokenID_;
@@ -1094,7 +1094,7 @@ uint64_t BinderInvoker::GetCallerTokenID() const
 uint64_t BinderInvoker::GetFirstCallerTokenID() const
 {
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.firstTokenId;
     }
     return firstTokenID_;
@@ -1253,7 +1253,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     uint64_t tempTokenId = callerTokenID_;
 
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         tempPid = invokerInfo_.pid;
         tempRealPid = invokerInfo_.realPid;
         tempUid = invokerInfo_.uid;
