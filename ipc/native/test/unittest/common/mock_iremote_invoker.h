@@ -18,6 +18,10 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"

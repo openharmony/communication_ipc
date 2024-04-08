@@ -31,7 +31,6 @@ ohos_unittest("IPCNativeUnitTest") {
 
   sources = [
     "buffer_object_unittest.cpp",
-    "databus_session_callback_unittest.cpp",
     "dbinder_callback_stub_unittest.cpp",
     "dbinder_session_object_unittest.cpp",
     "ipc_core_unittest.cpp",

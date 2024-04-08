@@ -18,7 +18,6 @@
 
 #define private public
 #include "dbinder_session_object.h"
-#include "mock_session_impl.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
@@ -300,7 +299,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetDBinderIdleHandleTest001, TestSize.Level
     std::string serverName = "serverName";
     std::string deviceId = "7001005458323933328a519c2fa83800";
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(serverName, deviceId, 1, nullptr, 1);
     uint32_t ret = skeleton->GetDBinderIdleHandle(remoteSession);
 
     EXPECT_EQ(ret, IPCProcessSkeleton::DBINDER_HANDLE_BASE + 1);
@@ -320,7 +319,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetDBinderIdleHandleTest002, TestSize.Level
     std::string serverName = "serverName";
     std::string deviceId = "7001005458323933328a519c2fa83800";
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(serverName, deviceId, 1, nullptr, 1);
     uint32_t ret = skeleton->GetDBinderIdleHandle(remoteSession);
 
     EXPECT_EQ(ret, INDEX_2);
@@ -341,7 +340,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetDBinderIdleHandleTest003, TestSize.Level
     std::string serverName = "serverName";
     std::string deviceId = "7001005458323933328a519c2fa83800";
     std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(nullptr, serverName, deviceId, 1, nullptr, 1);
+        std::make_shared<DBinderSessionObject>(serverName, deviceId, 1, nullptr, 1);
     uint32_t ret = skeleton->GetDBinderIdleHandle(remoteSession);
 
     EXPECT_EQ(ret, IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -359,8 +358,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, ProxyAttachDBinderSessionTest004, TestSize.
 
     std::string name("nameTest");
     std::string deviceId("deviceIdTest");
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
 
     uint32_t handler = 1;
     bool ret = skeleton->ProxyAttachDBinderSession(handler, object);
@@ -380,8 +378,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, ProxyQueryDBinderSessionTest001, TestSize.L
 
     std::string name("nameTest");
     std::string deviceId("deviceIdTest");
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
 
     uint32_t handler = 1;
     skeleton->proxyToSession_.insert(
@@ -392,25 +389,24 @@ HWTEST_F(IPCProcessSkeletonUnitTest, ProxyQueryDBinderSessionTest001, TestSize.L
 }
 
 /**
- * @tc.name: QueryProxyBySessionHandleTest001
- * @tc.desc: Verify the QueryProxyBySessionHandle function
+ * @tc.name: QueryProxyBySocketIdTest001
+ * @tc.desc: Verify the QueryProxyBySocketId function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCProcessSkeletonUnitTest, QueryProxyBySessionHandleTest001, TestSize.Level1)
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryProxyBySocketIdTest001, TestSize.Level1)
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
 
     std::string name("nameTest");
     std::string deviceId("deviceIdTest");
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
 
     uint32_t handler = 1;
     std::vector<uint32_t> proxyHandle { 1 };
     skeleton->proxyToSession_.insert(
         std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handler, object));
-    auto ret = skeleton->QueryProxyBySessionHandle(handler, proxyHandle);
+    auto ret = skeleton->QueryProxyBySocketId(handler, proxyHandle);
 
     EXPECT_EQ(ret, true);
 }
@@ -429,8 +425,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleByDatabusSessionTest001, TestSiz
     const std::string deviceId("deviceIdTest");
     uint64_t index = 1;
 
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
     uint32_t handler = 1;
     skeleton->proxyToSession_.insert(
         std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handler, object));
@@ -452,8 +447,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QuerySessionByInfoTest001, TestSize.Level1)
     const std::string name("nameTest");
     const std::string deviceId("deviceIdTest");
 
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
     uint32_t handler = 1;
     skeleton->proxyToSession_.insert(
         std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handler, object));
@@ -511,8 +505,8 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetIdleDataThreadTest001, TestSize.Level1)
 
     std::thread::id threadId;
     skeleton->AddDataThreadToIdle(threadId);
-    auto ret = skeleton->GetIdleDataThread();
-    EXPECT_NE(threadId, ret);
+    skeleton->GetIdleDataThread();
+    EXPECT_NE(skeleton->idleDataThreads_.size(), 0);
 }
 
 /**
@@ -1020,10 +1014,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppInfoToStubIndexTest001, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1049,10 +1043,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppInfoToStubIndexTest002, TestSize.L
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
     uint64_t index = 0;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1077,10 +1071,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppInfoToStubIndexTest003, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1106,7 +1100,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppInfoToStubIndexTest004, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t index = 0;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
 
     bool ret = skeleton->DetachAppInfoToStubIndex(pid, uid, tokenId, deviceId, index, listenFd);
     EXPECT_EQ(ret, false);
@@ -1128,10 +1122,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppInfoToStubIndexTest005, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1157,10 +1151,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppInfoToStubIndexTest006, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { 0, listenFd },
         { 1, listenFd },
     };
@@ -1187,10 +1181,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachAppInfoToStubIndexTest001, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { stubIndex, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1215,10 +1209,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachAppInfoToStubIndexTest002, TestSize.L
     uint32_t tokenId = 1;
     std::string deviceId = "testDeviceId";
     uint64_t stubIndex = 1;
-    uint32_t listenFd = 1;
+    int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, uint32_t> indexMap = {
+    std::map<uint64_t, int32_t> indexMap = {
         { 0, listenFd }
     };
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
@@ -1328,21 +1322,6 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryCallbackProxyTest003, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest001, TestSize.Level1)
-{
-    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
-    ASSERT_TRUE(skeleton != nullptr);
-
-    std::string name = "test";
-    auto ret = skeleton->CreateSoftbusServer(name);
-    EXPECT_EQ(ret, true);
-}
-
-/**
- * @tc.name: CreateSoftbusServerTest002
- * @tc.desc: Verify the CreateSoftbusServer function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest002, TestSize.Level1)
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
@@ -1711,24 +1690,6 @@ HWTEST_F(IPCProcessSkeletonUnitTest, ProxyQueryDBinderSessionTest002, TestSize.L
 }
 
 /**
- * @tc.name: QueryProxyBySessionHandleTest002
- * @tc.desc: Verify the QueryProxyBySessionHandle function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCProcessSkeletonUnitTest, QueryProxyBySessionHandleTest002, TestSize.Level1)
-{
-    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
-    ASSERT_TRUE(skeleton != nullptr);
-
-    uint32_t handler = 1;
-    std::vector<uint32_t> proxyHandle { 1 };
-    skeleton->proxyToSession_.clear();
-    auto ret = skeleton->QueryProxyBySessionHandle(handler, proxyHandle);
-
-    EXPECT_EQ(ret, true);
-}
-
-/**
  * @tc.name: QueryHandleByDatabusSessionTest002
  * @tc.desc: Verify the QueryHandleByDatabusSession function
  * @tc.type: FUNC
@@ -1743,8 +1704,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleByDatabusSessionTest002, TestSiz
     const std::string deviceId("deviceIdTest");
     uint64_t index = 1;
 
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
     uint32_t handler = 1;
     skeleton->proxyToSession_.insert(
         std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handler, object));
@@ -1768,8 +1728,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QuerySessionByInfoTest002, TestSize.Level1)
     const std::string deviceIdTest("deviceIdTest");
 
     skeleton->proxyToSession_.clear();
-    std::shared_ptr<MockSessionImpl> sessionMock = std::make_shared<MockSessionImpl>();
-    auto object = std::make_shared<DBinderSessionObject>(sessionMock, name, deviceId, 1, nullptr, 1);
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, 1);
     uint32_t handler = 1;
     skeleton->proxyToSession_.insert(
         std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handler, object));

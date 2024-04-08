@@ -18,7 +18,6 @@
 
 #define private public
 #include "dbinder_session_object.h"
-#include "mock_session_impl.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"

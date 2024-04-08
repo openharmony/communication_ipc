@@ -24,24 +24,25 @@
 namespace OHOS {
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size == 0) {
+        if (data == nullptr || size == 0 ||
+            size < sizeof(struct DHandleEntryTxRx)) {
             return false;
         }
 
-        struct DHandleEntryTxRx *msg = nullptr;
         char tmp[SESSION_NAME_SIZE_MAX] = {0};
         if (memcpy_s(tmp, sizeof(tmp) - 1, data, size) != EOK) {
             return false;
         }
         std::string deviceID = tmp;
 
-        std::shared_ptr<DBinderRemoteListener>remoteListener = nullptr;
-        remoteListener = std::make_shared<DBinderRemoteListener>(DBinderService::GetInstance());
+        std::shared_ptr<DBinderRemoteListener> remoteListener =
+            std::make_shared<DBinderRemoteListener>();
         if (remoteListener == nullptr) {
             return false;
         }
 
-        bool result = remoteListener->SendDataToRemote(deviceID, msg);
+        bool result = remoteListener->SendDataToRemote(deviceID,
+            reinterpret_cast<const struct DHandleEntryTxRx*>(data));
         return result;
     }
 }

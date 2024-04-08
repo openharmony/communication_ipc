@@ -16,43 +16,28 @@
 #include "dbinder_session_object.h"
 
 #include "ipc_process_skeleton.h"
-#include "ISessionService.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_SESSION_OBJ, "dbinder_session_object" };
 
-DBinderSessionObject::DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,
+DBinderSessionObject::DBinderSessionObject(const std::string &serviceName,
     const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId)
-    : session_(session), serviceName_(serviceName), serverDeviceId_(serverDeviceId),
+    :serviceName_(serviceName), serverDeviceId_(serverDeviceId),
     stubIndex_(stubIndex), proxy_(proxy), tokenId_(tokenId)
 {}
 
 DBinderSessionObject::~DBinderSessionObject()
 {
-    session_ = nullptr;
     buff_ = nullptr;
 }
 
 void DBinderSessionObject::CloseDatabusSession()
 {
-    std::shared_ptr<ISessionService> manager = ISessionService::GetInstance();
-    if (session_ != nullptr && manager != nullptr) {
-        ZLOGI(LOG_LABEL, "close softbus session, deviceId:%{public}s channelId:%{public}" PRId64,
-            IPCProcessSkeleton::ConvertToSecureString(session_->GetPeerDeviceId()).c_str(), session_->GetChannelId());
-        (void)manager->CloseSession(session_);
-    }
-}
-
-void DBinderSessionObject::SetBusSession(std::shared_ptr<Session> session)
-{
-    session_ = session;
-}
-
-std::shared_ptr<Session> DBinderSessionObject::GetBusSession() const
-{
-    return session_;
+    ZLOGI(LOG_LABEL, "close softbus session, deviceId:%{public}s socketId:%{public}d",
+        IPCProcessSkeleton::ConvertToSecureString(GetDeviceId()).c_str(), socket_);
+    Shutdown(socket_);
 }
 
 std::shared_ptr<BufferObject> DBinderSessionObject::GetSessionBuff()
@@ -108,16 +93,38 @@ uint32_t DBinderSessionObject::GetFlatSessionLen()
     return sizeof(struct FlatDBinderSession);
 }
 
-uint32_t DBinderSessionObject::GetSessionHandle() const
+int32_t DBinderSessionObject::GetSocketId() const
 {
-    if (session_ != nullptr) {
-        return IPCProcessSkeleton::ConvertChannelID2Int(session_->GetChannelId());
-    }
-    return 0;
+    return socket_;
+}
+
+void DBinderSessionObject::SetSocketId(int32_t socketId)
+{
+    socket_ = socketId;
 }
 
 uint32_t DBinderSessionObject::GetTokenId() const
 {
     return tokenId_;
+}
+
+void DBinderSessionObject::SetPeerPid(int peerPid)
+{
+    pid_ = peerPid;
+}
+
+void DBinderSessionObject::SetPeerUid(int peerUid)
+{
+    uid_ = peerUid;
+}
+
+int DBinderSessionObject::GetPeerPid() const
+{
+    return pid_;
+}
+
+int DBinderSessionObject::GetPeerUid() const
+{
+    return uid_;
 }
 } // namespace OHOS

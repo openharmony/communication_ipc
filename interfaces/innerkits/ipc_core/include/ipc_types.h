@@ -77,6 +77,11 @@ constexpr int MIN_TRANSACTION_ID = 0x1;
 constexpr int MAX_TRANSACTION_ID = 0x00ffffff;
 constexpr int INVALID_FD = -1;
 
+constexpr int32_t RPC_QOS_TYPE_MIN_BW = 128 * 1024;
+constexpr int32_t RPC_QOS_TYPE_MAX_LATENCY = 10000;
+constexpr int32_t RPC_QOS_TYPE_MIN_LATENCY = 2000;
+constexpr int32_t INVALID_ID = -1;
+
 /**
  * @brief Enumerate the correct error code returned.
  * @since 9

@@ -95,10 +95,10 @@ namespace OHOS {
         }
 
         DBinderDatabusInvoker invoker;
-        std::shared_ptr<Session> session = nullptr;
         char *testData = nullptr;
         ssize_t testLen = *(reinterpret_cast<const ssize_t*>(data));
-        invoker.OnMessageAvailable(session, testData, testLen);
+        int32_t socketId = *(reinterpret_cast<const int32_t*>(data));
+        invoker.OnMessageAvailable(socketId, testData, testLen);
         return true;
     }
 
@@ -122,20 +122,6 @@ namespace OHOS {
 
         DBinderDatabusInvoker invoker;
         invoker.StopWorkThread();
-        return true;
-    }
-
-    bool OnDatabusSessionClosedTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
-        DBinderDatabusInvoker invoker;
-        std::shared_ptr<Session> session = nullptr;
-        if (invoker.OnDatabusSessionClosed(session) == false) {
-            return false;
-        }
         return true;
     }
 
@@ -290,7 +276,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::OnMessageAvailableTest(data, size);
     OHOS::JoinThreadTest(data, size);
     OHOS::StopWorkThreadTest(data, size);
-    OHOS::OnDatabusSessionClosedTest(data, size);
     OHOS::GetCallerPidTest(data, size);
     OHOS::GetStatusTest(data, size);
     OHOS::GetCallerUidTest(data, size);
