@@ -212,7 +212,7 @@ bool DBinderRemoteListener::StartListener()
     ret = Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "Listen failed, ret:%{public}d", ret);
-	    DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
         Shutdown(socketId);
         return false;
     }
