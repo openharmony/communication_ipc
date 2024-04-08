@@ -13,3 +13,5 @@
 
 target
 Cargo.lock
+.clang-format
+.vscode

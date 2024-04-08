@@ -10,14 +10,3 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-//! IPC MsgParcel
-
-mod exts;
-pub(crate) mod msg;
-
-pub(crate) mod wrapper;
-
-pub mod error;
-pub use exts::{Deserialize, Serialize};
-pub use msg::{MsgOption, MsgParcel};

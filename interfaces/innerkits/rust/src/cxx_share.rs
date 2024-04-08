@@ -11,13 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! IPC MsgParcel
+//! cxx shared c++ class.
 
-mod exts;
-pub(crate) mod msg;
+pub use cxx::UniquePtr;
 
-pub(crate) mod wrapper;
-
-pub mod error;
-pub use exts::{Deserialize, Serialize};
-pub use msg::{MsgOption, MsgParcel};
+pub use crate::parcel::wrapper::MessageParcel;
+pub use crate::remote::wrapper::{
+    IRemoteObject, IRemoteObjectWrapper, RemoteStubWrapper, SptrIRemoteObject,
+};

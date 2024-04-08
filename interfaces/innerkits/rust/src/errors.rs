@@ -1,28 +1,19 @@
-/*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (C) 2024 Huawei Device Co., Ltd.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 use std::error::Error;
+use std::ffi::{c_char, CString};
 use std::fmt;
-use std::ffi::{CString, c_char};
-use hilog_rust::{debug, hilog, HiLogLabel, LogType};
-
-const LOG_LABEL: HiLogLabel = HiLogLabel {
-    log_type: LogType::LogCore,
-    domain: 0xD0057CA,
-    tag: "RustStatus"
-};
 
 /// IPC specific Result, error is i32 type
 pub type IpcResult<T> = std::result::Result<T, IpcStatusCode>;
@@ -32,7 +23,7 @@ pub type IpcResult<T> = std::result::Result<T, IpcStatusCode>;
 /// or
 /// status_result::<MsgParcel>(result, reply)
 pub fn status_result<T>(code: i32, val: T) -> IpcResult<T> {
-    debug!(LOG_LABEL, "rust status code: {}", code);
+    debug!("rust status code: {}", code);
     match parse_status_code(code) {
         IpcStatusCode::Ok => Ok(val),
         e => Err(e),
@@ -53,11 +44,7 @@ pub fn parse_status_code(code: i32) -> IpcStatusCode {
 }
 
 /// IPC unified status code
-#[derive(Hash)]
-#[derive(Eq, PartialEq)]
-#[derive(Ord, PartialOrd)]
-#[derive(Clone, Copy)]
-#[derive(Debug)]
+#[derive(Hash, Eq, PartialEq, Ord, PartialOrd, Clone, Copy, Debug)]
 #[non_exhaustive]
 pub enum IpcStatusCode {
     /// success
@@ -91,9 +78,9 @@ impl fmt::Display for IpcStatusCode {
             IpcStatusCode::Failed => write!(f, "Call Failed"),
             IpcStatusCode::Einval => write!(f, "Invalid Params"),
             IpcStatusCode::ErrNullObject => write!(f, "Null Obj"),
-            IpcStatusCode::ErrDeadObject  => write!(f, "Dead Obj"),
+            IpcStatusCode::ErrDeadObject => write!(f, "Dead Obj"),
             IpcStatusCode::InvalidValue => write!(f, "Invalid Value"),
-            _  => write!(f, "Unknow Error"),
+            _ => write!(f, "Unknow Error"),
         }
     }
 }

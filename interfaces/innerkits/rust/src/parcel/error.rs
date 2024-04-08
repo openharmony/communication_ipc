@@ -11,13 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! IPC MsgParcel
+//! Parcel Errors
 
-mod exts;
-pub(crate) mod msg;
+use std::error::Error;
+use std::fmt;
 
-pub(crate) mod wrapper;
+/// An error indicating that Parcel set size failed.
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+pub struct ParcelSetError;
 
-pub mod error;
-pub use exts::{Deserialize, Serialize};
-pub use msg::{MsgOption, MsgParcel};
+impl fmt::Display for ParcelSetError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "parcel set size failed")
+    }
+}
+
+impl Error for ParcelSetError {}
