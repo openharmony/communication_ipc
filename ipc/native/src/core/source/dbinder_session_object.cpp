@@ -35,7 +35,7 @@ DBinderSessionObject::~DBinderSessionObject()
 
 void DBinderSessionObject::CloseDatabusSession()
 {
-    ZLOGI(LOG_LABEL, "close softbus session, deviceId:%{public}s socketId:%{public}d",
+    ZLOGI(LOG_LABEL, "Shutdown, deviceId:%{public}s socketId:%{public}d",
         IPCProcessSkeleton::ConvertToSecureString(GetDeviceId()).c_str(), socket_);
     Shutdown(socket_);
 }
