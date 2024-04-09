@@ -40,6 +40,31 @@ using namespace OHOS::HiviewDFX;
 
 constexpr int32_t MAX_RECURSIVE_SENDS = 5;
 
+void TestServiceStub::OnSendRequestMap()
+{
+    funcMap_[static_cast<uint32_t>(TRANS_ID_SYNC_TRANSACTION)] = &TestServiceStub::ServerSyncTransaction;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_ASYNC_TRANSACTION)] = &TestServiceStub::ServerAsyncTransaction;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_PING_SERVICE)] = &TestServiceStub::ServerPingService;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_GET_FOO_SERVICE)] = &TestServiceStub::ServerGetFooService;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_TRANSACT_FILE_DESC)] = &TestServiceStub::ServerTransactFileDesc;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_STRING_TRANSACTION)] = &TestServiceStub::ServerStringTransaction;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_ZTRACE_TRANSACTION)] = &TestServiceStub::ServerZtraceTransaction;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_CALLING_UID_PID)] = &TestServiceStub::ServerCallingUidAndPid;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_NESTING_SEND)] = &TestServiceStub::ServerNestingSend;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_ACCESS_TOKENID)] = &TestServiceStub::ServerAccessTokenId;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_ACCESS_TOKENID_64)] = &TestServiceStub::ServerAccessTokenId64;
+    funcMap_[static_cast<uint32_t>(TRANS_MESSAGE_PARCEL_ADDPED)] = &TestServiceStub::ServerMessageParcelAddped;
+    funcMap_[static_cast<uint32_t>(TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT)] =
+        &TestServiceStub::ServerMessageParcelAddpedWithObject;
+    funcMap_[static_cast<uint32_t>(TRANS_ENABLE_SERIAL_INVOKE_FLAG)] = &TestServiceStub::ServerEnableSerialInvokeFlag;
+}
+
+TestServiceStub::TestServiceStub(bool serialInvokeFlag)
+    : IRemoteStub(serialInvokeFlag), serialInvokeFlag_(serialInvokeFlag)
+{
+    OnSendRequestMap();
+}
+
 TestServiceProxy::TestServiceProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<ITestService>(impl)
 {
@@ -132,7 +157,7 @@ int TestServiceProxy::TestPingService(const std::u16string &serviceName)
     dataParcel.WriteString16(serviceName);
     error = Remote()->SendRequest(TRANS_ID_PING_SERVICE, dataParcel, replyParcel, option);
     int result = (error == ERR_NONE) ? replyParcel.ReadInt32() : -1;
-    ZLOGD(LABEL, "PingService result = %d", result);
+    ZLOGD(LABEL, "PingService result = %{public}d", result);
     return result;
 }
 
@@ -634,193 +659,203 @@ int TestServiceProxy::TestNestingSend(int sendCode, int &replyCode)
     return error;
 }
 
-int TestServiceStub::OnRemoteRequest(uint32_t code,
-    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t TestServiceStub::ServerSyncTransaction(MessageParcel &data, MessageParcel &reply)
 {
-    int ret = 0;
-    int result = 0;
-    ZLOGD(LABEL, "OnRemoteRequest, cmd = %{public}d, flags= %{public}d", code, option.GetFlags());
-    switch (code) {
-        case TRANS_ID_SYNC_TRANSACTION: {
-            int32_t reqData = data.ReadInt32();
-            int32_t delayTime = data.ReadInt32();
-            ret = TestSyncTransaction(reqData, result, delayTime);
-            reply.WriteInt32(result);
-            break;
-        }
-        case TRANS_ID_ASYNC_TRANSACTION: {
-            int32_t reqData = data.ReadInt32();
-            int timeout = data.ReadInt32();
-            bool acquireResult = data.ReadBool();
-            if (acquireResult) {
-                sptr<IFoo> fooProxy = iface_cast<IFoo>(data.ReadRemoteObject());
-                if (fooProxy != nullptr) {
-                    TestAsyncCallbackTrans(reqData, result, timeout);
-                    fooProxy->SendAsyncReply(result);
-                }
-            } else {
-                (void)TestAsyncTransaction(reqData, timeout);
-            }
-            break;
-        }
-        case TRANS_ID_PING_SERVICE: {
-            std::u16string serviceName = data.ReadString16();
-            result = TestPingService(serviceName);
-            ZLOGD(LABEL, "%s:PingService: result=%d", __func__, result);
-            reply.WriteInt32(result);
-            break;
-        }
-        case TRANS_ID_GET_FOO_SERVICE: {
-            sptr<IFoo> fooService = TestGetFooService();
-            sptr<IRemoteObject> object = fooService->AsObject();
-            object->SetBehavior(Parcelable::BehaviorFlag::HOLD_OBJECT);
-            reply.WriteRemoteObject(object);
-            break;
-        }
-        case TRANS_ID_TRANSACT_FILE_DESC: {
-            int desc = TestGetFileDescriptor();
-            reply.WriteFileDescriptor(desc);
-            close(desc);
-            break;
-        }
-        case TRANS_ID_STRING_TRANSACTION: {
-            const std::string testString = data.ReadString();
-            int testSize = TestStringTransaction(testString);
-            reply.WriteInt32(testSize);
-            reply.WriteString(testString);
-            break;
-        }
-        case TRANS_ID_ZTRACE_TRANSACTION: {
-            int32_t len = data.ReadInt32();
-            if (len < 0) {
-                ZLOGE(LABEL, "%s:get len failed, len = %d", __func__, len);
-                break;
-            }
-            std::string recvString;
-            std::string replyString(len, 0);
-            recvString = data.ReadString();
-            ret = TestZtraceTransaction(recvString, replyString, len);
-            if (!ret) {
-                reply.WriteString(replyString);
-            }
-            break;
-        }
-        case TRANS_ID_RAWDATA_TRANSACTION: {
-            ret = TransferRawData(data, reply);
-            break;
-        }
-        case TRANS_ID_RAWDATA_REPLY: {
-            ret = ReplyRawData(data, reply);
-            break;
-        }
-        case TRANS_ID_CALLING_UID_PID: {
-            reply.WriteInt32(IPCSkeleton::GetCallingUid());
-            reply.WriteInt32(IPCSkeleton::GetCallingPid());
+    int32_t result = 0;
+    int32_t reqData = data.ReadInt32();
+    int32_t delayTime = data.ReadInt32();
+    int32_t ret = TestSyncTransaction(reqData, result, delayTime);
+    reply.WriteInt32(result);
+    return ret;
+}
 
-            ZLOGE(LABEL, "calling before reset uid = %{public}d, pid = %{public}d",
-                IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
-            std::string token = IPCSkeleton::ResetCallingIdentity();
+int32_t TestServiceStub::ServerAsyncTransaction(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result = 0;
+    int32_t reqData = data.ReadInt32();
+    int timeout = data.ReadInt32();
+    bool acquireResult = data.ReadBool();
+    if (acquireResult) {
+        sptr<IFoo> fooProxy = iface_cast<IFoo>(data.ReadRemoteObject());
+        if (fooProxy != nullptr) {
+            TestAsyncCallbackTrans(reqData, result, timeout);
+            fooProxy->SendAsyncReply(result);
+        }
+    } else {
+        (void)TestAsyncTransaction(reqData, timeout);
+    }
+    return 0;
+}
 
-            ZLOGE(LABEL, "calling before set uid = %{public}d, pid = %{public}d",
-                IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
-            if (!IPCSkeleton::SetCallingIdentity(token)) {
-                ZLOGE(LABEL, "Set Calling Identity fail");
-                break;
-            }
+int32_t TestServiceStub::ServerPingService(MessageParcel &data, MessageParcel &reply)
+{
+    std::u16string serviceName = data.ReadString16();
+    int32_t result = TestPingService(serviceName);
+    ZLOGD(LABEL, "%{public}s:PingService: result=%{public}d", __func__, result);
+    reply.WriteInt32(result);
+    return 0;
+}
 
-            ZLOGE(LABEL, "calling after set uid = %{public}d, pid = %{public}d",
-                IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
-            break;
-        }
-        case TRANS_ID_FLUSH_ASYNC_CALLS: {
-            (void)data.ReadString16();
-            break;
-        }
-        case TRANS_ID_MULTIPLE_PROCESSES: {
-            TransferToNextProcess(data, reply);
-            break;
-        }
-        case TRANS_ID_ASHMEM: {
-            ReadAshmem(data, reply);
-            break;
-        }
-        case TRANS_ID_NESTING_SEND: {
-            sptr<IRemoteObject> object = data.ReadRemoteObject();
-            sptr<IFoo> foo = iface_cast<IFoo>(object);
-            int innerResult = foo->TestNestingSend(data.ReadInt32());
-            reply.WriteInt32(innerResult);
-            break;
-        }
-        case TRANS_ID_ACCESS_TOKENID: {
-            int32_t token = (int32_t)IPCSkeleton::GetCallingTokenID();
-            int32_t ftoken = (int32_t)IPCSkeleton::GetFirstTokenID();
-            ZLOGE(LABEL, "server GetCallingTokenID:%{public}d", token);
-            ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
-            reply.WriteInt32(token);
-            reply.WriteInt32(ftoken);
-            break;
-        }
-        case TRANS_ID_ACCESS_TOKENID_64: {
-            uint64_t token = IPCSkeleton::GetCallingFullTokenID();
-            uint64_t ftoken = IPCSkeleton::GetFirstFullTokenID();
-            ZLOGE(LABEL, "server GetCallingFullTokenID:%{public}" PRIu64, token);
-            ZLOGE(LABEL, "server GetFirstFullTokenID:%{public}" PRIu64, ftoken);
-            reply.WriteUint64(token);
-            reply.WriteUint64(ftoken);
-            break;
-        }
-        case TRANS_MESSAGE_PARCEL_ADDPED: {
-            reply.WriteInt32(data.ReadInt32());
-            reply.WriteInt32(data.ReadInt32());
-            reply.WriteString(data.ReadString());
-            break;
-        }
-        case TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT: {
-            reply.WriteInt32(data.ReadInt32());
-            reply.WriteInt32(data.ReadInt32());
-            reply.WriteString(data.ReadString());
-            reply.WriteRemoteObject(data.ReadRemoteObject());
-            reply.WriteFileDescriptor(data.ReadFileDescriptor());
-            break;
-        }
-        case TRANS_ENABLE_SERIAL_INVOKE_FLAG: {
-            static int sendCount = 0;
+int32_t TestServiceStub::ServerGetFooService(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IFoo> fooService = TestGetFooService();
+    sptr<IRemoteObject> object = fooService->AsObject();
+    object->SetBehavior(Parcelable::BehaviorFlag::HOLD_OBJECT);
+    reply.WriteRemoteObject(object);
+    return 0;
+}
 
-            if (sendCount == 0) {
-                if (serialInvokeFlag_) {
-                    std::cout<< "Enable serial invoke flag" << std::endl;
-                } else {
-                    std::cout<< "Not enable serial invoke flag" << std::endl;
-                }
-            }
+int32_t TestServiceStub::ServerTransactFileDesc(MessageParcel &data, MessageParcel &reply)
+{
+    int desc = TestGetFileDescriptor();
+    reply.WriteFileDescriptor(desc);
+    close(desc);
+    return 0;
+}
 
-            reply.WriteString(data.ReadString());
-            sendCount++;
+int32_t TestServiceStub::ServerStringTransaction(MessageParcel &data, MessageParcel &reply)
+{
+    const std::string testString = data.ReadString();
+    int testSize = TestStringTransaction(testString);
+    reply.WriteInt32(testSize);
+    reply.WriteString(testString);
+    return 0;
+}
 
-            if (sendCount >= MAX_RECURSIVE_SENDS) {
-                break;
-            }
+int32_t TestServiceStub::ServerZtraceTransaction(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = 0;
+    int32_t len = data.ReadInt32();
+    if (len < 0) {
+        ZLOGE(LABEL, "%{public}s:get len failed, len = %{public}d", __func__, len);
+        return ret;
+    }
+    std::string recvString;
+    std::string replyString(len, 0);
+    recvString = data.ReadString();
+    ret = TestZtraceTransaction(recvString, replyString, len);
+    if (!ret) {
+        reply.WriteString(replyString);
+    }
+    return ret;
+}
 
-            MessageOption option;
-            MessageParcel dataParcel, replyParcel;
-            std::string value = std::to_string(sendCount); // The last time was 4.
+int32_t TestServiceStub::ServerCallingUidAndPid(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteInt32(IPCSkeleton::GetCallingUid());
+    reply.WriteInt32(IPCSkeleton::GetCallingPid());
 
-            std::cout << "Current thread ID = " << std::this_thread::get_id();
-            std::cout << " Send to server data = " << value << std::endl;
-            dataParcel.WriteString(value);
-            ret = IPCObjectStub::SendRequest(TRANS_ENABLE_SERIAL_INVOKE_FLAG, dataParcel, replyParcel, option);
-            std::string result = replyParcel.ReadString();
+    ZLOGE(LABEL, "calling before reset uid = %{public}d, pid = %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+    std::string token = IPCSkeleton::ResetCallingIdentity();
 
-            std::cout << "Current thread ID = " << std::this_thread::get_id();
-            std::cout << " Get result from server data = " << result << std::endl;
-            break;
-        }
-        default:
-            ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-            break;
+    ZLOGE(LABEL, "calling before set uid = %{public}d, pid = %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+    if (!IPCSkeleton::SetCallingIdentity(token)) {
+        ZLOGE(LABEL, "Set Calling Identity fail");
+        return 0;
     }
 
+    ZLOGE(LABEL, "calling after set uid = %{public}d, pid = %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+    return 0;
+}
+
+int32_t TestServiceStub::ServerNestingSend(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> object = data.ReadRemoteObject();
+    sptr<IFoo> foo = iface_cast<IFoo>(object);
+    int innerResult = foo->TestNestingSend(data.ReadInt32());
+    reply.WriteInt32(innerResult);
+    return 0;
+}
+
+int32_t TestServiceStub::ServerAccessTokenId(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t token = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
+    int32_t ftoken = static_cast<int32_t>(IPCSkeleton::GetFirstTokenID());
+    ZLOGE(LABEL, "server GetCallingTokenID:%{public}d", token);
+    ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
+    reply.WriteInt32(token);
+    reply.WriteInt32(ftoken);
+    return 0;
+}
+
+int32_t TestServiceStub::ServerAccessTokenId64(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t token = IPCSkeleton::GetCallingFullTokenID();
+    uint64_t ftoken = IPCSkeleton::GetFirstFullTokenID();
+    ZLOGE(LABEL, "server GetCallingFullTokenID:%{public}" PRIu64, token);
+    ZLOGE(LABEL, "server GetFirstFullTokenID:%{public}" PRIu64, ftoken);
+    reply.WriteUint64(token);
+    reply.WriteUint64(ftoken);
+    return 0;
+}
+
+int32_t TestServiceStub::ServerMessageParcelAddped(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteInt32(data.ReadInt32());
+    reply.WriteInt32(data.ReadInt32());
+    reply.WriteString(data.ReadString());
+    return 0;
+}
+
+int32_t TestServiceStub::ServerMessageParcelAddpedWithObject(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteInt32(data.ReadInt32());
+    reply.WriteInt32(data.ReadInt32());
+    reply.WriteString(data.ReadString());
+    reply.WriteRemoteObject(data.ReadRemoteObject());
+    reply.WriteFileDescriptor(data.ReadFileDescriptor());
+    return 0;
+}
+
+int32_t TestServiceStub::ServerEnableSerialInvokeFlag(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = 0;
+    static int sendCount = 0;
+
+    if (sendCount == 0) {
+        if (serialInvokeFlag_) {
+            std::cout<< "Enable serial invoke flag" << std::endl;
+        } else {
+            std::cout<< "Not enable serial invoke flag" << std::endl;
+        }
+    }
+
+    reply.WriteString(data.ReadString());
+    sendCount++;
+
+    if (sendCount >= MAX_RECURSIVE_SENDS) {
+        return ret;
+    }
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::string value = std::to_string(sendCount); // The last time was 4.
+
+    std::cout << "Current thread ID = " << std::this_thread::get_id();
+    std::cout << " Send to server data = " << value << std::endl;
+    dataParcel.WriteString(value);
+    ret = IPCObjectStub::SendRequest(TRANS_ENABLE_SERIAL_INVOKE_FLAG, dataParcel, replyParcel, option);
+    std::string result = replyParcel.ReadString();
+
+    std::cout << "Current thread ID = " << std::this_thread::get_id();
+    std::cout << " Get result from server data = " << result << std::endl;
     return ret;
+}
+
+int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    std::map<uint32_t, OHOS::TestServiceStub::TestServiceStubFunc>::iterator it = funcMap_.find(code);
+    if (it != funcMap_.end()) {
+        OHOS::TestServiceStub::TestServiceStubFunc itFunc = it->second;
+        if (itFunc != nullptr) {
+            return (this->*itFunc)(data, reply);
+        }
+    }
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
