@@ -107,7 +107,7 @@ private:
     int32_t ServerMessageParcelAddped(MessageParcel &data, MessageParcel &reply);
     int32_t ServerMessageParcelAddpedWithObject(MessageParcel &data, MessageParcel &reply);
     int32_t ServerEnableSerialInvokeFlag(MessageParcel &data, MessageParcel &reply);
-    void OnSendRequestMap();
+    void InitMessageProcessMap();
 
     using TestServiceStubFunc = int32_t(TestServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     std::map<uint32_t, TestServiceStubFunc> funcMap_;
