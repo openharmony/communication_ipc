@@ -40,7 +40,7 @@ using namespace OHOS::HiviewDFX;
 
 constexpr int32_t MAX_RECURSIVE_SENDS = 5;
 
-void TestServiceStub::OnSendRequestMap()
+void TestServiceStub::InitMessageProcessMap()
 {
     funcMap_[static_cast<uint32_t>(TRANS_ID_SYNC_TRANSACTION)] = &TestServiceStub::ServerSyncTransaction;
     funcMap_[static_cast<uint32_t>(TRANS_ID_ASYNC_TRANSACTION)] = &TestServiceStub::ServerAsyncTransaction;
@@ -62,7 +62,7 @@ void TestServiceStub::OnSendRequestMap()
 TestServiceStub::TestServiceStub(bool serialInvokeFlag)
     : IRemoteStub(serialInvokeFlag), serialInvokeFlag_(serialInvokeFlag)
 {
-    OnSendRequestMap();
+    InitMessageProcessMap();
 }
 
 TestServiceProxy::TestServiceProxy(const sptr<IRemoteObject> &impl)
