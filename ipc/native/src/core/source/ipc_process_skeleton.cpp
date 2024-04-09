@@ -1052,7 +1052,7 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(int32_t listenF
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
     uint32_t indexCnt = 0;
     bool appInfoErase = false;
-    for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end();) {
+    for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end(); it++) {
         std::map<uint64_t, int32_t> &mapItem = it->second;
         for (auto it2 = mapItem.begin(); it2 != mapItem.end();) {
             if (it2->second == listenFd) {

@@ -61,7 +61,7 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 
 void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reason)
 {
-    ZLOGI(LABEL, "socket:%{public}d, ShutdownReason:%{public}d", socket, reason);
+    ZLOGI(LABEL, "socketId:%{public}d, ShutdownReason:%{public}d", socket, reason);
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
@@ -70,7 +70,7 @@ void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
     }
 
     invoker->OnDatabusSessionServerSideClosed(socket);
-    ZLOGI(LABEL, "end, socket:%{public}d", socket);
+    ZLOGI(LABEL, "end, socketId:%{public}d", socket);
 
     return;
 }
@@ -82,7 +82,7 @@ void DatabusSocketListener::ClientOnBind(int32_t socket, PeerSocketInfo info)
 
 void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reason)
 {
-    ZLOGI(LABEL, "socket:%{public}d, ShutdownReason:%{public}d", socket, reason);
+    ZLOGI(LABEL, "socketId:%{public}d, ShutdownReason:%{public}d", socket, reason);
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
@@ -91,13 +91,13 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
     }
 
     invoker->OnDatabusSessionClientSideClosed(socket);
-    ZLOGI(LABEL, "end, socket:%{public}d", socket);
+    ZLOGI(LABEL, "end, socketId:%{public}d", socket);
     return;
 }
 
 void DatabusSocketListener::OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen)
 {
-    ZLOGI(LABEL, "socket:%{public}d len:%{public}u", socket, dataLen);
+    ZLOGI(LABEL, "socketId:%{public}d len:%{public}u", socket, dataLen);
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
@@ -152,13 +152,13 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
     int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
     if (ret != ERR_NONE) {
         ZLOGE(LABEL, "Bind failed, ret:%{public}d, socketid:%{public}d,"
-            "own:%{public}s peer:%{public}s  ,peerNetworkId:%{public}s",
+            "ownName:%{public}s, peerName:%{public}s, peerNetworkId:%{public}s",
             ret, socketId, ownName.c_str(), peerName.c_str(),
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str());
         Shutdown(socketId);
         return SOCKET_ID_INVALID;
     }
-    ZLOGI(LABEL, "Bind succ, own:%{public}s peer:%{public}s deviceId:%{public}s "
+    ZLOGI(LABEL, "Bind succ, ownName:%{public}s peer:%{public}s deviceId:%{public}s "
         "socketId:%{public}d", ownName.c_str(), peerName.c_str(),
         IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(), socketId);
 

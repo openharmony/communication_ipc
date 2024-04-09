@@ -101,7 +101,7 @@ void DBinderRemoteListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
 
 void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen)
 {
-    DBINDER_LOGI(LOG_LABEL, "OnBytesReceived, socketId:%{public}d len:%{public}u", socket, dataLen);
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d len:%{public}u", socket, dataLen);
     if (data == nullptr || dataLen != static_cast<uint32_t>(sizeof(struct DHandleEntryTxRx))) {
         DBINDER_LOGE(LOG_LABEL, "wrong input, data length:%{public}u "
             "socketId:%{public}d", dataLen, socket);
@@ -124,7 +124,7 @@ void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, ui
         return;
     }
     DBINDER_LOGI(LOG_LABEL, "service:%{public}llu seq:%{public}u,"
-        " stubIndex:%{public}" PRIu64 "code:%{public}u", message->binderObject,
+        " stubIndex:%{public}" PRIu64 " code:%{public}u", message->binderObject,
         message->seqNumber, message->stubIndex, message->dBinderCode);
 
     DBinderService::GetInstance()->AddAsynMessageTask(message);

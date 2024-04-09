@@ -130,8 +130,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
     return connectSession;
 }
 
-bool DBinderDatabusInvoker::AuthSession2Proxy(uint32_t handle,
-    const std::shared_ptr<DBinderSessionObject> session)
+bool DBinderDatabusInvoker::AuthSession2Proxy(uint32_t handle, const std::shared_ptr<DBinderSessionObject> session)
 {
     if (session == nullptr) {
         ZLOGE(LOG_LABEL, "remote session is nullptr, handle:%{public}u", handle);
@@ -219,7 +218,7 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
     current->UpdateCommAuthSocketInfo(peerPid, peerUid, peerTokenId, networkId, socketId);
     uint32_t oldTokenId = 0;
     if (current->StubDetachDBinderSession(socketId, oldTokenId) == true) {
-        ZLOGI(LOG_LABEL, "delete left socket:%{public}u device:%{public}s oldTokenId:%{public}u", socketId,
+        ZLOGI(LOG_LABEL, "delete left socketId:%{public}d device:%{public}s oldTokenId:%{public}u", socketId,
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(), oldTokenId);
     }
     std::shared_ptr<DBinderSessionObject> sessionObject = std::make_shared<DBinderSessionObject>(
@@ -228,11 +227,11 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
     sessionObject->SetPeerPid(peerPid);
     sessionObject->SetPeerUid(peerUid);
     if (!current->StubAttachDBinderSession(socketId, sessionObject)) {
-        ZLOGE(LOG_LABEL, "attach session to process skeleton failed, socket:%{public}u", socketId);
+        ZLOGE(LOG_LABEL, "attach session to process skeleton failed, socketId:%{public}d", socketId);
         return false;
     }
     ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u deviceId:%{public}s tokenId:%{public}u "
-        "oldTokenId:%{public}u socket:%{public}u", peerPid, peerUid,
+        "oldTokenId:%{public}u socketId:%{public}d", peerPid, peerUid,
         IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(),
         peerTokenId, oldTokenId, socketId);
     // update listen fd
@@ -374,7 +373,7 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
     readCursor += size;
     sessionBuff->SetSendBufferReadCursor(readCursor);
     sessionBuff->SetSendBufferWriteCursor(writeCursor);
-    ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zd channelId:%{public}d",
+    ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zd socketId:%{public}d",
         seqNumber_, size, socketId);
 
     sessionBuff->ReleaseSendBufferLock();
@@ -548,7 +547,7 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
         ZLOGE(LOG_LABEL, "fail to creat client Socket");
         return false;
     }
-    ZLOGI(LOG_LABEL, "create socketId ok %{public}d", socketId);
+    ZLOGI(LOG_LABEL, "create ok socketId:%{public}d", socketId);
     sessionObject->SetSocketId(socketId);
     return true;
 }
