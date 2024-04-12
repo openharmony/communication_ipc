@@ -526,7 +526,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
             tmp->GetSocketId(), tmp->GetServiceName().c_str(),
             tmp->GetStubIndex());
     } else {
-        ZLOGW(LOG_LABEL, "detach handle:%{Public}u, not found", handle);
+        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found", handle);
     }
 
     return tmp;
@@ -1052,7 +1052,7 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(int32_t listenF
     std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
     uint32_t indexCnt = 0;
     bool appInfoErase = false;
-    for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end(); it++) {
+    for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end();) {
         std::map<uint64_t, int32_t> &mapItem = it->second;
         for (auto it2 = mapItem.begin(); it2 != mapItem.end();) {
             if (it2->second == listenFd) {
@@ -1064,8 +1064,10 @@ std::list<uint64_t> IPCProcessSkeleton::DetachAppInfoToStubIndex(int32_t listenF
             }
         }
         if (mapItem.empty()) {
-            appInfoToStubIndex_.erase(it);
+            it = appInfoToStubIndex_.erase(it);
             appInfoErase = true;
+        } else {
+            it++;
         }
     }
     ZLOGI(LOG_LABEL, "listenFd:%{public}d indexCnt:%{public}u appInfoErase:%{public}d",
@@ -1304,7 +1306,7 @@ bool IPCProcessSkeleton::DetachCommAuthInfo(IRemoteObject *stub, int pid, int ui
     return false;
 }
 
-void IPCProcessSkeleton::DetachCommAuthInfoBySocketId(const int32_t socketId)
+void IPCProcessSkeleton::DetachCommAuthInfoBySocketId(int32_t socketId)
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
     auto check = [&socketId](const std::shared_ptr<CommAuthInfo> &auth) {

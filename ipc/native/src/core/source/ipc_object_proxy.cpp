@@ -745,8 +745,9 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
     }
 
     std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string peerUid = str.substr(0, str.find("_"));
-    std::string peerPid = str.substr(str.find("_") + 1);
+    std::string::size_type pos = str.find("_");
+    std::string peerUid = str.substr(0, pos);
+    std::string peerPid = str.substr(pos + 1);
 
     std::shared_ptr<DBinderSessionObject> dbinderSession = std::make_shared<DBinderSessionObject>(
         serviceName, peerID, stubIndex, this, peerTokenId);

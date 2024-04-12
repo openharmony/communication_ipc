@@ -810,7 +810,7 @@ std::shared_ptr<ThreadProcessInfo> DBinderBaseInvoker<T>::MakeThreadProcessInfo(
     uint32_t size)
 {
     if (inBuffer == nullptr || size < sizeof(dbinder_transaction_data) || size > SOCKET_MAX_BUFF_SIZE) {
-        ZLOGE(LOG_LABEL, "buffer is null or size:%{public}u invalid, socketId:%{public}u", size, socketId);
+        ZLOGE(LOG_LABEL, "buffer is null or size:%{public}u invalid, socketId:%{public}d", size, socketId);
         return nullptr;
     }
 
@@ -821,18 +821,18 @@ std::shared_ptr<ThreadProcessInfo> DBinderBaseInvoker<T>::MakeThreadProcessInfo(
         }
     });
     if (processInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "make ThreadProcessInfo fail, socketId:%{public}u", socketId);
+        ZLOGE(LOG_LABEL, "make ThreadProcessInfo fail, socketId:%{public}d", socketId);
         return nullptr;
     }
     std::shared_ptr<char> buffer(new (std::nothrow) char[size]);
     if (buffer == nullptr) {
-        ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u socketId:%{public}u", size, socketId);
+        ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u socketId:%{public}d", size, socketId);
         return nullptr;
     }
 
     int memcpyResult = memcpy_s(buffer.get(), size, inBuffer, size);
     if (memcpyResult != 0) {
-        ZLOGE(LOG_LABEL, "memcpy_s failed , size:%{public}u socketId:%{public}u", size, socketId);
+        ZLOGE(LOG_LABEL, "memcpy_s failed , size:%{public}u socketId:%{public}d", size, socketId);
         return nullptr;
     }
 
@@ -887,12 +887,12 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
 
     auto allocator = new (std::nothrow) DBinderSendAllocator();
     if (allocator == nullptr) {
-        ZLOGE(LOG_LABEL, "DBinderSendAllocator failed, listenFd:%{public}u", listenFd);
+        ZLOGE(LOG_LABEL, "DBinderSendAllocator failed, listenFd:%{public}d", listenFd);
         DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SEND_ALLOCATOR_FAIL, __FUNCTION__);
         return;
     }
     if (!data.SetAllocator(allocator)) {
-        ZLOGE(LOG_LABEL, "SetAllocator failed, listenFd:%{public}u", listenFd);
+        ZLOGE(LOG_LABEL, "SetAllocator failed, listenFd:%{public}d", listenFd);
         DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SET_ALLOCATOR_FAIL, __FUNCTION__);
         delete allocator;
         return;
@@ -912,7 +912,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     int32_t oldClientFd = GetClientFd();
     const uint32_t oldTokenId = GetCallerTokenID();
     if (CheckAndSetCallerInfo(listenFd, tr->cookie) != ERR_NONE) {
-        ZLOGE(LOG_LABEL, "check and set caller info failed, cmd:%{public}u listenFd:%{public}u", tr->code, listenFd);
+        ZLOGE(LOG_LABEL, "check and set caller info failed, cmd:%{public}u listenFd:%{public}d", tr->code, listenFd);
         DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_CHECK_AND_SET_CALLER_FAIL, __FUNCTION__);
         return;
     }
@@ -925,14 +925,14 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         std::lock_guard<std::mutex> lockGuard(objectMutex_);
         auto *stub = current->QueryStubByIndex(tr->cookie);
         if (stub == nullptr) {
-            ZLOGE(LOG_LABEL, "stubIndex is invalid, listenFd:%{public}u seq:%{public}" PRIu64,
+            ZLOGE(LOG_LABEL, "stubIndex is invalid, listenFd:%{public}d seq:%{public}" PRIu64,
                 listenFd, senderSeqNumber);
             DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_STUB_INVALID, __FUNCTION__);
             return;
         }
         if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<char *>(tr->buffer), tr->buffer_size, data,
             listenFd, nullptr)) {
-            ZLOGE(LOG_LABEL, "translate object failed, listenFd:%{public}u seq:%{public}" PRIu64,
+            ZLOGE(LOG_LABEL, "translate object failed, listenFd:%{public}d seq:%{public}" PRIu64,
                 listenFd, senderSeqNumber);
             DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_TRANSLATE_FAIL, __FUNCTION__);
             return;
@@ -946,13 +946,13 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         int error = stubObject->SendRequest(tr->code, data, reply, option);
         if (error != ERR_NONE) {
             ZLOGW(LOG_LABEL, "stub sendrequest failed, cmd:%{public}u error:%{public}d "
-                "listenFd:%{public}u seq:%{public}" PRIu64, tr->code, error, listenFd, senderSeqNumber);
+                "listenFd:%{public}d seq:%{public}" PRIu64, tr->code, error, listenFd, senderSeqNumber);
             // can not return;
         }
     }
 
     if (data.GetRawData() != nullptr) {
-        ZLOGW(LOG_LABEL, "delete raw data in process skeleton, listenFd:%{public}u seq:%{public}" PRIu64,
+        ZLOGW(LOG_LABEL, "delete raw data in process skeleton, listenFd:%{public}d seq:%{public}" PRIu64,
             listenFd, senderSeqNumber);
         current->DetachRawData(listenFd);
     }
@@ -1003,7 +1003,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     int memcpyResult = memcpy_s(messageInfo->buffer, tr->sizeOfSelf - sizeof(dbinder_transaction_data), tr->buffer,
         tr->sizeOfSelf - sizeof(dbinder_transaction_data));
     if (memcpyResult != 0) {
-        ZLOGE(LOG_LABEL, "memcpy_s failed, error:%{public}d seqNumber:%{public}llu listenFd:%{public}u",
+        ZLOGE(LOG_LABEL, "memcpy_s failed, error:%{public}d seqNumber:%{public}llu listenFd:%{public}d",
             memcpyResult, tr->seqNumber, listenFd);
         DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         delete[](unsigned char *) messageInfo->buffer;
@@ -1032,8 +1032,8 @@ template <class T> void DBinderBaseInvoker<T>::OnTransaction(std::shared_ptr<Thr
     int32_t listenFd = processInfo->listenFd;
     char *package = processInfo->buffer.get();
 
-    if (package == nullptr || listenFd <= 0) {
-        ZLOGE(LOG_LABEL, "package is null or listenFd:%{public}u invalid!", listenFd);
+    if (package == nullptr || listenFd < 0) {
+        ZLOGE(LOG_LABEL, "package is null or listenFd:%{public}d invalid!", listenFd);
         return;
     }
 

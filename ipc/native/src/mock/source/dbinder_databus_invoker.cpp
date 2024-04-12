@@ -179,8 +179,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::QueryClientSessionO
         ZLOGE(LOG_LABEL, "no session attach to this proxy:%{public}u", databusHandle);
         return nullptr;
     }
-    ZLOGI(LOG_LABEL, "socketid :%{public}u, sessionOfPeer->socketid:%{public}u",
-        databusHandle, sessionOfPeer->GetSocketId());
+    ZLOGI(LOG_LABEL, "socketId:%{public}d", sessionOfPeer->GetSocketId());
     return sessionOfPeer;
 }
 
@@ -217,7 +216,7 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
     }
     current->UpdateCommAuthSocketInfo(peerPid, peerUid, peerTokenId, networkId, socketId);
     uint32_t oldTokenId = 0;
-    if (current->StubDetachDBinderSession(socketId, oldTokenId) == true) {
+    if (current->StubDetachDBinderSession(socketId, oldTokenId)) {
         ZLOGI(LOG_LABEL, "delete left socketId:%{public}d device:%{public}s oldTokenId:%{public}u", socketId,
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(), oldTokenId);
     }
@@ -363,8 +362,8 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
 
     int32_t ret = SendBytes(socketId, static_cast<const void *>(sendBuffer + readCursor), size);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64 " size:%{public}zd socketId:%{public}d",
-            ret, seqNumber_, size, socketId);
+        ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64 
+            " size:%{public}zd, socketId:%{public}d", ret, seqNumber_, size, socketId);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         sessionBuff->ReleaseSendBufferLock();
         return ret;
@@ -373,7 +372,7 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
     readCursor += size;
     sessionBuff->SetSendBufferReadCursor(readCursor);
     sessionBuff->SetSendBufferWriteCursor(writeCursor);
-    ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zd socketId:%{public}d",
+    ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zd, socketId:%{public}d",
         seqNumber_, size, socketId);
 
     sessionBuff->ReleaseSendBufferLock();
@@ -400,7 +399,7 @@ int DBinderDatabusInvoker::OnSendRawData(std::shared_ptr<DBinderSessionObject> s
         return ret;
     }
 
-    ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zu socketId:%{public}d",
+    ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zu, socketId:%{public}d",
         seqNumber_, size, socketId);
 
     return ret;
@@ -613,9 +612,9 @@ void DBinderDatabusInvoker::OnDatabusSessionServerSideClosed(int32_t socketId)
         }
         // a proxy doesn't refers this stub, we need to dec ref
         stub->DecStrongRef(this);
-        ZLOGI(LOG_LABEL, "socketid: %{public}d", socketId);
+        ZLOGI(LOG_LABEL, "socketId:%{public}d", socketId);
     }
-    ZLOGI(LOG_LABEL, "socketid: %{public}d ret:%{public}d", socketId, ret);
+    ZLOGI(LOG_LABEL, "socketId:%{public}d ret:%{public}d", socketId, ret);
 }
 
 uint32_t DBinderDatabusInvoker::QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session)

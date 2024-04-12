@@ -42,11 +42,12 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
     ZLOGI(LABEL, "socketId:%{public}d, deviceId:%{public}s", socket,
         IPCProcessSkeleton::ConvertToSecureString(info.networkId).c_str());
 
-    std::string peerName = info.name;
     std::string networkId = info.networkId;
+    std::string peerName = info.name;
     std::string str = peerName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string peerUid = str.substr(0, str.find("_"));
-    std::string peerPid = str.substr(str.find("_") + 1);
+    std::string::size_type pos = str.find("_");
+    std::string peerUid = str.substr(0, pos);
+    std::string peerPid = str.substr(pos + 1);
 
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
@@ -56,7 +57,6 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
     }
 
     invoker->OnReceiveNewConnection(socket, std::stoi(peerPid), std::stoi(peerUid), peerName, networkId);
-    return;
 }
 
 void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reason)
@@ -71,8 +71,6 @@ void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
 
     invoker->OnDatabusSessionServerSideClosed(socket);
     ZLOGI(LABEL, "end, socketId:%{public}d", socket);
-
-    return;
 }
 
 void DatabusSocketListener::ClientOnBind(int32_t socket, PeerSocketInfo info)
@@ -151,7 +149,7 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
     }
     int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
     if (ret != ERR_NONE) {
-        ZLOGE(LABEL, "Bind failed, ret:%{public}d, socketid:%{public}d,"
+        ZLOGE(LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d,"
             "ownName:%{public}s, peerName:%{public}s, peerNetworkId:%{public}s",
             ret, socketId, ownName.c_str(), peerName.c_str(),
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str());
