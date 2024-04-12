@@ -40,8 +40,18 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         return;
     }
 
+    if (env_ == nullptr) {
+        ZLOGE(LOG_LABEL, "js env has been destructed");
+        return;
+    }
+
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        ZLOGE(LOG_LABEL, "loop is nullptr");
+        return;
+    }
+
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
         ZLOGE(LOG_LABEL, "failed to new uv_work_t");
