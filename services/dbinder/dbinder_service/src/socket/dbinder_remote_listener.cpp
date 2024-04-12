@@ -48,11 +48,6 @@ void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 {
     DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, peerNetworkId:%{public}s, peersocketname:%{public}s",
         socket, DBinderService::ConvertToSecureDeviceID(info.networkId).c_str(), info.name);
-
-    int32_t socketId = GetPeerSocketId(info.networkId);
-    if (socketId != SOCKET_ID_INVALID) {
-        Shutdown(socketId);
-    }
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
     serverSocketInfos_[info.networkId] = socket;
     return;
@@ -102,24 +97,24 @@ void DBinderRemoteListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
 void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen)
 {
     DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d len:%{public}u", socket, dataLen);
-    if (data == nullptr || dataLen != static_cast<uint32_t>(sizeof(struct DHandleEntryTxRx))) {
+    if (data == nullptr || dataLen != static_cast<uint32_t>(sizeof(DHandleEntryTxRx))) {
         DBINDER_LOGE(LOG_LABEL, "wrong input, data length:%{public}u "
             "socketId:%{public}d", dataLen, socket);
         // ignore the package
         return;
     }
 
-    std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
+    std::shared_ptr<DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     if (message == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length:%{public}zu", sizeof(struct DHandleEntryTxRx));
+        DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length:%{public}zu", sizeof(DHandleEntryTxRx));
         return;
     }
-    auto res = memcpy_s(message.get(), sizeof(struct DHandleEntryTxRx), data, sizeof(struct DHandleEntryTxRx));
+    auto res = memcpy_s(message.get(), sizeof(DHandleEntryTxRx), data, sizeof(DHandleEntryTxRx));
     if (res != 0) {
         DBINDER_LOGE(LOG_LABEL, "memcpy copy failed");
         return;
     }
-    if (message->head.len != sizeof(struct DHandleEntryTxRx)) {
+    if (message->head.len != sizeof(DHandleEntryTxRx)) {
         DBINDER_LOGE(LOG_LABEL, "msg head len error, len:%{public}u", message->head.len);
         return;
     }
@@ -161,13 +156,13 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
 
     int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
     if (ret != ERR_NONE) {
-        DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketid:%{public}d, peerNetworkId:%{public}s",
+        DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d, peerNetworkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
         Shutdown(socketId);
         return SOCKET_ID_INVALID;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "Bind ok socketid:%{public}d,  peerNetworkId:%{public}s",
+    DBINDER_LOGI(LOG_LABEL, "Bind ok socketId:%{public}d,  peerNetworkId:%{public}s",
         socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
