@@ -164,15 +164,15 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         error = WaitForCompletion(nullptr);
     } else {
 #ifdef FFRT_IPC_ENABLE
-        auto ffrtSetTaskLegacyMode = FFRTAdapter::Instance()->FfrtSetTaskLegacyMode;
+        auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
         if (ffrtTaskSetLegacyMode == nullptr) {
             return IPC_INVOKER_ERR;
         }
-        ffrtSetTaskLegacyMode(true);
+        ffrtTaskSetLegacyMode(true);
 #endif
         error = WaitForCompletion(&reply);
 #ifdef FFRT_IPC_ENABLE
-        ffrtSetTaskLegacyMode(false);
+        ffrtTaskSetLegacyMode(false);
 #endif
     }
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
