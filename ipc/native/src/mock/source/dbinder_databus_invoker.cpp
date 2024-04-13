@@ -520,7 +520,6 @@ bool DBinderDatabusInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool tak
 bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionObject> sessionObject)
 {
     ZLOGI(LOG_LABEL, "enter");
-
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "current process skeleton is nullptr");
@@ -546,8 +545,19 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
         ZLOGE(LOG_LABEL, "fail to creat client Socket");
         return false;
     }
-    ZLOGI(LOG_LABEL, "create ok socketId:%{public}d", socketId);
+    std::string serviceName = sessionObject->GetServiceName();
+    std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
+    std::string::size_type pos = str.find("_");
+    std::string peerUid = str.substr(0, pos);
+    std::string peerPid = str.substr(pos + 1);
     sessionObject->SetSocketId(socketId);
+    sessionObject->SetPeerPid(std::stoi(peerPid));
+    sessionObject->SetPeerUid(std::stoi(peerUid));
+
+    ZLOGI(LOG_LABEL, "create socket succ, ownName:%{public}s peerName:%{public}s deviceId:%{public}s "
+        "socketId:%{public}d", ownName.c_str(), serviceName.c_str(),
+        IPCProcessSkeleton::ConvertToSecureString(sessionObject->GetDeviceId()).c_str(),
+        socketId);
     return true;
 }
 

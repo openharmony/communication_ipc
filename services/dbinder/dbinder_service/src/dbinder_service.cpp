@@ -578,7 +578,7 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         "invoke business service:%{public}d seq:%{public}u stub:%{public}llu tokenId:%{public}u",
         static_cast<int32_t>(message->stubIndex), message->seqNumber,
         (message->stub & BINDER_MASK), message->deviceIdInfo.tokenId);
-    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
+    std::shared_ptr<DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
     if (memcpy_s(replyMessage.get(), sizeof(DHandleEntryTxRx), message, sizeof(DHandleEntryTxRx)) != 0) {
         DBINDER_LOGE(LOG_LABEL, "memcpy DHandleEntryTxRx fail");
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);

@@ -67,6 +67,17 @@ public:
     }
 };
 
+/*
+ * @tc.name: ProcessOnSessionClosed001
+ * @tc.desc: Verify the ProcessOnSessionClosed function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService;
+    EXPECT_EQ(dBinderService->ProcessOnSessionClosed(), false);
+}
+
 /**
  * @tc.name: StartDBinderService001
  * @tc.desc: Verify the StartDBinderService function
