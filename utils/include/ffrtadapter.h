@@ -17,14 +17,17 @@
 #define OHOS_IPC_UTIL_FFRTADAPTER_H
 #include <dlfcn.h>
 #include <string>
+#include "log_tags.h"
+#include "ipc_debug.h"
 
 namespace OHOS {
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_BASE, "ipc_ffrt_object" }
 void ffrt_this_task_set_legacy_mode(bool mode);
 using FfrtTaskSetLegacyModeType = decltype(ffrt_this_task_set_legacy_mode)*;
-#ifdef APP_USE_ARM
-static const std::string FFRT_LIB_PATH = "/system/lib/chipset-sdk/libffrt.so";
-#else
+#ifdef __aarch64__
 static const std::string FFRT_LIB_PATH = "/system/lib64/chipset-sdk/libffrt.so";
+#else
+static const std::string FFRT_LIB_PATH = "/system/lib/chipset-sdk/libffrt.so";
 #endif
 
 class FFRTAdapter {
@@ -51,12 +54,14 @@ private:
 
         handle = dlopen(FFRT_LIB_PATH.c_str(), RTLD_NOW | RTLD_LOCAL);
         if (handle == nullptr) {
+            ZLOGE(LOG_LABEL, "ffrt lib handle is null.");
             return;
         }
 
         FfrtTaskSetLegacyMode = reinterpret_cast<FfrtTaskSetLegacyModeType>(
             dlsym(handle, "ffrt_this_task_set_legacy_mode"));
         if (FfrtTaskSetLegacyMode == nullptr) {
+            ZLOGE(LOG_LABEL, "get ffrt_this_task_set_legacy_mode symbol fail.");
             return;
         }
     }
