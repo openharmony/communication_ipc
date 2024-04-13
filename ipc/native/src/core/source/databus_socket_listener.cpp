@@ -39,8 +39,8 @@ DatabusSocketListener::~DatabusSocketListener() {}
 
 void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 {
-    ZLOGI(LABEL, "socketId:%{public}d, deviceId:%{public}s", socket,
-        IPCProcessSkeleton::ConvertToSecureString(info.networkId).c_str());
+    ZLOGI(LABEL, "socketId:%{public}d, deviceId:%{public}s, peerName:%{public}s",
+        socket, IPCProcessSkeleton::ConvertToSecureString(info.networkId).c_str(), info.name);
 
     std::string networkId = info.networkId;
     std::string peerName = info.name;

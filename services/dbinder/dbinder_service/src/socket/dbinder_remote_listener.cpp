@@ -46,7 +46,7 @@ DBinderRemoteListener::~DBinderRemoteListener()
 
 void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 {
-    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, peerNetworkId:%{public}s, peersocketname:%{public}s",
+    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, peerNetworkId:%{public}s, peerName:%{public}s",
         socket, DBinderService::ConvertToSecureDeviceID(info.networkId).c_str(), info.name);
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
     serverSocketInfos_[info.networkId] = socket;
@@ -128,6 +128,12 @@ void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, ui
 
 int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetworkId)
 {
+    std::shared_ptr<DeviceLock> lockInfo = QueryOrNewDeviceLock(peerNetworkId);
+    if (lockInfo == nullptr) {
+        return SOCKET_ID_INVALID;
+    }
+    std::lock_guard<std::mutex> lockUnique(lockInfo->mutex);
+
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
         auto it = clientSocketInfos_.find(peerNetworkId);
@@ -136,11 +142,6 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         }
     }
 
-    std::shared_ptr<DeviceLock> lockInfo = QueryOrNewDeviceLock(peerNetworkId);
-    if (lockInfo == nullptr) {
-        return SOCKET_ID_INVALID;
-    }
-    std::lock_guard<std::mutex> lockUnique(lockInfo->mutex);
     SocketInfo socketInfo = {
         .name =  const_cast<char*>(OWN_SESSION_NAME.c_str()),
         .peerName = const_cast<char*>(PEER_SESSION_NAME.c_str()),
