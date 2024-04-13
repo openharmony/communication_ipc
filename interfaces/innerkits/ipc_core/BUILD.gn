@@ -87,10 +87,6 @@ ohos_shared_library("ipc_core") {
   ]
   defines = [ "FFRT_IPC_ENABLE" ]
 
-  if (target_cpu == "arm") {
-    cflags_cc += ["-DAPP_USE_ARM"]
-  }
-
   innerapi_tags = [
     "platformsdk",
     "sasdk",

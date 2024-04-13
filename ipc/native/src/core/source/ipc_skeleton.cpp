@@ -203,14 +203,18 @@ int IPCSkeleton::FlushCommands(IRemoteObject *object)
 #ifdef FFRT_IPC_ENABLE
     IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(object);
     bool isBinderInvoker = (proxy->GetProto() == IRemoteObject::IF_PROT_BINDER);
+    auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
+    if (ffrtTaskSetLegacyMode == nullptr) {
+        return IPC_SKELETON_NULL_OBJECT_ERR;
+    }
     if (isBinderInvoker) {
-        FFRTAdapter::Instance()->FfrtTaskSetLegacyMode(true);
+        ffrtTaskSetLegacyMode(true);
     }
 #endif
     int ret = invoker->FlushCommands(object);
 #ifdef FFRT_IPC_ENABLE
     if (isBinderInvoker) {
-        FFRTAdapter::Instance()->FfrtTaskSetLegacyMode(true);
+        ffrtTaskSetLegacyMode(false);
     }
 #endif
     return ret;
