@@ -29,7 +29,7 @@
 #include "string"
 #include "unistd.h"
 #ifdef FFRT_IPC_ENABLE
-#include "ffrtadapter"
+#include "ffrtadapter.h"
 #endif
 
 namespace OHOS {
