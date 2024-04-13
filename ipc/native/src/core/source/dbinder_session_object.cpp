@@ -35,9 +35,16 @@ DBinderSessionObject::~DBinderSessionObject()
 
 void DBinderSessionObject::CloseDatabusSession()
 {
+    std::shared_ptr<DatabusSocketListener> listener =
+        DelayedSingleton<DatabusSocketListener>::GetInstance();
+    if (listener == nullptr) {
+        ZLOGE(LOG_LABEL, "fail to get socket listener");
+        return;
+    }
     ZLOGI(LOG_LABEL, "Shutdown, deviceId:%{public}s socketId:%{public}d",
         IPCProcessSkeleton::ConvertToSecureString(GetDeviceId()).c_str(), socket_);
-    Shutdown(socket_);
+    listener->ShutdownSocket(socket_);
+    socket_ = SOCKET_ID_INVALID;
 }
 
 std::shared_ptr<BufferObject> DBinderSessionObject::GetSessionBuff()

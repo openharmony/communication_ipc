@@ -42,6 +42,7 @@ public:
     static void ClientOnBind(int32_t socket, PeerSocketInfo info);
     static void ClientOnShutdown(int32_t socket, ShutdownReason reason);
     static void OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen);
+    static void EraseDeviceLock(const std::string &networkId);
 
     bool StartListener();
     bool StopListener();
@@ -54,7 +55,7 @@ private:
 
     std::shared_ptr<DeviceLock> QueryOrNewDeviceLock(const std::string &networkId);
     void ClearDeviceLock();
-    void EraseDeviceLock(const std::string &networkId);
+    
     int32_t CreateClientSocket(const std::string &peerNetworkId);
     static int32_t GetPeerSocketId(const std::string &peerNetworkId);
 
@@ -72,13 +73,13 @@ private:
     int32_t listenSocketId_ = SOCKET_ID_INVALID;
     ISocketListener clientListener_ {};
     ISocketListener serverListener_ {};
-    std::map<std::string, std::shared_ptr<DeviceLock>> deviceLockMap_;
-    std::mutex deviceMutex_;
 
+    static inline std::mutex deviceMutex_;
     static inline std::mutex clientSocketMutex_;
     static inline std::mutex serverSocketMutex_;
-    static inline std::map<std::string, int32_t> clientSocketInfos_ {}; /* <networkId, socketId> */
-    static inline std::map<std::string, int32_t> serverSocketInfos_ {}; /* <networkId, socketId> */
+    static inline std::map<std::string, std::shared_ptr<DeviceLock>> deviceLockMap_ {};
+    static inline std::map<std::string, int32_t> clientSocketInfos_ {};
+    static inline std::map<std::string, int32_t> serverSocketInfos_ {};
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_REMOTE_LISTENER_H
