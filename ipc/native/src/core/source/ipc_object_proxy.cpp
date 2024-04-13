@@ -56,7 +56,6 @@ using namespace IPC_SINGLE;
         handle, error, (desc).c_str())
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
-static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 static constexpr int PRINT_ERR_CNT = 100;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)

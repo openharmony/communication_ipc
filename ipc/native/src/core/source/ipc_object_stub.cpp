@@ -60,7 +60,6 @@ static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 static constexpr int COEFF_MILLI_TO_MICRO = 1000;
 static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500 * COEFF_MILLI_TO_MICRO; // 500 ms
-static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
