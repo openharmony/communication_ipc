@@ -55,7 +55,7 @@ int32_t CommAuthInfo::GetRemoteSocketId() const
     return socketId_;
 }
 
-void CommAuthInfo::SetRemoteSocketId(const int32_t socketId)
+void CommAuthInfo::SetRemoteSocketId(int32_t socketId)
 {
     socketId_ = socketId;
 }

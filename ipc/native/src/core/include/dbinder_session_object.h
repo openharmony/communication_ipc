@@ -73,7 +73,7 @@ public:
 private:
     DISALLOW_COPY_AND_MOVE(DBinderSessionObject);
 
-    int32_t socket_ = INVALID_FD;
+    int32_t socket_ = SOCKET_ID_INVALID;
     std::mutex buffMutex_;
     std::shared_ptr<BufferObject> buff_;
     std::string serviceName_;

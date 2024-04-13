@@ -30,7 +30,7 @@ public:
     uint32_t GetRemoteTokenId() const;
     std::string GetRemoteDeviceId() const;
     int32_t GetRemoteSocketId() const;
-    void SetRemoteSocketId(const int32_t socketId);
+    void SetRemoteSocketId(int32_t socketId);
 
 private:
     IRemoteObject *stub_;

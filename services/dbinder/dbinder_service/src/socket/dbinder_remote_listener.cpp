@@ -64,7 +64,6 @@ void DBinderRemoteListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
             return;
         }
     }
-    return;
 }
 
 void DBinderRemoteListener::ClientOnBind(int32_t socket, PeerSocketInfo info)
@@ -88,10 +87,10 @@ void DBinderRemoteListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
         }
     }
     if (!networkId.empty()) {
+        EraseDeviceLock(networkId);
         DBinderService::GetInstance()->ProcessOnSessionClosed(networkId);
     }
     DBINDER_LOGI(LOG_LABEL, "Shutdown end");
-    return;
 }
 
 void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen)
@@ -160,10 +159,11 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d, peerNetworkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
         Shutdown(socketId);
+        EraseDeviceLock(peerNetworkId);
         return SOCKET_ID_INVALID;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "Bind ok socketId:%{public}d,  peerNetworkId:%{public}s",
+    DBINDER_LOGI(LOG_LABEL, "Bind succ socketId:%{public}d,  peerNetworkId:%{public}s",
         socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
@@ -325,12 +325,10 @@ bool DBinderRemoteListener::ShutdownSocket(const std::string &networkId)
     std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
     auto it = clientSocketInfos_.find(networkId);
     if (it != clientSocketInfos_.end()) {
-        DBINDER_LOGI(LOG_LABEL, "socketId of networkId:%{public}s",
-            DBinderService::ConvertToSecureDeviceID(networkId).c_str());
-        Shutdown(it->second);
-        clientSocketInfos_.erase(it);
         DBINDER_LOGI(LOG_LABEL, "networkId:%{public}s offline, Shutdown socketId:%{public}d ",
             DBinderService::ConvertToSecureDeviceID(networkId).c_str(), it->second);
+        Shutdown(it->second);
+        clientSocketInfos_.erase(it);
         return true;
     }
     DBINDER_LOGI(LOG_LABEL, "no socketId of networkId:%{public}s",

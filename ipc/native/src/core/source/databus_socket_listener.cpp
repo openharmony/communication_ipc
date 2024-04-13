@@ -24,6 +24,25 @@
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER, "DatabusSocketListener" };
 
+DBinderSocketInfo::DBinderSocketInfo(const std::string &ownName, const std::string &peerName,
+    const std::string &networkId) : ownName_(ownName), peerName_(peerName), networkId_(networkId)
+{}
+
+std::string DBinderSocketInfo::GetOwnName() const
+{
+    return ownName_;
+}
+
+std::string DBinderSocketInfo::GetPeerName() const
+{
+    return peerName_;
+}
+
+std::string DBinderSocketInfo::GetNetworkId() const
+{
+    return networkId_;
+}
+
 DatabusSocketListener::DatabusSocketListener()
 {
     serverListener_.OnBind = DatabusSocketListener::ServerOnBind;
@@ -70,7 +89,6 @@ void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
     }
 
     invoker->OnDatabusSessionServerSideClosed(socket);
-    ZLOGI(LABEL, "end, socketId:%{public}d", socket);
 }
 
 void DatabusSocketListener::ClientOnBind(int32_t socket, PeerSocketInfo info)
@@ -88,9 +106,20 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
         return;
     }
 
+    DBinderSocketInfo socketInfo;
+    {
+        std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
+        for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end();) {
+            if (it->second == socket) {                
+                socketInfo = it->first;
+                ZLOGI(LOG_LABEL, "erase socketId:%{public}d ", it->second);
+                socketInfoMap_.erase(it);
+                break;
+            }
+        }
+    }
+    EraseDeviceLock(socketInfo);
     invoker->OnDatabusSessionClientSideClosed(socket);
-    ZLOGI(LABEL, "end, socketId:%{public}d", socket);
-    return;
 }
 
 void DatabusSocketListener::OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen)
@@ -104,7 +133,6 @@ void DatabusSocketListener::OnBytesReceived(int32_t socket, const void *data, ui
     }
 
     invoker->OnMessageAvailable(socket, static_cast<const char*>(data), dataLen);
-    return;
 }
 
 int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
@@ -131,9 +159,42 @@ int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
     return socketId;
 }
 
-int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
-    const std::string &peerName, const std::string &networkId)
+std::shared_ptr<std::mutex> DatabusSocketListener::QueryOrNewInfoMutex(DBinderSocketInfo socketInfo)
 {
+    std::lock_guard<std::mutex> lockGuard(deviceMutex_);
+    auto it = infoMutexMap_.find(socketInfo);
+    if (it != infoMutexMap_.end()) {
+        return it->second;
+    }
+    std::shared_ptr<std::mutex> infoMutex = std::make_shared<std::mutex>();
+    if (infoMutex == nullptr) {
+        ZLOGE(LOG_LABEL, "failed to create mutex, ownName:%{public}s, peerName:%{public}s, networkId:%{public}s",
+            socketInfo.GetOwnName().c_str(), socketInfo.GetPeerName().c_str(),
+            IPCProcessSkeleton::ConvertToSecureString(socketInfo.GetNetworkId()).c_str());
+        return nullptr;
+    }
+    infoMutexMap_[socketInfo] = infoMutex;
+    return infoMutex;
+}
+
+int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName, const std::string &peerName,
+    const std::string &networkId)
+{
+    DBinderSocketInfo info(ownName, peerName, networkId);
+    std::shared_ptr<std::mutex> infoMutex = QueryOrNewInfoMutex(info);
+    if (infoMutex == nullptr) {
+        return SOCKET_ID_INVALID;
+    }
+    std::lock_guard<std::mutex> lockUnique(*infoMutex);
+
+    {
+        std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
+        auto it = socketInfoMap_.find(info);
+        if (it != socketInfoMap_.end()) {
+            return it->second;
+        }
+    }
+
     std::string pkgName = std::string(DBINDER_PKG_NAME) + "_" + std::to_string(getpid());
     SocketInfo socketInfo = {
         .name =  const_cast<char*>(ownName.c_str()),
@@ -154,12 +215,43 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName,
             ret, socketId, ownName.c_str(), peerName.c_str(),
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str());
         Shutdown(socketId);
+        EraseDeviceLock(info);
         return SOCKET_ID_INVALID;
     }
     ZLOGI(LABEL, "Bind succ, ownName:%{public}s peer:%{public}s deviceId:%{public}s "
         "socketId:%{public}d", ownName.c_str(), peerName.c_str(),
         IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(), socketId);
-
+    {
+        std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
+        socketInfoMap_[info] = socketId;
+    }
     return socketId;
+}
+
+void DatabusSocketListener::ShutdownSocket(int32_t socketId)
+{
+    DBinderSocketInfo socketInfo;
+    {
+        std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
+        for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end();) {
+            if (it->second == socketId) {
+                ZLOGI(LOG_LABEL, "Shutdown socketId:%{public}d ", it->second);
+                Shutdown(it->second);
+                socketInfo = it->first;
+                it = socketInfoMap_.erase(it);
+                break;
+            }
+        }
+    }
+    EraseDeviceLock(socketInfo);
+}
+
+void DatabusSocketListener::EraseDeviceLock(DBinderSocketInfo info)
+{
+    std::lock_guard<std::mutex> lockGuard(deviceMutex_);
+    auto it = infoMutexMap_.find(info);
+    if (it != infoMutexMap_.end()) {
+        infoMutexMap_.erase(it);
+    }
 }
 } // namespace OHOS
