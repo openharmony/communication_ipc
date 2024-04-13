@@ -21,7 +21,7 @@
 #include "ipc_debug.h"
 
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_BASE, "ipc_ffrt_object" }
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_BASE, "ipc_ffrt_object" };
 void ffrt_this_task_set_legacy_mode(bool mode);
 using FfrtTaskSetLegacyModeType = decltype(ffrt_this_task_set_legacy_mode)*;
 #ifdef __aarch64__

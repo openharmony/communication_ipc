@@ -30,7 +30,7 @@
 #include "string_ex.h"
 #include "sys_binder.h"
 #ifdef FFRT_IPC_ENABLE
-#include "ffrtadapter"
+#include "ffrtadapter.h"
 #endif
 
 #if defined(__arm__) || defined(__aarch64__)
@@ -164,15 +164,15 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         error = WaitForCompletion(nullptr);
     } else {
 #ifdef FFRT_IPC_ENABLE
-        auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
+        auto ffrtSetTaskLegacyMode = FFRTAdapter::Instance()->FfrtSetTaskLegacyMode;
         if (ffrtTaskSetLegacyMode == nullptr) {
-            return IPC_SKELETON_NULL_OBJECT_ERR;
+            return IPC_INVOKER_ERR;
         }
-        ffrtTaskSetLegacyMode(true);
+        ffrtSetTaskLegacyMode(true);
 #endif
         error = WaitForCompletion(&reply);
 #ifdef FFRT_IPC_ENABLE
-        ffrtTaskSetLegacyMode(false);
+        ffrtSetTaskLegacyMode(false);
 #endif
     }
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
