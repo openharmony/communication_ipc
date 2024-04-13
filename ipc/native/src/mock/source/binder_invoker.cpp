@@ -30,7 +30,7 @@
 #include "string_ex.h"
 #include "sys_binder.h"
 #ifdef FFRT_IPC_ENABLE
-#include "c/ffrt_ipc.h"
+#include "ffrtadapter"
 #endif
 
 #if defined(__arm__) || defined(__aarch64__)
@@ -151,8 +151,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     // set client send trace point if trace is enabled
     HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
 
-    ThreadMigrationDisabler _d;
-
     if (!TranslateDBinderProxy(handle, data)) {
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
@@ -166,11 +164,11 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         error = WaitForCompletion(nullptr);
     } else {
 #ifdef FFRT_IPC_ENABLE
-        ffrt_this_task_set_legacy_mode(true);
+        FFRTAdapter::Instance()->FfrtTaskSetLegacyMode(true);
 #endif
         error = WaitForCompletion(&reply);
 #ifdef FFRT_IPC_ENABLE
-        ffrt_this_task_set_legacy_mode(false);
+        FFRTAdapter::Instance()->FfrtTaskSetLegacyMode(false);
 #endif
     }
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
@@ -820,7 +818,6 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
 
 void BinderInvoker::JoinThread(bool initiative)
 {
-    ThreadMigrationDisabler _d;
     isMainWorkThread = initiative;
     output_.WriteUint32(initiative ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
     StartWorkLoop();
