@@ -163,10 +163,11 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         return SOCKET_ID_INVALID;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "Bind succ socketId:%{public}d,  peerNetworkId:%{public}s",
+    DBINDER_LOGI(LOG_LABEL, "Bind succ socketId:%{public}d, peerNetworkId:%{public}s",
         socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
+        
         clientSocketInfos_[peerNetworkId] = socketId;
     }
 

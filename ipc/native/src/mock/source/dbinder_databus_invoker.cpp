@@ -362,7 +362,7 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
 
     int32_t ret = SendBytes(socketId, static_cast<const void *>(sendBuffer + readCursor), size);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64 
+        ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64
             " size:%{public}zd, socketId:%{public}d", ret, seqNumber_, size, socketId);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         sessionBuff->ReleaseSendBufferLock();
