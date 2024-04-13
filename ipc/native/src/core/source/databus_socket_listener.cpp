@@ -110,7 +110,7 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
     {
         std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
         for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end();) {
-            if (it->second == socket) {                
+            if (it->second == socket) {
                 socketInfo = it->first;
                 ZLOGI(LOG_LABEL, "erase socketId:%{public}d ", it->second);
                 socketInfoMap_.erase(it);

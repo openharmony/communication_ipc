@@ -45,7 +45,7 @@ public:
     std::string GetPeerName() const;
     std::string GetNetworkId() const;
 
-    bool operator==(const DBinderSocketInfo &info) const 
+    bool operator==(const DBinderSocketInfo &info) const
     {
         return (info.GetOwnName().compare(ownName_) == 0 &&
             info.GetPeerName().compare(peerName_) == 0 &&
