@@ -29,7 +29,7 @@
 #include "string"
 #include "unistd.h"
 #ifdef FFRT_IPC_ENABLE
-#include "c/ffrt_ipc.h"
+#include "ffrtadapter.h"
 #endif
 
 namespace OHOS {
@@ -203,14 +203,18 @@ int IPCSkeleton::FlushCommands(IRemoteObject *object)
 #ifdef FFRT_IPC_ENABLE
     IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(object);
     bool isBinderInvoker = (proxy->GetProto() == IRemoteObject::IF_PROT_BINDER);
+    auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
+    if (ffrtTaskSetLegacyMode == nullptr) {
+        return IPC_SKELETON_NULL_OBJECT_ERR;
+    }
     if (isBinderInvoker) {
-        ffrt_this_task_set_legacy_mode(true);
+        ffrtTaskSetLegacyMode(true);
     }
 #endif
     int ret = invoker->FlushCommands(object);
 #ifdef FFRT_IPC_ENABLE
     if (isBinderInvoker) {
-        ffrt_this_task_set_legacy_mode(false);
+        ffrtTaskSetLegacyMode(false);
     }
 #endif
     return ret;
