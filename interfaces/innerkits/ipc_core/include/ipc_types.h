@@ -17,6 +17,7 @@
 #define OHOS_IPC_IPC_TYPES_H
 
 #include <sys/types.h>
+#include <unistd.h>
 #include <errno.h>
 #include "errors.h"
 
