@@ -49,4 +49,14 @@ std::string CommAuthInfo::GetRemoteDeviceId() const
 {
     return deviceId_;
 }
+
+int32_t CommAuthInfo::GetRemoteSocketId() const
+{
+    return socketId_;
+}
+
+void CommAuthInfo::SetRemoteSocketId(int32_t socketId)
+{
+    socketId_ = socketId;
+}
 } // namespace OHOS

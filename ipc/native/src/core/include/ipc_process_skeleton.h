@@ -32,12 +32,9 @@
 #include "comm_auth_info.h"
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
-#include "ISessionService.h"
-#include "Session.h"
+#include "inner_socket.h"
+#include "socket.h"
 #include "stub_refcount_object.h"
-
-using Communication::SoftBus::ISessionService;
-using Communication::SoftBus::Session;
 #endif
 
 namespace OHOS {
@@ -64,7 +61,7 @@ struct ThreadMessageInfo {
 };
 
 struct ThreadProcessInfo {
-    uint32_t listenFd;
+    int32_t listenFd;
     uint32_t packageSize;
     std::shared_ptr<char> buffer;
 };
@@ -107,16 +104,16 @@ public:
     void UnlockForNumExecuting();
 
 #ifndef CONFIG_IPC_SINGLE
-    bool AttachRawData(uint32_t fd, std::shared_ptr<InvokerRawData> rawData);
-    bool DetachRawData(uint32_t fd);
-    std::shared_ptr<InvokerRawData> QueryRawData(uint32_t fd);
+    bool AttachRawData(int32_t socketId, std::shared_ptr<InvokerRawData> rawData);
+    bool DetachRawData(int32_t socketId);
+    std::shared_ptr<InvokerRawData> QueryRawData(int32_t socketId);
 
     sptr<IRemoteObject> GetSAMgrObject();
     std::shared_ptr<DBinderSessionObject> ProxyDetachDBinderSession(uint32_t handle, IPCObjectProxy *proxy);
     bool ProxyAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object);
     std::shared_ptr<DBinderSessionObject> ProxyQueryDBinderSession(uint32_t handle);
     bool ProxyMoveDBinderSession(uint32_t handle, IPCObjectProxy *proxy);
-    bool QueryProxyBySessionHandle(uint32_t handle, std::vector<uint32_t> &proxyHandle);
+    bool QueryProxyBySocketId(int32_t socketId, std::vector<uint32_t> &proxyHandle);
     std::shared_ptr<DBinderSessionObject> QuerySessionByInfo(const std::string &name, const std::string &deviceId);
 
     bool DetachThreadLockInfo(const std::thread::id &threadId);
@@ -154,7 +151,10 @@ public:
     bool AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId);
     bool DetachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId);
     void DetachCommAuthInfoByStub(IRemoteObject *stub);
+    void DetachCommAuthInfoBySocketId(int32_t socketId);
     bool QueryCommAuthInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId);
+    void UpdateCommAuthSocketInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId,
+        const int32_t socketId);
     bool AddDataThreadToIdle(const std::thread::id &threadId);
     bool DeleteDataThreadFromIdle(const std::thread::id &threadId);
     std::thread::id GetIdleDataThread();
@@ -166,16 +166,17 @@ public:
         const std::shared_ptr<CommAuthInfo> &auth);
     bool IsSameRemoteObject(int pid, int uid, const std::string &deviceId, const std::shared_ptr<CommAuthInfo> &auth);
     bool DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId, const std::string &deviceId,
-        uint64_t stubIndex, uint32_t listenFd);
+        uint64_t stubIndex, int32_t listenFd);
     std::list<uint64_t> DetachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId,
-        const std::string &deviceId, uint32_t listenFd);
+        const std::string &deviceId, int32_t listenFd);
     void DetachAppInfoToStubIndex(uint64_t stubIndex);
+    std::list<uint64_t> DetachAppInfoToStubIndex(int32_t listenFd);
     bool AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId, const std::string &deviceId,
-        uint64_t stubIndex, uint32_t listenFd);
+        uint64_t stubIndex, int32_t listenFd);
     bool AttachAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId, const std::string &deviceId,
-        uint32_t listenFd);
+        int32_t listenFd);
     bool QueryAppInfoToStubIndex(uint32_t pid, uint32_t uid, uint32_t tokenId, const std::string &deviceId,
-        uint64_t stubIndex, uint32_t listenFd);
+        uint64_t stubIndex, int32_t listenFd);
     std::string UIntToString(uint32_t input);
     bool AttachDBinderCallbackStub(sptr<IRemoteObject> rpcProxy, sptr<DBinderCallbackStub> stub);
     bool DetachDBinderCallbackStubByProxy(sptr<IRemoteObject> rpcProxy);
@@ -249,7 +250,7 @@ private:
     std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> dbinderSessionObjects_;
     std::map<IPCObjectProxy *, sptr<IPCObjectStub>> noticeStub_;
     std::map<std::thread::id, std::vector<std::shared_ptr<ThreadProcessInfo>>> dataInfoQueue_; // key is threadId
-    std::map<std::string, std::map<uint64_t, uint32_t>> appInfoToStubIndex_;
+    std::map<std::string, std::map<uint64_t, int32_t>> appInfoToStubIndex_;
     std::map<sptr<IRemoteObject>, wptr<DBinderCallbackStub>> dbinderSentCallback_;
 
     std::list<std::thread::id> idleDataThreads_;
@@ -258,6 +259,7 @@ private:
     uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
     uint64_t seqNumber_ = 0;
     std::string sessionName_ = std::string("");
+    int32_t listenSocketId_;
     uint64_t randNum_;
 #endif
 };

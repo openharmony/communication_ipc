@@ -29,8 +29,6 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
-using Communication::SoftBus::Session;
-using Communication::SoftBus::SessionImpl;
 
 class DBinderServiceUnitTest : public testing::Test {
 public:
@@ -68,18 +66,6 @@ public:
         return true;
     }
 };
-
-/*
- * @tc.name: ProcessOnSessionClosed001
- * @tc.desc: Verify the ProcessOnSessionClosed function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed001, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService;
-    std::shared_ptr<Session> session = nullptr;
-    EXPECT_EQ(dBinderService->ProcessOnSessionClosed(session), false);
-}
 
 /**
  * @tc.name: StartDBinderService001
@@ -134,7 +120,7 @@ HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListener001, TestSize.Level1)
     dBinderService->remoteListener_ = nullptr;
     bool res = dBinderService->ReStartRemoteListener();
     EXPECT_EQ(res, false);
-    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
     bool res2 = dBinderService->ReStartRemoteListener();
     EXPECT_EQ(res2, false);
 }
@@ -160,7 +146,7 @@ HWTEST_F(DBinderServiceUnitTest, StartRemoteListener001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StartRemoteListener002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
     bool res = dBinderService->StartRemoteListener();
     EXPECT_EQ(res, true);
 }
@@ -291,7 +277,7 @@ HWTEST_F(DBinderServiceUnitTest, GetRemoteTransTypeTest003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StopRemoteListener001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>(dBinderService);
+    std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>();
     EXPECT_EQ(dBinderService->StartRemoteListener(), true);
     dBinderService->StopRemoteListener();
 }
@@ -317,7 +303,7 @@ HWTEST_F(DBinderServiceUnitTest, GetRemoteListener001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, GetRemoteListener002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>(dBinderService);
+    std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>();
     EXPECT_EQ(dBinderService->StartRemoteListener(), false);
     std::shared_ptr<DBinderRemoteListener> testDbinder = nullptr;
     testDbinder = dBinderService->GetRemoteListener();
@@ -684,7 +670,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::string deviceID("123456");
-    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
     EXPECT_EQ(dBinderService->NoticeDeviceDie(deviceID), DBINDER_SERVICE_NOTICE_DIE_ERR);
 }
 
@@ -1039,22 +1025,6 @@ HWTEST_F(DBinderServiceUnitTest, FindDBinderStub001, TestSize.Level1)
     EXPECT_EQ(dBinderService->DeleteDBinderStub(service, device), true);
 }
 
-/*
- * @tc.name: ProcessOnSessionClosedTest002
- * @tc.desc: Verify the ProcessOnSessionClosed function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosedTest002, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    std::shared_ptr<Session> session = std::make_shared<SessionImpl>();
-    session->SetPeerDeviceId("networkId");
-    std::shared_ptr<OHOS::ThreadLockInfo> threadLockInfo = std::make_shared<OHOS::ThreadLockInfo>();
-    uint32_t seqNumber = 10;
-    dBinderService->AttachThreadLockInfo(seqNumber, "networkId", threadLockInfo);
-    EXPECT_EQ(dBinderService->ProcessOnSessionClosed(session), true);
-}
-
 /**
  * @tc.name: ReStartRemoteListenerTest001
  * @tc.desc: Verify the ReStartRemoteListener function
@@ -1076,7 +1046,7 @@ HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListenerTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListenerTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
     bool res = dBinderService->ReStartRemoteListener();
     EXPECT_EQ(res, false);
 }
@@ -1155,7 +1125,7 @@ HWTEST_F(DBinderServiceUnitTest, SendReplyMessageToRemote001, TestSize.Level1)
     uint32_t reason = 0;
     std::shared_ptr<DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>(dBinderService);
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
     dBinderService->SendReplyMessageToRemote(dBinderCode, reason, replyMessage);
     dBinderCode = 1;
     dBinderService->SendReplyMessageToRemote(dBinderCode, reason, replyMessage);

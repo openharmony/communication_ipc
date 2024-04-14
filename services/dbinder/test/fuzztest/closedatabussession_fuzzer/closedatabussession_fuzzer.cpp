@@ -34,12 +34,12 @@ namespace OHOS {
 
         std::string deviceID = tmp;
         std::shared_ptr<DBinderRemoteListener> remoteListener = nullptr;
-        remoteListener = std::make_shared<DBinderRemoteListener>(DBinderService::GetInstance());
+        remoteListener = std::make_shared<DBinderRemoteListener>();
         if (remoteListener == nullptr) {
             return false;
         }
 
-        return remoteListener->CloseDatabusSession(deviceID);
+        return remoteListener->ShutdownSocket(deviceID);
     }
 }
 
