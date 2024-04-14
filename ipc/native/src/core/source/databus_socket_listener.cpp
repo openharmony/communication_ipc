@@ -109,7 +109,7 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
     DBinderSocketInfo socketInfo;
     {
         std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
-        for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end();) {
+        for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end(); it++) {
             if (it->second == socket) {
                 socketInfo = it->first;
                 ZLOGI(LOG_LABEL, "erase socketId:%{public}d ", it->second);
@@ -233,7 +233,7 @@ void DatabusSocketListener::ShutdownSocket(int32_t socketId)
     DBinderSocketInfo socketInfo;
     {
         std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
-        for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end();) {
+        for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end(); it++) {
             if (it->second == socketId) {
                 ZLOGI(LOG_LABEL, "Shutdown socketId:%{public}d ", it->second);
                 Shutdown(it->second);
