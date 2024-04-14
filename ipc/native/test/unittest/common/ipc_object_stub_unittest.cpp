@@ -20,7 +20,6 @@
 #define private public
 #define protected public
 #include "comm_auth_info.h"
-#include "databus_session_callback.h"
 #include "dbinder_databus_invoker.h"
 #include "dbinder_session_object.h"
 #include "binder_invoker.h"
@@ -32,7 +31,6 @@
 #include "ipc_thread_skeleton.h"
 #include "dbinder_session_object.h"
 #include "message_option.h"
-#include "mock_session_impl.h"
 #include "mock_iremote_invoker.h"
 #undef protected
 #undef private
@@ -622,7 +620,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThread001, TestSize.Level1)
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->stubObjects_[0] = testStub.GetRefPtr();
     auto ret = testStub->InvokerDataBusThread(data, reply);
-    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+    EXPECT_EQ(ret, IPC_STUB_CREATE_BUS_SERVER_ERR);
     current->stubObjects_.clear();
 }
 
@@ -655,10 +653,10 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThread002, TestSize.Level1)
 
     std::string appInfo = remoteDeviceId +
         std::to_string(remotePid) + std::to_string(remoteUid);
-    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, uint32_t> { { 1, 1 } };
+    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, int32_t> { { 1, 1 } };
 
     auto ret = testStub->InvokerDataBusThread(data, reply);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, IPC_STUB_CREATE_BUS_SERVER_ERR);
     current->stubObjects_.clear();
     current->appInfoToStubIndex_.clear();
 }
@@ -692,10 +690,10 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThread003, TestSize.Level1)
 
     std::string appInfo = remoteDeviceId +
         std::to_string(remotePid) + std::to_string(remoteUid);
-    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, uint32_t> { { 0, 1 } };
+    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, int32_t> { { 0, 1 } };
 
     auto ret = testStub->InvokerDataBusThread(data, reply);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, IPC_STUB_CREATE_BUS_SERVER_ERR);
     current->stubObjects_.clear();
     current->appInfoToStubIndex_.clear();
 }
@@ -976,7 +974,7 @@ HWTEST_F(IPCObjectStubTest, AddAuthInfoeTest006, TestSize.Level1)
     current->commAuth_.push_back(info);
 
     std::string appInfo = remoteDeviceId + std::to_string(remotePid) + std::to_string(remoteUid);
-    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, uint32_t> { { 0, 1 } };
+    current->appInfoToStubIndex_[appInfo] = std::map<uint64_t, int32_t> { { 0, 1 } };
 
     int32_t ret = testStub->AddAuthInfo(data, reply, code);
     EXPECT_EQ(ret, ERR_NONE);

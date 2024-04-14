@@ -26,10 +26,17 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER,
     "DbinderRemoteListener" };
 
-DBinderRemoteListener::DBinderRemoteListener(const sptr<DBinderService> &dBinderService)
-    : dBinderService_(dBinderService)
+DBinderRemoteListener::DBinderRemoteListener()
 {
     DBINDER_LOGI(LOG_LABEL, "create dbinder remote listener");
+
+    clientListener_.OnBind = DBinderRemoteListener::ClientOnBind;
+    clientListener_.OnShutdown = DBinderRemoteListener::ClientOnShutdown;
+    clientListener_.OnBytes = DBinderRemoteListener::OnBytesReceived;
+
+    serverListener_.OnBind = DBinderRemoteListener::ServerOnBind;
+    serverListener_.OnShutdown = DBinderRemoteListener::ServerOnShutdown;
+    serverListener_.OnBytes = DBinderRemoteListener::OnBytesReceived;
 }
 
 DBinderRemoteListener::~DBinderRemoteListener()
@@ -37,69 +44,209 @@ DBinderRemoteListener::~DBinderRemoteListener()
     DBINDER_LOGI(LOG_LABEL, "delete dbinder remote listener");
 }
 
-bool DBinderRemoteListener::StartListener(std::shared_ptr<DBinderRemoteListener> &listener)
+void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 {
-    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    softbusManager_ = ISessionService::GetInstance();
-    if (softbusManager_ == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to get softbus service");
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SOFTBUS_SERVICE_FAIL, __FUNCTION__);
-        return false;
+    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, peerNetworkId:%{public}s, peerName:%{public}s",
+        socket, DBinderService::ConvertToSecureDeviceID(info.networkId).c_str(), info.name);
+    std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
+    serverSocketInfos_[info.networkId] = socket;
+    return;
+}
+
+void DBinderRemoteListener::ServerOnShutdown(int32_t socket, ShutdownReason reason)
+{
+    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, ShutdownReason:%{public}d", socket, reason);
+    std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
+    for (auto it = serverSocketInfos_.begin(); it != serverSocketInfos_.end(); it++) {
+        if (it->second == socket) {
+            serverSocketInfos_.erase(it);
+            DBINDER_LOGI(LOG_LABEL, "Shutdown end");
+            return;
+        }
     }
+}
+
+void DBinderRemoteListener::ClientOnBind(int32_t socket, PeerSocketInfo info)
+{
+    return;
+}
+
+void DBinderRemoteListener::ClientOnShutdown(int32_t socket, ShutdownReason reason)
+{
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d, ShutdownReason:%{public}d", socket, reason);
+    std::string networkId;
+    {
+        std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
+        for (auto it = clientSocketInfos_.begin(); it != clientSocketInfos_.end(); it++) {
+            if (it->second == socket) {
+                networkId = it->first;
+                DBINDER_LOGI(LOG_LABEL, "erase socket:%{public}d", socket);
+                clientSocketInfos_.erase(it);
+                break;
+            }
+        }
+    }
+    if (!networkId.empty()) {
+        EraseDeviceLock(networkId);
+        DBinderService::GetInstance()->ProcessOnSessionClosed(networkId);
+    }
+    DBINDER_LOGI(LOG_LABEL, "Shutdown end");
+}
+
+void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen)
+{
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d len:%{public}u", socket, dataLen);
+    if (data == nullptr || dataLen != static_cast<uint32_t>(sizeof(DHandleEntryTxRx))) {
+        DBINDER_LOGE(LOG_LABEL, "wrong input, data length:%{public}u "
+            "socketId:%{public}d", dataLen, socket);
+        // ignore the package
+        return;
+    }
+
+    std::shared_ptr<DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
+    if (message == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length:%{public}zu", sizeof(DHandleEntryTxRx));
+        return;
+    }
+    auto res = memcpy_s(message.get(), sizeof(DHandleEntryTxRx), data, sizeof(DHandleEntryTxRx));
+    if (res != 0) {
+        DBINDER_LOGE(LOG_LABEL, "memcpy copy failed");
+        return;
+    }
+    if (message->head.len != sizeof(DHandleEntryTxRx)) {
+        DBINDER_LOGE(LOG_LABEL, "msg head len error, len:%{public}u", message->head.len);
+        return;
+    }
+    DBINDER_LOGI(LOG_LABEL, "service:%{public}llu seq:%{public}u,"
+        " stubIndex:%{public}" PRIu64 " code:%{public}u", message->binderObject,
+        message->seqNumber, message->stubIndex, message->dBinderCode);
+
+    DBinderService::GetInstance()->AddAsynMessageTask(message);
+    return;
+}
+
+int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetworkId)
+{
+    std::shared_ptr<DeviceLock> lockInfo = QueryOrNewDeviceLock(peerNetworkId);
+    if (lockInfo == nullptr) {
+        return SOCKET_ID_INVALID;
+    }
+    std::lock_guard<std::mutex> lockUnique(lockInfo->mutex);
+
+    {
+        std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
+        auto it = clientSocketInfos_.find(peerNetworkId);
+        if (it != clientSocketInfos_.end()) {
+            return it->second;
+        }
+    }
+
+    SocketInfo socketInfo = {
+        .name =  const_cast<char*>(OWN_SESSION_NAME.c_str()),
+        .peerName = const_cast<char*>(PEER_SESSION_NAME.c_str()),
+        .peerNetworkId = const_cast<char*>(peerNetworkId.c_str()),
+        .pkgName = const_cast<char*>(DBINDER_SERVER_PKG_NAME.c_str()),
+        .dataType = TransDataType::DATA_TYPE_BYTES,
+    };
+    int32_t socketId = Socket(socketInfo);
+    if (socketId <= 0) {
+        DBINDER_LOGE(LOG_LABEL, "create socket error, socket is invalid");
+        return SOCKET_ID_INVALID;
+    }
+
+    int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
+    if (ret != ERR_NONE) {
+        DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d, peerNetworkId:%{public}s",
+            ret, socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
+        Shutdown(socketId);
+        EraseDeviceLock(peerNetworkId);
+        return SOCKET_ID_INVALID;
+    }
+
+    DBINDER_LOGI(LOG_LABEL, "Bind succ socketId:%{public}d, peerNetworkId:%{public}s",
+        socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
+    {
+        std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
+        
+        clientSocketInfos_[peerNetworkId] = socketId;
+    }
+
+    return socketId;
+}
+
+int32_t DBinderRemoteListener::GetPeerSocketId(const std::string &peerNetworkId)
+{
+    std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
+    auto it = serverSocketInfos_.find(peerNetworkId);
+    if (it != serverSocketInfos_.end()) {
+        return it->second;
+    }
+    return SOCKET_ID_INVALID;
+}
+
+bool DBinderRemoteListener::StartListener()
+{
+    DBINDER_LOGI(LOG_LABEL, "create socket server");
     int pid = static_cast<int>(getpid());
     int uid = static_cast<int>(getuid());
-    if (softbusManager_->GrantPermission(uid, pid, OWN_SESSION_NAME) != ERR_NONE) {
-        DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name:%{public}s", OWN_SESSION_NAME.c_str());
+
+    int32_t ret = DBinderGrantPermission(uid, pid, OWN_SESSION_NAME.c_str());
+    if (ret != ERR_NONE) {
+        DBINDER_LOGE(LOG_LABEL, "GrantPermission failed softbus name:%{public}s", OWN_SESSION_NAME.c_str());
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);
         return false;
     }
-
-    int ret = softbusManager_->CreateSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME, listener);
-    if (ret != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to create softbus server with ret:%{public}d", ret);
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
+    SocketInfo serverSocketInfo = {
+        .name = const_cast<char*>(OWN_SESSION_NAME.c_str()),
+        .pkgName = const_cast<char*>(DBINDER_SERVER_PKG_NAME.c_str()),
+        .dataType = TransDataType::DATA_TYPE_BYTES,
+    };
+    int32_t socketId = Socket(serverSocketInfo);
+    if (socketId < 0) {
+        DBINDER_LOGE(LOG_LABEL, "create socket server error, socket is invalid");
         return false;
     }
+    ret = Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
+    if (ret != 0) {
+        DBINDER_LOGE(LOG_LABEL, "Listen failed, ret:%{public}d", ret);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
+        Shutdown(socketId);
+        return false;
+    }
+    DBINDER_LOGI(LOG_LABEL, "Listen ok, socketId:%{public}d", socketId);
+    listenSocketId_ = socketId;
+
     return true;
 }
 
 bool DBinderRemoteListener::StopListener()
 {
-    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    if (softbusManager_ == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
-        return false;
-    }
-    for (auto it = clientSessionMap_.begin(); it != clientSessionMap_.end(); it++) {
-        std::shared_ptr<Session> session = it->second;
-        if (session != nullptr) {
-            softbusManager_->CloseSession(session);
+    ClearDeviceLock();
+    {
+        std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
+        for (auto it = clientSocketInfos_.begin(); it != clientSocketInfos_.end(); it++) {
+            Shutdown(it->second);
         }
+        clientSocketInfos_.clear();
     }
-    clientSessionMap_.clear();
-    int ret = softbusManager_->RemoveSessionServer(OWN_SESSION_NAME, PEER_SESSION_NAME);
-    if (ret != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to remove softbus server");
-        return false;
-    }
-    softbusManager_ = nullptr;
+    Shutdown(listenSocketId_);
     return true;
 }
 
-std::shared_ptr<DeviceLock> DBinderRemoteListener::QueryOrNewDeviceLock(const std::string &deviceId)
+std::shared_ptr<DeviceLock> DBinderRemoteListener::QueryOrNewDeviceLock(const std::string &networkId)
 {
     std::lock_guard<std::mutex> lockGuard(deviceMutex_);
-    auto it = deviceLockMap_.find(deviceId);
+    auto it = deviceLockMap_.find(networkId);
     if (it != deviceLockMap_.end()) {
         return it->second;
     }
     std::shared_ptr<DeviceLock> lockInfo = std::make_shared<struct DeviceLock>();
     if (lockInfo == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "failed to create mutex of device:%{public}s",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str());
         return nullptr;
     }
-    deviceLockMap_.insert(std::pair<std::string, std::shared_ptr<DeviceLock>>(deviceId, lockInfo));
+    deviceLockMap_.insert(std::pair<std::string, std::shared_ptr<DeviceLock>>(networkId, lockInfo));
     return lockInfo;
 }
 
@@ -109,40 +256,41 @@ void DBinderRemoteListener::ClearDeviceLock()
     deviceLockMap_.clear();
 }
 
-void DBinderRemoteListener::EraseDeviceLock(const std::string &deviceId)
+void DBinderRemoteListener::EraseDeviceLock(const std::string &networkId)
 {
     std::lock_guard<std::mutex> lockGuard(deviceMutex_);
-    deviceLockMap_.erase(deviceId);
+    deviceLockMap_.erase(networkId);
 }
 
-bool DBinderRemoteListener::SendDataToRemote(const std::string &deviceId, const struct DHandleEntryTxRx *msg)
+bool DBinderRemoteListener::SendDataToRemote(const std::string &networkId, const struct DHandleEntryTxRx *msg)
 {
+    DBINDER_LOGI(LOG_LABEL, "device:%{public}s",
+        DBinderService::ConvertToSecureDeviceID(networkId).c_str());
     if (msg == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "msg is null");
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
-    std::shared_ptr<Session> session = OpenSoftbusSession(deviceId);
-    if (session == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to open session");
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_OPEN_SESSION_FAIL, __FUNCTION__);
+    int32_t socketId = CreateClientSocket(networkId);
+    if (socketId <= 0) {
+        DBINDER_LOGE(LOG_LABEL, "fail to creat client Socket");
         return false;
     }
 
-    int ret = session->SendBytes(msg, msg->head.len);
+    int32_t ret = SendBytes(socketId, msg, msg->head.len);
     if (ret != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to send bytes, ret:%{public}d channelId:%{public}" PRId64 " device:%{public}s",
-            ret, session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+        DBINDER_LOGE(LOG_LABEL, "fail to send bytes, ret:%{public}d socketId:%{public}d, networkId:%{public}s",
+            ret, socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         return false;
     }
-    DBINDER_LOGI(LOG_LABEL, "channelId:%{public}" PRId64 " device:%{public}s succ",
-            session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d device:%{public}s succ",
+        socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
     return true;
 }
 
-bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const struct DHandleEntryTxRx *msg)
+bool DBinderRemoteListener::SendDataReply(const std::string &networkId, const struct DHandleEntryTxRx *msg)
 {
     if (msg == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "msg is null");
@@ -150,171 +298,42 @@ bool DBinderRemoteListener::SendDataReply(const std::string &deviceId, const str
         return false;
     }
 
-    std::shared_ptr<Session> session = GetPeerSession(deviceId);
-    if (session == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "failed to get peer session, device:%{public}s",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+    int32_t socketId = GetPeerSocketId(networkId);
+    if (socketId == SOCKET_ID_INVALID) {
+        DBINDER_LOGE(LOG_LABEL, "failed to get peer SocketId, device:%{public}s",
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str());
         DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), RADAR_GET_PEER_SESSION_FAIL, __FUNCTION__);
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str(), RADAR_GET_PEER_SESSION_FAIL, __FUNCTION__);
         return false;
     }
 
-    int result = session->SendBytes(msg, msg->head.len);
+    int32_t result = SendBytes(socketId, msg, msg->head.len);
     if (result != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes of reply, result:%{public}d device:%{public}s"
-            " channelId:%{public}" PRId64, result, DBinderService::ConvertToSecureDeviceID(deviceId).c_str(),
-            session->GetChannelId());
+            " socketId:%{public}d", result, DBinderService::ConvertToSecureDeviceID(networkId).c_str(), socketId);
         DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), RADAR_SEND_BYTES_FAIL, __FUNCTION__);
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str(), RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         return false;
     }
-    DBINDER_LOGD(LOG_LABEL, "channelId:%{public}" PRId64 " device:%{public}s",
-            session->GetChannelId(), DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d, networkId:%{public}s",
+        socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
     return true;
 }
 
-bool DBinderRemoteListener::CloseDatabusSession(const std::string &deviceId)
+bool DBinderRemoteListener::ShutdownSocket(const std::string &networkId)
 {
-    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    if (softbusManager_ == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
-        return false;
+    EraseDeviceLock(networkId);
+    std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
+    auto it = clientSocketInfos_.find(networkId);
+    if (it != clientSocketInfos_.end()) {
+        DBINDER_LOGI(LOG_LABEL, "networkId:%{public}s offline, Shutdown socketId:%{public}d ",
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str(), it->second);
+        Shutdown(it->second);
+        clientSocketInfos_.erase(it);
+        return true;
     }
-    auto it = clientSessionMap_.find(deviceId);
-    if (it != clientSessionMap_.end()) {
-        bool result = softbusManager_->CloseSession(it->second) == 0;
-        clientSessionMap_.erase(deviceId);
-        DBINDER_LOGI(LOG_LABEL, "device:%{public}s offline, close session result:%{public}d",
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str(), result);
-        return result;
-    }
-    DBINDER_LOGI(LOG_LABEL, "no session of device:%{public}s",
-        DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+    DBINDER_LOGI(LOG_LABEL, "no socketId of networkId:%{public}s",
+        DBinderService::ConvertToSecureDeviceID(networkId).c_str());
     return false;
-}
-
-std::shared_ptr<Session> DBinderRemoteListener::OpenSoftbusSession(const std::string &peerDeviceId)
-{
-    std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-    if (softbusManager_ == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "softbus manager is null");
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
-        return nullptr;
-    }
-    auto it = clientSessionMap_.find(peerDeviceId);
-    if (it != clientSessionMap_.end()) {
-        return it->second;
-    }
-
-    std::shared_ptr<Session> session = softbusManager_->OpenSession(OWN_SESSION_NAME, PEER_SESSION_NAME,
-        peerDeviceId, std::string(""), Session::TYPE_BYTES);
-    if (session == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "open session for dbinder service failed, device:%{public}s",
-            DBinderService::ConvertToSecureDeviceID(peerDeviceId).c_str());
-        DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
-            DBinderService::ConvertToSecureDeviceID(peerDeviceId).c_str(), RADAR_OPEN_SESSION_FAIL, __FUNCTION__);
-        return nullptr;
-    }
-
-    clientSessionMap_.insert(std::pair<std::string, std::shared_ptr<Session>>(peerDeviceId, session));
-    return session;
-}
-
-std::shared_ptr<Session> DBinderRemoteListener::GetPeerSession(const std::string &peerDeviceId)
-{
-    std::lock_guard<std::mutex> lockGuard(serverSessionMutex_);
-    auto it = serverSessionMap_.find(peerDeviceId);
-    if (it != serverSessionMap_.end()) {
-        return it->second;
-    }
-    return nullptr;
-}
-
-int DBinderRemoteListener::OnSessionOpened(std::shared_ptr<Session> session)
-{
-    DBINDER_LOGI(LOG_LABEL, "peer session is open, peer device:%{public}s serverSide:%{public}d "
-        "channelId:%{public}" PRId64,
-        DBinderService::ConvertToSecureDeviceID(session->GetPeerDeviceId()).c_str(), session->IsServerSide(),
-        session->GetChannelId());
-    if (session->GetPeerSessionName() != PEER_SESSION_NAME) {
-        DBINDER_LOGE(LOG_LABEL, "invalid session name, peer session name:%{public}s",
-            session->GetPeerSessionName().c_str());
-        return -DBINDER_SERVICE_WRONG_SESSION;
-    }
-    if (session->IsServerSide()) {
-        std::lock_guard<std::mutex> lockGuard(serverSessionMutex_);
-        std::string peerDeviceId = session->GetPeerDeviceId();
-        serverSessionMap_[peerDeviceId] = session; // replace left session
-    }
-    return 0;
-}
-
-void DBinderRemoteListener::OnSessionClosed(std::shared_ptr<Session> session)
-{
-    DBINDER_LOGI(LOG_LABEL, "close session of device:%{public}s serverSide:%{public}d channelId:%{public}" PRId64,
-        DBinderService::ConvertToSecureDeviceID(session->GetPeerDeviceId()).c_str(), session->IsServerSide(),
-        session->GetChannelId());
-    if (session->IsServerSide()) {
-        std::lock_guard<std::mutex> lockGuard(serverSessionMutex_);
-        for (auto it = serverSessionMap_.begin(); it != serverSessionMap_.end(); it++) {
-            if (it->second->GetChannelId() == session->GetChannelId()) {
-                serverSessionMap_.erase(it);
-                DBINDER_LOGI(LOG_LABEL, "close session end");
-                return;
-            }
-        }
-    } else {
-        std::lock_guard<std::mutex> lockGuard(resourceMutex_);
-        for (auto it = clientSessionMap_.begin(); it != clientSessionMap_.end(); it++) {
-            if (it->second->GetChannelId() == session->GetChannelId()) {
-                clientSessionMap_.erase(it);
-                break;
-            }
-        }
-        dBinderService_->ProcessOnSessionClosed(session);
-    }
-    DBINDER_LOGI(LOG_LABEL, "close session end");
-}
-
-void DBinderRemoteListener::OnBytesReceived(std::shared_ptr<Session> session, const char *data, ssize_t len)
-{
-    DBINDER_LOGI(LOG_LABEL, "OnBytesReceived len:%{public}u", static_cast<uint32_t>(len));
-    if (data == nullptr || len != static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx))) {
-        DBINDER_LOGE(LOG_LABEL, "session has wrong input, data length:%{public}zd "
-            "peer name:%{public}s channelId:%{public}" PRId64,
-            len, session->GetPeerSessionName().c_str(), session->GetChannelId());
-        // ignore the package
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
-        return;
-    }
-
-    if (dBinderService_ == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "dbinder service is not started");
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SERVICE_NO_START, __FUNCTION__);
-        return;
-    }
-
-    std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
-    if (message == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "fail to create buffer with length:%{public}zu", sizeof(struct DHandleEntryTxRx));
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_BUFFER_FAIL, __FUNCTION__);
-        return;
-    }
-    auto res = memcpy_s(message.get(), sizeof(struct DHandleEntryTxRx), data, sizeof(struct DHandleEntryTxRx));
-    if (res != 0) {
-        DBINDER_LOGE(LOG_LABEL, "memcpy copy failed");
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
-        return;
-    }
-    if (message->head.len != sizeof(struct DHandleEntryTxRx)) {
-        DBINDER_LOGE(LOG_LABEL, "msg head len error, len:%{public}u", message->head.len);
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
-        return;
-    }
-    DBINDER_LOGD(LOG_LABEL, "channelId:%{public}" PRId64 "service:%{public}llu seq:%{public}u"
-        " stubIndex:%{public}" PRIu64 "code:%{public}u", session->GetChannelId(), message->binderObject,
-        message->seqNumber, message->stubIndex, message->dBinderCode);
-
-    dBinderService_->AddAsynMessageTask(message);
 }
 } // namespace OHOS

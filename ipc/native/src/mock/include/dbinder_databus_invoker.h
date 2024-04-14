@@ -24,12 +24,6 @@
 #include "dbinder_session_object.h"
 #include "sys_binder.h"
 
-#include "Session.h"
-#include "ISessionService.h"
-
-using Communication::SoftBus::ISessionService;
-using Communication::SoftBus::Session;
-
 namespace OHOS {
 class DBinderDatabusInvoker : public DBinderBaseInvoker<DBinderSessionObject> {
 public:
@@ -52,7 +46,7 @@ public:
     uint64_t GetSelfTokenID() const override;
     uint64_t GetSelfFirstCallerTokenID() const override;
     uint32_t GetStatus() override;
-    virtual uint32_t GetClientFd() const override;
+    virtual int32_t GetClientFd() const override;
     bool IsLocalCalling() override;
     std::string GetLocalDeviceID() override;
     std::string GetCallerDeviceID() const override;
@@ -64,12 +58,15 @@ public:
         std::shared_ptr<DBinderSessionObject> sessionObject) override;
     int FlushCommands(IRemoteObject *object) override;
 
-    bool OnDatabusSessionClosed(std::shared_ptr<Session> session);
-    bool OnReceiveNewConnection(std::shared_ptr<Session> session);
+    void OnDatabusSessionServerSideClosed(int32_t socketId);
+    void OnDatabusSessionClientSideClosed(int32_t socketId);
+
+    bool OnReceiveNewConnection(int32_t socketId, int peerPid, int peerUid,
+        std::string peerName, std::string networkId);
     std::string ResetCallingIdentity() override;
     bool SetCallingIdentity(std::string &identity) override;
     int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
-    void OnMessageAvailable(std::shared_ptr<Session> session, const char *data, ssize_t len);
+    void OnMessageAvailable(int32_t socketId, const char *data, ssize_t len);
 
 private:
     bool CreateProcessThread() override;
@@ -85,24 +82,22 @@ private:
     uint32_t QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session) override;
     virtual uint64_t GetSeqNum() const override;
     virtual void SetSeqNum(uint64_t seq) override;
-    virtual void SetClientFd(uint32_t fd) override;
+    virtual void SetClientFd(int32_t fd) override;
     virtual void SetCallerPid(pid_t pid) override;
     virtual void SetCallerUid(pid_t uid) override;
     virtual void SetStatus(uint32_t status) override;
     virtual void SetCallerDeviceID(const std::string &deviceId) override;
     virtual void SetCallerTokenID(const uint32_t tokenId) override;
-    virtual int CheckAndSetCallerInfo(uint32_t listenFd, uint64_t stubIndex) override;
+    virtual int CheckAndSetCallerInfo(int32_t socketId, uint64_t stubIndex) override;
     uint32_t HasRawDataPackage(const char *data, ssize_t len);
     uint32_t HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len);
-    void OnRawDataAvailable(std::shared_ptr<Session> session, const char *data, uint32_t dataSize);
+    void OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize);
     uint64_t MakeStubIndexByRemoteObject(IRemoteObject *stubObject);
     std::shared_ptr<DBinderSessionObject> MakeDefaultServerSessionObject(uint64_t stubIndex,
         const std::shared_ptr<DBinderSessionObject> sessionObject);
     bool ConnectRemoteObject2Session(IRemoteObject *stubObject, uint64_t stubIndex,
         const std::shared_ptr<DBinderSessionObject> sessionObject);
-    bool AuthSession2Proxy(uint32_t handle, const std::shared_ptr<DBinderSessionObject> Session);
-    bool OnDatabusSessionServerSideClosed(std::shared_ptr<Session> session);
-    bool OnDatabusSessionClientSideClosed(std::shared_ptr<Session> session);
+    bool AuthSession2Proxy(uint32_t handle, const std::shared_ptr<DBinderSessionObject> session);
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderDatabusInvoker);
@@ -113,7 +108,7 @@ private:
     uint64_t callerTokenID_;
     uint64_t firstTokenID_;
     uint64_t seqNumber_ = 0;
-    uint32_t clientFd_ = 0;
+    int32_t clientFd_ = 0;
     uint32_t status_;
     static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
     static inline InvokerDelegator<DBinderDatabusInvoker> DBinderDatabusDelegator_ = { IRemoteObject::IF_PROT_DATABUS };

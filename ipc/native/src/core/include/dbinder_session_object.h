@@ -20,13 +20,8 @@
 #include <mutex>
 #include "nocopyable.h"
 #include "buffer_object.h"
+#include "databus_socket_listener.h"
 #include "ipc_object_proxy.h"
-
-#include "Session.h"
-#include "ISessionService.h"
-
-using Communication::SoftBus::ISessionService;
-using Communication::SoftBus::Session;
 
 namespace OHOS {
 constexpr int DEVICEID_LENGTH = 64;
@@ -53,29 +48,32 @@ struct FlatDBinderSession {
 class DBinderSessionObject {
 public:
     static uint32_t GetFlatSessionLen();
-    explicit DBinderSessionObject(std::shared_ptr<Session> session, const std::string &serviceName,
-        const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId);
-
+    explicit DBinderSessionObject(const std::string &serviceName, const std::string &serverDeviceId,
+        uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId);
     ~DBinderSessionObject();
 
-    void SetBusSession(std::shared_ptr<Session> session);
     void SetServiceName(const std::string &serviceName);
     void SetDeviceId(const std::string &serverDeviceId);
     void SetProxy(IPCObjectProxy *proxy);
     std::shared_ptr<BufferObject> GetSessionBuff();
-    std::shared_ptr<Session> GetBusSession() const;
     std::string GetServiceName() const;
     std::string GetDeviceId() const;
     IPCObjectProxy *GetProxy() const;
     uint64_t GetStubIndex() const;
-    uint32_t GetSessionHandle() const;
+
     void CloseDatabusSession();
     uint32_t GetTokenId() const;
+    int32_t GetSocketId() const;
+    void SetSocketId(int32_t socketId);
+    void SetPeerPid(int peerPid);
+    void SetPeerUid(int peerUid);
+    int GetPeerPid() const;
+    int GetPeerUid() const;
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderSessionObject);
-    /* Session is defined from softBus session, when import socket driver, we need use interface abstraction */
-    std::shared_ptr<Session> session_;
+
+    int32_t socket_ = SOCKET_ID_INVALID;
     std::mutex buffMutex_;
     std::shared_ptr<BufferObject> buff_;
     std::string serviceName_;
@@ -83,6 +81,8 @@ private:
     uint64_t stubIndex_;
     IPCObjectProxy *proxy_;
     uint32_t tokenId_;
+    int pid_;
+    int uid_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_SESSION_OBJECT_H
