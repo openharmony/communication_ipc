@@ -27,7 +27,6 @@ if (support_jsapi) {
     version_script = "librpc_map"
     include_dirs = [
       "$SUBSYSTEM_DIR/utils/include",
-      "//utils/system/safwk/native/include",
       "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
       "$SUBSYSTEM_DIR/ipc/native/c/adapter/access_token/include",
       "$SUBSYSTEM_DIR/ipc/native/src/napi_common/include",
@@ -59,10 +58,7 @@ if (support_jsapi) {
     subsystem_name = "communication"
     part_name = "ipc"
   }
-}
-
-group("ipc_js") {
-  if (support_jsapi) {
-    deps = [ ":rpc" ]
+} else {
+  ohos_shared_library("rpc") {
   }
 }
