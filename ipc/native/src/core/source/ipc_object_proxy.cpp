@@ -57,6 +57,7 @@ using namespace IPC_SINGLE;
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr int PRINT_ERR_CNT = 100;
+static const long long int SEND_REQUEST_TIMEOUT = 2000;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
@@ -129,7 +130,13 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     }
 
     bool isPrint = false;
+    auto beginTime = std::chrono::system_clock::now();
     int err = SendRequestInner(false, code, data, reply, option);
+    auto endTime = std::chrono::system_clock::now();
+    auto timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime).count();
+    if (timeInterval > SEND_REQUEST_TIMEOUT) {
+        ZLOGE(LABEL, "BlockMonitor IPC cost %{public}lld ms, interface code = %{public}u", timeInterval, code);
+    }
     if (err != ERR_NONE) {
         if (err == lastErr_) {
             if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
