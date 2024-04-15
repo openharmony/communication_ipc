@@ -17,10 +17,7 @@ IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
 
 ohos_shared_library("ipc_test_helper") {
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-    "//utils/system/safwk/native/include",
-  ]
+  include_dirs = [ "$IPC_CORE_ROOT/c/adapter/access_token/include" ]
 
   sources = [
     "./src/assist_test_service.cpp",
@@ -97,10 +94,7 @@ ohos_executable("ipc_client_test") {
 }
 
 ohos_shared_library("ipc_test_helper_extra") {
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-    "//utils/system/safwk/native/include",
-  ]
+  include_dirs = [ "$IPC_CORE_ROOT/c/adapter/access_token/include" ]
 
   sources = [
     "./src/assist_test_service.cpp",
