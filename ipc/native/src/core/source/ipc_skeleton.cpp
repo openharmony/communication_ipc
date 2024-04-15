@@ -36,6 +36,8 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
+
+static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "BinderSkeleton" };
 void IPCSkeleton::JoinWorkThread()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -205,16 +207,19 @@ int IPCSkeleton::FlushCommands(IRemoteObject *object)
     bool isBinderInvoker = (proxy->GetProto() == IRemoteObject::IF_PROT_BINDER);
     auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
     if (ffrtTaskSetLegacyMode == nullptr) {
+        ZLOGE(LABEL, "IPCSkeleton::FlushCommands ffrtTaskSetLegacyMode null.");
         return IPC_SKELETON_NULL_OBJECT_ERR;
     }
     if (isBinderInvoker) {
         ffrtTaskSetLegacyMode(true);
+        ZLOGE(LABEL, "IPCSkeleton::FlushCommands ffrtTaskSetLegacyMode1.");
     }
 #endif
     int ret = invoker->FlushCommands(object);
 #ifdef FFRT_IPC_ENABLE
     if (isBinderInvoker) {
         ffrtTaskSetLegacyMode(false);
+        ZLOGE(LABEL, "IPCSkeleton::FlushCommands ffrtTaskSetLegacyMode2.");
     }
 #endif
     return ret;

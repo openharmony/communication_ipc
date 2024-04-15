@@ -166,13 +166,16 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 #ifdef FFRT_IPC_ENABLE
         auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
         if (ffrtTaskSetLegacyMode == nullptr) {
+            ZLOGE(LABEL, "BinderInvoker::SendRequest ffrtTaskSetLegacyMode null.");
             return IPC_INVOKER_ERR;
         }
+        ZLOGE(LABEL, "BinderInvoker::SendRequest ffrtTaskSetLegacyMode 1.");
         ffrtTaskSetLegacyMode(true);
 #endif
         error = WaitForCompletion(&reply);
 #ifdef FFRT_IPC_ENABLE
         ffrtTaskSetLegacyMode(false);
+        ZLOGE(LABEL, "BinderInvoker::SendRequest ffrtTaskSetLegacyMode 2.");
 #endif
     }
     HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
