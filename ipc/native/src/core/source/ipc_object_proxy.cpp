@@ -130,9 +130,9 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     }
 
     bool isPrint = false;
-    auto beginTime = std::chrono::system_clock::now();
+    auto beginTime = std::chrono::steady_clock::now();
     int err = SendRequestInner(false, code, data, reply, option);
-    auto endTime = std::chrono::system_clock::now();
+    auto endTime = std::chrono::steady_clock::now();
     auto timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime).count();
     if (timeInterval > SEND_REQUEST_TIMEOUT) {
         ZLOGE(LABEL, "BlockMonitor IPC cost %{public}lld ms, interface code = %{public}u", timeInterval, code);
