@@ -49,6 +49,8 @@ ohos_shared_library("ipc_common") {
     "json:nlohmann_json_static",
   ]
 
+  defines = [ "FFRT_IPC_ENABLE" ]
+
   innerapi_tags = [
     "chipsetsdk_indirect",
     "platformsdk_indirect",
