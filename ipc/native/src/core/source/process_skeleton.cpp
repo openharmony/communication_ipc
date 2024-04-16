@@ -129,6 +129,8 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         return result;
     }
     result = remoteObject;
+    result->CheckIsAttemptAcquireSet(this);
+
     return result;
 }
 } // namespace OHOS
