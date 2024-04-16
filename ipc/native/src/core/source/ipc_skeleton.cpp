@@ -29,13 +29,15 @@
 #include "string"
 #include "unistd.h"
 #ifdef FFRT_IPC_ENABLE
-#include "ffrtadapter.h"
+#include "c/ffrt_ipc.h"
 #endif
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
+
+static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "BinderSkeleton" };
 void IPCSkeleton::JoinWorkThread()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -203,18 +205,14 @@ int IPCSkeleton::FlushCommands(IRemoteObject *object)
 #ifdef FFRT_IPC_ENABLE
     IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(object);
     bool isBinderInvoker = (proxy->GetProto() == IRemoteObject::IF_PROT_BINDER);
-    auto ffrtTaskSetLegacyMode = FFRTAdapter::Instance()->FfrtTaskSetLegacyMode;
-    if (ffrtTaskSetLegacyMode == nullptr) {
-        return IPC_SKELETON_NULL_OBJECT_ERR;
-    }
     if (isBinderInvoker) {
-        ffrtTaskSetLegacyMode(true);
+        ffrt_this_task_set_legacy_mode(true);
     }
 #endif
     int ret = invoker->FlushCommands(object);
 #ifdef FFRT_IPC_ENABLE
     if (isBinderInvoker) {
-        ffrtTaskSetLegacyMode(false);
+        ffrt_this_task_set_legacy_mode(false);
     }
 #endif
     return ret;
