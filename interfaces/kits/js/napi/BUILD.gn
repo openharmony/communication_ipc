@@ -58,10 +58,7 @@ if (support_jsapi) {
     subsystem_name = "communication"
     part_name = "ipc"
   }
-}
-
-group("ipc_js") {
-  if (support_jsapi) {
-    deps = [ ":rpc" ]
+} else {
+  ohos_shared_library("rpc") {
   }
 }
