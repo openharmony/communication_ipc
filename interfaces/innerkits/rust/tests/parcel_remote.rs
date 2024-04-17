@@ -19,48 +19,13 @@ use std::sync::Once;
 use ipc::parcel::{Deserialize, MsgOption, MsgParcel, Serialize};
 use ipc::remote::{RemoteObj, RemoteStub};
 use ipc::{IpcResult, Skeleton};
+use samgr::manage::SystemAbilityManager;
 
 const TEST_SYSTEM_ABILITY_ID: i32 = 1012;
 const TEST_FLOAT: f32 = 7.02;
 const TEST_DOUBLE: f64 = 7.03;
 
 const TEST_LEN: usize = 10;
-
-fn init() {
-    #[cfg(gn_test)]
-    super::init_access_token();
-
-    static ONCE: Once = Once::new();
-
-    ONCE.call_once(|| {
-        let context = Skeleton::get_context_object().unwrap();
-        let mut data = MsgParcel::new();
-        let mut option = MsgOption::new();
-        data.write_interface_token("ohos.samgr.accessToken");
-        data.write(&TEST_SYSTEM_ABILITY_ID);
-        data.write_remote(RemoteObj::from_stub(TestRemoteStub).unwrap())
-            .unwrap();
-        data.write(&false);
-        data.write(&0);
-        data.write("");
-        data.write("");
-
-        let mut reply = context.send_request(3, &mut data).unwrap();
-        let value = reply.read::<i32>().unwrap();
-
-        assert_eq!(value, 0);
-    });
-}
-
-fn test_service() -> RemoteObj {
-    let context = Skeleton::get_context_object().unwrap();
-    let mut data = MsgParcel::new();
-    let mut option = MsgOption::new();
-    data.write_interface_token("ohos.samgr.accessToken");
-    data.write(&TEST_SYSTEM_ABILITY_ID);
-    let mut reply = context.send_request(2, &mut data).unwrap();
-    reply.read_remote().unwrap()
-}
 
 struct TestRemoteStub;
 
@@ -72,6 +37,17 @@ impl RemoteStub for TestRemoteStub {
         }
         0
     }
+}
+
+fn init() {
+    #[cfg(gn_test)]
+    super::init_access_token();
+
+    static ONCE: Once = Once::new();
+
+    ONCE.call_once(|| {
+        SystemAbilityManager::add_systemability(TEST_SYSTEM_ABILITY_ID, TestRemoteStub);
+    });
 }
 
 fn parcel_remote(data: &mut MsgParcel, reply: &mut MsgParcel) {
@@ -138,15 +114,15 @@ fn parcel_remote(data: &mut MsgParcel, reply: &mut MsgParcel) {
 }
 
 #[test]
-fn parcel() {
+fn parcel_read_and_write() {
     init();
-    let test_service = test_service();
+    let test_service = SystemAbilityManager::get_system_ability(TEST_SYSTEM_ABILITY_ID).unwrap();
 
     let mut msg = MsgParcel::new();
 
     msg.write_interface_token("hello ipc").unwrap();
     msg.write_buffer(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    
+
     let mut file = std::fs::OpenOptions::new()
         .read(true)
         .write(true)

@@ -48,12 +48,12 @@ IRemoteObject *IRemoteObjectWrapper::GetInner() const
     }
 }
 
-rust::String IRemoteObjectWrapper::GetInterfaceDescriptor() const
+rust::string IRemoteObjectWrapper::GetInterfaceDescriptor() const
 {
     return GetInner()->GetInterfaceDescriptor().data();
 }
 
-rust::String IRemoteObjectWrapper::GetObjectDescriptor() const
+rust::string IRemoteObjectWrapper::GetObjectDescriptor() const
 {
     return GetInner()->GetObjectDescriptor().data();
 }
@@ -87,11 +87,11 @@ bool IRemoteObjectWrapper::CheckObjectLegality() const
     return GetInner()->CheckObjectLegality();
 }
 
-int IRemoteObjectWrapper::Dump(int fd, const rust::Slice<const rust::String> args) const
+int IRemoteObjectWrapper::Dump(int fd, const rust::Slice<const rust::string> args) const
 {
     std::vector<std::u16string> res;
     for (auto rust_s : args) {
-        std::u16string s_u16 = Str8ToStr16(std::string(rust_s.data(), rust_s.length()));
+        std::u16string s_u16 = Str8ToStr16(std::string(rust_s));
         res.push_back(s_u16);
     }
     return GetInner()->Dump(fd, res);
@@ -147,9 +147,9 @@ int RemoteServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Messa
 
 int RemoteServiceStub::Dump(int fd, const std::vector<std::u16string> &args)
 {
-    auto v = rust::Vec<rust::String>();
+    auto v = rust::vec<rust::string>();
     for (auto arg : args) {
-        v.push_back(rust::String(arg.data()));
+        v.push_back(rust::string(arg.data()));
     }
     return inner_->dump(fd, v);
 }
@@ -192,7 +192,7 @@ std::unique_ptr<IRemoteObjectWrapper> FromRemoteStub(rust::Box<RemoteStubWrapper
 {
     auto raw = stub.into_raw();
     auto rust_s = raw->descriptor();
-    std::string s = std::string(rust_s.data(), rust_s.length());
+    std::string s = std::string(rust_s);
     std::u16string descriptor = Str8ToStr16(s);
 
     auto stub_sptr = sptr<RemoteServiceStub>::MakeSptr(raw, descriptor);

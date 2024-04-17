@@ -66,11 +66,10 @@ impl RemoteObj {
         }
 
         let inner = FromCIRemoteObject(remote);
-        
         if inner.is_null() {
             return None;
         }
-        
+
         Some(Self { inner })
     }
 
@@ -78,7 +77,7 @@ impl RemoteObj {
     pub fn from_stub<T: RemoteStub + 'static>(stub: T) -> Option<Self> {
         RemoteStubWrapper::new(stub).into_remote()
     }
-    
+
     /// Creates a RemoteObj from sptr
     pub fn from_sptr(sptr: UniquePtr<SptrIRemoteObject>) -> Option<Self> {
         Self::try_new(FromSptrRemote(sptr))

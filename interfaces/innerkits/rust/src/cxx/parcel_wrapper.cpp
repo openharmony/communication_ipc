@@ -58,12 +58,11 @@ Parcel *AsParcelMut(MessageParcel &msgParcel)
 
 bool WriteInterfaceToken(MessageParcel &msgParcel, rust::str name)
 {
-    std::string s = std::string(name.data(), name.length());
-    std::u16string name_u16 = Str8ToStr16(s);
-    return msgParcel.WriteInterfaceToken(name_u16);
+    std::u16string s = Str8ToStr16(std::string(name));
+    return msgParcel.WriteInterfaceToken(s);
 }
 
-rust::String ReadInterfaceToken(MessageParcel &msgParcel)
+rust::string ReadInterfaceToken(MessageParcel &msgParcel)
 {
     return msgParcel.ReadInterfaceToken().data();
 }
@@ -94,7 +93,7 @@ bool WriteBuffer(MessageParcel &msgParcel, rust::slice<const uint8_t> buffer)
     return msgParcel.WriteBuffer(buffer.data(), buffer.size());
 }
 
-bool ReadBuffer(MessageParcel &msgParcel, size_t len, rust::Vec<uint8_t> &buffer)
+bool ReadBuffer(MessageParcel &msgParcel, size_t len, rust::vec<uint8_t> &buffer)
 {
     if (len == 0) {
         return true;
@@ -109,7 +108,7 @@ bool ReadBuffer(MessageParcel &msgParcel, size_t len, rust::Vec<uint8_t> &buffer
     return true;
 }
 
-bool ReadString(Parcel &parcel, rust::String &val)
+bool ReadString(Parcel &parcel, rust::string &val)
 {
     std::string v;
     if (parcel.ReadString(v)) {
@@ -120,18 +119,18 @@ bool ReadString(Parcel &parcel, rust::String &val)
     }
 }
 
-bool WriteString(Parcel &parcel, const rust::Str val)
+bool WriteString(Parcel &parcel, const rust::str val)
 {
     auto s = std::string(val);
     return parcel.WriteString(s);
 }
 
-bool WriteString16(Parcel &parcel, const rust::Str val)
+bool WriteString16(Parcel &parcel, const rust::str val)
 {
     std::u16string u16string = Str8ToStr16(std::string(val));
     return parcel.WriteString16(u16string);
 }
-rust::String ReadString16(Parcel &parcel)
+rust::string ReadString16(Parcel &parcel)
 {
     std::u16string u16string;
     parcel.ReadString16(u16string);
@@ -198,7 +197,7 @@ bool WriteStringVector(Parcel &parcel, rust::slice<const rust::string> val)
 {
     std::vector<std::string> v;
     for (auto rust_s : val) {
-        v.push_back(std::string(rust_s.data(), rust_s.length()));
+        v.push_back(std::string(rust_s));
     }
     return parcel.WriteStringVector(v);
 }
@@ -207,7 +206,7 @@ bool WriteString16Vector(Parcel &parcel, rust::slice<const rust::string> val)
 {
     std::vector<std::u16string> v;
     for (auto rust_s : val) {
-        std::u16string u16string = Str8ToStr16(std::string(rust_s.data(), rust_s.length()));
+        std::u16string u16string = Str8ToStr16(std::string(rust_s));
         v.push_back(u16string);
     }
     return parcel.WriteString16Vector(v);
