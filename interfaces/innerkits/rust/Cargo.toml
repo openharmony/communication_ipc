@@ -23,3 +23,6 @@ repository = "https://gitee.com/openharmony/communication_ipc"
 ylong_runtime = { git = "https://gitee.com/openharmony/commonlibrary_rust_ylong_runtime", features = ["macros", "fs", "net", "sync", "time"] }
 hilog_rust = { git = "https://gitee.com/openharmony/hiviewdfx_hilog.git" }
 cxx = "1.0.115"
+
+[dev-dependencies]
+samgr = { git = "https://gitee.com/openharmony/systemabilitymgr_samgr" }

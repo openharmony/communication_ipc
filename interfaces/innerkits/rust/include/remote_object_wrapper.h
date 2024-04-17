@@ -43,13 +43,13 @@ public:
     ~IRemoteObjectWrapper() = default;
 
     int32_t SendRequest(const uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) const;
-    rust::String GetInterfaceDescriptor() const;
-    rust::String GetObjectDescriptor() const;
+    rust::string GetInterfaceDescriptor() const;
+    rust::string GetObjectDescriptor() const;
     int32_t GetObjectRefCount() const;
     bool IsProxyObject() const;
     bool IsObjectDead() const;
     bool CheckObjectLegality() const;
-    int Dump(int fd, const rust::Slice<const rust::String> args) const;
+    int Dump(int fd, const rust::Slice<const rust::string> args) const;
 
     std::unique_ptr<DeathRecipientRemoveHandler> AddDeathRecipient(rust::Fn<void(rust::Box<RemoteObj>)>) const;
 
