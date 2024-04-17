@@ -16,7 +16,6 @@
 #ifndef IPC_RUST_CXX_PARCEL_H
 #define IPC_RUST_CXX_PARCEL_H
 
-
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -38,19 +37,19 @@ Parcel const *AsParcel(const MessageParcel &msgParcel);
 Parcel *AsParcelMut(MessageParcel &msgParcel);
 
 bool WriteInterfaceToken(MessageParcel &msgParcel, const rust::str name);
-rust::String ReadInterfaceToken(MessageParcel &msgParcel);
+rust::string ReadInterfaceToken(MessageParcel &msgParcel);
 
 bool WriteBuffer(MessageParcel &msgParcel, rust::slice<const uint8_t> buffer);
-bool ReadBuffer(MessageParcel &msgParcel, size_t len, rust::Vec<uint8_t> &buffer);
+bool ReadBuffer(MessageParcel &msgParcel, size_t len, rust::vec<uint8_t> &buffer);
 
-bool WriteString(Parcel &parcel, const rust::Str val);
-bool ReadString(Parcel &parcel, rust::String &val);
+bool WriteString(Parcel &parcel, const rust::str val);
+bool ReadString(Parcel &parcel, rust::string &val);
 
-bool WriteString16(Parcel &parcel, const rust::Str val);
-rust::String ReadString16(Parcel &parcel);
+bool WriteString16(Parcel &parcel, const rust::str val);
+rust::string ReadString16(Parcel &parcel);
 
-bool WriteString16Vec(Parcel &parcel, const rust::vec<rust::String &> &v);
-rust::vec<rust::String> ReadString16Vec(Parcel &parcel);
+bool WriteString16Vec(Parcel &parcel, const rust::vec<rust::string &> &v);
+rust::vec<rust::string> ReadString16Vec(Parcel &parcel);
 
 bool WriteBoolVector(Parcel &parcel, rust::slice<const bool> val);
 bool WriteInt8Vector(Parcel &parcel, rust::slice<const int8_t> val);
