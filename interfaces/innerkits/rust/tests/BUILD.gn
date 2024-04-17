@@ -31,7 +31,7 @@ ohos_rust_unittest("rust_ipc_ut_test") {
   part_name = "ipc"
 }
 
-ohos_rust_systemtest("rust_ipc_sdv_test") {
+ohos_rust_unittest("rust_ipc_sdv_test") {
   module_out_path = "ipc/ipc_rust"
 
   rustflags = [ "--cfg=gn_test" ]
@@ -47,6 +47,7 @@ ohos_rust_systemtest("rust_ipc_sdv_test") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "hilog:hilog_rust",
+    "samgr:samgr_rust",
   ]
 
   subsystem_name = "communication"

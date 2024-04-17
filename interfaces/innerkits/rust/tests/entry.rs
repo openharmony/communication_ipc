@@ -15,7 +15,6 @@
 mod c_mem;
 mod interactive;
 mod parcel_remote;
-mod remote;
 mod skeleton;
 use std::ffi::{c_char, CString};
 use std::ptr;

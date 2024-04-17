@@ -12,6 +12,7 @@
 // limitations under the License.
 
 use std::fs::File;
+use std::sync::Arc;
 
 use crate::parcel::MsgParcel;
 use crate::IpcResult;
@@ -30,6 +31,19 @@ pub trait RemoteStub {
     // RemoteStub Descriptor
     fn descriptor(&self) -> &'static str {
         ""
+    }
+}
+
+impl<R: RemoteStub> RemoteStub for Arc<R> {
+    fn on_remote_request(&self, code: u32, data: &mut MsgParcel, reply: &mut MsgParcel) -> i32 {
+        R::on_remote_request(self, code, data, reply)
+    }
+
+    fn dump(&self, file: File, args: Vec<String>) -> i32 {
+        R::dump(self, file, args)
+    }
+    fn descriptor(&self) -> &'static str {
+        R::descriptor(self)
     }
 }
 
