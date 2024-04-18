@@ -93,7 +93,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, FindOrNewObjectTest001, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
 
-    sptr<IRemoteObject> object = skeleton->FindOrNewObject(1);
+    sptr<IRemoteObject> object = skeleton->FindOrNewObject(0);
     EXPECT_NE(object, nullptr);
 }
 

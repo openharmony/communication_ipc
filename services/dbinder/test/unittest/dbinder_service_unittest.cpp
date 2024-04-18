@@ -994,9 +994,9 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest002, TestSize.
     int pid = 1;
     int uid = 1;
     uint32_t tokenId = 1;
-    IPCObjectProxy objectProxy(1);
+    IPCObjectProxy objectProxy(0);
     EXPECT_EQ(dBinderService->OnRemoteInvokerDataBusMessage(
-        &objectProxy, &replyMessage, remoteDeviceId, pid, uid, tokenId), DBinderErrorCode::INVOKE_STUB_THREAD_FAILED);
+        &objectProxy, &replyMessage, remoteDeviceId, pid, uid, tokenId), DBinderErrorCode::SESSION_NAME_NOT_FOUND);
 }
 
 /**

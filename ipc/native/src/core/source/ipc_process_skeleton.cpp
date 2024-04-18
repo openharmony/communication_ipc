@@ -1197,6 +1197,9 @@ std::string IPCProcessSkeleton::GetDatabusName()
 bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    if (name.empty()) {
+        return false;
+    }
     std::shared_ptr<DatabusSocketListener> listener =
         DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
