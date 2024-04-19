@@ -342,7 +342,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient004, TestSize.Level
     binder_uintptr_t object = 11;
     DBinderServiceStub dBinderServiceStub(service, device, object);
 
-    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(1);
+    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
     MessageParcel data;
     data.WriteRemoteObject(callbackProxy);
     data.WriteString("test");
@@ -381,7 +381,7 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient002, TestSize.Le
     binder_uintptr_t object = 11;
     DBinderServiceStub dBinderServiceStub(service, device, object);
 
-    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(1);
+    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
     MessageParcel data;
     data.WriteRemoteObject(callbackProxy);
     data.WriteString("test");
