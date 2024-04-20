@@ -29,12 +29,15 @@ ohos_moduletest("RPCCLIENTTEST") {
     "src/rpc_client_test.cpp",
     "src/rpc_test.cpp",
   ]
-  configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
+  configs = [
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+  ]
+
   deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]

@@ -36,7 +36,6 @@
           "hilog",
           "c_utils",
           "access_token",
-          "dsoftbus",
           "napi",
           "common",
           "build_framework",

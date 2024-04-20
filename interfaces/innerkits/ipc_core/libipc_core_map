@@ -25,6 +25,7 @@
             GetTokenIdSize;
             IsATEnable;
             RpcGetFirstCallerTokenID;
+            OHOS::DBinderSoftbusClient*;
             OHOS::MessageParcel*;
             OHOS::IPCObjectStub*;
             OHOS::IPCObjectProxy*;

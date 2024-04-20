@@ -144,15 +144,15 @@ int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
         .pkgName = const_cast<char*>(pkgName.c_str()),
         .dataType = TransDataType::DATA_TYPE_BYTES,
     };
-    int32_t socketId = Socket(serverSocketInfo);
+    int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(serverSocketInfo);
     if (socketId <= 0) {
         ZLOGE(LABEL, "create socket server error, socket is invalid");
         return SOCKET_ID_INVALID;
     }
-    int32_t ret = Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
+    int32_t ret = DBinderSoftbusClient::GetInstance().Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
     if (ret != 0) {
         ZLOGE(LABEL, "Listen failed, ret:%{public}d", ret);
-        Shutdown(socketId);
+        DBinderSoftbusClient::GetInstance().Shutdown(socketId);
         return SOCKET_ID_INVALID;
     }
     ZLOGI(LABEL, "Listen ok, socketId:%{public}d, ownName:%{public}s", socketId, ownName.c_str());
@@ -203,18 +203,18 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName, co
         .pkgName = const_cast<char*>(pkgName.c_str()),
         .dataType = TransDataType::DATA_TYPE_BYTES,
     };
-    int32_t socketId = Socket(socketInfo);
+    int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(socketInfo);
     if (socketId <= 0) {
         ZLOGE(LABEL, "create socket error, socket is invalid");
         return SOCKET_ID_INVALID;
     }
-    int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
+    int32_t ret = DBinderSoftbusClient::GetInstance().Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
     if (ret != ERR_NONE) {
         ZLOGE(LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d,"
             "ownName:%{public}s, peerName:%{public}s, peerNetworkId:%{public}s",
             ret, socketId, ownName.c_str(), peerName.c_str(),
             IPCProcessSkeleton::ConvertToSecureString(networkId).c_str());
-        Shutdown(socketId);
+        DBinderSoftbusClient::GetInstance().Shutdown(socketId);
         EraseDeviceLock(info);
         return SOCKET_ID_INVALID;
     }
@@ -236,7 +236,7 @@ void DatabusSocketListener::ShutdownSocket(int32_t socketId)
         for (auto it = socketInfoMap_.begin(); it != socketInfoMap_.end(); it++) {
             if (it->second == socketId) {
                 ZLOGI(LOG_LABEL, "Shutdown socketId:%{public}d ", it->second);
-                Shutdown(it->second);
+                DBinderSoftbusClient::GetInstance().Shutdown(it->second);
                 socketInfo = it->first;
                 it = socketInfoMap_.erase(it);
                 break;

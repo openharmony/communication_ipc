@@ -23,9 +23,7 @@
 #include <mutex>
 
 #include "dbinder_service.h"
-
-#include "inner_socket.h"
-#include "socket.h"
+#include "dbinder_softbus_client.h"
 
 namespace OHOS {
 struct DeviceLock {
