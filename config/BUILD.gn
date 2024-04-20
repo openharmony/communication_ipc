@@ -17,6 +17,7 @@ import("../config.gni")
 
 SUBSYSTEM_DIR = "../"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
+DSOFTBUS_INTERFACES_PATH = "../../dsoftbus"
 
 config("ipc_util_config") {
   # header file path
@@ -40,4 +41,15 @@ config("ipc_util_config") {
   if (ipc_feature_actv_binder_enabled) {
     cflags += [ "-DCONFIG_ACTV_BINDER" ]
   }
+}
+
+config("dsoftbus_header_deps_config") {
+  include_dirs = [
+    "$DSOFTBUS_INTERFACES_PATH/interfaces/inner_kits/transport",
+    "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/bus_center",
+    "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/common",
+    "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/transport",
+    "$DSOFTBUS_INTERFACES_PATH/sdk/transmission/session/cpp/include",
+    "$DSOFTBUS_INTERFACES_PATH/sdk/transmission/session/cpp/src",
+  ]
 }
