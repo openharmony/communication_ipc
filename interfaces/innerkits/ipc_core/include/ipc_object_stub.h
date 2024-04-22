@@ -263,6 +263,8 @@ private:
     std::recursive_mutex serialRecursiveMutex_;
     bool serialInvokeFlag_;
     uint64_t lastRequestTime_;
+    uint32_t lastErrCode_ = 0;
+    uint32_t lastErrCnt_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H
