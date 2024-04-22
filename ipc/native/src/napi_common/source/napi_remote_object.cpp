@@ -463,10 +463,10 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         std::chrono::steady_clock::now().time_since_epoch()).count());
     ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s time:%{public}" PRIu64,
         Str16ToStr8(descriptor_).c_str(), curTime);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work, uint64_t curTime) {
+    uv_queue_work_with_qos(loop, work, [=](uv_work_t *work) {
         ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u time:%{public}" PRIu64,
             (reinterpret_cast<CallbackParam *>(work->data))->code, curTime);
-    }, [](uv_work_t *work, int status, uint64_t curTime) {
+    }, [=](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
         napi_handle_scope scope = nullptr;
