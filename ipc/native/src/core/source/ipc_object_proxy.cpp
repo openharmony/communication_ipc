@@ -52,8 +52,10 @@ using namespace IPC_SINGLE;
 #endif
 
 #define PRINT_SEND_REQUEST_FAIL_INFO(handle, error, desc) \
-    ZLOGE(LABEL, "failed, handle:%{public}d error:%{public}d desc:%{public}s", \
-        handle, error, (desc).c_str())
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(   \
+        std::chrono::steady_clock::now().time_since_epoch()).count());                               \
+    ZLOGE(LABEL, "failed, handle:%{public}d error:%{public}d desc:%{public}s time:%{public}" PRIu64, \
+        handle, error, (desc).c_str(), curTime)
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr int PRINT_ERR_CNT = 100;
@@ -408,7 +410,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         }
     }
 #endif
-    ZLOGI(LABEL, "success, handle:%{public}d desc:%{public}s %{public}zu", handle_,
+    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}zu", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
         reinterpret_cast<uintptr_t>(this));
     return true;
@@ -450,7 +452,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             dbinderStatus = RemoveDbinderDeathRecipient();
         }
 #endif
-        ZLOGI(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}zu", status && dbinderStatus,
+        ZLOGD(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}zu", status && dbinderStatus,
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
             reinterpret_cast<uintptr_t>(this));
         return status && dbinderStatus;
@@ -610,7 +612,10 @@ int IPCObjectProxy::GetProtoInfo()
     MessageOption option;
     int err = SendRequestInner(true, GET_PROTO_INFO, data, reply, option);
     if (err != ERR_NONE && err != -EBADMSG) {
-        ZLOGW(LABEL, "GET_PROTO_INFO transact return error:%{public}d", err);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGW(LABEL, "GET_PROTO_INFO transact return error:%{public}d handle:%{public}u time:%{public}" PRIu64,
+            err, handle_, curTime);
         return IRemoteObject::IF_PROT_ERROR;
     }
 

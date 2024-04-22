@@ -215,6 +215,8 @@ private:
     static std::mutex procMutex_;
     static DestroyInstance destroyInstance_;
     static std::atomic<bool> exitFlag_;
+    int lastErrHandle_ = -1;
+    int lastErrCnt_ = 0;
 
     // for DFX
     std::mutex mutex_;
