@@ -337,7 +337,9 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
         param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
-    ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
+    if (ret != 0) {
+        ZLOGE(LOG_LABEL, "OnJsRemoteRequest failed, ret:%{public}d", ret);
+    }
     return ret;
 }
 
@@ -456,11 +458,16 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
-    ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s time:%{public}" PRIu64,
+        Str16ToStr8(descriptor_).c_str(), curTime);
     uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {
-        ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<CallbackParam *>(work->data))->code);
+        ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u time:%{public}" PRIu64,
+            (reinterpret_cast<CallbackParam *>(work->data))->code, curTime);
     }, [](uv_work_t *work, int status) {
-        ZLOGI(LOG_LABEL, "enter thread pool");
+        ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);

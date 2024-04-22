@@ -59,6 +59,7 @@ static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 static constexpr int COEFF_MILLI_TO_MICRO = 1000;
 static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500 * COEFF_MILLI_TO_MICRO; // 500 ms
+static constexpr int PRINT_ERR_CNT = 100;
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
@@ -130,8 +131,20 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
             result = IPC_STUB_UNKNOW_TRANS_ERR;
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
+            bool isPrint = false;
+            if (code == lastErrCode_) {
+                if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
+                    isPrint = true;
+                }
+            } else {
+                isPrint = true;
+                lastErrCnt_ = 0;
+                lastErrCode_ = code;
+            }
+            if (isPrint) {
+                ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
+                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
+            }
             break;
     }
     return result;

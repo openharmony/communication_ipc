@@ -48,6 +48,7 @@ std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
 IPCProcessSkeleton::DestroyInstance IPCProcessSkeleton::destroyInstance_;
 std::atomic<bool> IPCProcessSkeleton::exitFlag_ = false;
+static constexpr int PRINT_ERR_CNT = 100;
 
 IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
 {
@@ -186,9 +187,21 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     bool newFlag = false;
     sptr<IRemoteObject> result = GetProxyObject(handle, newFlag);
     if (result == nullptr) {
+        bool isPrint = false;
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
+        if (handle == lastErrHandle_) {
+            if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
+                isPrint = true;
+            }
+        } else {
+            isPrint = true;
+            lastErrCnt_ = 0;
+            lastErrHandle_ = handle;
+        }
+        if (isPrint) {
+            ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
+        }
         return result;
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
@@ -334,7 +347,9 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (object == nullptr) {
-        ZLOGE(LOG_LABEL, "object is null");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count()); 
+        ZLOGD(LOG_LABEL, "object is null time:%{public}" PRIu64, curTime);
         return false;
     }
     auto current = ProcessSkeleton::GetInstance();
@@ -526,7 +541,9 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
             tmp->GetSocketId(), tmp->GetServiceName().c_str(),
             tmp->GetStubIndex());
     } else {
-        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found", handle);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());        
+        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found time:%{public}" PRIu64, handle, curTime);
     }
 
     return tmp;
