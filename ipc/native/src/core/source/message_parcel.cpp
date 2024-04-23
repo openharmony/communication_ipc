@@ -389,7 +389,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     if (size == 0) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "the parameter size is 0 time:%{public}" PRIu64, curTime);
+        ZLOGE(LOG_LABEL, "the parameter size is 0, time:%{public}" PRIu64, curTime);
         return nullptr;
     }
     size_t bufferSize =  static_cast<size_t>(ReadInt32());
