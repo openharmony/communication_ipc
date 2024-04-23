@@ -48,7 +48,6 @@ std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
 IPCProcessSkeleton::DestroyInstance IPCProcessSkeleton::destroyInstance_;
 std::atomic<bool> IPCProcessSkeleton::exitFlag_ = false;
-static constexpr int PRINT_ERR_CNT = 100;
 
 IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
 {
@@ -187,19 +186,9 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     bool newFlag = false;
     sptr<IRemoteObject> result = GetProxyObject(handle, newFlag);
     if (result == nullptr) {
-        bool isPrint = false;
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        if (handle == lastErrHandle_) {
-            if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
-                isPrint = true;
-            }
-        } else {
-            isPrint = true;
-            lastErrCnt_ = 0;
-            lastErrHandle_ = handle;
-        }
-        if (isPrint) {
+        if (ProcessSkeleton::IsPrint(handle, lastErrHandle_, lastErrCnt_)) {
             ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
         }
         return result;
