@@ -349,7 +349,7 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
     if (object == nullptr) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGD(LOG_LABEL, "object is null time:%{public}" PRIu64, curTime);
+        ZLOGD(LOG_LABEL, "object is null, time:%{public}" PRIu64, curTime);
         return false;
     }
     auto current = ProcessSkeleton::GetInstance();
@@ -543,7 +543,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     } else {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found time:%{public}" PRIu64, handle, curTime);
+        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found, time:%{public}" PRIu64, handle, curTime);
     }
 
     return tmp;
