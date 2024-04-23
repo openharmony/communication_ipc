@@ -329,7 +329,7 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
     if (data == nullptr || size > MAX_RAWDATA_SIZE || size == 0) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "data is null or size:%{public}zu not ok time:%{public}" PRIu64, size, curTime);
+        ZLOGE(LOG_LABEL, "data is null or size:%{public}zu not ok, time:%{public}" PRIu64, size, curTime);
         return false;
     }
     if (kernelMappedWrite_ != nullptr) {
