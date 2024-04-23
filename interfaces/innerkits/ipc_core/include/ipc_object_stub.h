@@ -17,6 +17,7 @@
 #define OHOS_IPC_IPC_OBJECT_STUB_H
 
 #include <list>
+#include <map>
 #include "ipc_object_proxy.h"
 #include "iremote_object.h"
 
@@ -249,20 +250,34 @@ public:
     int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code);
 
 private:
-    int GetPidUid(MessageParcel &data, MessageParcel &reply);
     std::string GetSessionName();
-    int32_t GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-    int32_t GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     std::string CreateSessionName(int uid, int pid);
     bool IsSamgrCall();
+    int DBinderInvokeListenThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderIncRefsTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderDecRefsTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderAddCommAuth(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderGetSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderGetPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 #endif
 private:
     bool IsDeviceIdIllegal(const std::string &deviceID);
+    int DBinderPingTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderInterfaceTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderSyncHronizeReference(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int DBinderDumpTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int SendRequestInner(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    void InitCodeMap();
 
 private:
     std::recursive_mutex serialRecursiveMutex_;
     bool serialInvokeFlag_;
     uint64_t lastRequestTime_;
+    using IPCObjectStubFunc = int(IPCObjectStub::*)(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    std::map<uint32_t, IPCObjectStubFunc> funcMap_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H
