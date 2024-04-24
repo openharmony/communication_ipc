@@ -279,7 +279,7 @@ bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invoke
     return true;
 }
 
-bool ProcessSkeleton::IsPrint(int err, int lastErr, int lastErrCnt)
+bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
 {
     bool isPrint = false;
     if (err == lastErr) {
