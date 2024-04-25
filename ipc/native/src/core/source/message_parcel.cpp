@@ -327,7 +327,9 @@ std::u16string MessageParcel::ReadInterfaceToken()
 bool MessageParcel::WriteRawData(const void *data, size_t size)
 {
     if (data == nullptr || size > MAX_RAWDATA_SIZE || size == 0) {
-        ZLOGE(LOG_LABEL, "data is null or size:%{public}zu not ok", size);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "data is null or size:%{public}zu not ok, time:%{public}" PRIu64, size, curTime);
         return false;
     }
     if (kernelMappedWrite_ != nullptr) {
@@ -385,7 +387,9 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
 const void *MessageParcel::ReadRawData(size_t size)
 {
     if (size == 0) {
-        ZLOGE(LOG_LABEL, "the parameter size is 0");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "the parameter size is 0, time:%{public}" PRIu64, curTime);
         return nullptr;
     }
     size_t bufferSize =  static_cast<size_t>(ReadInt32());

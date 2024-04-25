@@ -75,6 +75,7 @@ ohos_shared_library("ipc_core") {
   public_configs = [
     "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
     "$SUBSYSTEM_DIR/config:ipc_util_config",
+    ":ipc_all_deps_config",
   ]
 
   all_dependent_configs = [ ":ipc_all_deps_config" ]

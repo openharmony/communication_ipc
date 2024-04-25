@@ -28,6 +28,7 @@ if (support_jsapi) {
       "../../../ipc/native/src/napi_common/include",
     ]
     all_dependent_configs = [ ":napi_common_deps_config" ]
+    public_configs = [ ":napi_common_deps_config" ]
 
     sources = [
       "../../../ipc/native/src/napi_common/source/napi_ashmem.cpp",

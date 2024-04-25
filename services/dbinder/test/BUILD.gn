@@ -25,7 +25,6 @@ config("libtestdbinder_config") {
     cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
   }
   include_dirs = [
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "//test/testfwk/developer_test/aw/distributed",
     "$SUBSYSTEM_DIR/utils/include",
