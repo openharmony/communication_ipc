@@ -78,7 +78,6 @@ enum {
     CHECK_SERVICE_TRANSACTION,
     ADD_SERVICE_TRANSACTION,
 };
-static constexpr int PRINT_ERR_CNT = 100;
 
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()),
@@ -792,18 +791,9 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     bool isPrint = false;
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
-        if (error == lastErr_) {
-            if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
-                isPrint = true;
-            }
-        } else {
-            isPrint = true;
-            lastErrCnt_ = 0;
-            lastErr_ = error;
+        if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
         }
-    }
-    if (isPrint) {
-        ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
     }
     if (cmd != BR_TRANSACTION) {
         auto finish = std::chrono::steady_clock::now();
