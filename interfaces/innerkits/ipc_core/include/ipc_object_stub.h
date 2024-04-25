@@ -278,6 +278,8 @@ private:
     using IPCObjectStubFunc = int(IPCObjectStub::*)(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     std::map<uint32_t, IPCObjectStubFunc> funcMap_;
+    int lastErrCode_ = 0;
+    int lastErrCnt_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H
