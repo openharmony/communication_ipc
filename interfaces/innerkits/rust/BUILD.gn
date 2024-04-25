@@ -67,6 +67,8 @@ ohos_rust_shared_library("ipc_rust") {
 
   sources = [ "src/lib.rs" ]
 
+  rustflags = [ "-Zstack-protector=all" ]
+
   deps = [
     ":ipc_rust_cxx",
     "//third_party/rust/crates/cxx:lib",
