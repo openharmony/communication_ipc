@@ -57,6 +57,7 @@ ohos_distributedtest("DbinderTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -75,7 +76,10 @@ ohos_distributedtest("DbinderTestAgent") {
     "$DBINDER_TEST_ROOT/distributedtest/src/dbinder_test_service_skeleton.cpp",
   ]
 
-  configs = [ ":libtestdbinder_config" ]
+  configs = [
+    ":libtestdbinder_config",
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+  ]
 
   deps = [
     ":dbinder_send",
@@ -86,8 +90,8 @@ ohos_distributedtest("DbinderTestAgent") {
 
   external_deps = [
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "samgr:samgr_proxy",
   ]
 
@@ -110,6 +114,7 @@ ohos_executable("dbinder_test") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "samgr:samgr_proxy",
   ]
 
@@ -133,6 +138,7 @@ ohos_executable("dbinder_send") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "samgr:samgr_proxy",
   ]
 

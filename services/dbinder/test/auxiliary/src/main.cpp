@@ -24,15 +24,15 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
     std::string str;
     std::cout << "Please enter a string to start linking dynamic libraries." << std::endl;
 
-    (void)getline(std::cin, str);
+    std::cin >> str;
     std::cout << str << std::endl;
 
     std::string pkgName = "dbinderService";
-    NodeBasicInfo nodeBasicInfo;
-    (void)OHOS::DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo);
+    std::string networkId;
+    (void)OHOS::DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(pkgName.c_str(), networkId);
 
     std::cout << "Please enter a string to exit the program." << std::endl;
-    (void)getline(std::cin, str);
+    std::cin >> str;
     std::cout << str << std::endl;
 
     return 0;
