@@ -42,6 +42,7 @@ struct InvokerProcInfo {
 class ProcessSkeleton {
 public:
     static std::string ConvertToSecureDesc(const std::string &str);
+    static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
     static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
