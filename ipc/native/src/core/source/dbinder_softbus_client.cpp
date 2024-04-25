@@ -31,12 +31,6 @@ static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib64/platformsdk/libs
 static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib/platformsdk/libsoftbus_client.z.so";
 #endif
 
-namespace {
-    constexpr int32_t DLOPNE_FAILED = -1;
-    constexpr int32_t DLSYM_FAILED = -2;
-    constexpr int32_t INSTANCE_EXIT = -5;
-}
-
 DBinderSoftbusClient& DBinderSoftbusClient::GetInstance()
 {
     static DBinderSoftbusClient instance;
@@ -49,23 +43,22 @@ DBinderSoftbusClient::DBinderSoftbusClient()
 
 DBinderSoftbusClient::~DBinderSoftbusClient()
 {
-    dlclose(soHandle_);
     exitFlag_ = true;
-
     ZLOGI(LOG_LABEL, "destroy");
 }
 
 bool DBinderSoftbusClient::OpenSoftbusClientSo()
 {
-    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);  // 单例对象退出时的保护
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::lock_guard<std::mutex> lockGuard(loadSoMutex_);
-    if (isLoaded_ && soHandle_ != nullptr) {
+
+    if (isLoaded_ && (soHandle_ != nullptr)) {
         return true;
     }
 
     soHandle_ = dlopen(SOFTBUS_PATH_NAME, RTLD_NOW | RTLD_NODELETE);
     if (soHandle_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed, err = %{public}s", SOFTBUS_PATH_NAME, dlerror());
+        ZLOGE(LOG_LABEL, "dlopen %{public}s failed, err msg:%{public}s", SOFTBUS_PATH_NAME, dlerror());
         return false;
     }
 
@@ -75,46 +68,75 @@ bool DBinderSoftbusClient::OpenSoftbusClientSo()
     return true;
 }
 
-int32_t DBinderSoftbusClient::DBinderGrantPermission(int32_t uid, int32_t pid, const char *socketName)
+int32_t DBinderSoftbusClient::DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, INSTANCE_EXIT);
     if (grantPermissionFunc_ != nullptr) {
-        return grantPermissionFunc_(uid, pid, socketName);
+        return grantPermissionFunc_(uid, pid, socketName.c_str());
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
         return DLOPNE_FAILED;
     }
 
     grantPermissionFunc_ = (DBinderGrantPermissionFunc)dlsym(soHandle_, "DBinderGrantPermission");
     if (grantPermissionFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym DBinderGrantPermission funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym DBinderGrantPermission fail, err msg:%{public}s", dlerror());
         return DLSYM_FAILED;
     }
 
-    return grantPermissionFunc_(uid, pid, socketName);
+    return grantPermissionFunc_(uid, pid, socketName.c_str());
 }
 
-int32_t DBinderSoftbusClient::GetLocalNodeDeviceInfo(const char *pkgName, NodeBasicInfo *info)
+int32_t DBinderSoftbusClient::DBinderRemovePermission(const std::string &socketName)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, INSTANCE_EXIT);
-    if (getLocalNodeDeviceInfoFunc_ != nullptr) {
-        return getLocalNodeDeviceInfoFunc_(pkgName, info);
+    if (removePermissionFunc_ != nullptr) {
+        return removePermissionFunc_(socketName.c_str());
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
+        return DLOPNE_FAILED;
+    }
+
+    removePermissionFunc_ = (DBinderRemovePermissionFunc)dlsym(soHandle_, "DBinderRemovePermission");
+    if (removePermissionFunc_ == nullptr) {
+        ZLOGE(LOG_LABEL, "dlsym DBinderRemovePermission fail, err msg:%{public}s", dlerror());
+        return DLSYM_FAILED;
+    }
+
+    return removePermissionFunc_(socketName.c_str());
+}
+
+int32_t DBinderSoftbusClient::GetLocalNodeDeviceId(const std::string &pkgName, std::string &devId)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, INSTANCE_EXIT);
+    NodeBasicInfo nodeBasicInfo;
+    if (getLocalNodeDeviceInfoFunc_ != nullptr) {
+        if (getLocalNodeDeviceInfoFunc_(pkgName.c_str(), &nodeBasicInfo) != 0) {
+            ZLOGE(LOG_LABEL, "Get local node device info failed");
+            return GET_DEVICE_INFO_FAILED;
+        }
+        devId = nodeBasicInfo.networkId;
+        return SUCCESS;
+    }
+
+    if (!OpenSoftbusClientSo()) {
         return DLOPNE_FAILED;
     }
 
     getLocalNodeDeviceInfoFunc_ = (GetLocalNodeDeviceInfoFunc)dlsym(soHandle_, "GetLocalNodeDeviceInfo");
     if (getLocalNodeDeviceInfoFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym DBinderGrantPermission funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym GetLocalNodeDeviceInfo fail, err msg:%{public}s", dlerror());
         return DLSYM_FAILED;
     }
 
-    return getLocalNodeDeviceInfoFunc_(pkgName, info);
+    if (getLocalNodeDeviceInfoFunc_(pkgName.c_str(), &nodeBasicInfo) != 0) {
+        ZLOGE(LOG_LABEL, "Get local node device info failed");
+        return GET_DEVICE_INFO_FAILED;
+    }
+    devId = nodeBasicInfo.networkId;
+    return SUCCESS;
 }
 
 int32_t DBinderSoftbusClient::Socket(SocketInfo info)
@@ -125,13 +147,12 @@ int32_t DBinderSoftbusClient::Socket(SocketInfo info)
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
         return DLOPNE_FAILED;
     }
 
     socketFunc_ = (SocketFunc)dlsym(soHandle_, "Socket");
     if (socketFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym Socket funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym Socket fail, err msg:%{public}s", dlerror());
         return DLSYM_FAILED;
     }
 
@@ -147,13 +168,12 @@ int32_t DBinderSoftbusClient::Listen(
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
         return DLOPNE_FAILED;
     }
 
     listenFunc_ = (ListenFunc)dlsym(soHandle_, "Listen");
     if (listenFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym Listen funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym Listen fail, err msg:%{public}s", dlerror());
         return DLSYM_FAILED;
     }
 
@@ -169,13 +189,12 @@ int32_t DBinderSoftbusClient::Bind(
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
         return DLOPNE_FAILED;
     }
 
     bindFunc_ = (BindFunc)dlsym(soHandle_, "Bind");
     if (bindFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym Bind funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym Bind fail, err msg:%{public}s", dlerror());
         return DLSYM_FAILED;
     }
 
@@ -190,13 +209,12 @@ int32_t DBinderSoftbusClient::SendBytes(int32_t socket, const void *data, uint32
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
         return DLOPNE_FAILED;
     }
 
     sendBytesFunc_ = (SendBytesFunc)dlsym(soHandle_, "SendBytes");
     if (sendBytesFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym Bind funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym SendBytes fail, err msg:%{public}s", dlerror());
         return DLSYM_FAILED;
     }
 
@@ -212,17 +230,15 @@ void DBinderSoftbusClient::Shutdown(int32_t socket)
     }
 
     if (!OpenSoftbusClientSo()) {
-        ZLOGE(LOG_LABEL, "dlopen %{public}s failed.", SOFTBUS_PATH_NAME);
         return;
     }
 
     shutdownFunc_ = (ShutdownFunc)dlsym(soHandle_, "Shutdown");
     if (shutdownFunc_ == nullptr) {
-        ZLOGE(LOG_LABEL, "dlsym Shutdown funcation fail, err = %{public}s", dlerror());
+        ZLOGE(LOG_LABEL, "dlsym Shutdown fail, err msg:%{public}s", dlerror());
         return;
     }
 
     shutdownFunc_(socket);
-    return;
 }
 } // namespace OHOS

@@ -17,6 +17,7 @@
 #define OHOS_IPC_DBINDER_SOFTBUS_CLIENT_H
 
 #include <mutex>
+#include <string>
 
 #include "inner_socket.h"
 #include "nocopyable.h"
@@ -25,14 +26,23 @@
 
 namespace OHOS {
 
+enum {
+    DLOPNE_FAILED = -99,
+    DLSYM_FAILED,
+    INSTANCE_EXIT,
+    GET_DEVICE_INFO_FAILED,
+    SUCCESS = 0,
+};
+
 class DBinderSoftbusClient {
 public:
     static DBinderSoftbusClient& GetInstance();
     DBinderSoftbusClient();
     ~DBinderSoftbusClient();
 
-    int32_t DBinderGrantPermission(int32_t uid, int32_t pid, const char *socketName);
-    int32_t GetLocalNodeDeviceInfo(const char *pkgName, NodeBasicInfo *info);
+    int32_t DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName);
+    int32_t DBinderRemovePermission(const std::string &socketName);
+    int32_t GetLocalNodeDeviceId(const std::string &pkgName, std::string &devId);
     int32_t Socket(SocketInfo info);
     int32_t Listen(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener);
     int32_t Bind(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener);
@@ -44,7 +54,8 @@ private:
     bool OpenSoftbusClientSo();
 
     using DBinderGrantPermissionFunc = int32_t (*)(int32_t, int32_t, const char*);
-    using GetLocalNodeDeviceInfoFunc = int32_t (*)(const char *, NodeBasicInfo*);
+    using DBinderRemovePermissionFunc = int32_t (*)(const char*);
+    using GetLocalNodeDeviceInfoFunc = int32_t (*)(const char*, NodeBasicInfo*);
     using SocketFunc = int32_t (*)(SocketInfo);
     using ListenFunc = int32_t (*)(int32_t, const QosTV[], uint32_t, const ISocketListener*);
     using BindFunc = int32_t (*)(int32_t, const QosTV[], uint32_t, const ISocketListener*);
@@ -52,6 +63,7 @@ private:
     using ShutdownFunc = void (*)(int32_t);
 
     DBinderGrantPermissionFunc grantPermissionFunc_ = nullptr;
+    DBinderRemovePermissionFunc removePermissionFunc_ = nullptr;
     GetLocalNodeDeviceInfoFunc getLocalNodeDeviceInfoFunc_ = nullptr;
     SocketFunc socketFunc_ = nullptr;
     ListenFunc listenFunc_ = nullptr;

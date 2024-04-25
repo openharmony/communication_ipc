@@ -167,7 +167,7 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
-        
+
         clientSocketInfos_[peerNetworkId] = socketId;
     }
 
@@ -190,7 +190,7 @@ bool DBinderRemoteListener::StartListener()
     int pid = static_cast<int>(getpid());
     int uid = static_cast<int>(getuid());
 
-    int32_t ret = DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, OWN_SESSION_NAME.c_str());
+    int32_t ret = DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, OWN_SESSION_NAME);
     if (ret != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "GrantPermission failed softbus name:%{public}s", OWN_SESSION_NAME.c_str());
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);

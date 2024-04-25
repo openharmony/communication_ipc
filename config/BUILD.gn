@@ -49,7 +49,5 @@ config("dsoftbus_header_deps_config") {
     "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/bus_center",
     "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/common",
     "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/transport",
-    "$DSOFTBUS_INTERFACES_PATH/sdk/transmission/session/cpp/include",
-    "$DSOFTBUS_INTERFACES_PATH/sdk/transmission/session/cpp/src",
   ]
 }
