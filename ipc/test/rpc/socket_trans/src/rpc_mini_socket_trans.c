@@ -326,11 +326,15 @@ static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void
         RPC_LOG_ERROR("memset failed");
     }
     addr.sin_family = AF_INET;
-    inet_pton(AF_INET, peerDeviceId, &addr.sin_addr);
+    int rc = inet_pton(AF_INET, peerDeviceId, &addr.sin_addr);
+    if (rc <= 0) {
+        RPC_LOG_ERROR("inet_pton rc=%d", rc);
+        return ERR_FAILED;
+    }
     addr.sin_port = lwip_htons(port);
     errno = 0;
 
-    int rc = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
+    rc = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
     if ((rc == -1) && (errno != EINPROGRESS)) {
         RPC_LOG_ERROR("fd=%d,connect rc=%d, errno=%d", fd, rc, errno);
         TcpShutDown(fd);
