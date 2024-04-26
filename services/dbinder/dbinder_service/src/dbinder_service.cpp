@@ -66,9 +66,10 @@ DBinderService::~DBinderService()
 std::string DBinderService::GetLocalDeviceID()
 {
     std::string pkgName = "DBinderService";
-    std::string networkId = "";
+    std::string networkId;
 
-    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(pkgName.c_str(), networkId) != SUCCESS) {
+    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(
+        pkgName.c_str(), networkId) != SOFTBUS_CLIENT_SUCCESS) {
         DBINDER_LOGE(LOG_LABEL, "Get local node device id failed");
     }
 
