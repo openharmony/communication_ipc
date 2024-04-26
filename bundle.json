@@ -133,6 +133,17 @@
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_napi_common/include"
               }
+            },
+            {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/c_api:ipc_ndk",
+              "header": {
+                "header_files": [
+                  "ipc_cparcel.h",
+                  "ipc_error_code.h",
+                  "ipc_inner_object.h"
+                ],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/c_api/include"
+              }
             }
         ],
         "test": [
