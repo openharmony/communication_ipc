@@ -83,48 +83,28 @@ int main(int argc, char *argv[])
     }
 
     ZLOGE(LABEL, "commandId= : %{public}d", commandId);
-    switch (commandId) {
-        case TestCommand::TEST_CMD_SYNC_TRANS:
-            testClient->StartSyncTransaction();
-            break;
-        case TestCommand::TEST_CMD_ASYNC_TRANS: {
-            testClient->StartAsyncTransaction();
-            break;
-        }
-        case TestCommand::TEST_CMD_PING_SERVICE: {
-            testClient->StartPingService();
-            break;
-        }
-        case TestCommand::TEST_CMD_GET_FOO_SERVICE: {
-            testClient->StartGetFooService();
-            break;
-        }
-        case TestCommand::TEST_CMD_TRANS_FILE_DESC: {
-            testClient->StartTestFileDescriptor();
-            break;
-        }
-        case TestCommand::TEST_CMD_LOOP_TRANSACTION: {
-            constexpr int maxTestCount = 1000;
-            testClient->StartLoopTest(maxTestCount);
-            break;
-        }
-        case TestCommand::TEST_CMD_DUMP_SERVICE: {
-            testClient->StartDumpService();
-            break;
-        }
-        case TestCommand::TEST_CMD_ASYNC_DUMP_SERVICE: {
-            testClient->StartAsyncDumpService();
-            break;
-        }
-        case TestCommand::TEST_CMD_ENABLE_SERIAL_INVOKE_FLAG: {
+    std::map<TestCommand, std::function<void()>> commandMap = {
+        {TestCommand::TEST_CMD_SYNC_TRANS, [&]() { testClient->StartSyncTransaction(); }},
+        {TestCommand::TEST_CMD_ASYNC_TRANS, [&]() { testClient->StartAsyncTransaction(); }},
+        {TestCommand::TEST_CMD_PING_SERVICE, [&]() { testClient->StartPingService(); }},
+        {TestCommand::TEST_CMD_GET_FOO_SERVICE, [&]() { testClient->StartGetFooService(); }},
+        {TestCommand::TEST_CMD_TRANS_FILE_DESC, [&]() { testClient->StartTestFileDescriptor(); }},
+        {TestCommand::TEST_CMD_LOOP_TRANSACTION, [&]() { constexpr int maxTestCount = 1000;
+            testClient->StartLoopTest(maxTestCount); }},
+        {TestCommand::TEST_CMD_DUMP_SERVICE, [&]() { testClient->StartDumpService(); }},
+        {TestCommand::TEST_CMD_ASYNC_DUMP_SERVICE, [&]() { testClient->StartAsyncDumpService(); }},
+        {TestCommand::TEST_CMD_ENABLE_SERIAL_INVOKE_FLAG, [&]() {
             std::thread temp(ThreadFunc, testClient);
             testClient->TestEnableSerialInvokeFlag();
             temp.join();
-            break;
-        }
-        default:
-            ZLOGD(LABEL, "main arg error");
-            break;
+            }},
+    };
+
+    auto it = commandMap.find(commandId);
+    if (it != commandMap.end()) {
+        it->second();
+    } else {
+        ZLOGD(LABEL, "main arg error");
     }
 
     ZLOGE(LABEL, "get from service: %{public}d", result);
