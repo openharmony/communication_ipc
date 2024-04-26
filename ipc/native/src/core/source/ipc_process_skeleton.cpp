@@ -473,9 +473,10 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
     std::string pkgName = std::string(DBINDER_PKG_NAME) + "_" + std::to_string(getpid());
-    std::string networkId = "";
+    std::string networkId;
 
-    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(pkgName.c_str(), networkId) != SUCCESS) {
+    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(
+        pkgName.c_str(), networkId) != SOFTBUS_CLIENT_SUCCESS) {
         ZLOGE(LOG_LABEL, "Get local node device id failed");
     }
 
