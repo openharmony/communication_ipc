@@ -142,6 +142,9 @@ public:
     int TestEnableSerialInvokeFlag() override;
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
+    bool CheckTokenSelf(uint64_t token, uint64_t tokenSelf, uint64_t ftoken, uint64_t ftoken_expected);
+    bool CheckSetFirstToken(uint64_t ftoken_expected);
+    bool CheckSetSelfToken(uint64_t token_expected);
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceProxy" };
 };
 
