@@ -387,7 +387,7 @@ bool TestServiceProxy::CheckTokenSelf(uint64_t token, uint64_t tokenSelf, uint64
         return false;
     }
     if (ftoken != ftoken_expected) {
-        ZLOGE(LABEL, "ftoken != ftoken_expected, ftoken:%{public}llu", ftoken_expected);
+        ZLOGE(LABEL, "ftoken != ftoken_expected");
         return false;
     }
     return true;
@@ -483,7 +483,6 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     ZLOGE(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
     ZLOGE(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
     ZLOGE(LABEL, "TestServiceProxy ftoken_expected: %{public}d", ftoken_expected);
-    int32_t ret = 0;
     if (!CheckTokenSelf(token, tokenSelf, ftoken, 0)) {
         ZLOGE(LABEL, "first");
         return -1;
@@ -491,7 +490,7 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     if (!CheckSetFirstToken(ftoken_expected)) {
         return -1;
     }
-    ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel1, option);
+    int ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel1, option);
     if (ret != ERR_NONE) {
         ZLOGE(LABEL, "SendRequest ret = %{public}d", ret);
         return ret;
@@ -518,6 +517,9 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     }
     ret = RpcSetFirstCallerTokenID(0);
     ret = RpcSetSelfTokenID(0);
+    if (ret != ERR_NONE) {
+        retuen -1;
+    }
     return 0;
 }
 
