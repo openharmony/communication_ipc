@@ -518,7 +518,7 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     ret = RpcSetFirstCallerTokenID(0);
     ret = RpcSetSelfTokenID(0);
     if (ret != ERR_NONE) {
-        retuen -1;
+        return -1;
     }
     return 0;
 }
