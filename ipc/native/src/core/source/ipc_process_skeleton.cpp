@@ -20,6 +20,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+#include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
@@ -30,7 +31,6 @@
 
 #ifndef CONFIG_IPC_SINGLE
 #include "databus_socket_listener.h"
-#include "softbus_bus_center.h"
 #endif
 
 namespace OHOS {
@@ -152,7 +152,7 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
-    Shutdown(listenSocketId_);
+    DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
 #endif
 }
 
@@ -473,12 +473,13 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
     std::string pkgName = std::string(DBINDER_PKG_NAME) + "_" + std::to_string(getpid());
-    NodeBasicInfo nodeBasicInfo;
-    if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        ZLOGE(LOG_LABEL, "Get local node device info failed");
-        return "";
+    std::string networkId;
+
+    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(
+        pkgName.c_str(), networkId) != SOFTBUS_CLIENT_SUCCESS) {
+        ZLOGE(LOG_LABEL, "Get local node device id failed");
     }
-    std::string networkId(nodeBasicInfo.networkId);
+
     return networkId;
 }
 

@@ -20,6 +20,7 @@
 #include <sys/syscall.h>
 
 #include "binder_invoker.h"
+#include "check_instance_exit.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
 #include "invoker_factory.h"
