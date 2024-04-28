@@ -317,21 +317,14 @@ int OH_IPCParcel_ReadDouble(const OHIPCParcel *parcel, double *value);
 int OH_IPCParcel_WriteString(OHIPCParcel *parcel, const char *str);
 
 /**
- * @brief 从OHIPCParcel对象读取字符串.
+ * @brief 从OHIPCParcel对象读取字符串，用户可通过strlen获取字符串长度。
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param str 用于存储字符串的内存地址，该内存由用户提供的分配器进行内存分配，用户使用完后需要主动释放，不能为空. \n
- *            接口返回失败时，用户依然需要判断该内存是否为空，并主动释放，否则会造成内存泄漏.
- * @param len 写入str的数据长度，不能为空.
- * @param allocator 用户指定的用来分配str的内存分配器，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel OHIPCParcel对象的指针，不能为空。
+ * @return 成功返回读取字符串地址；参数不合法或读取失败时返回NULL。
  * @since 12
  */
-int OH_IPCParcel_ReadString(const OHIPCParcel *parcel, char **str, int32_t *len,
-    OH_IPC_MemAllocator allocator);
+const char* OH_IPCParcel_ReadString(const OHIPCParcel *parcel);
 
 /**
  * @brief 向OHIPCParcel对象写入指定长度的内存信息.
@@ -348,21 +341,15 @@ int OH_IPCParcel_ReadString(const OHIPCParcel *parcel, char **str, int32_t *len,
 int OH_IPCParcel_WriteBuffer(OHIPCParcel *parcel, const uint8_t *buffer, int32_t len);
 
 /**
- * @brief 从OHIPCParcel对象读取内存信息.
+ * @brief 从OHIPCParcel对象读取指定长度内存信息。
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param buffer 用于存储读取内存信息的内存地址，该内存由用户提供的分配器进行内存分配，用户使用完后需要主动释放，不能为空. \n
- *               接口返回失败时，用户依然需要判断该内存是否为空，并主动释放，否则会造成内存泄漏.
- * @param len 存储读取到内存信息的长度，不能为空.
- * @param allocator 用户指定的用来分配str的内存分配器，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel OHIPCParcel对象的指针，不能为空。
+ * @param len 读取内存的长度。
+ * @return 成功返回读取到的内存地址；参数不合法或len超过parcel可读长度时返回NULL。
  * @since 12
  */
-int OH_IPCParcel_ReadBuffer(const OHIPCParcel *parcel, uint8_t **buffer, int32_t *len,
-    OH_IPC_MemAllocator allocator);
+const uint8_t* OH_IPCParcel_ReadBuffer(const OHIPCParcel *parcel, int32_t len);
 
 /**
  * @brief 向OHIPCParcel对象写入OHIPCRemoteStub对象.
@@ -469,8 +456,8 @@ int OH_IPCParcel_WriteInterfaceToken(OHIPCParcel *parcel, const char *token);
  * @param parcel OHIPCParcel对象的指针，不能为空.
  * @param token 用于存储接口描述符信息的内存地址，该内存由用户提供的分配器进行内存分配，用户使用完后需要主动释放，不能为空. \n
  *              接口返回失败时，用户依然需要判断该内存是否为空，并主动释放，否则会造成内存泄漏.
- * @param len 存储读取接口描述符的长度，不能为空.
- * @param allocator 用户指定的用来分配str的内存分配器，不能为空.
+ * @param len 存储读取接口描述符的长度，包含结束符，不能为空.
+ * @param allocator 用户指定的用来分配token的内存分配器，不能为空.
  * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
  *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
  *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.

@@ -204,36 +204,13 @@ int OH_IPCParcel_WriteString(OHIPCParcel *parcel, const char *str)
     return parcel->msgParcel->WriteString(std::string(str)) ? OH_IPC_SUCCESS : OH_IPC_PARCEL_WRITE_ERROR;
 }
 
-int OH_IPCParcel_ReadString(const OHIPCParcel *parcel, char **str, int32_t *len,
-    OH_IPC_MemAllocator allocator)
+const char* OH_IPCParcel_ReadString(const OHIPCParcel *parcel)
 {
-    if (!IsIPCParcelValid(parcel, __func__)
-        || !IsMemoryParamsValid(str, len, allocator, __func__)) {
-        return OH_IPC_CHECK_PARAM_ERROR;
+    if (!IsIPCParcelValid(parcel, __func__)) {
+        return nullptr;
     }
 
-    size_t readPosition = parcel->msgParcel->GetReadPosition();
-    std::string value;
-    if (!parcel->msgParcel->ReadString(value)) {
-        parcel->msgParcel->RewindRead(readPosition);
-        ZLOGE(LOG_LABEL, "read string failed!");
-        return OH_IPC_PARCEL_READ_ERROR;
-    }
-
-    int memLength = (value.length() + 1) * sizeof(char);
-    *str = static_cast<char*>(allocator(memLength));
-    if (*str == nullptr) {
-        parcel->msgParcel->RewindRead(readPosition);
-        ZLOGE(LOG_LABEL, "memory allocator failed!");
-        return OH_IPC_MEM_ALLOCATOR_ERROR;
-    }
-    if (memcpy_s(*str, memLength, value.c_str(), memLength) != EOK) {
-        parcel->msgParcel->RewindRead(readPosition);
-        ZLOGE(LOG_LABEL, "memcpy string failed, len:%{public}d", memLength);
-        return OH_IPC_PARCEL_READ_ERROR;
-    }
-    *len = value.length();
-    return OH_IPC_SUCCESS;
+    return parcel->msgParcel->ReadCString();
 }
 
 int OH_IPCParcel_WriteBuffer(OHIPCParcel *parcel, const uint8_t *buffer, int32_t len)
@@ -243,10 +220,6 @@ int OH_IPCParcel_WriteBuffer(OHIPCParcel *parcel, const uint8_t *buffer, int32_t
     }
 
     size_t writePosition = parcel->msgParcel->GetWritePosition();
-    if (!parcel->msgParcel->WriteInt32(len)) {
-        ZLOGE(LOG_LABEL, "write buffer len failed! buffer len:%{public}d", len);
-        return OH_IPC_PARCEL_WRITE_ERROR;
-    }
     if (!parcel->msgParcel->WriteBuffer(buffer, len)) {
         ZLOGE(LOG_LABEL, "write buffer failed! buffer len:%{public}d", len);
         parcel->msgParcel->RewindWrite(writePosition);
@@ -255,40 +228,18 @@ int OH_IPCParcel_WriteBuffer(OHIPCParcel *parcel, const uint8_t *buffer, int32_t
     return OH_IPC_SUCCESS;
 }
 
-int OH_IPCParcel_ReadBuffer(const OHIPCParcel *parcel, uint8_t **buffer, int32_t *len,
-    OH_IPC_MemAllocator allocator)
+const uint8_t* OH_IPCParcel_ReadBuffer(const OHIPCParcel *parcel, int32_t len)
 {
-    if (!IsIPCParcelValid(parcel, __func__)
-        || !IsMemoryParamsValid(reinterpret_cast<char**>(buffer), len, allocator, __func__)) {
-        return OH_IPC_CHECK_PARAM_ERROR;
+    if (!IsIPCParcelValid(parcel, __func__)) {
+        return nullptr;
+    }
+    if (len <= 0 || len > parcel->msgParcel->GetReadableBytes()) {
+        ZLOGE(LOG_LABEL, "read buf len:%{public}d invalid! ReadableBytes:%{public}d",
+            len, parcel->msgParcel->GetReadableBytes());
+        return nullptr;
     }
 
-    size_t readPosition = parcel->msgParcel->GetReadPosition();
-    int32_t length = 0;
-    if (!parcel->msgParcel->ReadInt32(length)) {
-        ZLOGE(LOG_LABEL, "read buffer len failed!");
-        return OH_IPC_PARCEL_READ_ERROR;
-    }
-    const uint8_t *readBuffer = parcel->msgParcel->ReadBuffer(length);
-    if (readBuffer == nullptr) {
-        ZLOGE(LOG_LABEL, "read buffer failed! buffer len:%{public}d", length);
-        parcel->msgParcel->RewindRead(readPosition);
-        return OH_IPC_PARCEL_READ_ERROR;
-    }
-
-    *buffer = static_cast<uint8_t*>(allocator(length));
-    if (*buffer == nullptr) {
-        ZLOGE(LOG_LABEL, "memory allocator failed!");
-        parcel->msgParcel->RewindRead(readPosition);
-        return OH_IPC_MEM_ALLOCATOR_ERROR;
-    }
-    if (memcpy_s(*buffer, length, readBuffer, length) != EOK) {
-        ZLOGE(LOG_LABEL, "memcpy string failed, len:%{public}d", length);
-        parcel->msgParcel->RewindRead(readPosition);
-        return OH_IPC_PARCEL_READ_ERROR;
-    }
-    *len = length;
-    return OH_IPC_SUCCESS;
+    return parcel->msgParcel->ReadBuffer(len);
 }
 
 template <typename T>
@@ -425,6 +376,6 @@ int OH_IPCParcel_ReadInterfaceToken(const OHIPCParcel *parcel, char **token, int
         ZLOGE(LOG_LABEL, "memcpy string failed, string len: %{public}d", memLength);
         return OH_IPC_PARCEL_READ_ERROR;
     }
-    *len = strToken.length();
+    *len = memLength;
     return OH_IPC_SUCCESS;
 }
