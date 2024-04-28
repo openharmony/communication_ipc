@@ -75,7 +75,6 @@ private:
     std::atomic<bool> exitFlag_ = false;
     bool isLoaded_ = false;
     void *soHandle_ = nullptr;
-
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_SOFTBUS_CLIENT_H
