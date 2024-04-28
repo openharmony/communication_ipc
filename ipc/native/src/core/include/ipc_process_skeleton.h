@@ -32,8 +32,7 @@
 #include "comm_auth_info.h"
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
-#include "inner_socket.h"
-#include "socket.h"
+#include "dbinder_softbus_client.h"
 #include "stub_refcount_object.h"
 #endif
 

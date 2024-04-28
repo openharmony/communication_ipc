@@ -42,5 +42,6 @@ const unsigned int LOG_ID_RPC_DBINDER_SER_STUB = LOG_ID_IPC_BASE | 0x13;
 const unsigned int LOG_ID_RPC_DBINDER_INVOKER = LOG_ID_IPC_BASE | 0x14;
 const unsigned int LOG_ID_RPC_REMOTE_LISTENER = LOG_ID_IPC_BASE | 0x15;
 const unsigned int LOG_ID_RPC_DBINDER_CB_STUB = LOG_ID_IPC_BASE | 0x16;
+const unsigned int LOG_ID_IPC_DBINDER_SOFTBUS_CLIENT = LOG_ID_IPC_BASE | 0x17;
 } // namespace OHOS
 #endif // OHOS_COMMUNICATION_LOG_TAGS_H

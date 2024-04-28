@@ -677,7 +677,7 @@ std::string IPCObjectStub::CreateSessionName(int uid, int pid)
 {
     std::string sessionName = DBINDER_SOCKET_NAME_PREFIX +
         std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (DBinderGrantPermission(uid, pid, sessionName.c_str()) != ERR_NONE) {
+    if (DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, sessionName) != ERR_NONE) {
         ZLOGE(LABEL, "fail to Grant Permission softbus name");
         return "";
     }

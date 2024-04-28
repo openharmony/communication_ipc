@@ -148,17 +148,17 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         .pkgName = const_cast<char*>(DBINDER_SERVER_PKG_NAME.c_str()),
         .dataType = TransDataType::DATA_TYPE_BYTES,
     };
-    int32_t socketId = Socket(socketInfo);
+    int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(socketInfo);
     if (socketId <= 0) {
         DBINDER_LOGE(LOG_LABEL, "create socket error, socket is invalid");
         return SOCKET_ID_INVALID;
     }
 
-    int32_t ret = Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
+    int32_t ret = DBinderSoftbusClient::GetInstance().Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
     if (ret != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d, peerNetworkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
-        Shutdown(socketId);
+        DBinderSoftbusClient::GetInstance().Shutdown(socketId);
         EraseDeviceLock(peerNetworkId);
         return SOCKET_ID_INVALID;
     }
@@ -167,7 +167,7 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
-        
+
         clientSocketInfos_[peerNetworkId] = socketId;
     }
 
@@ -190,7 +190,7 @@ bool DBinderRemoteListener::StartListener()
     int pid = static_cast<int>(getpid());
     int uid = static_cast<int>(getuid());
 
-    int32_t ret = DBinderGrantPermission(uid, pid, OWN_SESSION_NAME.c_str());
+    int32_t ret = DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, OWN_SESSION_NAME);
     if (ret != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "GrantPermission failed softbus name:%{public}s", OWN_SESSION_NAME.c_str());
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);
@@ -201,16 +201,16 @@ bool DBinderRemoteListener::StartListener()
         .pkgName = const_cast<char*>(DBINDER_SERVER_PKG_NAME.c_str()),
         .dataType = TransDataType::DATA_TYPE_BYTES,
     };
-    int32_t socketId = Socket(serverSocketInfo);
+    int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(serverSocketInfo);
     if (socketId < 0) {
         DBINDER_LOGE(LOG_LABEL, "create socket server error, socket is invalid");
         return false;
     }
-    ret = Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
+    ret = DBinderSoftbusClient::GetInstance().Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "Listen failed, ret:%{public}d", ret);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
-        Shutdown(socketId);
+        DBinderSoftbusClient::GetInstance().Shutdown(socketId);
         return false;
     }
     DBINDER_LOGI(LOG_LABEL, "Listen ok, socketId:%{public}d", socketId);
@@ -225,11 +225,11 @@ bool DBinderRemoteListener::StopListener()
     {
         std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
         for (auto it = clientSocketInfos_.begin(); it != clientSocketInfos_.end(); it++) {
-            Shutdown(it->second);
+            DBinderSoftbusClient::GetInstance().Shutdown(it->second);
         }
         clientSocketInfos_.clear();
     }
-    Shutdown(listenSocketId_);
+    DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
     return true;
 }
 
@@ -278,7 +278,7 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &networkId, const
         return false;
     }
 
-    int32_t ret = SendBytes(socketId, msg, msg->head.len);
+    int32_t ret = DBinderSoftbusClient::GetInstance().SendBytes(socketId, msg, msg->head.len);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes, ret:%{public}d socketId:%{public}d, networkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
@@ -307,7 +307,7 @@ bool DBinderRemoteListener::SendDataReply(const std::string &networkId, const st
         return false;
     }
 
-    int32_t result = SendBytes(socketId, msg, msg->head.len);
+    int32_t result = DBinderSoftbusClient::GetInstance().SendBytes(socketId, msg, msg->head.len);
     if (result != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes of reply, result:%{public}d device:%{public}s"
             " socketId:%{public}d", result, DBinderService::ConvertToSecureDeviceID(networkId).c_str(), socketId);
@@ -328,7 +328,7 @@ bool DBinderRemoteListener::ShutdownSocket(const std::string &networkId)
     if (it != clientSocketInfos_.end()) {
         DBINDER_LOGI(LOG_LABEL, "networkId:%{public}s offline, Shutdown socketId:%{public}d ",
             DBinderService::ConvertToSecureDeviceID(networkId).c_str(), it->second);
-        Shutdown(it->second);
+        DBinderSoftbusClient::GetInstance().Shutdown(it->second);
         clientSocketInfos_.erase(it);
         return true;
     }
