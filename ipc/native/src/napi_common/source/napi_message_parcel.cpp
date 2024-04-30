@@ -72,7 +72,7 @@ NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, Message
     maxCapacityToWrite_ = MAX_CAPACITY_TO_WRITE;
     // do NOT reference js parcel here
     if (parcel == nullptr) {
-        nativeParcel_ = std::shared_ptr<MessageParcel>(new MessageParcel());
+        nativeParcel_ = std::make_shared<MessageParcel>();
         owner = true;
     } else {
         nativeParcel_ = std::shared_ptr<MessageParcel>(parcel, release);
