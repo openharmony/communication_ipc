@@ -23,6 +23,14 @@
             <option name="push" value="communication/ipc/libipc_test_helper_extra.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
+    <target name="IpcCApiUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/ipc_server_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/ipc_client_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
     <target name="IPCNativeUnitTest">
         <preparer>
             <option name="push" value="communication/ipc/ipc_server_test -> /system/bin" src="out"/>
