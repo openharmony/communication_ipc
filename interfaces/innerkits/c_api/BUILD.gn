@@ -32,8 +32,11 @@ ohos_shared_library("ipc_ndk") {
 
   sources = [
     "$IPC_CORE_ROOT/src/c_api/source/ipc_cparcel.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_cremote_object.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_cskeleton.cpp",
     "$IPC_CORE_ROOT/src/c_api/source/ipc_inner_object.cpp",
     "$IPC_CORE_ROOT/src/c_api/source/ipc_internal_utils.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_remote_object_internal.cpp",
   ]
 
   configs = [
@@ -58,6 +61,7 @@ ohos_shared_library("ipc_ndk") {
   ]
 
   install_images = [ system_base_dir ]
+
   subsystem_name = "communication"
   part_name = "ipc"
 }

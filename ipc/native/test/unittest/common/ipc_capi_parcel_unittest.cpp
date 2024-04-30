@@ -227,7 +227,7 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestDataInfo_001, TestSize.Level1)
 {
     OHIPCParcel *parcel = OH_IPCParcel_Create();
     EXPECT_NE(parcel, nullptr);
-    
+
     EXPECT_EQ(OH_IPCParcel_GetDataSize(parcel), 0);
     EXPECT_EQ(OH_IPCParcel_GetWritableBytes(parcel), DEFAULT_CAPACITY);
     EXPECT_EQ(OH_IPCParcel_GetReadableBytes(parcel), 0);
@@ -352,41 +352,16 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteString_001, TestSize.L
     OHIPCParcel *parcel = OH_IPCParcel_Create();
     EXPECT_NE(parcel, nullptr);
 
-    void *data = nullptr;
-    int32_t len = 0;
     // read without writing data
-    EXPECT_EQ(OH_IPCParcel_ReadString(parcel, reinterpret_cast<char **>(&data), &len, LocalMemAllocator),
-        OH_IPC_PARCEL_READ_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadString(nullptr), nullptr);
     // write string
     EXPECT_EQ(OH_IPCParcel_WriteString(nullptr, STRING_CONSTANT), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_WriteString(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_WriteString(parcel, STRING_CONSTANT), OH_IPC_SUCCESS);
     // read after write
-    EXPECT_EQ(OH_IPCParcel_ReadString(nullptr, reinterpret_cast<char **>(&data), &len, LocalMemAllocator),
-        OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadString(parcel, nullptr, &len, LocalMemAllocator), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadString(parcel, reinterpret_cast<char **>(&data), nullptr, LocalMemAllocator),
-        OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadString(parcel, reinterpret_cast<char **>(&data), &len, nullptr),
-        OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadString(parcel, reinterpret_cast<char **>(&data), &len, LocalMemAllocator),
-        OH_IPC_SUCCESS);
-    EXPECT_EQ(strncmp((reinterpret_cast<char *>(data)), STRING_CONSTANT, strlen(STRING_CONSTANT)), 0);
-    if (data != nullptr) {
-        free(data);
-    }
-    OH_IPCParcel_Destroy(parcel);
-}
-
-HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteString_002, TestSize.Level1)
-{
-    OHIPCParcel *parcel = OH_IPCParcel_Create();
-    EXPECT_NE(parcel, nullptr);
-    void *data = nullptr;
-    int32_t len = 0;
-    EXPECT_EQ(OH_IPCParcel_WriteString(parcel, STRING_CONSTANT), OH_IPC_SUCCESS);
-    EXPECT_EQ(OH_IPCParcel_ReadString(parcel, reinterpret_cast<char **>(&data), &len, LocalMemAllocatorErr),
-        OH_IPC_MEM_ALLOCATOR_ERROR);
+    const char* str = OH_IPCParcel_ReadString(parcel);
+    EXPECT_EQ(strncmp(str, STRING_CONSTANT, strlen(STRING_CONSTANT)), 0);
+    EXPECT_EQ(strlen(STRING_CONSTANT), strlen(str));
     OH_IPCParcel_Destroy(parcel);
 }
 
@@ -453,25 +428,11 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteBuffer_001, TestSize.L
     EXPECT_EQ(OH_IPCParcel_WriteBuffer(parcel, buffer, -1), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_WriteBuffer(parcel, buffer, len), OH_IPC_SUCCESS);
 
-    uint8_t *data = nullptr;
-    // abnormal parameters
-    EXPECT_EQ(OH_IPCParcel_ReadBuffer(nullptr, reinterpret_cast<uint8_t **>(&data), &len, LocalMemAllocator),
-        OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadBuffer(parcel, nullptr, &len, LocalMemAllocator), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadBuffer(parcel, reinterpret_cast<uint8_t **>(&data), nullptr,
-        LocalMemAllocator), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadBuffer(parcel, reinterpret_cast<uint8_t **>(&data), &len,
-        nullptr), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_ReadBuffer(parcel, reinterpret_cast<uint8_t **>(&data), &len,
-        LocalMemAllocatorErr), OH_IPC_MEM_ALLOCATOR_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadBuffer(nullptr, len), nullptr);
     // normal scenes
-    EXPECT_EQ(OH_IPCParcel_ReadBuffer(parcel, reinterpret_cast<uint8_t **>(&data), &len,
-        LocalMemAllocator), OH_IPC_SUCCESS);
-    EXPECT_EQ(len, sizeof(buffer));
-    EXPECT_EQ(memcmp(buffer, data, len), 0);
-    if (data) {
-        delete data;
-    }
+    const uint8_t* readBuffer = OH_IPCParcel_ReadBuffer(parcel, len);
+    EXPECT_NE(readBuffer, nullptr);
+    EXPECT_EQ(memcmp(buffer, readBuffer, len), 0);
     OH_IPCParcel_Destroy(parcel);
 }
 
@@ -479,10 +440,10 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteInterfaceToken_001, Te
 {
     OHIPCParcel *parcel = OH_IPCParcel_Create();
     EXPECT_NE(parcel, nullptr);
-    const char *buffer = "hello, world!";
-    EXPECT_EQ(OH_IPCParcel_WriteInterfaceToken(nullptr, buffer), OH_IPC_CHECK_PARAM_ERROR);
+    const char *token = "hello, world!";
+    EXPECT_EQ(OH_IPCParcel_WriteInterfaceToken(nullptr, token), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_WriteInterfaceToken(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_WriteInterfaceToken(parcel, buffer), OH_IPC_SUCCESS);
+    EXPECT_EQ(OH_IPCParcel_WriteInterfaceToken(parcel, token), OH_IPC_SUCCESS);
     char *data = nullptr;
     int32_t realLen = 0;
     // abnormal parameters
@@ -498,7 +459,8 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteInterfaceToken_001, Te
     // normal scenes
     EXPECT_EQ(OH_IPCParcel_ReadInterfaceToken(parcel, reinterpret_cast<char **>(&data), &realLen,
         LocalMemAllocator), OH_IPC_SUCCESS);
-    EXPECT_EQ(strcmp(buffer, data), 0);
+    EXPECT_EQ(strcmp(token, data), 0);
+    EXPECT_EQ(realLen, strlen(token) + 1);
     // destroy object
     if (data) {
         delete data;

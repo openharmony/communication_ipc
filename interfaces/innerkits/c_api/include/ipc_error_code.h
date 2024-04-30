@@ -17,10 +17,29 @@
 #define NDK_INCLUDE_IPC_ERROR_CODE_H
 
 /**
-* @brief IPC错误码定义. \n
-*
-* @since 12
-*/
+ * @addtogroup OHIPCErrorCode
+ * @{
+ *
+ * @brief Provides IPC error code define.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @since 12
+ */
+
+/**
+ * @file ipc_error_code.h
+ *
+ * @brief Provides IPC error code define.
+ *
+ * @library libipc_ndk.so
+ * @since 12
+ */
+
+/**
+ * @brief IPC错误码定义. \n
+ *
+ * @since 12
+ */
 enum OH_IPC_ErrorCode {
     /**
      * 执行成功
@@ -66,6 +85,15 @@ enum OH_IPC_ErrorCode {
      * 错误码区间最大值
      */
     OH_IPC_ERROR_CODE_MAX = OH_IPC_ERROR_CODE_BASE + 1000,
+    /**
+     * 用户自定义错误码最小值
+     */
+    OH_IPC_USER_ERROR_CODE_MIN = 1909000,
+    /**
+     * 用户自定义错误码最大值
+     */
+    OH_IPC_USER_ERROR_CODE_MAX = 1909999,
 };
 
+/** @} */
 #endif
