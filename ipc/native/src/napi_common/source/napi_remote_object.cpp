@@ -111,7 +111,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     };
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {
-        ZLOGD(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<OperateJsRefParam *>(work->data))->code);
+        ZLOGD(LOG_LABEL, "enter work pool.");
     }, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "decrease on uv work thread");
         OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
@@ -236,8 +236,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
         work->data = reinterpret_cast<void *>(param);
         uv_queue_work(loop, work, [](uv_work_t *work) {
-            ZLOGD(LOG_LABEL, "enter work pool. code:%{public}u",
-                (reinterpret_cast<OperateJsRefParam *>(work->data))->code);
+            ZLOGD(LOG_LABEL, "enter work pool.");
         }, [](uv_work_t *work, int status) {
             OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
             napi_handle_scope scope = nullptr;
@@ -272,8 +271,7 @@ NAPIRemoteObject::~NAPIRemoteObject()
             };
             work->data = reinterpret_cast<void *>(param);
             uv_queue_work(loop, work, [](uv_work_t *work) {
-                ZLOGD(LOG_LABEL, "enter work pool. code:%{public}u",
-                    (reinterpret_cast<OperateJsRefParam *>(work->data))->code);
+                ZLOGD(LOG_LABEL, "enter work pool.");
             }, [](uv_work_t *work, int status) {
                 OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
                 napi_handle_scope scope = nullptr;
@@ -993,7 +991,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         };
     }
     uv_queue_work(loop, work, [](uv_work_t *work) {
-        ZLOGD(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<SendRequestParam *>(work->data))->code);
+        ZLOGD(LOG_LABEL, "enter work pool.");
     }, afterWorkCb);
 }
 

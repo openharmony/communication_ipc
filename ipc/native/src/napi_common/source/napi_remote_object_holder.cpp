@@ -89,7 +89,7 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
             };
             work->data = reinterpret_cast<void *>(param);
             uv_queue_work(loop, work, [](uv_work_t *work) {
-                ZLOGD(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<OperateJsRefParam *>(work->data))->code);
+                ZLOGD(LOG_LABEL, "enter work pool.");
             }, [](uv_work_t *work, int status) {
                 OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
                 napi_handle_scope scope = nullptr;
