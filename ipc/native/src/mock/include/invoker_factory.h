@@ -55,7 +55,7 @@ private:
 template <typename T> InvokerDelegator<T>::InvokerDelegator(int prot)
 {
     prot_ = prot;
-    auto invokerObject = []() -> IRemoteInvoker * {
+    auto invokerObject = []() -> IRemoteInvoker* {
         auto data = new (std::nothrow) T();
         if (data == nullptr) {
             return nullptr;
