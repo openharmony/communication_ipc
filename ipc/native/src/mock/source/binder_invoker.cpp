@@ -1369,9 +1369,9 @@ bool BinderInvoker::CheckActvBinderAvailable(int handle, uint32_t code,
     bool avail = true;
     ActvBinderInvokerData *invokerData = reinterpret_cast<ActvBinderInvokerData *>(data);
 
-    if ((handle < 0) || ((handle & ACTV_BINDER_HANDLE_BIT) == 0)) {
+    if ((handle < 0) || ((static_cast<uint32_t>(handle) & ACTV_BINDER_HANDLE_BIT) == 0)) {
         avail = false;
-    } else if ((option.GetFlags() & TF_ONE_WAY) != 0) {
+    } else if ((static_cast<uint32_t>(option.GetFlags()) & TF_ONE_WAY) != 0) {
         avail = false;
     } else if (invokerData == nullptr) {
         avail = false;
