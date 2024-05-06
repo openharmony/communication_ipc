@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <thread>
+#include <cstring>
 #include "access_token_adapter.h"
 #include "ipc_debug.h"
 #include "string_ex.h"
@@ -326,6 +327,50 @@ int TestServiceProxy::TestCallingUidPid()
         return 0;
     }
     return -1;
+}
+
+int TestServiceProxy::TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    dataParcel.WriteRemoteObject(object);
+    int ret = Remote()->SendRequest(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+int TestServiceProxy::TestUnRegisterRemoteStub(const char *descriptor)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    int ret = Remote()->SendRequest(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+sptr<IRemoteObject> TestServiceProxy::TestQueryRemoteProxy(const char *descriptor)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    int ret = Remote()->SendRequest(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return nullptr;
+    }
+    auto readRemoteObject = replyParcel.ReadRemoteObject();
+    return readRemoteObject;
 }
 
 constexpr char ACCESS_TOKEN_ID_IOCTL_BASE = 'A';

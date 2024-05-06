@@ -51,8 +51,13 @@ public:
     int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) override;
     int TestEnableSerialInvokeFlag() override;
+    int TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object) override;
+    int TestUnRegisterRemoteStub(const char *descriptor) override;
+    sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) override;
 private:
     int testFd_;
+    std::mutex remoteObjectsMutex_;
+    std::map<std::string, sptr<IRemoteObject>> remoteObjects_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestService" };
 };
 } // namespace OHOS

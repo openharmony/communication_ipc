@@ -21,11 +21,8 @@
 #include <condition_variable>
 
 #include "if_system_ability_manager.h"
-#include "ipc_error_code.h"
 #include "ipc_inner_object.h"
-#include "ipc_error_code.h"
-#include "ipc_cparcel.h"
-#include "ipc_cremote_object.h"
+#include "ipc_kit.h"
 #include "ipc_test_helper.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -161,6 +158,17 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, RemoteStub_Create_001, TestSize.Level1)
     OH_IPCRemoteStub_Destroy(remote);
 }
 
+HWTEST_F(IpcCApiRemoteObjectUnitTest, RemoteStub_Destroy_001, TestSize.Level1)
+{
+    OHIPCRemoteStub *remote = OH_IPCRemoteStub_Create("RemoteStub_Destroy_001", OnRemoteRequestStub,
+                                                      OnRemoteObjectDestroy, this);
+    EXPECT_NE(remote, nullptr);
+
+    ResetCallbackReply();
+    OH_IPCRemoteStub_Destroy(remote);
+    EXPECT_EQ(GetCallbackReply(), ON_CALLBACK_REPLIED_INT);
+}
+
 HWTEST_F(IpcCApiRemoteObjectUnitTest, RemoteProxy_Destroy_001, TestSize.Level1)
 {
     IPCTestHelper helper;
@@ -175,6 +183,55 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, RemoteProxy_Destroy_001, TestSize.Level1)
     OHIPCRemoteProxy *remoteProxy = CreateIPCRemoteProxy(object);
     ASSERT_NE(remoteProxy, nullptr);
     OH_IPCRemoteProxy_Destroy(remoteProxy);
+}
+
+HWTEST_F(IpcCApiRemoteObjectUnitTest, SendRequestSync_001, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(saMgr, nullptr);
+
+    sptr<IRemoteObject> objectServer = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    ASSERT_NE(objectServer, nullptr);
+    auto *remoteProxy = CreateIPCRemoteProxy(objectServer);
+    ASSERT_NE(remoteProxy, nullptr);
+
+    OHIPCParcel *dataParcel = OH_IPCParcel_Create();
+    OHIPCParcel *replyParcel = OH_IPCParcel_Create();
+    OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_SYNC, 0};
+
+    int ret = OH_IPC_SendRequest(nullptr, TestCommand::TEST_CMD_GET_FOO_SERVICE, dataParcel, replyParcel, &option);
+    EXPECT_EQ(ret, OH_IPC_CHECK_PARAM_ERROR);
+
+    ret = OH_IPC_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE, nullptr, replyParcel, &option);
+    EXPECT_EQ(ret, OH_IPC_CHECK_PARAM_ERROR);
+
+    ret = OH_IPC_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE, dataParcel, nullptr, &option);
+    EXPECT_EQ(ret, OH_IPC_CHECK_PARAM_ERROR);
+
+    ret = OH_IPC_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE, dataParcel, replyParcel, &option);
+    EXPECT_EQ(ret, OH_IPC_SUCCESS);
+    auto *fooProxy = OH_IPCParcel_ReadRemoteProxy(replyParcel);
+    EXPECT_NE(fooProxy, nullptr);
+    OH_IPCParcel_Destroy(dataParcel);
+    OH_IPCParcel_Destroy(replyParcel);
+    OH_IPCRemoteProxy_Destroy(fooProxy);
+    OH_IPCRemoteProxy_Destroy(remoteProxy);
+}
+
+HWTEST_F(IpcCApiRemoteObjectUnitTest, DeathRecipient_Create_001, TestSize.Level1)
+{
+    auto deathRecipient = OH_IPCDeathRecipient_Create(nullptr, OnDeathRecipientDestroyCallback, this);
+    EXPECT_EQ(deathRecipient, nullptr);
+    deathRecipient = OH_IPCDeathRecipient_Create(OnDeathRecipientCallback, nullptr, nullptr);
+    EXPECT_NE(deathRecipient, nullptr);
+    OH_IPCDeathRecipient_Destroy(deathRecipient);
+    deathRecipient = OH_IPCDeathRecipient_Create(OnDeathRecipientCallback, OnDeathRecipientDestroyCallback, this);
+    EXPECT_NE(deathRecipient, nullptr);
+    OH_IPCDeathRecipient_Destroy(deathRecipient);
 }
 
 HWTEST_F(IpcCApiRemoteObjectUnitTest, DeathRecipient_Destroy_001, TestSize.Level1)
@@ -209,6 +266,37 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, RemoteProxy_AddDeathRecipient_001, TestSiz
     res = helper.StopTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
     EXPECT_EQ(GetCallbackReply(), ON_CALLBACK_REPLIED_INT);
+    OH_IPCDeathRecipient_Destroy(deathRecipient);
+    OH_IPCRemoteProxy_Destroy(remoteProxy);
+}
+
+HWTEST_F(IpcCApiRemoteObjectUnitTest, RemoteProxy_RemoveDeathRecipient_001, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(saMgr, nullptr);
+
+    sptr<IRemoteObject> objectServer = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    ASSERT_NE(objectServer, nullptr);
+    auto *remoteProxy = CreateIPCRemoteProxy(objectServer);
+    ASSERT_NE(remoteProxy, nullptr);
+
+    auto deathRecipient = OH_IPCDeathRecipient_Create(OnDeathRecipientCallback, OnDeathRecipientDestroyCallback,
+                                                      this);
+    ASSERT_NE(deathRecipient, nullptr);
+
+    int ret = OH_IPCRemoteProxy_AddDeathRecipient(remoteProxy, deathRecipient);
+    ASSERT_EQ(ret, 0);
+
+    ret = OH_IPCRemoteProxy_RemoveDeathRecipient(remoteProxy, deathRecipient);
+    EXPECT_EQ(ret, 0);
+
+    ResetCallbackReply();
+    res = helper.StopTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+    EXPECT_NE(GetCallbackReply(), ON_CALLBACK_REPLIED_INT);
     OH_IPCDeathRecipient_Destroy(deathRecipient);
     OH_IPCRemoteProxy_Destroy(remoteProxy);
 }
