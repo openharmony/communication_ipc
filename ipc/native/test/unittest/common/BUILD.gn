@@ -363,6 +363,7 @@ ohos_unittest("IpcCApiUnitTest") {
   sources = [
     "ipc_capi_parcel_unittest.cpp",
     "ipc_capi_remote_object_unittest.cpp",
+    "ipc_capi_skeleton_unittest.cpp",
   ]
 
   configs = [
@@ -381,6 +382,7 @@ ohos_unittest("IpcCApiUnitTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:libhitracechain",
+    "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
 
