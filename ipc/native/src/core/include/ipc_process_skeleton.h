@@ -260,7 +260,7 @@ private:
     uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
     uint64_t seqNumber_ = 0;
     std::string sessionName_ = std::string("");
-    int32_t listenSocketId_;
+    std::atomic<int32_t> listenSocketId_ = 0;
     uint64_t randNum_;
 #endif
 };
