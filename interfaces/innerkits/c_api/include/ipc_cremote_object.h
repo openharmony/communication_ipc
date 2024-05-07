@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_CREMOTE_OBJECT_H
-#define NDK_INCLUDE_IPC_CREMOTE_OBJECT_H
+#ifndef CAPI_INCLUDE_IPC_CREMOTE_OBJECT_H
+#define CAPI_INCLUDE_IPC_CREMOTE_OBJECT_H
 
 /**
  * @addtogroup OHIPCRemoteObject
@@ -31,7 +31,7 @@
  *
  * @brief 提供远端对象创建、销毁、数据发送、远端对象死亡状态监听等功能C接口.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
  * @since 12
  */
 
@@ -157,7 +157,7 @@ struct OH_IPC_MessageOption {
  *         其它返回{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}或用户自定义错误码.
  * @since 12
  */
-int OH_IPC_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
+int OH_IPCRemoteProxy_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
     OHIPCParcel *reply, const OH_IPC_MessageOption *option);
 
 /**
@@ -176,7 +176,7 @@ int OH_IPC_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPC
  *         序列化读失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
  * @since 12
  */
-int OH_IPC_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
+int OH_IPCRemoteProxy_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
     OH_IPC_MemAllocator allocator);
 
 /**
@@ -253,7 +253,7 @@ int OH_IPCRemoteProxy_RemoveDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRe
  * @return 远端OHIPCRemoteStub对象死亡返回1; 否则，返回0. 参数非法时，说明其远端OHIPCRemoteStub对象不存在，返回1.
  * @since 12
  */
-int OH_IPC_IsRemoteDead(const OHIPCRemoteProxy *proxy);
+int OH_IPCRemoteProxy_IsRemoteDead(const OHIPCRemoteProxy *proxy);
 
 #ifdef __cplusplus
 }

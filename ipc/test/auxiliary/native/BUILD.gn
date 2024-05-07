@@ -33,7 +33,7 @@ ohos_shared_library("ipc_test_helper") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_ndk" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
 
   external_deps = [
     "access_token:libnativetoken",
@@ -82,7 +82,7 @@ ohos_executable("ipc_client_test") {
 
   deps = [
     ":ipc_test_helper",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_ndk",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
   ]
 
   external_deps = [
@@ -117,7 +117,7 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_ndk" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
 
   external_deps = [
     "access_token:libnativetoken",

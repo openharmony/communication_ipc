@@ -16,7 +16,7 @@ import("//build/ohos/ndk/ndk.gni")
 
 SUBSYSTEM_DIR = "../../.."
 
-ohos_ndk_headers("ipc_ndk_header") {
+ohos_ndk_headers("ipc_capi_header") {
   dest_dir = "$ndk_headers_out_dir/IPCKit"
   sources = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include/ipc_cparcel.h",
@@ -27,10 +27,10 @@ ohos_ndk_headers("ipc_ndk_header") {
   ]
 }
 
-ohos_ndk_library("libipc_ndk") {
-  output_name = "ipc_ndk"
+ohos_ndk_library("libipc_capi") {
+  output_name = "ipc_capi"
   output_extension = "so"
-  ndk_description_file = "./libipc_ndk.json"
+  ndk_description_file = "./libipc_capi.json"
   system_capability = "SystemCapability.Communication.IPC.Core"
   system_capability_headers = [
     "IPCKit/ipc_cparcel.h",

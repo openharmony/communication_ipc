@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_KIT_H
-#define NDK_INCLUDE_IPC_KIT_H
+#ifndef CAPI_INCLUDE_IPC_KIT_H
+#define CAPI_INCLUDE_IPC_KIT_H
 
 #include "ipc_error_code.h"
 #include "ipc_cparcel.h"
