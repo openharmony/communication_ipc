@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_ERROR_CODE_H
-#define NDK_INCLUDE_IPC_ERROR_CODE_H
+#ifndef CAPI_INCLUDE_IPC_ERROR_CODE_H
+#define CAPI_INCLUDE_IPC_ERROR_CODE_H
 
 /**
  * @addtogroup OHIPCErrorCode
@@ -31,7 +31,7 @@
  *
  * @brief Provides IPC error code define.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
  * @since 12
  */
 

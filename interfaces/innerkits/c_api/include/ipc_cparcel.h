@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_CPARCEL_H
-#define NDK_INCLUDE_IPC_CPARCEL_H
+#ifndef CAPI_INCLUDE_IPC_CPARCEL_H
+#define CAPI_INCLUDE_IPC_CPARCEL_H
 
 /**
  * @addtogroup OHIPCParcel
@@ -31,7 +31,7 @@
  *
  * @brief 提供IPC序列化/反序列化C接口.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
  * @since 12
  */
 
