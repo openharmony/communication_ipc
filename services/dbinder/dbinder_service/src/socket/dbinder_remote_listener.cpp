@@ -56,7 +56,7 @@ void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 
 void DBinderRemoteListener::ServerOnShutdown(int32_t socket, ShutdownReason reason)
 {
-    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, ShutdownReason:%{public}d", socket, reason);
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d, ShutdownReason:%{public}d", socket, reason);
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
     for (auto it = serverSocketInfos_.begin(); it != serverSocketInfos_.end(); it++) {
         if (it->second == socket) {
