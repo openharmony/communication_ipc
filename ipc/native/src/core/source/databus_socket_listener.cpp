@@ -210,7 +210,7 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName, co
         return SOCKET_ID_INVALID;
     }
     int32_t ret = DBinderSoftbusClient::GetInstance().Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
-    if (ret != ERR_NONE) {
+    if (ret != SOFTBUS_OK && ret != SOFTBUS_TRANS_SOCKET_IN_USE) {
         ZLOGE(LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d,"
             "ownName:%{public}s, peerName:%{public}s, peerNetworkId:%{public}s",
             ret, socketId, ownName.c_str(), peerName.c_str(),
