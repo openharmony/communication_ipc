@@ -201,7 +201,7 @@ int OH_IPCParcel_WriteString(OHIPCParcel *parcel, const char *str)
         return OH_IPC_CHECK_PARAM_ERROR;
     }
 
-    return parcel->msgParcel->WriteString(std::string(str)) ? OH_IPC_SUCCESS : OH_IPC_PARCEL_WRITE_ERROR;
+    return parcel->msgParcel->WriteCString(str) ? OH_IPC_SUCCESS : OH_IPC_PARCEL_WRITE_ERROR;
 }
 
 const char* OH_IPCParcel_ReadString(const OHIPCParcel *parcel)
@@ -233,9 +233,9 @@ const uint8_t* OH_IPCParcel_ReadBuffer(const OHIPCParcel *parcel, int32_t len)
     if (!IsIPCParcelValid(parcel, __func__)) {
         return nullptr;
     }
-    if (len <= 0 || len > parcel->msgParcel->GetReadableBytes()) {
-        ZLOGE(LOG_LABEL, "read buf len:%{public}d invalid! ReadableBytes:%{public}d",
-            len, parcel->msgParcel->GetReadableBytes());
+    int readableBytes = static_cast<int>(parcel->msgParcel->GetReadableBytes());
+    if (len <= 0 || len > readableBytes) {
+        ZLOGE(LOG_LABEL, "read buf len:%{public}d invalid! ReadableBytes:%{public}d", len, readableBytes);
         return nullptr;
     }
 

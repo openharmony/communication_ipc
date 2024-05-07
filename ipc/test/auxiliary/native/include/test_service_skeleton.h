@@ -17,6 +17,7 @@
 #define OHOS_TEST_SERVICE_SKELETON_H
 
 #include <map>
+#include <iostream>
 #include "ipc_debug.h"
 #include "iremote_broker.h"
 #include "iremote_stub.h"
@@ -52,6 +53,9 @@ public:
         TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT = 20,
         TRANS_ID_ACCESS_TOKENID_64 = 21,
         TRANS_ENABLE_SERIAL_INVOKE_FLAG = 22,
+        TRANS_ID_REGISTER_REMOTE_STUB_OBJECT = 23,
+        TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT = 24,
+        TRANS_ID_QUERY_REMOTE_PROXY_OBJECT = 25,
     };
 public:
     virtual int TestSyncTransaction(int data, int &reply, int delayTime = 0) = 0;
@@ -77,6 +81,11 @@ public:
     virtual int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) = 0;
     virtual int TestEnableSerialInvokeFlag() = 0;
+
+    virtual int TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object) = 0;
+    virtual int TestUnRegisterRemoteStub(const char *descriptor) = 0;
+    virtual sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) = 0;
+
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");
 };
@@ -140,6 +149,11 @@ public:
     int TestMessageParcelAppendWithIpc(MessageParcel &dst, MessageParcel &src,
         MessageParcel &reply, bool withObject) override;
     int TestEnableSerialInvokeFlag() override;
+
+    int TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object) override;
+    int TestUnRegisterRemoteStub(const char *descriptor) override;
+    sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) override;
+
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
     bool CheckTokenSelf(uint64_t token, uint64_t tokenSelf, uint64_t ftoken, uint64_t ftoken_expected);
