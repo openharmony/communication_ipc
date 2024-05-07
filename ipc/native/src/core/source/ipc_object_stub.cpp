@@ -358,7 +358,7 @@ int IPCObjectStub::SendRequestInner(uint32_t code,
     if (instance.GetStatisticsStatus()) {
         int32_t currentPid = IPCSkeleton::GetCallingPid();
         std::u16string currentDesc = GetObjectDescriptor();
-        int32_t currentCode = code;
+        int32_t currentCode = static_cast<int32_t>(code);
         if (!instance.UpdatePayloadInfo(currentPid, currentDesc, currentCode, duration)) {
             ZLOGE(LABEL, "Process load information update failed");
         }

@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace IpcRust {
-IRemoteObjectWrapper::IRemoteObjectWrapper()
+IRemoteObjectWrapper::IRemoteObjectWrapper(): raw_(nullptr)
 {
 }
 

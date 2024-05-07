@@ -17,7 +17,7 @@
 
 namespace OHOS {
 CommAuthInfo::CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId)
-    : stub_(stub), remotePid_(pid), remoteUid_(uid), tokenId_(tokenId), deviceId_(deviceId)
+    : stub_(stub), remotePid_(pid), remoteUid_(uid), tokenId_(tokenId), deviceId_(deviceId), socketId_(0)
 {}
 
 CommAuthInfo::~CommAuthInfo()
