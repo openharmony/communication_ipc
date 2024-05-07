@@ -15,6 +15,7 @@
 
 #include "databus_socket_listener.h"
 
+#include "softbus_error_code.h"
 #include "dbinder_databus_invoker.h"
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
@@ -150,7 +151,7 @@ int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
         return SOCKET_ID_INVALID;
     }
     int32_t ret = DBinderSoftbusClient::GetInstance().Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
-    if (ret != 0) {
+    if (ret != SOFTBUS_OK && ret != SOFTBUS_TRANS_SOCKET_IN_USE) {
         ZLOGE(LABEL, "Listen failed, ret:%{public}d", ret);
         DBinderSoftbusClient::GetInstance().Shutdown(socketId);
         return SOCKET_ID_INVALID;
