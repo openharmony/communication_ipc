@@ -37,8 +37,6 @@
           "c_utils",
           "access_token",
           "napi",
-          "common",
-          "build_framework",
           "ylong_runtime",
           "ffrt",
           "libuv",
