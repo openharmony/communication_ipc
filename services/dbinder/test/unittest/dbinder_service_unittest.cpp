@@ -85,7 +85,7 @@ HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService001, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService  = DBinderService::GetInstance();
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     bool res = dBinderService->StartDBinderService(callbackImpl);
     EXPECT_EQ(res, false);
@@ -98,7 +98,7 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService  = DBinderService::GetInstance();
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     DBinderService::mainThreadCreated_ = true;
     bool res = dBinderService->StartDBinderService(callbackImpl);
@@ -112,7 +112,7 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService003, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService  = DBinderService::GetInstance();
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     DBinderService::mainThreadCreated_ = false;
     dBinderService->remoteListener_ = nullptr;
