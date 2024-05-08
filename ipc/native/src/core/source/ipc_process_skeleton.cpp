@@ -1205,6 +1205,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (name.empty()) {
+        ZLOGE(LOG_LABEL, "server name is empty");
         return false;
     }
     std::shared_ptr<DatabusSocketListener> listener =

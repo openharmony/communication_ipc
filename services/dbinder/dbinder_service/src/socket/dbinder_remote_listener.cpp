@@ -21,6 +21,7 @@
 #include "dbinder_error_code.h"
 #include "dbinder_log.h"
 #include "ipc_types.h"
+#include "softbus_error_code.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER,
@@ -46,7 +47,7 @@ DBinderRemoteListener::~DBinderRemoteListener()
 
 void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 {
-    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, peerNetworkId:%{public}s, peerName:%{public}s",
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d, peerNetworkId:%{public}s, peerName:%{public}s",
         socket, DBinderService::ConvertToSecureDeviceID(info.networkId).c_str(), info.name);
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
     serverSocketInfos_[info.networkId] = socket;
@@ -55,7 +56,7 @@ void DBinderRemoteListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 
 void DBinderRemoteListener::ServerOnShutdown(int32_t socket, ShutdownReason reason)
 {
-    DBINDER_LOGI(LOG_LABEL, "socket:%{public}d, ShutdownReason:%{public}d", socket, reason);
+    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d, ShutdownReason:%{public}d", socket, reason);
     std::lock_guard<std::mutex> lockGuard(serverSocketMutex_);
     for (auto it = serverSocketInfos_.begin(); it != serverSocketInfos_.end(); it++) {
         if (it->second == socket) {
@@ -155,7 +156,7 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
     }
 
     int32_t ret = DBinderSoftbusClient::GetInstance().Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
-    if (ret != ERR_NONE) {
+    if (ret != SOFTBUS_OK && ret != SOFTBUS_TRANS_SOCKET_IN_USE) {
         DBINDER_LOGE(LOG_LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d, peerNetworkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(peerNetworkId).c_str());
         DBinderSoftbusClient::GetInstance().Shutdown(socketId);
@@ -202,12 +203,12 @@ bool DBinderRemoteListener::StartListener()
         .dataType = TransDataType::DATA_TYPE_BYTES,
     };
     int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(serverSocketInfo);
-    if (socketId < 0) {
+    if (socketId <= 0) {
         DBINDER_LOGE(LOG_LABEL, "create socket server error, socket is invalid");
         return false;
     }
     ret = DBinderSoftbusClient::GetInstance().Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
-    if (ret != 0) {
+    if (ret != SOFTBUS_OK && ret != SOFTBUS_TRANS_SOCKET_IN_USE) {
         DBINDER_LOGE(LOG_LABEL, "Listen failed, ret:%{public}d", ret);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CREATE_SOFTBUS_SERVER_FAIL, __FUNCTION__);
         DBinderSoftbusClient::GetInstance().Shutdown(socketId);
