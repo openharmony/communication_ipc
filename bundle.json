@@ -132,7 +132,7 @@
               }
             },
             {
-              "name": "//foundation/communication/ipc/interfaces/innerkits/c_api:ipc_ndk",
+              "name": "//foundation/communication/ipc/interfaces/innerkits/c_api:ipc_capi",
               "header": {
                 "header_files": [
                   "ipc_cparcel.h",
