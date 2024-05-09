@@ -203,16 +203,20 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, SendRequestSync_001, TestSize.Level1)
     OHIPCParcel *replyParcel = OH_IPCParcel_Create();
     OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_SYNC, 0};
 
-    int ret = OH_IPC_SendRequest(nullptr, TestCommand::TEST_CMD_GET_FOO_SERVICE, dataParcel, replyParcel, &option);
+    int ret = OH_IPCRemoteProxy_SendRequest(nullptr, TestCommand::TEST_CMD_GET_FOO_SERVICE,
+        dataParcel, replyParcel, &option);
     EXPECT_EQ(ret, OH_IPC_CHECK_PARAM_ERROR);
 
-    ret = OH_IPC_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE, nullptr, replyParcel, &option);
+    ret = OH_IPCRemoteProxy_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE,
+        nullptr, replyParcel, &option);
     EXPECT_EQ(ret, OH_IPC_CHECK_PARAM_ERROR);
 
-    ret = OH_IPC_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE, dataParcel, nullptr, &option);
+    ret = OH_IPCRemoteProxy_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE,
+        dataParcel, nullptr, &option);
     EXPECT_EQ(ret, OH_IPC_CHECK_PARAM_ERROR);
 
-    ret = OH_IPC_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE, dataParcel, replyParcel, &option);
+    ret = OH_IPCRemoteProxy_SendRequest(remoteProxy, TestCommand::TEST_CMD_GET_FOO_SERVICE,
+        dataParcel, replyParcel, &option);
     EXPECT_EQ(ret, OH_IPC_SUCCESS);
     auto *fooProxy = OH_IPCParcel_ReadRemoteProxy(replyParcel);
     EXPECT_NE(fooProxy, nullptr);
@@ -314,11 +318,11 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, IsRemoteDead_001, TestSize.Level1)
     auto *remoteProxy = CreateIPCRemoteProxy(objectServer);
     ASSERT_NE(remoteProxy, nullptr);
 
-    int ret = OH_IPC_IsRemoteDead(remoteProxy);
+    int ret = OH_IPCRemoteProxy_IsRemoteDead(remoteProxy);
     EXPECT_FALSE(ret);
     res = helper.StopTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
-    ret = OH_IPC_IsRemoteDead(remoteProxy);
+    ret = OH_IPCRemoteProxy_IsRemoteDead(remoteProxy);
     EXPECT_TRUE(ret);
 
     OH_IPCRemoteProxy_Destroy(remoteProxy);
@@ -340,7 +344,7 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, GetInterfaceDescriptor_001, TestSize.Level
     char *descriptor = nullptr;
     int32_t len = 0;
 
-    int ret = OH_IPC_GetInterfaceDescriptor(remoteProxy, &descriptor, &len, MemAllocator);
+    int ret = OH_IPCRemoteProxy_GetInterfaceDescriptor(remoteProxy, &descriptor, &len, MemAllocator);
     EXPECT_EQ(ret, 0);
     EXPECT_EQ(strlen(descriptor) + 1, len);
     EXPECT_GE(len, 0);

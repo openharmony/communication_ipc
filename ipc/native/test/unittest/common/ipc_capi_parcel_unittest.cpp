@@ -55,7 +55,7 @@ struct PerformanceResult {
     uint32_t average{ 0 };
 };
 
-using time_point = std::chrono::time_point<std::chrono::steady_clock>;
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 class IpcCApiParcelUnitTest : public testing::Test {
 public:
@@ -64,7 +64,7 @@ public:
     void SetUp();
     void TearDown();
 
-    uint32_t CalcSpendTime(time_point &start, time_point &end);
+    uint32_t CalcSpendTime(TimePoint &start, TimePoint &end);
     void ReadWriteStringPerformance(PerformanceResult &writeResult, PerformanceResult &readResult);
     void ReadWriteStringCppPerformance(PerformanceResult &writeResult, PerformanceResult &readResult);
     void ReadWriteBufferPerformance(PerformanceResult &writeResult, PerformanceResult &readResult);
@@ -113,7 +113,7 @@ void IpcCApiParcelUnitTest::SetUp() {}
 
 void IpcCApiParcelUnitTest::TearDown() {}
 
-uint32_t IpcCApiParcelUnitTest::CalcSpendTime(time_point& start, time_point& end)
+uint32_t IpcCApiParcelUnitTest::CalcSpendTime(TimePoint& start, TimePoint& end)
 {
     auto duration = end - start;
     return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(duration).count());

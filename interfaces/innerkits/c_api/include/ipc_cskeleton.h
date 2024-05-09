@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_CSKELETON_H
-#define NDK_INCLUDE_IPC_CSKELETON_H
+#ifndef CAPI_INCLUDE_IPC_CSKELETON_H
+#define CAPI_INCLUDE_IPC_CSKELETON_H
 
 /**
  * @addtogroup OHIPCSkeleton
@@ -31,7 +31,7 @@
  *
  * @brief 提供IPC框架tokenId、凭据、PID/UID、线程池配置等功能C接口.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
  * @since 12
  */
 

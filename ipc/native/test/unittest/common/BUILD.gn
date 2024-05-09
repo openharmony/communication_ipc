@@ -373,7 +373,7 @@ ohos_unittest("IpcCApiUnitTest") {
 
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_ndk",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
