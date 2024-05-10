@@ -26,6 +26,7 @@
 #include "ipc_test_helper.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "test_capi_skeleton.h"
 #include "test_service_command.h"
 
 using namespace testing::ext;
@@ -224,6 +225,25 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, SendRequestSync_001, TestSize.Level1)
     OH_IPCParcel_Destroy(replyParcel);
     OH_IPCRemoteProxy_Destroy(fooProxy);
     OH_IPCRemoteProxy_Destroy(remoteProxy);
+}
+
+HWTEST_F(IpcCApiRemoteObjectUnitTest, SendRequestAsync_001, TestSize.Level1)
+{
+    IPCTestHelper helper;
+    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
+    ASSERT_TRUE(res);
+    int cmdId = TestCommand::TEST_CMD_NATIVE_IPC_REGISTER_REMOTE_STUB_OBJECT;
+    res = helper.StartTestApp(IPCTestHelper::IPC_TEST_CLIENT, cmdId);
+    ASSERT_TRUE(res);
+
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(saMgr, nullptr);
+
+    sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
+    ASSERT_NE(object, nullptr);
+    auto testService = iface_cast<ITestService>(object);
+    auto remoteProxyTest = std::make_shared<NativeRemoteProxyTest>(testService);
+    EXPECT_EQ(remoteProxyTest->ASyncAdd(), 0);
 }
 
 HWTEST_F(IpcCApiRemoteObjectUnitTest, DeathRecipient_Create_001, TestSize.Level1)
