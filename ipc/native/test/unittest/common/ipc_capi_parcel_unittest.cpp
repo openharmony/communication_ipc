@@ -123,9 +123,7 @@ void IpcCApiParcelUnitTest::ReadWriteStringPerformance(PerformanceResult &writeR
     PerformanceResult &readResult)
 {
     char buf[TEST_PARCEL_SIZE] = {0};
-    if (memset_s(buf, sizeof(buf), '1', sizeof(buf) - 1) != EOK) {
-        ZLOGE(LABEL, "memset_s failed!");
-    }
+    EXPECT_EQ(memset_s(buf, sizeof(buf) - 1, '1', sizeof(buf) - 1), EOK);
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         auto dataCParcel = OH_IPCParcel_Create();
         int ret = OH_IPC_SUCCESS;
@@ -160,9 +158,7 @@ void IpcCApiParcelUnitTest::ReadWriteStringCppPerformance(PerformanceResult &wri
     PerformanceResult &readResult)
 {
     char buf[TEST_PARCEL_SIZE] = {0};
-    if (memset_s(buf, sizeof(buf), '1', sizeof(buf) - 1) != EOK) {
-        ZLOGE(LABEL, "memset_s failed!");
-    }
+    EXPECT_EQ(memset_s(buf, sizeof(buf) - 1, '1', sizeof(buf) - 1), EOK);
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         MessageParcel dataCpp;
         auto startPoint = std::chrono::steady_clock::now();
@@ -193,9 +189,7 @@ void IpcCApiParcelUnitTest::ReadWriteBufferPerformance(PerformanceResult &writeR
     PerformanceResult &readResult)
 {
     uint8_t buf[TEST_PARCEL_SIZE] = {0};
-    if (memset_s(buf, sizeof(buf), '2', sizeof(buf)) != EOK) {
-        ZLOGE(LABEL, "memset_s failed!");
-    }
+    EXPECT_EQ(memset_s(buf, sizeof(buf), '2', sizeof(buf)), EOK);
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         auto dataCParcel = OH_IPCParcel_Create();
         int ret = OH_IPC_SUCCESS;
@@ -230,9 +224,7 @@ void IpcCApiParcelUnitTest::ReadWriteBufferCppPerformance(PerformanceResult &wri
     PerformanceResult &readResult)
 {
     uint8_t buf[TEST_PARCEL_SIZE] = {0};
-    if (memset_s(buf, sizeof(buf), '2', sizeof(buf)) != EOK) {
-        ZLOGE(LABEL, "memset_s failed!");
-    }
+    EXPECT_EQ(memset_s(buf, sizeof(buf), '2', sizeof(buf)), EOK);
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         MessageParcel dataCpp;
         auto startPoint = std::chrono::steady_clock::now();
@@ -263,9 +255,7 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenPerformance(PerformanceResult
     PerformanceResult &readResult)
 {
     char token[MAX_INTERFACE_TOKEN_LEN] = {0};
-    if (memset_s(token, sizeof(token), '1', sizeof(token) - 1) != EOK) {
-        ZLOGE(LABEL, "memset_s failed!");
-    }
+    EXPECT_EQ(memset_s(token, sizeof(token) - 1, '1', sizeof(token) - 1), EOK);
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         auto dataCParcel = OH_IPCParcel_Create();
         int ret = OH_IPC_SUCCESS;
@@ -302,9 +292,7 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenCppPerformance(PerformanceRes
     PerformanceResult &readResult)
 {
     char token[MAX_INTERFACE_TOKEN_LEN] = {0};
-    if (memset_s(token, sizeof(token), '1', sizeof(token) - 1) != EOK) {
-        ZLOGE(LABEL, "memset_s failed!");
-    }
+    EXPECT_EQ(memset_s(token, sizeof(token) - 1, '1', sizeof(token) - 1), EOK);
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         MessageParcel dataCpp;
         auto startPoint = std::chrono::steady_clock::now();

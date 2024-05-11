@@ -20,6 +20,7 @@
 #include <string>
 #include "test_service_skeleton.h"
 #include "log_tags.h"
+#include "test_capi_skeleton.h"
 
 namespace OHOS {
 struct TraceParam {
@@ -41,9 +42,14 @@ public:
     void StartTestFileDescriptor();
     void StartAsyncDumpService();
     void TestEnableSerialInvokeFlag();
+    void TestNativeIPCSendRequests(int subCmd);
+    void TestRegisterRemoteStub();
+    void TestUnRegisterRemoteStub();
+
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceClient" };
     sptr<ITestService> testService_;
+    std::shared_ptr<NativeRemoteStubTest> remoteStub_{ nullptr };
 };
 } // namespace OHOS
 #endif // OHOS_IPC_TEST_SERVICE_CLIENT_H
