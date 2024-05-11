@@ -21,6 +21,10 @@ config("libipc_capi_private_config") {
   cflags_cc = [ "-O2" ]
 }
 
+config("libipc_capi_public_config") {
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include" ]
+}
+
 ohos_shared_library("ipc_capi") {
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
@@ -43,7 +47,8 @@ ohos_shared_library("ipc_capi") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_capi_private_config",
   ]
-  public_configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
+
+  public_configs = [ ":libipc_capi_public_config" ]
 
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",

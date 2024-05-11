@@ -17,7 +17,6 @@
 #define OHOS_TEST_SERVICE_SKELETON_H
 
 #include <map>
-#include <iostream>
 #include "ipc_debug.h"
 #include "iremote_broker.h"
 #include "iremote_stub.h"
@@ -116,6 +115,9 @@ private:
     int32_t ServerMessageParcelAddped(MessageParcel &data, MessageParcel &reply);
     int32_t ServerMessageParcelAddpedWithObject(MessageParcel &data, MessageParcel &reply);
     int32_t ServerEnableSerialInvokeFlag(MessageParcel &data, MessageParcel &reply);
+    int32_t RegisterRemoteStub(MessageParcel &data, MessageParcel &reply);
+    int32_t UnRegisterRemoteStub(MessageParcel &data, MessageParcel &reply);
+    int32_t QueryRemoteProxy(MessageParcel &data, MessageParcel &reply);
     void InitMessageProcessMap();
 
     using TestServiceStubFunc = int32_t(TestServiceStub::*)(MessageParcel &data, MessageParcel &reply);

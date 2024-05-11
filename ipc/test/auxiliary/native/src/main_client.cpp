@@ -20,6 +20,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <thread>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "test_service_command.h"
@@ -65,6 +68,9 @@ std::vector<std::string> GetArgvOptions(int argc, char **argv)
     return argvOptions;
 }
 
+static std::shared_ptr<TestServiceClient> gTestClient{ nullptr };
+void SignalHandler(int signum);
+
 int main(int argc, char *argv[])
 {
     InitTokenId();
@@ -98,6 +104,21 @@ int main(int argc, char *argv[])
             testClient->TestEnableSerialInvokeFlag();
             temp.join();
             }},
+        {TestCommand::TEST_CMD_NATIVE_IPC_REQUESTS, [&]() {
+            if (argc < 3) {
+                ZLOGE(LABEL, "sub cmd is needed!");
+                return;
+            }
+            int subCmd = std::stoi(argvOptions[1]);
+            testClient->TestNativeIPCSendRequests(subCmd);
+        }},
+        {TestCommand::TEST_CMD_NATIVE_IPC_REGISTER_REMOTE_STUB_OBJECT, [&]() {
+            testClient->TestRegisterRemoteStub();
+            gTestClient = testClient;
+            if (signal(SIGINT, SignalHandler) == SIG_ERR) {
+                ZLOGE(LABEL, "Failed to caught signal");
+            }
+        }},
     };
 
     auto it = commandMap.find(commandId);
@@ -110,4 +131,18 @@ int main(int argc, char *argv[])
     ZLOGE(LABEL, "get from service: %{public}d", result);
     IPCSkeleton::JoinWorkThread();
     return 0;
+}
+
+void SignalHandler(int signum)
+{
+    ZLOGD(LABEL, "caught signal %{public}d", signum);
+    if (gTestClient != nullptr) {
+        ZLOGE(LABEL, "UnRegister RemoteStub before application exit");
+        gTestClient->TestUnRegisterRemoteStub();
+        gTestClient = nullptr;
+    }
+    if (signum == SIGINT) {
+        ZLOGD(LABEL, "SIGINT");
+        exit(1);
+    }
 }

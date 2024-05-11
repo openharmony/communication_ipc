@@ -58,7 +58,11 @@ void TestServiceStub::InitMessageProcessMap()
     funcMap_[static_cast<uint32_t>(TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT)] =
         &TestServiceStub::ServerMessageParcelAddpedWithObject;
     funcMap_[static_cast<uint32_t>(TRANS_ENABLE_SERIAL_INVOKE_FLAG)] = &TestServiceStub::ServerEnableSerialInvokeFlag;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::RegisterRemoteStub;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::UnRegisterRemoteStub;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT)] = &TestServiceStub::QueryRemoteProxy;
 }
+
 
 TestServiceStub::TestServiceStub(bool serialInvokeFlag)
     : IRemoteStub(serialInvokeFlag), serialInvokeFlag_(serialInvokeFlag)
@@ -875,6 +879,26 @@ int32_t TestServiceStub::ServerEnableSerialInvokeFlag(MessageParcel &data, Messa
     std::cout << "Current thread ID = " << std::this_thread::get_id();
     std::cout << " Get result from server data = " << result << std::endl;
     return ret;
+}
+
+int32_t TestServiceStub::RegisterRemoteStub(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    auto remoteObject = data.ReadRemoteObject();
+    return TestRegisterRemoteStub(descriptor.c_str(), remoteObject);
+}
+
+int32_t TestServiceStub::UnRegisterRemoteStub(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    return TestUnRegisterRemoteStub(descriptor.c_str());
+}
+
+int32_t TestServiceStub::QueryRemoteProxy(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    sptr<IRemoteObject> remoteObject = TestQueryRemoteProxy(descriptor.c_str());
+    return reply.WriteRemoteObject(remoteObject);
 }
 
 int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
