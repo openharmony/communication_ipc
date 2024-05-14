@@ -244,4 +244,13 @@ void IPCDfx::BlockUntilThreadAvailable()
         current->BlockUntilThreadAvailable();
     }
 }
+
+bool IPCDfx::SetIPCProxyLimit(uint64_t num, IPCProxyLimitCallback callback)
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current != nullptr) {
+        return current->SetIPCProxyLimit(num, callback);
+    }
+    return false;
+}
 }  // namespace OHOS

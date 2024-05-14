@@ -441,6 +441,16 @@ void IPCProcessSkeleton::UnlockForNumExecuting()
     }
 }
 
+bool IPCProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback)
+{
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return false;
+    }
+    return current->SetIPCProxyLimit(num, callback);
+}
+
 #ifndef CONFIG_IPC_SINGLE
 sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()
 {

@@ -83,6 +83,7 @@ public:
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
     static bool IsHandleMadeByUser(uint32_t handle);
 #endif
+    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     bool SetMaxWorkThread(int maxThreadNum);
     std::u16string MakeHandleDescriptor(int handle);
 
