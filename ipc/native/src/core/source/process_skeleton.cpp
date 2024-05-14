@@ -113,6 +113,9 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     // if someone failed the AttemptIncStrong.
     auto iterator = objects_.find(descriptor);
     if (iterator != objects_.end()) {
+        if (object->IsProxyObject()) {
+            proxyObjectCountNum_.fetch_sub(1, std::memory_order_relaxed);
+        }
         objects_.erase(iterator);
         ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
         return true;
@@ -137,6 +140,15 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
+
+    if (object->IsProxyObject()) {
+        uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
+        if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
+                ZLOGE(LOG_LABEL, "ipc proxy num %{public}" PRIu64 " exceeds limit %{public}" PRIu64,
+                      proxyObjectCountNum, ipcProxyLimitNum_);
+                ipcProxyCallback_(proxyObjectCountNum);
+        }
+    }
     auto result = objects_.insert_or_assign(descriptor, wp);
     ZLOGD(LOG_LABEL, "attach desc:%{public}s inserted:%{public}d",
         ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), result.second);
@@ -302,5 +314,12 @@ std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)
         return "*" + str.substr(pos);
     }
     return str;
+}
+
+bool ProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback)
+{
+    ipcProxyLimitNum_ = num;
+    ipcProxyCallback_ = callback;
+    return true;
 }
 } // namespace OHOS

@@ -59,3 +59,22 @@ HWTEST_F(IpcBlockThreadTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
     }
     EXPECT_EQ(test, true);
 }
+
+bool g_flag = false;
+
+void IPCProxyLimitCallback(uint64_t num)
+{
+    g_flag = true;
+}
+
+/**
+ * @tc.name: SetIPCProxyLimitTest001
+ * @tc.desc: Verify the SetIPCProxyLimit function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IpcBlockThreadTest, SetIPCProxyLimitTest001, TestSize.Level1)
+{
+    uint64_t num = 0;
+    IPCDfx::SetIPCProxyLimit(num, IPCProxyLimitCallback);
+    EXPECT_EQ(g_flag, true);
+}
