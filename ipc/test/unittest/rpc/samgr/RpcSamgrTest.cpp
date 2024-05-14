@@ -112,17 +112,17 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     return ret;
 }
 
-static int32_t GetSystemAbilityTransaction(IpcIo *data, IpcIo *reply, int32_t result)
+static int32_t GetSystemAbilityTransaction(IpcIo *data, IpcIo *reply)
 {
     int32_t saId;
     ReadInt32(data, &saId);
     SvcIdentity sid;
-    result = GetSystemAbility(saId, "", &sid);
+    int32_t result = GetSystemAbility(saId, "", &sid);
     WriteRemoteObject(reply, &sid);
     return result;
 }
 
-static int32_t AddRemoteSystemAbilityTransaction(IpcIo *data, IpcIo *reply, int32_t result)
+static int32_t AddRemoteSystemAbilityTransaction(IpcIo *data, IpcIo *reply)
 {
     int32_t saId;
     ReadInt32(data, &saId);
@@ -131,7 +131,7 @@ static int32_t AddRemoteSystemAbilityTransaction(IpcIo *data, IpcIo *reply, int3
         return ERR_FAILED;
     }
     ReadRemoteObject(data, sid);
-    result = AddRemoteSystemAbility(saId, sid);
+    int32_t result = AddRemoteSystemAbility(saId, sid);
     if (result != ERR_NONE) {
         WriteInt32(reply, result);
     }
@@ -144,7 +144,7 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
     RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
     switch (code) {
         case GET_SYSTEM_ABILITY_TRANSACTION: {
-            result = GetSystemAbilityTransaction(data, reply, result);
+            result = GetSystemAbilityTransaction(data, reply);
             break;
         }
         case ADD_SYSTEM_ABILITY_TRANSACTION: {
@@ -170,7 +170,7 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
             break;
         }
         case ADD_REMOTE_SYSTEM_ABILITY_TRANSACTION: {
-            result = AddRemoteSystemAbilityTransaction(data, reply, result);
+            result = AddRemoteSystemAbilityTransaction(data, reply);
             break;
         }
         default:
