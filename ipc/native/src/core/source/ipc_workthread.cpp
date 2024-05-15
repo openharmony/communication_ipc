@@ -49,6 +49,9 @@ IPCWorkThread::~IPCWorkThread()
 void *IPCWorkThread::ThreadHandler(void *args)
 {
     IPCWorkThread *threadObj = (IPCWorkThread *)args;
+    if (threadObj == nullptr) {
+        return nullptr;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
     threadObj->threadName_ += "_" + std::to_string(syscall(SYS_gettid));
     int32_t ret = prctl(PR_SET_NAME, threadObj->threadName_.c_str());

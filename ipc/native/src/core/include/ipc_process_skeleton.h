@@ -32,8 +32,7 @@
 #include "comm_auth_info.h"
 #include "dbinder_callback_stub.h"
 #include "dbinder_session_object.h"
-#include "inner_socket.h"
-#include "socket.h"
+#include "dbinder_softbus_client.h"
 #include "stub_refcount_object.h"
 #endif
 
@@ -215,6 +214,8 @@ private:
     static std::mutex procMutex_;
     static DestroyInstance destroyInstance_;
     static std::atomic<bool> exitFlag_;
+    int lastErrHandle_ = -1;
+    int lastErrCnt_ = 0;
 
     // for DFX
     std::mutex mutex_;
@@ -259,7 +260,7 @@ private:
     uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
     uint64_t seqNumber_ = 0;
     std::string sessionName_ = std::string("");
-    int32_t listenSocketId_;
+    std::atomic<int32_t> listenSocketId_ = 0;
     uint64_t randNum_;
 #endif
 };

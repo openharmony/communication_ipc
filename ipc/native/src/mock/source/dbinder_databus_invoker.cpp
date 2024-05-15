@@ -360,7 +360,8 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
     }
     ssize_t size = writeCursor - readCursor;
 
-    int32_t ret = SendBytes(socketId, static_cast<const void *>(sendBuffer + readCursor), size);
+    int32_t ret = DBinderSoftbusClient::GetInstance().SendBytes(
+        socketId, static_cast<const void *>(sendBuffer + readCursor), size);
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64
             " size:%{public}zd, socketId:%{public}d", ret, seqNumber_, size, socketId);
@@ -392,7 +393,7 @@ int DBinderDatabusInvoker::OnSendRawData(std::shared_ptr<DBinderSessionObject> s
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
 
-    int ret = SendBytes(socketId, data, size);
+    int ret = DBinderSoftbusClient::GetInstance().SendBytes(socketId, data, size);
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "fail, ret:%{public}d seq:%{public}" PRIu64 " size:%{public}zu socketId:%{public}d",
             ret, seqNumber_, size, socketId);

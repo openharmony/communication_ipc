@@ -44,6 +44,7 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/core/source/databus_socket_listener.cpp",
     "$IPC_CORE_ROOT/src/core/source/dbinder_callback_stub.cpp",
     "$IPC_CORE_ROOT/src/core/source/dbinder_session_object.cpp",
+    "$IPC_CORE_ROOT/src/core/source/dbinder_softbus_client.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_stub.cpp",
@@ -71,7 +72,11 @@ ohos_shared_library("ipc_core") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_core_private_config",
   ]
-  public_configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
+  public_configs = [
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    ":ipc_all_deps_config",
+  ]
 
   all_dependent_configs = [ ":ipc_all_deps_config" ]
 
@@ -80,7 +85,6 @@ ohos_shared_library("ipc_core") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

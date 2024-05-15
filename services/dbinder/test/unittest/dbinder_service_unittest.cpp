@@ -24,7 +24,6 @@
 #include "rpc_log.h"
 #include "log_tags.h"
 #include "string_ex.h"
-#include "session_impl.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -67,6 +66,18 @@ public:
     }
 };
 
+/*
+ * @tc.name: ProcessOnSessionClosed001
+ * @tc.desc: Verify the ProcessOnSessionClosed function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::string networkId = "1234567890";
+    EXPECT_EQ(dBinderService->ProcessOnSessionClosed(networkId), true);
+}
+
 /**
  * @tc.name: StartDBinderService001
  * @tc.desc: Verify the StartDBinderService function
@@ -74,7 +85,7 @@ public:
  */
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService001, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService ;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     bool res = dBinderService->StartDBinderService(callbackImpl);
     EXPECT_EQ(res, false);
@@ -87,7 +98,7 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService ;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     DBinderService::mainThreadCreated_ = true;
     bool res = dBinderService->StartDBinderService(callbackImpl);
@@ -101,7 +112,7 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService003, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     DBinderService::mainThreadCreated_ = false;
     dBinderService->remoteListener_ = nullptr;
@@ -997,6 +1008,21 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest002, TestSize.
     IPCObjectProxy objectProxy(0);
     EXPECT_EQ(dBinderService->OnRemoteInvokerDataBusMessage(
         &objectProxy, &replyMessage, remoteDeviceId, pid, uid, tokenId), DBinderErrorCode::SESSION_NAME_NOT_FOUND);
+}
+
+/*
+ * @tc.name: ProcessOnSessionClosedTest002
+ * @tc.desc: Verify the ProcessOnSessionClosed function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosedTest002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::shared_ptr<OHOS::ThreadLockInfo> threadLockInfo = std::make_shared<OHOS::ThreadLockInfo>();
+    uint32_t seqNumber = 10;
+    std::string networkId = "networkId";
+    dBinderService->AttachThreadLockInfo(seqNumber, networkId, threadLockInfo);
+    EXPECT_EQ(dBinderService->ProcessOnSessionClosed(networkId), true);
 }
 
 /**

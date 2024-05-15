@@ -78,7 +78,6 @@ enum {
     CHECK_SERVICE_TRANSACTION,
     ADD_SERVICE_TRANSACTION,
 };
-static constexpr int PRINT_ERR_CNT = 100;
 
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()),
@@ -191,38 +190,7 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
 #else
         if (flat->hdr.type == BINDER_TYPE_HANDLE && flat->cookie == IRemoteObject::IF_PROT_DATABUS
             && flat->handle < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-            MessageParcel data;
-            MessageParcel reply;
-            MessageOption option;
-            if (SendRequest(handle, GET_PID_UID, data, reply, option) != ERR_NONE) {
-                ZLOGE(LABEL, "get pid and uid failed");
-                return false;
-            }
-            MessageParcel data2;
-            MessageParcel reply2;
-            MessageOption option2;
-            data2.WriteUint32(reply.ReadUint32()); // pid
-            data2.WriteUint32(reply.ReadUint32()); // uid
-            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-            if (current == nullptr) {
-                ZLOGE(LABEL, "current is null");
-                return false;
-            }
-            data2.WriteString(current->GetLocalDeviceID()); // deviceId
-            std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
-            if (session == nullptr) {
-                ZLOGE(LABEL, "no session found for handle:%{public}d", flat->handle);
-                return false;
-            }
-            data2.WriteUint64(session->GetStubIndex()); // stubIndex
-            data2.WriteUint32(session->GetTokenId()); // tokenId
-            IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
-            if (invoker == nullptr) {
-                ZLOGE(LABEL, "invoker is null");
-                return false;
-            }
-            if (invoker->SendRequest(flat->handle, DBINDER_ADD_COMMAUTH, data2, reply2, option2) != ERR_NONE) {
-                ZLOGE(LABEL, "dbinder add auth info failed");
+            if (!AddCommAuth(handle, flat)) {
                 return false;
             }
         }
@@ -336,6 +304,45 @@ sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
         return current->GetRegistryObject();
     }
     return nullptr;
+}
+
+bool BinderInvoker::AddCommAuth(int32_t handle, flat_binder_object *flat)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (SendRequest(handle, GET_PID_UID, data, reply, option) != ERR_NONE) {
+        ZLOGE(LABEL, "get pid and uid failed");
+        return false;
+    }
+    MessageParcel data2;
+    MessageParcel reply2;
+    MessageOption option2;
+    data2.WriteUint32(reply.ReadUint32()); // pid
+    data2.WriteUint32(reply.ReadUint32()); // uid
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "current is null");
+        return false;
+    }
+    data2.WriteString(current->GetLocalDeviceID()); // deviceId
+    std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
+    if (session == nullptr) {
+        ZLOGE(LABEL, "no session found for handle:%{public}d", flat->handle);
+        return false;
+    }
+    data2.WriteUint64(session->GetStubIndex()); // stubIndex
+    data2.WriteUint32(session->GetTokenId()); // tokenId
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "invoker is null");
+        return false;
+    }
+    if (invoker->SendRequest(flat->handle, DBINDER_ADD_COMMAUTH, data2, reply2, option2) != ERR_NONE) {
+        ZLOGE(LABEL, "dbinder add auth info failed");
+        return false;
+    }
+    return true;
 }
 
 #endif
@@ -792,18 +799,9 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     bool isPrint = false;
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
-        if (error == lastErr_) {
-            if (++lastErrCnt_ % PRINT_ERR_CNT == 0) {
-                isPrint = true;
-            }
-        } else {
-            isPrint = true;
-            lastErrCnt_ = 0;
-            lastErr_ = error;
+        if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
         }
-    }
-    if (isPrint) {
-        ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
     }
     if (cmd != BR_TRANSACTION) {
         auto finish = std::chrono::steady_clock::now();
@@ -1068,7 +1066,7 @@ pid_t BinderInvoker::GetCallerPid() const
 {
     // when the current caller information is self, obtain another binderinvoker
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.pid;
     }
     return callerPid_;
@@ -1077,7 +1075,7 @@ pid_t BinderInvoker::GetCallerPid() const
 pid_t BinderInvoker::GetCallerRealPid() const
 {
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.realPid;
     }
     return callerRealPid_;
@@ -1086,7 +1084,7 @@ pid_t BinderInvoker::GetCallerRealPid() const
 uid_t BinderInvoker::GetCallerUid() const
 {
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.uid;
     }
     return callerUid_;
@@ -1096,7 +1094,7 @@ uint64_t BinderInvoker::GetCallerTokenID() const
 {
     // If a process does NOT have a tokenid, the UID should be returned accordingly.
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return (invokerInfo_.tokenId == 0) ? invokerInfo_.uid : invokerInfo_.tokenId;
     }
     return (callerTokenID_ == 0) ? callerUid_ : callerTokenID_;
@@ -1105,7 +1103,7 @@ uint64_t BinderInvoker::GetCallerTokenID() const
 uint64_t BinderInvoker::GetFirstCallerTokenID() const
 {
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         return invokerInfo_.firstTokenId;
     }
     return firstTokenID_;
@@ -1264,7 +1262,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     uint64_t tempTokenId = callerTokenID_;
 
     auto pid = getpid();
-    if (pid == callerPid_ && pid != invokerInfo_.pid) {
+    if (!status_ && pid != invokerInfo_.pid) {
         tempPid = invokerInfo_.pid;
         tempRealPid = invokerInfo_.realPid;
         tempUid = invokerInfo_.uid;
@@ -1393,9 +1391,9 @@ bool BinderInvoker::CheckActvBinderAvailable(int handle, uint32_t code,
     bool avail = true;
     ActvBinderInvokerData *invokerData = reinterpret_cast<ActvBinderInvokerData *>(data);
 
-    if ((handle < 0) || ((handle & ACTV_BINDER_HANDLE_BIT) == 0)) {
+    if ((handle < 0) || ((static_cast<uint32_t>(handle) & ACTV_BINDER_HANDLE_BIT) == 0)) {
         avail = false;
-    } else if ((option.GetFlags() & TF_ONE_WAY) != 0) {
+    } else if ((static_cast<uint32_t>(option.GetFlags()) & TF_ONE_WAY) != 0) {
         avail = false;
     } else if (invokerData == nullptr) {
         avail = false;

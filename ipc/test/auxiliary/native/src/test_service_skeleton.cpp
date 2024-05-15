@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <thread>
+#include <cstring>
 #include "access_token_adapter.h"
 #include "ipc_debug.h"
 #include "string_ex.h"
@@ -57,7 +58,11 @@ void TestServiceStub::InitMessageProcessMap()
     funcMap_[static_cast<uint32_t>(TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT)] =
         &TestServiceStub::ServerMessageParcelAddpedWithObject;
     funcMap_[static_cast<uint32_t>(TRANS_ENABLE_SERIAL_INVOKE_FLAG)] = &TestServiceStub::ServerEnableSerialInvokeFlag;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::RegisterRemoteStub;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::UnRegisterRemoteStub;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT)] = &TestServiceStub::QueryRemoteProxy;
 }
+
 
 TestServiceStub::TestServiceStub(bool serialInvokeFlag)
     : IRemoteStub(serialInvokeFlag), serialInvokeFlag_(serialInvokeFlag)
@@ -328,6 +333,50 @@ int TestServiceProxy::TestCallingUidPid()
     return -1;
 }
 
+int TestServiceProxy::TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    dataParcel.WriteRemoteObject(object);
+    int ret = Remote()->SendRequest(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+int TestServiceProxy::TestUnRegisterRemoteStub(const char *descriptor)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    int ret = Remote()->SendRequest(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+sptr<IRemoteObject> TestServiceProxy::TestQueryRemoteProxy(const char *descriptor)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    int ret = Remote()->SendRequest(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return nullptr;
+    }
+    auto readRemoteObject = replyParcel.ReadRemoteObject();
+    return readRemoteObject;
+}
+
 constexpr char ACCESS_TOKEN_ID_IOCTL_BASE = 'A';
 
 enum {
@@ -380,6 +429,51 @@ int RpcSetFirstCallerTokenID(uint64_t tokenID)
     return ACCESS_TOKEN_OK;
 }
 
+bool TestServiceProxy::CheckTokenSelf(uint64_t token, uint64_t tokenSelf, uint64_t ftoken, uint64_t ftoken_expected)
+{
+    if (token != tokenSelf) {
+        ZLOGE(LABEL, "token != tokenSelf");
+        return false;
+    }
+    if (ftoken != ftoken_expected) {
+        ZLOGE(LABEL, "ftoken != ftoken_expected");
+        return false;
+    }
+    return true;
+}
+
+bool TestServiceProxy::CheckSetFirstToken(uint64_t ftoken_expected)
+{
+    uint64_t ret = 0;
+    ret = RpcSetFirstCallerTokenID(ftoken_expected);
+    if (ret != 0) {
+        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}llu", ret);
+        return false;
+    }
+    ret = RpcGetFirstCallerTokenID();
+    if (ret != ftoken_expected) {
+        ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}llu", ret);
+        return false;
+    }
+    return true;
+}
+
+bool TestServiceProxy::CheckSetSelfToken(uint64_t token_expected)
+{
+    uint64_t ret = 0;
+    ret = RpcSetSelfTokenID(token_expected);
+    if (ret != 0) {
+        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}llu", ret);
+        return false;
+    }
+    ret = RpcGetSelfTokenID();
+    if (ret != token_expected) {
+        ZLOGE(LABEL, "TestServiceProxy get selftoken after set: %{public}llu", ret);
+        return false;
+    }
+    return true;
+}
+
 int TestServiceProxy::TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected)
 {
     MessageOption option;
@@ -390,33 +484,14 @@ int TestServiceProxy::TestAccessTokenID64(uint64_t token_expected, uint64_t ftok
     uint64_t oldTokenSelf = tokenSelf;
     int32_t ret = 0;
 
-    if (token != tokenSelf) {
-        ZLOGE(LABEL, "token != tokenSelf");
+    if (!CheckTokenSelf(token, tokenSelf, ftoken, 0)) {
         return -1;
     }
-    if (ftoken != 0) {
-        ZLOGE(LABEL, "ftoken != 0");
-        return -1;
-    }
-
-    if (RpcSetFirstCallerTokenID(ftoken_expected) != 0) {
-        ZLOGE(LABEL, "RpcSetFirstCallerTokenID err");
+    if (!CheckSetFirstToken(ftoken_expected)) {
         ret = -1;
         goto ERR;
     }
-    if (RpcGetFirstCallerTokenID() != ftoken_expected) {
-        ZLOGE(LABEL, "RpcGetFirstCallerTokenID err");
-        ret = -1;
-        goto ERR;
-    }
-
-    if (RpcSetSelfTokenID(token_expected) != 0) {
-        ZLOGE(LABEL, "RpcSetSelfTokenID err");
-        ret = -1;
-        goto ERR;
-    }
-    if (RpcGetSelfTokenID() != token_expected) {
-        ZLOGE(LABEL, "RpcGetSelfTokenID err");
+    if (!CheckSetSelfToken(token_expected)) {
         ret = -1;
         goto ERR;
     }
@@ -457,81 +532,41 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     ZLOGE(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
     ZLOGE(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
     ZLOGE(LABEL, "TestServiceProxy ftoken_expected: %{public}d", ftoken_expected);
-
-    if (token != tokenSelf) {
-        ZLOGE(LABEL, "token != tokenSelf 1, token:%{public}d", token);
+    if (!CheckTokenSelf(token, tokenSelf, ftoken, 0)) {
+        ZLOGE(LABEL, "first");
         return -1;
     }
-
-    if (ftoken != 0) {
-        ZLOGE(LABEL, "ftoken != 0 1");
+    if (!CheckSetFirstToken(ftoken_expected)) {
         return -1;
     }
-
-    int ret = RpcSetFirstCallerTokenID(ftoken_expected);
-    if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}d", ret);
-        return -1;
-    }
-
-    ret = RpcGetFirstCallerTokenID();
-    ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}d", ret);
-
-    ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel1, option);
+    int ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel1, option);
     if (ret != ERR_NONE) {
         ZLOGE(LABEL, "SendRequest ret = %{public}d", ret);
         return ret;
     }
-
     token  = replyParcel1.ReadInt32();
     ftoken  = replyParcel1.ReadInt32();
-
-    if (token != tokenSelf) {
-        ZLOGE(LABEL, "token != tokenSelf 2, token:%{public}d", token);
+    if (!CheckTokenSelf(token, tokenSelf, ftoken, ftoken_expected)) {
+        ZLOGE(LABEL, "second");
         return -1;
     }
-
-    if (ftoken != ftoken_expected) {
-        ZLOGE(LABEL, "ftoken != ftoken_expected 2, ftoken:%{public}d", ftoken);
+    if (!CheckSetSelfToken(666)) { // 666: test data
         return -1;
     }
-
-    ret = RpcSetSelfTokenID(666);
-    if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}d", ret);
-        return -1;
-    }
-
-    tokenSelf = RpcGetSelfTokenID();
-    ZLOGE(LABEL, "TestServiceProxy get token after set: %{public}d", tokenSelf);
     ret = Remote()->SendRequest(TRANS_ID_ACCESS_TOKENID, dataParcel, replyParcel2, option);
     if (ret != ERR_NONE) {
         ZLOGE(LABEL, "ret = %{public}d", ret);
         return ret;
     }
-
     token  = replyParcel2.ReadInt32();
     ftoken  = replyParcel2.ReadInt32();
-
-    if (token != tokenSelf) {
-        ZLOGE(LABEL, "token != tokenSelf 3, token:%{public}d", token);
+    if (!CheckTokenSelf(token, tokenSelf, ftoken, ftoken_expected)) {
+        ZLOGE(LABEL, "third");
         return -1;
     }
-
-    if (ftoken != ftoken_expected) {
-        ZLOGE(LABEL, "ftoken != ftoken_expected 3, ftoken:%{public}d", ftoken);
-        return -1;
-    }
-
     ret = RpcSetFirstCallerTokenID(0);
-    if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}d", ret);
-        return -1;
-    }
-
     ret = RpcSetSelfTokenID(0);
-    if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}d", ret);
+    if (ret != ERR_NONE) {
         return -1;
     }
     return 0;
@@ -844,6 +879,26 @@ int32_t TestServiceStub::ServerEnableSerialInvokeFlag(MessageParcel &data, Messa
     std::cout << "Current thread ID = " << std::this_thread::get_id();
     std::cout << " Get result from server data = " << result << std::endl;
     return ret;
+}
+
+int32_t TestServiceStub::RegisterRemoteStub(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    auto remoteObject = data.ReadRemoteObject();
+    return TestRegisterRemoteStub(descriptor.c_str(), remoteObject);
+}
+
+int32_t TestServiceStub::UnRegisterRemoteStub(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    return TestUnRegisterRemoteStub(descriptor.c_str());
+}
+
+int32_t TestServiceStub::QueryRemoteProxy(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    sptr<IRemoteObject> remoteObject = TestQueryRemoteProxy(descriptor.c_str());
+    return reply.WriteRemoteObject(remoteObject);
 }
 
 int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

@@ -21,9 +21,8 @@
 
 #include "singleton.h"
 
+#include "dbinder_softbus_client.h"
 #include "ipc_types.h"
-#include "inner_socket.h"
-#include "socket.h"
 
 namespace OHOS {
 static constexpr QosTV QOS_TV[] = {

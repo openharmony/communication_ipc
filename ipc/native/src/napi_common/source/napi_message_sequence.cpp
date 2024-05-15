@@ -2846,7 +2846,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callba
 
     int64_t size = 0;
     napi_status isGetOk = napi_get_value_int64(env, argv[ARGV_INDEX_1], &size);
-    if (isGetOk != napi_ok || size <= 0 || size > byteLength) {
+    if (isGetOk != napi_ok || size <= 0 || static_cast<size_t>(size) > byteLength) {
         ZLOGE(LOG_LABEL, "error for parameter 2 size is %{public}" PRId64, size);
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
@@ -2862,7 +2862,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callba
         ZLOGE(LOG_LABEL, "write raw data failed");
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
-    
+
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
     return napiValue;

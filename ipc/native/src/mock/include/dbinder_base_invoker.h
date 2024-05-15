@@ -800,7 +800,7 @@ template <class T> std::shared_ptr<ThreadMessageInfo> DBinderBaseInvoker<T>::Mak
 
     messageInfo->buffer = nullptr;
     messageInfo->offsets = 0;
-    messageInfo->socketId = socketId;
+    messageInfo->socketId = static_cast<uint32_t>(socketId);
     messageInfo->ready = false;
     return messageInfo;
 }
@@ -1017,7 +1017,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     messageInfo->bufferSize = tr->buffer_size;
     messageInfo->offsetsSize = tr->offsets_size;
     messageInfo->offsets = tr->offsets;
-    messageInfo->socketId = listenFd;
+    messageInfo->socketId = static_cast<uint32_t>(listenFd);
 
     /* wake up sender thread */
     current->WakeUpThreadBySeqNumber(tr->seqNumber, listenFd);

@@ -22,18 +22,6 @@
 
 #include "iremote_object.h"
 
-#define CHECK_INSTANCE_EXIT(flag) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return; \
-    }
-
-#define CHECK_INSTANCE_EXIT_WITH_RETVAL(flag, retVal) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return retVal; \
-    }
-
 namespace OHOS {
 struct DeadObjectInfo {
     int32_t handle;
@@ -54,6 +42,7 @@ struct InvokerProcInfo {
 class ProcessSkeleton {
 public:
     static std::string ConvertToSecureDesc(const std::string &str);
+    static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
     static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);

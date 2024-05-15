@@ -14,7 +14,6 @@
 import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 rust_cxx("ipc_cxx_gen") {
   sources = [
@@ -67,6 +66,8 @@ ohos_rust_shared_library("ipc_rust") {
 
   sources = [ "src/lib.rs" ]
 
+  rustflags = [ "-Zstack-protector=all" ]
+
   deps = [
     ":ipc_rust_cxx",
     "//third_party/rust/crates/cxx:lib",
@@ -77,36 +78,6 @@ ohos_rust_shared_library("ipc_rust") {
     "ylong_runtime:ylong_runtime",
   ]
 
-  install_images = [ system_base_dir ]
-  subsystem_name = "communication"
-  part_name = "ipc"
-}
-
-ohos_shared_library("ipc_c") {
-  sanitize = {
-    integer_overflow = true
-  }
-  include_dirs = [
-    "$IPC_CORE_ROOT/src/c_wrapper/include",
-    "$SUBSYSTEM_DIR/utils/include",
-  ]
-  sources = [
-    "$IPC_CORE_ROOT/src/c_wrapper/source/c_ashmem.cpp",
-    "$IPC_CORE_ROOT/src/c_wrapper/source/c_parcel.cpp",
-    "$IPC_CORE_ROOT/src/c_wrapper/source/c_process.cpp",
-    "$IPC_CORE_ROOT/src/c_wrapper/source/c_remote_object.cpp",
-  ]
-
-  configs = [ ":libipc_c_private_config" ]
-
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-
-  output_extension = "so"
   install_images = [ system_base_dir ]
   subsystem_name = "communication"
   part_name = "ipc"

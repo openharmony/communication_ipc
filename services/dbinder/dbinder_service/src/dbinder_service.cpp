@@ -66,12 +66,13 @@ DBinderService::~DBinderService()
 std::string DBinderService::GetLocalDeviceID()
 {
     std::string pkgName = "DBinderService";
-    NodeBasicInfo nodeBasicInfo;
-    if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        DBINDER_LOGE(LOG_LABEL, "Get local node device info failed");
-        return "";
+    std::string networkId;
+
+    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(
+        pkgName.c_str(), networkId) != SOFTBUS_CLIENT_SUCCESS) {
+        DBINDER_LOGE(LOG_LABEL, "Get local node device id failed");
     }
-    std::string networkId(nodeBasicInfo.networkId);
+
     return networkId;
 }
 
@@ -622,7 +623,7 @@ std::string DBinderService::GetDatabusNameByProxy(IPCObjectProxy *proxy)
 std::string DBinderService::CreateDatabusName(int uid, int pid)
 {
     std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (DBinderGrantPermission(uid, pid, sessionName.c_str()) != ERR_NONE) {
+    if (DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, sessionName) != ERR_NONE) {
         DBINDER_LOGE(LOG_LABEL, "fail to Grant Permission softbus name");
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GRANT_PERMISSION_FAIL, __FUNCTION__);
         return "";
