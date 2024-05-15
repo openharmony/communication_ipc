@@ -830,10 +830,41 @@ bool DBinderService::IsSameSession(std::shared_ptr<struct SessionInfo> oldSessio
     return true;
 }
 
-void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
+bool DBinderService::IsInvalidStub(const struct DHandleEntryTxRx *replyMessage)
 {
     if (HasDBinderStub(QueryStubPtr(replyMessage->stub)) == false) {
         DBINDER_LOGE(LOG_LABEL, "invalid stub object");
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::CopyDeviceIdInfo(std::shared_ptr<struct SessionInfo> &session,
+    const struct DHandleEntryTxRx *replyMessage)
+{
+    if (memcpy_s(&session->deviceIdInfo, sizeof(struct DeviceIdInfo), &replyMessage->deviceIdInfo,
+        sizeof(struct DeviceIdInfo)) != 0) {
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
+        return false;
+    }
+    return true;
+}
+
+void DBinderService::InitializeSession(std::shared_ptr<struct SessionInfo> &session,
+    const struct DHandleEntryTxRx *replyMessage)
+{
+    session->seqNumber   = replyMessage->seqNumber;
+    session->socketFd    = 0;
+    session->stubIndex   = replyMessage->stubIndex;
+    session->toPort      = replyMessage->toPort;
+    session->fromPort    = replyMessage->fromPort;
+    session->type        = replyMessage->transType;
+    session->serviceName = replyMessage->serviceName;
+}
+
+void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
+{
+    if (IsInvalidStub(replyMessage)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_STUB_INVALID, __FUNCTION__);
         return;
     }
@@ -845,9 +876,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         return;
     }
 
-    if (memcpy_s(&session->deviceIdInfo, sizeof(struct DeviceIdInfo), &replyMessage->deviceIdInfo,
-        sizeof(struct DeviceIdInfo)) != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
+    if (!CopyDeviceIdInfo(session, replyMessage)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return;
     }
@@ -857,13 +886,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
     }
     DBINDER_LOGI(LOG_LABEL, "stubIndex:%{public}d tokenId:%{public}u",
         static_cast<int32_t>(replyMessage->stubIndex), session->deviceIdInfo.tokenId);
-    session->seqNumber   = replyMessage->seqNumber;
-    session->socketFd    = 0;
-    session->stubIndex   = replyMessage->stubIndex;
-    session->toPort      = replyMessage->toPort;
-    session->fromPort    = replyMessage->fromPort;
-    session->type        = replyMessage->transType;
-    session->serviceName = replyMessage->serviceName;
+    InitializeSession(session, replyMessage);
 
     if (session->stubIndex == 0) {
         DBINDER_LOGE(LOG_LABEL, "get stubIndex == 0, it is invalid");
@@ -875,18 +898,17 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         if (IsSameSession(oldSession, session) == true) {
             DBINDER_LOGI(LOG_LABEL, "invoker remote session already, do nothing");
             return;
-        } else {
-            // ignore seqNumber overflow here, greater seqNumber means later request
-            if (oldSession->seqNumber < session->seqNumber) {
-                // remote old session
-                if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
-                    DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
-                    DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_SESSION_FAIL, __FUNCTION__);
-                }
-            } else {
-                // do nothing, use old session, discard session got this time
-                // in this case, old session is requested later, but it comes back earlier
+        }
+        // ignore seqNumber overflow here, greater seqNumber means later request
+        if (oldSession->seqNumber < session->seqNumber) {
+            // remote old session
+            if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
+                DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
+                DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_SESSION_FAIL, __FUNCTION__);
             }
+        } else {
+            // do nothing, use old session, discard session got this time
+            // in this case, old session is requested later, but it comes back earlier
         }
     }
 
