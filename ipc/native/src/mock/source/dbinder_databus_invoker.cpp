@@ -83,16 +83,27 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::NewSessionOfBinderP
         return nullptr;
     }
 
+    std::string localDeviceID = current->GetLocalDeviceID();
+    if (localDeviceID.empty()) {
+        ZLOGE(LOG_LABEL, "get localDeviceID error, handle:%{public}u", handle);
+    }
+
+    return GetSessionForProxy(ipcProxy, session, localDeviceID);
+}
+
+std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::GetSessionForProxy(sptr<IPCObjectProxy> ipcProxy,
+    std::shared_ptr<DBinderSessionObject> session, const std::string &localDeviceID)
+{
+    uint32_t handle = ipcProxy->GetHandle();
     std::string sessionName = ipcProxy->GetSessionName();
     if (sessionName.empty()) {
         ZLOGE(LOG_LABEL, "get bus name error, handle:%{public}u", handle);
         DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, handle, RADAR_GET_SESSION_NAME_FAIL, __FUNCTION__);
         return nullptr;
     }
-
     MessageParcel data;
     MessageParcel reply;
-    if (!data.WriteUint32(IRemoteObject::DATABUS_TYPE) || !data.WriteString(current->GetLocalDeviceID()) ||
+    if (!data.WriteUint32(IRemoteObject::DATABUS_TYPE) || !data.WriteString(localDeviceID) ||
         !data.WriteUint32(session->GetPeerPid()) || !data.WriteUint32(session->GetPeerUid()) ||
         !data.WriteString(session->GetDeviceId()) || !data.WriteString(sessionName) ||
         !data.WriteUint32(session->GetTokenId())) {
@@ -337,6 +348,11 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
 
+    return SendData(sessionBuff, socketId);
+}
+
+int DBinderDatabusInvoker::SendData(std::shared_ptr<BufferObject> sessionBuff, int32_t socketId)
+{
     char *sendBuffer = sessionBuff->GetSendBufferAndLock(SOCKET_DEFAULT_BUFF_SIZE);
     /* session buffer contain mutex, need release mutex */
     if (sendBuffer == nullptr) {
