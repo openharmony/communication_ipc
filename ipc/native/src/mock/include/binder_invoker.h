@@ -177,6 +177,11 @@ private:
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
+
+#ifndef CONFIG_IPC_SINGLE
+    bool AddCommAuth(int32_t handle, flat_binder_object *flat);
+#endif
+
 #ifdef CONFIG_ACTV_BINDER
     inline void SetUseActvBinder(bool useActvBinder)
     {

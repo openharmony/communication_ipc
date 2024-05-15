@@ -190,38 +190,7 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
 #else
         if (flat->hdr.type == BINDER_TYPE_HANDLE && flat->cookie == IRemoteObject::IF_PROT_DATABUS
             && flat->handle < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-            MessageParcel data;
-            MessageParcel reply;
-            MessageOption option;
-            if (SendRequest(handle, GET_PID_UID, data, reply, option) != ERR_NONE) {
-                ZLOGE(LABEL, "get pid and uid failed");
-                return false;
-            }
-            MessageParcel data2;
-            MessageParcel reply2;
-            MessageOption option2;
-            data2.WriteUint32(reply.ReadUint32()); // pid
-            data2.WriteUint32(reply.ReadUint32()); // uid
-            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-            if (current == nullptr) {
-                ZLOGE(LABEL, "current is null");
-                return false;
-            }
-            data2.WriteString(current->GetLocalDeviceID()); // deviceId
-            std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
-            if (session == nullptr) {
-                ZLOGE(LABEL, "no session found for handle:%{public}d", flat->handle);
-                return false;
-            }
-            data2.WriteUint64(session->GetStubIndex()); // stubIndex
-            data2.WriteUint32(session->GetTokenId()); // tokenId
-            IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
-            if (invoker == nullptr) {
-                ZLOGE(LABEL, "invoker is null");
-                return false;
-            }
-            if (invoker->SendRequest(flat->handle, DBINDER_ADD_COMMAUTH, data2, reply2, option2) != ERR_NONE) {
-                ZLOGE(LABEL, "dbinder add auth info failed");
+            if (!AddCommAuth(handle, flat)) {
                 return false;
             }
         }
@@ -335,6 +304,45 @@ sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
         return current->GetRegistryObject();
     }
     return nullptr;
+}
+
+bool BinderInvoker::AddCommAuth(int32_t handle, flat_binder_object *flat)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (SendRequest(handle, GET_PID_UID, data, reply, option) != ERR_NONE) {
+        ZLOGE(LABEL, "get pid and uid failed");
+        return false;
+    }
+    MessageParcel data2;
+    MessageParcel reply2;
+    MessageOption option2;
+    data2.WriteUint32(reply.ReadUint32()); // pid
+    data2.WriteUint32(reply.ReadUint32()); // uid
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "current is null");
+        return false;
+    }
+    data2.WriteString(current->GetLocalDeviceID()); // deviceId
+    std::shared_ptr<DBinderSessionObject> session = current->ProxyQueryDBinderSession(flat->handle);
+    if (session == nullptr) {
+        ZLOGE(LABEL, "no session found for handle:%{public}d", flat->handle);
+        return false;
+    }
+    data2.WriteUint64(session->GetStubIndex()); // stubIndex
+    data2.WriteUint32(session->GetTokenId()); // tokenId
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS);
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "invoker is null");
+        return false;
+    }
+    if (invoker->SendRequest(flat->handle, DBINDER_ADD_COMMAUTH, data2, reply2, option2) != ERR_NONE) {
+        ZLOGE(LABEL, "dbinder add auth info failed");
+        return false;
+    }
+    return true;
 }
 
 #endif
