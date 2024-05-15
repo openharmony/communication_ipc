@@ -632,17 +632,75 @@ std::string DBinderService::CreateDatabusName(int uid, int pid)
     return sessionName;
 }
 
-uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
-    std::string &remoteDeviceId, int pid, int uid, uint32_t tokenId)
+bool DBinderService::CheckDeviceIdIllegal(const std::string &remoteDeviceId)
 {
     if (IsDeviceIdIllegal(remoteDeviceId)) {
         DBINDER_LOGE(LOG_LABEL, "remote device id is error");
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::CheckSessionNameIsEmpty(const std::string &sessionName)
+{
+    if (sessionName.empty()) {
+        DBINDER_LOGE(LOG_LABEL, "get bus name fail");
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::CheckInvokeListenThreadIllegal(IPCObjectProxy *proxy, MessageParcel &data, MessageParcel &reply)
+{
+    int err = proxy->InvokeListenThread(data, reply);
+    if (err != ERR_NONE) {
+        DBINDER_LOGE(LOG_LABEL, "start service listen error:%{public}d handle:%{public}d", err, proxy->GetHandle());
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::CheckStubIndexAndSessionNameIllegal(uint64_t stubIndex, const std::string &serverSessionName,
+    const std::string &deviceId, IPCObjectProxy *proxy)
+{
+    if (stubIndex == 0 || serverSessionName.empty() || serverSessionName.length() > SERVICENAME_LENGTH) {
+        DBINDER_LOGE(LOG_LABEL, "stubindex:%{public}" PRIu64 " or sessionName:%{public}s is invalid"
+            " handle:%{public}d deviceId:%{public}s", stubIndex, serverSessionName.c_str(), proxy->GetHandle(),
+            DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::SetReplyMessage(struct DHandleEntryTxRx *replyMessage, uint64_t stubIndex,
+    const std::string &serverSessionName, uint32_t selfTokenId, IPCObjectProxy *proxy)
+{
+    replyMessage->dBinderCode = MESSAGE_AS_REPLY;
+    if (replyMessage->head.version >= RPC_TOKENID_SUPPORT_VERSION) {
+        replyMessage->dBinderCode = MESSAGE_AS_REPLY_TOKENID;
+    }
+    replyMessage->head.version = RPC_TOKENID_SUPPORT_VERSION;
+    replyMessage->stubIndex = stubIndex;
+    replyMessage->serviceNameLength = serverSessionName.length();
+    replyMessage->deviceIdInfo.tokenId = selfTokenId;
+    if (memcpy_s(replyMessage->serviceName, SERVICENAME_LENGTH, serverSessionName.data(),
+        replyMessage->serviceNameLength) != 0) {
+        DBINDER_LOGE(LOG_LABEL, "memcpy serviceName fail, handle:%{public}d", proxy->GetHandle());
+        return false;
+    }
+    replyMessage->serviceName[replyMessage->serviceNameLength] = '\0';
+    return true;
+}
+
+uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
+    std::string &remoteDeviceId, int pid, int uid, uint32_t tokenId)
+{
+    if (CheckDeviceIdIllegal(remoteDeviceId)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return DEVICEID_INVALID;
     }
     std::string sessionName = GetDatabusNameByProxy(proxy);
-    if (sessionName.empty()) {
-        DBINDER_LOGE(LOG_LABEL, "get bus name fail");
+    if (CheckSessionNameIsEmpty(sessionName)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_BUS_NAME_FAIL, __FUNCTION__);
         return SESSION_NAME_NOT_FOUND;
     }
@@ -657,40 +715,25 @@ uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, st
             RADAR_WRITE_PARCEL_FAIL, __FUNCTION__);
         return WRITE_PARCEL_FAILED;
     }
-    int err = proxy->InvokeListenThread(data, reply);
-    if (err != ERR_NONE) {
-        DBINDER_LOGE(LOG_LABEL, "start service listen error:%{public}d handle:%{public}d", err, proxy->GetHandle());
+    if (CheckInvokeListenThreadIllegal(proxy, data, reply)) {
         DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(),
             RADAR_INVOKE_STUB_THREAD_FAIL, __FUNCTION__);
         return INVOKE_STUB_THREAD_FAILED;
     }
+
     uint64_t stubIndex = reply.ReadUint64();
     std::string serverSessionName = reply.ReadString();
     std::string deviceId = reply.ReadString();
     uint32_t selfTokenId = reply.ReadUint32();
-    if (stubIndex == 0 || serverSessionName.empty() || serverSessionName.length() > SERVICENAME_LENGTH) {
-        DBINDER_LOGE(LOG_LABEL, "stubindex:%{public}" PRIu64 " or sessionName:%{public}s is invalid"
-            " handle:%{public}d deviceId:%{public}s", stubIndex, serverSessionName.c_str(), proxy->GetHandle(),
-            DBinderService::ConvertToSecureDeviceID(deviceId).c_str());
+    if (CheckStubIndexAndSessionNameIllegal(stubIndex, serverSessionName, deviceId, proxy)) {
         DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(),
             RADAR_SESSION_NAME_INVALID, __FUNCTION__);
         return SESSION_NAME_INVALID;
     }
-    replyMessage->dBinderCode = MESSAGE_AS_REPLY;
-    if (replyMessage->head.version >= RPC_TOKENID_SUPPORT_VERSION) {
-        replyMessage->dBinderCode = MESSAGE_AS_REPLY_TOKENID;
-    }
-    replyMessage->head.version = RPC_TOKENID_SUPPORT_VERSION;
-    replyMessage->stubIndex = stubIndex;
-    replyMessage->serviceNameLength = serverSessionName.length();
-    replyMessage->deviceIdInfo.tokenId = selfTokenId;
-    if (memcpy_s(replyMessage->serviceName, SERVICENAME_LENGTH, serverSessionName.data(),
-        replyMessage->serviceNameLength) != 0) {
-        DBINDER_LOGE(LOG_LABEL, "memcpy serviceName fail, handle:%{public}d", proxy->GetHandle());
+    if (!SetReplyMessage(replyMessage, stubIndex, serverSessionName, selfTokenId, proxy)) {
         DfxReportFailHandleEvent(DbinderErrorCode::RPC_DRIVER, proxy->GetHandle(), RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return SESSION_NAME_INVALID;
     }
-    replyMessage->serviceName[replyMessage->serviceNameLength] = '\0';
     return 0;
 }
 
