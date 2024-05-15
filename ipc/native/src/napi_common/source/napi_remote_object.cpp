@@ -110,7 +110,9 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
         .thisVarRef = ref
     };
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+    uv_queue_work(loop, work, [](uv_work_t *work) {
+        ZLOGD(LOG_LABEL, "enter work pool.");
+    }, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "decrease on uv work thread");
         OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
         napi_handle_scope scope = nullptr;
@@ -233,7 +235,9 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
         };
 
         work->data = reinterpret_cast<void *>(param);
-        uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+        uv_queue_work(loop, work, [](uv_work_t *work) {
+            ZLOGD(LOG_LABEL, "enter work pool.");
+        }, [](uv_work_t *work, int status) {
             OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
             napi_handle_scope scope = nullptr;
             napi_open_handle_scope(param->env, &scope);
@@ -266,7 +270,9 @@ NAPIRemoteObject::~NAPIRemoteObject()
                 .thisVarRef = thisVarRef_
             };
             work->data = reinterpret_cast<void *>(param);
-            uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+            uv_queue_work(loop, work, [](uv_work_t *work) {
+                ZLOGD(LOG_LABEL, "enter work pool.");
+            }, [](uv_work_t *work, int status) {
                 OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
                 napi_handle_scope scope = nullptr;
                 napi_open_handle_scope(param->env, &scope);
@@ -337,7 +343,9 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
         param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
-    ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
+    if (ret != 0) {
+        ZLOGE(LOG_LABEL, "OnJsRemoteRequest failed, ret:%{public}d", ret);
+    }
     return ret;
 }
 
@@ -456,11 +464,20 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
-    ZLOGI(LOG_LABEL, "start nv queue work loop. desc:%{public}s", Str16ToStr8(descriptor_).c_str());
+
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGD(LOG_LABEL, "start nv queue work loop. desc:%{public}s time:%{public}" PRIu64,
+        Str16ToStr8(descriptor_).c_str(), curTime);
     uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {
-        ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u", (reinterpret_cast<CallbackParam *>(work->data))->code);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u time:%{public}" PRIu64,
+            (reinterpret_cast<CallbackParam *>(work->data))->code, curTime);
     }, [](uv_work_t *work, int status) {
-        ZLOGI(LOG_LABEL, "enter thread pool");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
         CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -707,7 +724,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
 
     if (!target->IsProxyObject()) {
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
-        uint32_t objectType = tmp->GetObjectType();
+        uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
         ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
         if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
             // retrieve js remote object constructor
@@ -973,7 +990,9 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             delete work;
         };
     }
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, afterWorkCb);
+    uv_queue_work(loop, work, [](uv_work_t *work) {
+        ZLOGD(LOG_LABEL, "enter work pool.");
+    }, afterWorkCb);
 }
 
 napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t code,

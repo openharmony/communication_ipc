@@ -18,6 +18,7 @@
 #include <cinttypes>
 #include <unistd.h>
 
+#include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 #include "string_ex.h"
@@ -26,6 +27,7 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "ProcessSkeleton" };
 static constexpr uint64_t DEAD_OBJECT_TIMEOUT = 20 * (60 * 1000); // min
 static constexpr uint64_t DEAD_OBJECT_CHECK_INTERVAL = 11 * (60 * 1000); // min
+static constexpr int PRINT_ERR_CNT = 100;
 
 ProcessSkeleton* ProcessSkeleton::instance_ = nullptr;
 std::mutex ProcessSkeleton::mutex_;
@@ -276,6 +278,21 @@ bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invoke
         invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
         invokeInfo.firstTokenId);
     return true;
+}
+
+bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
+{
+    bool isPrint = false;
+    if (err == lastErr) {
+        if (++lastErrCnt % PRINT_ERR_CNT == 0) {
+            isPrint = true;
+        }
+    } else {
+        isPrint = true;
+        lastErrCnt = 0;
+        lastErr = err;
+    }
+    return isPrint;
 }
 
 std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)

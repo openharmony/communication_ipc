@@ -1,0 +1,76 @@
+# Copyright (C) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../../config.gni")
+
+SUBSYSTEM_DIR = "../../.."
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
+
+config("libipc_capi_private_config") {
+  cflags_cc = [ "-O2" ]
+}
+
+config("libipc_capi_public_config") {
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include" ]
+}
+
+ohos_shared_library("ipc_capi") {
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/include",
+    "$IPC_CORE_ROOT/src/c_api/include",
+    "$SUBSYSTEM_DIR/utils/include",
+  ]
+
+  sources = [
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_cparcel.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_cremote_object.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_cskeleton.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_inner_object.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_internal_utils.cpp",
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_remote_object_internal.cpp",
+  ]
+
+  configs = [
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    ":libipc_capi_private_config",
+  ]
+
+  public_configs = [ ":libipc_capi_public_config" ]
+
+  deps = [
+    "$IPC_CORE_ROOT/src/core:ipc_common",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
+  innerapi_tags = [
+    "platformsdk",
+    "sasdk",
+  ]
+
+  symlink_target_name = [ "libipc_capi.so" ]
+
+  relative_install_dir = "./ndk/"
+
+  install_images = [ system_base_dir ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}

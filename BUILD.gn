@@ -20,6 +20,7 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 group("ipc_components") {
   if (os_level == "standard") {
     deps = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
       "$SUBSYSTEM_DIR/ipc/native/src/core:ipc_common",

@@ -273,37 +273,8 @@ static void *HandleSendReply(void *args)
     return NULL;
 }
 
-static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void *args)
+static int32_t HandleConnect(int32_t fd)
 {
-    (void)args;
-    if (saSessionName == NULL) {
-        RPC_LOG_INFO("saSessionName is null");
-        return ERR_FAILED;
-    }
-    uint16_t port = Hash(saSessionName);
-
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) {
-        RPC_LOG_ERROR("%s:%d:fd=%d", __func__, __LINE__, fd);
-        return ERR_FAILED;
-    }
-
-    struct sockaddr_in addr;
-    if (memset_s(&addr, sizeof(addr), 0, sizeof(addr)) != EOK) {
-        RPC_LOG_ERROR("memset failed");
-    }
-    addr.sin_family = AF_INET;
-    inet_pton(AF_INET, peerDeviceId, &addr.sin_addr);
-    addr.sin_port = lwip_htons(port);
-    errno = 0;
-
-    int rc = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
-    if ((rc == -1) && (errno != EINPROGRESS)) {
-        RPC_LOG_ERROR("fd=%d,connect rc=%d, errno=%d", fd, rc, errno);
-        TcpShutDown(fd);
-        return ERR_FAILED;
-    }
-
     int32_t *sessionId = (int32_t *)malloc(sizeof(int32_t));
     if (sessionId == NULL) {
         return ERR_FAILED;
@@ -333,6 +304,44 @@ static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void
     pthread_detach(threadId);
 
     return fd;
+}
+
+static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void *args)
+{
+    (void)args;
+    if (saSessionName == NULL) {
+        RPC_LOG_INFO("saSessionName is null");
+        return ERR_FAILED;
+    }
+    uint16_t port = Hash(saSessionName);
+
+    int32_t fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0) {
+        RPC_LOG_ERROR("%s:%d:fd=%d", __func__, __LINE__, fd);
+        return ERR_FAILED;
+    }
+
+    struct sockaddr_in addr;
+    if (memset_s(&addr, sizeof(addr), 0, sizeof(addr)) != EOK) {
+        RPC_LOG_ERROR("memset failed");
+    }
+    addr.sin_family = AF_INET;
+    int rc = inet_pton(AF_INET, peerDeviceId, &addr.sin_addr);
+    if (rc <= 0) {
+        RPC_LOG_ERROR("inet_pton rc=%d", rc);
+        return ERR_FAILED;
+    }
+    addr.sin_port = lwip_htons(port);
+    errno = 0;
+
+    rc = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
+    if ((rc == -1) && (errno != EINPROGRESS)) {
+        RPC_LOG_ERROR("fd=%d,connect rc=%d, errno=%d", fd, rc, errno);
+        TcpShutDown(fd);
+        return ERR_FAILED;
+    }
+
+    return HandleConnect(fd);
 }
 
 static int32_t Disconnect(int32_t sessionId)

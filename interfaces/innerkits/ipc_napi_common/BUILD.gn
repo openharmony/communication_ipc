@@ -15,7 +15,10 @@ import("//build/ohos.gni")
 
 if (support_jsapi) {
   config("napi_common_deps_config") {
-    include_dirs = [ "include" ]
+    include_dirs = [
+      "include",
+      "../../../ipc/native/src/napi_common/include",
+    ]
   }
 
   ohos_shared_library("ipc_napi") {
@@ -28,6 +31,7 @@ if (support_jsapi) {
       "../../../ipc/native/src/napi_common/include",
     ]
     all_dependent_configs = [ ":napi_common_deps_config" ]
+    public_configs = [ ":napi_common_deps_config" ]
 
     sources = [
       "../../../ipc/native/src/napi_common/source/napi_ashmem.cpp",

@@ -322,40 +322,6 @@ ohos_unittest("RPCFeatureUnitTest") {
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("IPCCInterfaceUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/c_wrapper/include",
-  ]
-
-  sources = [
-    "ipc_c_message_parcel_unittest.cpp",
-    "ipc_c_process_unittest.cpp",
-    "ipc_c_remote_object_unittest.cpp",
-  ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/rust:ipc_c",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
-    "c_utils:utils",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
 ohos_unittest("IPCSoDlcloseTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
@@ -389,6 +355,40 @@ ohos_unittest("IPCBlockThreadTest") {
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
+ohos_unittest("IpcCApiUnitTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
+
+  sources = [
+    "ipc_capi_parcel_unittest.cpp",
+    "ipc_capi_remote_object_unittest.cpp",
+    "ipc_capi_skeleton_unittest.cpp",
+  ]
+
+  configs = [
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  deps = [
+    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -396,13 +396,13 @@ group("unittest") {
     ":BinderConnectorTest",
     ":BinderInvokerUnitTest",
     ":IPCBlockThreadTest",
-    ":IPCCInterfaceUnitTest",
     ":IPCFileDescOpsTest",
     ":IPCHiTraceUnitTest",
     ":IPCMockUnitTest",
     ":IPCNativeUnitTest",
     ":IPCSoDlcloseTest",
     ":InvokerFactoryTest",
+    ":IpcCApiUnitTest",
     ":RPCFeatureUnitTest",
   ]
   if (support_jsapi) {

@@ -39,11 +39,8 @@ BrokerRegistration &BrokerRegistration::Get()
 
 BrokerRegistration::~BrokerRegistration()
 {
-    isUnloading = true;
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
-    for (auto it = creators_.begin(); it != creators_.end();) {
-        it = creators_.erase(it);
-    }
+    isUnloading = true;
     for (auto it1 = objects_.begin(); it1 != objects_.end();) {
         BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(*it1);
         object->isSoUnloaded = true;
@@ -59,6 +56,10 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
     }
 
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
+    if (isUnloading) {
+        ZLOGE(LABEL, "BrokerRegistration is Unloading");
+        return false;
+    }
     auto it = creators_.find(descriptor);
     bool ret = false;
     if (it == creators_.end()) {
@@ -76,11 +77,11 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
 
 void BrokerRegistration::Unregister(const std::u16string &descriptor)
 {
+    std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     if (isUnloading) {
         ZLOGE(LABEL, "BrokerRegistration is Unloading");
         return;
     }
-    std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     if (!descriptor.empty()) {
         auto it = creators_.find(descriptor);
         if (it != creators_.end()) {

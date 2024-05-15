@@ -63,7 +63,9 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     };
     work->data = reinterpret_cast<void *>(param);
     ZLOGI(LOG_LABEL, "start to queue");
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, [](uv_work_t *work, int status) {
+    uv_queue_work(loop, work, [](uv_work_t *work) {
+        ZLOGD(LOG_LABEL, "enter work pool.");
+    }, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "start to call onRmeoteDied");
         OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
         napi_handle_scope scope = nullptr;

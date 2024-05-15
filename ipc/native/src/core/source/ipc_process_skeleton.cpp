@@ -20,6 +20,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+#include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
@@ -30,7 +31,6 @@
 
 #ifndef CONFIG_IPC_SINGLE
 #include "databus_socket_listener.h"
-#include "softbus_bus_center.h"
 #endif
 
 namespace OHOS {
@@ -152,7 +152,10 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
-    Shutdown(listenSocketId_);
+    if (listenSocketId_ > 0) {
+        DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+        listenSocketId_ = 0;
+    }
 #endif
 }
 
@@ -188,7 +191,9 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     if (result == nullptr) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
+        if (ProcessSkeleton::IsPrint(handle, lastErrHandle_, lastErrCnt_)) {
+            ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
+        }
         return result;
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
@@ -334,7 +339,9 @@ bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (object == nullptr) {
-        ZLOGE(LOG_LABEL, "object is null");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGD(LOG_LABEL, "object is null, time:%{public}" PRIu64, curTime);
         return false;
     }
     auto current = ProcessSkeleton::GetInstance();
@@ -469,12 +476,13 @@ std::string IPCProcessSkeleton::GetLocalDeviceID()
     std::lock_guard<std::mutex> lockGuard(databusProcMutex_);
 
     std::string pkgName = std::string(DBINDER_PKG_NAME) + "_" + std::to_string(getpid());
-    NodeBasicInfo nodeBasicInfo;
-    if (GetLocalNodeDeviceInfo(pkgName.c_str(), &nodeBasicInfo) != 0) {
-        ZLOGE(LOG_LABEL, "Get local node device info failed");
-        return "";
+    std::string networkId;
+
+    if (DBinderSoftbusClient::GetInstance().GetLocalNodeDeviceId(
+        pkgName.c_str(), networkId) != SOFTBUS_CLIENT_SUCCESS) {
+        ZLOGE(LOG_LABEL, "Get local node device id failed");
     }
-    std::string networkId(nodeBasicInfo.networkId);
+
     return networkId;
 }
 
@@ -526,7 +534,9 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
             tmp->GetSocketId(), tmp->GetServiceName().c_str(),
             tmp->GetStubIndex());
     } else {
-        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found", handle);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found, time:%{public}" PRIu64, handle, curTime);
     }
 
     return tmp;
@@ -1198,6 +1208,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (name.empty()) {
+        ZLOGE(LOG_LABEL, "server name is empty");
         return false;
     }
     std::shared_ptr<DatabusSocketListener> listener =

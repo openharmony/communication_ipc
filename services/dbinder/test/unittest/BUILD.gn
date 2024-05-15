@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 
+DSOFTBUS_PATH = "//foundation/communication/dsoftbus"
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
@@ -21,9 +22,10 @@ ohos_unittest("RPCDbinderTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
+    "$DSOFTBUS_PATH/sdk/transmission/session/cpp/src",
+    "$DSOFTBUS_PATH/sdk/transmission/session/cpp/include",
     "$IPC_CORE_ROOT/c/manager/include",
     "$SUBSYSTEM_DIR/utils/include",
-    "//foundation/communication/dsoftbus/sdk/transmission/session/cpp/src",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$IPC_CORE_ROOT/c/rpc/include",
   ]
@@ -35,7 +37,7 @@ ohos_unittest("RPCDbinderTest") {
     "dbinder_service_unittest.cpp",
   ]
 
-  configs = []
+  configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
 
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
@@ -44,7 +46,6 @@ ohos_unittest("RPCDbinderTest") {
 
   external_deps = [
     "c_utils:utils",
-    "dsoftbus:softbus_client",
     "hilog:libhilog",
     "ipc:libdbinder",
   ]
@@ -55,5 +56,8 @@ ohos_unittest("RPCDbinderTest") {
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [ ":RPCDbinderTest" ]
+  deps = [
+    ":RPCDbinderTest",
+    "../auxiliary:Dynamic_loading_softbus_client_test",
+  ]
 }

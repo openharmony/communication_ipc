@@ -66,6 +66,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     ZLOGD(LABEL, "desc:%{public}s, %{public}zu",
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
         reinterpret_cast<uintptr_t>(this));
+    InitCodeMap();
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");
@@ -88,6 +89,25 @@ IPCObjectStub::~IPCObjectStub()
         std::chrono::steady_clock::now().time_since_epoch()).count());
     DeadObjectInfo obj = { -1, curTime, curTime, descriptor_ };
     current->AttachDeadObject(this, obj);
+}
+
+void IPCObjectStub::InitCodeMap()
+{
+    funcMap_[PING_TRANSACTION] = &IPCObjectStub::DBinderPingTransaction;
+    funcMap_[INTERFACE_TRANSACTION] = &IPCObjectStub::DBinderInterfaceTransaction;
+    funcMap_[SYNCHRONIZE_REFERENCE] = &IPCObjectStub::DBinderSyncHronizeReference;
+    funcMap_[DUMP_TRANSACTION] = &IPCObjectStub::DBinderDumpTransaction;
+    funcMap_[GET_PROTO_INFO] = &IPCObjectStub::ProcessProto;
+#ifndef CONFIG_IPC_SINGLE
+    funcMap_[INVOKE_LISTEN_THREAD] = &IPCObjectStub::DBinderInvokeListenThread;
+    funcMap_[DBINDER_INCREFS_TRANSACTION] = &IPCObjectStub::DBinderIncRefsTransaction;
+    funcMap_[DBINDER_DECREFS_TRANSACTION] = &IPCObjectStub::DBinderDecRefsTransaction;
+    funcMap_[DBINDER_ADD_COMMAUTH] = &IPCObjectStub::DBinderAddCommAuth;
+    funcMap_[GET_SESSION_NAME] = &IPCObjectStub::DBinderGetSessionName;
+    funcMap_[GET_GRANTED_SESSION_NAME] = &IPCObjectStub::GetGrantedSessionName;
+    funcMap_[GET_SESSION_NAME_PID_UID] = &IPCObjectStub::GetSessionNameForPidUid;
+    funcMap_[GET_PID_UID] = &IPCObjectStub::DBinderGetPidUid;
+#endif
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
@@ -130,8 +150,10 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
             result = IPC_STUB_UNKNOW_TRANS_ERR;
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
+            if (ProcessSkeleton::IsPrint(code, lastErrCode_, lastErrCnt_)) {
+                ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
+                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
+            }
             break;
     }
     return result;
@@ -153,199 +175,207 @@ int IPCObjectStub::OnRemoteDump(uint32_t code, MessageParcel &data, MessageParce
     return result;
 }
 
-int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int IPCObjectStub::DBinderPingTransaction(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!reply.WriteInt32(ERR_NONE)) {
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+int IPCObjectStub::DBinderInterfaceTransaction(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    std::u16string descriptor = GetObjectDescriptor();
+    if (!reply.WriteString16(descriptor)) {
+        ZLOGE(LABEL, "write to parcel fail");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+int IPCObjectStub::DBinderSyncHronizeReference(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    int refCount = GetObjectRefCount();
+    // when handle transaction the invoker would try to acquire
+    // the object's reference to defense the object being released
+    // so the actual we should decrement the temporary reference.
+    if (IPCSkeleton::IsLocalCalling()) {
+        --refCount;
+    }
+    reply.WriteInt32(refCount);
+    return ERR_NONE;
+}
+
+int IPCObjectStub::DBinderDumpTransaction(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && uid != HIDUMPER_SERVICE_UID)) {
+        ZLOGE(LABEL, "do not allow dump, uid:%{public}u", uid);
+        return ERR_NONE;
+    }
+    return OnRemoteDump(code, data, reply, option);
+}
+
+#ifndef CONFIG_IPC_SINGLE
+int IPCObjectStub::DBinderInvokeListenThread(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    if (!IPCSkeleton::IsLocalCalling() || uid >= ALLOWED_UID) {
+        ZLOGE(LABEL, "INVOKE_LISTEN_THREAD unauthenticated user, desc:%{public}s, uid:%{public}u",
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), uid);
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return InvokerThread(code, data, reply, option);
+}
+
+int IPCObjectStub::DBinderIncRefsTransaction(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (IPCSkeleton::IsLocalCalling()) {
+        ZLOGE(LABEL, "dbinder incref in the same device is invalid");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    pid_t callerPid = IPCSkeleton::GetCallingPid();
+    pid_t callerUid = IPCSkeleton::GetCallingUid();
+    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+    std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    uint64_t stubIndex = current->QueryStubIndex(this);
+    DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
+        IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
+    if (invoker == nullptr) {
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    int32_t listenFd = invoker->GetClientFd();
+    // update listenFd
+    ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
+        listenFd, stubIndex, tokenId);
+    current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
+    return ERR_NONE;
+}
+
+int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (IPCSkeleton::IsLocalCalling()) {
+        ZLOGE(LABEL, "dbinder decref in the same device is invalid");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    // stub's refcount will be decreased either in this case or OnSessionClosed callback
+    // we may race with OnSessionClosed callback, thus dec refcount only when removing appInfo sucessfully
+    pid_t callerPid = IPCSkeleton::GetCallingPid();
+    pid_t callerUid = IPCSkeleton::GetCallingUid();
+    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+    std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    uint64_t stubIndex = current->QueryStubIndex(this);
+    DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
+        IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
+    if (invoker == nullptr) {
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    int32_t listenFd = invoker->GetClientFd();
+    // detach info whose listen fd equals the given one
+    if (current->DetachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd)) {
+        current->DetachCommAuthInfo(this, callerPid, callerUid, tokenId, callerDevId);
+        DecStrongRef(this);
+    }
+    return ERR_NONE;
+}
+
+int IPCObjectStub::DBinderAddCommAuth(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    if (IPCSkeleton::IsLocalCalling() || uid >= ALLOWED_UID) {
+        ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH unauthenticated user, desc:%{public}s, uid:%{public}u",
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), uid);
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return AddAuthInfo(data, reply, code);
+}
+
+int IPCObjectStub::DBinderGetSessionName(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling()) {
+        ZLOGE(LABEL, "GET_UIDPID_INFO message is not from sa manager");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    std::string sessionName = GetSessionName();
+    if (sessionName.empty()) {
+        ZLOGE(LABEL, "sessionName is empty");
+        return IPC_STUB_CREATE_BUS_SERVER_ERR;
+    }
+    if (!reply.WriteString(sessionName)) {
+        ZLOGE(LABEL, "write to parcel fail");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return ERR_NONE;
+}
+
+int IPCObjectStub::DBinderGetPidUid(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling()) {
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    if (!reply.WriteUint32(getpid()) || !reply.WriteUint32(getuid())) {
+        ZLOGE(LABEL, "write to parcel fail");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return ERR_NONE;
+}
+#endif
+
+int IPCObjectStub::SendRequestInner(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int result = ERR_NONE;
-    switch (code) {
-        case PING_TRANSACTION: {
-            if (!reply.WriteInt32(ERR_NONE)) {
-                result = IPC_STUB_WRITE_PARCEL_ERR;
-            }
-            break;
-        }
-        case INTERFACE_TRANSACTION: {
-            std::u16string descriptor = GetObjectDescriptor();
-            if (!reply.WriteString16(descriptor)) {
-                ZLOGE(LABEL, "write to parcel fail");
-                result = IPC_STUB_WRITE_PARCEL_ERR;
-            }
-            break;
-        }
-        case SYNCHRONIZE_REFERENCE: {
-            int refCount = GetObjectRefCount();
-            // when handle transaction the invoker would try to acquire
-            // the object's reference to defense the object being released
-            // so the actual we should decrement the temporary reference.
-            if (IPCSkeleton::IsLocalCalling()) {
-                --refCount;
-            }
-            reply.WriteInt32(refCount);
-            break;
-        }
-        case DUMP_TRANSACTION: {
-            pid_t uid = IPCSkeleton::GetCallingUid();
-            if (!IPCSkeleton::IsLocalCalling() || (uid != 0 && uid != SHELL_UID && uid != HIDUMPER_SERVICE_UID)) {
-                ZLOGE(LABEL, "do not allow dump");
-                break;
-            }
-            result = OnRemoteDump(code, data, reply, option);
-            break;
-        }
-        case GET_PROTO_INFO: {
-            result = ProcessProto(code, data, reply, option);
-            break;
-        }
-#ifndef CONFIG_IPC_SINGLE
-        case INVOKE_LISTEN_THREAD: {
-            if (!IPCSkeleton::IsLocalCalling() || IPCSkeleton::GetCallingUid() >= ALLOWED_UID) {
-                ZLOGE(LABEL, "INVOKE_LISTEN_THREAD unauthenticated user, desc:%{public}s",
-                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            result = InvokerThread(code, data, reply, option);
-            break;
-        }
-        case DBINDER_INCREFS_TRANSACTION: {
-            if (IPCSkeleton::IsLocalCalling()) {
-                ZLOGE(LABEL, "dbinder incref in the same device is invalid");
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            pid_t callerPid = IPCSkeleton::GetCallingPid();
-            pid_t callerUid = IPCSkeleton::GetCallingUid();
-            uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-            std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
-            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-            uint64_t stubIndex = current->QueryStubIndex(this);
-            DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
-                IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
-            if (invoker == nullptr) {
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            int32_t listenFd = invoker->GetClientFd();
-            // update listenFd
-            ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
-                listenFd, stubIndex, tokenId);
-            current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId,
-                stubIndex, listenFd);
-            break;
-        }
-        case DBINDER_DECREFS_TRANSACTION: {
-            if (IPCSkeleton::IsLocalCalling()) {
-                ZLOGE(LABEL, "dbinder decref in the same device is invalid");
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            // stub's refcount will be decreased either in this case or OnSessionClosed callback
-            // we may race with OnSessionClosed callback, thus dec refcount only when removing appInfo sucessfully
-            pid_t callerPid = IPCSkeleton::GetCallingPid();
-            pid_t callerUid = IPCSkeleton::GetCallingUid();
-            uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-            std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
-            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-            uint64_t stubIndex = current->QueryStubIndex(this);
-            DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
-                IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
-            if (invoker == nullptr) {
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            int32_t listenFd = invoker->GetClientFd();
-            // detach info whose listen fd equals the given one
-            if (current->DetachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd)) {
-                current->DetachCommAuthInfo(this, callerPid, callerUid, tokenId, callerDevId);
-                DecStrongRef(this);
-            }
-            break;
-        }
-        case DBINDER_ADD_COMMAUTH: {
-            if (IPCSkeleton::IsLocalCalling() || IPCSkeleton::GetCallingUid() >= ALLOWED_UID) {
-                ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH unauthenticated user, desc:%{public}s",
-                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str());
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            result = AddAuthInfo(data, reply, code);
-            break;
-        }
-        case GET_SESSION_NAME: {
-            if (!IPCSkeleton::IsLocalCalling()) {
-                ZLOGE(LABEL, "GET_UIDPID_INFO message is not from sa manager");
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            std::string sessionName = GetSessionName();
-            if (sessionName.empty()) {
-                ZLOGE(LABEL, "sessionName is empty");
-                result = IPC_STUB_CREATE_BUS_SERVER_ERR;
-                break;
-            }
-            if (!reply.WriteString(sessionName)) {
-                ZLOGE(LABEL, "write to parcel fail");
-                result = IPC_STUB_INVALID_DATA_ERR;
-            }
-            break;
-        }
-        case GET_GRANTED_SESSION_NAME: {
-            if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
-                ZLOGE(LABEL, "GRANT_DATABUS_NAME message is excluded in sa manager");
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            result = GetGrantedSessionName(code, data, reply, option);
-            break;
-        }
-        case GET_SESSION_NAME_PID_UID: {
-            if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
-                ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            result = GetSessionNameForPidUid(code, data, reply, option);
-            break;
-        }
-        case GET_PID_UID: {
-            if (!IPCSkeleton::IsLocalCalling()) {
-                result = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            result = GetPidUid(data, reply);
-            break;
-        }
-#endif
-        default:
-            std::unique_lock<std::recursive_mutex> lockGuard(serialRecursiveMutex_, std::defer_lock);
-            if (serialInvokeFlag_) {
-                lockGuard.lock();
-            }
-            auto start = std::chrono::steady_clock::now();
-            lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                start.time_since_epoch()).count());
-            result = OnRemoteRequest(code, data, reply, option);
-            auto finish = std::chrono::steady_clock::now();
-            uint32_t duration = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(
-                finish - start).count());
-            if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-                ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}ums",
-                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(GetObjectDescriptor())).c_str(),
-                    code, duration / COEFF_MILLI_TO_MICRO);
-            }
-
-            IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
-            if (instance.GetStatisticsStatus()) {
-                int32_t currentPid = IPCSkeleton::GetCallingPid();
-                std::u16string currentDesc = GetObjectDescriptor();
-                int32_t currentCode = code;
-                if (!instance.UpdatePayloadInfo(currentPid, currentDesc, currentCode, duration)) {
-                    ZLOGE(LABEL, "Process load information update failed");
-                }
-            }
-            break;
+    std::unique_lock<std::recursive_mutex> lockGuard(serialRecursiveMutex_, std::defer_lock);
+    if (serialInvokeFlag_) {
+        lockGuard.lock();
+    }
+    auto start = std::chrono::steady_clock::now();
+    lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        start.time_since_epoch()).count());
+    result = OnRemoteRequest(code, data, reply, option);
+    auto finish = std::chrono::steady_clock::now();
+    uint32_t duration = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(
+        finish - start).count());
+    if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
+        ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}ums",
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(GetObjectDescriptor())).c_str(),
+            code, duration / COEFF_MILLI_TO_MICRO);
     }
 
+    IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
+    if (instance.GetStatisticsStatus()) {
+        int32_t currentPid = IPCSkeleton::GetCallingPid();
+        std::u16string currentDesc = GetObjectDescriptor();
+        int32_t currentCode = code;
+        if (!instance.UpdatePayloadInfo(currentPid, currentDesc, currentCode, duration)) {
+            ZLOGE(LABEL, "Process load information update failed");
+        }
+    }
     return result;
+}
+
+int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    std::map<uint32_t, OHOS::IPCObjectStub::IPCObjectStubFunc>::iterator it = funcMap_.find(code);
+    if (it != funcMap_.end()) {
+        OHOS::IPCObjectStub::IPCObjectStubFunc itFunc = it->second;
+        if (itFunc != nullptr) {
+            return (this->*itFunc)(code, data, reply, option);
+        }
+    }
+    return IPCObjectStub::SendRequestInner(code, data, reply, option);
 }
 
 void IPCObjectStub::OnFirstStrongRef(const void *objectId)
@@ -594,10 +624,14 @@ std::string IPCObjectStub::GetSessionName()
     return samgr->GetGrantedSessionName();
 }
 
-int32_t IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
     ZLOGI(LABEL, "enter");
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "GRANT_DATABUS_NAME message is excluded in sa manager");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
     int pid = IPCSkeleton::GetCallingPid();
     int uid = IPCSkeleton::GetCallingUid();
     std::string sessionName = CreateSessionName(uid, pid);
@@ -613,9 +647,13 @@ int32_t IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data,
     return ERR_NONE;
 }
 
-int32_t IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
     uint32_t remotePid = data.ReadUint32();
     uint32_t remoteUid = data.ReadUint32();
     if (remotePid == static_cast<uint32_t>(IPCSkeleton::GetCallingPid())) {
@@ -635,20 +673,11 @@ int32_t IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &dat
     return ERR_NONE;
 }
 
-int IPCObjectStub::GetPidUid(MessageParcel &data, MessageParcel &reply)
-{
-    if (!reply.WriteUint32(getpid()) || !reply.WriteUint32(getuid())) {
-        ZLOGE(LABEL, "write to parcel fail");
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
-    return ERR_NONE;
-}
-
 std::string IPCObjectStub::CreateSessionName(int uid, int pid)
 {
     std::string sessionName = DBINDER_SOCKET_NAME_PREFIX +
         std::to_string(uid) + std::string("_") + std::to_string(pid);
-    if (DBinderGrantPermission(uid, pid, sessionName.c_str()) != ERR_NONE) {
+    if (DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, sessionName) != ERR_NONE) {
         ZLOGE(LABEL, "fail to Grant Permission softbus name");
         return "";
     }
