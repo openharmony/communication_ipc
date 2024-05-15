@@ -94,6 +94,7 @@ private:
     static BinderConnector *instance_;
     static std::mutex skeletonMutex;
     bool OpenDriver();
+    bool MapMemory(uint64_t featureSet);
     int driverFD_;
     void *vmAddr_;
     const std::string deviceName_;
