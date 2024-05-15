@@ -177,6 +177,8 @@ private:
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
+
+    void PrintErrorMessage(uint64_t writeConsumed);
 #ifdef CONFIG_ACTV_BINDER
     inline void SetUseActvBinder(bool useActvBinder)
     {
@@ -209,6 +211,8 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
+    const std::unordered_set<int32_t> readHandleFromCommandsSet = {BC_ACQUIRE, BC_RELEASE,
+        BC_REQUEST_DEATH_NOTIFICATION, BC_REPLY, BC_CLEAR_DEATH_NOTIFICATION, BC_FREE_BUFFER, BC_TRANSACTION};
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
     ActvHandlerInfo *actvHandlerInfo_ = nullptr;
