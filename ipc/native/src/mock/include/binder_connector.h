@@ -59,6 +59,7 @@ public:
     uint64_t GetSelfFirstCallerTokenID();
 #ifdef CONFIG_ACTV_BINDER
     bool IsActvBinderSupported();
+    bool IsActvBinderService();
 #endif
 private:
     static BinderConnector *instance_;

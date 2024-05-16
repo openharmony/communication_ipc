@@ -121,6 +121,7 @@ public:
 
 #ifdef CONFIG_ACTV_BINDER
     static void JoinActvThread(bool initiative);
+    static bool IsActvBinderService();
 #endif // CONFIG_ACTV_BINDER
 
 protected:

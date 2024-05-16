@@ -61,6 +61,9 @@ IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
             }
             if (temp->SetMaxWorkThread(DEFAULT_WORK_THREAD_NUM)) {
                 temp->SpawnThread(IPCWorkThread::SPAWN_ACTIVE);
+#ifdef CONFIG_ACTV_BINDER
+                temp->SpawnThread(IPCWorkThread::ACTV_ACTIVE);
+#endif
             }
             instance_ = temp;
         }

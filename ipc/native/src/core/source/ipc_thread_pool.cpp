@@ -18,6 +18,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+#ifdef CONFIG_ACTV_BINDER
+#include "binder_invoker.h"
+#endif
+
 #include "ipc_debug.h"
 #include "log_tags.h"
 
@@ -56,6 +60,12 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
         !(proto == IRemoteObject::IF_PROT_DATABUS && idleSocketThreadNum_ > 0)) {
         return false;
     }
+#ifdef CONFIG_ACTV_BINDER
+    if ((policy == IPCWorkThread::ACTV_PASSIVE || policy == IPCWorkThread::ACTV_ACTIVE) &&
+        (proto != IRemoteObject::IF_PROT_BINDER || !BinderInvoker::IsActvBinderService())) {
+        return false;
+    }
+#endif
     std::string threadName = MakeThreadName(proto);
     ZLOGD(LOG_LABEL, "name:%{public}s", threadName.c_str());
 
