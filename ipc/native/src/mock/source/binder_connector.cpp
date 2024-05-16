@@ -19,6 +19,10 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#ifdef CONFIG_ACTV_BINDER
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 #include <unistd.h>
 
 #include "__mutex_base"
@@ -34,10 +38,6 @@
 #include "sys_binder.h"
 #ifdef CONFIG_ACTV_BINDER
 #include "actv_binder.h"
-
-#include <fstream>
-#include <unordered_set>
-#include <nlohmann/json.hpp>
 #endif
 
 namespace OHOS {
@@ -45,9 +45,6 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_CON
 std::mutex BinderConnector::skeletonMutex;
 constexpr int SZ_1_M = 1048576;
 constexpr int DOUBLE = 2;
-#ifdef CONFIG_ACTV_BINDER
-static const int PROC_NAME_LEN = 128;
-#endif
 static const int IPC_MMAP_SIZE = (SZ_1_M - sysconf(_SC_PAGE_SIZE) * DOUBLE);
 static constexpr const char *DRIVER_NAME = "/dev/binder";
 static constexpr const char *TOKENID_DEVNODE = "/dev/access_token_id";
@@ -60,11 +57,7 @@ BinderConnector::BinderConnector(const std::string &deviceName)
 BinderConnector::~BinderConnector()
 {
     if (vmAddr_ != MAP_FAILED) {
-#ifdef CONFIG_ACTV_BINDER
-        munmap(vmAddr_, vmSize_);
-#else
         munmap(vmAddr_, IPC_MMAP_SIZE);
-#endif
         vmAddr_ = MAP_FAILED;
     }
 
@@ -85,27 +78,6 @@ ActvBinderConnector::ActvBinderConnector()
 {
 }
 
-char *ActvBinderConnector::GetProcName(char *buf, size_t len)
-{
-    int fd;
-    char *name = nullptr;
-
-    fd = open("/proc/self/cmdline", O_RDONLY);
-    if (fd != -1) {
-        ssize_t cnt;
-
-        cnt = read(fd, buf, len - 1);
-        if (cnt > 0) {
-            buf[cnt] = '\0';
-            name = buf;
-        }
-
-        close(fd);
-    }
-
-    return name;
-}
-
 int ActvBinderConnector::InitActvBinder(int fd)
 {
     if (!isActvMgr_) {
@@ -124,54 +96,16 @@ int ActvBinderConnector::InitActvBinder(int fd)
     return 0;
 }
 
-/*
- * The JSON format of the /system/etc/libbinder_actv.json should be:
- *
- * {
- *      "pname0": {
- *      },
- *      "pname1": {
- *      },
- *      ...
- *      "pnameN": {
- *      }
- * }
- *
- * 1. Configure pname0 ~ pnameN as the actv binder service.
- */
 void ActvBinderConnector::InitActvBinderConfig(uint64_t featureSet)
 {
     if ((featureSet & ACTV_BINDER_FEATURE_MASK) == 0) {
         return;
     }
 
-    std::ifstream configFile(ACTV_BINDER_SERVICES_CONFIG);
-    if (!configFile.is_open()) {
-        ZLOGI(LABEL, "ActvBinder: no available config file %{public}s", ACTV_BINDER_SERVICES_CONFIG);
-        return;
-    }
-
-    char buffer[PROC_NAME_LEN];
-    char *procName = ActvBinderConnector::GetProcName(buffer, PROC_NAME_LEN);
-
-    if (procName == nullptr) {
-        ZLOGE(LABEL, "ActvBinder: get the process name of pid=%{public}d failed", getpid());
-        return;
-    }
-
-    nlohmann::json configData = nlohmann::json::parse(configFile, nullptr, false);
-    if (configData.is_discarded()) {
-        ZLOGE(LABEL, "ActvBinder: parse config file %{public}s failed", ACTV_BINDER_SERVICES_CONFIG);
-        return;
-    }
-
-    for (auto &procItem : configData.items()) {
-        if (isActvMgr_ == false) {
-            isActvMgr_ = (strcmp(procItem.key().c_str(), procName) == 0);
-            if (isActvMgr_) {
-                ZLOGI(LABEL, "ActvBinder: set %{public}s as the actv binder service", procName);
-            }
-        }
+    struct stat stat_unused;
+    /* If there is ACTV_BINDER_SERVICES_CONFIG, set actvmgr for actv binder */
+    if (stat(ACTV_BINDER_SERVICES_CONFIG, &stat_unused) == 0) {
+        isActvMgr_ = true;
     }
 }
 #endif // CONFIG_ACTV_BINDER
@@ -215,12 +149,9 @@ bool BinderConnector::MapMemory(uint64_t featureSet)
 {
 #ifdef CONFIG_ACTV_BINDER
     actvBinder_.InitActvBinderConfig(featureSet);
-
-    vmSize_ = IPC_MMAP_SIZE + (actvBinder_.isActvMgr_ ? ACTV_BINDER_VM_SIZE : 0);
-    vmAddr_ = mmap(0, vmSize_, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
-#else
-    vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
 #endif
+
+    vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
     if (vmAddr_ == MAP_FAILED) {
         ZLOGE(LABEL, "fail to mmap");
         return false;
@@ -228,9 +159,8 @@ bool BinderConnector::MapMemory(uint64_t featureSet)
 #ifdef CONFIG_ACTV_BINDER
     int ret = actvBinder_.InitActvBinder(driverFD_);
     if (ret != 0) {
-        munmap(vmAddr_, vmSize_);
+        munmap(vmAddr_, IPC_MMAP_SIZE);
         vmAddr_ = MAP_FAILED;
-        vmSize_ = 0;
         return false;
     }
 #endif
