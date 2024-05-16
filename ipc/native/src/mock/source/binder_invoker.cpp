@@ -827,7 +827,8 @@ void BinderInvoker::JoinThread(bool initiative)
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
 
-void BinderInvoker::PrintErrorMessage(uint64_t writeConsumed) {
+void BinderInvoker::PrintErrorMessage(uint64_t writeConsumed)
+{
     if (writeConsumed < sizeof(uint32_t)) {
         ZLOGE(LABEL, "consumed is small than cmd length");
     } else {
