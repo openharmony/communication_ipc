@@ -63,12 +63,6 @@ static const long long int SEND_REQUEST_TIMEOUT = 2000;
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
-#ifdef CONFIG_ACTV_BINDER
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
-    if (invoker != nullptr) {
-        invoker->LinkRemoteInvoker(&invokerData_);
-    }
-#endif
     ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), reinterpret_cast<uintptr_t>(this));
     ExtendObjectLifetime();
@@ -82,12 +76,6 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-#ifdef CONFIG_ACTV_BINDER
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto_);
-    if (invoker != nullptr) {
-        invoker->UnlinkRemoteInvoker(&invokerData_);
-    }
-#endif
     ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
         reinterpret_cast<uintptr_t>(this));
@@ -172,11 +160,7 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
         return ERR_NULL_OBJECT;
     }
 
-#ifdef CONFIG_ACTV_BINDER
-    int status = invoker->SendRequest(handle_, code, data, reply, option, invokerData_);
-#else
     int status = invoker->SendRequest(handle_, code, data, reply, option);
-#endif
     if (status == ERR_DEAD_OBJECT) {
         MarkObjectDied();
     }
