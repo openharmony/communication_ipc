@@ -95,8 +95,14 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_SESSION_NAME_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_WRONG_SESSION;
     }
+    return ProcessData(uid, pid, sessionName, data, reply);
+}
 
-    MessageParcel authData, authReply;
+int32_t DBinderCallbackStub::ProcessData(int uid, int pid, const std::string &sessionName, MessageParcel &data,
+    MessageParcel &reply)
+{
+    MessageParcel authData;
+    MessageParcel authReply;
     MessageOption authOption;
     if (!authData.WriteUint32(pid) || !authData.WriteUint32(uid) || !authData.WriteString(localDeviceID_) ||
         !authData.WriteUint64(stubIndex_) || !authData.WriteUint32(tokenId_)) {
