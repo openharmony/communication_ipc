@@ -444,15 +444,14 @@ bool TestServiceProxy::CheckTokenSelf(uint64_t token, uint64_t tokenSelf, uint64
 
 bool TestServiceProxy::CheckSetFirstToken(uint64_t ftoken_expected)
 {
-    uint64_t ret = 0;
-    ret = RpcSetFirstCallerTokenID(ftoken_expected);
+    int ret = RpcSetFirstCallerTokenID(ftoken_expected);
     if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}llu", ret);
+        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}d", ret);
         return false;
     }
-    ret = RpcGetFirstCallerTokenID();
-    if (ret != ftoken_expected) {
-        ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}llu", ret);
+    uint64_t result = RpcGetFirstCallerTokenID();
+    if (result != ftoken_expected) {
+        ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}" PRIu64, result);
         return false;
     }
     return true;
@@ -460,15 +459,14 @@ bool TestServiceProxy::CheckSetFirstToken(uint64_t ftoken_expected)
 
 bool TestServiceProxy::CheckSetSelfToken(uint64_t token_expected)
 {
-    uint64_t ret = 0;
-    ret = RpcSetSelfTokenID(token_expected);
+    int ret = RpcSetSelfTokenID(token_expected);
     if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}llu", ret);
+        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}d", ret);
         return false;
     }
-    ret = RpcGetSelfTokenID();
-    if (ret != token_expected) {
-        ZLOGE(LABEL, "TestServiceProxy get selftoken after set: %{public}llu", ret);
+    uint64_t result = RpcGetSelfTokenID();
+    if (result != token_expected) {
+        ZLOGE(LABEL, "TestServiceProxy get selftoken after set: %{public}" PRIu64, result);
         return false;
     }
     return true;
