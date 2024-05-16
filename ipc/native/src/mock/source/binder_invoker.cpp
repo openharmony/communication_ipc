@@ -805,6 +805,20 @@ void BinderInvoker::JoinThread(bool initiative)
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
 
+void BinderInvoker::PrintErrorMessage(uint64_t writeConsumed)
+{
+    if (writeConsumed < sizeof(uint32_t)) {
+        ZLOGE(LABEL, "consumed is small than cmd length");
+    } else {
+        uint32_t cmd = *reinterpret_cast<uint32_t *>(output_.GetData() + writeConsumed - sizeof(uint32_t));
+        int32_t handle = -1;
+        if (GET_HANDLE_CMD_SET.count(cmd) > 0) {
+            handle = *reinterpret_cast<int32_t *>(output_.GetData() + writeConsumed);
+        }
+        ZLOGW(LABEL, "still have some bytes not been handled, cmd:%{public}u, handle:%{public}d", cmd, handle);
+    }
+}
+
 int BinderInvoker::TransactWithDriver(bool doRead)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -839,6 +853,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
             // we still have some bytes not been handled.
+            PrintErrorMessage(bwr.write_consumed);
         } else {
             output_.FlushBuffer();
         }
