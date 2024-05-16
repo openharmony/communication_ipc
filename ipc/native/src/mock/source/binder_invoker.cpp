@@ -812,7 +812,7 @@ void BinderInvoker::PrintErrorMessage(uint64_t writeConsumed)
     } else {
         uint32_t cmd = *reinterpret_cast<uint32_t *>(output_.GetData() + writeConsumed - sizeof(uint32_t));
         int32_t handle = -1;
-        if (readHandleFromCommandsSet.count(cmd) > 0) {
+        if (GET_HANDLE_CMD_SET.count(cmd) > 0) {
             handle = *reinterpret_cast<int32_t *>(output_.GetData() + writeConsumed);
         }
         ZLOGW(LABEL, "still have some bytes not been handled, cmd:%{public}u, handle:%{public}d", cmd, handle);
