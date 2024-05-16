@@ -164,7 +164,11 @@ private:
 
     void OnReleaseObject(uint32_t cmd);
 
-    void OnTransaction(const uint8_t *);
+    void Transaction(const uint8_t *buffer);
+
+    void OnTransaction(int32_t &error);
+
+    void OnSpawnThread();
 
     int HandleCommands(uint32_t cmd);
 
@@ -217,6 +221,21 @@ private:
     int lastErrCnt_ = 0;
     const std::unordered_set<int32_t> readHandleFromCommandsSet = {BC_ACQUIRE, BC_RELEASE,
         BC_REQUEST_DEATH_NOTIFICATION, BC_REPLY, BC_CLEAR_DEATH_NOTIFICATION, BC_FREE_BUFFER, BC_TRANSACTION};
+    const std::map<int32_t, std::function<void(int32_t cmd, int32_t &error)>> commandMap_ = {
+        { BR_ERROR,           [&](int32_t cmd, int32_t &error) { error = input_.ReadInt32(); } },
+        { BR_ACQUIRE,         [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
+        { BR_INCREFS,         [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
+        { BR_RELEASE,         [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
+        { BR_DECREFS,         [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
+        { BR_ATTEMPT_ACQUIRE, [&](int32_t cmd, int32_t &error) { OnAttemptAcquire(); } },
+        { BR_TRANSACTION,     [&](int32_t cmd, int32_t &error) { OnTransaction(error); } },
+        { BR_SPAWN_LOOPER,    [&](int32_t cmd, int32_t &error) { OnSpawnThread(); } },
+        { BR_FINISHED,        [&](int32_t cmd, int32_t &error) { error = -ERR_TIMED_OUT; } },
+        { BR_DEAD_BINDER,     [&](int32_t cmd, int32_t &error) { OnBinderDied(); } },
+        { BR_OK,              [&](int32_t cmd, int32_t &error) { } },
+        { BR_NOOP,            [&](int32_t cmd, int32_t &error) { } },
+        { BR_CLEAR_DEATH_NOTIFICATION_DONE, [&](int32_t cmd, int32_t &error) { OnRemoveRecipientDone(); } },
+    };
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
     ActvHandlerInfo *actvHandlerInfo_ = nullptr;
