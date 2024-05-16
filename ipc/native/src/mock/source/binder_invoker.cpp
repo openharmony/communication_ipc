@@ -717,7 +717,15 @@ void BinderInvoker::OnSpawnThread()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
+#ifdef CONFIG_ACTV_BINDER
+        if (GetUseActvBinder()) {
+            current->SpawnThread(IPCWorkThread::ACTV_PASSIVE);
+        } else {
+            current->SpawnThread();
+        }
+#else
         current->SpawnThread();
+#endif
     }
 }
 
@@ -1355,6 +1363,19 @@ void BinderInvoker::JoinActvThread(bool initiative)
         invoker->SetUseActvBinder(true);
         invoker->JoinThread(initiative);
     }
+}
+
+bool BinderInvoker::IsActvBinderService()
+{
+    bool check = false;
+    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
+
+    if ((invoker != nullptr) && (invoker->binderConnector_ != nullptr)) {
+        check = invoker->binderConnector_->IsActvBinderService();
+    }
+
+    return check;
 }
 #endif // CONFIG_ACTV_BINDER
 

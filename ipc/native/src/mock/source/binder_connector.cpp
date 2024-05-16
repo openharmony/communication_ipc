@@ -311,6 +311,11 @@ bool BinderConnector::IsActvBinderSupported()
 {
     return (IsDriverAlive() && ((featureSet_ & ACTV_BINDER_FEATURE_MASK) != 0));
 }
+
+bool BinderConnector::IsActvBinderService()
+{
+    return (IsDriverAlive() && actvBinder_.isActvMgr_);
+}
 #endif
 
 int BinderConnector::WriteBinder(unsigned long request, void *value)
