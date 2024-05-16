@@ -18,9 +18,6 @@
 #include <cstdint>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#ifdef CONFIG_ACTV_BINDER
-#include <sys/prctl.h>
-#endif
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -83,48 +80,9 @@ bool BinderConnector::IsDriverAlive()
 }
 
 #ifdef CONFIG_ACTV_BINDER
-std::mutex ActvBinderConnector::skeletonMutex_;
-ActvBinderJoinThreadFunc ActvBinderConnector::joinActvThreadFunc_ = nullptr;
-
 ActvBinderConnector::ActvBinderConnector()
     : isActvMgr_(false)
 {
-}
-
-void ActvBinderConnector::JoinActvThread(bool initiative)
-{
-    if (ActvBinderConnector::joinActvThreadFunc_ != nullptr) {
-        ActvBinderConnector::joinActvThreadFunc_(initiative);
-    } else {
-        ZLOGW(LABEL, "ActvBinder: no available func to add thread for the actv binder service");
-    }
-}
-
-void ActvBinderConnector::SetJoinActvThreadFunc(ActvBinderJoinThreadFunc func)
-{
-    if (ActvBinderConnector::joinActvThreadFunc_ == nullptr) {
-        std::lock_guard<std::mutex> lockGuard(skeletonMutex_);
-
-        if (ActvBinderConnector::joinActvThreadFunc_ == nullptr) {
-            ActvBinderConnector::joinActvThreadFunc_ = func;
-        }
-    }
-}
-
-void *ActvBinderConnector::ActvThreadEntry(void *arg)
-{
-    int ret;
-    std::string name = "ACTVIPC_" + std::to_string(reinterpret_cast<uintptr_t>(arg)) + "_" + std::to_string(getpid());
-
-    ret = prctl(PR_SET_NAME, name.c_str());
-    if (ret != 0) {
-        ZLOGE(LABEL, "ActvBinder: set thread name: %{public}s failed, errno: %{public}d", name.c_str(), errno);
-    } else {
-        ActvBinderConnector::JoinActvThread(false);
-        ZLOGW(LABEL, "ActvBinder: thread %{public}s exited", name.c_str());
-    }
-
-    return nullptr;
 }
 
 char *ActvBinderConnector::GetProcName(char *buf, size_t len)
@@ -155,27 +113,12 @@ int ActvBinderConnector::InitActvBinder(int fd)
     }
 
     int ret;
-    pthread_t thread;
     uint64_t poolCref;
 
     ret = ioctl(fd, BINDER_SET_ACTVMGR, &poolCref);
     if (ret != 0) {
         ZLOGE(LABEL, "ActvBinder: set actv binder service failed, errno: %{public}d", errno);
         return ret;
-    }
-
-    for (int i = 0; i < ACTV_BINDER_DEFAULT_NR_THREADS; i++) {
-        ret = pthread_create(&thread, nullptr, &ActvBinderConnector::ActvThreadEntry, reinterpret_cast<void *>(i));
-        if (ret != 0) {
-            ZLOGE(LABEL, "ActvBinder: create thread#%{public}d failed, errno: %{public}d", i, errno);
-            return ret;
-        }
-
-        ret = pthread_detach(thread);
-        if (ret != 0) {
-            ZLOGE(LABEL, "ActvBinder: detach thread#%{public}d failed, errno: %{public}d", i, errno);
-            return ret;
-        }
     }
 
     return 0;
