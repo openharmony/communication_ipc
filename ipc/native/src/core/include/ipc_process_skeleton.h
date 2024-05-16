@@ -187,8 +187,13 @@ public:
 
 public:
     static constexpr int DEFAULT_WORK_THREAD_NUM = 16;
+#ifdef CONFIG_ACTV_BINDER
+    /* The actv binder handle needs to be encoded with at least 31 bits */
+    static constexpr uint32_t DBINDER_HANDLE_BASE = 0x80000000;
+#else
     static constexpr uint32_t DBINDER_HANDLE_MAGIC = 6872; // 'D'(Binder) 'H'(andle)
     static constexpr uint32_t DBINDER_HANDLE_BASE = 100000 * DBINDER_HANDLE_MAGIC;
+#endif
     static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
     static constexpr int32_t FOUNDATION_UID = 5523;
