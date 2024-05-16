@@ -219,7 +219,7 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
-    const std::unordered_set<int32_t> readHandleFromCommandsSet = {BC_ACQUIRE, BC_RELEASE,
+    const std::unordered_set<int32_t> GET_HANDLE_CMD_SET = {BC_ACQUIRE, BC_RELEASE,
         BC_REQUEST_DEATH_NOTIFICATION, BC_REPLY, BC_CLEAR_DEATH_NOTIFICATION, BC_FREE_BUFFER, BC_TRANSACTION};
     const std::map<int32_t, std::function<void(int32_t cmd, int32_t &error)>> commandMap_ = {
         { BR_ERROR,           [&](int32_t cmd, int32_t &error) { error = input_.ReadInt32(); } },
