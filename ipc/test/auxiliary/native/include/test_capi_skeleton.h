@@ -88,8 +88,8 @@ private:
     std::random_device randomDevice_;
     std::uniform_int_distribution<> randomDistribution_{ 1, 10000 };
 
-    OHIPCRemoteProxy* proxy_{ nullptr };
-    OHIPCRemoteStub* stubCallBack_{ nullptr };
+    OHIPCRemoteProxy *proxy_{ nullptr };
+    OHIPCRemoteStub *stubCallBack_{ nullptr };
 };
 
 class NativeRemoteStubTest : public NativeRemoteBase {
