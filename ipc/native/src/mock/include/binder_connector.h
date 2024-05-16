@@ -21,15 +21,9 @@
 
 namespace OHOS {
 #ifdef CONFIG_ACTV_BINDER
-typedef void (*ActvBinderJoinThreadFunc)(bool initiative);
-
 class ActvBinderConnector {
 public:
-    static void *ActvThreadEntry(void *arg);
     static char *GetProcName(char *buf, size_t len);
-
-    static void JoinActvThread(bool initiative);
-    static void SetJoinActvThreadFunc(ActvBinderJoinThreadFunc func);
 
     ActvBinderConnector();
 
@@ -37,10 +31,6 @@ public:
     void InitActvBinderConfig(uint64_t featureSet);
 
     bool isActvMgr_;
-
-private:
-    static std::mutex skeletonMutex_;
-    static ActvBinderJoinThreadFunc joinActvThreadFunc_;
 };
 #endif
 

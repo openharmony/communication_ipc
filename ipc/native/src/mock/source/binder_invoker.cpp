@@ -84,9 +84,6 @@ BinderInvoker::BinderInvoker()
     invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
         reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
-#ifdef CONFIG_ACTV_BINDER
-    ActvBinderConnector::SetJoinActvThreadFunc(&BinderInvoker::JoinActvThread);
-#endif
     binderConnector_ = BinderConnector::GetInstance();
     ZLOGD(LABEL, "created %{public}zu", reinterpret_cast<uintptr_t>(this));
 }
