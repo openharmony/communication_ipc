@@ -422,6 +422,19 @@ bool BinderConnector::OpenDriver()
     }
     ZLOGD(LABEL, "success to open fd:%{public}d", fd);
     driverFD_ = fd;
+
+    if (!MapMemory(featureSet)) {
+        close(driverFD_);
+        driverFD_ = -1;
+        return false;
+    }
+    version_ = version;
+    featureSet_ = featureSet;
+    return true;
+}
+
+bool BinderConnector::MapMemory(uint64_t featureSet)
+{
 #ifdef CONFIG_ACTV_BINDER
     actvBinder_.InitActvBinderConfig(featureSet);
 
@@ -432,24 +445,17 @@ bool BinderConnector::OpenDriver()
 #endif
     if (vmAddr_ == MAP_FAILED) {
         ZLOGE(LABEL, "fail to mmap");
-        close(driverFD_);
-        driverFD_ = -1;
         return false;
     }
 #ifdef CONFIG_ACTV_BINDER
-    ret = actvBinder_.InitActvBinder(driverFD_);
+    int ret = actvBinder_.InitActvBinder(driverFD_);
     if (ret != 0) {
         munmap(vmAddr_, vmSize_);
         vmAddr_ = MAP_FAILED;
         vmSize_ = 0;
-
-        close(driverFD_);
-        driverFD_ = -1;
         return false;
     }
 #endif
-    version_ = version;
-    featureSet_ = featureSet;
     return true;
 }
 
