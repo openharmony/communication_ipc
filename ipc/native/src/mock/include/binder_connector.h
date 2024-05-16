@@ -23,8 +23,6 @@ namespace OHOS {
 #ifdef CONFIG_ACTV_BINDER
 class ActvBinderConnector {
 public:
-    static char *GetProcName(char *buf, size_t len);
-
     ActvBinderConnector();
 
     int InitActvBinder(int fd);
@@ -63,7 +61,6 @@ private:
     uint64_t featureSet_;
     uint64_t selfTokenID_;
 #ifdef CONFIG_ACTV_BINDER
-    size_t vmSize_;
     ActvBinderConnector actvBinder_;
 #endif
 };
