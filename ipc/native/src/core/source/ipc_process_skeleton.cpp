@@ -1218,13 +1218,13 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         return false;
     }
 
+    int32_t socketId = listener->StartServerListener(name);
+    if (socketId <= 0) {
+        ZLOGE(LOG_LABEL, "fail to start server listener");
+        return false;
+    }
+    listenSocketId_ = socketId;
     if (name != sessionName_) {
-        int32_t socketId = listener->StartServerListener(name);
-        if (socketId <= 0) {
-            ZLOGE(LOG_LABEL, "fail to start server listener");
-            return false;
-        }
-        listenSocketId_ = socketId;
         SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
     }
     sessionName_ = name;
