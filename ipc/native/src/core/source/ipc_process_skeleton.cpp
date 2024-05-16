@@ -152,7 +152,10 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
-    DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+    if (listenSocketId_ > 0) {
+        DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+        listenSocketId_ = 0;
+    }
 #endif
 }
 
