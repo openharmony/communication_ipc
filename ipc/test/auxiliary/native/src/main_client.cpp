@@ -143,6 +143,6 @@ void SignalHandler(int signum)
     }
     if (signum == SIGINT) {
         ZLOGD(LABEL, "SIGINT");
-        exit(1);
+        IPCSkeleton::StopWorkThread();
     }
 }
