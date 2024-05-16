@@ -550,7 +550,7 @@ void BinderInvoker::GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenI
     realPid = static_cast<pid_t>(sender.sender_pid_nr);
 }
 
-void BinderInvoker::OnTransaction(const uint8_t *buffer)
+void BinderInvoker::Transaction(const uint8_t *buffer)
 {
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
     auto binderAllocator = new (std::nothrow) BinderAllocator();
@@ -687,6 +687,24 @@ void BinderInvoker::OnRemoveRecipientDone()
     }
 }
 
+void BinderInvoker::OnSpawnThread()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current != nullptr) {
+        current->SpawnThread();
+    }
+}
+
+void BinderInvoker::OnTransaction(int32_t &error)
+{
+    const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data));
+    if (buffer == nullptr) {
+        error = IPC_INVOKER_INVALID_DATA_ERR;
+        return;
+    }
+    Transaction(buffer);
+}
+
 int BinderInvoker::HandleReply(MessageParcel *reply)
 {
     const size_t readSize = sizeof(binder_transaction_data);
@@ -734,52 +752,12 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
 int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
-    switch (cmd) {
-        case BR_ERROR:
-            error = input_.ReadInt32();
-            break;
-        case BR_ACQUIRE:
-        case BR_INCREFS:
-            OnAcquireObject(cmd);
-            break;
-        case BR_RELEASE:
-        case BR_DECREFS:
-            OnReleaseObject(cmd);
-            break;
-        case BR_ATTEMPT_ACQUIRE:
-            OnAttemptAcquire();
-            break;
-        case BR_TRANSACTION: {
-            const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data));
-            if (buffer == nullptr) {
-                error = IPC_INVOKER_INVALID_DATA_ERR;
-                break;
-            }
-            OnTransaction(buffer);
-            break;
-        }
-        case BR_SPAWN_LOOPER: {
-            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-            if (current != nullptr) {
-                current->SpawnThread();
-            }
-            break;
-        }
-        case BR_FINISHED:
-            error = -ERR_TIMED_OUT;
-            break;
-        case BR_DEAD_BINDER:
-            OnBinderDied();
-            break;
-        case BR_CLEAR_DEATH_NOTIFICATION_DONE:
-            OnRemoveRecipientDone();
-            break;
-        case BR_OK:
-        case BR_NOOP:
-            break;
-        default:
-            error = IPC_INVOKER_ON_TRANSACT_ERR;
-            break;
+
+    auto it = commandMap_.find(cmd);
+    if (it != commandMap_.end()) {
+        it->second(cmd, error);
+    } else {
+        error = IPC_INVOKER_ON_TRANSACT_ERR;
     }
 
     return error;

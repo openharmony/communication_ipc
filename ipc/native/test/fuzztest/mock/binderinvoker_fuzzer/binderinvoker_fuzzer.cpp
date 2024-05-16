@@ -26,7 +26,7 @@
 
 namespace OHOS {
 
-    void OnTransactionTest(const uint8_t* data, size_t size)
+    void TransactionTest(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < sizeof(binder_transaction_data)) {
             return;
@@ -38,7 +38,7 @@ namespace OHOS {
         trData.target.ptr = 0;
         trData.offsets_size = 0;
         trData.flags = 0;
-        invoker->OnTransaction(reinterpret_cast<const uint8_t*>(&trData));
+        invoker->Transaction(reinterpret_cast<const uint8_t*>(&trData));
         delete invoker;
     }
 }
@@ -47,6 +47,6 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::OnTransactionTest(data, size);
+    OHOS::TransactionTest(data, size);
     return 0;
 }
