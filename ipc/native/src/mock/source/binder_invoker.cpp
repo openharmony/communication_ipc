@@ -558,6 +558,105 @@ void BinderInvoker::GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenI
     realPid = static_cast<pid_t>(sender.sender_pid_nr);
 }
 
+void BinderInvoker::RestoreInvokerProcInfo(InvokerProcInfo &info)
+{
+    callerPid_ = info.pid;
+    callerRealPid_ = info.realPid;
+    callerUid_ = static_cast<const uid_t>(info.uid);
+    callerTokenID_ = info.tokenId;
+    firstTokenID_ = info.firstTokenId;
+}
+
+void BinderInvoker::AttachInvokerProcInfoWrapper()
+{
+    InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_,
+        callerUid_, callerTokenID_, firstTokenID_, reinterpret_cast<uintptr_t>(this) };
+    auto current = ProcessSkeleton::GetInstance();
+    if (current != nullptr) {
+        current->AttachInvokerProcInfo(true, invokerInfo);
+    }
+}
+
+int32_t BinderInvoker::SamgrServicesSendRequest(
+    const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    int error = ERR_DEAD_OBJECT;
+
+    auto targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
+    if (targetObject == nullptr) {
+        ZLOGE(LABEL, "Invalid samgr stub object");
+    } else {
+        error = targetObject->SendRequest(tr->code, data, reply, option);
+    }
+    return error;
+}
+
+
+#ifdef CONFIG_ACTV_BINDER
+int32_t BinderInvoker::GeneralServicesSendRequest(const binder_transaction_data *tr,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option, bool oldActvBinder)
+#else
+int32_t BinderInvoker::GeneralServicesSendRequest(
+    const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+#endif
+{
+    int32_t error = ERR_DEAD_OBJECT;
+    auto *refs = reinterpret_cast<RefCounter *>(tr->target.ptr);
+    int count = 0;
+    if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this, count))) {
+        auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
+#ifdef CONFIG_ACTV_BINDER
+        if ((targetObject != nullptr) && oldActvBinder && (actvHandlerInfo_ != nullptr)) {
+            std::string service = Str16ToStr8(targetObject->GetObjectDescriptor());
+            actvHandlerInfo_->AddActvHandlerInfo(service, tr->code);
+        }
+#endif
+        if (targetObject != nullptr) {
+            DeadObjectInfo deadInfo;
+            auto current = ProcessSkeleton::GetInstance();
+            if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
+                ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
+                    reinterpret_cast<uintptr_t>(targetObject),
+                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+            } else {
+                error = targetObject->SendRequest(tr->code, data, reply, option);
+                targetObject->DecStrongRef(this);
+            }
+        }
+    }
+    return error;
+}
+
+int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data *tr,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue)
+{
+#ifdef CONFIG_ACTV_BINDER
+    bool oldActvBinder = GetUseActvBinder();
+    SetUseActvBinder(false);
+#endif
+    SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
+    int32_t error = ERR_DEAD_OBJECT;
+    flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
+    option.SetFlags(static_cast<int>(flagValue));
+    if (tr->target.ptr != 0) {
+#ifdef CONFIG_ACTV_BINDER
+        error = GeneralServicesSendRequest(tr, data, reply, option, oldActvBinder);
+#else
+        error = GeneralServicesSendRequest(tr, data, reply, option);
+#endif
+    } else {
+        error = SamgrServicesSendRequest(tr, data, reply, option);
+    }
+
+#ifdef CONFIG_ACTV_BINDER
+    if (oldActvBinder && (actvHandlerInfo_ != nullptr)) {
+        actvHandlerInfo_->ClrActvHandlerInfo();
+    }
+    SetUseActvBinder(oldActvBinder);
+#endif
+    return error;
+}
+
 void BinderInvoker::Transaction(const uint8_t *buffer)
 {
     const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
@@ -574,11 +673,8 @@ void BinderInvoker::Transaction(const uint8_t *buffer)
     uint32_t &newflags = const_cast<uint32_t &>(tr->flags);
     int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr->target.handle),
         tr->code, *data, newflags);
-    const pid_t oldPid = callerPid_;
-    const pid_t oldRealPid = callerRealPid_;
-    const auto oldUid = static_cast<const uid_t>(callerUid_);
-    const uint64_t oldToken = callerTokenID_;
-    const uint64_t oldFirstToken = firstTokenID_;
+    InvokerProcInfo oldInvokerProcInfo = {
+        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, reinterpret_cast<uintptr_t>(this) };
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
@@ -589,76 +685,19 @@ void BinderInvoker::Transaction(const uint8_t *buffer)
         GetAccessToken(callerTokenID_, firstTokenID_);
     }
     // sync caller information to another binderinvoker
-    InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
-        reinterpret_cast<uintptr_t>(this) };
-    auto current = ProcessSkeleton::GetInstance();
-    if (current != nullptr) {
-        current->AttachInvokerProcInfo(true, invokerInfo);
-    }
-#ifdef CONFIG_ACTV_BINDER
-    bool oldActvBinder = GetUseActvBinder();
-    SetUseActvBinder(false);
-#endif
-    SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
-    int error = ERR_DEAD_OBJECT;
+    AttachInvokerProcInfoWrapper();
     MessageParcel reply;
     MessageOption option;
-    uint32_t flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
-    option.SetFlags(static_cast<int>(flagValue));
-    if (tr->target.ptr != 0) {
-        auto *refs = reinterpret_cast<RefCounter *>(tr->target.ptr);
-        int count = 0;
-        if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this, count))) {
-            auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
-#ifdef CONFIG_ACTV_BINDER
-            if ((targetObject != nullptr) && oldActvBinder && (actvHandlerInfo_ != nullptr)) {
-                std::string service = Str16ToStr8(targetObject->GetObjectDescriptor());
-                actvHandlerInfo_->AddActvHandlerInfo(service, tr->code);
-            }
-#endif
-            if (targetObject != nullptr) {
-                DeadObjectInfo deadInfo;
-                current = ProcessSkeleton::GetInstance();
-                if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
-                    ZLOGE(LABEL, "%{public}zu desc:%{public}s is deaded at time:%{public}" PRIu64,
-                        reinterpret_cast<uintptr_t>(targetObject),
-                        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
-                } else {
-                    error = targetObject->SendRequest(tr->code, *data, reply, option);
-                    targetObject->DecStrongRef(this);
-                }
-            }
-        }
-    } else {
-        auto targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
-        if (targetObject == nullptr) {
-            ZLOGE(LABEL, "Invalid samgr stub object");
-        } else {
-            error = targetObject->SendRequest(tr->code, *data, reply, option);
-        }
-    }
-#ifdef CONFIG_ACTV_BINDER
-    if (oldActvBinder && (actvHandlerInfo_ != nullptr)) {
-        actvHandlerInfo_->ClrActvHandlerInfo();
-    }
-    SetUseActvBinder(oldActvBinder);
-#endif
+    uint32_t flagValue;
+    int32_t error = TargetStubSendRequest(tr, *data, reply, option, flagValue);
+
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
-    callerPid_ = oldPid;
-    callerRealPid_ = oldRealPid;
-    callerUid_ = oldUid;
-    callerTokenID_ = oldToken;
-    firstTokenID_ = oldFirstToken;
+    RestoreInvokerProcInfo(oldInvokerProcInfo);
     // restore caller information to another binderinvoker
-    invokerInfo = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
-        reinterpret_cast<uintptr_t>(this) };
-    current = ProcessSkeleton::GetInstance();
-    if (current != nullptr) {
-        current->AttachInvokerProcInfo(true, invokerInfo);
-    }
+    AttachInvokerProcInfoWrapper();
     SetStatus(oldStatus);
 }
 
