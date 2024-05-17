@@ -42,6 +42,7 @@ struct InvokerProcInfo {
 class ProcessSkeleton {
 public:
     static std::string ConvertToSecureDesc(const std::string &str);
+    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
     static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
@@ -93,6 +94,9 @@ private:
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
     uint64_t deadObjectClearTime_ = 0;
+    uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
+    std::atomic<uint64_t> proxyObjectCountNum_ = 0;
+    std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
 
     std::shared_mutex invokerProcMutex_;
     std::map<std::string, InvokerProcInfo> invokerProcInfo_;
