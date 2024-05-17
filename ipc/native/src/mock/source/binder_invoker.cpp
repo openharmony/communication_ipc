@@ -761,8 +761,8 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
 
-    auto it = commandMap_.find(cmd);
-    if (it != commandMap_.end()) {
+    auto it = receiverCommandMap_.find(cmd);
+    if (it != receiverCommandMap_.end()) {
         it->second(cmd, error);
     } else {
         error = IPC_INVOKER_ON_TRANSACT_ERR;
@@ -899,6 +899,100 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
     return output_.WriteBuffer(&tr, sizeof(binder_transaction_data));
 }
 
+void BinderInvoker::OnTransactionComplete(
+    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    (void)continueLoop;
+    (void)error;
+    (void)cmd;
+
+    if (reply == nullptr && acquireResult == nullptr) {
+        continueLoop = false;
+    }
+#ifdef CONFIG_ACTV_BINDER
+    /*
+        * Currently, if there are no ready actvs for the actv binder
+        * transaction, the binder transaction would fallback to the
+        * procedure of the native binder in kernel. If going here, it
+        * must be waiting for a reply of the native binder transaction.
+        */
+    SetUseActvBinder(false);
+#endif
+}
+
+void BinderInvoker::OnDeadOrFailedReply(
+    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    (void)reply;
+
+    error = static_cast<int32_t>(cmd);
+    if (acquireResult != nullptr) {
+        *acquireResult = cmd;
+    }
+    continueLoop = false;
+}
+
+void BinderInvoker::OnAcquireResult(
+    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    (void)reply;
+    (void)error;
+    (void)cmd;
+
+    int32_t result = input_.ReadInt32();
+    if (acquireResult != nullptr) {
+        *acquireResult = result ? ERR_NONE : ERR_INVALID_OPERATION;
+        continueLoop = false;
+    }
+}
+
+void BinderInvoker::OnReply(
+    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    (void)reply;
+    (void)acquireResult;
+    (void)cmd;
+
+    error = HandleReply(reply);
+    if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
+        continueLoop = false;
+        return;
+    }
+    error = ERR_NONE;
+}
+
+void BinderInvoker::OnTranslationComplete(
+    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    (void)reply;
+    (void)acquireResult;
+    (void)error;
+    (void)cmd;
+
+    uint32_t handle = input_.ReadUint32();
+    if (reply != nullptr) {
+        reply->WriteUint32(handle);
+    }
+    continueLoop = false;
+}
+
+void BinderInvoker::DealWithCmd(
+    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    auto it = senderCommandMap_.find(cmd);
+    if (it != senderCommandMap_.end()) {
+        HandleFunction itFunc = it->second;
+        if (itFunc != nullptr) {
+            (this->*itFunc)(reply, acquireResult, continueLoop, error, cmd);
+        }
+    } else {
+        error = HandleCommands(cmd);
+        if (error != ERR_NONE) {
+            continueLoop = false;
+        }
+    }
+}
+
 int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResult)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -919,64 +1013,7 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
             continue;
         }
         cmd = input_.ReadUint32();
-        switch (cmd) {
-            case BR_TRANSACTION_COMPLETE: {
-                if (reply == nullptr && acquireResult == nullptr) {
-                    continueLoop = false;
-                }
-#ifdef CONFIG_ACTV_BINDER
-                /*
-                 * Currently, if there are no ready actvs for the actv binder
-                 * transaction, the binder transaction would fallback to the
-                 * procedure of the native binder in kernel. If going here, it
-                 * must be waiting for a reply of the native binder transaction.
-                 */
-                SetUseActvBinder(false);
-#endif
-                break;
-            }
-            case BR_DEAD_REPLY: // fall-through
-            case BR_FAILED_REPLY: {
-                error = static_cast<int>(cmd);
-                if (acquireResult != nullptr) {
-                    *acquireResult = cmd;
-                }
-                continueLoop = false;
-                break;
-            }
-            case BR_ACQUIRE_RESULT: {
-                int32_t result = input_.ReadInt32();
-                if (acquireResult != nullptr) {
-                    *acquireResult = result ? ERR_NONE : ERR_INVALID_OPERATION;
-                    continueLoop = false;
-                }
-                break;
-            }
-            case BR_REPLY: {
-                error = HandleReply(reply);
-                if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
-                    continueLoop = false;
-                    break;
-                }
-                error = ERR_NONE;
-                break;
-            }
-            case BR_TRANSLATION_COMPLETE: {
-                uint32_t handle = input_.ReadUint32();
-                if (reply != nullptr) {
-                    reply->WriteUint32(handle);
-                }
-                continueLoop = false;
-                break;
-            }
-            default: {
-                error = HandleCommands(cmd);
-                if (error != ERR_NONE) {
-                    continueLoop = false;
-                }
-                break;
-            }
-        }
+        DealWithCmd(reply, acquireResult, continueLoop, error, cmd);
     }
 #ifdef CONFIG_ACTV_BINDER
     SetUseActvBinder(useActvBinder);
