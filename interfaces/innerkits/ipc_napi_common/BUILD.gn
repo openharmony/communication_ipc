@@ -35,7 +35,8 @@ if (support_jsapi) {
 
     sources = [
       "../../../ipc/native/src/napi_common/source/napi_ashmem.cpp",
-      "../../../ipc/native/src/napi_common/source/napi_message_parcel.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_message_parcel_read.cpp",
+      "../../../ipc/native/src/napi_common/source/napi_message_parcel_write.cpp",
       "../../../ipc/native/src/napi_common/source/napi_message_sequence.cpp",
       "../../../ipc/native/src/napi_common/source/napi_process_skeleton.cpp",
       "../../../ipc/native/src/napi_common/source/napi_remote_object.cpp",
