@@ -16,7 +16,6 @@
 #include "test_service.h"
 
 #include <fcntl.h>
-#include <cstring>
 #include <iostream>
 #include <unistd.h>
 
