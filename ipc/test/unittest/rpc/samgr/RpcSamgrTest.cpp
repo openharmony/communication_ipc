@@ -112,17 +112,39 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     return ret;
 }
 
+static int32_t GetSystemAbilityTransaction(IpcIo *data, IpcIo *reply)
+{
+    int32_t saId;
+    ReadInt32(data, &saId);
+    SvcIdentity sid;
+    int32_t result = GetSystemAbility(saId, "", &sid);
+    WriteRemoteObject(reply, &sid);
+    return result;
+}
+
+static int32_t AddRemoteSystemAbilityTransaction(IpcIo *data, IpcIo *reply)
+{
+    int32_t saId;
+    ReadInt32(data, &saId);
+    SvcIdentity *sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
+    if (sid == nullptr) {
+        return ERR_FAILED;
+    }
+    ReadRemoteObject(data, sid);
+    int32_t result = AddRemoteSystemAbility(saId, sid);
+    if (result != ERR_NONE) {
+        WriteInt32(reply, result);
+    }
+    return result;
+}
+
 int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);
     switch (code) {
         case GET_SYSTEM_ABILITY_TRANSACTION: {
-            int32_t saId;
-            ReadInt32(data, &saId);
-            SvcIdentity sid;
-            result = GetSystemAbility(saId, "", &sid);
-            WriteRemoteObject(reply, &sid);
+            result = GetSystemAbilityTransaction(data, reply);
             break;
         }
         case ADD_SYSTEM_ABILITY_TRANSACTION: {
@@ -148,18 +170,7 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
             break;
         }
         case ADD_REMOTE_SYSTEM_ABILITY_TRANSACTION: {
-            int32_t saId;
-            ReadInt32(data, &saId);
-            SvcIdentity *sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
-            if (sid == nullptr) {
-                result = ERR_FAILED;
-                break;
-            }
-            ReadRemoteObject(data, sid);
-            result = AddRemoteSystemAbility(saId, sid);
-            if (result != ERR_NONE) {
-                WriteInt32(reply, result);
-            }
+            result = AddRemoteSystemAbilityTransaction(data, reply);
             break;
         }
         default:
