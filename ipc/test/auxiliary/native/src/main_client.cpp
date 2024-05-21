@@ -21,8 +21,6 @@
 #include <sys/stat.h>
 #include <thread>
 #include <csignal>
-#include <cstdio>
-#include <cstdlib>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "test_service_command.h"
