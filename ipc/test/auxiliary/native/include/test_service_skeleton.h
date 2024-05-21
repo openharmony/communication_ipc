@@ -97,10 +97,10 @@ public:
     bool serialInvokeFlag_ = { false };
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceStub" };
-    int TransferRawData(MessageParcel &data, MessageParcel &reply);
-    int ReplyRawData(MessageParcel &data, MessageParcel &reply);
-    void TransferToNextProcess(MessageParcel &data, MessageParcel &reply);
-    void ReadAshmem(MessageParcel &data, MessageParcel &reply);
+    int32_t TransferRawData(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyRawData(MessageParcel &data, MessageParcel &reply);
+    int32_t TransferToNextProcess(MessageParcel &data, MessageParcel &reply);
+    int32_t ReadAshmem(MessageParcel &data, MessageParcel &reply);
     int32_t ServerSyncTransaction(MessageParcel &data, MessageParcel &reply);
     int32_t ServerAsyncTransaction(MessageParcel &data, MessageParcel &reply);
     int32_t ServerPingService(MessageParcel &data, MessageParcel &reply);
@@ -118,6 +118,7 @@ private:
     int32_t RegisterRemoteStub(MessageParcel &data, MessageParcel &reply);
     int32_t UnRegisterRemoteStub(MessageParcel &data, MessageParcel &reply);
     int32_t QueryRemoteProxy(MessageParcel &data, MessageParcel &reply);
+    int32_t ServerFlushAsyncCalls(MessageParcel &data, MessageParcel &reply);
     void InitMessageProcessMap();
 
     using TestServiceStubFunc = int32_t(TestServiceStub::*)(MessageParcel &data, MessageParcel &reply);
