@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <thread>
-#include <cstring>
 #include "access_token_adapter.h"
 #include "ipc_debug.h"
 #include "string_ex.h"
