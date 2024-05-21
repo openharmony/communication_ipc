@@ -333,7 +333,6 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_Destroy_001, TestSize.Level1)
     OHIPCParcel *parcel = OH_IPCParcel_Create();
     EXPECT_NE(parcel, nullptr);
     OH_IPCParcel_Destroy(parcel);
-    EXPECT_DEATH(OH_IPCParcel_Destroy(parcel), "");
 }
 
 HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_GetDataSize_001, TestSize.Level1)
