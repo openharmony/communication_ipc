@@ -558,11 +558,11 @@ void BinderInvoker::GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenI
     realPid = static_cast<pid_t>(sender.sender_pid_nr);
 }
 
-void BinderInvoker::RestoreInvokerProcInfo(InvokerProcInfo &info)
+void BinderInvoker::RestoreInvokerProcInfo(const InvokerProcInfo &info)
 {
     callerPid_ = info.pid;
     callerRealPid_ = info.realPid;
-    callerUid_ = static_cast<const uid_t>(info.uid);
+    callerUid_ = info.uid;
     callerTokenID_ = info.tokenId;
     firstTokenID_ = info.firstTokenId;
 }
@@ -577,7 +577,7 @@ void BinderInvoker::AttachInvokerProcInfoWrapper()
     }
 }
 
-int32_t BinderInvoker::SamgrServicesSendRequest(
+int32_t BinderInvoker::SamgrServiceSendRequest(
     const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int error = ERR_DEAD_OBJECT;
@@ -593,10 +593,10 @@ int32_t BinderInvoker::SamgrServicesSendRequest(
 
 
 #ifdef CONFIG_ACTV_BINDER
-int32_t BinderInvoker::GeneralServicesSendRequest(const binder_transaction_data *tr,
+int32_t BinderInvoker::GeneralServiceSendRequest(const binder_transaction_data *tr,
     MessageParcel &data, MessageParcel &reply, MessageOption &option, bool oldActvBinder)
 #else
-int32_t BinderInvoker::GeneralServicesSendRequest(
+int32_t BinderInvoker::GeneralServiceSendRequest(
     const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 #endif
 {
@@ -634,18 +634,18 @@ int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data *tr,
     bool oldActvBinder = GetUseActvBinder();
     SetUseActvBinder(false);
 #endif
-    SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
+
     int32_t error = ERR_DEAD_OBJECT;
     flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
     option.SetFlags(static_cast<int>(flagValue));
     if (tr->target.ptr != 0) {
 #ifdef CONFIG_ACTV_BINDER
-        error = GeneralServicesSendRequest(tr, data, reply, option, oldActvBinder);
+        error = GeneralServiceSendRequest(tr, data, reply, option, oldActvBinder);
 #else
-        error = GeneralServicesSendRequest(tr, data, reply, option);
+        error = GeneralServiceSendRequest(tr, data, reply, option);
 #endif
     } else {
-        error = SamgrServicesSendRequest(tr, data, reply, option);
+        error = SamgrServiceSendRequest(tr, data, reply, option);
     }
 
 #ifdef CONFIG_ACTV_BINDER
@@ -674,7 +674,7 @@ void BinderInvoker::Transaction(const uint8_t *buffer)
     int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr->target.handle),
         tr->code, *data, newflags);
     InvokerProcInfo oldInvokerProcInfo = {
-        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, reinterpret_cast<uintptr_t>(this) };
+        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, 0 };
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
     callerUid_ = tr->sender_euid;
@@ -689,6 +689,8 @@ void BinderInvoker::Transaction(const uint8_t *buffer)
     MessageParcel reply;
     MessageOption option;
     uint32_t flagValue;
+
+    SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int32_t error = TargetStubSendRequest(tr, *data, reply, option, flagValue);
 
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);

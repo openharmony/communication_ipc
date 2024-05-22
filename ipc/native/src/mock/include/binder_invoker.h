@@ -206,19 +206,19 @@ private:
         MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);
 
 #ifdef CONFIG_ACTV_BINDER
-    int32_t GeneralServicesSendRequest(const binder_transaction_data *tr,
+    int32_t GeneralServiceSendRequest(const binder_transaction_data *tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option, bool oldActvBinder);
 #else
-    int32_t GeneralServicesSendRequest(
+    int32_t GeneralServiceSendRequest(
         const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 #endif
 
-    int32_t SamgrServicesSendRequest(const binder_transaction_data *tr,
+    int32_t SamgrServiceSendRequest(const binder_transaction_data *tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     void AttachInvokerProcInfoWrapper();
 
-    void RestoreInvokerProcInfo(InvokerProcInfo &info);
+    void RestoreInvokerProcInfo(const InvokerProcInfo &info);
 
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
