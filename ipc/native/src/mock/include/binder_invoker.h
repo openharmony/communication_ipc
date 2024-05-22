@@ -202,6 +202,24 @@ private:
     void DealWithCmd(MessageParcel *reply,
         int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
 
+    int32_t TargetStubSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);
+
+#ifdef CONFIG_ACTV_BINDER
+    int32_t GeneralServiceSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option, bool oldActvBinder);
+#else
+    int32_t GeneralServiceSendRequest(
+        const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+#endif
+
+    int32_t SamgrServiceSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    void AttachInvokerProcInfoWrapper();
+
+    void RestoreInvokerProcInfo(const InvokerProcInfo &info);
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
 #endif
