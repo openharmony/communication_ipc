@@ -76,6 +76,14 @@ void *IPCWorkThread::ThreadHandler(void *args)
             case PROCESS_ACTIVE:
                 invoker->JoinProcessThread(true);
                 break;
+#ifdef CONFIG_ACTV_BINDER
+            case ACTV_PASSIVE:
+                BinderInvoker::JoinActvThread(false);
+                break;
+            case ACTV_ACTIVE:
+                BinderInvoker::JoinActvThread(true);
+                break;
+#endif
             default:
                 ZLOGE(LOG_LABEL, "policy:%{public}d", threadObj->policy_);
                 break;

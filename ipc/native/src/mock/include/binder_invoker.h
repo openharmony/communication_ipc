@@ -18,6 +18,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <unordered_set>
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
@@ -120,19 +121,7 @@ public:
 
 #ifdef CONFIG_ACTV_BINDER
     static void JoinActvThread(bool initiative);
-
-    static void SetActvHandlerInfo(uint32_t id);
-
-    void LinkRemoteInvoker(void **data) override;
-
-    void UnlinkRemoteInvoker(void **data) override;
-
-    int SendRequest(int handle, uint32_t code,
-                    MessageParcel &data, MessageParcel &reply,
-                    MessageOption &option, void *invokerData) override;
-
-    bool CheckActvBinderAvailable(int handle, uint32_t code,
-                                  MessageOption &option, void *data);
+    static bool IsActvBinderService();
 #endif // CONFIG_ACTV_BINDER
 
 protected:
@@ -205,13 +194,8 @@ private:
     int32_t TargetStubSendRequest(const binder_transaction_data *tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);
 
-#ifdef CONFIG_ACTV_BINDER
-    int32_t GeneralServiceSendRequest(const binder_transaction_data *tr,
-        MessageParcel &data, MessageParcel &reply, MessageOption &option, bool oldActvBinder);
-#else
     int32_t GeneralServiceSendRequest(
         const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-#endif
 
     int32_t SamgrServiceSendRequest(const binder_transaction_data *tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option);
@@ -285,7 +269,6 @@ private:
     };
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
-    ActvHandlerInfo *actvHandlerInfo_ = nullptr;
 #endif
 };
 #ifdef CONFIG_IPC_SINGLE

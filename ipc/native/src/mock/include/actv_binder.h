@@ -22,23 +22,11 @@
 
 #define BINDER_SET_ACTVMGR                          _IOWR('b', 64, uint64_t)
 
-#define ACTV_BINDER_HANDLE_BIT                      1
-
 #define ACTV_BINDER_WRITE_READ                      _IOWR('b', 97, struct binder_write_read)
 
 #define ACTV_BINDER_FEATURE_MASK                    (1 << 1)
 
-// Allocate the extra memory for the actv binder transaction
-#define ACTV_BINDER_VM_SIZE                         (2 * 1024 * 1024)
-
-// Decrease this after introducing the elastic machinism
-#define ACTV_BINDER_DEFAULT_NR_THREADS              32
-
 #define ACTV_BINDER_SERVICES_CONFIG                 "/system/etc/libbinder_actv.json"
-
-// The interval for checking the ABA dead lock (unit: us)
-#define ACTV_BINDER_ABA_LOCK_CHK_INTVL              (10 * 1000 * 1000)
-#define ACTV_BINDER_ABA_LOCK_CHK_LIMIT              5
 
 #endif // CONFIG_ACTV_BINDER
 
