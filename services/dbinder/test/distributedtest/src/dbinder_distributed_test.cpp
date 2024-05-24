@@ -1174,6 +1174,35 @@ HWTEST_F(DbinderTest, DbinderRemoteCall026, TestSize.Level3)
     SetCurrentTestCase(DBINDER_TEST_INIT);
 }
 
+static void GetRemoteObjectAndCheck(sptr<IRemoteObject>& object, sptr<IDBinderTestService>& testService, int serverId)
+{
+    object = manager_->GetSystemAbility(RPC_TEST_SERVICE, serverId);
+    ASSERT_TRUE(object != nullptr);
+    testService = iface_cast<IDBinderTestService>(object);
+    ASSERT_TRUE(testService != nullptr);
+}
+
+static void ExecuteReverseIntAndCheck(sptr<IDBinderTestService>& testService, int input, int expectedOutput)
+{
+    int reply;
+    int result = testService->ReverseInt(input, reply);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(reply, expectedOutput);
+}
+
+static void AddDeathRecipientAndCheck(sptr<IRemoteObject>& proxy, sptr<IRemoteObject::DeathRecipient>& deathRecipient)
+{
+    bool ret = proxy->AddDeathRecipient(deathRecipient);
+    ASSERT_TRUE(ret);
+}
+
+static void RunCommandAndCheck(const std::string& command, const std::string& cmdArgs, const std::string& expectValue)
+{
+    bool ret = RunCmdOnAgent(AGENT_NO::ONE, command, cmdArgs, expectValue);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(GetReturnVal(), 0);
+}
+
 /*
  * @tc.name: DbinderRemoteCall027
  * @tc.desc: Death notice for anonymous objects
@@ -1189,11 +1218,9 @@ HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
      * @tc.steps: step1.Get a proxy (called testService) from remote server.
      * @tc.expected: step1.Get the proxy successfully, and the proxy points to remote stub.
      */
-    sptr<IRemoteObject> object = manager_->GetSystemAbility(RPC_TEST_SERVICE, serverId_);
-    ASSERT_TRUE(object != nullptr);
-
-    sptr<IDBinderTestService> testService = iface_cast<IDBinderTestService>(object);
-    ASSERT_TRUE(testService != nullptr);
+    sptr<IRemoteObject> object;
+    sptr<IDBinderTestService> testService;
+    GetRemoteObjectAndCheck(object, testService, serverId_);
 
     /*
      * @tc.steps: step2.Get two anonymous objects.
@@ -1215,37 +1242,24 @@ HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
      * @tc.steps: step3.Use the proxy object to invoke remote function.
      * @tc.expected: step3.Remote call succeeds and returns 0.
      */
-    int reply;
-    int result = remoteTestService1->ReverseInt(2019, reply);
-    EXPECT_EQ(result, 0);
-    EXPECT_EQ(reply, 9102);
-
-    result = remoteTestService2->ReverseInt(2019, reply);
-    EXPECT_EQ(result, 0);
-    EXPECT_EQ(reply, 9102);
+    ExecuteReverseIntAndCheck(remoteTestService1, 2019, 9102);
+    ExecuteReverseIntAndCheck(remoteTestService2, 2019, 9102);
 
     /*
      * @tc.steps: step4.Add death recipient.
      * @tc.expected: step4.Register death notification successfully.
      */
     sptr<IRemoteObject::DeathRecipient> deathRecipient1(new DBinderTestDeathRecipient());
-    bool ret = proxy1->AddDeathRecipient(deathRecipient1);
-    ASSERT_TRUE(ret == true);
+    AddDeathRecipientAndCheck(proxy1, deathRecipient1);
 
     sptr<IRemoteObject::DeathRecipient> deathRecipient2(new DBinderTestDeathRecipient());
-    ret = proxy2->AddDeathRecipient(deathRecipient2);
-    ASSERT_TRUE(ret == true);
+    AddDeathRecipientAndCheck(proxy2, deathRecipient2);
 
     /*
      * @tc.steps: step5.Stop remote service. Wait 10s, then check death notification.
      * @tc.expected: step5.Stop it successfully, and receive death notification.
      */
-    std::string command = "KILL";
-    std::string cmdArgs = "server";
-    std::string expectValue = "0";
-    ret = RunCmdOnAgent(AGENT_NO::ONE, command, cmdArgs, expectValue);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(GetReturnVal(), 0);
+    RunCommandAndCheck("KILL", "server", "0");
 
     // wait for killing remote service
     sleep(10);
@@ -1259,7 +1273,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
      * @tc.expected: step6.Fail to remove death recipient
      * because when receiving death notification, it remove death recipient automatically.
      */
-    ret = proxy1->RemoveDeathRecipient(deathRecipient1);
+    bool ret = proxy1->RemoveDeathRecipient(deathRecipient1);
     EXPECT_EQ(ret, false);
 
     ret = proxy2->RemoveDeathRecipient(deathRecipient2);
@@ -1269,10 +1283,7 @@ HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
      * @tc.steps: step7.Restart remote service and wait 10s.
      * @tc.expected: step7.Restart it successfully.
      */
-    std::string restartCommand = "RESTART";
-    ret = RunCmdOnAgent(AGENT_NO::ONE, restartCommand, cmdArgs, expectValue);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(GetReturnVal(), 0);
+    RunCommandAndCheck("RESTART", "server", "0");
 
     // wait for restarting server
     sleep(10);
@@ -1281,19 +1292,15 @@ HWTEST_F(DbinderTest, DbinderRemoteCall027, TestSize.Level3)
      * @tc.steps: step8.Get a proxy (called testService2) from remote server.
      * @tc.expected: step8.Get the proxy successfully, and the proxy points to remote stub.
      */
-    sptr<IRemoteObject> object2 = manager_->GetSystemAbility(RPC_TEST_SERVICE, serverId_);
-    ASSERT_TRUE(object2 != nullptr);
-
-    sptr<IDBinderTestService> testService2 = iface_cast<IDBinderTestService>(object2);
-    ASSERT_TRUE(testService2 != nullptr);
+    sptr<IRemoteObject> object2;
+    sptr<IDBinderTestService> testService2;
+    GetRemoteObjectAndCheck(object2, testService2, serverId_);
 
     /*
      * @tc.steps: step9.Use the proxy object to invoke remote function.
      * @tc.expected: step9.Remote call succeeds and returns 0.
      */
-    result = testService2->ReverseInt(2019, reply);
-    EXPECT_EQ(result, 0);
-    EXPECT_EQ(reply, 9102);
+    ExecuteReverseIntAndCheck(testService2, 2019, 9102);
 
     object = nullptr;
     testService = nullptr;
