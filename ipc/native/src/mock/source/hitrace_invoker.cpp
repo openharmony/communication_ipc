@@ -96,7 +96,7 @@ void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t
 
 void HitraceInvoker::RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t oldReadPosition, uint8_t idLen)
 {
-    if (idLen > (data.GetDataSize() - PADDED_SIZE_OF_PARCEL)) {
+    if (data.GetDataSize() < (idLen + PADDED_SIZE_OF_PARCEL)) {
         return;
     }
     // restore data
