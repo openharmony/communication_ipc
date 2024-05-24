@@ -177,6 +177,20 @@ private:
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
+
+    int32_t TargetStubSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);
+
+    int32_t GeneralServiceSendRequest(
+        const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    int32_t SamgrServiceSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    void AttachInvokerProcInfoWrapper();
+
+    void RestoreInvokerProcInfo(const InvokerProcInfo &info);
+
 #ifdef CONFIG_ACTV_BINDER
     inline void SetUseActvBinder(bool useActvBinder)
     {
