@@ -25,7 +25,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_
 DBinderSessionObject::DBinderSessionObject(const std::string &serviceName,
     const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId)
     :serviceName_(serviceName), serverDeviceId_(serverDeviceId),
-    stubIndex_(stubIndex), proxy_(proxy), tokenId_(tokenId)
+    stubIndex_(stubIndex), proxy_(proxy), tokenId_(tokenId), pid_(0), uid_(0)
 {}
 
 DBinderSessionObject::~DBinderSessionObject()
