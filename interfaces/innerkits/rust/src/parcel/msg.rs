@@ -687,7 +687,7 @@ impl MsgParcel {
         }
     }
 
-    pub(crate) fn pin_mut(&mut self) -> Option<Pin<&mut MessageParcel>> {
+    pub fn pin_mut(&mut self) -> Option<Pin<&mut MessageParcel>> {
         match &mut self.inner {
             ParcelMem::Unique(p) => Some(p.pin_mut()),
             _ => None,
