@@ -131,10 +131,12 @@ private:
     BrokerDelegator(BrokerDelegator &&) = delete;
     BrokerDelegator &operator = (const BrokerDelegator &) = delete;
     BrokerDelegator &operator = (BrokerDelegator &&) = delete;
+    std::mutex regMutex_;
 };
 
 template <typename T> BrokerDelegator<T>::BrokerDelegator()
 {
+    std::lock_guard<std::mutex> lockGuard(regMutex_);
     const std::u16string descriptor = T::GetDescriptor();
     BrokerRegistration &registration = BrokerRegistration::Get();
     if (registration.Register(descriptor, BrokerCreator<T>(), this)) {
@@ -144,6 +146,7 @@ template <typename T> BrokerDelegator<T>::BrokerDelegator()
 
 template <typename T> BrokerDelegator<T>::~BrokerDelegator()
 {
+    std::lock_guard<std::mutex> lockGuard(regMutex_);
     if (!isSoUnloaded && !descriptor_.empty()) {
         BrokerRegistration &registration = BrokerRegistration::Get();
         registration.Unregister(descriptor_);
