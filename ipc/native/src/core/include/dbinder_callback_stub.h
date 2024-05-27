@@ -34,6 +34,7 @@ public:
     uint32_t GetTokenId() const;
 
 private:
+    int32_t ProcessData(int uid, int pid, const std::string &sessionName, MessageParcel &data, MessageParcel &reply);
     const std::string serviceName_;
     const std::string deviceID_;
     const std::string localDeviceID_;

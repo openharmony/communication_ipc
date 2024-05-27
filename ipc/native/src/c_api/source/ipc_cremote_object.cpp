@@ -121,7 +121,7 @@ static bool IsCodeValid(uint32_t code)
     return (code >= MIN_SEND_REQUEST_CODE) && (code <= MAX_SEND_REQUEST_CODE);
 }
 
-int OH_IPC_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
+int OH_IPCRemoteProxy_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
     OHIPCParcel *reply, const OH_IPC_MessageOption *option)
 {
     if (!IsIPCRemoteProxyValid(proxy, __func__)
@@ -149,7 +149,7 @@ int OH_IPC_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPC
     return ConvertSendRequestError(ret);
 }
 
-int OH_IPC_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
+int OH_IPCRemoteProxy_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
     OH_IPC_MemAllocator allocator)
 {
     if (!IsIPCRemoteProxyValid(proxy, __func__)
@@ -231,7 +231,7 @@ int OH_IPCRemoteProxy_RemoveDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRe
     return proxy->remote->RemoveDeathRecipient(recipient->recipient) ? OH_IPC_SUCCESS : OH_IPC_INNER_ERROR;
 }
 
-int OH_IPC_IsRemoteDead(const OHIPCRemoteProxy *proxy)
+int OH_IPCRemoteProxy_IsRemoteDead(const OHIPCRemoteProxy *proxy)
 {
     if (!IsIPCRemoteProxyValid(proxy, __func__)) {
         return 1;

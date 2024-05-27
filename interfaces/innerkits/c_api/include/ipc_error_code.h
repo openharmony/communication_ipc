@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_ERROR_CODE_H
-#define NDK_INCLUDE_IPC_ERROR_CODE_H
+#ifndef CAPI_INCLUDE_IPC_ERROR_CODE_H
+#define CAPI_INCLUDE_IPC_ERROR_CODE_H
 
 /**
  * @addtogroup OHIPCErrorCode
  * @{
  *
- * @brief Provides IPC error code define.
+ * @brief Provides IPC error codes.
  *
  * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
@@ -29,71 +29,46 @@
 /**
  * @file ipc_error_code.h
  *
- * @brief Provides IPC error code define.
+ * @brief Defines IPC error codes.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
+ * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
  */
 
 /**
- * @brief IPC错误码定义. \n
- *
- * @since 12
- */
-enum OH_IPC_ErrorCode {
-    /**
-     * 执行成功
-     */
+* @brief Enumerates IPC error codes.
+*
+* @since 12
+*/
+typedef enum {
+    /** @error Execution successful. */
     OH_IPC_SUCCESS = 0,
-    /**
-     * 错误码区间起始值
-     */
+    /** @error Start error code. */
     OH_IPC_ERROR_CODE_BASE = 1901000,
-    /**
-     * 参数错误
-     */
+    /** @error Invalid parameters. */
     OH_IPC_CHECK_PARAM_ERROR = OH_IPC_ERROR_CODE_BASE,
-    /**
-     * 序列化对象写入数据失败
-     */
+    /** @error Failed to write data to the serialized object. */
     OH_IPC_PARCEL_WRITE_ERROR = OH_IPC_ERROR_CODE_BASE + 1,
-    /**
-     * 序列化对象读取数据失败
-     */
+    /** @error Failed to read data from the serialized object. */
     OH_IPC_PARCEL_READ_ERROR = OH_IPC_ERROR_CODE_BASE + 2,
-    /**
-     * 内存分配失败
-     */
+    /** @error Failed to allocate memory. */
     OH_IPC_MEM_ALLOCATOR_ERROR = OH_IPC_ERROR_CODE_BASE + 3,
-    /**
-     * 命令字超出定义范围[0x01,0x00ffffff]
-     */
+    /** @error The command word is out of the value range [0x01,0x00ffffff]. */
     OH_IPC_CODE_OUT_OF_RANGE = OH_IPC_ERROR_CODE_BASE + 4,
-    /**
-     * 远端对象死亡
-     */
+    /** @error The remote object is dead. */
     OH_IPC_DEAD_REMOTE_OBJECT = OH_IPC_ERROR_CODE_BASE + 5,
-    /**
-     * 用户自定义错误码超出范围[1900001, 1999999]
-     */
+    /** @error The custom error code is out of range [1900001, 1999999]. */
     OH_IPC_INVALID_USER_ERROR_CODE = OH_IPC_ERROR_CODE_BASE + 6,
-    /**
-     * IPC内部错误
-     */
+    /** @error IPC internal error. */
     OH_IPC_INNER_ERROR = OH_IPC_ERROR_CODE_BASE + 7,
-    /**
-     * 错误码区间最大值
-     */
+    /** @error Maximum error code. */
     OH_IPC_ERROR_CODE_MAX = OH_IPC_ERROR_CODE_BASE + 1000,
-    /**
-     * 用户自定义错误码最小值
-     */
+    /** @error Minimum value for a custom error code. */
     OH_IPC_USER_ERROR_CODE_MIN = 1909000,
-    /**
-     * 用户自定义错误码最大值
-     */
+    /** @error Maximum value for a custom error code. */
     OH_IPC_USER_ERROR_CODE_MAX = 1909999,
-};
+} OH_IPC_ErrorCode;
 
 /** @} */
 #endif

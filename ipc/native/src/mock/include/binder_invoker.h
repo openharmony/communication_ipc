@@ -18,6 +18,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <unordered_set>
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
@@ -120,19 +121,7 @@ public:
 
 #ifdef CONFIG_ACTV_BINDER
     static void JoinActvThread(bool initiative);
-
-    static void SetActvHandlerInfo(uint32_t id);
-
-    void LinkRemoteInvoker(void **data) override;
-
-    void UnlinkRemoteInvoker(void **data) override;
-
-    int SendRequest(int handle, uint32_t code,
-                    MessageParcel &data, MessageParcel &reply,
-                    MessageOption &option, void *invokerData) override;
-
-    bool CheckActvBinderAvailable(int handle, uint32_t code,
-                                  MessageOption &option, void *data);
+    static bool IsActvBinderService();
 #endif // CONFIG_ACTV_BINDER
 
 protected:
@@ -164,7 +153,11 @@ private:
 
     void OnReleaseObject(uint32_t cmd);
 
-    void OnTransaction(const uint8_t *);
+    void Transaction(const uint8_t *buffer);
+
+    void OnTransaction(int32_t &error);
+
+    void OnSpawnThread();
 
     int HandleCommands(uint32_t cmd);
 
@@ -177,6 +170,44 @@ private:
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
+
+    void PrintErrorMessage(uint64_t writeConsumed);
+
+    void OnTransactionComplete(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+    void OnDeadOrFailedReply(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+    void OnAcquireResult(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+    void OnReply(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+    void OnTranslationComplete(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+    void DealWithCmd(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+    int32_t TargetStubSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);
+
+    int32_t GeneralServiceSendRequest(
+        const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    int32_t SamgrServiceSendRequest(const binder_transaction_data *tr,
+        MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    void AttachInvokerProcInfoWrapper();
+
+    void RestoreInvokerProcInfo(const InvokerProcInfo &info);
+
+#ifndef CONFIG_IPC_SINGLE
+    bool AddCommAuth(int32_t handle, flat_binder_object *flat);
+#endif
+
 #ifdef CONFIG_ACTV_BINDER
     inline void SetUseActvBinder(bool useActvBinder)
     {
@@ -198,6 +229,8 @@ private:
 
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
+    using HandleFunction = void (BinderInvoker::*)(MessageParcel *reply,
+        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
     static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
     static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
@@ -209,9 +242,33 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
+    const std::unordered_set<int32_t> GET_HANDLE_CMD_SET = {BC_ACQUIRE, BC_RELEASE,
+        BC_REQUEST_DEATH_NOTIFICATION, BC_REPLY, BC_CLEAR_DEATH_NOTIFICATION, BC_FREE_BUFFER, BC_TRANSACTION};
+    const std::map<int32_t, std::function<void(int32_t cmd, int32_t &error)>> receiverCommandMap_ = {
+        { BR_ERROR,           [&](int32_t cmd, int32_t &error) { error = input_.ReadInt32(); } },
+        { BR_ACQUIRE,         [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
+        { BR_INCREFS,         [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
+        { BR_RELEASE,         [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
+        { BR_DECREFS,         [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
+        { BR_ATTEMPT_ACQUIRE, [&](int32_t cmd, int32_t &error) { OnAttemptAcquire(); } },
+        { BR_TRANSACTION,     [&](int32_t cmd, int32_t &error) { OnTransaction(error); } },
+        { BR_SPAWN_LOOPER,    [&](int32_t cmd, int32_t &error) { OnSpawnThread(); } },
+        { BR_FINISHED,        [&](int32_t cmd, int32_t &error) { error = -ERR_TIMED_OUT; } },
+        { BR_DEAD_BINDER,     [&](int32_t cmd, int32_t &error) { OnBinderDied(); } },
+        { BR_OK,              [&](int32_t cmd, int32_t &error) { } },
+        { BR_NOOP,            [&](int32_t cmd, int32_t &error) { } },
+        { BR_CLEAR_DEATH_NOTIFICATION_DONE, [&](int32_t cmd, int32_t &error) { OnRemoveRecipientDone(); } },
+    };
+    const std::map<int32_t, HandleFunction> senderCommandMap_ = {
+        { BR_TRANSACTION_COMPLETE,   &BinderInvoker::OnTransactionComplete },
+        { BR_DEAD_REPLY,             &BinderInvoker::OnDeadOrFailedReply },
+        { BR_FAILED_REPLY,           &BinderInvoker::OnDeadOrFailedReply },
+        { BR_ACQUIRE_RESULT,         &BinderInvoker::OnAcquireResult },
+        { BR_REPLY,                  &BinderInvoker::OnReply },
+        { BR_TRANSLATION_COMPLETE,   &BinderInvoker::OnTranslationComplete },
+    };
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
-    ActvHandlerInfo *actvHandlerInfo_ = nullptr;
 #endif
 };
 #ifdef CONFIG_IPC_SINGLE

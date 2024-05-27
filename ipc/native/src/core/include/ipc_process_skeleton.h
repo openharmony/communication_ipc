@@ -83,6 +83,7 @@ public:
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
     static bool IsHandleMadeByUser(uint32_t handle);
 #endif
+    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     bool SetMaxWorkThread(int maxThreadNum);
     std::u16string MakeHandleDescriptor(int handle);
 
@@ -186,8 +187,13 @@ public:
 
 public:
     static constexpr int DEFAULT_WORK_THREAD_NUM = 16;
+#ifdef CONFIG_ACTV_BINDER
+    /* The actv binder handle needs to be encoded with at least 31 bits */
+    static constexpr uint32_t DBINDER_HANDLE_BASE = 0x80000000;
+#else
     static constexpr uint32_t DBINDER_HANDLE_MAGIC = 6872; // 'D'(Binder) 'H'(andle)
     static constexpr uint32_t DBINDER_HANDLE_BASE = 100000 * DBINDER_HANDLE_MAGIC;
+#endif
     static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
     static constexpr int32_t FOUNDATION_UID = 5523;
@@ -260,7 +266,7 @@ private:
     uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
     uint64_t seqNumber_ = 0;
     std::string sessionName_ = std::string("");
-    int32_t listenSocketId_;
+    std::atomic<int32_t> listenSocketId_ = 0;
     uint64_t randNum_;
 #endif
 };

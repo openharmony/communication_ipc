@@ -13,12 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_KIT_H
-#define NDK_INCLUDE_IPC_KIT_H
+#ifndef CAPI_INCLUDE_IPC_KIT_H
+#define CAPI_INCLUDE_IPC_KIT_H
+
+/**
+ * @addtogroup IPCKit
+ * @{
+ *
+ * @brief Provides an entry to the IPC header files for you to reference.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @since 12
+ */
+
+/**
+ * @file ipc_cparcel.h
+ *
+ * @brief Provides an entry to the IPC header files for you to reference.
+ *
+ * @library libipc_capi.so
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @since 12
+ */
 
 #include "ipc_error_code.h"
 #include "ipc_cparcel.h"
 #include "ipc_cremote_object.h"
 #include "ipc_cskeleton.h"
 
+/** @} */
 #endif

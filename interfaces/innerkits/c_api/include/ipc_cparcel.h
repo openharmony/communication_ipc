@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_CPARCEL_H
-#define NDK_INCLUDE_IPC_CPARCEL_H
+#ifndef CAPI_INCLUDE_IPC_CPARCEL_H
+#define CAPI_INCLUDE_IPC_CPARCEL_H
 
 /**
  * @addtogroup OHIPCParcel
  * @{
  *
- * @brief 提供IPC序列化/反序列化C接口.
+ * @brief Defines C interfaces for IPC serialization and deserialization.
  *
  * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
@@ -29,9 +29,10 @@
 /**
  * @file ipc_cparcel.h
  *
- * @brief 提供IPC序列化/反序列化C接口.
+ * @brief Defines C interfaces for IPC serialization and deserialization.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
+ * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
  */
 
@@ -41,426 +42,482 @@
 extern "C" {
 #endif
 
+/**
+* @brief Defines an IPC serialized object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
 struct OHIPCParcel;
+
+/**
+* @brief Typedef an IPC serialized object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
+typedef struct OHIPCParcel OHIPCParcel;
+
+/**
+* @brief Defines an IPC remote proxy object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
 struct OHIPCRemoteProxy;
+
+/**
+* @brief Typedef an IPC remote proxy object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
+typedef struct OHIPCRemoteProxy OHIPCRemoteProxy;
+
+/**
+* @brief Defines an IPC remote service object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
 struct OHIPCRemoteStub;
 
 /**
- * @brief 内存分配函数类型.
+* @brief Typedef an IPC remote service object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
+typedef struct OHIPCRemoteStub OHIPCRemoteStub;
+
+/**
+ * @brief Allocates memory.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param len 分配内存长度.
- * @return 成功返回分配的内存地址；失败返回NULL.
+ * @param len Length of the memory to allocate.
+ * @return Returns the address of the memory allocated if the operation is successful; returns NULL otherwise.
  * @since 12
  */
 typedef void* (*OH_IPC_MemAllocator)(int32_t len);
 
 /**
- * @brief 创建OHIPCParcel对象，对象可序列化大小不能超过204800字节.
+ * @brief Creates an <b>OHIPCParcel</b> object, which cannot exceed 204,800 bytes.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 成功返回OHIPCParcel对象指针；失败返回NULL.
+ * @return Returns the pointer to the <b>OHIPCParcel</b> object created if the operation is successful;
+ * returns NULL otherwise.
  * @since 12
  */
 OHIPCParcel* OH_IPCParcel_Create(void);
 
 /**
- * @brief 销毁OHIPCParcel对象.
+ * @brief Destroys an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel 需要销毁OHIPCParcel对象的指针.
+ * @param parcel Pointer to the <b>OHIPCParcel</b> object to destroy.
  * @since 12
  */
 void OH_IPCParcel_Destroy(OHIPCParcel *parcel);
 
 /**
- * @brief 获取OHIPCParcel对象包含的数据的大小.
+ * @brief Obtains the size of the data contained in an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 返回数据大小，参数不合法时返回-1.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the data size obtained if the operation is successful.\n
+ * Returns <b>-1</b> if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_GetDataSize(const OHIPCParcel *parcel);
 
 /**
- * @brief 获取OHIPCParcel对象可以写入的字节数.
+ * @brief Obtains the number of bytes that can be written to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 返回可写字节数大小，参数不合法时返回-1.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the number of bytes that can be written to the <b>OHIPCParcel</b> object. \n
+ * Returns <b>-1</b> if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_GetWritableBytes(const OHIPCParcel *parcel);
 
 /**
- * @brief 获取OHIPCParcel对象还可以读取的字节数.
+ * @brief Obtains the number of bytes that can be read from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 返回可读字节数大小，参数不合法时返回-1.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the number of bytes that can be read from the <b>OHIPCParcel</b> object. \n
+ * Returns <b>-1</b> if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_GetReadableBytes(const OHIPCParcel *parcel);
 
 /**
- * @brief 获取OHIPCParcel对象当前读取位置.
+ * @brief Obtains the position where data is read in an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 返回当前读位置，参数不合法时返回-1
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the position obtained if the operation is successful. \n
+ * Returns <b>-1</b> if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_GetReadPosition(const OHIPCParcel *parcel);
 
 /**
- * @brief 获取OHIPCParcel对象当前写入位置.
+ * @brief Obtains the position where data is written in an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 返回当前写入位置，参数不合法时返回-1.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the position obtained if the operation is successful. \n
+ * Returns <b>-1</b> if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_GetWritePosition(const OHIPCParcel *parcel);
 
 /**
- * @brief 重置OHIPCParcel对象读取位置.
+ * @brief Resets the position to read data in an IPC parcel.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param newReadPos 新的读取位置，范围:[0, 当前数据大小].
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param newReadPos New position to read data. The value ranges from <b>0</b> to the current data size.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_RewindReadPosition(OHIPCParcel *parcel, uint32_t newReadPos);
 
 /**
- * @brief 重置OHIPCParcel对象写入位置.
+ * @brief Resets the position to write data in an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param newWritePos 新的写入位置，范围:[0, 当前数据大小].
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param newWritePos New position to write data. The value ranges from <b>0</b> to the current data size.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found.
  * @since 12
  */
 int OH_IPCParcel_RewindWritePosition(OHIPCParcel *parcel, uint32_t newWritePos);
 
 /**
- * @brief 向OHIPCParcel对象写入int8_t值.
+ * @brief Writes an int8_t value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 要写入的值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteInt8(OHIPCParcel *parcel, int8_t value);
 
 /**
- * @brief 从OHIPCParcel对象读取int8_t值.
+ * @brief Reads an int8_t value from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 存储读取数据的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadInt8(const OHIPCParcel *parcel, int8_t *value);
 
 /**
- * @brief 向OHIPCParcel对象写入int16_t值.
+ * @brief Writes an int16_t value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 要写入的值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteInt16(OHIPCParcel *parcel, int16_t value);
 
 /**
- * @brief 从OHIPCParcel对象读取int16_t值.
+ * @brief Reads an int16_t value from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 存储读取数据的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadInt16(const OHIPCParcel *parcel, int16_t *value);
 
 /**
- * @brief 向OHIPCParcel对象写入int32_t值.
+ * @brief Writes an int32_t value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 要写入的值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteInt32(OHIPCParcel *parcel, int32_t value);
 
 /**
- * @brief 从OHIPCParcel对象读取int32_t值.
+ * @brief Reads an int32_t value from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 存储读取数据的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadInt32(const OHIPCParcel *parcel, int32_t *value);
 
 /**
- * @brief 向OHIPCParcel对象写入int64_t值.
+ * @brief Writes an int64_t value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 要写入的值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteInt64(OHIPCParcel *parcel, int64_t value);
 
 /**
- * @brief 从OHIPCParcel对象读取int64_t值.
+ * @brief Reads an int64_t value from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 存储读取数据的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadInt64(const OHIPCParcel *parcel, int64_t *value);
 
 /**
- * @brief 向OHIPCParcel对象写入float值.
+ * @brief Writes a float value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 要写入的值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteFloat(OHIPCParcel *parcel, float value);
 
 /**
- * @brief 从OHIPCParcel对象读取float值.
+ * @brief Reads a float value from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 存储读取数据的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadFloat(const OHIPCParcel *parcel, float *value);
 
 /**
- * @brief 向OHIPCParcel对象写入double值.
+ * @brief Writes a double value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 要写入的值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteDouble(OHIPCParcel *parcel, double value);
 
 /**
- * @brief 从OHIPCParcel对象读取double值.
+ * @brief Reads a double value from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param value 存储读取数据的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadDouble(const OHIPCParcel *parcel, double *value);
 
 /**
- * @brief 向OHIPCParcel对象写入字符串，包含字符串结束符.
+ * @brief Writes a string including a string terminator to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param str 写入字符串，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param str String to write, which cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteString(OHIPCParcel *parcel, const char *str);
 
 /**
- * @brief 从OHIPCParcel对象读取字符串，用户可通过strlen获取字符串长度。
+ * @brief Reads a string from an <b>OHIPCParcel</b> object. You can obtain the length of the string from <b>strlen</b>.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空。
- * @return 成功返回读取字符串地址；参数不合法或读取失败时返回NULL。
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the address of the string read if the operation is successful;
+ * returns NULL if the operation fails or invalid parameters are found.
  * @since 12
  */
 const char* OH_IPCParcel_ReadString(const OHIPCParcel *parcel);
 
 /**
- * @brief 向OHIPCParcel对象写入指定长度的内存信息.
+ * @brief Writes data of the specified length from the memory to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param buffer 写入内存信息地址.
- * @param len 写入信息长度.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param buffer Pointer to the address of the memory information to write.
+ * @param len Length of the data to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteBuffer(OHIPCParcel *parcel, const uint8_t *buffer, int32_t len);
 
 /**
- * @brief 从OHIPCParcel对象读取指定长度内存信息。
+ * @brief Reads memory information of the specified length from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空。
- * @param len 读取内存的长度。
- * @return 成功返回读取到的内存地址；参数不合法或len超过parcel可读长度时返回NULL。
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param len Length of the memory to be read.
+ * @return Returns the memory address read if the operation is successful;
+ * returns NULL if invalid parameters are found or <b>len</b> exceeds the readable length of <b>parcel</b>.
  * @since 12
  */
 const uint8_t* OH_IPCParcel_ReadBuffer(const OHIPCParcel *parcel, int32_t len);
 
 /**
- * @brief 向OHIPCParcel对象写入OHIPCRemoteStub对象.
+ * @brief Writes an <b>OHIPCRemoteStub</b> object to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param stub 需要写入的OHIPCRemoteStub对象指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param stub Pointer to the <b>OHIPCRemoteStub</b> object to write. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteRemoteStub(OHIPCParcel *parcel, const OHIPCRemoteStub *stub);
 
 /**
- * @brief 从OHIPCParcel对象读取OHIPCRemoteStub对象.
+ * @brief Reads the <b>OHIPCRemoteStub</b> object from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 成功返回OHIPCRemoteStub对象指针；失败返回NULL.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the pointer to the <b>OHIPCRemoteStub</b> object read if the operation is successful;
+ * returns NULL otherwise.
  * @since 12
  */
 OHIPCRemoteStub* OH_IPCParcel_ReadRemoteStub(const OHIPCParcel *parcel);
 
 /**
- * @brief 向OHIPCParcel对象写入OHIPCRemoteProxy对象.
+ * @brief Writes an <b>OHIPCRemoteProxy</b> object to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param proxy 需要写入的OHIPCRemoteProxy对象指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object to write. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteRemoteProxy(OHIPCParcel *parcel, const OHIPCRemoteProxy *proxy);
 
 /**
- * @brief 从OHIPCParcel对象读取OHIPCRemoteProxy对象.
+ * @brief Reads the <b>OHIPCRemoteProxy</b> object from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @return 成功返回OHIPCRemoteProxy对象指针；失败返回NULL.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @return Returns the pointer to the <b>OHIPCRemoteProxy</b> object read if the operation is successful;
+ * returns NULL otherwise.
  * @since 12
  */
 OHIPCRemoteProxy* OH_IPCParcel_ReadRemoteProxy(const OHIPCParcel *parcel);
 
 /**
- * @brief 向OHIPCParcel对象写入文件描述符
+ * @brief Writes a file descriptor to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param fd 要写入的文件描述符.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param fd File descriptor to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteFileDescriptor(OHIPCParcel *parcel, int32_t fd);
 
 /**
- * @brief 从OHIPCParcel对象读取文件描述符.
+ * @brief Reads a file descriptor from an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param fd 存储读取文件描述符的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param fd Pointer to the file descriptor to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadFileDescriptor(const OHIPCParcel *parcel, int32_t *fd);
 
 /**
- * @brief OHIPCParcel对象数据拼接.
+ * @brief Appends data to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel 拼接目标OHIPCParcel对象的指针，不能为空.
- * @param data 源OHIPCParcel对象的指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         拼接失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param data Pointer to the data to append. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the operation fails.
  * @since 12
  */
 int OH_IPCParcel_Append(OHIPCParcel *parcel, const OHIPCParcel *data);
 
 /**
- * @brief 向OHIPCParcel对象写入接口描述符，用于接口身份校验.
+ * @brief Writes an interface token to an <b>OHIPCParcel</b> object for interface identity verification.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param token 需要写入的接口描述符信息，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         写入失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param token Pointer to the interface token to write. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
  * @since 12
  */
 int OH_IPCParcel_WriteInterfaceToken(OHIPCParcel *parcel, const char *token);
 
 /**
- * @brief 从OHIPCParcel对象读取接口描述符信息，用于接口身份校验.
+ * @brief Reads an interface token from an <b>OHIPCParcel</b> object for interface identity verification.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param parcel OHIPCParcel对象的指针，不能为空.
- * @param token 用于存储接口描述符信息的内存地址，该内存由用户提供的分配器进行内存分配，用户使用完后需要主动释放，不能为空. \n
- *              接口返回失败时，用户依然需要判断该内存是否为空，并主动释放，否则会造成内存泄漏.
- * @param len 存储读取接口描述符的长度，包含结束符，不能为空.
- * @param allocator 用户指定的用来分配token的内存分配器，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         读取失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param token Pointer to the address of the memory for storing the interface token.
+ * The memory is allocated by the allocator provided by the user and needs to be released. This pointer cannot be NULL.
+ * If an error code is returned, you still need to check whether the memory is empty and release the memory.
+ * Otherwise, memory leaks may occur.
+ * @param len Pointer to the length of the interface token read, including the terminator. It cannot be NULL.
+ * @param allocator Memory allocator specified by the user for allocating memory for <b>token</b>. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
  * @since 12
  */
 int OH_IPCParcel_ReadInterfaceToken(const OHIPCParcel *parcel, char **token, int32_t *len,
@@ -470,4 +527,5 @@ int OH_IPCParcel_ReadInterfaceToken(const OHIPCParcel *parcel, char **token, int
 }
 #endif
 
+/** @} */
 #endif

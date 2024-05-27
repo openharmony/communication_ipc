@@ -1,0 +1,226 @@
+[
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_JoinWorkThread"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_StopWorkThread"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_GetCallingTokenId"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_GetFirstTokenId"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_GetSelfTokenId"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_GetCallingPid"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_GetCallingUid"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_IsLocalCalling"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_SetMaxWorkThreadNum"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_ResetCallingIdentity"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_SetCallingIdentity"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCSkeleton_IsHandlingTransaction"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteStub_Create"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteStub_Destroy"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteProxy_Destroy"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteProxy_SendRequest"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteProxy_GetInterfaceDescriptor"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCDeathRecipient_Create"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCDeathRecipient_Destroy"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteProxy_AddDeathRecipient"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteProxy_RemoveDeathRecipient"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCRemoteProxy_IsRemoteDead"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_Create"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_Destroy"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_GetDataSize"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_GetWritableBytes"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_GetReadableBytes"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_GetReadPosition"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_GetWritePosition"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_RewindReadPosition"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_RewindWritePosition"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteInt8"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadInt8"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteInt16"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadInt16"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteInt32"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadInt32"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteInt64"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadInt64"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteFloat"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadFloat"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteDouble"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadDouble"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteString"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadString"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteBuffer"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadBuffer"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteRemoteStub"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadRemoteStub"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteRemoteProxy"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadRemoteProxy"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteFileDescriptor"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadFileDescriptor"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_Append"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_WriteInterfaceToken"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_IPCParcel_ReadInterfaceToken"
+    }
+]

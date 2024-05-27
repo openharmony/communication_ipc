@@ -49,6 +49,9 @@ IPCWorkThread::~IPCWorkThread()
 void *IPCWorkThread::ThreadHandler(void *args)
 {
     IPCWorkThread *threadObj = (IPCWorkThread *)args;
+    if (threadObj == nullptr) {
+        return nullptr;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
     threadObj->threadName_ += "_" + std::to_string(syscall(SYS_gettid));
     int32_t ret = prctl(PR_SET_NAME, threadObj->threadName_.c_str());
@@ -73,6 +76,14 @@ void *IPCWorkThread::ThreadHandler(void *args)
             case PROCESS_ACTIVE:
                 invoker->JoinProcessThread(true);
                 break;
+#ifdef CONFIG_ACTV_BINDER
+            case ACTV_PASSIVE:
+                BinderInvoker::JoinActvThread(false);
+                break;
+            case ACTV_ACTIVE:
+                BinderInvoker::JoinActvThread(true);
+                break;
+#endif
             default:
                 ZLOGE(LOG_LABEL, "policy:%{public}d", threadObj->policy_);
                 break;

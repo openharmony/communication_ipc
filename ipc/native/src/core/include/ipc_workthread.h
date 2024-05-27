@@ -34,7 +34,11 @@ public:
         SPAWN_PASSIVE,
         SPAWN_ACTIVE,
         PROCESS_PASSIVE,
-        PROCESS_ACTIVE
+        PROCESS_ACTIVE,
+#ifdef CONFIG_ACTV_BINDER
+        ACTV_PASSIVE,
+        ACTV_ACTIVE,
+#endif
     };
     explicit IPCWorkThread(std::string threadName);
 

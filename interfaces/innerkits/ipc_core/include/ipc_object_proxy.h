@@ -317,9 +317,6 @@ private:
     std::u16string interfaceDesc_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
-#ifdef CONFIG_ACTV_BINDER
-    void *invokerData_ = nullptr;
-#endif
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_PROXY_H

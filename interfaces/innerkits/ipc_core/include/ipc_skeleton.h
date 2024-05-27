@@ -176,12 +176,21 @@ public:
     IPCDfx() = default;
     ~IPCDfx() = default;
 
+    using IPCProxyLimitCallback = std::function<void (uint64_t num)>;
+
     /**
      * @brief Block until idle ipc thread available.CAUTION: DO NOT USE IT ELSEWHERE EXPECT HICOLLIE!
      * @return void
      * @since 9
      */
     static void BlockUntilThreadAvailable();
+
+    /**
+     * @brief Set IPC proxy limit and callbakcC.AUTION: DO NOT USE IT ELSEWHERE EXPECT HICOLLIE!
+     * @return void
+     * @since 9
+     */
+    static bool SetIPCProxyLimit(uint64_t num, IPCProxyLimitCallback callback);
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_SKELETON_H

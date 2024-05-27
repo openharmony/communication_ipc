@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_CREMOTE_OBJECT_H
-#define NDK_INCLUDE_IPC_CREMOTE_OBJECT_H
+#ifndef CAPI_INCLUDE_IPC_CREMOTE_OBJECT_H
+#define CAPI_INCLUDE_IPC_CREMOTE_OBJECT_H
 
 /**
  * @addtogroup OHIPCRemoteObject
  * @{
  *
- * @brief 提供远端对象创建、销毁、数据发送、远端对象死亡状态监听等功能C接口.
+ * @brief Provides C interfaces for creating and destroying a remote object, transferring data,
+ * and observing the dead status of a remote object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
@@ -29,9 +30,11 @@
 /**
  * @file ipc_cremote_object.h
  *
- * @brief 提供远端对象创建、销毁、数据发送、远端对象死亡状态监听等功能C接口.
+ * @brief Defines C interfaces for creating and destroying a remote object, transferring data,
+ * and observing the dead status of a remote object.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
+ * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
  */
 
@@ -43,217 +46,237 @@
 extern "C" {
 #endif
 
+/**
+* @brief Defines an <b>OHIPCDeathRecipient</b> object, which is used to receive a notification
+* when the <b>OHIPCRemoteStub</b> object dies unexpectedly.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
 struct OHIPCDeathRecipient;
 
 /**
- * @brief Stub端用于处理远端数据请求的回调函数.
+* @brief Typedef an <b>OHIPCDeathRecipient</b> object.
+*
+* @syscap SystemCapability.Communication.IPC.Core
+* @since 12
+*/
+typedef struct OHIPCDeathRecipient OHIPCDeathRecipient;
+
+/**
+ * @brief Called to process the remote data request at the stub.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param code 用户自定义通讯命令字，范围:[0x01, 0x00ffffff].
- * @param data 请求数据对象指针，不会为空，函数内不允许释放.
- * @param reply 回应数据对象指针，不会为空，函数内不允许释放. \n
- *              如果函数返回错误，该值不允许写入数据.
- * @param userData 用户私有数据，可以为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         否则返回用户自定义错误码或系统错误码，自定义错误码范围:[1909001, 1909999]. \n
- *         如果用户自定义错误码超出范围，将返回{@link OH_IPC_ErrorCode#OH_IPC_INVALID_USER_ERROR_CODE}.
+ * @param code Custom command word for communication, in the range [0x01, 0x00ffffff].
+ * @param data Pointer to the request data object. It cannot be NULL or released in the function.
+ * @param reply Pointer to the response data object. It cannot be NULL or released in the function.
+ * If this function returns an error, data cannot be written to this parameter.
+ * @param userData Pointer to the user data. It can be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns a custom error code in the range [1909001, 1909999] or a system error code otherwise. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INVALID_USER_ERROR_CODE} if the custom error code is out of the value range.
  * @since 12
  */
 typedef int (*OH_OnRemoteRequestCallback)(uint32_t code, const OHIPCParcel *data,
     OHIPCParcel *reply, void *userData);
 
 /**
- * @brief Stub端用于监听对象销毁的回调函数.
+ * @brief Called when an observed object is destroyed.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param userData 用户私有数据，可以为空.
+ * @param userData Pointer to the user data. It can be NULL.
  * @since 12
  */
 typedef void (*OH_OnRemoteDestroyCallback)(void *userData);
 
 /**
- * @brief 创建OHIPCRemoteStub对象.
+ * @brief Creates an <b>OHIPCRemoteStub</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param descriptor OHIPCRemoteStub对象描述符，不能为空.
- * @param requestCallback 数据请求处理函数，不能为空.
- * @param destroyCallback 对象销毁回调函数，可以为空.
- * @param userData 用户私有数据，可以为空.
- * @return 成功返回OHIPCRemoteStub对象指针，否则返回NULL.
+ * @param descriptor Pointer to the descriptor of the <b>OHIPCRemoteStub</b> object to create. It cannot be NULL.
+ * @param requestCallback Callback used to process the data request. It cannot be NULL.
+ * @param destroyCallback Callback to be invoked when the object is destroyed. It can be NULL.
+ * @param userData Pointer to the user data. It can be NULL.
+ * @return Returns the pointer to the <b>OHIPCRemoteStub</b> object created if the operation is successful;
+ * returns NULL otherwise.
  * @since 12
  */
 OHIPCRemoteStub* OH_IPCRemoteStub_Create(const char *descriptor, OH_OnRemoteRequestCallback requestCallback,
     OH_OnRemoteDestroyCallback destroyCallback, void *userData);
 
 /**
- * @brief 销毁OHIPCRemoteStub对象.
+ * @brief Destroys an <b>OHIPCRemoteStub</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param stub 要销毁的OHIPCRemoteStub对象指针.
+ * @param stub Pointer to the <b>OHIPCRemoteStub</b> object to destroy.
  * @since 12
  */
 void OH_IPCRemoteStub_Destroy(OHIPCRemoteStub *stub);
 
 /**
- * @brief 销毁OHIPCRemoteProxy对象.
+ * @brief Destroys an <b>OHIPCRemoteProxy</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param proxy 要销毁的OHIPCRemoteProxy对象指针.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object to destroy.
  * @since 12
  */
 void OH_IPCRemoteProxy_Destroy(OHIPCRemoteProxy *proxy);
 
 /**
- * @brief IPC请求模式定义
+ * @brief Enumerates the IPC request modes.
  *
  * @since 12
  */
-enum OH_IPC_RequestMode {
-    /**
-     * 同步请求模式
-     */
+typedef enum {
+    /** Synchronous request. */
     OH_IPC_REQUEST_MODE_SYNC = 0,
-    /**
-     * 异步请求模式
-     */
+    /** Asynchronous request. */
     OH_IPC_REQUEST_MODE_ASYNC = 1,
-};
+} OH_IPC_RequestMode;
 
 /**
- * @brief IPC消息选项定义.
+ * @brief Defines the IPC message options.
  *
  * @since 12
  */
 #pragma pack(4)
-struct OH_IPC_MessageOption {
-    /**
-     * 消息请求模式
-     */
+typedef struct {
+    /** Message request mode. */
     OH_IPC_RequestMode mode;
-    /**
-     * RPC预留参数，该参数对IPC无效
-     */
+    /** Parameter reserved for RPC, which is invalid for IPC. */
     uint32_t timeout;
-    /**
-     * 保留参数，必须为空
-     */
+    /** Reserved parameter, which must be NULL. */
     void* reserved;
-};
+} OH_IPC_MessageOption;
 #pragma pack()
 
 /**
- * @brief IPC消息发送函数.
+ * @brief Sends an IPC message.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param proxy OHIPCRemoteProxy对象指针，不能为空.
- * @param code 用户定义的IPC命令字，范围:[0x01,0x00ffffff].
- * @param data 请求数据对象指针，不能为空.
- * @param reply 回应数据对象指针，同步请求时，不能为空；异步请求时，可以为空.
- * @param option 消息选项指针，可以为空，为空时按同步处理.
- * @return 发送成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数不合法时返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         远端OHIPCRemoteStub对象死亡返回{@link OH_IPC_ErrorCode#OH_IPC_DEAD_REMOTE_OBJECT}. \n
- *         code超出范围返回{@link OH_IPC_ErrorCode#OH_IPC_CODE_OUT_OF_RANGE}. \n
- *         其它返回{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}或用户自定义错误码.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object. It cannot be NULL.
+ * @param code Custom IPC command word, in the range [0x01, 0x00ffffff].
+ * @param data Pointer to the request data object. It cannot be NULL.
+ * @param reply Pointer to the response data object. It cannot be NULL in the case of a synchronous request,
+ * and can be NULL in the case of an asynchronous request.
+ * @param option Pointer to the message options. It can be NULL, which indicates a synchronous request.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_DEAD_REMOTE_OBJECT} if the <b>OHIPCRemoteStub</b> object is dead. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CODE_OUT_OF_RANGE} if the error code is out of the value range. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR} or a custom error code in other cases.
  * @since 12
  */
-int OH_IPC_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
+int OH_IPCRemoteProxy_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
     OHIPCParcel *reply, const OH_IPC_MessageOption *option);
 
 /**
- * @brief 从Stub端获取接口描述符.
+ * @brief Obtains the interface descriptor from the stub.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param proxy OHIPCRemoteProxy对象指针，不能为空.
- * @param descriptor 用于存储描述符的内存地址，该内存由用户提供的分配器进行内存分配，用户使用完后需要主动释放，不能为空. \n
- *                   接口返回失败时，用户依然需要判断该内存是否为空，并主动释放，否则会造成内存泄漏.
- * @param len 写入descriptor的数据长度，包含结束符，不能为空.
- * @param allocator 用户指定的用来分配descriptor的内存分配器，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数错误返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         远端OHIPCRemoteStub对象死亡返回{@link OH_IPC_ErrorCode#OH_IPC_DEAD_REMOTE_OBJECT}. \n
- *         内存分配失败返回{@link OH_IPC_ErrorCode#OH_IPC_MEM_ALLOCATOR_ERROR}. \n
- *         序列化读失败返回{@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR}.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object. It cannot be NULL.
+ * @param descriptor Double pointer to the address of the memory for holding the interface descriptor.
+ * The memory is allocated by the allocator provided by the user and needs to be released. This pointer cannot be NULL.
+ * If an error code is returned, you still need to check whether the memory is empty and release the memory.
+ * Otherwise, memory leaks may occur.
+ * @param len Pointer to the length of the data to be written to the descriptor, including the terminator.
+ * This parameter cannot be NULL.
+ * @param allocator Memory allocator specified by the user for allocating memory for <b>descriptor</b>.
+ * It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if incorrect parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_DEAD_REMOTE_OBJECT} if the <b>OHIPCRemoteStub</b> object is dead. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_MEM_ALLOCATOR_ERROR} if memory allocation fails. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the data in the serialized object failed to be read.
  * @since 12
  */
-int OH_IPC_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
+int OH_IPCRemoteProxy_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
     OH_IPC_MemAllocator allocator);
 
 /**
- * @brief 远端OHIPCRemoteStub对象死亡通知的回调函数类型.
+ * @brief Called when the <b>OHIPCRemoteStub</b> object dies unexpectedly.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param userData 用户私有数据指针，可以为空.
+ * @param userData Pointer to the user data. It can be NULL.
  * @since 12
  */
 typedef void (*OH_OnDeathRecipientCallback)(void *userData);
 
 /**
- * @brief OHIPCDeathRecipient对象销毁回调函数类型.
+ * @brief Called when the <b>OHIPCDeathRecipient</b> object is destroyed.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param userData 用户私有数据指针，可以为空.
+ * @param userData Pointer to the user data. It can be NULL.
  * @since 12
  */
 typedef void (*OH_OnDeathRecipientDestroyCallback)(void *userData);
 
 /**
- * @brief 创建远端OHIPCRemoteStub对象死亡通知对象OHIPCDeathRecipient.
+ * @brief Creates an <b>OHIPCDeathRecipient</b> object, which allows a notification to be received
+ * when the <b>OHIPCRemoteStub</b> object dies unexpectedly.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param deathRecipientCallback 远端OHIPCRemoteStub对象死亡通知的回调处理函数，不能为空.
- * @param destroyCallback 对象销毁回调处理函数，可以为空.
- * @param userData 用户私有数据指针，可以为空.
- * @return 成功返回OHIPCDeathRecipient对象指针;否则返回NULL.
+ * @param deathRecipientCallback Callback to be invoked when the <b>OHIPCRemoteStub</b> object is dead.
+ * It cannot be NULL.
+ * @param destroyCallback Callback to be invoked when the object is destroyed. It can be NULL.
+ * @param userData Pointer to the user data. It can be NULL.
+ * @return Returns the pointer to the <b>OHIPCDeathRecipient</b> object created if the operation is successful;
+ * returns NULL otherwise.
  * @since 12
  */
 OHIPCDeathRecipient* OH_IPCDeathRecipient_Create(OH_OnDeathRecipientCallback deathRecipientCallback,
     OH_OnDeathRecipientDestroyCallback destroyCallback, void *userData);
 
 /**
- * @brief 销毁OHIPCDeathRecipient对象.
+ * @brief Destroys an <b>OHIPCDeathRecipient</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param recipient 要销毁的OHIPCDeathRecipient对象指针.
+ * @param recipient Pointer to the <b>OHIPCDeathRecipient</b> object to destroy.
  * @since 12
  */
 void OH_IPCDeathRecipient_Destroy(OHIPCDeathRecipient *recipient);
 
 /**
- * @brief 向OHIPCRemoteProxy对象添加死亡监听，用于接收远端OHIPCRemoteStub对象死亡的回调通知.
+ * @brief Subscribes to the death of an <b>OHIPCRemoteStub</b> object for an <b>OHIPCRemoteProxy</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param proxy 需要添加死亡通知的OHIPCRemoteProxy对象指针，不能为空.
- * @param recipient 用于接收远程对象死亡通知的死亡对象指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数错误返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         其它{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object that subscribes to the death notification.
+ * It cannot be NULL.
+ * @param recipient Pointer to the object that receives the death notification of the <b>OHIPCRemoteStub</b> object.
+ * It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if incorrect parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR} in other cases.
  * @since 12
  */
 int OH_IPCRemoteProxy_AddDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRecipient *recipient);
 
 /**
- * @brief 移除向OHIPCRemoteProxy对象已经添加的死亡监听.
+ * @brief Unsubscribes from the death of the <b>OHIPCRemoteStub</b> object for an <b>OHIPCRemoteProxy</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param proxy 需要移除死亡通知的OHIPCRemoteProxy对象指针，不能为空.
- * @param recipient 用于接收远程对象死亡通知的死亡对象指针，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数错误返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         其它{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object that unsubscribes from the death notification.
+ * It cannot be NULL.
+ * @param recipient Pointer to the object that receives the death notification of the <b>OHIPCRemoteStub</b> object.
+ * It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if incorrect parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR} in other cases.
  * @since 12
  */
 int OH_IPCRemoteProxy_RemoveDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRecipient *recipient);
 
 /**
- * @brief 判断OHIPCRemoteProxy对象对应的远端OHIPCRemoteStub对象是否死亡.
+ * @brief Checks whether the <b>OHIPCRemoteStub</b> object corresponding to the <b>OHIPCRemoteProxy</b> object is dead.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param proxy 需要判断远端是否死亡的OHIPCRemoteProxy对象指针，不能为空.
- * @return 远端OHIPCRemoteStub对象死亡返回1; 否则，返回0. 参数非法时，说明其远端OHIPCRemoteStub对象不存在，返回1.
+ * @param proxy Pointer to the <b>OHIPCRemoteProxy</b> object to check. It cannot be NULL.
+ * @return Returns <b>1</b> if the <b>OHIPCRemoteStub</b> object is dead; returns <b>0</b> otherwise.
+ * If an invalid parameter is found, the <b>OHIPCRemoteStub</b> object does not exist.
+ * In this case, <b>1</b> is returned.
  * @since 12
  */
-int OH_IPC_IsRemoteDead(const OHIPCRemoteProxy *proxy);
+int OH_IPCRemoteProxy_IsRemoteDead(const OHIPCRemoteProxy *proxy);
 
 #ifdef __cplusplus
 }

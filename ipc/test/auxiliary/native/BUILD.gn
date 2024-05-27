@@ -23,6 +23,7 @@ ohos_shared_library("ipc_test_helper") {
     "./src/assist_test_service.cpp",
     "./src/foo_service.cpp",
     "./src/ipc_test_helper.cpp",
+    "./src/test_capi_skeleton.cpp",
     "./src/test_service.cpp",
     "./src/test_service_client.cpp",
     "./src/test_service_skeleton.cpp",
@@ -32,6 +33,8 @@ ohos_shared_library("ipc_test_helper") {
     "$IPC_TEST_ROOT:ipc_test_config",
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
+
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
 
   external_deps = [
     "access_token:libnativetoken",
@@ -78,7 +81,10 @@ ohos_executable("ipc_client_test") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [ ":ipc_test_helper" ]
+  deps = [
+    ":ipc_test_helper",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
+  ]
 
   external_deps = [
     "access_token:libnativetoken",
@@ -100,6 +106,7 @@ ohos_shared_library("ipc_test_helper_extra") {
     "./src/assist_test_service.cpp",
     "./src/foo_service.cpp",
     "./src/ipc_test_helper.cpp",
+    "./src/test_capi_skeleton.cpp",
     "./src/test_service.cpp",
     "./src/test_service_client.cpp",
     "./src/test_service_skeleton.cpp",
@@ -111,6 +118,8 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$IPC_TEST_ROOT:ipc_test_config",
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
+
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
 
   external_deps = [
     "access_token:libnativetoken",

@@ -16,6 +16,7 @@
 #ifndef OHOS_DBINDER_TEST_SERVICE_SKELETON_H
 #define OHOS_DBINDER_TEST_SERVICE_SKELETON_H
 
+#include <map>
 #include "ipc_types.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -98,6 +99,27 @@ private:
     static pid_t g_lastCallingPid;
     static pid_t g_lastCallinguid;
     sptr<IRemoteObject> recvProxy_;
+
+    using DBinderTestServiceStubFunc = int(DBinderTestServiceStub::*)(MessageParcel &data, MessageParcel &reply);
+    const std::map<uint32_t, DBinderTestServiceStubFunc> codeFuncMap_ = {
+        { REVERSEINT,                             &DBinderTestServiceStub::OnReverseInt },
+        { REVERSEINTDELAY,                        &DBinderTestServiceStub::OnReverseIntDelay },
+        { PING_SERVICE,                           &DBinderTestServiceStub::OnPingService },
+        { ONLY_DELAY,                             &DBinderTestServiceStub::OnDelay },
+        { TRANS_PROXY_OBJECT,                     &DBinderTestServiceStub::OnReceivedObject },
+        { TRANS_RPC_OBJECT_TO_LOCAL,              &DBinderTestServiceStub::OnReceivedObject },
+        { TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS,  &DBinderTestServiceStub::OnReceivedObjectTransAgain },
+        { TRANS_STUB_OBJECT,                      &DBinderTestServiceStub::OnReceivedStubObject },
+        { TRANS_STUB_OBJECT_REFCOUNT,             &DBinderTestServiceStub::OnReceivedStubObjectRefCount },
+        { TRANS_PROXY_OBJECT_REFCOUNT,            &DBinderTestServiceStub::OnReceivedProxyObjectRefCount },
+        { TRANS_OVERSIZED_PKT,                    &DBinderTestServiceStub::OnReceivedOversizedPkt },
+        { TRANS_RAW_DATA,                         &DBinderTestServiceStub::OnReceivedRawData },
+        { RECEIVE_RAW_DATA,                       &DBinderTestServiceStub::OnSentRawData },
+        { TRANS_TRACE_ID,                         &DBinderTestServiceStub::OnGetChildId },
+        { GET_REMOTE_STUB_OBJECT,                 &DBinderTestServiceStub::OnReceivedGetStubObject },
+        { GET_REMOTE_DES_TIMES,                   &DBinderTestServiceStub::OnReceivedGetDecTimes },
+        { CLEAR_REMOTE_DES_TIMES,                 &DBinderTestServiceStub::OnReceivedClearDecTimes },
+    };
 
     int OnReverseInt(MessageParcel &data, MessageParcel &reply);
     int OnReverseIntDelay(MessageParcel &data, MessageParcel &reply);

@@ -61,6 +61,9 @@ IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
             }
             if (temp->SetMaxWorkThread(DEFAULT_WORK_THREAD_NUM)) {
                 temp->SpawnThread(IPCWorkThread::SPAWN_ACTIVE);
+#ifdef CONFIG_ACTV_BINDER
+                temp->SpawnThread(IPCWorkThread::ACTV_ACTIVE);
+#endif
             }
             instance_ = temp;
         }
@@ -152,7 +155,10 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
-    DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+    if (listenSocketId_ > 0) {
+        DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+        listenSocketId_ = 0;
+    }
 #endif
 }
 
@@ -440,6 +446,16 @@ void IPCProcessSkeleton::UnlockForNumExecuting()
     }
 }
 
+bool IPCProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback)
+{
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        return false;
+    }
+    return current->SetIPCProxyLimit(num, callback);
+}
+
 #ifndef CONFIG_IPC_SINGLE
 sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()
 {
@@ -535,7 +551,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     } else {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found, time:%{public}" PRIu64, handle, curTime);
+        ZLOGW(LOG_LABEL, "detach handle: %{public}u, not found, time: %{public}" PRIu64, handle, curTime);
     }
 
     return tmp;
@@ -1207,6 +1223,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (name.empty()) {
+        ZLOGE(LOG_LABEL, "server name is empty");
         return false;
     }
     std::shared_ptr<DatabusSocketListener> listener =
@@ -1216,13 +1233,13 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         return false;
     }
 
+    int32_t socketId = listener->StartServerListener(name);
+    if (socketId <= 0) {
+        ZLOGE(LOG_LABEL, "fail to start server listener");
+        return false;
+    }
+    listenSocketId_ = socketId;
     if (name != sessionName_) {
-        int32_t socketId = listener->StartServerListener(name);
-        if (socketId <= 0) {
-            ZLOGE(LOG_LABEL, "fail to start server listener");
-            return false;
-        }
-        listenSocketId_ = socketId;
         SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
     }
     sessionName_ = name;
