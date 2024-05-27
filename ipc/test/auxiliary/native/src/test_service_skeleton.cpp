@@ -57,7 +57,11 @@ void TestServiceStub::InitMessageProcessMap()
     funcMap_[static_cast<uint32_t>(TRANS_MESSAGE_PARCEL_ADDPED_WITH_OBJECT)] =
         &TestServiceStub::ServerMessageParcelAddpedWithObject;
     funcMap_[static_cast<uint32_t>(TRANS_ENABLE_SERIAL_INVOKE_FLAG)] = &TestServiceStub::ServerEnableSerialInvokeFlag;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::RegisterRemoteStub;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::UnRegisterRemoteStub;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT)] = &TestServiceStub::QueryRemoteProxy;
 }
+
 
 TestServiceStub::TestServiceStub(bool serialInvokeFlag)
     : IRemoteStub(serialInvokeFlag), serialInvokeFlag_(serialInvokeFlag)
@@ -328,6 +332,50 @@ int TestServiceProxy::TestCallingUidPid()
     return -1;
 }
 
+int TestServiceProxy::TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    dataParcel.WriteRemoteObject(object);
+    int ret = Remote()->SendRequest(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+int TestServiceProxy::TestUnRegisterRemoteStub(const char *descriptor)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    int ret = Remote()->SendRequest(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+sptr<IRemoteObject> TestServiceProxy::TestQueryRemoteProxy(const char *descriptor)
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteString(descriptor);
+    int ret = Remote()->SendRequest(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGE(LABEL, "ret = %{public}d", ret);
+        return nullptr;
+    }
+    auto readRemoteObject = replyParcel.ReadRemoteObject();
+    return readRemoteObject;
+}
+
 constexpr char ACCESS_TOKEN_ID_IOCTL_BASE = 'A';
 
 enum {
@@ -395,15 +443,14 @@ bool TestServiceProxy::CheckTokenSelf(uint64_t token, uint64_t tokenSelf, uint64
 
 bool TestServiceProxy::CheckSetFirstToken(uint64_t ftoken_expected)
 {
-    uint64_t ret = 0;
-    ret = RpcSetFirstCallerTokenID(ftoken_expected);
+    int ret = RpcSetFirstCallerTokenID(ftoken_expected);
     if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}llu", ret);
+        ZLOGE(LABEL, "RpcSetFirstCallerTokenID ret = %{public}d", ret);
         return false;
     }
-    ret = RpcGetFirstCallerTokenID();
-    if (ret != ftoken_expected) {
-        ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}llu", ret);
+    uint64_t result = RpcGetFirstCallerTokenID();
+    if (result != ftoken_expected) {
+        ZLOGE(LABEL, "TestServiceProxy get ftoken after set: %{public}" PRIu64, result);
         return false;
     }
     return true;
@@ -411,15 +458,14 @@ bool TestServiceProxy::CheckSetFirstToken(uint64_t ftoken_expected)
 
 bool TestServiceProxy::CheckSetSelfToken(uint64_t token_expected)
 {
-    uint64_t ret = 0;
-    ret = RpcSetSelfTokenID(token_expected);
+    int ret = RpcSetSelfTokenID(token_expected);
     if (ret != 0) {
-        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}llu", ret);
+        ZLOGE(LABEL, "RpcSetSelfTokenID ret = %{public}d", ret);
         return false;
     }
-    ret = RpcGetSelfTokenID();
-    if (ret != token_expected) {
-        ZLOGE(LABEL, "TestServiceProxy get selftoken after set: %{public}llu", ret);
+    uint64_t result = RpcGetSelfTokenID();
+    if (result != token_expected) {
+        ZLOGE(LABEL, "TestServiceProxy get selftoken after set: %{public}" PRIu64, result);
         return false;
     }
     return true;
@@ -830,6 +876,26 @@ int32_t TestServiceStub::ServerEnableSerialInvokeFlag(MessageParcel &data, Messa
     std::cout << "Current thread ID = " << std::this_thread::get_id();
     std::cout << " Get result from server data = " << result << std::endl;
     return ret;
+}
+
+int32_t TestServiceStub::RegisterRemoteStub(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    auto remoteObject = data.ReadRemoteObject();
+    return TestRegisterRemoteStub(descriptor.c_str(), remoteObject);
+}
+
+int32_t TestServiceStub::UnRegisterRemoteStub(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    return TestUnRegisterRemoteStub(descriptor.c_str());
+}
+
+int32_t TestServiceStub::QueryRemoteProxy(MessageParcel &data, MessageParcel &reply)
+{
+    std::string descriptor = data.ReadString();
+    sptr<IRemoteObject> remoteObject = TestQueryRemoteProxy(descriptor.c_str());
+    return reply.WriteRemoteObject(remoteObject);
 }
 
 int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

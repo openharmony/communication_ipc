@@ -17,11 +17,15 @@ import("../../../config.gni")
 SUBSYSTEM_DIR = "../../.."
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
-config("libipc_ndk_private_config") {
+config("libipc_capi_private_config") {
   cflags_cc = [ "-O2" ]
 }
 
-ohos_shared_library("ipc_ndk") {
+config("libipc_capi_public_config") {
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include" ]
+}
+
+ohos_shared_library("ipc_capi") {
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include",
@@ -41,9 +45,10 @@ ohos_shared_library("ipc_ndk") {
 
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
-    ":libipc_ndk_private_config",
+    ":libipc_capi_private_config",
   ]
-  public_configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
+
+  public_configs = [ ":libipc_capi_public_config" ]
 
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",
@@ -59,6 +64,10 @@ ohos_shared_library("ipc_ndk") {
     "platformsdk",
     "sasdk",
   ]
+
+  symlink_target_name = [ "libipc_capi.so" ]
+
+  relative_install_dir = "./ndk/"
 
   install_images = [ system_base_dir ]
 

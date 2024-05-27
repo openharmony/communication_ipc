@@ -288,4 +288,37 @@ int TestService::TestEnableSerialInvokeFlag()
 {
     return 0;
 }
+
+int TestService::TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object)
+{
+    if (descriptor == nullptr || strlen(descriptor) < 1 || object == nullptr) {
+        return -1;
+    }
+    std::lock_guard<std::mutex> lockGuard(remoteObjectsMutex_);
+    remoteObjects_.emplace(descriptor, object);
+    return 0;
+}
+
+int TestService::TestUnRegisterRemoteStub(const char *descriptor)
+{
+    if (descriptor == nullptr || strlen(descriptor) < 1) {
+        return -1;
+    }
+    std::lock_guard<std::mutex> lockGuard(remoteObjectsMutex_);
+    remoteObjects_.erase(descriptor);
+    return 0;
+}
+
+sptr<IRemoteObject> TestService::TestQueryRemoteProxy(const char *descriptor)
+{
+    if (descriptor == nullptr || strlen(descriptor) < 1) {
+        return nullptr;
+    }
+    auto data = remoteObjects_.find(descriptor);
+    if (data != remoteObjects_.end()) {
+        return data->second;
+    }
+    return nullptr;
+}
+
 } // namespace OHOS

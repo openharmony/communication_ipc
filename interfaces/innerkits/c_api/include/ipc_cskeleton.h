@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_IPC_CSKELETON_H
-#define NDK_INCLUDE_IPC_CSKELETON_H
+#ifndef CAPI_INCLUDE_IPC_CSKELETON_H
+#define CAPI_INCLUDE_IPC_CSKELETON_H
 
 /**
  * @addtogroup OHIPCSkeleton
  * @{
  *
- * @brief 提供IPC框架tokenId、凭据、PID/UID、线程池配置等功能C接口.
+ * @brief Provides C interfaces for managing the token IDs, credentials, process IDs (PIDs),
+ * user IDs (UIDs), and thread pool in the IPC framework.
  *
  * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
@@ -29,9 +30,11 @@
 /**
  * @file ipc_cskeleton.h
  *
- * @brief 提供IPC框架tokenId、凭据、PID/UID、线程池配置等功能C接口.
+ * @brief Defines C interfaces for managing the token IDs, credentials, PIDs, UIDs, and thread
+ * pool in the IPC framework.
  *
- * @library libipc_ndk.so
+ * @library libipc_capi.so
+ * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
  */
 
@@ -44,7 +47,7 @@ extern "C" {
 #endif
 
 /**
- * @brief 当前线程加入IPC工作线程池.
+ * @brief Joints this thread to the IPC worker thread pool.
  *
  * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
@@ -52,7 +55,7 @@ extern "C" {
 void OH_IPCSkeleton_JoinWorkThread(void);
 
 /**
- * @brief 当前线程退出IPC工作线程池.
+ * @brief Stops this thread.
  *
  * @syscap SystemCapability.Communication.IPC.Core
  * @since 12
@@ -60,104 +63,111 @@ void OH_IPCSkeleton_JoinWorkThread(void);
 void OH_IPCSkeleton_StopWorkThread(void);
 
 /**
- * @brief 获取调用方TokenId.该接口需要在IPC上下文中调用，否则返回自身TokenId.
+ * @brief Obtains the token ID of the caller. This function must be called in the IPC context.
+ * Otherwise, the local token ID is returned.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 返回调用方TokenId.
+ * @return Returns the token ID of the caller.
  * @since 12
  */
 uint64_t OH_IPCSkeleton_GetCallingTokenId(void);
 
 /**
- * @brief 获取首调者TokenId.
+ * @brief Obtains the token ID of the first caller.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 返回首调者TokenId.
+ * @return Returns the token ID obtained.
  * @since 12
  */
 uint64_t OH_IPCSkeleton_GetFirstTokenId(void);
 
 /**
- * @brief 获取自身TokenId.
+ * @brief Obtains the local token ID.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 返回自身TokenId.
+ * @return Returns the token ID obtained.
  * @since 12
  */
 uint64_t OH_IPCSkeleton_GetSelfTokenId(void);
 
 /**
- * @brief 获取调用方进程ID.该接口需要在IPC上下文中调用，否则返当前进程ID.
+ * @brief Obtains the process ID of the caller. This function must be called in the IPC context.
+ * Otherwise, the current process ID is returned.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 返回调用方进程ID.
+ * @return Returns the process ID of the caller.
  * @since 12
  */
 uint64_t OH_IPCSkeleton_GetCallingPid(void);
 
 /**
- * @brief 获取调用方用户ID.该接口需要在IPC上下文中调用，否则返当前用户ID.
+ * @brief Obtains the UID of the caller. This function must be called in the IPC context.
+ * Otherwise, the current UID is returned.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 返回调用方用户ID.
+ * @return Returns the UID of the caller.
  * @since 12
  */
 uint64_t OH_IPCSkeleton_GetCallingUid(void);
 
 /**
- * @brief 判断是否正在进行本地调用.
+ * @brief Checks whether a local calling is being made.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 正在进行本地调用，返回1；否则，返回0.
+ * @return Returns <b>1</b> if a local calling is in progress; returns <b>0</b> otherwise.
  * @since 12
  */
 int OH_IPCSkeleton_IsLocalCalling(void);
 
 /**
- * @brief 设置最大工作线程数.
+ * @brief Sets the maximum number of worker threads.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param maxThreadNum 最大工作线程数，默认16，范围[1, 32].
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数错误返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         其它情况返回{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}.
+ * @param maxThreadNum Maximum number of worker threads to set. The default value is <b>16</b>.
+ * The value range is [1, 32].
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if incorrect parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR} in other cases.
  * @since 12
  */
 int OH_IPCSkeleton_SetMaxWorkThreadNum(const int maxThreadNum);
 
 /**
- * @brief 重置调用方身份凭证为自身进程的身份凭证（包括tokenid、UID和PID信息），并返回调用方的凭证信息.
- *        该信息主要用于OH_IPCSkeleton_SetCallingIdentity接口调用.
+ * @brief Resets the caller identity credential (including the token ID, UID, and PID) to that of this process and
+ * returns the caller credential information.
+ * The identity information is used in <b>OH_IPCSkeleton_SetCallingIdentity</b>.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param identity 用于存储调凭证的内存地址，该内存由用户提供的分配器进行内存分配，用户使用完后需要主动释放，不能为空.
- * @param len 写入identity的数据长度，不能为空.
- * @param allocator 用户指定的用来分配identity的内存分配器，不能为空.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数错误返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         内存分配失败返回{@link OH_IPC_ErrorCode#OH_IPC_MEM_ALLOCATOR_ERROR}. \n
- *         其它情况返回{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}.
+ * @param identity Pointer to the address of the memory for holding the caller identity information.
+ * The memory is allocated by the allocator provided by the user and needs to be released. This pointer cannot be NULL.
+ * @param len Pointer to the length of the identity information. It cannot be NULL.
+ * @param allocator Memory allocator specified by the user for allocating memory for <b>identity</b>. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if incorrect parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_MEM_ALLOCATOR_ERROR} if memory allocation fails. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR} in other cases.
  * @since 12
  */
 int OH_IPCSkeleton_ResetCallingIdentity(char **identity, int32_t *len, OH_IPC_MemAllocator allocator);
 
 /**
- * @brief 恢复调用方凭证信息至IPC上下文中.
+ * @brief Sets the caller credential information to the IPC context.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @param identity 调用方凭证，不能为空.来源于OH_IPCSkeleton_ResetCallingIdentity的返回值.
- * @return 成功返回{@link OH_IPC_ErrorCode#OH_IPC_SUCCESS}. \n
- *         参数错误返回{@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR}. \n
- *         其它情况返回{@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR}.
+ * @param identity Pointer to the caller identity, which cannot be NULL.
+ * The value is returned by <b>OH_IPCSkeleton_ResetCallingIdentity</b>.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if incorrect parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_INNER_ERROR} in other cases.
  * @since 12
  */
 int OH_IPCSkeleton_SetCallingIdentity(const char *identity);
 
 /**
- * @brief 是否正在处理IPC请求.
+ * @brief Checks whether an IPC request is being handled.
  *
  * @syscap SystemCapability.Communication.IPC.Core
- * @return 正在处理IPC请求，返回1；否则，返回0.
+ * @return Returns <b>1</b> if an IPC request is being handled; returns <b>0</b> otherwise.
  * @since 12
  */
 int OH_IPCSkeleton_IsHandlingTransaction(void);

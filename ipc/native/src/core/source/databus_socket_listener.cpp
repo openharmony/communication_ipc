@@ -20,6 +20,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "log_tags.h"
+#include "softbus_error_code.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER, "DatabusSocketListener" };
@@ -150,7 +151,7 @@ int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
         return SOCKET_ID_INVALID;
     }
     int32_t ret = DBinderSoftbusClient::GetInstance().Listen(socketId, QOS_TV, QOS_COUNT, &serverListener_);
-    if (ret != 0) {
+    if (ret != SOFTBUS_OK && ret != SOFTBUS_TRANS_SOCKET_IN_USE) {
         ZLOGE(LABEL, "Listen failed, ret:%{public}d", ret);
         DBinderSoftbusClient::GetInstance().Shutdown(socketId);
         return SOCKET_ID_INVALID;
@@ -209,7 +210,7 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName, co
         return SOCKET_ID_INVALID;
     }
     int32_t ret = DBinderSoftbusClient::GetInstance().Bind(socketId, QOS_TV, QOS_COUNT, &clientListener_);
-    if (ret != ERR_NONE) {
+    if (ret != SOFTBUS_OK && ret != SOFTBUS_TRANS_SOCKET_IN_USE) {
         ZLOGE(LABEL, "Bind failed, ret:%{public}d, socketId:%{public}d,"
             "ownName:%{public}s, peerName:%{public}s, peerNetworkId:%{public}s",
             ret, socketId, ownName.c_str(), peerName.c_str(),

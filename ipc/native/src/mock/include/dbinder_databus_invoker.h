@@ -71,9 +71,12 @@ public:
 private:
     bool CreateProcessThread() override;
     int OnSendMessage(std::shared_ptr<DBinderSessionObject> sessionOfPeer) override;
+    int SendData(std::shared_ptr<BufferObject> sessionBuff, int32_t socketId);
     int OnSendRawData(std::shared_ptr<DBinderSessionObject> session, const void *data, size_t size) override;
     std::shared_ptr<DBinderSessionObject> NewSessionOfBinderProxy(uint32_t handle,
         std::shared_ptr<DBinderSessionObject> session) override;
+    std::shared_ptr<DBinderSessionObject> GetSessionForProxy(sptr<IPCObjectProxy> ipcProxy,
+        std::shared_ptr<DBinderSessionObject> session, const std::string &localDeviceID);
     std::shared_ptr<DBinderSessionObject> QuerySessionOfBinderProxy(uint32_t handle,
         std::shared_ptr<DBinderSessionObject> session) override;
     uint32_t FlattenSession(char *sessionOffset, const std::shared_ptr<DBinderSessionObject> connectSession,

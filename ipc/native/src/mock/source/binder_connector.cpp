@@ -18,10 +18,11 @@
 #include <cstdint>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#ifdef CONFIG_ACTV_BINDER
-#include <sys/prctl.h>
-#endif
 #include <sys/mman.h>
+#ifdef CONFIG_ACTV_BINDER
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 #include <unistd.h>
 
 #include "__mutex_base"
@@ -37,10 +38,6 @@
 #include "sys_binder.h"
 #ifdef CONFIG_ACTV_BINDER
 #include "actv_binder.h"
-
-#include <fstream>
-#include <unordered_set>
-#include <nlohmann/json.hpp>
 #endif
 
 namespace OHOS {
@@ -48,9 +45,6 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_CON
 std::mutex BinderConnector::skeletonMutex;
 constexpr int SZ_1_M = 1048576;
 constexpr int DOUBLE = 2;
-#ifdef CONFIG_ACTV_BINDER
-static const int PROC_NAME_LEN = 128;
-#endif
 static const int IPC_MMAP_SIZE = (SZ_1_M - sysconf(_SC_PAGE_SIZE) * DOUBLE);
 static constexpr const char *DRIVER_NAME = "/dev/binder";
 static constexpr const char *TOKENID_DEVNODE = "/dev/access_token_id";
@@ -63,11 +57,7 @@ BinderConnector::BinderConnector(const std::string &deviceName)
 BinderConnector::~BinderConnector()
 {
     if (vmAddr_ != MAP_FAILED) {
-#ifdef CONFIG_ACTV_BINDER
-        munmap(vmAddr_, vmSize_);
-#else
         munmap(vmAddr_, IPC_MMAP_SIZE);
-#endif
         vmAddr_ = MAP_FAILED;
     }
 
@@ -83,173 +73,9 @@ bool BinderConnector::IsDriverAlive()
 }
 
 #ifdef CONFIG_ACTV_BINDER
-const std::unordered_set<uint32_t> *BinderConnector::GetActvBinderBlockedCodes(const std::string &desc)
-{
-    auto iter = actvBinder_.actvBlockedCodes_.find(desc);
-    if (iter != actvBinder_.actvBlockedCodes_.end()) {
-        return &iter->second;
-    }
-    return nullptr;
-}
-
-ActvHandlerInfo *BinderConnector::GetActvHandlerInfo(uint32_t id)
-{
-    const std::vector<ActvHandlerInfo *> &infos = actvBinder_.actvHandlerInfos_;
-    return ((id < infos.size()) ? infos[id] : nullptr);
-}
-
-ActvHandlerInfo::ActvHandlerInfo() : desc_(std::string())
-{
-}
-
-void ActvHandlerInfo::AddActvHandlerInfo(const std::string &desc, uint32_t code)
-{
-    std::lock_guard<std::mutex> lockGuard(lock_);
-
-    if (count_ != -1) {
-        ZLOGW(LABEL, "ActvBinder: thread %{public}d is in an old transaction %{public}s %{public}u, "
-                     "coming tr %{public}s %{public}u", tid_, desc_.c_str(), code_, desc.c_str(), code);
-    } else {
-        desc_  = desc;
-        code_  = code;
-        count_ = 0;
-        tid_   = ((tid_ == -1) ? gettid() : tid_);
-    }
-}
-
-void ActvHandlerInfo::ClrActvHandlerInfo()
-{
-    std::lock_guard<std::mutex> lockGuard(lock_);
-
-    desc_  = std::string();
-    code_  = 0;
-    count_ = -1;
-}
-
-void ActvHandlerInfo::ChkActvHandlerInfo(int32_t limit)
-{
-    std::lock_guard<std::mutex> lockGuard(lock_);
-
-    if (count_ == -1) {
-        return;
-    } else {
-        count_++;
-    }
-
-    if (count_ >= limit) {
-        ZLOGW(LABEL, "ActvBinder: thread %{public}d maybe in ABA dead lock, service=%{public}s "
-                     "code=%{public}u count=%{public}d", tid_, desc_.c_str(), code_, count_);
-    }
-}
-
-std::mutex ActvBinderConnector::skeletonMutex_;
-ActvBinderJoinThreadFunc ActvBinderConnector::joinActvThreadFunc_ = nullptr;
-ActvBinderSetHandlerInfoFunc ActvBinderConnector::setActvHandlerInfoFunc_ = nullptr;
-
 ActvBinderConnector::ActvBinderConnector()
     : isActvMgr_(false)
 {
-}
-
-void ActvBinderConnector::JoinActvThread(bool initiative)
-{
-    if (ActvBinderConnector::joinActvThreadFunc_ != nullptr) {
-        ActvBinderConnector::joinActvThreadFunc_(initiative);
-    } else {
-        ZLOGW(LABEL, "ActvBinder: no available func to add thread for the actv binder service");
-    }
-}
-
-void ActvBinderConnector::SetJoinActvThreadFunc(ActvBinderJoinThreadFunc func)
-{
-    if (ActvBinderConnector::joinActvThreadFunc_ == nullptr) {
-        std::lock_guard<std::mutex> lockGuard(skeletonMutex_);
-
-        if (ActvBinderConnector::joinActvThreadFunc_ == nullptr) {
-            ActvBinderConnector::joinActvThreadFunc_ = func;
-        }
-    }
-}
-
-void ActvBinderConnector::SetActvHandlerInfo(uint32_t id)
-{
-    if (ActvBinderConnector::setActvHandlerInfoFunc_ != nullptr) {
-        ActvBinderConnector::setActvHandlerInfoFunc_(id);
-    } else {
-        ZLOGW(LABEL, "ActvBinder: no available func to set the actv handler info");
-    }
-}
-
-void ActvBinderConnector::AddSetActvHandlerInfoFunc(ActvBinderSetHandlerInfoFunc func)
-{
-    if (ActvBinderConnector::setActvHandlerInfoFunc_ == nullptr) {
-        std::lock_guard<std::mutex> lockGuard(skeletonMutex_);
-
-        if (ActvBinderConnector::setActvHandlerInfoFunc_ == nullptr) {
-            ActvBinderConnector::setActvHandlerInfoFunc_ = func;
-        }
-    }
-}
-
-void *ActvBinderConnector::ActvThreadEntry(void *arg)
-{
-    int ret;
-    std::string name = "ACTVIPC_" + std::to_string(reinterpret_cast<uintptr_t>(arg)) + "_" + std::to_string(getpid());
-
-    ret = prctl(PR_SET_NAME, name.c_str());
-    if (ret != 0) {
-        ZLOGE(LABEL, "ActvBinder: set thread name: %{public}s failed, errno: %{public}d", name.c_str(), errno);
-    } else {
-        ActvBinderConnector::SetActvHandlerInfo(reinterpret_cast<uintptr_t>(arg));
-        ActvBinderConnector::JoinActvThread(false);
-        ZLOGW(LABEL, "ActvBinder: thread %{public}s exited", name.c_str());
-    }
-
-    return nullptr;
-}
-
-void *ActvBinderConnector::ABALockCheckThreadEntry(void *arg)
-{
-    int ret;
-    ActvBinderConnector *actvBinder = reinterpret_cast<ActvBinderConnector *>(arg);
-    const std::vector<ActvHandlerInfo *> &infos = actvBinder->actvHandlerInfos_;
-
-    ret = prctl(PR_SET_NAME, "ABALockChecker");
-    if (ret != 0) {
-        ZLOGE(LABEL, "ActvBinder: set thread name ABALockChecker failed, errno: %{public}d", errno);
-        return nullptr;
-    }
-
-    while (true) {
-        usleep(ACTV_BINDER_ABA_LOCK_CHK_INTVL);
-
-        for (uint32_t i = 0; i < infos.size(); i++) {
-            infos[i]->ChkActvHandlerInfo(ACTV_BINDER_ABA_LOCK_CHK_LIMIT);
-        }
-    }
-
-    return nullptr;
-}
-
-char *ActvBinderConnector::GetProcName(char *buf, size_t len)
-{
-    int fd;
-    char *name = nullptr;
-
-    fd = open("/proc/self/cmdline", O_RDONLY);
-    if (fd != -1) {
-        ssize_t cnt;
-
-        cnt = read(fd, buf, len - 1);
-        if (cnt > 0) {
-            buf[cnt] = '\0';
-            name = buf;
-        }
-
-        close(fd);
-    }
-
-    return name;
 }
 
 int ActvBinderConnector::InitActvBinder(int fd)
@@ -259,7 +85,6 @@ int ActvBinderConnector::InitActvBinder(int fd)
     }
 
     int ret;
-    pthread_t thread;
     uint64_t poolCref;
 
     ret = ioctl(fd, BINDER_SET_ACTVMGR, &poolCref);
@@ -268,132 +93,19 @@ int ActvBinderConnector::InitActvBinder(int fd)
         return ret;
     }
 
-    for (int i = 0; i < ACTV_BINDER_DEFAULT_NR_THREADS; i++) {
-        ActvHandlerInfo *info = new ActvHandlerInfo();
-        if (info == nullptr) {
-            ZLOGE(LABEL, "ActvBinder: prepare actv handler info for thread#%{public}d failed", i);
-            return -ENOMEM;
-        }
-        actvHandlerInfos_.push_back(info);
-    }
-
-    for (int i = 0; i < ACTV_BINDER_DEFAULT_NR_THREADS; i++) {
-        ret = pthread_create(&thread, nullptr, &ActvBinderConnector::ActvThreadEntry, reinterpret_cast<void *>(i));
-        if (ret != 0) {
-            ZLOGE(LABEL, "ActvBinder: create thread#%{public}d failed, errno: %{public}d", i, errno);
-            return ret;
-        }
-
-        ret = pthread_detach(thread);
-        if (ret != 0) {
-            ZLOGE(LABEL, "ActvBinder: detach thread#%{public}d failed, errno: %{public}d", i, errno);
-            return ret;
-        }
-    }
-
-    ret = pthread_create(&thread, nullptr, &ActvBinderConnector::ABALockCheckThreadEntry,
-                         reinterpret_cast<void *>(this));
-    if (ret != 0) {
-        ZLOGE(LABEL, "ActvBinder: create checker thread failed, errno: %{public}d", errno);
-        return ret;
-    }
-
-    ret = pthread_detach(thread);
-    if (ret != 0) {
-        ZLOGE(LABEL, "ActvBinder: detach checker thread failed, errno: %{public}d", errno);
-        return ret;
-    }
-
     return 0;
 }
 
-/*
- * The JSON format of the /system/etc/libbinder_actv.json should be:
- *
- * {
- *      "pname0": {
- *          "serviceDesc0": [code0, code1, ...],
- *          "serviceDesc1": [code0, code1, ...],
- *          ...
- *          "serviceDescN": [code0, code1, ...]
- *      },
- *      "pname1": {
- *          "serviceDesc0": [code0, code1, ...],
- *          "serviceDesc1": [code0, code1, ...],
- *          ...
- *          "serviceDescN": [code0, code1, ...]
- *      },
- *      ...
- *      "pnameN": {
- *          "serviceDesc0": [code0, code1, ...],
- *          "serviceDesc1": [code0, code1, ...],
- *          ...
- *          "serviceDescN": [code0, code1, ...]
- *      }
- * }
- *
- * 1. Configure pname0 ~ pnameN as the actv binder service.
- *
- * 2. The interface specified by the serviceDesc0 ~ serviceDescN and the
- *    code0 ~ codeN cannot be accessed through the Actv Binder IPC.
- *
- * 3. If no code0 ~ codeN specified for the serviceDescX, then all interfaces
- *    of the serviceDescX cannot be accessed through the Actv Binder IPC.
- *
- * 4. If no serviceDescs are specified, then all interfaces in process of pnameX
- *    are accessed through the Actv Binder IPC.
- */
 void ActvBinderConnector::InitActvBinderConfig(uint64_t featureSet)
 {
     if ((featureSet & ACTV_BINDER_FEATURE_MASK) == 0) {
         return;
     }
 
-    std::ifstream configFile(ACTV_BINDER_SERVICES_CONFIG);
-    if (!configFile.is_open()) {
-        ZLOGI(LABEL, "ActvBinder: no available config file %{public}s", ACTV_BINDER_SERVICES_CONFIG);
-        return;
-    }
-
-    char buffer[PROC_NAME_LEN];
-    char *procName = ActvBinderConnector::GetProcName(buffer, PROC_NAME_LEN);
-
-    if (procName == nullptr) {
-        ZLOGE(LABEL, "ActvBinder: get the process name of pid=%{public}d failed", getpid());
-        return;
-    }
-
-    nlohmann::json configData = nlohmann::json::parse(configFile, nullptr, false);
-    if (configData.is_discarded()) {
-        ZLOGE(LABEL, "ActvBinder: parse config file %{public}s failed", ACTV_BINDER_SERVICES_CONFIG);
-        return;
-    }
-
-    for (auto &procItem : configData.items()) {
-        if (isActvMgr_ == false) {
-            isActvMgr_ = (strcmp(procItem.key().c_str(), procName) == 0);
-            if (isActvMgr_) {
-                ZLOGI(LABEL, "ActvBinder: set %{public}s as the actv binder service", procName);
-            }
-        }
-
-        nlohmann::json &services = procItem.value();
-        for (auto &srvItem : services.items()) {
-            std::unordered_set<uint32_t> codeSet;
-            const std::string &desc = srvItem.key();
-            nlohmann::json &codes = srvItem.value();
-
-            codes.get_to(codeSet);
-
-            auto iter = actvBlockedCodes_.find(desc);
-            if (codeSet.empty() || (iter == actvBlockedCodes_.end())) {
-                actvBlockedCodes_[desc] = codeSet;
-            } else if (iter->second.empty()) {
-                /* block all codes */
-            } else {
-                iter->second.insert(codeSet.begin(), codeSet.end());
-            }
-        }
+    struct stat stat_unused;
+    /* If there is ACTV_BINDER_SERVICES_CONFIG, set actvmgr for actv binder */
+    if (stat(ACTV_BINDER_SERVICES_CONFIG, &stat_unused) == 0) {
+        isActvMgr_ = true;
     }
 }
 #endif // CONFIG_ACTV_BINDER
@@ -422,34 +134,36 @@ bool BinderConnector::OpenDriver()
     }
     ZLOGD(LABEL, "success to open fd:%{public}d", fd);
     driverFD_ = fd;
-#ifdef CONFIG_ACTV_BINDER
-    actvBinder_.InitActvBinderConfig(featureSet);
 
-    vmSize_ = IPC_MMAP_SIZE + (actvBinder_.isActvMgr_ ? ACTV_BINDER_VM_SIZE : 0);
-    vmAddr_ = mmap(0, vmSize_, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
-#else
-    vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
-#endif
-    if (vmAddr_ == MAP_FAILED) {
-        ZLOGE(LABEL, "fail to mmap");
+    if (!MapMemory(featureSet)) {
         close(driverFD_);
         driverFD_ = -1;
         return false;
     }
-#ifdef CONFIG_ACTV_BINDER
-    ret = actvBinder_.InitActvBinder(driverFD_);
-    if (ret != 0) {
-        munmap(vmAddr_, vmSize_);
-        vmAddr_ = MAP_FAILED;
-        vmSize_ = 0;
-
-        close(driverFD_);
-        driverFD_ = -1;
-        return false;
-    }
-#endif
     version_ = version;
     featureSet_ = featureSet;
+    return true;
+}
+
+bool BinderConnector::MapMemory(uint64_t featureSet)
+{
+#ifdef CONFIG_ACTV_BINDER
+    actvBinder_.InitActvBinderConfig(featureSet);
+#endif
+
+    vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
+    if (vmAddr_ == MAP_FAILED) {
+        ZLOGE(LABEL, "fail to mmap");
+        return false;
+    }
+#ifdef CONFIG_ACTV_BINDER
+    int ret = actvBinder_.InitActvBinder(driverFD_);
+    if (ret != 0) {
+        munmap(vmAddr_, IPC_MMAP_SIZE);
+        vmAddr_ = MAP_FAILED;
+        return false;
+    }
+#endif
     return true;
 }
 
@@ -469,6 +183,11 @@ bool BinderConnector::IsRealPidSupported()
 bool BinderConnector::IsActvBinderSupported()
 {
     return (IsDriverAlive() && ((featureSet_ & ACTV_BINDER_FEATURE_MASK) != 0));
+}
+
+bool BinderConnector::IsActvBinderService()
+{
+    return (IsDriverAlive() && actvBinder_.isActvMgr_);
 }
 #endif
 

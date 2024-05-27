@@ -453,61 +453,14 @@ int DBinderTestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
     DBINDER_LOGE(LOG_LABEL, "TestServiceStub::OnReceived, cmd = %{public}d", code);
     g_lastCallingPid = IPCSkeleton::GetCallingPid();
     g_lastCallinguid = IPCSkeleton::GetCallingUid();
-    switch (code) {
-        case REVERSEINT: {
-            return OnReverseInt(data, reply);
-        }
-        case REVERSEINTDELAY: {
-            return OnReverseIntDelay(data, reply);
-        }
-        case PING_SERVICE: {
-            return OnPingService(data, reply);
-        }
-        case ONLY_DELAY: {
-            return OnDelay(data, reply);
-        }
-        case TRANS_PROXY_OBJECT:
-        case TRANS_RPC_OBJECT_TO_LOCAL: {
-            DBINDER_LOGE(LOG_LABEL, "TestServiceStub::TRANS_RPC_OBJECT_TO_LOCAL?, cmd = %{public}d", code);
-            return OnReceivedObject(data, reply);
-        }
-        case TRANS_OBJECT_OVER_DEVICE_OVER_PROCESS: {
-            return OnReceivedObjectTransAgain(data, reply);
-        }
-        case TRANS_STUB_OBJECT: {
-            return OnReceivedStubObject(data, reply);
-        }
-        case TRANS_STUB_OBJECT_REFCOUNT: {
-            return OnReceivedStubObjectRefCount(data, reply);
-        }
-        case TRANS_PROXY_OBJECT_REFCOUNT: {
-            return OnReceivedProxyObjectRefCount(data, reply);
-        }
-        case TRANS_OVERSIZED_PKT: {
-            return OnReceivedOversizedPkt(data, reply);
-        }
-        case TRANS_RAW_DATA: {
-            return OnReceivedRawData(data, reply);
-        }
-        case RECEIVE_RAW_DATA: {
-            return OnSentRawData(data, reply);
-        }
-        case TRANS_TRACE_ID: {
-            return OnGetChildId(data, reply);
-        }
-        case GET_REMOTE_STUB_OBJECT: {
-            return OnReceivedGetStubObject(data, reply);
-        }
-        case GET_REMOTE_DES_TIMES: {
-            return OnReceivedGetDecTimes(data, reply);
-        }
-        case CLEAR_REMOTE_DES_TIMES: {
-            return OnReceivedClearDecTimes(data, reply);
-        }
-        default: {
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    auto it = codeFuncMap_.find(code);
+    if (it != codeFuncMap_.end()) {
+        auto itFunc = it->second;
+        if (itFunc != nullptr) {
+            return (this->*itFunc)(data, reply);
         }
     }
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int DBinderTestServiceStub::ReverseIntDelayAsync(int data, int &rep)
