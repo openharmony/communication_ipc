@@ -337,6 +337,13 @@ private:
     std::list<std::u16string> FindServicesByDeviceID(const std::string &deviceID);
     int32_t NoticeServiceDieInner(const std::u16string &serviceName, const std::string &deviceID);
     uint32_t GetRemoteTransType();
+    bool CheckDeviceIdIllegal(const std::string &remoteDeviceId);
+    bool CheckSessionNameIsEmpty(const std::string &sessionName);
+    bool CheckInvokeListenThreadIllegal(IPCObjectProxy *proxy, MessageParcel &data, MessageParcel &reply);
+    bool CheckStubIndexAndSessionNameIllegal(uint64_t stubIndex, const std::string &serverSessionName,
+        const std::string &deviceId, IPCObjectProxy *proxy);
+    bool SetReplyMessage(struct DHandleEntryTxRx *replyMessage, uint64_t stubIndex,
+        const std::string &serverSessionName, uint32_t selfTokenId, IPCObjectProxy *proxy);
     uint32_t OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
         std::string &remoteDeviceId, int pid, int uid, uint32_t tokenId);
     bool IsDeviceIdIllegal(const std::string &deviceID);
