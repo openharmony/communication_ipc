@@ -651,7 +651,7 @@ void BinderInvoker::Transaction(const uint8_t *buffer)
         callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, 0 };
     uint32_t oldStatus = status_;
     callerPid_ = tr->sender_pid;
-    callerUid_ = tr->sender_euid;
+    callerUid_ = static_cast<pid_t>(tr->sender_euid);
     callerRealPid_ = callerPid_;
     if (binderConnector_ != nullptr && binderConnector_->IsRealPidSupported()) {
         GetSenderInfo(callerTokenID_, firstTokenID_, callerRealPid_);
