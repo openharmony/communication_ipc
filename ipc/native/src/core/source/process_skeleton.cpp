@@ -54,13 +54,7 @@ ProcessSkeleton::~ProcessSkeleton()
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     ZLOGW(LOG_LABEL, "destroy time:%{public}" PRIu64, curTime);
-    std::lock_guard<std::mutex> lockGuard(mutex_);
     exitFlag_ = true;
-    {
-        std::unique_lock<std::shared_mutex> objLock(objMutex_);
-        objects_.clear();
-        isContainStub_.clear();
-    }
 }
 
 sptr<IRemoteObject> ProcessSkeleton::GetRegistryObject()
@@ -129,6 +123,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
     if (lockFlag) {
         lockGuard.lock();
     }
@@ -165,6 +160,7 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
 
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     std::shared_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
     if (lockFlag) {
         lockGuard.lock();
     }
