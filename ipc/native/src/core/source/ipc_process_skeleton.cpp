@@ -203,8 +203,10 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     proxy->WaitForInit();
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
-        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d %{public}zu", handle,
-            reinterpret_cast<uintptr_t>(result.GetRefPtr()));
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d %{public}zu, time:%{public}" PRIu64, handle,
+            reinterpret_cast<uintptr_t>(result.GetRefPtr()), curTime);
         if (proxy->GetSptrRefCount() <= DETACH_PROXY_REF_COUNT) {
             DetachObject(result.GetRefPtr());
         }
@@ -549,7 +551,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     } else {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGW(LOG_LABEL, "detach handle:%{public}u, not found, time:%{public}" PRIu64, handle, curTime);
+        ZLOGW(LOG_LABEL, "detach handle: %{public}u, not found, time: %{public}" PRIu64, handle, curTime);
     }
 
     return tmp;
