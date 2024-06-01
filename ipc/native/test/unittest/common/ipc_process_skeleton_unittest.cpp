@@ -336,7 +336,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetDBinderIdleHandleTest003, TestSize.Level
     ASSERT_TRUE(skeleton != nullptr);
 
     skeleton->dBinderHandle_ =
-        IPCProcessSkeleton::DBINDER_HANDLE_BASE + IPCProcessSkeleton::DBINDER_HANDLE_BASE + INDEX_1;
+        IPCProcessSkeleton::DBINDER_HANDLE_BASE + IPCProcessSkeleton::DBINDER_HANDLE_COUNT + INDEX_1;
     std::string serverName = "serverName";
     std::string deviceId = "7001005458323933328a519c2fa83800";
     std::shared_ptr<DBinderSessionObject> remoteSession =

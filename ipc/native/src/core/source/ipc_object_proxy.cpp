@@ -729,10 +729,18 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
         return false;
     }
 
+    if (serviceName.empty() == nullptr) {
+        ZLOGE(LABEL, "serviceName is empty");
+        return false;
+    }
     std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
     std::string::size_type pos = str.find("_");
     std::string peerUid = str.substr(0, pos);
     std::string peerPid = str.substr(pos + 1);
+    if (peerUid.empty() || peerPid.empty()) {
+        ZLOGE(LABEL, "peerUid or peerPid is empty");
+        return false;
+    }
 
     std::shared_ptr<DBinderSessionObject> dbinderSession = std::make_shared<DBinderSessionObject>(
         serviceName, peerID, stubIndex, this, peerTokenId);
