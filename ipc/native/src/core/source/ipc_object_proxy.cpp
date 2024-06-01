@@ -729,7 +729,7 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
         return false;
     }
 
-    if (serviceName.empty() == nullptr) {
+    if (serviceName.empty()) {
         ZLOGE(LABEL, "serviceName is empty");
         return false;
     }
