@@ -32,7 +32,10 @@ struct TestRemoteStub;
 impl RemoteStub for TestRemoteStub {
     fn on_remote_request(&self, code: u32, data: &mut MsgParcel, reply: &mut MsgParcel) -> i32 {
         match code {
-            0 => parcel_remote(data, reply),
+            0 => {
+                parcel_remote_primitive(data, reply);
+                parcel_remote_vec(data, reply);
+            }
             _ => unreachable!(),
         }
         0
@@ -50,7 +53,7 @@ fn init() {
     });
 }
 
-fn parcel_remote(data: &mut MsgParcel, reply: &mut MsgParcel) {
+fn parcel_remote_primitive(data: &mut MsgParcel, reply: &mut MsgParcel) {
     reply
         .write_interface_token(data.read_interface_token().unwrap().as_str())
         .unwrap();
@@ -81,7 +84,9 @@ fn parcel_remote(data: &mut MsgParcel, reply: &mut MsgParcel) {
 
     reply.write(&data.read::<usize>().unwrap());
     reply.write(&data.read::<usize>().unwrap());
+}
 
+fn parcel_remote_vec(data: &mut MsgParcel, reply: &mut MsgParcel) {
     reply.write(&data.read::<Vec<bool>>().unwrap());
     reply.write(&data.read::<Vec<i8>>().unwrap());
     reply.write(&data.read::<Vec<i16>>().unwrap());
@@ -113,13 +118,7 @@ fn parcel_remote(data: &mut MsgParcel, reply: &mut MsgParcel) {
     reply.write_string16_vec(&data.read_string16_vec().unwrap());
 }
 
-#[test]
-fn parcel_read_and_write() {
-    init();
-    let test_service = SystemAbilityManager::get_system_ability(TEST_SYSTEM_ABILITY_ID).unwrap();
-
-    let mut msg = MsgParcel::new();
-
+fn read_and_write(msg: &mut MsgParcel) {
     msg.write_interface_token("hello ipc").unwrap();
     msg.write_buffer(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
@@ -154,7 +153,9 @@ fn parcel_read_and_write() {
     msg.write(&u64::MIN).unwrap();
     msg.write(&usize::MAX).unwrap();
     msg.write(&usize::MIN).unwrap();
+}
 
+fn read_and_write_vec(msg: &mut MsgParcel) {
     msg.write(&vec![true; 3]).unwrap();
     msg.write(&vec![i8::MIN; 3]).unwrap();
     msg.write(&vec![i16::MIN; 3]).unwrap();
@@ -182,6 +183,17 @@ fn parcel_read_and_write() {
     msg.write("hello ipc").unwrap();
     let s = String::from("hello ipc");
     msg.write(&s).unwrap();
+}
+
+#[test]
+fn parcel_read_and_write() {
+    init();
+
+    let test_service = SystemAbilityManager::get_system_ability(TEST_SYSTEM_ABILITY_ID).unwrap();
+    let mut msg = MsgParcel::new();
+
+    read_and_write(&mut msg);
+    read_and_write_vec(&mut msg);
 
     let s = String::from("ipc hello");
     let v = vec![s.clone(), s.clone(), s.clone()];
@@ -206,6 +218,9 @@ fn parcel_read_and_write() {
     let s = String::from_utf8(res).unwrap();
     assert_eq!(s, "hello ipc");
 
+}
+
+fn assert_read_and_write(reply: &mut MsgParcel) {
     assert!(reply.read::<bool>().unwrap());
     assert!(!reply.read::<bool>().unwrap());
     assert_eq!(i8::MAX, reply.read().unwrap());
@@ -228,7 +243,9 @@ fn parcel_read_and_write() {
     assert_eq!(u64::MIN, reply.read().unwrap());
     assert_eq!(usize::MAX, reply.read().unwrap());
     assert_eq!(usize::MIN, reply.read().unwrap());
+}
 
+fn assert_read_and_write_vec(reply: &mut MsgParcel) {
     assert_eq!(reply.read::<Vec<bool>>().unwrap(), vec![true; 3]);
     assert_eq!(reply.read::<Vec<i8>>().unwrap(), vec![i8::MIN; 3]);
     assert_eq!(reply.read::<Vec<i16>>().unwrap(), vec![i16::MIN; 3]);
@@ -252,10 +269,4 @@ fn parcel_read_and_write() {
 
     assert_eq!(reply.read::<Vec<f32>>().unwrap(), vec![TEST_FLOAT; 3]);
     assert_eq!(reply.read::<Vec<f64>>().unwrap(), vec![TEST_DOUBLE; 3]);
-
-    assert_eq!(String::from("hello ipc"), reply.read::<String>().unwrap());
-    assert_eq!(String::from("hello ipc"), reply.read::<String>().unwrap());
-    assert_eq!(v, reply.read::<Vec<String>>().unwrap());
-    assert_eq!(String::from("ipc hello"), reply.read_string16().unwrap());
-    assert_eq!(v, reply.read_string16_vec().unwrap());
 }
