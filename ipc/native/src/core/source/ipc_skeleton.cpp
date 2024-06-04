@@ -82,6 +82,15 @@ bool IPCSkeleton::SetMaxWorkThreadNum(int maxThreadNum)
     return false;
 }
 
+std::string IPCSkeleton::GetCallingSid()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetCallerSid();
+    }
+    return "";
+}
+
 pid_t IPCSkeleton::GetCallingPid()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();

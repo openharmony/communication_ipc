@@ -79,6 +79,8 @@ public:
 
     bool WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnership) override;
 
+    std::string GetCallerSid() const override;
+
     pid_t GetCallerPid() const override;
 
     pid_t GetCallerRealPid() const override;
@@ -132,6 +134,7 @@ protected:
     pid_t callerUid_;
     uint64_t callerTokenID_;
     uint64_t firstTokenID_;
+    std::string callerSid_;
 
 private:
     int TransactWithDriver(bool doRead = true);
@@ -153,9 +156,9 @@ private:
 
     void OnReleaseObject(uint32_t cmd);
 
-    void Transaction(const uint8_t *buffer);
+    void Transaction(binder_transaction_data_secctx& trSecctx);
 
-    void OnTransaction(int32_t &error);
+    void OnTransaction(int32_t cmd, int32_t &error);
 
     void OnSpawnThread();
 
@@ -191,13 +194,13 @@ private:
     void DealWithCmd(MessageParcel *reply,
         int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
 
-    int32_t TargetStubSendRequest(const binder_transaction_data *tr,
+    int32_t TargetStubSendRequest(const binder_transaction_data &tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);
 
     int32_t GeneralServiceSendRequest(
-        const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+        const binder_transaction_data &tr, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
-    int32_t SamgrServiceSendRequest(const binder_transaction_data *tr,
+    int32_t SamgrServiceSendRequest(const binder_transaction_data &tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     void AttachInvokerProcInfoWrapper();
@@ -245,18 +248,19 @@ private:
     const std::unordered_set<int32_t> GET_HANDLE_CMD_SET = {BC_ACQUIRE, BC_RELEASE,
         BC_REQUEST_DEATH_NOTIFICATION, BC_REPLY, BC_CLEAR_DEATH_NOTIFICATION, BC_FREE_BUFFER, BC_TRANSACTION};
     const std::map<int32_t, std::function<void(int32_t cmd, int32_t &error)>> receiverCommandMap_ = {
-        { BR_ERROR,           [&](int32_t cmd, int32_t &error) { error = input_.ReadInt32(); } },
-        { BR_ACQUIRE,         [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
-        { BR_INCREFS,         [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
-        { BR_RELEASE,         [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
-        { BR_DECREFS,         [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
-        { BR_ATTEMPT_ACQUIRE, [&](int32_t cmd, int32_t &error) { OnAttemptAcquire(); } },
-        { BR_TRANSACTION,     [&](int32_t cmd, int32_t &error) { OnTransaction(error); } },
-        { BR_SPAWN_LOOPER,    [&](int32_t cmd, int32_t &error) { OnSpawnThread(); } },
-        { BR_FINISHED,        [&](int32_t cmd, int32_t &error) { error = -ERR_TIMED_OUT; } },
-        { BR_DEAD_BINDER,     [&](int32_t cmd, int32_t &error) { OnBinderDied(); } },
-        { BR_OK,              [&](int32_t cmd, int32_t &error) { } },
-        { BR_NOOP,            [&](int32_t cmd, int32_t &error) { } },
+        { BR_ERROR,               [&](int32_t cmd, int32_t &error) { error = input_.ReadInt32(); } },
+        { BR_ACQUIRE,             [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
+        { BR_INCREFS,             [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
+        { BR_RELEASE,             [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
+        { BR_DECREFS,             [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
+        { BR_ATTEMPT_ACQUIRE,     [&](int32_t cmd, int32_t &error) { OnAttemptAcquire(); } },
+        { BR_TRANSACTION,         [&](int32_t cmd, int32_t &error) { OnTransaction(cmd, error); } },
+        { BR_TRANSACTION_SEC_CTX, [&](int32_t cmd, int32_t &error) { OnTransaction(cmd, error); } },
+        { BR_SPAWN_LOOPER,        [&](int32_t cmd, int32_t &error) { OnSpawnThread(); } },
+        { BR_FINISHED,            [&](int32_t cmd, int32_t &error) { error = -ERR_TIMED_OUT; } },
+        { BR_DEAD_BINDER,         [&](int32_t cmd, int32_t &error) { OnBinderDied(); } },
+        { BR_OK,                  [&](int32_t cmd, int32_t &error) { } },
+        { BR_NOOP,                [&](int32_t cmd, int32_t &error) { } },
         { BR_CLEAR_DEATH_NOTIFICATION_DONE, [&](int32_t cmd, int32_t &error) { OnRemoveRecipientDone(); } },
     };
     const std::map<int32_t, HandleFunction> senderCommandMap_ = {

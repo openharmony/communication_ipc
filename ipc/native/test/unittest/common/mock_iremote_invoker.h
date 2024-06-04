@@ -49,6 +49,7 @@ public:
     MOCK_METHOD1(FreeBuffer, void(void *data));
     MOCK_METHOD1(SetRegistryObject, bool(sptr<IRemoteObject> &object));
     MOCK_METHOD0(StopWorkThread, void());
+    MOCK_CONST_METHOD0(GetCallerSid, std::string());
     MOCK_CONST_METHOD0(GetCallerPid, pid_t());
     MOCK_CONST_METHOD0(GetCallerRealPid, pid_t());
     MOCK_CONST_METHOD0(GetCallerUid, uid_t());
