@@ -64,6 +64,31 @@ std::shared_ptr<MessageParcel> NAPI_MessageSequence::GetMessageParcel()
     return nativeParcel_;
 }
 
+napi_value CreateTypeCodeEnum(napi_env env)
+{
+    napi_value enumValues[ENUM_TYPECODE_COUNT] = {nullptr};
+    napi_value enumObject = nullptr;
+    napi_create_object(env, &enumObject);
+    for (int i = 0; i < ENUM_TYPECODE_COUNT; i++) {
+        napi_create_int32(env, i, &enumValues[i]);
+    }
+
+    napi_property_descriptor enumDesc[] = {
+        DECLARE_NAPI_PROPERTY("INT8_ARRAY", enumValues[INT8_ARRAY]),
+        DECLARE_NAPI_PROPERTY("UINT8_ARRAY", enumValues[UINT8_ARRAY]),
+        DECLARE_NAPI_PROPERTY("INT16_ARRAY", enumValues[INT16_ARRAY]),
+        DECLARE_NAPI_PROPERTY("UINT16_ARRAY", enumValues[UINT16_ARRAY]),
+        DECLARE_NAPI_PROPERTY("INT32_ARRAY", enumValues[INT32_ARRAY]),
+        DECLARE_NAPI_PROPERTY("UINT32_ARRAY", enumValues[UINT32_ARRAY]),
+        DECLARE_NAPI_PROPERTY("FLOAT32_ARRAY", enumValues[FLOAT32_ARRAY]),
+        DECLARE_NAPI_PROPERTY("FLOAT64_ARRAY", enumValues[FLOAT64_ARRAY]),
+        DECLARE_NAPI_PROPERTY("BIGINT64_ARRAY", enumValues[BIGINT64_ARRAY]),
+        DECLARE_NAPI_PROPERTY("BIGUINT64_ARRAY", enumValues[BIGUINT64_ARRAY]),
+    };
+    napi_define_properties(env, enumObject, sizeof(enumDesc) / sizeof(enumDesc[0]), enumDesc);
+    return enumObject;
+}
+
 napi_value NAPI_MessageSequence::JS_writeByte(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -1831,9 +1856,150 @@ napi_value NAPI_MessageSequence::JS_GetRawDataCapacity(napi_env env, napi_callba
     return napiValue;
 }
 
+napi_value NAPI_MessageSequence::JS_checkWriteArrayBufferArgs(napi_env env, size_t argc, napi_value* argv)
+{
+    if (argv == nullptr) {
+        ZLOGE(LOG_LABEL, "argv is nullptr");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+    if (argc != ARGV_LENGTH_2) {
+        ZLOGE(LOG_LABEL, "requires 2 parameter");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+    
+    bool isArrayBuffer = false;
+    napi_status status = napi_is_arraybuffer(env, argv[ARGV_INDEX_0], &isArrayBuffer);
+    if (!isArrayBuffer) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not ArrayBuffer. status:%{public}d", status);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+
+    napi_valuetype valuetype = napi_null;
+    status = napi_typeof(env, argv[ARGV_INDEX_1], &valuetype);
+    if (valuetype != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 2, not number. status:%{public}d", status);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+
+    int32_t typeCode = 0;
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &typeCode);
+    if (typeCode < INT8_ARRAY || typeCode > BIGUINT64_ARRAY) {
+        ZLOGE(LOG_LABEL, "the value of parameter 2 is out of range. typeCode:%{public}d", typeCode);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+
+    napi_value napiValue = nullptr;
+    napi_get_undefined(env, &napiValue);
+    return napiValue;
+}
+
+template<typename T>
+static std::vector<T> BufferToVector(void *data, size_t byteLength)
+{
+    const T* dataPtr = reinterpret_cast<const T*>(data);
+    std::vector<T> vec;
+    std::copy(dataPtr, dataPtr + byteLength / sizeof(T), std::back_inserter(vec));
+    return vec;
+}
+
+napi_value NAPI_MessageSequence::JS_writeArrayBuffer(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGV_LENGTH_2;
+    napi_value argv[ARGV_LENGTH_2] = {0};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    napi_value checkArgsResult = JS_checkWriteArrayBufferArgs(env, argc, argv);
+    if (checkArgsResult == nullptr) {
+        ZLOGE(LOG_LABEL, "checkArgsResult is null");
+        return checkArgsResult;
+    }
+
+    void *data = nullptr;
+    size_t byteLength = 0;
+    napi_status getStatus = napi_get_arraybuffer_info(env, argv[ARGV_INDEX_0], (void **)&data, &byteLength);
+    if (getStatus != napi_ok) {
+        ZLOGE(LOG_LABEL, "arraybuffer get info failed. getStatus:%{public}d", getStatus);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+    if (data == nullptr) {
+        ZLOGE(LOG_LABEL, "data is null");
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
+    }
+
+    NAPI_MessageSequence *napiSequence = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiSequence);
+    if (napiSequence == nullptr) {
+        ZLOGE(LOG_LABEL, "napiSequence is null");
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
+    }
+
+    CHECK_WRITE_CAPACITY(env, byteLength, napiSequence);
+
+    int32_t typeCode = 0;
+    napi_get_value_int32(env, argv[ARGV_INDEX_1], &typeCode);
+
+    bool writeSuccess = JS_writeVectorByTypeCode(env, typeCode, data, byteLength, napiSequence);
+    if (!writeSuccess) {
+        ZLOGE(LOG_LABEL, "write buffer failed");
+        return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
+    }
+
+    napi_value napiValue = nullptr;
+    napi_get_undefined(env, &napiValue);
+    return napiValue;
+}
+
+bool NAPI_MessageSequence::JS_writeVectorByTypeCode(napi_env env,
+                                                    int32_t typeCode,
+                                                    void *data,
+                                                    size_t byteLength,
+                                                    NAPI_MessageSequence *napiSequence)
+{
+    if (data == nullptr || napiSequence == nullptr) {
+        ZLOGE(LOG_LABEL, "data or napiSequence is null");
+        return false;
+    }
+    switch (typeCode) {
+        case INT8_ARRAY: {
+            return napiSequence->nativeParcel_->WriteInt8Vector(BufferToVector<int8_t>(data, byteLength));
+        }
+        case UINT8_ARRAY: {
+            return napiSequence->nativeParcel_->WriteUInt8Vector(BufferToVector<uint8_t>(data, byteLength));
+        }
+        case INT16_ARRAY: {
+            return napiSequence->nativeParcel_->WriteInt16Vector(BufferToVector<int16_t>(data, byteLength));
+        }
+        case UINT16_ARRAY: {
+            return napiSequence->nativeParcel_->WriteUInt16Vector(BufferToVector<uint16_t>(data, byteLength));
+        }
+        case INT32_ARRAY: {
+            return napiSequence->nativeParcel_->WriteInt32Vector(BufferToVector<int32_t>(data, byteLength));
+        }
+        case UINT32_ARRAY: {
+            return napiSequence->nativeParcel_->WriteUInt32Vector(BufferToVector<uint32_t>(data, byteLength));
+        }
+        case FLOAT32_ARRAY: {
+            return napiSequence->nativeParcel_->WriteFloatVector(BufferToVector<float>(data, byteLength));
+        }
+        case FLOAT64_ARRAY: {
+            return napiSequence->nativeParcel_->WriteDoubleVector(BufferToVector<double>(data, byteLength));
+        }
+        case BIGINT64_ARRAY: {
+            return napiSequence->nativeParcel_->WriteInt64Vector(BufferToVector<int64_t>(data, byteLength));
+        }
+        case BIGUINT64_ARRAY: {
+            return napiSequence->nativeParcel_->WriteUInt64Vector(BufferToVector<uint64_t>(data, byteLength));
+        }
+        default:
+            ZLOGE(LOG_LABEL, "unsupported typeCode:%{public}d", typeCode);
+            return false;
+    }
+}
+
 napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
 {
     const std::string className = "MessageSequence";
+    napi_value typeCode = CreateTypeCodeEnum(env);
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("create", NAPI_MessageSequence::JS_create),
         DECLARE_NAPI_FUNCTION("reclaim", NAPI_MessageSequence::JS_reclaim),
@@ -1907,6 +2073,8 @@ napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("readRawData", NAPI_MessageSequence::JS_ReadRawData),
         DECLARE_NAPI_FUNCTION("writeRawDataBuffer", NAPI_MessageSequence::JS_WriteRawDataBuffer),
         DECLARE_NAPI_FUNCTION("readRawDataBuffer", NAPI_MessageSequence::JS_ReadRawDataBuffer),
+        DECLARE_NAPI_FUNCTION("writeArrayBuffer", NAPI_MessageSequence::JS_writeArrayBuffer),
+        DECLARE_NAPI_FUNCTION("readArrayBuffer", NAPI_MessageSequence::JS_readArrayBuffer),
     };
     napi_value constructor = nullptr;
     napi_define_class(env, className.c_str(), className.length(), JS_constructor, nullptr,
@@ -1914,6 +2082,8 @@ napi_value NAPI_MessageSequence::Export(napi_env env, napi_value exports)
     NAPI_ASSERT(env, constructor != nullptr, "define js class MessageSequence failed");
     napi_status status = napi_set_named_property(env, exports, "MessageSequence", constructor);
     NAPI_ASSERT(env, status == napi_ok, "set property MessageSequence failed");
+    status = napi_set_named_property(env, exports, "TypeCode", typeCode);
+    NAPI_ASSERT(env, status == napi_ok, "set property TypeCode failed");
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
