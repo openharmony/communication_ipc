@@ -24,7 +24,15 @@
 #define B_PACK_CHARS(c1, c2, c3, c4) ((((c1) << 24)) | (((c2) << 16)) | (((c3) << 8)) | (c4))
 #define B_TYPE_LARGE 0x85
 
+#if INTPTR_MAX == INT32_MAX
 #define BINDER_IPC_32BIT
+#elif INTPTR_MAX == INT64_MAX
+#ifdef BINDER_IPC_32BIT
+#undef BINDER_IPC_32BIT
+#endif
+#else
+#error "Environment not 32 or 64 bit system."
+#endif
 
 enum {
     BINDER_TYPE_BINDER = B_PACK_CHARS('s', 'b', '*', B_TYPE_LARGE),
