@@ -1092,4 +1092,207 @@ napi_value NAPI_MessageSequence::JS_ReadRawDataBuffer(napi_env env, napi_callbac
     NAPI_ASSERT(env, status == EOK, "JS_ReadRawDataBuffer memcpy_s fail");
     return arrayBuffer;
 }
+
+template<typename T>
+napi_value NAPI_MessageSequence::JS_CopyVectorToBuffer(napi_env env, std::vector<T> vector, size_t bufferSize)
+{
+    napi_value arrayBuffer = nullptr;
+    void* arrayBufferPtr = nullptr;
+
+    napi_status createStatus = napi_create_arraybuffer(env, bufferSize, &arrayBufferPtr, &arrayBuffer);
+    if (createStatus != napi_ok) {
+        ZLOGE(LOG_LABEL, "create arrayBuffer failed. status:%{public}d", createStatus);
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    errno_t status = memcpy_s(arrayBufferPtr, bufferSize, vector.data(), bufferSize);
+    NAPI_ASSERT(env, status == EOK, "memcpy_s is failed");
+
+    return arrayBuffer;
+}
+
+napi_value NAPI_MessageSequence::JS_readArrayBuffer(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGV_LENGTH_1;
+    napi_value argv[ARGV_LENGTH_1] = {0};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if (argc != REQUIRED_ARGS_COUNT_1) {
+        ZLOGE(LOG_LABEL, "requires 1 parameter");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+
+    napi_valuetype valueType = napi_null;
+    napi_status status = napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
+    if (valueType != napi_number) {
+        ZLOGE(LOG_LABEL, "type mismatch for parameter 1, not number. status:%{public}d", status);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+
+    NAPI_MessageSequence *napiSequence = nullptr;
+    napi_unwrap(env, thisVar, (void **)&napiSequence);
+    if (napiSequence == nullptr) {
+        ZLOGE(LOG_LABEL, "napiSequence is null");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+
+    int32_t typeCode = 0;
+    napi_get_value_int32(env, argv[ARGV_INDEX_0], &typeCode);
+    if (typeCode < INT8_ARRAY || typeCode > BIGUINT64_ARRAY) {
+        ZLOGE(LOG_LABEL, "the value of parameter 1 is out of range. typeCode:%{public}d", typeCode);
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+
+    return JS_readVectorByTypeCode(env, typeCode, napiSequence);
+}
+
+napi_value NAPI_MessageSequence::JS_readVectorByTypeCode(napi_env env,
+                                                         int32_t typeCode,
+                                                         NAPI_MessageSequence *napiSequence)
+{
+    switch (typeCode) {
+        case INT8_ARRAY: {
+            return JS_readInt8ArrayBuffer(env, napiSequence);
+        }
+        case UINT8_ARRAY: {
+            return JS_readUInt8ArrayBuffer(env, napiSequence);
+        }
+        case INT16_ARRAY: {
+            return JS_readInt16ArrayBuffer(env, napiSequence);
+        }
+        case UINT16_ARRAY: {
+            return JS_readUInt16ArrayBuffer(env, napiSequence);
+        }
+        case INT32_ARRAY: {
+            return JS_readInt32ArrayBuffer(env, napiSequence);
+        }
+        case UINT32_ARRAY: {
+            return JS_readUInt32ArrayBuffer(env, napiSequence);
+        }
+        case FLOAT32_ARRAY: {
+            return JS_readFloatArrayBuffer(env, napiSequence);
+        }
+        case FLOAT64_ARRAY: {
+            return JS_readDoubleArrayBuffer(env, napiSequence);
+        }
+        case BIGINT64_ARRAY: {
+            return JS_readInt64ArrayBuffer(env, napiSequence);
+        }
+        case BIGUINT64_ARRAY: {
+            return JS_readUInt64ArrayBuffer(env, napiSequence);
+        }
+        default:
+            ZLOGE(LOG_LABEL, "unsupported typeCode:%{public}d", typeCode);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
+}
+
+napi_value NAPI_MessageSequence::JS_readInt8ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<int8_t> int8Vector;
+    if (!napiSequence->nativeParcel_->ReadInt8Vector(&int8Vector)) {
+        ZLOGE(LOG_LABEL, "read Int8Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = int8Vector.size();
+    return JS_CopyVectorToBuffer(env, int8Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readUInt8ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<uint8_t> uint8Vector;
+    if (!napiSequence->nativeParcel_->ReadUInt8Vector(&uint8Vector)) {
+        ZLOGE(LOG_LABEL, "read UInt8Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = uint8Vector.size();
+    return JS_CopyVectorToBuffer(env, uint8Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readInt16ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<int16_t> int16Vector;
+    if (!napiSequence->nativeParcel_->ReadInt16Vector(&int16Vector)) {
+        ZLOGE(LOG_LABEL, "read Int16Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = int16Vector.size() * BYTE_SIZE_16;
+    return JS_CopyVectorToBuffer(env, int16Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readUInt16ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<uint16_t> uint16Vector;
+    if (!napiSequence->nativeParcel_->ReadUInt16Vector(&uint16Vector)) {
+        ZLOGE(LOG_LABEL, "read UInt16Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = uint16Vector.size() * BYTE_SIZE_16;
+    return JS_CopyVectorToBuffer(env, uint16Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readInt32ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<int32_t> int32Vector;
+    if (!napiSequence->nativeParcel_->ReadInt32Vector(&int32Vector)) {
+        ZLOGE(LOG_LABEL, "read Int32Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = int32Vector.size() * BYTE_SIZE_32;
+    return JS_CopyVectorToBuffer(env, int32Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readUInt32ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<uint32_t> uint32Vector;
+    if (!napiSequence->nativeParcel_->ReadUInt32Vector(&uint32Vector)) {
+        ZLOGE(LOG_LABEL, "read UInt32Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = uint32Vector.size() * BYTE_SIZE_32;
+    return JS_CopyVectorToBuffer(env, uint32Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readFloatArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<float> floatVector;
+    if (!napiSequence->nativeParcel_->ReadFloatVector(&floatVector)) {
+        ZLOGE(LOG_LABEL, "read FloatVector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = floatVector.size() * BYTE_SIZE_32;
+    return JS_CopyVectorToBuffer(env, floatVector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readDoubleArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<double> doubleVector;
+    if (!napiSequence->nativeParcel_->ReadDoubleVector(&doubleVector)) {
+        ZLOGE(LOG_LABEL, "read DoubleVector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = doubleVector.size() * BYTE_SIZE_64;
+    return JS_CopyVectorToBuffer(env, doubleVector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readInt64ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<int64_t> int64Vector;
+    if (!napiSequence->nativeParcel_->ReadInt64Vector(&int64Vector)) {
+        ZLOGE(LOG_LABEL, "read Int64Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = int64Vector.size() * BYTE_SIZE_64;
+    return JS_CopyVectorToBuffer(env, int64Vector, bufferSize);
+}
+
+napi_value NAPI_MessageSequence::JS_readUInt64ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence)
+{
+    std::vector<uint64_t> uint64vector;
+    if (!napiSequence->nativeParcel_->ReadUInt64Vector(&uint64vector)) {
+        ZLOGE(LOG_LABEL, "read UInt64Vector failed");
+        return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    }
+    size_t bufferSize = uint64vector.size() * BYTE_SIZE_64;
+    return JS_CopyVectorToBuffer(env, uint64vector, bufferSize);
+}
 } // namespace OHOS
