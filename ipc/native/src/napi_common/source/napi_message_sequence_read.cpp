@@ -147,7 +147,9 @@ napi_value NAPI_MessageSequence::JS_readRemoteObject(napi_env env, napi_callback
     sptr<IRemoteObject> value = napiSequence->nativeParcel_->ReadRemoteObject();
     napi_value napiValue = NAPI_ohos_rpc_CreateJsRemoteObject(env, value);
     if (napiValue == nullptr) {
-        ZLOGE(LOG_LABEL, "remote object is null");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "remote object is null time:%{public}" PRIu64, curTime);
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
     }
     return napiValue;
