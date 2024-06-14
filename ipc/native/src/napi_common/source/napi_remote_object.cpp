@@ -345,7 +345,9 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "OnJsRemoteRequest failed, ret:%{public}d", ret);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "OnJsRemoteRequest failed, ret:%{public}d time:%{public}" PRIu64, ret, curTime);
     }
     return ret;
 }
@@ -362,7 +364,9 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
     napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
     NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
     if (!result) {
-        ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64, result ? "true" : "false", curTime);
         param->result = ERR_UNKNOWN_TRANSACTION;
     } else {
         param->result = ERR_NONE;
@@ -725,7 +729,9 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
-        ZLOGE(LOG_LABEL, "RemoteObject is null");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "RemoteObject is null time:%{public}" PRIu64, curTime);
         return nullptr;
     }
 
