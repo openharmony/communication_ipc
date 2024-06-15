@@ -53,6 +53,8 @@ int TestService::Instantiate(bool isEnableSerialInvokeFlag)
     }
 
     sptr<IRemoteObject> newInstance = new TestService(isEnableSerialInvokeFlag);
+    IPCObjectStub *stub = reinterpret_cast<IPCObjectStub *>(newInstance.GetRefPtr());
+    stub->SetRequestSidFlag(true);
 
 #ifdef IPCSERVERTESTEXTRA
     int result = saMgr->AddSystemAbility(IPC_EXTRA_TEST_SERVICE, newInstance);
@@ -85,7 +87,9 @@ int TestService::TestSyncTransaction(int data, int &rep, int delayTime)
         sleep((uint32_t)delayTime);
     }
 
-    ZLOGE(LABEL, "TestServiceStub:read from client data = %{public}d", data);
+    std::string sid = IPCSkeleton::GetCallingSid();
+    ZLOGI(LABEL, "TestServiceStub:read from client data = %{public}d, Caller sid = %{public}s", data, sid.c_str());
+
     return ERR_NONE;
 }
 

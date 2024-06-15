@@ -38,6 +38,7 @@ public:
     sptr<IRemoteObject> UnflattenObject(Parcel &parcel) override;
     int ReadFileDescriptor(Parcel &parcel) override;
     bool WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnership) override;
+    std::string GetCallerSid() const override;
     pid_t GetCallerPid() const override;
     pid_t GetCallerRealPid() const override;
     uid_t GetCallerUid() const override;
