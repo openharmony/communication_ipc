@@ -183,6 +183,7 @@ public:
     void DetachDBinderCallbackStub(DBinderCallbackStub *stub);
     sptr<DBinderCallbackStub> QueryDBinderCallbackStub(sptr<IRemoteObject> rpcProxy);
     sptr<IRemoteObject> QueryDBinderCallbackProxy(sptr<IRemoteObject> stub);
+    std::mutex &GetAppInfoAuthInfoMutex();
 #endif
 
 public:
@@ -238,6 +239,7 @@ private:
     std::mutex idleDataMutex_;
     std::mutex dataQueueMutex_;
     std::mutex findThreadMutex_;
+    std::mutex appInfoAuthinfoMutex_;
 
     std::recursive_mutex proxyToSessionMutex_;
     std::shared_mutex rawDataMutex_;
