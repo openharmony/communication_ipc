@@ -690,4 +690,14 @@ bool IPCObjectStub::IsSamgrCall()
     return ProcessSkeleton::GetInstance()->GetSamgrFlag();
 }
 #endif
+
+bool IPCObjectStub::GetRequestSidFlag() const
+{
+    return requestSidFlag_;
+}
+
+void IPCObjectStub::SetRequestSidFlag(bool flag)
+{
+    requestSidFlag_ = flag;
+}
 } // namespace OHOS
