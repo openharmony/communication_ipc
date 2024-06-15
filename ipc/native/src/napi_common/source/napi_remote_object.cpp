@@ -664,7 +664,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 if (!result) {
                     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                         std::chrono::steady_clock::now().time_since_epoch()).count());
-                    ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64, result ? "true" : "false", curTime);
+                    ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64,
+                        result ? "true" : "false", curTime);
                     param->result = ERR_UNKNOWN_TRANSACTION;
                 } else {
                     param->result = ERR_NONE;
