@@ -28,18 +28,17 @@ namespace OHOS {
 
     void TransactionTest(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size < sizeof(binder_transaction_data_secctx)) {
+        if (data == nullptr || size < sizeof(binder_transaction_data)) {
             return;
         }
 
         BinderInvoker *invoker = new BinderInvoker();
-        binder_transaction_data_secctx trSecctx = *(reinterpret_cast<const binder_transaction_data_secctx *>(data));
-        trSecctx.transaction_data.target.ptr = 0;
-        trSecctx.transaction_data.offsets_size = 0;
-        trSecctx.transaction_data.flags = 0;
-        trSecctx.secctx = 0;
-
-        invoker->Transaction(trSecctx);
+        const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(data);
+        binder_transaction_data trData = *tr;
+        trData.target.ptr = 0;
+        trData.offsets_size = 0;
+        trData.flags = 0;
+        invoker->Transaction(reinterpret_cast<const uint8_t*>(&trData));
         delete invoker;
     }
 }
