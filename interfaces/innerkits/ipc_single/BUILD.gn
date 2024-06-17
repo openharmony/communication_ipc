@@ -72,7 +72,9 @@ ohos_shared_library("ipc_single") {
     "hitrace:libhitracechain",
   ]
   defines = [ "FFRT_IPC_ENABLE" ]
-
+  if (build_selinux) {
+    defines += [ "WITH_SELINUX" ]
+  }
   innerapi_tags = [
     "chipsetsdk",
     "platformsdk",

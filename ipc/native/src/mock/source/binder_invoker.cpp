@@ -1064,6 +1064,7 @@ bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
         return false;
     }
 
+#ifdef WITH_SELINUX
     flat_binder_object flat = {
         .flags = FLAT_BINDER_FLAG_TXN_SECURITY_CTX,
     };
@@ -1072,12 +1073,13 @@ bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
     if (result == ERR_NONE) {
         return true;
     }
-
     ZLOGI(LABEL, "fail, error:%{public}d", result);
+#endif
+
     int dummy = 0;
-    result = binderConnector_->WriteBinder(BINDER_SET_CONTEXT_MGR, &dummy);
-    if (result != ERR_NONE) {
-        ZLOGE(LABEL, "fail, error:%{public}d", result);
+    int res = binderConnector_->WriteBinder(BINDER_SET_CONTEXT_MGR, &dummy);
+    if (res != ERR_NONE) {
+        ZLOGE(LABEL, "fail, error:%{public}d", res);
         return false;
     }
 
