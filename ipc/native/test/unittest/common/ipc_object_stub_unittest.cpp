@@ -261,30 +261,6 @@ HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest004, TestSize.Level1)
     EXPECT_EQ(s1.ret, ret);
 }
 
-/**
- * @tc.name: GetRequestSidFlag001
- * @tc.desc: Verify the GetRequestSidFlag function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCObjectStubTest, GetRequestSidFlag001, TestSize.Level1)
-{
-    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-
-    EXPECT_EQ(false, testStub->GetRequestSidFlag());
-}
-
-/**
- * @tc.name: SetRequestSidFlag001
- * @tc.desc: Verify the SetRequestSidFlag function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCObjectStubTest, SetRequestSidFlag001, TestSize.Level1)
-{
-    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
-    testStub->SetRequestSidFlag(true);
-
-    EXPECT_EQ(true, testStub->GetRequestSidFlag());
-}
 
 #ifndef CONFIG_IPC_SINGLE
 /**

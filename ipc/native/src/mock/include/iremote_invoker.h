@@ -61,8 +61,6 @@ public:
 
     virtual bool SetRegistryObject(sptr<IRemoteObject> &object) = 0;
 
-    virtual std::string GetCallerSid() const = 0;
-
     virtual pid_t GetCallerPid() const = 0;
 
     virtual pid_t GetCallerRealPid() const = 0;
