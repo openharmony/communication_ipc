@@ -675,11 +675,6 @@ void DBinderDatabusInvoker::SetClientFd(int32_t fd)
     clientFd_ = fd;
 }
 
-std::string DBinderDatabusInvoker::GetCallerSid() const
-{
-    return "";
-}
-
 pid_t DBinderDatabusInvoker::GetCallerPid() const
 {
     return callerPid_;

@@ -47,13 +47,6 @@ public:
     static void StopWorkThread();
 
     /**
-     * @brief Get calling selinux id of caller.
-     * @return Returns the Sid of caller.
-     * @since 12
-     */
-    static std::string GetCallingSid();
-
-    /**
      * @brief Get calling process id of caller.
      * @return Returns the PID of caller.
      * @since 9

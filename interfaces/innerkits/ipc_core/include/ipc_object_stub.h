@@ -204,20 +204,6 @@ public:
      * @since 11
      */
     uint64_t GetLastRequestTime();
-
-    /**
-     * @brief Obtain the flag for sid.
-     * @return Return the value of flag.
-     * @since 12
-     */
-    bool GetRequestSidFlag() const;
-
-    /**
-     * @brief Set the value of the sid flag.
-     * @return void.
-     * @since 12
-     */
-    void SetRequestSidFlag(bool flag);
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Invoker the calling thread.
@@ -294,7 +280,6 @@ private:
     std::map<uint32_t, IPCObjectStubFunc> funcMap_;
     int lastErrCode_ = 0;
     int lastErrCnt_ = 0;
-    std::atomic<bool> requestSidFlag_ = false;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H
