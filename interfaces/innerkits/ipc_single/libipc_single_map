@@ -17,7 +17,7 @@
     global:
         extern "C++" {
             OHOS::MessageParcel::WriteInterfaceToken*;
-            OHOS::IPCObjectStub*;
+            OHOS::IPCObjectStub::IPCObjectStub*;
             OHOS::IPCObjectStub::Dump*;
             OHOS::IPCFileDescriptor*;
             OHOS::BrokerRegistration::Register*;

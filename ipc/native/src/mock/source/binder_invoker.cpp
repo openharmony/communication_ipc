@@ -80,9 +80,9 @@ enum {
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()),
     callerRealPid_(getprocpid()), callerUid_(getuid()),
-    callerTokenID_(0), firstTokenID_(0), callerSid_(""), status_(0)
+    callerTokenID_(0), firstTokenID_(0), status_(0)
 {
-    invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_,
+    invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
         reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
@@ -559,13 +559,12 @@ void BinderInvoker::RestoreInvokerProcInfo(const InvokerProcInfo &info)
     callerUid_ = info.uid;
     callerTokenID_ = info.tokenId;
     firstTokenID_ = info.firstTokenId;
-    callerSid_ = info.sid;
 }
 
 void BinderInvoker::AttachInvokerProcInfoWrapper()
 {
     InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_,
-        callerUid_, callerTokenID_, firstTokenID_, callerSid_, reinterpret_cast<uintptr_t>(this) };
+        callerUid_, callerTokenID_, firstTokenID_, reinterpret_cast<uintptr_t>(this) };
     auto current = ProcessSkeleton::GetInstance();
     if (current != nullptr) {
         current->AttachInvokerProcInfo(true, invokerInfo);
@@ -573,7 +572,7 @@ void BinderInvoker::AttachInvokerProcInfoWrapper()
 }
 
 int32_t BinderInvoker::SamgrServiceSendRequest(
-    const binder_transaction_data &tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+    const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int error = ERR_DEAD_OBJECT;
 
@@ -581,19 +580,19 @@ int32_t BinderInvoker::SamgrServiceSendRequest(
     if (targetObject == nullptr) {
         ZLOGE(LABEL, "Invalid samgr stub object");
     } else {
-        error = targetObject->SendRequest(tr.code, data, reply, option);
+        error = targetObject->SendRequest(tr->code, data, reply, option);
     }
     return error;
 }
 
 int32_t BinderInvoker::GeneralServiceSendRequest(
-    const binder_transaction_data &tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+    const binder_transaction_data *tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int32_t error = ERR_DEAD_OBJECT;
-    auto *refs = reinterpret_cast<RefCounter *>(tr.target.ptr);
+    auto *refs = reinterpret_cast<RefCounter *>(tr->target.ptr);
     int count = 0;
-    if ((refs != nullptr) && (tr.cookie) && (refs->AttemptIncStrongRef(this, count))) {
-        auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr.cookie);
+    if ((refs != nullptr) && (tr->cookie) && (refs->AttemptIncStrongRef(this, count))) {
+        auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr->cookie);
         if (targetObject != nullptr) {
             DeadObjectInfo deadInfo;
             auto current = ProcessSkeleton::GetInstance();
@@ -602,7 +601,7 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
                     reinterpret_cast<uintptr_t>(targetObject),
                     ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
             } else {
-                error = targetObject->SendRequest(tr.code, data, reply, option);
+                error = targetObject->SendRequest(tr->code, data, reply, option);
                 targetObject->DecStrongRef(this);
             }
         }
@@ -610,7 +609,7 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
     return error;
 }
 
-int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data &tr,
+int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data *tr,
     MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue)
 {
 #ifdef CONFIG_ACTV_BINDER
@@ -619,9 +618,9 @@ int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data &tr,
 #endif
 
     int32_t error = ERR_DEAD_OBJECT;
-    flagValue = static_cast<uint32_t>(tr.flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
+    flagValue = static_cast<uint32_t>(tr->flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
     option.SetFlags(static_cast<int>(flagValue));
-    if (tr.target.ptr != 0) {
+    if (tr->target.ptr != 0) {
         error = GeneralServiceSendRequest(tr, data, reply, option);
     } else {
         error = SamgrServiceSendRequest(tr, data, reply, option);
@@ -633,29 +632,27 @@ int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data &tr,
     return error;
 }
 
-void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
+void BinderInvoker::Transaction(const uint8_t *buffer)
 {
-    binder_transaction_data& tr = trSecctx.transaction_data;
+    const binder_transaction_data *tr = reinterpret_cast<const binder_transaction_data *>(buffer);
     auto binderAllocator = new (std::nothrow) BinderAllocator();
     if (binderAllocator == nullptr) {
         ZLOGE(LABEL, "BinderAllocator Creation failed");
         return;
     }
     auto data = std::make_unique<MessageParcel>(binderAllocator);
-    data->ParseFrom(tr.data.ptr.buffer, tr.data_size);
-    if (tr.offsets_size > 0) {
-        data->InjectOffsets(tr.data.ptr.offsets, tr.offsets_size / sizeof(binder_size_t));
+    data->ParseFrom(tr->data.ptr.buffer, tr->data_size);
+    if (tr->offsets_size > 0) {
+        data->InjectOffsets(tr->data.ptr.offsets, tr->offsets_size / sizeof(binder_size_t));
     }
-    uint32_t &newflags = const_cast<uint32_t &>(tr.flags);
-    int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr.target.handle),
-        tr.code, *data, newflags);
+    uint32_t &newflags = const_cast<uint32_t &>(tr->flags);
+    int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr->target.handle),
+        tr->code, *data, newflags);
     InvokerProcInfo oldInvokerProcInfo = {
-        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_, 0 };
+        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, 0 };
     uint32_t oldStatus = status_;
-
-    callerSid_ = (trSecctx.secctx != 0) ? reinterpret_cast<char *>(trSecctx.secctx) : "";
-    callerPid_ = tr.sender_pid;
-    callerUid_ = tr.sender_euid;
+    callerPid_ = tr->sender_pid;
+    callerUid_ = tr->sender_euid;
     callerRealPid_ = callerPid_;
     if (binderConnector_ != nullptr && binderConnector_->IsRealPidSupported()) {
         GetSenderInfo(callerTokenID_, firstTokenID_, callerRealPid_);
@@ -671,11 +668,10 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int32_t error = TargetStubSendRequest(tr, *data, reply, option, flagValue);
 
-    HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr.target.handle), tr.code, isServerTraced, newflags);
+    HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr->target.handle), tr->code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
-
     RestoreInvokerProcInfo(oldInvokerProcInfo);
     // restore caller information to another binderinvoker
     AttachInvokerProcInfoWrapper();
@@ -731,28 +727,14 @@ void BinderInvoker::OnSpawnThread()
     }
 }
 
-void BinderInvoker::OnTransaction(int32_t cmd, int32_t &error)
+void BinderInvoker::OnTransaction(int32_t &error)
 {
-    binder_transaction_data_secctx trSecctx = {
-        .secctx = 0,
-    };
-    const uint8_t *buffer = nullptr;
-    bool isSecctx = (cmd == static_cast<int32_t>(BR_TRANSACTION_SEC_CTX));
-    uint32_t bufferSize = isSecctx ? sizeof(binder_transaction_data_secctx) : sizeof(binder_transaction_data);
-
-    buffer = input_.ReadBuffer(bufferSize);
+    const uint8_t *buffer = input_.ReadBuffer(sizeof(binder_transaction_data));
     if (buffer == nullptr) {
         error = IPC_INVOKER_INVALID_DATA_ERR;
         return;
     }
-
-    if (isSecctx) {
-        trSecctx = *(reinterpret_cast<const binder_transaction_data_secctx *>(buffer));
-    } else {
-        trSecctx.transaction_data = *(reinterpret_cast<const binder_transaction_data *>(buffer));
-    }
-
-    Transaction(trSecctx);
+    Transaction(buffer);
 }
 
 int BinderInvoker::HandleReply(MessageParcel *reply)
@@ -1064,20 +1046,10 @@ bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
         return false;
     }
 
-    flat_binder_object flat = {
-        .flags = FLAT_BINDER_FLAG_TXN_SECURITY_CTX,
-    };
-
-    int result = binderConnector_->WriteBinder(BINDER_SET_CONTEXT_MGR_EXT, &flat);
-    if (result == ERR_NONE) {
-        return true;
-    }
-
-    ZLOGI(LABEL, "fail, error:%{public}d", result);
-    int dummy = 0;
-    result = binderConnector_->WriteBinder(BINDER_SET_CONTEXT_MGR, &dummy);
+    Parcel dummy;
+    int result = binderConnector_->WriteBinder(BINDER_SET_CONTEXT_MGR, &dummy);
     if (result != ERR_NONE) {
-        ZLOGE(LABEL, "fail, error:%{public}d", result);
+        ZLOGE(LABEL, "set registry fail, driver error:%{public}d", result);
         return false;
     }
 
@@ -1114,15 +1086,6 @@ pid_t BinderInvoker::GetCallerPid() const
         return invokerInfo_.pid;
     }
     return callerPid_;
-}
-
-std::string BinderInvoker::GetCallerSid() const
-{
-    auto pid = getpid();
-    if (!status_ && pid != invokerInfo_.pid) {
-        return invokerInfo_.sid;
-    }
-    return callerSid_;
 }
 
 pid_t BinderInvoker::GetCallerRealPid() const
@@ -1218,7 +1181,6 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
         return false;
     }
     flat_binder_object flat;
-    flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
     if (object->IsProxyObject()) {
         const IPCObjectProxy *proxy = reinterpret_cast<const IPCObjectProxy *>(object);
         const int32_t handle = proxy ? static_cast<int32_t>(proxy->GetHandle()) : -1;
@@ -1227,15 +1189,12 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
         flat.handle = (uint32_t)handle;
         flat.cookie = proxy ? static_cast<binder_uintptr_t>(proxy->GetProto()) : 0;
     } else {
-        const IPCObjectStub *stub = reinterpret_cast<const IPCObjectStub *>(object);
-        if (stub->GetRequestSidFlag()) {
-            flat.flags |= FLAT_BINDER_FLAG_TXN_SECURITY_CTX;
-        }
         flat.hdr.type = BINDER_TYPE_BINDER;
         flat.binder = reinterpret_cast<uintptr_t>(object->GetRefCounter());
         flat.cookie = reinterpret_cast<uintptr_t>(object);
     }
 
+    flat.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
     bool status = parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
     if (!status) {
         ZLOGE(LABEL, "Fail to flatten object");
@@ -1317,7 +1276,6 @@ std::string BinderInvoker::ResetCallingIdentity()
     pid_t tempRealPid = callerRealPid_;
     pid_t tempUid = callerUid_;
     uint64_t tempTokenId = callerTokenID_;
-    std::string tempSid = callerSid_;
 
     auto pid = getpid();
     if (!status_ && pid != invokerInfo_.pid) {
@@ -1325,7 +1283,6 @@ std::string BinderInvoker::ResetCallingIdentity()
         tempRealPid = invokerInfo_.realPid;
         tempUid = invokerInfo_.uid;
         tempTokenId = invokerInfo_.tokenId;
-        tempSid = invokerInfo_.sid;
     }
 
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
@@ -1347,8 +1304,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     callerPid_ = getpid();
     callerRealPid_ = getprocpid();
     callerTokenID_ = GetSelfTokenID();
-    callerSid_ = "";
-    return tempSid + "<" + accessToken + realPid + pidUid; // '<' is the separator character
+    return accessToken + realPid + pidUid;
 }
 
 bool BinderInvoker::SetCallingIdentity(std::string &identity)
@@ -1357,21 +1313,14 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
         return false;
     }
 
-    int32_t pos = identity.find('<');
-    if (pos == static_cast<int32_t>(std::string::npos)) {
-        return false;
-    }
-    std::string callerSid_ = identity.substr(0, pos);
-    callerTokenID_ = std::stoull(identity.substr(pos + 1, ACCESS_TOKEN_MAX_LEN).c_str());
+    callerTokenID_ = std::stoull(identity.substr(0, ACCESS_TOKEN_MAX_LEN).c_str());
     callerRealPid_ =
-        static_cast<int>(std::stoull(identity.substr(pos + 1 + ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN).c_str()));
-    uint64_t pidUid = std::stoull(identity.substr(pos + 1 + ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET,
+        static_cast<int>(std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN).c_str()));
+    uint64_t pidUid =
+        std::stoull(identity.substr(ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET,
         identity.length() - ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET).c_str());
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
-    ZLOGD(LABEL, "callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
-        callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
-        callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
     return true;
 }
 
