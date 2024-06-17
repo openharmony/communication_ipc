@@ -705,6 +705,8 @@ bool IPCObjectStub::GetRequestSidFlag() const
 
 void IPCObjectStub::SetRequestSidFlag(bool flag)
 {
+#ifdef WITH_SELINUX
     requestSidFlag_ = flag;
+#endif
 }
 } // namespace OHOS
