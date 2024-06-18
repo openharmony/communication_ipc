@@ -281,7 +281,7 @@ int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code,
     }
     int32_t listenFd = invoker->GetClientFd();
 
-    std::lock_guard<std::mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
+    std::lock_guard<std::recursive_mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
     // detach info whose listen fd equals the given one
     if (current->DetachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd)) {
         current->DetachCommAuthInfo(this, callerPid, callerUid, tokenId, callerDevId);
@@ -399,7 +399,7 @@ void IPCObjectStub::OnLastStrongRef(const void *objectId)
         // we only need to erase stub index here, commAuth and appInfo
         // has already been removed either in dbinder dec refcount case
         // or OnSessionClosed, we also remove commAuth and appInfo in case of leak
-        std::lock_guard<std::mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
+        std::lock_guard<std::recursive_mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
         current->DetachCommAuthInfoByStub(this);
         uint64_t stubIndex = current->EraseStubIndex(this);
         current->DetachAppInfoToStubIndex(stubIndex);
@@ -535,7 +535,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
-    std::lock_guard<std::mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
+    std::lock_guard<std::recursive_mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
     // mark listen fd as 0
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteTokenId, remoteDeviceId, stubIndex, 0)) {
         ZLOGW(LABEL, "app info already existed, replace with 0");
@@ -600,7 +600,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
         " tokenId:%{public}u", remotePid, remoteUid,
         IPCProcessSkeleton::ConvertToSecureString(remoteDeviceId).c_str(), stubIndex, tokenId);
 
-    std::lock_guard<std::mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
+    std::lock_guard<std::recursive_mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
     // mark listen fd as 0
     if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, tokenId, remoteDeviceId, stubIndex, 0)) {
         ZLOGW(LABEL, "app info already attached, replace with 0");

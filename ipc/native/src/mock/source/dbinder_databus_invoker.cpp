@@ -875,7 +875,7 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
         "stubIndex:%{public}" PRIu64, peerPid, peerUid, IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(),
         tokenId, stubIndex);
 
-    std::lock_guard<std::mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
+    std::lock_guard<std::recursive_mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
     // mark listen fd as 0
     if (!current->AttachAppInfoToStubIndex(peerPid, peerUid, tokenId, deviceId, stubIndex, 0)) {
         ZLOGI(LOG_LABEL, "app info already existed, replace with 0");

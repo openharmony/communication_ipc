@@ -1447,7 +1447,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteOb
     return nullptr;
 }
 
-std::mutex &IPCProcessSkeleton::GetAppInfoAuthInfoMutex()
+std::recursive_mutex &IPCProcessSkeleton::GetAppInfoAuthInfoMutex()
 {
     return appInfoAuthinfoMutex_;
 }
