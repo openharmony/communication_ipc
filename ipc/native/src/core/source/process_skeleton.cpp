@@ -244,7 +244,7 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
     // don't lock in the function.
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    if (curTime - deadObjectClearTime_ < DEAD_OBJECT_CHECK_INTERVAL) {
+    if (curTime < DEAD_OBJECT_CHECK_INTERVAL + deadObjectClearTime_) {
         return;
     }
     deadObjectClearTime_ = curTime;
