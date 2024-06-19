@@ -72,6 +72,9 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
+    if (current->GetSamgrFlag()) {
+        SetRequestSidFlag(true);
+    }
     current->DetachDeadObject(this);
 }
 
