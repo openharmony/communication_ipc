@@ -288,6 +288,20 @@ bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invoke
     return true;
 }
 
+bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::unique_lock<std::shared_mutex> lockGuard(invokerProcMutex_);
+    std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
+    auto it = invokerProcInfo_.find(key);
+    if (it != invokerProcInfo_.end()) {
+        InvokerProcInfo.erase(it);
+        return true;
+    }
+    ZLOGW(LOG_LABEL, "key %{public}s not found", key.c_str());
+    return false; 
+}
+
 bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
 {
     bool isPrint = false;
