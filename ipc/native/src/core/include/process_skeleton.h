@@ -62,6 +62,7 @@ public:
     bool IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo);
     bool AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
+    bool DetachInvokerProcInfo(bool isLocal);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
