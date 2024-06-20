@@ -91,7 +91,11 @@ BinderInvoker::BinderInvoker()
 
 BinderInvoker::~BinderInvoker()
 {
-    ZLOGD(LABEL, "created %{public}zu", reinterpret_cast<uintptr_t>(this));
+    ZLOGD(LABEL, "destroyed %{public}zu", reinterpret_cast<uintptr_t>(this));
+    auto current = ProcessSkeleton::GetInstance();
+    if (current != nullptr) {
+        current->DetachInvokerProcInfo(true);
+    }
 }
 
 bool BinderInvoker::AcquireHandle(int32_t handle)
