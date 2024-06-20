@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cinttypes>
 
 #include "hilog/log.h"
 #include "ipc_skeleton.h"
@@ -471,7 +472,9 @@ EXTERN_C_START
  */
 napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports)
 {
-    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init start...");
+    uint64_t startTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init start...time:%{public}" PRIu64, startTime);
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getContextObject", NAPI_IPCSkeleton_getContextObject),
         DECLARE_NAPI_STATIC_FUNCTION("getCallingPid", NAPI_IPCSkeleton_getCallingPid),
@@ -492,7 +495,9 @@ napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports)
         sizeof(desc) / sizeof(desc[0]), desc, &result);
     napi_status status = napi_set_named_property(env, exports, "IPCSkeleton", result);
     NAPI_ASSERT(env, status == napi_ok, "create ref to js RemoteObject constructor failed");
-    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init end...");
+    uint64_t endTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "napi_moudule IPCSkeleton Init end...time:%{public}" PRIu64, endTime);
     return exports;
 }
 EXTERN_C_END
