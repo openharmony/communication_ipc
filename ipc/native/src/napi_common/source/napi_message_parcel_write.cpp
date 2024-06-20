@@ -45,14 +45,14 @@ NAPI_MessageParcel::NAPI_MessageParcel(napi_env env, napi_value thisVar, Message
 
 NAPI_MessageParcel::~NAPI_MessageParcel()
 {
-    ZLOGI(LOG_LABEL, "NAPI_MessageParcel::Destructor");
+    ZLOGD(LOG_LABEL, "NAPI_MessageParcel::Destructor");
     nativeParcel_ = nullptr;
     env_ = nullptr;
 }
 
 void NAPI_MessageParcel::release(MessageParcel *parcel)
 {
-    ZLOGI(LOG_LABEL, "message parcel is created by others, do nothing");
+    ZLOGD(LOG_LABEL, "message parcel is created by others, do nothing");
 }
 
 std::shared_ptr<MessageParcel> NAPI_MessageParcel::GetMessageParcel()

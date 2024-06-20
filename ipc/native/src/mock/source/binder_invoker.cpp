@@ -364,7 +364,9 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
     }
     int error = TransactWithDriver(false);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "fail to flush commands with error:%{public}d", error);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LABEL, "fail to flush commands with error:%{public}d time:%{public}" PRIu64, error, curTime);
     }
 
     if (output_.GetDataSize() > 0) {
@@ -510,7 +512,8 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
         return;
     }
 
-    ZLOGD(LABEL, "refcount:%{public}d", refs->GetStrongRefCount());
+    ZLOGD(LABEL, "refcount:%{public}d refs:%{public}zu obj:%{public}zu", refs->GetStrongRefCount(),
+        reinterpret_cast<uintptr_t>(refs), reinterpret_cast<uintptr_t>(obj));
     if (cmd == BR_RELEASE) {
         ProcessSkeleton *current = ProcessSkeleton::GetInstance();
         DeadObjectInfo deadInfo;
@@ -896,7 +899,9 @@ int BinderInvoker::TransactWithDriver(bool doRead)
         input_.RewindRead(0);
     }
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "fail, result:%{public}d", error);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LABEL, "fail, result:%{public}d time:%{public}" PRIu64, error, curTime);
     }
 
     return error;
