@@ -295,10 +295,13 @@ bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
     std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
     auto it = invokerProcInfo_.find(key);
     if (it != invokerProcInfo_.end()) {
+        invokeInfo = it->second;
+        ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+            invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
+            invokeInfo.firstTokenId);
         invokerProcInfo_.erase(it);
         return true;
     }
-    ZLOGW(LOG_LABEL, "key %{public}s not found", key.c_str());
     return false;
 }
 
