@@ -42,6 +42,13 @@ pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
 
 static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "IPCThreadSkeleton" };
+
+extern "C" __attribute__((destructor)) void DeleteTlsKey()
+{
+    pthread_key_t key = IPCThreadSkeleton::GetTlsKey();
+    pthread_key_delete(key);
+}
+
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
     auto *current = static_cast<IPCThreadSkeleton *>(args);
@@ -159,6 +166,11 @@ IRemoteInvoker *IPCThreadSkeleton::GetProxyInvoker(IRemoteObject *object)
 IRemoteInvoker *IPCThreadSkeleton::GetDefaultInvoker()
 {
     return GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+}
+
+pthread_key_t IPCThreadSkeleton::GetTlsKey()
+{
+    return TLSKey_;
 }
 
 void IPCThreadSkeleton::JoinWorkThread(int proto)
