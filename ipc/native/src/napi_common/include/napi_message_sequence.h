@@ -73,6 +73,7 @@ private:
     static napi_value JS_writeStringArray(napi_env env, napi_callback_info info);
     static napi_value JS_writeParcelableArray(napi_env env, napi_callback_info info);
     static napi_value JS_writeRemoteObjectArray(napi_env env, napi_callback_info info);
+    static napi_value JS_writeArrayBuffer(napi_env env, napi_callback_info info);
 
     static napi_value JS_readByte(napi_env env, napi_callback_info info);
     static napi_value JS_readShort(napi_env env, napi_callback_info info);
@@ -95,6 +96,7 @@ private:
     static napi_value JS_readStringArray(napi_env env, napi_callback_info info);
     static napi_value JS_readParcelableArray(napi_env env, napi_callback_info info);
     static napi_value JS_readRemoteObjectArray(napi_env env, napi_callback_info info);
+    static napi_value JS_readArrayBuffer(napi_env env, napi_callback_info info);
 
     static napi_value JS_CloseFileDescriptor(napi_env env, napi_callback_info info);
     static napi_value JS_DupFileDescriptor(napi_env env, napi_callback_info info);
@@ -125,6 +127,23 @@ private:
                                         uint32_t size, NAPI_MessageSequence *napiSequence);
     static bool JS_WriteRawDataForTypedArray(napi_env env, napi_value jsTypedArray,
                                              size_t size, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_checkWriteArrayBufferArgs(napi_env env, size_t argc, napi_value* argv);
+    static bool JS_writeVectorByTypeCode(napi_env env, int32_t typeCode, void *data,
+                                         size_t byteLength, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readVectorByTypeCode(napi_env env, int32_t typeCode, NAPI_MessageSequence *napiSequence);
+
+    static napi_value JS_readInt8ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readUInt8ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readInt16ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readUInt16ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readInt32ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readUInt32ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readFloatArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readDoubleArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readInt64ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    static napi_value JS_readUInt64ArrayBuffer(napi_env env, NAPI_MessageSequence *napiSequence);
+    template<typename T>
+    static napi_value JS_CopyVectorToBuffer(napi_env env, std::vector<T> vector, size_t bufferSize);
 
     napi_env env_ = nullptr;
     bool owner;

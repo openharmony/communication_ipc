@@ -346,8 +346,7 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
     sessionBuff->UpdateSendBuffer(sendSize);
     ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
-    if (writeCursor < 0 || readCursor < 0 ||
-        sendSize + static_cast<uint32_t>(writeCursor) > sessionBuff->GetSendBufferSize()) {
+    if (writeCursor < 0 || readCursor < 0 || sendSize > sessionBuff->GetSendBufferSize() - writeCursor) {
         sessionBuff->ReleaseSendBufferLock();
         ZLOGE(LOG_LABEL, "sender's data is large than idle buffer, writecursor:%{public}zd readcursor:%{public}zd,\
             sendSize:%{public}u bufferSize:%{public}u",

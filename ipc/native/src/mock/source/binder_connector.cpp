@@ -15,6 +15,7 @@
 
 #include "binder_connector.h"
 
+#include <cinttypes>
 #include <cstdint>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -203,7 +204,9 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
         }
 
         if (err == -EINTR) {
-            ZLOGE(LABEL, "ioctl_binder returned EINTR");
+            uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            ZLOGE(LABEL, "ioctl_binder returned EINTR time:%{public}" PRIu64, curTime);
         }
     }
 

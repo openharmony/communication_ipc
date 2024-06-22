@@ -650,7 +650,11 @@ mod test {
         assert_eq!(usize::MAX, msg.read().unwrap());
         msg.write(&usize::MIN).unwrap();
         assert_eq!(usize::MIN, msg.read().unwrap());
+    }
 
+    #[test]
+    fn string() {
+        let mut msg = MsgParcel::new();
         msg.write("hello ipc").unwrap();
         assert_eq!(String::from("hello ipc"), msg.read::<String>().unwrap());
 
@@ -665,6 +669,19 @@ mod test {
         let s = String::from("ipc hello");
         let v = vec![s.clone(), s.clone(), s.clone(), s];
         msg.write(&v).unwrap();
+        assert_eq!(v, msg.read::<Vec<String>>().unwrap());
+
+        msg.write("hello ipc").unwrap();
+        let s = String::from("hello ipc");
+        msg.write(&s).unwrap();
+        let v = vec![1];
+        msg.write(&v).unwrap();
+        let s = String::from("ipc hello");
+        let v = vec![s.clone(), s.clone(), s.clone(), s];
+        msg.write(&v).unwrap();
+        assert_eq!(String::from("hello ipc"), msg.read::<String>().unwrap());
+        assert_eq!(String::from("hello ipc"), msg.read::<String>().unwrap());
+        assert_eq!(vec![1], msg.read::<Vec<i32>>().unwrap());
         assert_eq!(v, msg.read::<Vec<String>>().unwrap());
     }
 
@@ -698,14 +715,6 @@ mod test {
         msg.write(&u64::MIN).unwrap();
         msg.write(&usize::MAX).unwrap();
         msg.write(&usize::MIN).unwrap();
-        msg.write("hello ipc").unwrap();
-        let s = String::from("hello ipc");
-        msg.write(&s).unwrap();
-        let v = vec![1];
-        msg.write(&v).unwrap();
-        let s = String::from("ipc hello");
-        let v = vec![s.clone(), s.clone(), s.clone(), s];
-        msg.write(&v).unwrap();
 
         assert!(msg.read::<bool>().unwrap());
         assert!(!msg.read::<bool>().unwrap());
@@ -729,10 +738,6 @@ mod test {
         assert_eq!(u64::MIN, msg.read().unwrap());
         assert_eq!(usize::MAX, msg.read().unwrap());
         assert_eq!(usize::MIN, msg.read().unwrap());
-        assert_eq!(String::from("hello ipc"), msg.read::<String>().unwrap());
-        assert_eq!(String::from("hello ipc"), msg.read::<String>().unwrap());
-        assert_eq!(vec![1], msg.read::<Vec<i32>>().unwrap());
-        assert_eq!(v, msg.read::<Vec<String>>().unwrap());
     }
 
     /// UT test cases for `MsgParcel`

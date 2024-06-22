@@ -36,6 +36,7 @@ struct InvokerProcInfo {
     pid_t uid;
     uint64_t tokenId;
     uint64_t firstTokenId;
+    std::string sid;
     uintptr_t invoker;
 };
 
@@ -61,6 +62,7 @@ public:
     bool IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo);
     bool AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
+    bool DetachInvokerProcInfo(bool isLocal);
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);

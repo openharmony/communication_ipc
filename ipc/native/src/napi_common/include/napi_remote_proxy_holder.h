@@ -19,6 +19,7 @@
 #include <mutex>
 #include <refbase.h>
 #include <set>
+#include <uv.h>
 
 #include "napi_remote_object_internal.h"
 
@@ -37,6 +38,8 @@ protected:
     virtual ~NAPIDeathRecipient() = default;
 
 private:
+    static void AfterWorkCallback(uv_work_t *work, int status);
+
     struct OnRemoteDiedParam {
         napi_env env;
         napi_ref deathRecipientRef;
