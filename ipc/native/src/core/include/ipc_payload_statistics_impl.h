@@ -20,6 +20,7 @@
 #include <shared_mutex>
 #include <string>
 #include <vector>
+#include <atomic>
 
 namespace OHOS {
 
