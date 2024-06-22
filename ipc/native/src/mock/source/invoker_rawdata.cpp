@@ -19,8 +19,13 @@
 #include "new"
 
 namespace OHOS {
+static constexpr size_t MAX_RAWDATA_SIZE = 128 * 1024 * 1024; // 128M
+
 InvokerRawData::InvokerRawData(size_t size)
 {
+    if (size == 0 || size > MAX_RAWDATA_SIZE) {
+        return;
+    }
     /* size is guaranteed by caller, in MessageParcel max size is 1G */
     data_.reset(reinterpret_cast<char *>(::operator new(size)));
     size_ = size;
