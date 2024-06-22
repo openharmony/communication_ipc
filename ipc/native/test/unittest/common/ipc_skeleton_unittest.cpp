@@ -106,6 +106,31 @@ HWTEST_F(IPCSkeletonTest, StopWorkThreadTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetCallingSidTest001
+ * @tc.desc: Verify the GetCallingSidTest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingSidTest001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, GetCallerSid())
+        .WillRepeatedly(testing::Return(""));
+
+    auto result = skeleton.GetCallingSid();
+    EXPECT_EQ(result, "");
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
  * @tc.name: GetCallingTokenIDTest001
  * @tc.desc: Verify the GetCallingTokenID function
  * @tc.type: FUNC

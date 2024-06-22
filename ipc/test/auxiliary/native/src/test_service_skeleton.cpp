@@ -49,6 +49,11 @@ void TestServiceStub::InitMessageProcessMap()
     funcMap_[static_cast<uint32_t>(TRANS_ID_TRANSACT_FILE_DESC)] = &TestServiceStub::ServerTransactFileDesc;
     funcMap_[static_cast<uint32_t>(TRANS_ID_STRING_TRANSACTION)] = &TestServiceStub::ServerStringTransaction;
     funcMap_[static_cast<uint32_t>(TRANS_ID_ZTRACE_TRANSACTION)] = &TestServiceStub::ServerZtraceTransaction;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_RAWDATA_TRANSACTION)] = &TestServiceStub::TransferRawData;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_RAWDATA_REPLY)] = &TestServiceStub::ReplyRawData;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_FLUSH_ASYNC_CALLS)] = &TestServiceStub::ServerFlushAsyncCalls;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_ASHMEM)] = &TestServiceStub::ReadAshmem;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_MULTIPLE_PROCESSES)] = &TestServiceStub::TransferToNextProcess;
     funcMap_[static_cast<uint32_t>(TRANS_ID_CALLING_UID_PID)] = &TestServiceStub::ServerCallingUidAndPid;
     funcMap_[static_cast<uint32_t>(TRANS_ID_NESTING_SEND)] = &TestServiceStub::ServerNestingSend;
     funcMap_[static_cast<uint32_t>(TRANS_ID_ACCESS_TOKENID)] = &TestServiceStub::ServerAccessTokenId;
@@ -910,7 +915,7 @@ int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Message
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-int TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
+int32_t TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
 {
     ZLOGD(LABEL, "enter transfer raw data");
     int length = data.ReadInt32();
@@ -955,7 +960,7 @@ int TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
-int TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
+int32_t TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
 {
     ZLOGD(LABEL, "enter reply raw data");
     int length = data.ReadInt32();
@@ -986,7 +991,7 @@ int TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
-void TestServiceStub::TransferToNextProcess(MessageParcel &data, MessageParcel &reply)
+int32_t TestServiceStub::TransferToNextProcess(MessageParcel &data, MessageParcel &reply)
 {
     int32_t reqData = data.ReadInt32();
     int32_t delayTime = data.ReadInt32();
@@ -997,49 +1002,50 @@ void TestServiceStub::TransferToNextProcess(MessageParcel &data, MessageParcel &
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (saMgr == nullptr) {
         reply.WriteInt32(ERR_TRANSACTION_FAILED);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_EXTRA_TEST_SERVICE);
     if (object == nullptr) {
         reply.WriteInt32(ERR_TRANSACTION_FAILED);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     sptr<ITestService> testService = iface_cast<ITestService>(object);
     if (testService == nullptr) {
         reply.WriteInt32(ERR_TRANSACTION_FAILED);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     ret += testService->TestSyncTransaction(reqData, result, delayTime);
     ret += testService->TestAsyncCallbackTrans(reqData, result, delayTime);
     if (ret != 0) {
         reply.WriteInt32(ERR_TRANSACTION_FAILED);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     reply.WriteInt32(ERR_NONE);
+    return ERR_NONE;
 }
 
-void TestServiceStub::ReadAshmem(MessageParcel &data, MessageParcel &reply)
+int32_t TestServiceStub::ReadAshmem(MessageParcel &data, MessageParcel &reply)
 {
     int32_t contentSize = data.ReadInt32();
     if (contentSize < 0) {
         reply.WriteInt32(-1);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     sptr<Ashmem> ashmem = data.ReadAshmem();
     if (ashmem == nullptr) {
         reply.WriteInt32(-1);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     int32_t ashmemSize = ashmem->GetAshmemSize();
     if (ashmemSize < contentSize || !ashmem->MapReadOnlyAshmem()) {
         reply.WriteInt32(-1);
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     const void *content = ashmem->ReadFromAshmem(contentSize, 0);
@@ -1047,7 +1053,7 @@ void TestServiceStub::ReadAshmem(MessageParcel &data, MessageParcel &reply)
         reply.WriteInt32(-1);
         ashmem->UnmapAshmem();
         ashmem->CloseAshmem();
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     auto pt = static_cast<const char *>(content);
@@ -1064,7 +1070,7 @@ void TestServiceStub::ReadAshmem(MessageParcel &data, MessageParcel &reply)
             ashmem2->UnmapAshmem();
             ashmem2->CloseAshmem();
         }
-        return;
+        return ERR_TRANSACTION_FAILED;
     }
 
     reply.WriteInt32(contentSize);
@@ -1072,6 +1078,13 @@ void TestServiceStub::ReadAshmem(MessageParcel &data, MessageParcel &reply)
 
     ashmem2->UnmapAshmem();
     ashmem2->CloseAshmem();
+    return ERR_NONE;
+}
+
+int32_t TestServiceStub::ServerFlushAsyncCalls(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data.ReadString16();
+    return ERR_NONE;
 }
 
 bool TestDeathRecipient::gotDeathRecipient_ = false;

@@ -364,45 +364,79 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
     return dBinderServiceStub;
 }
 
+bool DBinderService::CheckDeviceIDsInvalid(const std::string &deviceID, const std::string &localDevID)
+{
+    if (IsDeviceIdIllegal(deviceID) || IsDeviceIdIllegal(localDevID)) {
+        DBINDER_LOGE(LOG_LABEL, "wrong device id length, remote:%{public}zu local:%{public}zu",
+            deviceID.length(), localDevID.length());
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::CopyDeviceIDsToMessage(std::shared_ptr<struct DHandleEntryTxRx> message,
+    const std::string &localDevID, const std::string &deviceID)
+{
+    if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
+        memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory, service:%{public}" PRIu64" seq:%{public}u",
+            message->stubIndex, message->seqNumber);
+        return false;
+    }
+    message->deviceIdInfo.fromDeviceId[localDevID.length()] = '\0';
+    message->deviceIdInfo.toDeviceId[deviceID.length()] = '\0';
+    return true;
+}
+
+std::shared_ptr<struct DHandleEntryTxRx> DBinderService::CreateMessage(const sptr<DBinderServiceStub> &stub,
+    uint32_t seqNumber, uint32_t pid, uint32_t uid)
+{
+    auto message = std::make_shared<struct DHandleEntryTxRx>();
+    if (message == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "new DHandleEntryTxRx fail");
+        return nullptr;
+    }
+
+    message->head.len = sizeof(DHandleEntryTxRx);
+    message->head.version = RPC_TOKENID_SUPPORT_VERSION;
+    message->dBinderCode = MESSAGE_AS_INVOKER;
+    message->transType = GetRemoteTransType();
+    message->fromPort = 0;
+    message->toPort = 0;
+    message->stubIndex = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
+    message->seqNumber = seqNumber;
+    message->binderObject = stub->GetBinderObject();
+    message->stub = AddStubByTag(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
+    message->deviceIdInfo.tokenId = IPCSkeleton::GetCallingTokenID();
+    message->pid = pid;
+    message->uid = uid;
+
+    return message;
+}
+
 bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid,
     uint32_t uid)
 {
     const std::string deviceID = stub->GetDeviceID();
     const std::string localDevID = GetLocalDeviceID();
-    if (IsDeviceIdIllegal(deviceID) || IsDeviceIdIllegal(localDevID)) {
-        DBINDER_LOGE(LOG_LABEL, "wrong device id length, remote:%{public}zu local:%{public}zu",
-            deviceID.length(), localDevID.length());
+    if (CheckDeviceIDsInvalid(deviceID, localDevID)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
-    std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
-    message->head.len            = sizeof(DHandleEntryTxRx);
-    message->head.version        = RPC_TOKENID_SUPPORT_VERSION;
-    message->dBinderCode         = MESSAGE_AS_INVOKER;
-    message->transType           = GetRemoteTransType();
-    message->fromPort            = 0;
-    message->toPort              = 0;
-    message->stubIndex           = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
-    message->seqNumber           = seqNumber;
-    message->binderObject        = stub->GetBinderObject();
-    message->stub                = AddStubByTag(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
-    message->deviceIdInfo.tokenId = IPCSkeleton::GetCallingTokenID();
-    message->pid                 = pid;
-    message->uid                 = uid;
-    if (memcpy_s(message->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, localDevID.data(), localDevID.length()) != 0 ||
-        memcpy_s(message->deviceIdInfo.toDeviceId, DEVICEID_LENGTH, deviceID.data(), deviceID.length()) != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to copy memory, service:%{public}" PRIu64" seq:%{public}u",
-            message->stubIndex, message->seqNumber);
+    auto message = CreateMessage(stub, seqNumber, pid, uid);
+    if (message == nullptr) {
+        return false;
+    }
+
+    if (!CopyDeviceIDsToMessage(message, localDevID, deviceID)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return false;
     }
-    message->deviceIdInfo.fromDeviceId[localDevID.length()] = '\0';
-    message->deviceIdInfo.toDeviceId[deviceID.length()] = '\0';
+
     DBINDER_LOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u seq:%{public}u stub:%{public}llu"
         " tokenId:%{public}u", message->pid, message->uid, message->seqNumber,
         (message->stub & BINDER_MASK), message->deviceIdInfo.tokenId);
-
     std::shared_ptr<DBinderRemoteListener> remoteListener = GetRemoteListener();
     if (remoteListener == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remoteListener is null, service:%{public}" PRIu64 " seq:%{public}u",
@@ -873,10 +907,41 @@ bool DBinderService::IsSameSession(std::shared_ptr<struct SessionInfo> oldSessio
     return true;
 }
 
-void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
+bool DBinderService::IsInvalidStub(const struct DHandleEntryTxRx *replyMessage)
 {
     if (HasDBinderStub(QueryStubPtr(replyMessage->stub)) == false) {
         DBINDER_LOGE(LOG_LABEL, "invalid stub object");
+        return true;
+    }
+    return false;
+}
+
+bool DBinderService::CopyDeviceIdInfo(std::shared_ptr<struct SessionInfo> &session,
+    const struct DHandleEntryTxRx *replyMessage)
+{
+    if (memcpy_s(&session->deviceIdInfo, sizeof(struct DeviceIdInfo), &replyMessage->deviceIdInfo,
+        sizeof(struct DeviceIdInfo)) != 0) {
+        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
+        return false;
+    }
+    return true;
+}
+
+void DBinderService::InitializeSession(std::shared_ptr<struct SessionInfo> &session,
+    const struct DHandleEntryTxRx *replyMessage)
+{
+    session->seqNumber   = replyMessage->seqNumber;
+    session->socketFd    = 0;
+    session->stubIndex   = replyMessage->stubIndex;
+    session->toPort      = replyMessage->toPort;
+    session->fromPort    = replyMessage->fromPort;
+    session->type        = replyMessage->transType;
+    session->serviceName = replyMessage->serviceName;
+}
+
+void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage)
+{
+    if (IsInvalidStub(replyMessage)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_STUB_INVALID, __FUNCTION__);
         return;
     }
@@ -888,9 +953,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         return;
     }
 
-    if (memcpy_s(&session->deviceIdInfo, sizeof(struct DeviceIdInfo), &replyMessage->deviceIdInfo,
-        sizeof(struct DeviceIdInfo)) != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to copy memory");
+    if (!CopyDeviceIdInfo(session, replyMessage)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
         return;
     }
@@ -900,13 +963,7 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
     }
     DBINDER_LOGI(LOG_LABEL, "stubIndex:%{public}d tokenId:%{public}u",
         static_cast<int32_t>(replyMessage->stubIndex), session->deviceIdInfo.tokenId);
-    session->seqNumber   = replyMessage->seqNumber;
-    session->socketFd    = 0;
-    session->stubIndex   = replyMessage->stubIndex;
-    session->toPort      = replyMessage->toPort;
-    session->fromPort    = replyMessage->fromPort;
-    session->type        = replyMessage->transType;
-    session->serviceName = replyMessage->serviceName;
+    InitializeSession(session, replyMessage);
 
     if (session->stubIndex == 0) {
         DBINDER_LOGE(LOG_LABEL, "get stubIndex == 0, it is invalid");
@@ -918,18 +975,17 @@ void DBinderService::MakeSessionByReplyMessage(const struct DHandleEntryTxRx *re
         if (IsSameSession(oldSession, session) == true) {
             DBINDER_LOGI(LOG_LABEL, "invoker remote session already, do nothing");
             return;
-        } else {
-            // ignore seqNumber overflow here, greater seqNumber means later request
-            if (oldSession->seqNumber < session->seqNumber) {
-                // remote old session
-                if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
-                    DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
-                    DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_SESSION_FAIL, __FUNCTION__);
-                }
-            } else {
-                // do nothing, use old session, discard session got this time
-                // in this case, old session is requested later, but it comes back earlier
+        }
+        // ignore seqNumber overflow here, greater seqNumber means later request
+        if (oldSession->seqNumber < session->seqNumber) {
+            // remote old session
+            if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
+                DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
+                DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_DETACH_SESSION_FAIL, __FUNCTION__);
             }
+        } else {
+            // do nothing, use old session, discard session got this time
+            // in this case, old session is requested later, but it comes back earlier
         }
     }
 

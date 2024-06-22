@@ -319,7 +319,17 @@ private:
     bool DetachSessionObject(binder_uintptr_t stub);
     bool AttachSessionObject(std::shared_ptr<struct SessionInfo> object, binder_uintptr_t stub);
     sptr<IRemoteObject> FindOrNewProxy(binder_uintptr_t binderObject, int32_t systemAbilityId);
+    bool CheckDeviceIDsInvalid(const std::string &deviceID, const std::string &localDevID);
+    bool CopyDeviceIDsToMessage(std::shared_ptr<struct DHandleEntryTxRx> message,
+        const std::string &localDevID, const std::string &deviceID);
+    std::shared_ptr<struct DHandleEntryTxRx> CreateMessage(const sptr<DBinderServiceStub> &stub, uint32_t seqNumber,
+        uint32_t pid, uint32_t uid);
     bool SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
+    bool IsInvalidStub(const struct DHandleEntryTxRx *replyMessage);
+    bool CopyDeviceIdInfo(std::shared_ptr<struct SessionInfo> &session,
+        const struct DHandleEntryTxRx *replyMessage);
+    void InitializeSession(std::shared_ptr<struct SessionInfo> &session,
+        const struct DHandleEntryTxRx *replyMessage);
     uint16_t AllocFreeSocketPort();
     std::string GetLocalDeviceID();
     binder_uintptr_t AddStubByTag(binder_uintptr_t stub);

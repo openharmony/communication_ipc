@@ -345,7 +345,9 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
     if (ret != 0) {
-        ZLOGE(LOG_LABEL, "OnJsRemoteRequest failed, ret:%{public}d", ret);
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "OnJsRemoteRequest failed, ret:%{public}d time:%{public}" PRIu64, ret, curTime);
     }
     return ret;
 }
@@ -362,7 +364,9 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
     napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
     NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
     if (!result) {
-        ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64, result ? "true" : "false", curTime);
         param->result = ERR_UNKNOWN_TRANSACTION;
     } else {
         param->result = ERR_NONE;
@@ -658,7 +662,10 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 bool result = false;
                 napi_get_value_bool(param->env, returnVal, &result);
                 if (!result) {
-                    ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s", result ? "true" : "false");
+                    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::steady_clock::now().time_since_epoch()).count());
+                    ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64,
+                        result ? "true" : "false", curTime);
                     param->result = ERR_UNKNOWN_TRANSACTION;
                 } else {
                     param->result = ERR_NONE;
@@ -725,7 +732,9 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
-        ZLOGE(LOG_LABEL, "RemoteObject is null");
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "RemoteObject is null time:%{public}" PRIu64, curTime);
         return nullptr;
     }
 
@@ -947,7 +956,9 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     }
     param->errCode = param->target->SendRequest(param->code,
         *(param->data.get()), *(param->reply.get()), param->option);
-    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d", param->errCode);
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d time：%{public}" PRIu64, param->errCode, curTime);
     if (param->traceId != 0) {
         FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
@@ -978,7 +989,9 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         };
     } else {
         afterWorkCb = [](uv_work_t *work, int status) {
-            ZLOGI(LOG_LABEL, "promise fullfilled");
+            uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            ZLOGI(LOG_LABEL, "promise fullfilled time:%{public}" PRIu64, curTime);
             SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
             napi_handle_scope scope = nullptr;
             napi_open_handle_scope(param->env, &scope);

@@ -675,6 +675,11 @@ void DBinderDatabusInvoker::SetClientFd(int32_t fd)
     clientFd_ = fd;
 }
 
+std::string DBinderDatabusInvoker::GetCallerSid() const
+{
+    return "";
+}
+
 pid_t DBinderDatabusInvoker::GetCallerPid() const
 {
     return callerPid_;
@@ -874,6 +879,8 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
     ZLOGI(LOG_LABEL, "pid:%{public}d uid:%{public}d deviceId:%{public}s tokenId:%{public}u "
         "stubIndex:%{public}" PRIu64, peerPid, peerUid, IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(),
         tokenId, stubIndex);
+
+    std::lock_guard<std::mutex> lockGuard(current->GetAppInfoAuthInfoMutex());
     // mark listen fd as 0
     if (!current->AttachAppInfoToStubIndex(peerPid, peerUid, tokenId, deviceId, stubIndex, 0)) {
         ZLOGI(LOG_LABEL, "app info already existed, replace with 0");

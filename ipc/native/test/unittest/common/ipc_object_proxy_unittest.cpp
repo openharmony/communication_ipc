@@ -763,6 +763,12 @@ int SendRequestPortMock(int handle, uint32_t code, MessageParcel &data, MessageP
     MessageOption &option)
 {
     reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS);
+    reply.WriteUint64(0);
+    reply.WriteString("Dbinder0_0");
+    reply.WriteString("1");
+    reply.WriteString("1");
+    reply.WriteString("test");
+    reply.WriteUint32(0);
     return ERR_NONE;
 }
 

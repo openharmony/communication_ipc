@@ -37,9 +37,9 @@ ohos_shared_library("ipc_test_helper") {
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
 
   external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
-    "bounds_checking_function:libsec_static",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokensetproc_shared",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
@@ -61,8 +61,8 @@ ohos_executable("ipc_server_test") {
   deps = [ ":ipc_test_helper" ]
 
   external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokensetproc_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
@@ -87,8 +87,8 @@ ohos_executable("ipc_client_test") {
   ]
 
   external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokensetproc_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
@@ -122,9 +122,9 @@ ohos_shared_library("ipc_test_helper_extra") {
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
 
   external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
-    "bounds_checking_function:libsec_static",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokensetproc_shared",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
@@ -146,8 +146,8 @@ ohos_executable("ipc_server_test_extra") {
   deps = [ ":ipc_test_helper_extra" ]
 
   external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
+    "access_token:libnativetoken_shared",
+    "access_token:libtokensetproc_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",

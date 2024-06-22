@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <string>
+#include <atomic>
 
 #include "inner_socket.h"
 #include "nocopyable.h"

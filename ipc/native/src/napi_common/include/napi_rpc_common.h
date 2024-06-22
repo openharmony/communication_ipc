@@ -49,6 +49,7 @@ namespace OHOS {
 constexpr size_t MAX_CAPACITY_TO_WRITE = 200 * 1024;
 constexpr size_t MAX_BYTES_LENGTH = 40960;
 constexpr size_t BYTE_SIZE_8 = 1;
+constexpr size_t BYTE_SIZE_16 = 2;
 constexpr size_t BYTE_SIZE_32 = 4;
 constexpr size_t BYTE_SIZE_64 = 8;
 constexpr size_t ARGV_INDEX_0 = 0;
@@ -56,5 +57,20 @@ constexpr size_t ARGV_INDEX_1 = 1;
 constexpr size_t ARGV_LENGTH_1 = 1;
 constexpr size_t ARGV_LENGTH_2 = 2;
 constexpr size_t REQUIRED_ARGS_COUNT_1 = 1;  // "requires 1 parameter"
+constexpr size_t ENUM_TYPECODE_COUNT = 10;
+
+enum TypeCode {
+    INT8_ARRAY        = 0,
+    UINT8_ARRAY       = 1,
+    INT16_ARRAY       = 2,
+    UINT16_ARRAY      = 3,
+    INT32_ARRAY       = 4,
+    UINT32_ARRAY      = 5,
+    FLOAT32_ARRAY     = 6,
+    FLOAT64_ARRAY     = 7,
+    BIGINT64_ARRAY    = 8,
+    BIGUINT64_ARRAY   = 9,
+};
+
 } // namespace OHOS
 #endif //  NAPI_IPC_OHOS_NAPI_RPC_COMMON_H

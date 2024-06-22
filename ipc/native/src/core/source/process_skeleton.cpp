@@ -54,13 +54,7 @@ ProcessSkeleton::~ProcessSkeleton()
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     ZLOGW(LOG_LABEL, "destroy time:%{public}" PRIu64, curTime);
-    std::lock_guard<std::mutex> lockGuard(mutex_);
     exitFlag_ = true;
-    {
-        std::unique_lock<std::shared_mutex> objLock(objMutex_);
-        objects_.clear();
-        isContainStub_.clear();
-    }
 }
 
 sptr<IRemoteObject> ProcessSkeleton::GetRegistryObject()
@@ -129,6 +123,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
     if (lockFlag) {
         lockGuard.lock();
     }
@@ -165,6 +160,7 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
 
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     std::shared_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
     if (lockFlag) {
         lockGuard.lock();
     }
@@ -248,7 +244,7 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
     // don't lock in the function.
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    if (curTime - deadObjectClearTime_ < DEAD_OBJECT_CHECK_INTERVAL) {
+    if (curTime < DEAD_OBJECT_CHECK_INTERVAL + deadObjectClearTime_) {
         return;
     }
     deadObjectClearTime_ = curTime;
@@ -290,6 +286,23 @@ bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invoke
         invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
         invokeInfo.firstTokenId);
     return true;
+}
+
+bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::unique_lock<std::shared_mutex> lockGuard(invokerProcMutex_);
+    std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
+    auto it = invokerProcInfo_.find(key);
+    if (it != invokerProcInfo_.end()) {
+        auto &invokeInfo = it->second;
+        ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+            invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
+            invokeInfo.firstTokenId);
+        invokerProcInfo_.erase(it);
+        return true;
+    }
+    return false;
 }
 
 bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
