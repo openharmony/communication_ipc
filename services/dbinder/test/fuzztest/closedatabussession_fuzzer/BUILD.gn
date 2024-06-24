@@ -22,7 +22,6 @@ ohos_fuzztest("CloseDatabusSessionFuzzTest") {
   fuzz_config_file =
       "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/closedatabussession_fuzzer"
   include_dirs = [
-    "//utils/system/safwk/native/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
     "$SUBSYSTEM_DIR/ipc/native/src/core/include/",
   ]

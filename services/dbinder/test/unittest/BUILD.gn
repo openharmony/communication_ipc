@@ -13,7 +13,6 @@
 
 import("//build/test.gni")
 
-DSOFTBUS_PATH = "//foundation/communication/dsoftbus"
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
@@ -22,8 +21,6 @@ ohos_unittest("RPCDbinderTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
-    "$DSOFTBUS_PATH/sdk/transmission/session/cpp/src",
-    "$DSOFTBUS_PATH/sdk/transmission/session/cpp/include",
     "$IPC_CORE_ROOT/c/manager/include",
     "$SUBSYSTEM_DIR/utils/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
@@ -39,10 +36,7 @@ ohos_unittest("RPCDbinderTest") {
 
   configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
 
-  deps = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
 
   external_deps = [
     "c_utils:utils",
