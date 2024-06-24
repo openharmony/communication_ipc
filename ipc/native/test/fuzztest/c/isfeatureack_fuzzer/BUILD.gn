@@ -21,10 +21,7 @@ IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 ohos_fuzztest("IsFeatureAckFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file = "$IPC_CORE_ROOT/test/fuzztest/c/isfeatureack_fuzzer"
-  include_dirs = [
-    "//utils/system/safwk/native/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-  ]
+  include_dirs = [ "$IPC_CORE_ROOT/c/rpc/include" ]
   cflags = [
     "-g",
     "-O0",
