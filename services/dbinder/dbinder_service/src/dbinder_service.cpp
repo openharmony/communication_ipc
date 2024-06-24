@@ -818,7 +818,7 @@ bool DBinderService::RegisterRemoteProxyInner(std::u16string serviceName, binder
 
 void DBinderService::AddAsynMessageTask(std::shared_ptr<struct DHandleEntryTxRx> message)
 {
-    auto task = std::bind(&DBinderService::OnRemoteMessageTask, this, message);
+    auto task = [this, message] { this->OnRemoteMessageTask(message); };
     ffrt::submit(task);
 }
 

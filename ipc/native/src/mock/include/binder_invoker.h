@@ -230,8 +230,6 @@ private:
 
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
-    using HandleFunction = void (BinderInvoker::*)(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
     static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
     static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
@@ -258,14 +256,6 @@ private:
         { BR_OK,                  [&](int32_t cmd, int32_t &error) { } },
         { BR_NOOP,                [&](int32_t cmd, int32_t &error) { } },
         { BR_CLEAR_DEATH_NOTIFICATION_DONE, [&](int32_t cmd, int32_t &error) { OnRemoveRecipientDone(); } },
-    };
-    const std::map<int32_t, HandleFunction> senderCommandMap_ = {
-        { BR_TRANSACTION_COMPLETE,   &BinderInvoker::OnTransactionComplete },
-        { BR_DEAD_REPLY,             &BinderInvoker::OnDeadOrFailedReply },
-        { BR_FAILED_REPLY,           &BinderInvoker::OnDeadOrFailedReply },
-        { BR_ACQUIRE_RESULT,         &BinderInvoker::OnAcquireResult },
-        { BR_REPLY,                  &BinderInvoker::OnReply },
-        { BR_TRANSLATION_COMPLETE,   &BinderInvoker::OnTranslationComplete },
     };
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
