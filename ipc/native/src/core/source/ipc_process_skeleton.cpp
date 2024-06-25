@@ -1446,11 +1446,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteOb
 
     return nullptr;
 }
-
-std::mutex &IPCProcessSkeleton::GetAppInfoAuthInfoMutex()
-{
-    return appInfoAuthinfoMutex_;
-}
 #endif
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
