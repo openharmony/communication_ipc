@@ -1012,17 +1012,29 @@ void BinderInvoker::OnTranslationComplete(
 void BinderInvoker::DealWithCmd(
     MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
 {
-    auto it = senderCommandMap_.find(cmd);
-    if (it != senderCommandMap_.end()) {
-        HandleFunction itFunc = it->second;
-        if (itFunc != nullptr) {
-            (this->*itFunc)(reply, acquireResult, continueLoop, error, cmd);
-        }
-    } else {
-        error = HandleCommands(cmd);
-        if (error != ERR_NONE) {
-            continueLoop = false;
-        }
+    switch (cmd) {
+        case BR_TRANSACTION_COMPLETE:
+            OnTransactionComplete(reply, acquireResult, continueLoop, error, cmd);
+            break;
+        case BR_DEAD_REPLY:
+        case BR_FAILED_REPLY:
+            OnDeadOrFailedReply(reply, acquireResult, continueLoop, error, cmd);
+            break;
+        case BR_ACQUIRE_RESULT:
+            OnAcquireResult(reply, acquireResult, continueLoop, error, cmd);
+            break;
+        case BR_REPLY:
+            OnReply(reply, acquireResult, continueLoop, error, cmd);
+            break;
+        case BR_TRANSLATION_COMPLETE:
+            OnTranslationComplete(reply, acquireResult, continueLoop, error, cmd);
+            break;
+        default:
+            error = HandleCommands(cmd);
+            if (error != ERR_NONE) {
+                continueLoop = false;
+            }
+            break;
     }
 }
 
