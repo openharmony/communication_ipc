@@ -69,7 +69,7 @@ napi_value CreateTypeCodeEnum(napi_env env)
     napi_value enumValues[ENUM_TYPECODE_COUNT] = {nullptr};
     napi_value enumObject = nullptr;
     napi_create_object(env, &enumObject);
-    for (int i = 0; i < ENUM_TYPECODE_COUNT; i++) {
+    for (size_t i = 0; i < ENUM_TYPECODE_COUNT; i++) {
         napi_create_int32(env, i, &enumValues[i]);
     }
 
