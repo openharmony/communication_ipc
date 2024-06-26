@@ -41,6 +41,10 @@ public:
     {
         return false;
     };
+    virtual bool IsDistributedLoadSystemAbility(int32_t systemAbilityId)
+    {
+        return false;
+    };
 
     RpcSystemAbilityCallback() = default;
     virtual ~RpcSystemAbilityCallback() = default;
