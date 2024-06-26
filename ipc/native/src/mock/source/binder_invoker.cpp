@@ -446,7 +446,9 @@ void BinderInvoker::OnBinderDied()
                 reinterpret_cast<uintptr_t>(proxy), deadInfo.handle,
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         } else {
+            proxy->IncStrongRef(this);
             proxy->SendObituary();
+            proxy->DecStrongRef(this);
         }
     }
 
