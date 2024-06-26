@@ -17,13 +17,17 @@
 
 #include "memory"
 #include "new"
+#include "ipc_debug.h"
+#include "log_tags.h"
 
 namespace OHOS {
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_INVOKER, "InvokerRawData" };
 static constexpr size_t MAX_RAWDATA_SIZE = 128 * 1024 * 1024; // 128M
 
 InvokerRawData::InvokerRawData(size_t size)
 {
     if (size == 0 || size > MAX_RAWDATA_SIZE) {
+        ZLOGE(LOG_LABEL, "size:%{public}zu not ok", size);
         return;
     }
     /* size is guaranteed by caller, in MessageParcel max size is 1G */
