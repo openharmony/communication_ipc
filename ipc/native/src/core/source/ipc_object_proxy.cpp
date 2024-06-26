@@ -454,6 +454,7 @@ void IPCObjectProxy::SendObituary()
         recipients_.clear();
     }
 
+    IncStrongRef(this);
     if (toBeReport.size() > 0 && handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
         if (invoker != nullptr) {
@@ -472,6 +473,7 @@ void IPCObjectProxy::SendObituary()
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
         }
     }
+    DecStrongRef(this);
 }
 
 void IPCObjectProxy::ClearDeathRecipients()
