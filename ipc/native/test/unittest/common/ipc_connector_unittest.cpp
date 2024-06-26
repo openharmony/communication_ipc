@@ -112,3 +112,54 @@ HWTEST_F(BinderConnectorTest, GetSelfFirstCallerTokenID001, TestSize.Level1)
     auto ret = binderConnector->GetSelfFirstCallerTokenID();
     ASSERT_TRUE(ret == 0);
 }
+
+/**
+ * @tc.name: MapMemory001
+ * @tc.desc: Verify the MapMemory function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, MapMemory001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    bool res = binderConnector->MapMemory(0);
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: IsRealPidSupported001
+ * @tc.desc: Verify the IsRealPidSupported function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsRealPidSupported001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->featureSet_ = SENDER_INFO_FAETURE_MASK;
+    bool res = binderConnector->IsRealPidSupported();
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: IsRealPidSupported002
+ * @tc.desc: Verify the IsRealPidSupported function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsRealPidSupported002, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->featureSet_ = 0;
+    bool res = binderConnector->IsRealPidSupported();
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetInstance001
+ * @tc.desc: Verify the GetInstance function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, GetInstance001, TestSize.Level1)
+{
+    BinderConnector* binderConnector1 = BinderConnector::GetInstance();
+    BinderConnector* binderConnector2 = BinderConnector::GetInstance();
+    EXPECT_EQ(binderConnector1, binderConnector2);
+}
