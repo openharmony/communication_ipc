@@ -41,7 +41,7 @@ public:
     {
         return false;
     };
-    virtual bool IsDistributedLoadSystemAbility(int32_t systemAbilityId)
+    virtual bool IsDistributedSystemAbility(int32_t systemAbilityId)
     {
         return false;
     };
