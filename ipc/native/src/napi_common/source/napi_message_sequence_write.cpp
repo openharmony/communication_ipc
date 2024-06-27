@@ -425,6 +425,12 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
 
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
+        napi_valuetype valueType;
+        napi_typeof(env, element, &valueType);
+        if (valueType != napi_number) {
+            ZLOGE(LOG_LABEL, "type mismatch. valueType %{public}d is not equal %{public}d", valueType, napi_number);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        }
 
         int32_t value = 0;
         napi_get_value_int32(env, element, &value);
@@ -503,6 +509,12 @@ napi_value NAPI_MessageSequence::JS_writeShortArray(napi_env env, napi_callback_
 
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
+        napi_valuetype valueType;
+        napi_typeof(env, element, &valueType);
+        if (valueType != napi_number) {
+            ZLOGE(LOG_LABEL, "type mismatch. valueType %{public}d is not equal %{public}d", valueType, napi_number);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        }
 
         int32_t value = 0;
         napi_get_value_int32(env, element, &value);
@@ -551,12 +563,13 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
             ZLOGE(LOG_LABEL, "parameter check error");
             return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
+
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
         napi_valuetype valueType;
         napi_typeof(env, element, &valueType);
         if (valueType != napi_number) {
-            ZLOGE(LOG_LABEL, "type mismatch element");
+            ZLOGE(LOG_LABEL, "type mismatch. valueType %{public}d is not equal %{public}d", valueType, napi_number);
             return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
@@ -569,6 +582,7 @@ napi_value NAPI_MessageSequence::JS_writeIntArray(napi_env env, napi_callback_in
             return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         }
     }
+
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
     return napiValue;
@@ -587,7 +601,6 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
         ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
     }
-    ZLOGI(LOG_LABEL, "messageparcel WriteBuffer typedarrayLength:%{public}d", (int)(arrayLength));
 
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
@@ -610,10 +623,15 @@ napi_value NAPI_MessageSequence::JS_writeLongArray(napi_env env, napi_callback_i
 
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
+        napi_valuetype valueType;
+        napi_typeof(env, element, &valueType);
+        if (valueType != napi_number) {
+            ZLOGE(LOG_LABEL, "type mismatch. valueType %{public}d is not equal %{public}d", valueType, napi_number);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        }
 
         int64_t value = 0;
         napi_get_value_int64(env, element, &value);
-
         result = napiSequence->nativeParcel_->WriteInt64(value);
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
@@ -662,10 +680,15 @@ napi_value NAPI_MessageSequence::JS_writeFloatArray(napi_env env, napi_callback_
 
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
+        napi_valuetype valueType;
+        napi_typeof(env, element, &valueType);
+        if (valueType != napi_number) {
+            ZLOGE(LOG_LABEL, "type mismatch. valueType %{public}d is not equal %{public}d", valueType, napi_number);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        }
 
         double value = 0;
         napi_get_value_double(env, element, &value);
-
         result = napiSequence->nativeParcel_->WriteDouble(value);
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
@@ -714,10 +737,15 @@ napi_value NAPI_MessageSequence::JS_writeDoubleArray(napi_env env, napi_callback
 
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
+        napi_valuetype valueType;
+        napi_typeof(env, element, &valueType);
+        if (valueType != napi_number) {
+            ZLOGE(LOG_LABEL, "type mismatch. valueType %{public}d is not equal %{public}d", valueType, napi_number);
+            return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        }
 
         double value = 0;
         napi_get_value_double(env, element, &value);
-
         result = napiSequence->nativeParcel_->WriteDouble(value);
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
@@ -769,7 +797,6 @@ napi_value NAPI_MessageSequence::JS_writeBooleanArray(napi_env env, napi_callbac
 
         bool value = false;
         napi_get_value_bool(env, element, &value);
-
         result = napiSequence->nativeParcel_->WriteInt8(static_cast<int8_t>(value));
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
@@ -818,9 +845,9 @@ napi_value NAPI_MessageSequence::JS_writeCharArray(napi_env env, napi_callback_i
 
         napi_value element = nullptr;
         napi_get_element(env, argv[ARGV_INDEX_0], i, &element);
+
         uint32_t value = 0;
         napi_get_value_uint32(env, element, &value);
-
         result = napiSequence->nativeParcel_->WriteUint8(static_cast<uint8_t>(value));
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
