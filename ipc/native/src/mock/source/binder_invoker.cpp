@@ -1380,8 +1380,8 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
         return false;
     }
 
-    int32_t pos = identity.find('<');
-    if (pos == static_cast<int32_t>(std::string::npos)) {
+    auto pos = identity.find('<');
+    if (pos == std::string::npos) {
         return false;
     }
     std::string callerSid_ = identity.substr(0, pos);
