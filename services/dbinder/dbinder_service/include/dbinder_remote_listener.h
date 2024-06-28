@@ -53,7 +53,7 @@ private:
 
     std::shared_ptr<DeviceLock> QueryOrNewDeviceLock(const std::string &networkId);
     void ClearDeviceLock();
-    
+
     int32_t CreateClientSocket(const std::string &peerNetworkId);
     static int32_t GetPeerSocketId(const std::string &peerNetworkId);
 
