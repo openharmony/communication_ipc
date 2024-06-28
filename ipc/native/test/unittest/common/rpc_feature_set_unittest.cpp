@@ -22,6 +22,21 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace {
+    constexpr uint32_t RPC_FEATURE_ACK = 0x80000000;
+    constexpr uint32_t INVAL_TOKEN_ID = 0x0;
+    constexpr uint32_t EXTRA_SIZE = 10;
+    constexpr uint32_t EXPECTED_TOKEN_ID = 123789;
+    constexpr uint32_t MAGIC_NUMBER = 123456;
+    constexpr uint32_t RPC_ACCESS_TOKEN_TAG = 0;
+    constexpr uint32_t ACCESS_TOKEN_FLAG = 0x1;
+    // Magic number for correct flat session
+    constexpr uint32_t FLAT_SESSION_MAGIC_NUMBER = ('R' << 24) | ('F' << 16) | ('S' << 8) | 43;
+    // Magic number for flat session with an error case
+    constexpr uint32_t FLAT_SESSION_MAGIC_NUMBER_42 = ('R' << 24) | ('F' << 16) | ('S' << 8) | 42;
+    constexpr uint32_t UNKNOWN_TAG_1 = 1;
+}
+
 class RpcFeatureSetTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -67,7 +82,7 @@ HWTEST_F(RpcFeatureSetTest, SetFeatureTransData001, TestSize.Level1)
 HWTEST_F(RpcFeatureSetTest, SetFeatureTransData002, TestSize.Level1)
 {
     FeatureTransData data;
-    data.magicNum = 123456;
+    data.magicNum = MAGIC_NUMBER;
     uint32_t size = 0;
     bool res = SetFeatureTransData(&data, size);
     EXPECT_EQ(res, false);
@@ -81,12 +96,39 @@ HWTEST_F(RpcFeatureSetTest, SetFeatureTransData002, TestSize.Level1)
 HWTEST_F(RpcFeatureSetTest, SetFeatureTransData003, TestSize.Level1)
 {
     FeatureTransData data;
-    data.magicNum = 123456;
-    data.tag = 1;
+    data.magicNum = MAGIC_NUMBER;
+    data.tag = UNKNOWN_TAG_1;
     data.tokenId = 54321;
     uint32_t size = (uint32_t)sizeof(FeatureTransData);
     bool res = SetFeatureTransData(&data, size);
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetFeatureTransData004
+ * @tc.desc: Verify the IPCObjectProxy::SetFeatureTransData function when size is greater than the required size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, SetFeatureTransData004, TestSize.Level1)
+{
+    FeatureTransData data;
+    data.magicNum = MAGIC_NUMBER;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData) + EXTRA_SIZE;
+    bool res = SetFeatureTransData(&data, size);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetFeatureTransData005
+ * @tc.desc: Verify the SetFeatureTransData function when size is less than the required size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, SetFeatureTransData005, TestSize.Level1)
+{
+    FeatureTransData data;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData) - 1;
+    bool res = SetFeatureTransData(&data, size);
+    EXPECT_EQ(res, false);
 }
 
 /**
@@ -99,7 +141,7 @@ HWTEST_F(RpcFeatureSetTest, GetTokenFromData001, TestSize.Level1)
     FeatureTransData *data = nullptr;
     uint32_t size = (uint32_t)sizeof(FeatureTransData);
     uint32_t ret = GetTokenFromData(data, size);
-    EXPECT_EQ(ret, 0x0);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
 }
 
 /**
@@ -110,10 +152,10 @@ HWTEST_F(RpcFeatureSetTest, GetTokenFromData001, TestSize.Level1)
 HWTEST_F(RpcFeatureSetTest, GetTokenFromData002, TestSize.Level1)
 {
     FeatureTransData data;
-    data.magicNum = 123456;
+    data.magicNum = MAGIC_NUMBER;
     uint32_t size = 0;
     uint32_t ret = GetTokenFromData(&data, size);
-    EXPECT_EQ(ret, 0x0);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
 }
 
 /**
@@ -124,11 +166,11 @@ HWTEST_F(RpcFeatureSetTest, GetTokenFromData002, TestSize.Level1)
 HWTEST_F(RpcFeatureSetTest, GetTokenFromData003, TestSize.Level1)
 {
     FeatureTransData data;
-    data.magicNum = 123456;
-    data.tag = 0;
+    data.magicNum = MAGIC_NUMBER;
+    data.tag = RPC_ACCESS_TOKEN_TAG;
     uint32_t size = (uint32_t)sizeof(FeatureTransData);
     uint32_t ret = GetTokenFromData(&data, size);
-    EXPECT_EQ(ret, 0x0);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
 }
 
 /**
@@ -139,11 +181,11 @@ HWTEST_F(RpcFeatureSetTest, GetTokenFromData003, TestSize.Level1)
 HWTEST_F(RpcFeatureSetTest, GetTokenFromData004, TestSize.Level1)
 {
     FeatureTransData data;
-    data.magicNum = ('R' << 24) | ('F' << 16) | ('S' << 8) | 43;
+    data.magicNum = FLAT_SESSION_MAGIC_NUMBER;
     data.tag = 3;
     uint32_t size = (uint32_t)sizeof(FeatureTransData);
     uint32_t ret = GetTokenFromData(&data, size);
-    EXPECT_EQ(ret, 0x0);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
 }
 
 /**
@@ -154,10 +196,119 @@ HWTEST_F(RpcFeatureSetTest, GetTokenFromData004, TestSize.Level1)
 HWTEST_F(RpcFeatureSetTest, GetTokenFromData005, TestSize.Level1)
 {
     FeatureTransData data;
-    data.tokenId = 123456;
-    data.magicNum = ('R' << 24) | ('F' << 16) | ('S' << 8) | 43;
-    data.tag = 0;
+    data.tokenId = EXPECTED_TOKEN_ID;
+    data.magicNum = FLAT_SESSION_MAGIC_NUMBER;
+    data.tag = RPC_ACCESS_TOKEN_TAG;
     uint32_t size = (uint32_t)sizeof(FeatureTransData);
     uint32_t ret = GetTokenFromData(&data, size);
-    EXPECT_EQ(ret, 123456);
+    EXPECT_EQ(ret, EXPECTED_TOKEN_ID);
+}
+
+/**
+ * @tc.name: GetTokenFromData006
+ * @tc.desc: Verify the IPCObjectProxy::GetTokenFromData function when size is greater than the required size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetTokenFromData006, TestSize.Level1)
+{
+    FeatureTransData data;
+    data.tokenId = EXPECTED_TOKEN_ID;
+    data.magicNum = FLAT_SESSION_MAGIC_NUMBER;
+    data.tag = RPC_ACCESS_TOKEN_TAG;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData) + EXTRA_SIZE;
+    uint32_t ret = GetTokenFromData(&data, size);
+    EXPECT_EQ(ret, EXPECTED_TOKEN_ID);
+}
+
+/**
+ * @tc.name: GetTokenFromData007
+ * @tc.desc: Verify the IPCObjectProxy::GetTokenFromData function when magic number is incorrect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetTokenFromData007, TestSize.Level1)
+{
+    FeatureTransData data;
+    data.tokenId = EXPECTED_TOKEN_ID;
+    data.magicNum = FLAT_SESSION_MAGIC_NUMBER_42;
+    data.tag = RPC_ACCESS_TOKEN_TAG;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData);
+    uint32_t ret = GetTokenFromData(&data, size);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
+}
+
+/**
+ * @tc.name: GetTokenFromData008
+ * @tc.desc: Verify the IPCObjectProxy::GetTokenFromData function when tag is incorrect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetTokenFromData008, TestSize.Level1)
+{
+    FeatureTransData data;
+    data.tokenId = EXPECTED_TOKEN_ID;
+    data.magicNum = FLAT_SESSION_MAGIC_NUMBER;
+    data.tag = UNKNOWN_TAG_1;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData);
+    uint32_t ret = GetTokenFromData(&data, size);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
+}
+
+/**
+ * @tc.name: GetTokenFromData009
+ * @tc.desc: Verify the GetTokenFromData function when size is less than the required size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetTokenFromData009, TestSize.Level1)
+{
+    FeatureTransData data;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData) - 1;
+    uint32_t ret = GetTokenFromData(&data, size);
+    EXPECT_EQ(ret, INVAL_TOKEN_ID);
+}
+
+/**
+ * @tc.name: IsATEnable001
+ * @tc.desc: Verify the IsATEnable function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, IsATEnable001, TestSize.Level1)
+{
+    uint32_t featureSet = ACCESS_TOKEN_FLAG;
+    bool res = IsATEnable(featureSet);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: IsATEnable002
+ * @tc.desc: Verify the IsATEnable function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, IsATEnable002, TestSize.Level1)
+{
+    uint32_t featureSet = 0;
+    bool res = IsATEnable(featureSet);
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: IsFeatureAck001
+ * @tc.desc: Verify the IsFeatureAck function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, IsFeatureAck001, TestSize.Level1)
+{
+    uint32_t featureSet = RPC_FEATURE_ACK;
+    bool res = IsFeatureAck(featureSet);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: IsFeatureAck002
+ * @tc.desc: Verify the IsFeatureAck function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, IsFeatureAck002, TestSize.Level1)
+{
+    uint32_t featureSet = 0;
+    bool res = IsFeatureAck(featureSet);
+    EXPECT_EQ(res, false);
 }

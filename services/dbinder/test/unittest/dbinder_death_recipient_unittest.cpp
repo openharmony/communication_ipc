@@ -42,6 +42,11 @@ void DbinderDeathRecipientUnitTest::SetUpTestCase() {}
 
 void DbinderDeathRecipientUnitTest::TearDownTestCase() {}
 
+/**
+ * @tc.name: OnRemoteDied001
+ * @tc.desc: Verify the OnRemoteDied function when remote is nullptr
+ * @tc.type: FUNC
+ */
 HWTEST_F(DbinderDeathRecipientUnitTest, OnRemoteDied001, TestSize.Level1)
 {
     DbinderDeathRecipient dbinderDeathRecipient;
@@ -49,6 +54,11 @@ HWTEST_F(DbinderDeathRecipientUnitTest, OnRemoteDied001, TestSize.Level1)
     dbinderDeathRecipient.OnRemoteDied(remote);
 }
 
+/**
+ * @tc.name: OnRemoteDied002
+ * @tc.desc: Verify the OnRemoteDied function when remote is a valid object
+ * @tc.type: FUNC
+ */
 HWTEST_F(DbinderDeathRecipientUnitTest, OnRemoteDied002, TestSize.Level1)
 {
     DbinderDeathRecipient dbinderDeathRecipient;

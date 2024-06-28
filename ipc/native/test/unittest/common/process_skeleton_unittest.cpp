@@ -61,3 +61,147 @@ HWTEST_F(ProcessSkeletonUnitTest, IsContainsObjectTest001, TestSize.Level1)
     bool ret = skeleton->IsContainsObject(object.GetRefPtr());
     EXPECT_EQ(ret, false);
 }
+
+/**
+ * @tc.name: DetachObjectTest001
+ * @tc.desc: Verify the DetachObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, DetachObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    ASSERT_TRUE(object != nullptr);
+
+    skeleton->AttachObject(object.GetRefPtr(), object->GetObjectDescriptor(), true);
+    bool ret = skeleton->DetachObject(object.GetRefPtr(), object->GetObjectDescriptor());
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: QueryObjectTest001
+ * @tc.desc: Verify the QueryObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, QueryObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    ASSERT_TRUE(object != nullptr);
+    skeleton->AttachObject(object.GetRefPtr(), object->GetObjectDescriptor(), true);
+    sptr<IRemoteObject> queriedObject = skeleton->QueryObject(object->GetObjectDescriptor(), true);
+    EXPECT_EQ(queriedObject.GetRefPtr(), object.GetRefPtr());
+}
+
+/**
+ * @tc.name: AttachDeadObjectTest001
+ * @tc.desc: Verify the AttachDeadObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, AttachDeadObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    ASSERT_TRUE(object != nullptr);
+    DeadObjectInfo info = {1, 0, 0, object->GetObjectDescriptor()};
+    bool ret = skeleton->AttachDeadObject(object.GetRefPtr(), info);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: DetachDeadObjectTest001
+ * @tc.desc: Verify the DetachDeadObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, DetachDeadObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    DeadObjectInfo info = {1, 0, 0, object->GetObjectDescriptor()};
+    skeleton->AttachDeadObject(object.GetRefPtr(), info);
+    bool ret = skeleton->DetachDeadObject(object.GetRefPtr());
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: SetRegistryObjectTest001
+ * @tc.desc: Verify the SetRegistryObject and GetRegistryObject functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, SetRegistryObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    skeleton->SetRegistryObject(object);
+    sptr<IRemoteObject> registryObject = skeleton->GetRegistryObject();
+    EXPECT_EQ(registryObject.GetRefPtr(), object.GetRefPtr());
+}
+
+/**
+ * @tc.name: LockObjectMutexTest001
+ * @tc.desc: Verify the LockObjectMutex and UnlockObjectMutex functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, LockObjectMutexTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool lockRet = skeleton->LockObjectMutex();
+    EXPECT_EQ(lockRet, true);
+
+    bool unlockRet = skeleton->UnlockObjectMutex();
+    EXPECT_EQ(unlockRet, true);
+}
+
+/**
+ * @tc.name: SetIPCProxyLimitTest001
+ * @tc.desc: Verify the SetIPCProxyLimit function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, SetIPCProxyLimitTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint64_t limit = 1000;
+    bool ret = skeleton->SetIPCProxyLimit(limit, nullptr);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: ConvertToSecureDescTest001
+ * @tc.desc: Verify the ConvertToSecureDesc function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, ConvertToSecureDescTest001, TestSize.Level1)
+{
+    std::string desc = "test.example.com";
+    std::string secureDesc = ProcessSkeleton::ConvertToSecureDesc(desc);
+    EXPECT_EQ(secureDesc, "*.com");
+}
+
+/**
+ * @tc.name: IsPrintTest001
+ * @tc.desc: Verify the IsPrint function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, IsPrintTest001, TestSize.Level1)
+{
+    int lastErr = 0;
+    int lastErrCnt = 0;
+    bool isPrint = ProcessSkeleton::IsPrint(1, lastErr, lastErrCnt);
+    EXPECT_EQ(isPrint, true);
+    EXPECT_EQ(lastErr, 1);
+    EXPECT_EQ(lastErrCnt, 0);
+}
