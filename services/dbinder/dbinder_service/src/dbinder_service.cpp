@@ -614,8 +614,8 @@ bool DBinderService::OnRemoteInvokerMessage(const struct DHandleEntryTxRx *messa
         static_cast<int32_t>(message->stubIndex), message->seqNumber,
         (message->stub & BINDER_MASK), message->deviceIdInfo.tokenId);
     if (!dbinderCallback_->IsDistributedSystemAbility(message->binderObject)) {
-        DBINDER_LOGE(LOG_LABEL, "SA:%{public}llu not hav distributed capability.", message->binderObject);
-        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_MEMCPY_DATA, __FUNCTION__);
+        DBINDER_LOGE(LOG_LABEL, "SA:%{public}llu not have distributed capability.", message->binderObject);
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_NOT_DISTEIBUTED_SA, __FUNCTION__);
         return false;
     }
     std::shared_ptr<DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
