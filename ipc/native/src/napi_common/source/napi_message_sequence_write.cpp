@@ -361,36 +361,6 @@ napi_value NAPI_MessageSequence::JS_writeChar(napi_env env, napi_callback_info i
     return napiValue;
 }
 
-napi_value NAPI_MessageSequence::JS_checkWriteByteArrayArgs(napi_env env,
-                                                            size_t argc,
-                                                            napi_value* argv,
-                                                            uint32_t &arrayLength)
-{
-    if (argv == nullptr) {
-        ZLOGE(LOG_LABEL, "argv is nullptr");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    if (argc != REQUIRED_ARGS_COUNT_1) {
-        ZLOGE(LOG_LABEL, "requires 1 parameter");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    bool isArray = false;
-    napi_is_array(env, argv[ARGV_INDEX_0], &isArray);
-    if (!isArray) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    uint32_t maxBytesLen = MAX_BYTES_LENGTH;
-    napi_get_array_length(env, argv[ARGV_INDEX_0], &arrayLength);
-    if (arrayLength >= maxBytesLen) {
-        ZLOGE(LOG_LABEL, "write byte array length too large");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-    }
-    napi_value result = nullptr;
-    napi_get_undefined(env, &result);
-    return result;
-}
-
 napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -398,7 +368,7 @@ napi_value NAPI_MessageSequence::JS_writeByteArray(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     uint32_t arrayLength = 0;
-    napi_value checkArgsResult = JS_checkWriteByteArrayArgs(env, argc, argv, arrayLength);
+    napi_value checkArgsResult = JS_checkWriteArrayArgs(env, argc, argv, arrayLength);
     if (checkArgsResult == nullptr) {
         ZLOGE(LOG_LABEL, "checkArgsResult is null");
         return checkArgsResult;
