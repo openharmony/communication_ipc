@@ -15,6 +15,7 @@
 
 #include "ipc_thread_pool.h"
 
+#include <dlfcn.h>
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -27,6 +28,21 @@ namespace IPC_SINGLE {
 #endif
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThreadPool" };
+
+static void*  g_selfSoHandler = nullptr;
+
+extern "C" __attribute__((constructor)) void InitIpcSo()
+{
+    if (g_selfSoHandler == nullptr) {
+        Dl_info info;
+        int ret = dladdr(reinterpret_cast<void *>(InitIpcSo), &info);
+        if (ret != 0) {
+            ZLOGE(LOG_LABEL, "dladdr func call failed, err:%{public}d", ret);
+            return;
+        }
+        g_selfSoHandler = dlopen(info.dli_fname, RTLD_LAZY);
+    }
+}
 
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
     : threadSequence_(0),
