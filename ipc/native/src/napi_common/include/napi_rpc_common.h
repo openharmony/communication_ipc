@@ -16,9 +16,28 @@
 #ifndef NAPI_IPC_OHOS_NAPI_RPC_COMMON_H
 #define NAPI_IPC_OHOS_NAPI_RPC_COMMON_H
 
+#include "napi_rpc_error.h"
+
 namespace OHOS {
+static NapiError napiErr;
+
+#define CHECK_WRITE_POSITION(env, napiParcel)                                                               \
+    do {                                                                                                    \
+        if ((napiParcel)->maxCapacityToWrite_ < (napiParcel)->nativeParcel_->GetWritePosition()) {          \
+            ZLOGE(LOG_LABEL, "invalid write position");                                                     \
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);                \
+        }                                                                                                   \
+    } while (0)
+#define CHECK_READ_POSITION(env, napiParcel)                                                                \
+    do {                                                                                                    \
+        if ((napiParcel)->nativeParcel_->GetDataSize() < (napiParcel)->nativeParcel_->GetReadPosition()) {  \
+            ZLOGE(LOG_LABEL, "invalid read position");                                                      \
+            return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);               \
+        }                                                                                                   \
+    } while (0)
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                                   \
     do {                                                                                                    \
+        CHECK_WRITE_POSITION(env, napiParcel);                                                              \
         size_t cap =  (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();  \
         if (cap < (lenToWrite)) {                                                                           \
             ZLOGI(LOG_LABEL, "No enough capacity to write");                                                \
@@ -28,6 +47,7 @@ namespace OHOS {
 
 #define REWIND_IF_WRITE_CHECK_FAIL(env, lenToWrite, pos, napiParcel)                                        \
     do {                                                                                                    \
+        CHECK_WRITE_POSITION(env, napiParcel);                                                              \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();   \
         if (cap < (lenToWrite)) {                                                                           \
             ZLOGI(LOG_LABEL, "No enough capacity to write");                                                \
@@ -38,6 +58,7 @@ namespace OHOS {
 
 #define CHECK_READ_LENGTH(env, arrayLength, typeSize, napiParcel)                                                    \
     do {                                                                                                             \
+        CHECK_READ_POSITION(env, napiParcel);                                                                        \
         size_t remainSize = (napiParcel)->nativeParcel_->GetDataSize() -                                             \
             (napiParcel)->nativeParcel_->GetReadPosition();                                                          \
         if (((arrayLength) < 0) || ((arrayLength) > remainSize) || (((arrayLength) * (typeSize)) > remainSize)) {    \
