@@ -29,7 +29,7 @@ namespace IPC_SINGLE {
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThreadPool" };
 
-static void*  g_selfSoHandler = nullptr;
+static void *g_selfSoHandler = nullptr;
 
 extern "C" __attribute__((constructor)) void InitIpcSo()
 {
