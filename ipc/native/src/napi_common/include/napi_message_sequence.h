@@ -114,7 +114,6 @@ private:
     static napi_value JS_constructor(napi_env env, napi_callback_info info);
     static void release(MessageParcel *parcel);
 
-    static napi_value JS_checkWriteByteArrayArgs(napi_env env, size_t argc, napi_value* argv, uint32_t &arrayLength);
     static napi_value JS_checkWriteArrayArgs(napi_env env, size_t argc, napi_value* argv, uint32_t &arrayLength);
     static napi_value JS_checkWriteStringArrayElement(napi_env env, napi_value* argv, size_t &index,
                                                       size_t &bufferSize, napi_value &element);
