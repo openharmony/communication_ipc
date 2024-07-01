@@ -49,10 +49,12 @@ DatabusSocketListener::DatabusSocketListener()
     serverListener_.OnBind = DatabusSocketListener::ServerOnBind;
     serverListener_.OnShutdown = DatabusSocketListener::ServerOnShutdown;
     serverListener_.OnBytes = DatabusSocketListener::OnBytesReceived;
+    serverListener_.OnMessage = DatabusSocketListener::OnBytesReceived;
 
     clientListener_.OnBind = DatabusSocketListener::ClientOnBind;
     clientListener_.OnShutdown = DatabusSocketListener::ClientOnShutdown;
     clientListener_.OnBytes = DatabusSocketListener::OnBytesReceived;
+    clientListener_.OnMessage = DatabusSocketListener::OnBytesReceived;
 }
 
 DatabusSocketListener::~DatabusSocketListener() {}
