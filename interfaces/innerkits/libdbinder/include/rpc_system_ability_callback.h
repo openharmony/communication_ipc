@@ -42,6 +42,17 @@ public:
         return false;
     };
 
+    /**
+     * @brief check if the SA have distributed capability.
+     * @param systemAbilityId Indicates system capability ID.
+     * @return Returns <b>true</b> SA have distributed capability; returns <b>false</b> otherwise.
+     * @since 9
+     */
+    virtual bool IsDistributedSystemAbility(int32_t systemAbilityId)
+    {
+        return false;
+    };
+
     RpcSystemAbilityCallback() = default;
     virtual ~RpcSystemAbilityCallback() = default;
 };

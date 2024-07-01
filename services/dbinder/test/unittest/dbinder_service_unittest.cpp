@@ -64,6 +64,10 @@ public:
     {
         return true;
     }
+    bool IsDistributedSystemAbility(int32_t systemAbilityId) override
+    {
+        return true;
+    }
 };
 
 /*
