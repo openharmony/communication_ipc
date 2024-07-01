@@ -217,8 +217,26 @@ int32_t DBinderSoftbusClient::SendBytes(int32_t socket, const void *data, uint32
         ZLOGE(LOG_LABEL, "dlsym SendBytes fail, err msg:%{public}s", dlerror());
         return SOFTBUS_CLIENT_DLSYM_FAILED;
     }
-
     return sendBytesFunc_(socket, data, len);
+}
+
+int32_t DBinderSoftbusClient::SendMessage(int32_t socket, const void *data, uint32_t len)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
+    if (sendMessageFunc_ != nullptr) {
+        return sendMessageFunc_(socket, data, len);
+    }
+
+    if (!OpenSoftbusClientSo()) {
+        return SOFTBUS_CLIENT_DLOPEN_FAILED;
+    }
+
+    sendMessageFunc_ = (SendMessageFunc)dlsym(soHandle_, "SendMessage");
+    if (sendMessageFunc_ == nullptr) {
+        ZLOGE(LOG_LABEL, "dlsym SendMessage fail, err msg:%{public}s", dlerror());
+        return SOFTBUS_CLIENT_DLSYM_FAILED;
+    }
+    return sendMessageFunc_(socket, data, len);
 }
 
 void DBinderSoftbusClient::Shutdown(int32_t socket)

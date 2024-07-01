@@ -34,10 +34,12 @@ DBinderRemoteListener::DBinderRemoteListener()
     clientListener_.OnBind = DBinderRemoteListener::ClientOnBind;
     clientListener_.OnShutdown = DBinderRemoteListener::ClientOnShutdown;
     clientListener_.OnBytes = DBinderRemoteListener::OnBytesReceived;
+    clientListener_.OnMessage = DBinderRemoteListener::OnBytesReceived;
 
     serverListener_.OnBind = DBinderRemoteListener::ServerOnBind;
     serverListener_.OnShutdown = DBinderRemoteListener::ServerOnShutdown;
     serverListener_.OnBytes = DBinderRemoteListener::OnBytesReceived;
+    serverListener_.OnMessage = DBinderRemoteListener::OnBytesReceived;
 }
 
 DBinderRemoteListener::~DBinderRemoteListener()
@@ -147,7 +149,7 @@ int32_t DBinderRemoteListener::CreateClientSocket(const std::string &peerNetwork
         .peerName = const_cast<char*>(PEER_SESSION_NAME.c_str()),
         .peerNetworkId = const_cast<char*>(peerNetworkId.c_str()),
         .pkgName = const_cast<char*>(DBINDER_SERVER_PKG_NAME.c_str()),
-        .dataType = TransDataType::DATA_TYPE_BYTES,
+        .dataType = TransDataType::DATA_TYPE_MESSAGE,
     };
     int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(socketInfo);
     if (socketId <= 0) {
@@ -200,7 +202,7 @@ bool DBinderRemoteListener::StartListener()
     SocketInfo serverSocketInfo = {
         .name = const_cast<char*>(OWN_SESSION_NAME.c_str()),
         .pkgName = const_cast<char*>(DBINDER_SERVER_PKG_NAME.c_str()),
-        .dataType = TransDataType::DATA_TYPE_BYTES,
+        .dataType = TransDataType::DATA_TYPE_MESSAGE,
     };
     int32_t socketId = DBinderSoftbusClient::GetInstance().Socket(serverSocketInfo);
     if (socketId <= 0) {
@@ -279,7 +281,7 @@ bool DBinderRemoteListener::SendDataToRemote(const std::string &networkId, const
         return false;
     }
 
-    int32_t ret = DBinderSoftbusClient::GetInstance().SendBytes(socketId, msg, msg->head.len);
+    int32_t ret = DBinderSoftbusClient::GetInstance().SendMessage(socketId, msg, msg->head.len);
     if (ret != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes, ret:%{public}d socketId:%{public}d, networkId:%{public}s",
             ret, socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
@@ -308,7 +310,7 @@ bool DBinderRemoteListener::SendDataReply(const std::string &networkId, const st
         return false;
     }
 
-    int32_t result = DBinderSoftbusClient::GetInstance().SendBytes(socketId, msg, msg->head.len);
+    int32_t result = DBinderSoftbusClient::GetInstance().SendMessage(socketId, msg, msg->head.len);
     if (result != 0) {
         DBINDER_LOGE(LOG_LABEL, "fail to send bytes of reply, result:%{public}d device:%{public}s"
             " socketId:%{public}d", result, DBinderService::ConvertToSecureDeviceID(networkId).c_str(), socketId);
