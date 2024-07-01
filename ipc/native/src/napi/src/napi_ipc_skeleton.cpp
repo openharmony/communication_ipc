@@ -69,9 +69,9 @@ napi_value NAPI_IPCSkeleton_getCallingTokenId(napi_env env, napi_callback_info i
             return callingTokenId;
         }
     }
-    uint64_t TokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenId = IPCSkeleton::GetSelfTokenID();
     napi_value result = nullptr;
-    napi_create_uint32(env, static_cast<uint32_t>(TokenId), &result);
+    napi_create_uint32(env, static_cast<uint32_t>(tokenId), &result);
     return result;
 }
 
