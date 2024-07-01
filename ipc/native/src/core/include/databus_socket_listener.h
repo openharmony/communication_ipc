@@ -25,8 +25,12 @@
 #include "ipc_types.h"
 
 namespace OHOS {
-static constexpr QosTV QOS_TV[] = {};
-static constexpr uint32_t QOS_COUNT = 0;
+static constexpr QosTV QOS_TV[] = {
+    { .qos = QOS_TYPE_MIN_BW, .value = RPC_QOS_MIN_BW },
+    { .qos = QOS_TYPE_MAX_LATENCY, .value = RPC_QOS_MAX_LATENCY },
+    { .qos = QOS_TYPE_MIN_LATENCY, .value = RPC_QOS_MIN_LATENCY }
+};
+static constexpr uint32_t QOS_COUNT = static_cast<uint32_t>(sizeof(QOS_TV) / sizeof(QosTV));
 
 static const std::string DBINDER_PKG_NAME = "DBinderBus";
 static const std::string DBINDER_SOCKET_NAME_PREFIX = "DBinder";
