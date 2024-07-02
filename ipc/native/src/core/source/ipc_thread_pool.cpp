@@ -36,8 +36,8 @@ extern "C" __attribute__((constructor)) void InitIpcSo()
     if (g_selfSoHandler == nullptr) {
         Dl_info info;
         int ret = dladdr(reinterpret_cast<void *>(InitIpcSo), &info);
-        if (ret != 0) {
-            ZLOGE(LOG_LABEL, "dladdr func call failed, err:%{public}d", ret);
+        if (ret == 0) {
+            ZLOGE(LOG_LABEL, "dladdr func call failed");
             return;
         }
         g_selfSoHandler = dlopen(info.dli_fname, RTLD_LAZY);
