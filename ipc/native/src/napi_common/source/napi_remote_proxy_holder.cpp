@@ -42,13 +42,17 @@ void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
     napi_handle_scope scope = nullptr;
     napi_open_handle_scope(param->env, &scope);
 
+    auto CleanUp = [&]() {
+        napi_close_handle_scope(param->env, scope);
+        delete param;
+        delete work;
+    };
+
     napi_value jsDeathRecipient = nullptr;
     napi_get_reference_value(param->env, param->deathRecipientRef, &jsDeathRecipient);
     if (jsDeathRecipient == nullptr) {
         ZLOGE(LOG_LABEL, "failed to get js death recipient");
-        napi_close_handle_scope(param->env, scope);
-        delete param;
-        delete work;
+        CleanUp();
         return;
     }
 
@@ -56,9 +60,7 @@ void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
     napi_get_named_property(param->env, jsDeathRecipient, "onRemoteDied", &onRemoteDied);
     if (onRemoteDied == nullptr) {
         ZLOGE(LOG_LABEL, "failed to get property onRemoteDied");
-        napi_close_handle_scope(param->env, scope);
-        delete param;
-        delete work;
+        CleanUp();
         return;
     }
 
@@ -69,13 +71,11 @@ void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
     }
 
     napi_status napiStatus = napi_delete_reference(param->env, param->deathRecipientRef);
-    napi_close_handle_scope(param->env, scope);
     if (napiStatus != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to delete ref to js death recipient");
     }
 
-    delete param;
-    delete work;
+    CleanUp();
 }
 
 void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
