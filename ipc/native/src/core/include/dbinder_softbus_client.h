@@ -26,7 +26,6 @@
 #include "softbus_bus_center.h"
 
 namespace OHOS {
-
 enum {
     SOFTBUS_CLIENT_SUCCESS = 0,
     SOFTBUS_CLIENT_DLOPEN_FAILED,
@@ -34,6 +33,8 @@ enum {
     SOFTBUS_CLIENT_INSTANCE_EXIT,
     SOFTBUS_CLIENT_GET_DEVICE_INFO_FAILED,
 };
+
+static constexpr int MAX_SEND_MESSAGE_LENGTH = 4 * 1024;
 
 class DBinderSoftbusClient {
 public:
@@ -48,6 +49,7 @@ public:
     int32_t Listen(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener);
     int32_t Bind(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener);
     int32_t SendBytes(int32_t socket, const void *data, uint32_t len);
+    int32_t SendMessage(int32_t socket, const void *data, uint32_t len);
     void Shutdown(int32_t socket);
 
 private:
@@ -61,6 +63,7 @@ private:
     using ListenFunc = int32_t (*)(int32_t, const QosTV[], uint32_t, const ISocketListener*);
     using BindFunc = int32_t (*)(int32_t, const QosTV[], uint32_t, const ISocketListener*);
     using SendBytesFunc = int32_t (*)(int32_t, const void*, uint32_t);
+    using SendMessageFunc = int32_t (*)(int32_t, const void*, uint32_t);
     using ShutdownFunc = void (*)(int32_t);
 
     DBinderGrantPermissionFunc grantPermissionFunc_ = nullptr;
@@ -70,6 +73,7 @@ private:
     ListenFunc listenFunc_ = nullptr;
     BindFunc bindFunc_ = nullptr;
     SendBytesFunc sendBytesFunc_ = nullptr;
+    SendMessageFunc sendMessageFunc_ = nullptr;
     ShutdownFunc shutdownFunc_ = nullptr;
 
     std::mutex loadSoMutex_;
