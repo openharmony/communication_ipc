@@ -78,6 +78,10 @@ constexpr int MIN_TRANSACTION_ID = 0x1;
 constexpr int MAX_TRANSACTION_ID = 0x00ffffff;
 constexpr int INVALID_FD = -1;
 
+constexpr int32_t RPC_QOS_MIN_BW = 128 * 1024;
+constexpr int32_t RPC_QOS_MAX_LATENCY = 8000;
+constexpr int32_t RPC_QOS_MIN_LATENCY = 2000;
+constexpr int32_t RPC_QOS_MAX_IDLE_TIME = 8000;
 constexpr int32_t SOCKET_ID_INVALID = -1;
 
 /**
