@@ -34,7 +34,7 @@ public:
 
 private:
     std::shared_ptr<char> data_;
-    size_t size_;
+    size_t size_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_INVOKER_RAWDATA_H
