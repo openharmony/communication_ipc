@@ -169,9 +169,8 @@ napi_value NAPI_MessageSequence::JS_readInterfaceToken(napi_env env, napi_callba
     }
 
     std::u16string parcelString = napiSequence->nativeParcel_->ReadInterfaceToken();
-    std::string outString = Str16ToStr8(parcelString.c_str());
     napi_value napiValue = nullptr;
-    napi_create_string_utf8(env, outString.c_str(), outString.length(), &napiValue);
+    napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &napiValue);
     return napiValue;
 }
 
@@ -342,9 +341,8 @@ napi_value NAPI_MessageSequence::JS_readString(napi_env env, napi_callback_info 
     }
 
     std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
-    std::string outString = Str16ToStr8(parcelString.c_str());
     napi_value napiValue = nullptr;
-    napi_create_string_utf8(env, outString.c_str(), outString.length(), &napiValue);
+    napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &napiValue);
     return napiValue;
 }
 
@@ -789,9 +787,8 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
                 break;
             }
             std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
-            std::string outString = Str16ToStr8(parcelString.c_str());
             napi_value val = nullptr;
-            napi_create_string_utf8(env, outString.c_str(), outString.length(), &val);
+            napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
             napi_set_element(env, argv[ARGV_INDEX_0], i, val);
         }
         napi_value napiValue = nullptr;
@@ -807,9 +804,8 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
             break;
         }
         std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
-        std::string outString = Str16ToStr8(parcelString.c_str());
         napi_value val = nullptr;
-        napi_create_string_utf8(env, outString.c_str(), outString.length(), &val);
+        napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
         napi_set_element(env, result, i, val);
     }
     return result;
