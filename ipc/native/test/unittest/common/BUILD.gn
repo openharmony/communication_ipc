@@ -104,8 +104,6 @@ ohos_unittest("IPCFileDescOpsTest") {
 ohos_unittest("BinderConnectorTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = []
-
   sources = [ "ipc_connector_unittest.cpp" ]
 
   configs = [
@@ -307,8 +305,6 @@ ohos_unittest("IPCSoDlcloseTest") {
 
   sources = [ "ipc_so_dlclose_unittest.cpp" ]
 
-  deps = []
-
   external_deps = [ "googletest:gmock" ]
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
@@ -320,8 +316,6 @@ ohos_unittest("IPCBlockThreadTest") {
   include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
 
   sources = [ "ipc_block_thread_unittest.cpp" ]
-
-  deps = []
 
   external_deps = [
     "googletest:gmock",
