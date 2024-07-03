@@ -192,8 +192,6 @@ if (support_jsapi) {
     sources = [ "ipc_napi_unittest.cpp" ]
     configs = []
 
-    deps = []
-
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "googletest:gmock",
