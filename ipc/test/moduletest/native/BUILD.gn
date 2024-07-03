@@ -19,7 +19,6 @@ MODULE_OUTPUT_PATH = "ipc"
 
 ohos_moduletest("IPCNativeFrameworksTest") {
   module_out_path = MODULE_OUTPUT_PATH
-  include_dirs = []
   sources = [ "./common/ipc_core_module_test.cpp" ]
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
