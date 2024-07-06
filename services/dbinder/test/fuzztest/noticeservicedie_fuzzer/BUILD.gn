@@ -21,11 +21,7 @@ ohos_fuzztest("NoticeServiceDieFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file =
       "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/noticeservicedie_fuzzer"
-  include_dirs = [
-    "//utils/system/safwk/native/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-    "//interfaces/innerkits/libdbinder/include",
-  ]
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include" ]
   cflags = [
     "-g",
     "-O0",

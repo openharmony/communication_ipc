@@ -55,12 +55,11 @@ ohos_unittest("IPCNativeUnitTest") {
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
@@ -90,14 +89,11 @@ ohos_unittest("IPCFileDescOpsTest") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
@@ -107,8 +103,6 @@ ohos_unittest("IPCFileDescOpsTest") {
 
 ohos_unittest("BinderConnectorTest") {
   module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = []
 
   sources = [ "ipc_connector_unittest.cpp" ]
 
@@ -120,7 +114,6 @@ ohos_unittest("BinderConnectorTest") {
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -151,7 +144,6 @@ ohos_unittest("BinderInvokerUnitTest") {
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -177,14 +169,11 @@ ohos_unittest("IPCHiTraceUnitTest") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
@@ -203,13 +192,9 @@ if (support_jsapi) {
     sources = [ "ipc_napi_unittest.cpp" ]
     configs = []
 
-    deps = [
-      "//third_party/bounds_checking_function:libsec_shared",
-      "//third_party/googletest:gmock_main",
-      "//third_party/googletest:gtest_main",
-    ]
-
     external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "googletest:gmock",
       "hilog:libhilog",
       "ipc:ipc_napi",
       "napi:ace_napi",
@@ -236,14 +221,11 @@ ohos_unittest("IPCMockUnitTest") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
@@ -270,14 +252,11 @@ ohos_unittest("InvokerFactoryTest") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
@@ -305,14 +284,11 @@ ohos_unittest("RPCFeatureUnitTest") {
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
 
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
@@ -327,10 +303,7 @@ ohos_unittest("IPCSoDlcloseTest") {
 
   sources = [ "ipc_so_dlclose_unittest.cpp" ]
 
-  deps = [
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  external_deps = [ "googletest:gmock" ]
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
@@ -342,12 +315,8 @@ ohos_unittest("IPCBlockThreadTest") {
 
   sources = [ "ipc_block_thread_unittest.cpp" ]
 
-  deps = [
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
   external_deps = [
+    "googletest:gmock",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
@@ -374,12 +343,11 @@ ohos_unittest("IpcCApiUnitTest") {
   deps = [
     "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
