@@ -37,7 +37,7 @@ struct InvokerProcInfo {
     uint64_t tokenId;
     uint64_t firstTokenId;
     std::string sid;
-    uintptr_t invoker;
+    uint32_t invoker;
 };
 
 class ProcessSkeleton {
@@ -45,6 +45,7 @@ public:
     static std::string ConvertToSecureDesc(const std::string &str);
     bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
+    static uint32_t ConvertAddr(const void *ptr);
     static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
