@@ -35,12 +35,10 @@ DBinderDatabusInvoker::DBinderDatabusInvoker()
     : stopWorkThread_(false), callerPid_(getpid()), callerUid_(getuid()), callerDeviceID_(""),
     callerTokenID_(0), firstTokenID_(0), status_(0)
 {
-    ZLOGI(LOG_LABEL, "create %{public}zu", reinterpret_cast<uintptr_t>(this));
 }
 
 DBinderDatabusInvoker::~DBinderDatabusInvoker()
 {
-    ZLOGI(LOG_LABEL, "destroy %{public}zu", reinterpret_cast<uintptr_t>(this));
 }
 
 bool DBinderDatabusInvoker::AcquireHandle(int32_t handle)

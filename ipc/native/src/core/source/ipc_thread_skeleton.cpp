@@ -83,7 +83,7 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
 
 IPCThreadSkeleton::IPCThreadSkeleton()
 {
-    ZLOGD(LOG_LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
+    ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
     pthread_setspecific(TLSKey_, this);
 }
 
@@ -92,10 +92,10 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
     exitFlag_ = true;
     pthread_setspecific(TLSKey_, nullptr);
     while (usingFlag_.load()) {
-        ZLOGI(LOG_LABEL, "%{public}zu is using, wait a moment", reinterpret_cast<uintptr_t>(this));
+        ZLOGI(LOG_LABEL, "%{public}u is using, wait a moment", ProcessSkeleton::ConvertAddr(this));
         usleep(1);
     }
-    ZLOGD(LOG_LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
+    ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
     for (auto it = invokers_.begin(); it != invokers_.end();) {
         delete it->second;
         it = invokers_.erase(it);
