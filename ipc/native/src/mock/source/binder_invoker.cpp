@@ -1119,6 +1119,11 @@ void BinderInvoker::FreeBuffer(void *data)
             output_.FlushBuffer();
         }
     }
+
+    int error = FlushCommands(nullptr);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "failed, error:%{public}d", error);
+    }
 }
 
 void BinderInvoker::BinderAllocator::Dealloc(void *data)
