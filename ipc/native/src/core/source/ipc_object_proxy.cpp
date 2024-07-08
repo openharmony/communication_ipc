@@ -253,6 +253,22 @@ std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
     return reply.ReadString();
 }
 
+int IPCObjectProxy::RemoveSessionName(const std::string &sessionName)
+{
+    MessageParcel data, reply;
+    MessageOption option { MessageOption::TF_ASYNC };
+    if (!data.WriteString(sessionName)) {
+        ZLOGE(LABEL, "write parcel fail, sessionName:%{public}s", sessionName.c_str());
+        return IPC_PROXY_WRITE_PARCEL_ERR;
+    }
+    int err = SendRequestInner(false, REMOVE_SESSION_NAME, data, reply, option);
+    if (err != ERR_NONE) {
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+    }
+    return err;
+}
+
 int IPCObjectProxy::GetPidUid(MessageParcel &reply)
 {
     MessageParcel data;
