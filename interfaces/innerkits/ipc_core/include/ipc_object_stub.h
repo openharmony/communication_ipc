@@ -268,6 +268,7 @@ private:
     int GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     std::string CreateSessionName(int uid, int pid);
+    int RemoveSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     bool IsSamgrCall();
     int DBinderInvokeListenThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int DBinderIncRefsTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

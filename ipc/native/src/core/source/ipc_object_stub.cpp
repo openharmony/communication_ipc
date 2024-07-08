@@ -110,6 +110,7 @@ void IPCObjectStub::InitCodeMap()
     funcMap_[GET_GRANTED_SESSION_NAME] = &IPCObjectStub::GetGrantedSessionName;
     funcMap_[GET_SESSION_NAME_PID_UID] = &IPCObjectStub::GetSessionNameForPidUid;
     funcMap_[GET_PID_UID] = &IPCObjectStub::DBinderGetPidUid;
+    funcMap_[REMOVE_SESSION_NAME] = &IPCObjectStub::RemoveSessionName;
 #endif
 }
 
@@ -681,11 +682,31 @@ std::string IPCObjectStub::CreateSessionName(int uid, int pid)
     std::string sessionName = DBINDER_SOCKET_NAME_PREFIX +
         std::to_string(uid) + std::string("_") + std::to_string(pid);
     if (DBinderSoftbusClient::GetInstance().DBinderGrantPermission(uid, pid, sessionName) != ERR_NONE) {
-        ZLOGE(LABEL, "fail to Grant Permission softbus name");
+        ZLOGE(LABEL, "DBinderGrantPermission fail, %{public}s", sessionName.c_str());
         return "";
     }
 
     return sessionName;
+}
+
+int IPCObjectStub::RemoveSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "REMOVE_SESSION_NAME message is excluded in sa manager");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    std::string sessionName = data.ReadString();
+    if (sessionName.empty()) {
+        ZLOGE(LABEL, "read parcel fail");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    if (DBinderSoftbusClient::GetInstance().DBinderRemovePermission(sessionName) != ERR_NONE) {
+        ZLOGE(LABEL, "DBinderRemovePermission fail, %{public}s", sessionName.c_str());
+        return IPC_STUB_REMOVE_SESSION_NAME_ERR;
+    }
+
+    ZLOGI(LABEL, "%{public}s", sessionName.c_str());
+    return ERR_NONE;
 }
 
 bool IPCObjectStub::IsSamgrCall()
