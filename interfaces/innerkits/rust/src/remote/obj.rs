@@ -97,7 +97,6 @@ impl RemoteObj {
                 );
                 data.inner = ParcelMem::Unique(p);
                 if res != 0 {
-                    error!("Send Request failed {}", res);
                     return Err(IpcStatusCode::Failed);
                 }
                 Ok(reply)
