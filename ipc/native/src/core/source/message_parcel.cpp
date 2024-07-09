@@ -209,10 +209,12 @@ sptr<IRemoteObject> MessageParcel::ReadRemoteObject()
 bool MessageParcel::WriteFileDescriptor(int fd)
 {
     if (fd < 0) {
+        ZLOGE(LOG_LABEL, "invalid fd:%{public}d", fd);
         return false;
     }
     int dupFd = dup(fd);
     if (dupFd < 0) {
+        ZLOGE(LOG_LABEL, "dup failed, fd:%{public}d, errno:%{public}d", fd, errno);
         return false;
     }
     sptr<IPCFileDescriptor> descriptor = new (std::nothrow) IPCFileDescriptor(dupFd);
@@ -227,13 +229,19 @@ int MessageParcel::ReadFileDescriptor()
 {
     sptr<IPCFileDescriptor> descriptor = ReadObject<IPCFileDescriptor>();
     if (descriptor == nullptr) {
+        ZLOGE(LOG_LABEL, "ReadObject failed");
         return -1;
     }
     int fd = descriptor->GetFd();
     if (fd < 0) {
+        ZLOGE(LOG_LABEL, "get fd failed, invalid fd:%{public}d", fd);
         return -1;
     }
-    return dup(fd);
+    int dupFd = dup(fd);
+    if (dupFd < 0) {
+        ZLOGE(LOG_LABEL, "dup failed, fd:%{public}d, errno:%{public}d", fd, errno);
+    }
+    return dupFd;
 }
 
 void MessageParcel::ClearFileDescriptor()
