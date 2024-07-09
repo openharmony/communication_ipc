@@ -1321,3 +1321,51 @@ HWTEST_F(IPCObjectProxyTest, GetStrongRefCountForStubTest001, TestSize.Level1)
     uint32_t count = object->GetStrongRefCountForStub();
     ASSERT_TRUE(count == 0);
 }
+
+/**
+ * @tc.name: RemoveSessionNameTest001
+ * @tc.desc: Verify the IPCObjectProxy::RemoveSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    std::string sessionName = "testSessionName";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(ERR_NONE));
+
+    int result = object.RemoveSessionName(sessionName);
+    ASSERT_EQ(result, ERR_NONE);
+
+    current->invokers_.clear();
+    delete invoker;
+}
+
+/**
+ * @tc.name: RemoveSessionNameTest002
+ * @tc.desc: Verify the IPCObjectProxy::RemoveSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest002, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    std::string sessionName = "testSessionName";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(ERR_DEAD_OBJECT));
+
+    int result = object.RemoveSessionName(sessionName);
+    ASSERT_EQ(result, ERR_DEAD_OBJECT);
+
+    current->invokers_.clear();
+    delete invoker;
+}

@@ -80,6 +80,7 @@ public:
     static void ClientOnShutdown(int32_t socket, ShutdownReason reason);
     static void OnBytesReceived(int32_t socket, const void *data, uint32_t dataLen);
     static void EraseDeviceLock(DBinderSocketInfo info);
+    static void RemoveSessionName(void);
 
 private:
     std::shared_ptr<std::mutex> QueryOrNewInfoMutex(DBinderSocketInfo socketInfo);
