@@ -91,9 +91,15 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     exitFlag_ = true;
     pthread_setspecific(TLSKey_, nullptr);
-    while (usingFlag_.load()) {
+    uint32_t ret = usingFlag_.load();
+    while (ret == ATOMIC_USING_FLAG) {
         ZLOGI(LOG_LABEL, "%{public}zu is using, wait a moment", reinterpret_cast<uintptr_t>(this));
         usleep(1);
+        ret = usingFlag_.load();
+    }
+    if ((ret != ATOMIC_USING_FLAG) && (ret != ATOMIC_NOT_USING_FLAG))  {
+        ZLOGE(LOG_LABEL, "memory may be damaged, ret:%{public}u", ret);
+        return;
     }
     ZLOGD(LOG_LABEL, "%{public}zu", reinterpret_cast<uintptr_t>(this));
     for (auto it = invokers_.begin(); it != invokers_.end();) {
@@ -110,7 +116,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     }
     CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
 
-    current->usingFlag_ = true;
+    current->usingFlag_ = ATOMIC_USING_FLAG;
     IRemoteInvoker *invoker = nullptr;
     auto it = current->invokers_.find(proto);
     if (it != current->invokers_.end()) {
@@ -119,7 +125,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         InvokerFactory &factory = InvokerFactory::Get();
         invoker = factory.newInstance(proto);
         if (invoker == nullptr) {
-            current->usingFlag_ = false;
+            current->usingFlag_ = ATOMIC_NOT_USING_FLAG;
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
             ZLOGE(LOG_LABEL, "invoker is NULL, proto:%{public}d time:%{public}" PRIu64, proto, curTime);
@@ -130,7 +136,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         current->invokers_.insert(std::make_pair(proto, invoker));
     }
 
-    current->usingFlag_ = false;
+    current->usingFlag_ = ATOMIC_NOT_USING_FLAG;
     return invoker;
 }
 
