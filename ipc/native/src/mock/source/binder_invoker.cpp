@@ -1120,6 +1120,7 @@ void BinderInvoker::FreeBuffer(void *data)
         }
     }
 
+    // Distribute data from output_ to the kernel for processing.
     int error = FlushCommands(nullptr);
     if (error != ERR_NONE) {
         ZLOGE(LABEL, "failed, error:%{public}d", error);
