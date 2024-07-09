@@ -187,6 +187,14 @@ public:
     std::string GetGrantedSessionName();
 
     /**
+     * @brief Remove the granted session name.
+     * @param sessionName Indicates the session name that needs to remove.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * @since 12
+     */
+    int RemoveSessionName(const std::string &sessionName);
+
+    /**
      * @brief Obtains the proxy protocol.
      * @return Returns the obtained proxy protocol.
      * @since 9
