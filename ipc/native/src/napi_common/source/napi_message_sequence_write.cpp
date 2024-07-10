@@ -850,14 +850,14 @@ napi_value NAPI_MessageSequence::JS_writeString(napi_env env, napi_callback_info
     }
     size_t bufferSize = 0;
     size_t maxLen = MAX_BYTES_LENGTH;
-    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf16(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxLen) {
         ZLOGE(LOG_LABEL, "string length too large");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    char stringValue[bufferSize + 1];
+    char16_t stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf16(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -871,8 +871,7 @@ napi_value NAPI_MessageSequence::JS_writeString(napi_env env, napi_callback_info
     }
 
     CHECK_WRITE_CAPACITY(env, BYTE_SIZE_32 * bufferSize, napiSequence);
-    std::string parcelString = stringValue;
-    bool result = napiSequence->nativeParcel_->WriteString16(to_utf16(parcelString));
+    bool result = napiSequence->nativeParcel_->WriteString16(stringValue);
     if (!result) {
         ZLOGE(LOG_LABEL, "write string16 failed");
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
@@ -908,7 +907,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteStringArrayElement(napi_env env,
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
-    napi_get_value_string_utf8(env, element, nullptr, 0, &bufferSize);
+    napi_get_value_string_utf16(env, element, nullptr, 0, &bufferSize);
     if (bufferSize >= maxSize) {
         ZLOGE(LOG_LABEL, "string length too large");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -949,17 +948,16 @@ napi_value NAPI_MessageSequence::JS_writeStringArray(napi_env env, napi_callback
         if (checkElementResult == nullptr) {
             return checkElementResult;
         }
-        char stringValue[bufferSize + 1];
+        char16_t stringValue[bufferSize + 1];
         size_t jsStringLength = 0;
-        napi_get_value_string_utf8(env, element, stringValue, bufferSize + 1, &jsStringLength);
+        napi_get_value_string_utf16(env, element, stringValue, bufferSize + 1, &jsStringLength);
         if (jsStringLength != bufferSize) {
             ZLOGE(LOG_LABEL, "string length wrong");
             return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
         }
 
         REWIND_IF_WRITE_CHECK_FAIL(env, BYTE_SIZE_32 * bufferSize, pos, napiSequence);
-        std::string parcelString = stringValue;
-        result = napiSequence->nativeParcel_->WriteString16(to_utf16(parcelString));
+        result = napiSequence->nativeParcel_->WriteString16(stringValue);
         if (!result) {
             napiSequence->nativeParcel_->RewindWrite(pos);
             ZLOGE(LOG_LABEL, "write string16 failed");
@@ -1467,14 +1465,14 @@ napi_value NAPI_MessageSequence::JS_writeInterfaceToken(napi_env env, napi_callb
     }
     size_t bufferSize = 0;
     size_t maxSize = MAX_BYTES_LENGTH;
-    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
+    napi_get_value_string_utf16(env, argv[ARGV_INDEX_0], nullptr, 0, &bufferSize);
     if (bufferSize >= maxSize) {
         ZLOGE(LOG_LABEL, "string length too large");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    char stringValue[bufferSize + 1];
+    char16_t stringValue[bufferSize + 1];
     size_t jsStringLength = 0;
-    napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
+    napi_get_value_string_utf16(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     if (jsStringLength != bufferSize) {
         ZLOGE(LOG_LABEL, "string length wrong");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
@@ -1487,8 +1485,7 @@ napi_value NAPI_MessageSequence::JS_writeInterfaceToken(napi_env env, napi_callb
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
 
-    std::string parcelString = stringValue;
-    bool writeResult = napiSequence->nativeParcel_->WriteInterfaceToken(to_utf16(parcelString));
+    bool writeResult = napiSequence->nativeParcel_->WriteInterfaceToken(stringValue);
     if (writeResult == false) {
         ZLOGE(LOG_LABEL, "write interface token failed");
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
