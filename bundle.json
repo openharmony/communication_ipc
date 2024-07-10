@@ -42,7 +42,8 @@
           "libuv",
           "bounds_checking_function",
           "hisysevent",
-          "json"
+          "json",
+          "selinux"
         ],
         "third_party": [
         ]
