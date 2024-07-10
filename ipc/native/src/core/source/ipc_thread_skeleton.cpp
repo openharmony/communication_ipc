@@ -117,7 +117,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
 
     if ((current->usingFlag_ != INVOKER_USE_MAGIC) && (current->usingFlag_ != INVOKER_IDLE_MAGIC)) {
-        ZLOGF(LOG_LABEL, "memory may be damaged, flag:%{public}u", current->usingFlag_);
+        ZLOGF(LOG_LABEL, "memory may be damaged, flag:%{public}u", current->usingFlag_.load());
         return nullptr;
     }
     current->usingFlag_ = INVOKER_USE_MAGIC;
