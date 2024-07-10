@@ -117,6 +117,10 @@ int main(int argc, char *argv[])
                 ZLOGE(LABEL, "Failed to caught signal");
             }
         }},
+        {TestCommand::TEST_CMD_TOO_MANY_SENDREQUEST, [&]() {
+            testClient->TestSendTooManyRequest();
+            testClient->StartSyncTransaction();
+        }},
     };
 
     auto it = commandMap.find(commandId);
@@ -126,7 +130,9 @@ int main(int argc, char *argv[])
         ZLOGD(LABEL, "main arg error");
     }
 
-    ZLOGE(LABEL, "get from service: %{public}d", result);
+    // The non IPC context obtains one's own sid
+    std::string selfSid = IPCSkeleton::GetCallingSid();
+    ZLOGI(LABEL, "get from service: %{public}d, sid: %{public}s", result, selfSid.c_str());
     IPCSkeleton::JoinWorkThread();
     return 0;
 }

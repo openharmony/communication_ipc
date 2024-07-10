@@ -325,4 +325,11 @@ sptr<IRemoteObject> TestService::TestQueryRemoteProxy(const char *descriptor)
     return nullptr;
 }
 
+int TestService::TestSendTooManyRequest(int data, int &reply)
+{
+    (void)data;
+    (void)reply;
+    return 0;
+}
+
 } // namespace OHOS
