@@ -70,6 +70,7 @@ ohos_shared_library("ipc_single") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
+    "selinux:libselinux",
   ]
   defines = [ "FFRT_IPC_ENABLE" ]
   if (build_selinux) {
