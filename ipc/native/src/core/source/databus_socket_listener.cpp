@@ -90,7 +90,7 @@ void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
         ZLOGE(LABEL, "fail to get invoker");
         return;
     }
-
+    RemoveSessionName();
     invoker->OnDatabusSessionServerSideClosed(socket);
 }
 
@@ -122,6 +122,7 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
         }
     }
     EraseDeviceLock(socketInfo);
+    RemoveSessionName();
     invoker->OnDatabusSessionClientSideClosed(socket);
 }
 
@@ -256,5 +257,24 @@ void DatabusSocketListener::EraseDeviceLock(DBinderSocketInfo info)
     if (it != infoMutexMap_.end()) {
         infoMutexMap_.erase(it);
     }
+}
+
+void DatabusSocketListener::RemoveSessionName(void)
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "get current is null");
+        return;
+    }
+    sptr<IRemoteObject> object = current->GetSAMgrObject();
+    if (object == nullptr) {
+        ZLOGE(LABEL, "get object is null");
+        return;
+    }
+
+    IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
+    const std::string sessionName = current->GetDatabusName();
+    samgr->RemoveSessionName(sessionName);
+    ZLOGI(LABEL, "%{public}s", sessionName.c_str());
 }
 } // namespace OHOS

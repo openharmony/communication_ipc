@@ -53,11 +53,14 @@ public:
     // Quit current thread from IPC work group.
     void StopWorkThread(int proto);
 
+    static constexpr uint32_t INVOKER_USE_MAGIC = 0x5A5A5A5A;
+    static constexpr uint32_t INVOKER_IDLE_MAGIC = 0xA5A5A5A5;
+
 private:
     static pthread_key_t TLSKey_;
     static pthread_once_t TLSKeyOnce_;
     std::atomic<bool> exitFlag_ = false;
-    std::atomic<bool> usingFlag_ = false;
+    std::atomic<uint32_t> usingFlag_ = INVOKER_IDLE_MAGIC;
     std::unordered_map<int, IRemoteInvoker *> invokers_;
 };
 #ifdef CONFIG_IPC_SINGLE

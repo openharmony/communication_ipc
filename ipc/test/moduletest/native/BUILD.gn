@@ -19,16 +19,12 @@ MODULE_OUTPUT_PATH = "ipc"
 
 ohos_moduletest("IPCNativeFrameworksTest") {
   module_out_path = MODULE_OUTPUT_PATH
-  include_dirs = [ "//utils/system/safwk/native/include" ]
   sources = [ "./common/ipc_core_module_test.cpp" ]
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     "$IPC_TEST_ROOT:ipc_test_config",
   ]
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
 
   external_deps = [
     "c_utils:utils",
