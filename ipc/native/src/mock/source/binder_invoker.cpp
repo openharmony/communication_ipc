@@ -226,7 +226,7 @@ bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
     if (error == ERR_NONE) {
         auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
         if (proxy != nullptr) {
-            proxy->IncStrongRef(this);
+            proxy->IncWeakRef(this);
         }
     }
     return error == ERR_NONE;
@@ -446,7 +446,9 @@ void BinderInvoker::OnBinderDied()
                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         } else {
+            proxy->IncStrongRef(this);
             proxy->SendObituary();
+            proxy->DecStrongRef(this);
         }
     }
 
@@ -718,7 +720,7 @@ void BinderInvoker::OnRemoveRecipientDone()
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
     if (proxy != nullptr) {
-        proxy->DecStrongRef(this);
+        proxy->DecWeakRef(this);
     }
 }
 
@@ -1118,6 +1120,12 @@ void BinderInvoker::FreeBuffer(void *data)
         if (!output_.RewindWrite(rewindPos)) {
             output_.FlushBuffer();
         }
+    }
+
+    // Distribute data from output_ to the kernel for processing.
+    int error = FlushCommands(nullptr);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "failed, error:%{public}d", error);
     }
 }
 

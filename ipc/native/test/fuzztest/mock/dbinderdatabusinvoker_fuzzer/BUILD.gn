@@ -23,9 +23,6 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
   fuzz_config_file =
       "$IPC_CORE_ROOT/test/fuzztest/mock/dbinderdatabusinvoker_fuzzer"
   include_dirs = [
-    "//utils/system/safwk/native/include",
-    "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include",
-    "//commonlibrary/c_utils/base/include",
     "$SUBSYSTEM_DIR/utils/include",
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/src/core/include",
