@@ -37,7 +37,7 @@ struct InvokerProcInfo {
     uint64_t tokenId;
     uint64_t firstTokenId;
     std::string sid;
-    uint32_t invoker;
+    uintptr_t invoker;
 };
 
 class ProcessSkeleton {
