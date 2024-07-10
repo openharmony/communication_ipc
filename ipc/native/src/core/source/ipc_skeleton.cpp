@@ -26,6 +26,7 @@
 #include "iremote_invoker.h"
 #include "iremote_object.h"
 #include "refbase.h"
+#include "selinux/selinux.h"
 #include "string"
 #include "unistd.h"
 #ifdef FFRT_IPC_ENABLE
@@ -38,6 +39,19 @@ using namespace IPC_SINGLE;
 #endif
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "BinderSkeleton" };
+
+static std::string GetSid()
+{
+    char *con = nullptr;
+    int ret = getcon(&con);
+    if (ret < 0) {
+        return "";
+    }
+    std::string context = con;
+    freecon(con);
+    return context;
+}
+
 void IPCSkeleton::JoinWorkThread()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -88,7 +102,7 @@ std::string IPCSkeleton::GetCallingSid()
     if (invoker != nullptr) {
         return invoker->GetCallerSid();
     }
-    return "";
+    return GetSid();
 }
 
 pid_t IPCSkeleton::GetCallingPid()
