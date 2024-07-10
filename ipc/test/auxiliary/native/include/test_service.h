@@ -54,6 +54,7 @@ public:
     int TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object) override;
     int TestUnRegisterRemoteStub(const char *descriptor) override;
     sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) override;
+    int TestSendTooManyRequest(int data, int &reply) override;
 private:
     int testFd_;
     std::mutex remoteObjectsMutex_;

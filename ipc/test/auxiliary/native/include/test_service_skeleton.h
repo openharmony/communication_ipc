@@ -84,6 +84,7 @@ public:
     virtual int TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object) = 0;
     virtual int TestUnRegisterRemoteStub(const char *descriptor) = 0;
     virtual sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) = 0;
+    virtual int TestSendTooManyRequest(int data, int &reply) = 0;
 
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");
@@ -156,6 +157,7 @@ public:
     int TestRegisterRemoteStub(const char *descriptor, const sptr<IRemoteObject> object) override;
     int TestUnRegisterRemoteStub(const char *descriptor) override;
     sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) override;
+    int TestSendTooManyRequest(int data, int &reply) override;
 
 private:
     static inline BrokerDelegator<TestServiceProxy> delegator_;
