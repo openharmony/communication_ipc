@@ -44,7 +44,7 @@ static NapiError napiErr;
         CHECK_WRITE_POSITION(env, napiParcel);                                                                        \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();             \
         if (cap < (lenToWrite)) {                                                                                     \
-            ZLOGI(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
+            ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
         }                                                                                                             \
     } while (0)
@@ -54,7 +54,7 @@ static NapiError napiErr;
         CHECK_WRITE_POSITION(env, napiParcel);                                                                        \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();             \
         if (cap < (lenToWrite)) {                                                                                     \
-            ZLOGI(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
+            ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
             (napiParcel)->nativeParcel_->RewindWrite(pos);                                                            \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
         }                                                                                                             \
@@ -66,8 +66,10 @@ static NapiError napiErr;
         size_t remainSize = (napiParcel)->nativeParcel_->GetDataSize() -                                             \
             (napiParcel)->nativeParcel_->GetReadPosition();                                                          \
         if (((arrayLength) < 0) || ((arrayLength) > remainSize) || (((arrayLength) * (typeSize)) > remainSize)) {    \
-            ZLOGI(LOG_LABEL, "No enough data to read, arrayLength:%{public}zu, remainSize:%{public}zu,"              \
-                "typeSize:%{public}zu", arrayLength, remainSize, typeSize);                                          \
+            ZLOGE(LOG_LABEL, "No enough data to read, arrayLength:%{public}zu, remainSize:%{public}zu,"              \
+                "typeSize:%{public}zu, GetDataSize:%{public}zu, GetReadPosition:%{public}zu", arrayLength,           \
+                remainSize, typeSize, (napiParcel)->nativeParcel_->GetDataSize(),                                    \
+                (napiParcel)->nativeParcel_->GetReadPosition());                                                     \
             napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
         }                                                                                                            \
     } while (0)
