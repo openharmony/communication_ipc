@@ -63,8 +63,8 @@ static const long long int SEND_REQUEST_TIMEOUT = 2000;
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
 {
-    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), reinterpret_cast<uintptr_t>(this));
+    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), ProcessSkeleton::ConvertAddr(this));
     ExtendObjectLifetime();
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
@@ -76,9 +76,9 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}zu", handle_,
+    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
-        reinterpret_cast<uintptr_t>(this));
+        ProcessSkeleton::ConvertAddr(this));
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");
@@ -400,9 +400,9 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         }
     }
 #endif
-    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}zu", handle_,
+    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}u", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
-        reinterpret_cast<uintptr_t>(this));
+        ProcessSkeleton::ConvertAddr(this));
     return true;
 }
 
@@ -442,9 +442,9 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             dbinderStatus = RemoveDbinderDeathRecipient();
         }
 #endif
-        ZLOGD(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}zu", status && dbinderStatus,
+        ZLOGD(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}u", status && dbinderStatus,
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
-            reinterpret_cast<uintptr_t>(this));
+            ProcessSkeleton::ConvertAddr(this));
         return status && dbinderStatus;
     }
     return recipientErased;
@@ -452,9 +452,9 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 void IPCObjectProxy::SendObituary()
 {
-    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}zu", handle_,
+    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
-        reinterpret_cast<uintptr_t>(this));
+        ProcessSkeleton::ConvertAddr(this));
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {

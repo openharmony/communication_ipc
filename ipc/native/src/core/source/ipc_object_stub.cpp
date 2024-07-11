@@ -63,9 +63,9 @@ static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500 * COEFF_MILLI_TO_MICRO; // 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0)
 {
-    ZLOGD(LABEL, "desc:%{public}s, %{public}zu",
+    ZLOGD(LABEL, "desc:%{public}s, %{public}u",
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        reinterpret_cast<uintptr_t>(this));
+        ProcessSkeleton::ConvertAddr(this));
     InitCodeMap();
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
@@ -80,9 +80,9 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
 
 IPCObjectStub::~IPCObjectStub()
 {
-    ZLOGD(LABEL, "desc:%{public}s, %{public}zu",
+    ZLOGD(LABEL, "desc:%{public}s, %{public}u",
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
-        reinterpret_cast<uintptr_t>(this));
+        ProcessSkeleton::ConvertAddr(this));
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");

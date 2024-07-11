@@ -45,6 +45,7 @@ public:
     static std::string ConvertToSecureDesc(const std::string &str);
     bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
+    static uint32_t ConvertAddr(const void *ptr);
     static ProcessSkeleton* GetInstance();
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);

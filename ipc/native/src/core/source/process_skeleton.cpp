@@ -29,6 +29,12 @@ static constexpr uint64_t DEAD_OBJECT_TIMEOUT = 20 * (60 * 1000); // min
 static constexpr uint64_t DEAD_OBJECT_CHECK_INTERVAL = 11 * (60 * 1000); // min
 static constexpr int PRINT_ERR_CNT = 100;
 
+#ifdef __aarch64__
+static constexpr uint32_t IPC_OBJECT_MASK = 0xffffffff;
+#else
+static constexpr uint32_t IPC_OBJECT_MASK = 0xffffff;
+#endif
+
 ProcessSkeleton* ProcessSkeleton::instance_ = nullptr;
 std::mutex ProcessSkeleton::mutex_;
 ProcessSkeleton::DestroyInstance ProcessSkeleton::destroyInstance_;
@@ -130,7 +136,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
     if (descriptor.empty()) {
-        ZLOGE(LOG_LABEL, "descriptor is null %{public}zu", reinterpret_cast<uintptr_t>(object));
+        ZLOGE(LOG_LABEL, "descriptor is null %{public}u", ConvertAddr(object));
         return false;
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
@@ -199,8 +205,8 @@ bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo &ob
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
     auto result = deadObjectRecord_.insert_or_assign(object, objInfo);
-    ZLOGD(LOG_LABEL, "%{public}zu handle:%{public}d desc:%{public}s inserted:%{public}d",
-        reinterpret_cast<uintptr_t>(object), objInfo.handle,
+    ZLOGD(LOG_LABEL, "%{public}u handle:%{public}d desc:%{public}s inserted:%{public}d",
+        ConvertAddr(object), objInfo.handle,
         ConvertToSecureDesc(Str16ToStr8(objInfo.desc)).c_str(), result.second);
     DetachTimeoutDeadObject();
     return result.second;
@@ -213,7 +219,7 @@ bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
     std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
     auto it = deadObjectRecord_.find(object);
     if (it != deadObjectRecord_.end()) {
-        ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s", reinterpret_cast<uintptr_t>(object),
+        ZLOGD(LOG_LABEL, "erase %{public}u handle:%{public}d desc:%{public}s", ConvertAddr(object),
             it->second.handle, ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str());
         deadObjectRecord_.erase(it);
         ret = true;
@@ -250,8 +256,8 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
     deadObjectClearTime_ = curTime;
     for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end();) {
         if (curTime - it->second.agingTime >= DEAD_OBJECT_TIMEOUT) {
-            ZLOGD(LOG_LABEL, "erase %{public}zu handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
-                reinterpret_cast<uintptr_t>(it->first), it->second.handle,
+            ZLOGD(LOG_LABEL, "erase %{public}u handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
+                ConvertAddr(it->first), it->second.handle,
                 ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str(), it->second.deadTime);
             it = deadObjectRecord_.erase(it);
             continue;
@@ -267,8 +273,9 @@ bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invok
     std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
     auto result = invokerProcInfo_.insert_or_assign(key, invokeInfo);
     auto &info = result.first->second;
-    ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-        info.invoker, info.pid, info.realPid, info.uid, info.tokenId, info.firstTokenId);
+    ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+        ConvertAddr(reinterpret_cast<void*>(info.invoker)), info.pid, info.realPid,
+        info.uid, info.tokenId, info.firstTokenId);
     return result.second;
 }
 
@@ -282,9 +289,9 @@ bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invoke
         return false;
     }
     invokeInfo = it->second;
-    ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-        invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
-        invokeInfo.firstTokenId);
+    ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+        ConvertAddr(reinterpret_cast<void*>(invokeInfo.invoker)), invokeInfo.pid, invokeInfo.realPid,
+        invokeInfo.uid, invokeInfo.tokenId, invokeInfo.firstTokenId);
     return true;
 }
 
@@ -296,9 +303,9 @@ bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
     auto it = invokerProcInfo_.find(key);
     if (it != invokerProcInfo_.end()) {
         auto &invokeInfo = it->second;
-        ZLOGD(LOG_LABEL, "%{public}zu, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-            invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
-            invokeInfo.firstTokenId);
+        ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+            ConvertAddr(reinterpret_cast<void*>(invokeInfo.invoker)), invokeInfo.pid, invokeInfo.realPid,
+            invokeInfo.uid, invokeInfo.tokenId, invokeInfo.firstTokenId);
         invokerProcInfo_.erase(it);
         return true;
     }
@@ -334,5 +341,14 @@ bool ProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void (uint64_
     ipcProxyLimitNum_ = num;
     ipcProxyCallback_ = callback;
     return true;
+}
+
+uint32_t ProcessSkeleton::ConvertAddr(const void *ptr)
+{
+    if (ptr == nullptr) {
+        ZLOGE(LOG_LABEL, "ptr is null");
+        return 0;
+    }
+    return static_cast<uint32_t>((reinterpret_cast<uintptr_t>(ptr)) & IPC_OBJECT_MASK);
 }
 } // namespace OHOS
