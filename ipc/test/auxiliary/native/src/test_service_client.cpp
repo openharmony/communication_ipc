@@ -221,4 +221,15 @@ void TestServiceClient::TestUnRegisterRemoteStub()
     }
     ZLOGD(LABEL, "function call success");
 }
+
+void TestServiceClient::TestSendTooManyRequest()
+{
+    if (testService_ != nullptr) {
+        ZLOGD(LABEL, "TestSendTooManyRequest");
+        int ret = 0;
+        int data = 2024;
+        testService_->TestSendTooManyRequest(data, ret);
+    }
+}
+
 } // namespace OHOS

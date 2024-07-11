@@ -39,6 +39,7 @@ namespace OHOS {
 using namespace OHOS::HiviewDFX;
 
 constexpr int32_t MAX_RECURSIVE_SENDS = 5;
+constexpr int32_t SEDNREQUEST_TIMES = 50000;
 
 void TestServiceStub::InitMessageProcessMap()
 {
@@ -106,6 +107,27 @@ int TestServiceProxy::TestSyncTransaction(int data, int &reply, int delayTime)
     }
     error = Remote()->SendRequest(TRANS_ID_SYNC_TRANSACTION, dataParcel, replyParcel, option);
     reply = replyParcel.ReadInt32();
+    ZLOGD(LABEL, "get result from server data = %{public}d", reply);
+    return error;
+}
+
+int TestServiceProxy::TestSendTooManyRequest(int data, int &reply)
+{
+    int error;
+    int delayTime = 0;
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel[SEDNREQUEST_TIMES];
+
+    ZLOGD(LABEL, "send to server data = %{public}d", data);
+    if (data > 0) {
+        dataParcel.WriteInt32(data);
+        dataParcel.WriteInt32(delayTime);
+    }
+    for (int32_t i = 0; i < SEDNREQUEST_TIMES; i++) {
+        error = Remote()->SendRequest(TRANS_ID_SYNC_TRANSACTION, dataParcel, replyParcel[i], option);
+    }
+    reply = replyParcel[0].ReadInt32();
     ZLOGD(LABEL, "get result from server data = %{public}d", reply);
     return error;
 }
