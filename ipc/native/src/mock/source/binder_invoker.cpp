@@ -83,7 +83,7 @@ BinderInvoker::BinderInvoker()
     callerTokenID_(0), firstTokenID_(0), callerSid_(""), status_(0)
 {
     invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_,
-        ProcessSkeleton::ConvertAddr(this) };
+        reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
     ZLOGD(LABEL, "created %{public}u", ProcessSkeleton::ConvertAddr(this));
@@ -574,7 +574,7 @@ void BinderInvoker::RestoreInvokerProcInfo(const InvokerProcInfo &info)
 void BinderInvoker::AttachInvokerProcInfoWrapper()
 {
     InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_,
-        callerUid_, callerTokenID_, firstTokenID_, callerSid_, ProcessSkeleton::ConvertAddr(this) };
+        callerUid_, callerTokenID_, firstTokenID_, callerSid_, reinterpret_cast<uintptr_t>(this) };
     auto current = ProcessSkeleton::GetInstance();
     if (current != nullptr) {
         current->AttachInvokerProcInfo(true, invokerInfo);
