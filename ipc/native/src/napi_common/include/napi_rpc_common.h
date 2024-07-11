@@ -21,22 +21,22 @@
 namespace OHOS {
 static NapiError napiErr;
 
-#define CHECK_WRITE_POSITION(env, napiParcel)                                                                        \
-    do {                                                                                                             \
-        if ((napiParcel)->maxCapacityToWrite_ < (napiParcel)->nativeParcel_->GetWritePosition()) {                   \
-            ZLOGE(LOG_LABEL, "invalid write position, maxCapacityToWrite_:%{public}zu, GetWritePosition:%{public}zu",\
-                (napiParcel)->maxCapacityToWrite_, (napiParcel)->nativeParcel_->GetWritePosition());                 \
-            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);                         \
-        }                                                                                                            \
+#define CHECK_WRITE_POSITION(env, napiParcel)                                                                         \
+    do {                                                                                                              \
+        if ((napiParcel)->maxCapacityToWrite_ < (napiParcel)->nativeParcel_->GetWritePosition()) {                    \
+            ZLOGE(LOG_LABEL, "invalid write position, maxCapacityToWrite_:%{public}zu, GetWritePosition:%{public}zu", \
+                (napiParcel)->maxCapacityToWrite_, (napiParcel)->nativeParcel_->GetWritePosition());                  \
+            return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);                          \
+        }                                                                                                             \
     } while (0)
 
-#define CHECK_READ_POSITION(env, napiParcel)                                                                \
-    do {                                                                                                    \
-        if ((napiParcel)->nativeParcel_->GetDataSize() < (napiParcel)->nativeParcel_->GetReadPosition()) {  \
-            ZLOGE(LOG_LABEL, "invalid read position, GetDataSize:%{public}zu, GetReadPosition:%{public}zu", \
-                (napiParcel)->nativeParcel_->GetDataSize(), (napiParcel)->nativeParcel_->GetReadPosition());\
-            return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);               \
-        }                                                                                                   \
+#define CHECK_READ_POSITION(env, napiParcel)                                                                 \
+    do {                                                                                                     \
+        if ((napiParcel)->nativeParcel_->GetDataSize() < (napiParcel)->nativeParcel_->GetReadPosition()) {   \
+            ZLOGE(LOG_LABEL, "invalid read position, GetDataSize:%{public}zu, GetReadPosition:%{public}zu",  \
+                (napiParcel)->nativeParcel_->GetDataSize(), (napiParcel)->nativeParcel_->GetReadPosition()); \
+            return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);                \
+        }                                                                                                    \
     } while (0)
 
 #define CHECK_WRITE_CAPACITY(env, lenToWrite, napiParcel)                                                             \
@@ -44,7 +44,7 @@ static NapiError napiErr;
         CHECK_WRITE_POSITION(env, napiParcel);                                                                        \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();             \
         if (cap < (lenToWrite)) {                                                                                     \
-            ZLOGI(LOG_LABEL, "No enough capacity to write, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);\
+            ZLOGI(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
         }                                                                                                             \
     } while (0)
@@ -54,7 +54,7 @@ static NapiError napiErr;
         CHECK_WRITE_POSITION(env, napiParcel);                                                                        \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();             \
         if (cap < (lenToWrite)) {                                                                                     \
-            ZLOGI(LOG_LABEL, "No enough capacity to write, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);\
+            ZLOGI(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
             (napiParcel)->nativeParcel_->RewindWrite(pos);                                                            \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
         }                                                                                                             \
