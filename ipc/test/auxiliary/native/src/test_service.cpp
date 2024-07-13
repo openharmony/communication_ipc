@@ -331,5 +331,10 @@ int TestService::TestSendTooManyRequest(int data, int &reply)
     (void)reply;
     return 0;
 }
-
+int TestService::TestMultiThreadSendRequest(int data, int &reply)
+{
+    (void)data;
+    (void)reply;
+    return 0;
+}
 } // namespace OHOS
