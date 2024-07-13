@@ -232,4 +232,14 @@ void TestServiceClient::TestSendTooManyRequest()
     }
 }
 
+void TestServiceClient::TestMultiThreadSendRequest()
+{
+    if (testService_ != nullptr) {
+        ZLOGD(LABEL, "TestMultiThreadSendRequest");
+        int ret = 0;
+        int value = 2024;
+        testService_->TestMultiThreadSendRequest(value, ret);
+    }
+}
+
 } // namespace OHOS

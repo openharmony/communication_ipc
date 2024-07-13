@@ -40,6 +40,7 @@ using namespace OHOS::HiviewDFX;
 
 constexpr int32_t MAX_RECURSIVE_SENDS = 5;
 constexpr int32_t SEDNREQUEST_TIMES = 50000;
+constexpr int32_t NUMBER_OF_THREADS = 20;
 
 void TestServiceStub::InitMessageProcessMap()
 {
@@ -129,6 +130,35 @@ int TestServiceProxy::TestSendTooManyRequest(int data, int &reply)
     }
     reply = replyParcel[0].ReadInt32();
     ZLOGD(LABEL, "get result from server data = %{public}d", reply);
+    return error;
+}
+
+int TestServiceProxy::TestMultiThreadSendRequest(int data, int &reply)
+{
+    int error = 0;
+
+    sptr<IRemoteObject> proxyObject = Remote();
+    for (int32_t i = 0; i < NUMBER_OF_THREADS; i++) {
+        // Different threads correspond to different sets of parcels.
+        std::thread t([&proxyObject, &data, &reply] {
+            MessageParcel dataParcel;
+            MessageParcel replyParcel;
+            MessageOption option;
+            if (data > 0) {
+                dataParcel.WriteInt32(data);
+                dataParcel.WriteInt32(0);
+            }
+            int error = proxyObject->SendRequest(TRANS_ID_SYNC_TRANSACTION, dataParcel, replyParcel, option);
+            if (error != 0) {
+                ZLOGD(LABEL, "SendRequest is failed: %{public}d", error);
+                return;
+            }
+            reply = replyParcel.ReadInt32();
+        });
+        t.detach();
+        std::cout << "Thead: " << i << std::endl;
+    }
+
     return error;
 }
 
