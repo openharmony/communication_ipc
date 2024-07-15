@@ -121,6 +121,9 @@ int main(int argc, char *argv[])
             testClient->TestSendTooManyRequest();
             testClient->StartSyncTransaction();
         }},
+        {TestCommand::TEST_CMD_MULTI_THREAD_SEND, [&]() {
+            testClient->TestMultiThreadSendRequest();
+        }},
     };
 
     auto it = commandMap.find(commandId);

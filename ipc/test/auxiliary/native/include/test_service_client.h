@@ -46,6 +46,7 @@ public:
     void TestRegisterRemoteStub();
     void TestUnRegisterRemoteStub();
     void TestSendTooManyRequest();
+    void TestMultiThreadSendRequest();
 
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceClient" };
