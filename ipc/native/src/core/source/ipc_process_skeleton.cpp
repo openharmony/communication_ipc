@@ -205,7 +205,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d %{public}zu, time:%{public}" PRIu64, handle,
+        ZLOGE(LOG_LABEL, "init rpc proxy failed, handle:%{public}d %{public}u, time:%{public}" PRIu64, handle,
             ProcessSkeleton::ConvertAddr(result.GetRefPtr()), curTime);
         if (proxy->GetSptrRefCount() <= DETACH_PROXY_REF_COUNT) {
             DetachObject(result.GetRefPtr());
