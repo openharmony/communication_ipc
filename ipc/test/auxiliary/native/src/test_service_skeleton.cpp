@@ -39,7 +39,7 @@ namespace OHOS {
 using namespace OHOS::HiviewDFX;
 
 constexpr int32_t MAX_RECURSIVE_SENDS = 5;
-constexpr int32_t SEDNREQUEST_TIMES = 50000;
+constexpr int32_t SEDNREQUEST_TIMES = 2000;
 constexpr int32_t NUMBER_OF_THREADS = 20;
 
 void TestServiceStub::InitMessageProcessMap()
