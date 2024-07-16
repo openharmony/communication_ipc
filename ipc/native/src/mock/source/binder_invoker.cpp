@@ -749,7 +749,7 @@ void BinderInvoker::OnTransaction(int32_t cmd, int32_t &error)
     bool isSecctx = (cmd == static_cast<int32_t>(BR_TRANSACTION_SEC_CTX));
     uint32_t bufferSize = isSecctx ? sizeof(binder_transaction_data_secctx) : sizeof(binder_transaction_data);
 
-    buffer = input_.ReadBuffer(bufferSize);
+    buffer = input_.ReadBuffer(bufferSize, false);
     if (buffer == nullptr) {
         error = IPC_INVOKER_INVALID_DATA_ERR;
         return;
@@ -767,7 +767,7 @@ void BinderInvoker::OnTransaction(int32_t cmd, int32_t &error)
 int BinderInvoker::HandleReply(MessageParcel *reply)
 {
     const size_t readSize = sizeof(binder_transaction_data);
-    const uint8_t *buffer = input_.ReadBuffer(readSize);
+    const uint8_t *buffer = input_.ReadBuffer(readSize, false);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "HandleReply read tr failed");
         return IPC_INVOKER_INVALID_DATA_ERR;
@@ -1276,7 +1276,7 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
 
 sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
 {
-    const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object));
+    const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object), false);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "null object buffer");
         return nullptr;
@@ -1313,7 +1313,7 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
 int BinderInvoker::ReadFileDescriptor(Parcel &parcel)
 {
     int fd = -1;
-    const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object));
+    const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object), false);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "UnflattenObject null object buffer");
         return fd;
