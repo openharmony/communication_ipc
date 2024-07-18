@@ -90,7 +90,6 @@ void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
         ZLOGE(LABEL, "fail to get invoker");
         return;
     }
-    RemoveSessionName();
     invoker->OnDatabusSessionServerSideClosed(socket);
 }
 
@@ -122,7 +121,6 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
         }
     }
     EraseDeviceLock(socketInfo);
-    RemoveSessionName();
     invoker->OnDatabusSessionClientSideClosed(socket);
 }
 
