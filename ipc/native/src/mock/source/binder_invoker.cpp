@@ -226,7 +226,7 @@ bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
     if (error == ERR_NONE) {
         auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
         if (proxy != nullptr) {
-            proxy->IncWeakRef(this);
+            proxy->IncStrongRef(this);
         }
     }
     return error == ERR_NONE;
@@ -446,9 +446,7 @@ void BinderInvoker::OnBinderDied()
                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         } else {
-            proxy->IncStrongRef(this);
             proxy->SendObituary();
-            proxy->DecStrongRef(this);
         }
     }
 
@@ -720,7 +718,7 @@ void BinderInvoker::OnRemoveRecipientDone()
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
     if (proxy != nullptr) {
-        proxy->DecWeakRef(this);
+        proxy->DecStrongRef(this);
     }
 }
 
