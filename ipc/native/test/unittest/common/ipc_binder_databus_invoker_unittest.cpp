@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
@@ -297,13 +298,14 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, NewSessionOfBinderProxy003, TestSize.Leve
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
-
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
-    ASSERT_TRUE(invoker == nullptr);
+    ASSERT_NE(invoker, nullptr);
+
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.NewSessionOfBinderProxy(handle, remoteSession);
     EXPECT_TRUE (ret == nullptr);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
 }
 
 /**
@@ -1090,7 +1092,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, GetSelfFirstCallerTokenIDTest001, TestSiz
 
     auto ret = testInvoker.GetSelfFirstCallerTokenID();
     EXPECT_EQ(ret, 111);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -1108,7 +1110,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, GetSelfFirstCallerTokenIDTest002, TestSiz
 
     auto ret = testInvoker.GetSelfFirstCallerTokenID();
     EXPECT_EQ(ret, 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**

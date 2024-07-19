@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,7 +61,8 @@ private:
     static pthread_once_t TLSKeyOnce_;
     std::atomic<bool> exitFlag_ = false;
     std::atomic<uint32_t> usingFlag_ = INVOKER_IDLE_MAGIC;
-    std::unordered_map<int, IRemoteInvoker *> invokers_;
+    static constexpr uint32_t INVOKER_MAX_COUNT = 2;
+    IRemoteInvoker *invokers_[INVOKER_MAX_COUNT] = {nullptr, nullptr};
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
