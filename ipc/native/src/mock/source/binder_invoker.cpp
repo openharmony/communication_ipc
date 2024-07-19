@@ -762,7 +762,7 @@ void BinderInvoker::OnTransaction(int32_t cmd, int32_t &error)
     Transaction(trSecctx);
 }
 
-int BinderInvoker::HandleReply(MessageParcel *reply)
+int BinderInvoker::HandleReply(MessageParcel *reply, bool &isStubRet)
 {
     const size_t readSize = sizeof(binder_transaction_data);
     const uint8_t *buffer = input_.ReadBuffer(readSize, false);
@@ -779,6 +779,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply)
     }
 
     if (tr->flags & TF_STATUS_CODE) {
+        isStubRet = true;
         int32_t status = *reinterpret_cast<const int32_t *>(tr->data.ptr.buffer);
         ZLOGD(LABEL, "received status code:%{public}d, free the buffer", status);
         FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
@@ -986,8 +987,9 @@ void BinderInvoker::OnReply(
     (void)acquireResult;
     (void)cmd;
 
-    error = HandleReply(reply);
-    if (error != IPC_INVOKER_INVALID_REPLY_ERR) {
+    bool isStubRet = false;
+    error = HandleReply(reply, isStubRet);
+    if (isStubRet || error != IPC_INVOKER_INVALID_REPLY_ERR) {
         continueLoop = false;
         return;
     }
