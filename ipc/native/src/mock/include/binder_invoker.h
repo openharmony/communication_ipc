@@ -241,22 +241,6 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
-    const std::map<int32_t, std::function<void(int32_t cmd, int32_t &error)>> receiverCommandMap_ = {
-        { BR_ERROR,               [&](int32_t cmd, int32_t &error) { error = input_.ReadInt32(); } },
-        { BR_ACQUIRE,             [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
-        { BR_INCREFS,             [&](int32_t cmd, int32_t &error) { OnAcquireObject(cmd); } },
-        { BR_RELEASE,             [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
-        { BR_DECREFS,             [&](int32_t cmd, int32_t &error) { OnReleaseObject(cmd); } },
-        { BR_ATTEMPT_ACQUIRE,     [&](int32_t cmd, int32_t &error) { OnAttemptAcquire(); } },
-        { BR_TRANSACTION,         [&](int32_t cmd, int32_t &error) { OnTransaction(cmd, error); } },
-        { BR_TRANSACTION_SEC_CTX, [&](int32_t cmd, int32_t &error) { OnTransaction(cmd, error); } },
-        { BR_SPAWN_LOOPER,        [&](int32_t cmd, int32_t &error) { OnSpawnThread(); } },
-        { BR_FINISHED,            [&](int32_t cmd, int32_t &error) { error = -ERR_TIMED_OUT; } },
-        { BR_DEAD_BINDER,         [&](int32_t cmd, int32_t &error) { OnBinderDied(); } },
-        { BR_OK,                  [&](int32_t cmd, int32_t &error) { } },
-        { BR_NOOP,                [&](int32_t cmd, int32_t &error) { } },
-        { BR_CLEAR_DEATH_NOTIFICATION_DONE, [&](int32_t cmd, int32_t &error) { OnRemoveRecipientDone(); } },
-    };
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif
