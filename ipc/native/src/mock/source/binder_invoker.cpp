@@ -450,7 +450,6 @@ void BinderInvoker::OnBinderDied()
                 proxy->SendObituary();
                 proxy->DecStrongRef(this);
             }
-            
         }
     }
 
