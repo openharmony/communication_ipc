@@ -166,7 +166,7 @@ private:
 
     int HandleCommandsInner(uint32_t cmd);
 
-    int HandleReply(MessageParcel *reply);
+    int HandleReply(MessageParcel *reply, bool &isStubRet);
 
     bool TranslateDBinderProxy(int handle, MessageParcel &data);
 
