@@ -810,11 +810,44 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 {
     int error = ERR_NONE;
 
-    auto it = receiverCommandMap_.find(cmd);
-    if (it != receiverCommandMap_.end()) {
-        it->second(cmd, error);
-    } else {
-        error = IPC_INVOKER_ON_TRANSACT_ERR;
+    switch (cmd) {
+        case BR_ERROR:
+            error = input_.ReadInt32();
+            break;
+        case BR_ACQUIRE:
+        case BR_INCREFS:
+            OnAcquireObject(cmd);
+            break;
+        case BR_RELEASE:
+        case BR_DECREFS:
+            OnReleaseObject(cmd);
+            break;
+        case BR_ATTEMPT_ACQUIRE:
+            OnAttemptAcquire();
+            break;
+        case BR_TRANSACTION_SEC_CTX:
+        case BR_TRANSACTION:
+            OnTransaction(cmd, error);
+            break;
+        case BR_SPAWN_LOOPER:
+            OnSpawnThread();
+            break;
+        case BR_FINISHED:
+            error = -ERR_TIMED_OUT;
+            break;
+        case BR_DEAD_BINDER:
+            OnBinderDied();
+            break;
+        case BR_OK:
+        case BR_NOOP:
+            break;
+        case BR_CLEAR_DEATH_NOTIFICATION_DONE:
+            OnRemoveRecipientDone();
+            break;
+
+        default:
+            error = IPC_INVOKER_ON_TRANSACT_ERR;
+            break;
     }
 
     return error;
