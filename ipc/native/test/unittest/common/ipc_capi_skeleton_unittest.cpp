@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <algorithm>
 #include <gtest/gtest.h>
 
 #include <cstring>
@@ -105,7 +107,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_JoinWorkThread_001, TestSize.Level1)
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
     OH_IPCSkeleton_JoinWorkThread();
     ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -120,7 +122,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_StopWorkThread_001, TestSize.Level1)
 
     OH_IPCSkeleton_StopWorkThread();
     ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -140,7 +142,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_GetCallingTokenId_001, TestSize.Level
 
     EXPECT_EQ(result, tokenId);
 
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -182,7 +184,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_IsLocalCalling_001, TestSize.Level1)
         .WillRepeatedly(testing::Return(false));
 
     EXPECT_EQ(OH_IPCSkeleton_IsLocalCalling(), false);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -203,7 +205,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_SetCallingIdentity_001, TestSize.Leve
 
     auto ret = OH_IPCSkeleton_SetCallingIdentity(testStr.c_str());
     EXPECT_EQ(ret, OH_IPC_SUCCESS);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -234,7 +236,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_ResetCallingIdentity_001, TestSize.Le
     if (identity != nullptr) {
         delete identity;
     }
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -250,7 +252,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_IsHandlingTransaction_001, TestSize.L
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
     EXPECT_EQ(OH_IPCSkeleton_IsHandlingTransaction(), true);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 

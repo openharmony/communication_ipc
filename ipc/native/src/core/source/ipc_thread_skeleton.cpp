@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,9 +52,13 @@ extern "C" __attribute__((destructor)) void DeleteTlsKey()
 void IPCThreadSkeleton::TlsDestructor(void *args)
 {
     auto *current = static_cast<IPCThreadSkeleton *>(args);
-    auto it = current->invokers_.find(IRemoteObject::IF_PROT_BINDER);
-    if (it != current->invokers_.end()) {
-        BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(it->second);
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "current is nullptr");
+        return;
+    }
+    uint32_t itemIndex = static_cast<uint32_t>(IRemoteObject::IF_PROT_BINDER);
+    if (itemIndex < IPCThreadSkeleton::INVOKER_MAX_COUNT && current->invokers_[itemIndex] != nullptr) {
+        BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(current->invokers_[itemIndex]);
         invoker->FlushCommands(nullptr);
         invoker->ExitCurrentThread();
     }
@@ -102,14 +106,19 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
         return;
     }
     ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
-    for (auto it = invokers_.begin(); it != invokers_.end();) {
-        delete it->second;
-        it = invokers_.erase(it);
+    for (auto &invoker : invokers_) {
+        delete invoker;
+        invoker = nullptr;
     }
 }
 
 IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
 {
+    if (proto < 0 || static_cast<uint32_t>(proto) >= IPCThreadSkeleton::INVOKER_MAX_COUNT) {
+        ZLOGE(LOG_LABEL, "invalid proto:%{public}d", proto);
+        return nullptr;
+    }
+
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     if (current == nullptr) {
         return nullptr;
@@ -122,9 +131,9 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     }
     current->usingFlag_ = INVOKER_USE_MAGIC;
     IRemoteInvoker *invoker = nullptr;
-    auto it = current->invokers_.find(proto);
-    if (it != current->invokers_.end()) {
-        invoker = it->second;
+    auto it = current->invokers_[proto];
+    if (it != nullptr) {
+        invoker = it;
     } else {
         InvokerFactory &factory = InvokerFactory::Get();
         invoker = factory.newInstance(proto);
@@ -137,7 +146,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
         }
 
         // non-thread safe, add lock to protect it.
-        current->invokers_.insert(std::make_pair(proto, invoker));
+        current->invokers_[proto] = invoker;
     }
 
     current->usingFlag_ = INVOKER_IDLE_MAGIC;

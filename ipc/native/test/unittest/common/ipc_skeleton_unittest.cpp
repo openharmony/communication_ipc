@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -80,7 +81,7 @@ HWTEST_F(IPCSkeletonTest, JoinWorkThreadTest001, TestSize.Level1)
     skeleton.JoinWorkThread();
     ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
     delete invoker;
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -101,7 +102,7 @@ HWTEST_F(IPCSkeletonTest, StopWorkThreadTest001, TestSize.Level1)
 
     skeleton.StopWorkThread();
     ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -126,7 +127,7 @@ HWTEST_F(IPCSkeletonTest, GetCallingSidTest001, TestSize.Level1)
 
     auto result = skeleton.GetCallingSid();
     EXPECT_EQ(result, "");
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -151,7 +152,7 @@ HWTEST_F(IPCSkeletonTest, GetCallingTokenIDTest001, TestSize.Level1)
 
     auto result = skeleton.GetCallingTokenID();
     EXPECT_EQ(result, 1);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -179,7 +180,7 @@ HWTEST_F(IPCSkeletonTest, GetCallingFullTokenIDTest001, TestSize.Level1)
 
     auto result = skeleton.GetCallingFullTokenID();
     EXPECT_EQ(result, 1);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -199,7 +200,7 @@ HWTEST_F(IPCSkeletonTest, GetFirstTokenIDTest001, TestSize.Level1)
 
     auto result = skeleton.GetFirstTokenID();
     EXPECT_EQ(result, 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -218,7 +219,7 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDTest001, TestSize.Level1)
 
     auto result = skeleton.GetFirstFullTokenID();
     EXPECT_EQ(result, 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -245,7 +246,7 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDTest002, TestSize.Level1)
 
     auto result = skeleton.GetFirstFullTokenID();
     EXPECT_EQ(result, 1);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -276,7 +277,7 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDTest003, TestSize.Level1)
 
     auto result = skeleton.GetFirstFullTokenID();
     EXPECT_EQ(result, 111);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -302,7 +303,7 @@ HWTEST_F(IPCSkeletonTest, GetLocalDeviceIDTest001, TestSize.Level1)
 
     auto result = skeleton.GetLocalDeviceID();
     EXPECT_STREQ(result.c_str(), testID.c_str());
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -328,7 +329,7 @@ HWTEST_F(IPCSkeletonTest, GetCallingDeviceIDTest001, TestSize.Level1)
 
     auto result = skeleton.GetCallingDeviceID();
     EXPECT_STREQ(result.c_str(), testDeviceID.c_str());
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -353,7 +354,7 @@ HWTEST_F(IPCSkeletonTest, IsLocalCallingTest001, TestSize.Level1)
 
     auto result = skeleton.IsLocalCalling();
     ASSERT_TRUE(!result);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -382,7 +383,7 @@ HWTEST_F(IPCSkeletonTest, FlushCommandsTest001, TestSize.Level1)
 
     auto result = skeleton.FlushCommands(object);
     EXPECT_EQ(result, 111);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
     delete object;
 }
@@ -409,7 +410,7 @@ HWTEST_F(IPCSkeletonTest, ResetCallingIdentityTest001, TestSize.Level1)
 
     auto result = skeleton.ResetCallingIdentity();
     EXPECT_STREQ(result.c_str(), testStr.c_str());
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -433,7 +434,7 @@ HWTEST_F(IPCSkeletonTest, ResetCallingIdentityTest002, TestSize.Level1)
 
     auto result = skeleton.ResetCallingIdentity();
     EXPECT_STREQ(result.c_str(), testStr.c_str());
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -459,7 +460,7 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest001, TestSize.Level1)
 
     auto result = skeleton.SetCallingIdentity(testStr);
     ASSERT_TRUE(!result);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -483,6 +484,6 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
 
     auto result = skeleton.SetCallingIdentity(testStr);
     ASSERT_TRUE(result);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
