@@ -449,6 +449,8 @@ void BinderInvoker::OnBinderDied()
             if (proxy->AttemptIncStrongRef(this)) {
                 proxy->SendObituary();
                 proxy->DecStrongRef(this);
+            } else {
+                ZLOGW(LABEL, "failed to increase strong reference count");
             }
         }
     }
