@@ -446,7 +446,12 @@ void BinderInvoker::OnBinderDied()
                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         } else {
-            proxy->SendObituary();
+            if (proxy->AttemptIncStrongRef(this)) {
+                proxy->SendObituary();
+                proxy->DecStrongRef(this);
+            } else {
+                ZLOGW(LABEL, "failed to increment strong reference count");
+            }
         }
     }
 
