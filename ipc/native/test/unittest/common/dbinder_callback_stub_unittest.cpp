@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -154,7 +155,7 @@ HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest001, TestSize.Level1)
 
     int32_t ret = fakeStub->ProcessProto(code, data, reply, option);
     EXPECT_EQ(ret, BINDER_CALLBACK_AUTHCOMM_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -230,7 +231,7 @@ HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest002, TestSize.Level1)
 
     int32_t ret = fakeStub->ProcessProto(code, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -268,6 +269,6 @@ HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest003, TestSize.Level1)
 
     int32_t ret = fakeStub->ProcessProto(code, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }

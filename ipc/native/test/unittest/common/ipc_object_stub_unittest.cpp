@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <pthread.h>
@@ -322,7 +323,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest006, TestSize.Level1)
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -347,7 +348,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest007, TestSize.Level1)
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -395,7 +396,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest009, TestSize.Level1)
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
     delete dbinderInvoker;
 }
@@ -441,7 +442,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest011, TestSize.Level1)
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
     delete invoker;
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -518,7 +519,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest015, TestSize.Level1)
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -564,7 +565,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest016, TestSize.Level1)
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_NE(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -592,7 +593,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest017, TestSize.Level1)
 
     int result = testStub->SendRequest(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 #endif
@@ -1050,7 +1051,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest001, TestSize.Level1)
 
     int result = testStub->GetGrantedSessionName(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -1090,7 +1091,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest001, TestSize.Level1)
 
     int result = testStub->GetSessionNameForPidUid(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -1130,7 +1131,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest002, TestSize.Level1)
 
     int result = testStub->GetSessionNameForPidUid(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -1172,7 +1173,7 @@ HWTEST_F(IPCObjectStubTest, GetCallingTokenIDTest001, TestSize.Level1)
 
     auto ret = testStub->GetCallingTokenID();
     EXPECT_EQ(ret, 1);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -1199,6 +1200,6 @@ HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
 
     auto ret = testStub->GetCallingFullTokenID();
     EXPECT_EQ(ret, 1);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }

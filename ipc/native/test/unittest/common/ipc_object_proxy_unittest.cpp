@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -53,7 +54,7 @@ void IPCObjectProxyTest::SetUp()
 void IPCObjectProxyTest::TearDown()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -112,7 +113,7 @@ HWTEST_F(IPCObjectProxyTest, SendRequestInnerTest001, TestSize.Level1)
 
     auto ret = object.SendRequestInner(isLocal, code, data, reply, option);
     ASSERT_TRUE(ret == ERR_DEAD_OBJECT);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -244,7 +245,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest005, TestSize.Level1)
 
     auto ret = object.GetInterfaceDescriptor();
     ASSERT_TRUE(ret.size() == 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -272,7 +273,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
 
     auto ret = object.GetInterfaceDescriptor();
     ASSERT_TRUE(ret.size() == 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -362,7 +363,7 @@ HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest003, TestSize.Level1)
 
     auto ret = object.GetSessionNameForPidUid(1, 1);
     ASSERT_TRUE(ret.size() == 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -390,7 +391,7 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest004, TestSize.Level1)
 
     auto ret = object.GetSessionNameForPidUid(1, 1);
     ASSERT_TRUE(ret.size() == 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -418,7 +419,7 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest005, TestSize.Level1)
 
     auto ret = object.GetSessionNameForPidUid(1, 1);
     ASSERT_TRUE(ret.size() == 0);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -439,7 +440,7 @@ HWTEST_F(IPCObjectProxyTest, OnFirstStrongRefTest005, TestSize.Level1)
 
     object.OnFirstStrongRef(nullptr);
     ASSERT_TRUE(object.handle_ == 1);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -796,7 +797,7 @@ HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest003, TestSize.Level1)
 
     auto ret = object.GetProtoInfo();
     ASSERT_TRUE(ret != IRemoteObject::IF_PROT_DATABUS);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -931,7 +932,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest001, TestSize.Level1)
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
     ASSERT_TRUE(ret == false);
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
 /**
@@ -947,7 +948,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest002, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
@@ -981,7 +982,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest003, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
@@ -1015,7 +1016,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest004, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 0;
@@ -1048,7 +1049,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest005, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
@@ -1089,7 +1090,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest006, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
@@ -1131,7 +1132,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest007, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
@@ -1172,7 +1173,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest008, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 0;
@@ -1209,7 +1210,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest009, TestSize.Level1)
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 
     MessageParcel reply;
     uint64_t stubIndex = 1;
@@ -1342,7 +1343,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest001, TestSize.Level1)
     int result = object.RemoveSessionName(sessionName);
     ASSERT_EQ(result, ERR_NONE);
 
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
 
@@ -1366,6 +1367,6 @@ HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest002, TestSize.Level1)
     int result = object.RemoveSessionName(sessionName);
     ASSERT_EQ(result, ERR_DEAD_OBJECT);
 
-    current->invokers_.clear();
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
