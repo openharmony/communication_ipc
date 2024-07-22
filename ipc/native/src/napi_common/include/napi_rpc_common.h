@@ -44,7 +44,7 @@ static NapiError napiErr;
         CHECK_WRITE_POSITION(env, napiParcel);                                                                        \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();             \
         if (cap < (lenToWrite)) {                                                                                     \
-            ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
+            ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{public}zu", cap, lenToWrite);   \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
         }                                                                                                             \
     } while (0)
@@ -54,7 +54,7 @@ static NapiError napiErr;
         CHECK_WRITE_POSITION(env, napiParcel);                                                                        \
         size_t cap = (napiParcel)->maxCapacityToWrite_ - (napiParcel)->nativeParcel_->GetWritePosition();             \
         if (cap < (lenToWrite)) {                                                                                     \
-            ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{piblic}zu", cap, lenToWrite);   \
+            ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{public}zu", cap, lenToWrite);   \
             (napiParcel)->nativeParcel_->RewindWrite(pos);                                                            \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
         }                                                                                                             \

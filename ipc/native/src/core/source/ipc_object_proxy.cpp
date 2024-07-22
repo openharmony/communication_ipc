@@ -123,7 +123,8 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     auto endTime = std::chrono::steady_clock::now();
     auto timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime).count();
     if (timeInterval > SEND_REQUEST_TIMEOUT) {
-        ZLOGE(LABEL, "BlockMonitor IPC cost %{public}lld ms, interface code = %{public}u", timeInterval, code);
+        ZLOGW(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
+            timeInterval, code, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
     }
     if (err != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
