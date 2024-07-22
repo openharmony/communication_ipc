@@ -23,9 +23,11 @@ using namespace testing::ext;
 using namespace OHOS;
 
 namespace {
-const std::string SERVICE_TEST = "serviceTest";
-const std::string DEVICE_TEST = "deviceTest";
-const std::string LOCALDEVICE_TEST = "localDeviceTest";
+const uint64_t STUB_INDEX = 1;
+const uint32_t TOKEN_ID = 1;
+const int SOCKET_ID = 123;
+const int PEER_PID = 5678;
+const int PEER_UID = 1234;
 }
 
 class DBinderSessionObjectTest : public testing::Test {
@@ -61,7 +63,7 @@ HWTEST_F(DBinderSessionObjectTest, SetServiceNameTest001, TestSize.Level1)
 {
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(serviceName, serverDeviceId, 1, nullptr, 1);
+    DBinderSessionObject object(serviceName, serverDeviceId, STUB_INDEX, nullptr, TOKEN_ID);
 
     std::string name = "testname";
     object.SetServiceName(name);
@@ -77,7 +79,7 @@ HWTEST_F(DBinderSessionObjectTest, SetDeviceIdTest001, TestSize.Level1)
 {
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(serviceName, serverDeviceId, 1, nullptr, 1);
+    DBinderSessionObject object(serviceName, serverDeviceId, STUB_INDEX, nullptr, TOKEN_ID);
 
     std::string deviceId = "testid";
     object.SetDeviceId(deviceId);
@@ -94,7 +96,7 @@ HWTEST_F(DBinderSessionObjectTest, SetProxyTest001, TestSize.Level1)
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
     IPCObjectProxy *testProxy = new IPCObjectProxy(1, u"testproxy");
-    DBinderSessionObject object(serviceName, serverDeviceId, 1, nullptr, 1);
+    DBinderSessionObject object(serviceName, serverDeviceId, STUB_INDEX, nullptr, TOKEN_ID);
 
     object.SetProxy(testProxy);
     EXPECT_NE(object.GetProxy(), nullptr);
@@ -109,8 +111,100 @@ HWTEST_F(DBinderSessionObjectTest, GetFlatSessionLenTest001, TestSize.Level1)
 {
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    DBinderSessionObject object(serviceName, serverDeviceId, 1, nullptr, 1);
+    DBinderSessionObject object(serviceName, serverDeviceId, STUB_INDEX, nullptr, TOKEN_ID);
 
     uint32_t len = object.GetFlatSessionLen();
     EXPECT_EQ(sizeof(FlatDBinderSession), len);
+}
+
+/**
+ * @tc.name: GetSessionBuffTest001
+ * @tc.desc: Verify the DBinderSessionObject::GetSessionBuff function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, GetSessionBuffTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    auto buff = object.GetSessionBuff();
+    EXPECT_NE(buff, nullptr);
+}
+
+/**
+ * @tc.name: GetStubIndexTest001
+ * @tc.desc: Verify the DBinderSessionObject::GetStubIndex function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, GetStubIndexTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    uint64_t stubIndex = object.GetStubIndex();
+    EXPECT_EQ(stubIndex, STUB_INDEX);
+}
+
+/**
+ * @tc.name: GetTokenIdTest001
+ * @tc.desc: Verify the DBinderSessionObject::GetTokenId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, GetTokenIdTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    uint32_t tokenId = object.GetTokenId();
+    EXPECT_EQ(tokenId, TOKEN_ID);
+}
+
+/**
+ * @tc.name: SetSocketIdTest001
+ * @tc.desc: Verify the DBinderSessionObject::SetSocketId and GetSocketId functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, SetSocketIdTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    object.SetSocketId(SOCKET_ID);
+    EXPECT_EQ(object.GetSocketId(), SOCKET_ID);
+}
+
+/**
+ * @tc.name: SetPeerPidTest001
+ * @tc.desc: Verify the DBinderSessionObject::SetPeerPid and GetPeerPid functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, SetPeerPidTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    object.SetPeerPid(PEER_PID);
+    EXPECT_EQ(object.GetPeerPid(), PEER_PID);
+}
+
+/**
+ * @tc.name: SetPeerUidTest001
+ * @tc.desc: Verify the DBinderSessionObject::SetPeerUid and GetPeerUid functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, SetPeerUidTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    object.SetPeerUid(PEER_UID);
+    EXPECT_EQ(object.GetPeerUid(), PEER_UID);
+}
+
+/**
+ * @tc.name: CloseDatabusSessionTest001
+ * @tc.desc: Verify the DBinderSessionObject::CloseDatabusSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, CloseDatabusSessionTest001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    object.SetSocketId(SOCKET_ID);
+    object.CloseDatabusSession();
+    EXPECT_EQ(object.GetSocketId(), SOCKET_ID_INVALID);
 }
