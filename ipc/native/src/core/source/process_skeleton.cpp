@@ -145,7 +145,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     if (object->IsProxyObject()) {
         uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
         if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
-                ZLOGE(LOG_LABEL, "ipc proxy num %{public}" PRIu64 " exceeds limit %{public}" PRIu64,
+                ZLOGW(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64,
                       proxyObjectCountNum, ipcProxyLimitNum_);
                 ipcProxyCallback_(proxyObjectCountNum);
         }
