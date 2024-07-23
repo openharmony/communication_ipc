@@ -66,6 +66,7 @@ HWTEST_F(DbinderDeathRecipientUnitTest, OnRemoteDied002, TestSize.Level1)
     sptr<IRemoteObject> result = nullptr;
     std::u16string descriptor = std::u16string();
     result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
+    ASSERT_TRUE(result != nullptr);
     IRemoteObject *object = result.GetRefPtr();
     wptr<IRemoteObject> remote = object;
     dbinderDeathRecipient.OnRemoteDied(remote);
