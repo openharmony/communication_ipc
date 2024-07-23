@@ -743,13 +743,13 @@ void BinderInvoker::OnSpawnThread()
     }
 }
 
-void BinderInvoker::OnTransaction(int32_t cmd, int32_t &error)
+void BinderInvoker::OnTransaction(uint32_t cmd, int32_t &error)
 {
     binder_transaction_data_secctx trSecctx = {
         .secctx = 0,
     };
     const uint8_t *buffer = nullptr;
-    bool isSecctx = (cmd == static_cast<int32_t>(BR_TRANSACTION_SEC_CTX));
+    bool isSecctx = (cmd == static_cast<uint32_t>(BR_TRANSACTION_SEC_CTX));
     uint32_t bufferSize = isSecctx ? sizeof(binder_transaction_data_secctx) : sizeof(binder_transaction_data);
 
     buffer = input_.ReadBuffer(bufferSize, false);
