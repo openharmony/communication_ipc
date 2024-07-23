@@ -158,7 +158,7 @@ private:
 
     void Transaction(binder_transaction_data_secctx& trSecctx);
 
-    void OnTransaction(int32_t cmd, int32_t &error);
+    void OnTransaction(uint32_t cmd, int32_t &error);
 
     void OnSpawnThread();
 
