@@ -78,7 +78,21 @@ public:
 HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string networkId = "1234567890";
+    EXPECT_EQ(dBinderService->ProcessOnSessionClosed(networkId), true);
+}
+
+/*
+ * @tc.name: ProcessOnSessionClosed002
+ * @tc.desc: Verify the ProcessOnSessionClosed function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string networkId = "";
     EXPECT_EQ(dBinderService->ProcessOnSessionClosed(networkId), true);
 }
 
@@ -90,6 +104,7 @@ HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosed001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     bool res = dBinderService->StartDBinderService(callbackImpl);
     EXPECT_EQ(res, false);
@@ -103,6 +118,7 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     DBinderService::mainThreadCreated_ = true;
     bool res = dBinderService->StartDBinderService(callbackImpl);
@@ -117,11 +133,29 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StartDBinderService003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
     DBinderService::mainThreadCreated_ = false;
     dBinderService->remoteListener_ = nullptr;
     bool res = dBinderService->StartDBinderService(callbackImpl);
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: StartDBinderService004
+ * @tc.desc: Verify the StartDBinderService function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, StartDBinderService004, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::shared_ptr<RpcSystemAbilityCallback> callbackImpl = nullptr;
+    DBinderService::mainThreadCreated_ = false;
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
+    bool res = dBinderService->StartDBinderService(callbackImpl);
+    EXPECT_EQ(res, true);
 }
 
 /**
@@ -132,12 +166,25 @@ HWTEST_F(DBinderServiceUnitTest, StartDBinderService003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListener001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = nullptr;
     bool res = dBinderService->ReStartRemoteListener();
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ReStartRemoteListener002
+ * @tc.desc: Verify the ReStartRemoteListener function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListener002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
-    bool res2 = dBinderService->ReStartRemoteListener();
-    EXPECT_EQ(res2, false);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
+    bool res = dBinderService->ReStartRemoteListener();
+    EXPECT_EQ(res, false);
 }
 
 /**
@@ -148,6 +195,7 @@ HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListener001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StartRemoteListener001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = nullptr;
     bool res = dBinderService->StartRemoteListener();
     EXPECT_EQ(res, false);
@@ -161,7 +209,9 @@ HWTEST_F(DBinderServiceUnitTest, StartRemoteListener001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StartRemoteListener002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
     bool res = dBinderService->StartRemoteListener();
     EXPECT_EQ(res, true);
 }
@@ -173,7 +223,8 @@ HWTEST_F(DBinderServiceUnitTest, StartRemoteListener002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxy001, TestSize.Level1)
 {
-    sptr<DBinderService> dBinderService ;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName = std::u16string();
     sptr<IRemoteObject> binderObject = nullptr;
     bool res = dBinderService->RegisterRemoteProxy(serviceName, binderObject);
@@ -188,6 +239,7 @@ HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxy001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxy002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName = std::u16string();
     int32_t systemAbilityId = 0;
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, systemAbilityId), false);
@@ -201,10 +253,27 @@ HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxy002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, QuerySessionObject001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     binder_uintptr_t stub = 0;
     std::shared_ptr<struct SessionInfo> testSession = nullptr;
     testSession = dBinderService->QuerySessionObject(stub);
     EXPECT_EQ(testSession, nullptr);
+}
+
+/**
+ * @tc.name: QuerySessionObject002
+ * @tc.desc: Verify the QuerySessionObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, QuerySessionObject002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    binder_uintptr_t stub = 0;
+    std::shared_ptr<struct SessionInfo> Session = nullptr;
+    EXPECT_EQ(dBinderService->AttachSessionObject(Session, stub), true);
+    std::shared_ptr<struct SessionInfo> testSession = dBinderService->QuerySessionObject(stub);
+    EXPECT_EQ(testSession, Session);
 }
 
 /**
@@ -215,6 +284,7 @@ HWTEST_F(DBinderServiceUnitTest, QuerySessionObject001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, AttachDeathRecipient001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
     bool res = dBinderService->AttachDeathRecipient(object, deathRecipient);
@@ -229,6 +299,7 @@ HWTEST_F(DBinderServiceUnitTest, AttachDeathRecipient001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, AttachCallbackProxy001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = nullptr;
     DBinderServiceStub *dbStub = nullptr;
     bool res = dBinderService->AttachCallbackProxy(object, dbStub);
@@ -243,6 +314,7 @@ HWTEST_F(DBinderServiceUnitTest, AttachCallbackProxy001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, DetachProxyObject001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     binder_uintptr_t binderObject = 0;
     bool res = dBinderService->DetachProxyObject(binderObject);
     EXPECT_EQ(res, false);
@@ -256,6 +328,7 @@ HWTEST_F(DBinderServiceUnitTest, DetachProxyObject001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ConvertToSecureDeviceIDTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID;
     EXPECT_EQ(dBinderService->ConvertToSecureDeviceID(deviceID), "****");
 }
@@ -268,6 +341,7 @@ HWTEST_F(DBinderServiceUnitTest, ConvertToSecureDeviceIDTest001, TestSize.Level1
 HWTEST_F(DBinderServiceUnitTest, ConvertToSecureDeviceIDTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID("123456");
     EXPECT_EQ(dBinderService->ConvertToSecureDeviceID(deviceID),
     deviceID.substr(0, ENCRYPT_LENGTH) + "****" + deviceID.substr(strlen(deviceID.c_str()) - ENCRYPT_LENGTH));
@@ -281,6 +355,7 @@ HWTEST_F(DBinderServiceUnitTest, ConvertToSecureDeviceIDTest002, TestSize.Level1
 HWTEST_F(DBinderServiceUnitTest, GetRemoteTransTypeTest003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     EXPECT_EQ(dBinderService->GetRemoteTransType(), IRemoteObject::DATABUS_TYPE);
 }
 
@@ -292,7 +367,9 @@ HWTEST_F(DBinderServiceUnitTest, GetRemoteTransTypeTest003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, StopRemoteListener001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(testListener != nullptr);
     EXPECT_EQ(dBinderService->StartRemoteListener(), true);
     dBinderService->StopRemoteListener();
 }
@@ -305,6 +382,7 @@ HWTEST_F(DBinderServiceUnitTest, StopRemoteListener001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, GetRemoteListener001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<DBinderRemoteListener> testDbinder = nullptr;
     testDbinder = dBinderService->GetRemoteListener();
     EXPECT_EQ(testDbinder, nullptr);
@@ -318,7 +396,9 @@ HWTEST_F(DBinderServiceUnitTest, GetRemoteListener001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, GetRemoteListener002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(testListener != nullptr);
     EXPECT_EQ(dBinderService->StartRemoteListener(), false);
     std::shared_ptr<DBinderRemoteListener> testDbinder = nullptr;
     testDbinder = dBinderService->GetRemoteListener();
@@ -332,6 +412,7 @@ HWTEST_F(DBinderServiceUnitTest, GetRemoteListener002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, GetSeqNumber001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->seqNumber_ = 0;
     uint32_t ret = dBinderService->GetSeqNumber();
     EXPECT_EQ(ret, dBinderService->seqNumber_++);
@@ -345,6 +426,7 @@ HWTEST_F(DBinderServiceUnitTest, GetSeqNumber001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsDeviceIdIllegal001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID = "";
     bool res = dBinderService->IsDeviceIdIllegal(deviceID);
     EXPECT_EQ(res, true);
@@ -358,6 +440,7 @@ HWTEST_F(DBinderServiceUnitTest, IsDeviceIdIllegal001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsDeviceIdIllegal002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     bool res = dBinderService->IsDeviceIdIllegal(deviceID);
     EXPECT_EQ(res, true);
@@ -371,6 +454,7 @@ HWTEST_F(DBinderServiceUnitTest, IsDeviceIdIllegal002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsDeviceIdIllegal003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     bool res = dBinderService->IsDeviceIdIllegal(deviceID);
     EXPECT_EQ(res, false);
@@ -384,6 +468,7 @@ HWTEST_F(DBinderServiceUnitTest, IsDeviceIdIllegal003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, CheckBinderObject001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<DBinderServiceStub> stub = nullptr;
     binder_uintptr_t binderObject = 1564618;
     bool res = dBinderService->CheckBinderObject(stub, binderObject);
@@ -398,10 +483,12 @@ HWTEST_F(DBinderServiceUnitTest, CheckBinderObject001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, CheckBinderObject002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = 1564618;
     sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
     bool res = dBinderService->CheckBinderObject(stub, binderObject);
     EXPECT_EQ(res, false);
 }
@@ -414,6 +501,7 @@ HWTEST_F(DBinderServiceUnitTest, CheckBinderObject002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsSameStubObject001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<DBinderServiceStub> stub = nullptr;
     std::u16string service = std::u16string();
     const std::string device = "";
@@ -429,6 +517,7 @@ HWTEST_F(DBinderServiceUnitTest, IsSameStubObject001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, MakeRemoteBinder001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName = std::u16string();
     std::string deviceID = "";
     binder_uintptr_t binderObject = 12345;
@@ -445,6 +534,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeRemoteBinder001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, MakeRemoteBinder002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName;
     std::string deviceID("001");
     binder_uintptr_t binderObject = 12345;
@@ -461,6 +551,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeRemoteBinder002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, MakeRemoteBinderTest003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName;
     std::string deviceID("001");
     binder_uintptr_t binderObject = 12345;
@@ -480,7 +571,9 @@ HWTEST_F(DBinderServiceUnitTest, SendEntryToRemote001, TestSize.Level1)
     std::string deviceID = "testDeviceID";
     binder_uintptr_t binderObject = 161561;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
     uint32_t seqNumber = 0;
     uint32_t pid = 0;
     uint32_t uid = 0;
@@ -496,6 +589,7 @@ HWTEST_F(DBinderServiceUnitTest, SendEntryToRemote001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, CheckSystemAbilityId001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     int32_t systemAbilityId = 0x00000002;
     bool res = dBinderService->CheckSystemAbilityId(systemAbilityId);
     EXPECT_EQ(res, true);
@@ -509,6 +603,7 @@ HWTEST_F(DBinderServiceUnitTest, CheckSystemAbilityId001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, AllocFreeSocketPort001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     uint16_t ret = dBinderService->AllocFreeSocketPort();
     EXPECT_EQ(ret, 0);
 }
@@ -521,9 +616,11 @@ HWTEST_F(DBinderServiceUnitTest, AllocFreeSocketPort001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsSameLoadSaItem001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string srcNetworkId = "aaaaaaaaaaaaaa";
     int32_t systemAbilityId = 123;
     std::shared_ptr<DHandleEntryTxRx> loadSaItem = std::make_shared<DHandleEntryTxRx>();
+    EXPECT_TRUE(loadSaItem != nullptr);
     loadSaItem->stubIndex = 123;
     strcpy_s(loadSaItem->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, "aaaaaaaaaaaaaa");
     bool res = dBinderService->IsSameLoadSaItem(srcNetworkId, systemAbilityId, loadSaItem);
@@ -538,9 +635,11 @@ HWTEST_F(DBinderServiceUnitTest, IsSameLoadSaItem001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsSameLoadSaItem002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string srcNetworkId = "bbbbbbb";
     int32_t systemAbilityId = 123;
     std::shared_ptr<DHandleEntryTxRx> loadSaItem = std::make_shared<DHandleEntryTxRx>();
+    EXPECT_TRUE(loadSaItem != nullptr);
     loadSaItem->stubIndex = 123;
     strcpy_s(loadSaItem->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, "aaaaaaaaaaaaaa");
     bool res = dBinderService->IsSameLoadSaItem(srcNetworkId, systemAbilityId, loadSaItem);
@@ -555,9 +654,11 @@ HWTEST_F(DBinderServiceUnitTest, IsSameLoadSaItem002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsSameLoadSaItem003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string srcNetworkId = "aaaaaaaaaaaaaa";
     int32_t systemAbilityId = 321;
     std::shared_ptr<DHandleEntryTxRx> loadSaItem = std::make_shared<DHandleEntryTxRx>();
+    EXPECT_TRUE(loadSaItem != nullptr);
     loadSaItem->stubIndex = 123;
     strcpy_s(loadSaItem->deviceIdInfo.fromDeviceId, DEVICEID_LENGTH, "aaaaaaaaaaaaaa");
     bool res = dBinderService->IsSameLoadSaItem(srcNetworkId, systemAbilityId, loadSaItem);
@@ -572,8 +673,10 @@ HWTEST_F(DBinderServiceUnitTest, IsSameLoadSaItem003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     struct DHandleEntryTxRx message;
     dBinderService->dbinderCallback_ = std::make_shared<TestRpcSystemAbilityCallback>();
+    EXPECT_TRUE(dBinderService->dbinderCallback_ != nullptr);
     bool res = dBinderService->OnRemoteInvokerMessage(&message);
     EXPECT_EQ(res, true);
 }
@@ -586,6 +689,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, GetDatabusNameByProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     IPCObjectProxy* proxy = nullptr;
     std::string res = dBinderService->GetDatabusNameByProxy(proxy);
     EXPECT_EQ(res, "");
@@ -602,6 +706,7 @@ HWTEST_F(DBinderServiceUnitTest, GetDatabusNameByProxyTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<DBinderServiceStub> stub = nullptr;
     uint32_t seqNumber = 123456;
     uint32_t pid = 0;
@@ -612,6 +717,7 @@ HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderTest001, TestSize.Level1)
     std::string deviceID("123456");
     binder_uintptr_t binderObject = 100;
     stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
     ret = dBinderService->InvokerRemoteDBinder(stub, seqNumber, pid, uid);
     EXPECT_EQ(ret, DBinderErrorCode::SEND_MESSAGE_FAILED);
 }
@@ -624,6 +730,7 @@ HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, CreateDatabusNameTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     int pid = 0;
     int uid = 0;
     std::string res = dBinderService->CreateDatabusName(pid, uid);
@@ -642,10 +749,12 @@ HWTEST_F(DBinderServiceUnitTest, CreateDatabusNameTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, FindServicesByDeviceIDTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = 100;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->DBinderStubRegisted_.push_back(dBinderServiceStub);
     std::list<std::u16string> serviceNames;
     serviceNames.push_back(Str8ToStr16(serviceName));
@@ -660,6 +769,7 @@ HWTEST_F(DBinderServiceUnitTest, FindServicesByDeviceIDTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID;
     EXPECT_EQ(dBinderService->NoticeDeviceDie(deviceID), DBINDER_SERVICE_INVALID_DATA_ERR);
 }
@@ -672,6 +782,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID("123456");
     EXPECT_EQ(dBinderService->NoticeDeviceDie(deviceID), DBINDER_SERVICE_NOTICE_DIE_ERR);
 }
@@ -684,8 +795,10 @@ HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string deviceID("123456");
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
     EXPECT_EQ(dBinderService->NoticeDeviceDie(deviceID), DBINDER_SERVICE_NOTICE_DIE_ERR);
 }
 
@@ -697,6 +810,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeDeviceDieTest003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->StartRemoteListener();
     std::u16string serviceName;
     std::string deviceID("123456");
@@ -711,6 +825,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->StartRemoteListener();
     std::u16string serviceName;
     std::string deviceID("123456");
@@ -725,6 +840,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->StartRemoteListener();
     std::u16string serviceName(u"test");
     std::string deviceID("123456");
@@ -739,6 +855,7 @@ HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->StartRemoteListener();
     std::u16string serviceName(u"testServer");
     std::string deviceID("123456");
@@ -753,11 +870,14 @@ HWTEST_F(DBinderServiceUnitTest, NoticeServiceDieInnerTest003, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ProcessCallbackProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = new IPCObjectProxy(16);
+    EXPECT_TRUE(object != nullptr);
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = 100;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(dBinderServiceStub != nullptr);
     bool res = dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     dBinderService->ProcessCallbackProxy(dBinderServiceStub);
     EXPECT_TRUE(res);
@@ -771,11 +891,14 @@ HWTEST_F(DBinderServiceUnitTest, ProcessCallbackProxyTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, NoticeCallbackProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = new IPCObjectProxy(16);
+    EXPECT_TRUE(object != nullptr);
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = 100;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     EXPECT_EQ(dBinderService->NoticeCallbackProxy(dBinderServiceStub), false);
 }
@@ -788,11 +911,14 @@ HWTEST_F(DBinderServiceUnitTest, NoticeCallbackProxyTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, DetachCallbackProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = new IPCObjectProxy(16);
+    EXPECT_TRUE(object != nullptr);
     std::string serviceName("test1");
     std::string deviceID("12345");
     binder_uintptr_t binderObject = 100;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     EXPECT_EQ(dBinderService->DetachCallbackProxy(object), true);
 }
@@ -805,7 +931,9 @@ HWTEST_F(DBinderServiceUnitTest, DetachCallbackProxyTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, DetachCallbackProxyTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = new IPCObjectProxy(100);
+    EXPECT_TRUE(object != nullptr);
     EXPECT_EQ(dBinderService->DetachCallbackProxy(object), false);
 }
 
@@ -817,8 +945,11 @@ HWTEST_F(DBinderServiceUnitTest, DetachCallbackProxyTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, QueryDeathRecipientTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<IRemoteObject> object = new IPCObjectProxy(20);
+    EXPECT_TRUE(object != nullptr);
     sptr<IRemoteObject::DeathRecipient> deathRecipient = new TestDeathRecipient();
+    EXPECT_TRUE(deathRecipient != nullptr);
     dBinderService->AttachDeathRecipient(object, deathRecipient);
     EXPECT_EQ(dBinderService->QueryDeathRecipient(object), deathRecipient);
 }
@@ -831,6 +962,7 @@ HWTEST_F(DBinderServiceUnitTest, QueryDeathRecipientTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, QueryDeathRecipientTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     EXPECT_EQ(dBinderService->QueryDeathRecipient(nullptr), nullptr);
 }
 
@@ -845,7 +977,9 @@ HWTEST_F(DBinderServiceUnitTest, AttachProxyObjectTest001, TestSize.Level1)
     binder_uintptr_t binderObject = 10;
     binder_uintptr_t binderObject1 = 11;
     sptr<IRemoteObject> object = new IPCObjectProxy(16);
+    EXPECT_TRUE(object != nullptr);
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     EXPECT_EQ(dBinderService->AttachProxyObject(object, binderObject), true);
     EXPECT_EQ(dBinderService->QueryProxyObject(binderObject), object);
     EXPECT_EQ(dBinderService->QueryProxyObject(binderObject1), nullptr);
@@ -860,7 +994,9 @@ HWTEST_F(DBinderServiceUnitTest, AttachProxyObjectTest002, TestSize.Level1)
 {
     uint32_t seqNumber = 10;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<OHOS::ThreadLockInfo> threadLockInfo = std::make_shared<OHOS::ThreadLockInfo>();
+    EXPECT_TRUE(threadLockInfo != nullptr);
     dBinderService->AttachThreadLockInfo(seqNumber, "networkId", threadLockInfo);
     dBinderService->WakeupThreadByStub(seqNumber);
     EXPECT_TRUE(dBinderService->QueryThreadLockInfo(seqNumber) != nullptr);
@@ -878,6 +1014,7 @@ HWTEST_F(DBinderServiceUnitTest, AttachProxyObjectTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, MakeSessionByReplyMessageTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     struct DHandleEntryTxRx replyMessage;
     dBinderService->MakeSessionByReplyMessage(&replyMessage);
     EXPECT_EQ(dBinderService->HasDBinderStub(replyMessage.binderObject), false);
@@ -886,6 +1023,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeSessionByReplyMessageTest001, TestSize.Leve
     std::string deviceID;
     binder_uintptr_t binderObject = 161561;
     sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
     replyMessage.stub = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     dBinderService->MakeSessionByReplyMessage(&replyMessage);
 }
@@ -898,6 +1036,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeSessionByReplyMessageTest001, TestSize.Leve
 HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName;
     int32_t systemAbilityId = 1;
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, systemAbilityId), false);
@@ -916,12 +1055,14 @@ HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxyTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxyTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string serviceName;
     sptr<IRemoteObject> binderObject = nullptr;
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, binderObject), false);
     serviceName = u"testServer";
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, binderObject), false);
     sptr<IRemoteObject> object = new IPCObjectProxy(16);
+    EXPECT_TRUE(object != nullptr);
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, object), true);
 }
 
@@ -933,6 +1074,7 @@ HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxyTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, GetRegisterServiceTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     binder_uintptr_t binderObject = 1;
     EXPECT_EQ(dBinderService->GetRegisterService(binderObject), std::u16string());
     std::u16string serviceName(u"testServer");
@@ -948,9 +1090,11 @@ HWTEST_F(DBinderServiceUnitTest, GetRegisterServiceTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, OnRemoteMessageTaskTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<struct DHandleEntryTxRx> handleEntryTxRx = nullptr;
     EXPECT_EQ(dBinderService->OnRemoteMessageTask(handleEntryTxRx), false);
     std::shared_ptr<DHandleEntryTxRx> message= std::make_shared<DHandleEntryTxRx>();
+    EXPECT_TRUE(message != nullptr);
     message->head.len = 10;
     message->head.version = 1;
     message->transType = 0;
@@ -968,6 +1112,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteMessageTaskTest001, TestSize.Level1)
     message->pid = 100;
     message->uid = 100;
     dBinderService->dbinderCallback_ = std::make_shared<TestRpcSystemAbilityCallback>();
+    EXPECT_TRUE(dBinderService->dbinderCallback_ != nullptr);
     message->dBinderCode = DBinderCode::MESSAGE_AS_INVOKER;
     EXPECT_EQ(dBinderService->OnRemoteMessageTask(message), true);
     message->dBinderCode = DBinderCode::MESSAGE_AS_REPLY;
@@ -986,6 +1131,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteMessageTaskTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     IPCObjectProxy* proxy = nullptr;
     DHandleEntryTxRx replyMessage;
     std::string remoteDeviceId;
@@ -1004,6 +1150,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest001, TestSize.
 HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     DHandleEntryTxRx replyMessage;
     std::string remoteDeviceId("test");
     int pid = 1;
@@ -1022,7 +1169,9 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest002, TestSize.
 HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosedTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<OHOS::ThreadLockInfo> threadLockInfo = std::make_shared<OHOS::ThreadLockInfo>();
+    EXPECT_TRUE(threadLockInfo != nullptr);
     uint32_t seqNumber = 10;
     std::string networkId = "networkId";
     dBinderService->AttachThreadLockInfo(seqNumber, networkId, threadLockInfo);
@@ -1037,14 +1186,18 @@ HWTEST_F(DBinderServiceUnitTest, ProcessOnSessionClosedTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, FindDBinderStub001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::u16string service(u"test");
     std::string device = "aaa";
     binder_uintptr_t binderObject = 100;
     sptr<DBinderServiceStub> testDdBinderStub1 = dBinderService->FindOrNewDBinderStub(service, device, binderObject);
+    EXPECT_TRUE(testDdBinderStub1 != nullptr);
     sptr<DBinderServiceStub> testDdBinderStub2 = dBinderService->FindOrNewDBinderStub(service, device, binderObject);
+    EXPECT_TRUE(testDdBinderStub2 != nullptr);
     EXPECT_EQ(testDdBinderStub1.GetRefPtr(), testDdBinderStub2.GetRefPtr());
 
     sptr<DBinderServiceStub> testDdBinderStub3 = dBinderService->FindDBinderStub(service, device);
+    EXPECT_TRUE(testDdBinderStub3 != nullptr);
     EXPECT_EQ(testDdBinderStub1.GetRefPtr(), testDdBinderStub3.GetRefPtr());
 
     std::u16string service1(u"test1");
@@ -1063,6 +1216,7 @@ HWTEST_F(DBinderServiceUnitTest, FindDBinderStub001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListenerTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = nullptr;
     bool res = dBinderService->ReStartRemoteListener();
     EXPECT_EQ(res, false);
@@ -1076,7 +1230,9 @@ HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListenerTest001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListenerTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
     bool res = dBinderService->ReStartRemoteListener();
     EXPECT_EQ(res, false);
 }
@@ -1089,10 +1245,12 @@ HWTEST_F(DBinderServiceUnitTest, ReStartRemoteListenerTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsSameStubObjectTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string serviceName = "test";
     std::string deviceID = "001";
     binder_uintptr_t binderObject = 1;
     sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
     std::u16string service(u"test");
     bool res = dBinderService->IsSameStubObject(stub, service, deviceID);
     EXPECT_EQ(res, true);
@@ -1109,7 +1267,9 @@ HWTEST_F(DBinderServiceUnitTest, SendEntryToRemoteTest002, TestSize.Level1)
     std::string deviceID;
     binder_uintptr_t binderObject = 161561;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
     uint32_t seqNumber = 0;
     uint32_t pid = 0;
     uint32_t uid = 0;
@@ -1125,6 +1285,7 @@ HWTEST_F(DBinderServiceUnitTest, SendEntryToRemoteTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     std::string srcNetworkId;
     int32_t systemAbilityId = 1;
     EXPECT_EQ(dBinderService->PopLoadSaItem(srcNetworkId, systemAbilityId), nullptr);
@@ -1134,6 +1295,7 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
     message.stubIndex = systemAbilityId;
     message.deviceIdInfo.fromDeviceId[0] = 't';
     dBinderService->dbinderCallback_ = std::make_shared<TestRpcSystemAbilityCallback>();
+    EXPECT_TRUE(dBinderService->dbinderCallback_ != nullptr);
     dBinderService->OnRemoteInvokerMessage(&message);
     std::shared_ptr<DHandleEntryTxRx> dHandleEntryTxRx = dBinderService->PopLoadSaItem(srcNetworkId, systemAbilityId);
     EXPECT_TRUE(dHandleEntryTxRx != nullptr);
@@ -1141,6 +1303,7 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
     dBinderService->LoadSystemAbilityComplete("test", 2, remoteObject);
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject);
     sptr<IRemoteObject> remoteObject1 = new IPCObjectProxy(1);
+    EXPECT_TRUE(remoteObject1 != nullptr);
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject1);
 }
 
@@ -1154,14 +1317,19 @@ HWTEST_F(DBinderServiceUnitTest, SendReplyMessageToRemote001, TestSize.Level1)
     uint32_t dBinderCode = 4;
     uint32_t reason = 0;
     std::shared_ptr<DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    EXPECT_TRUE(replyMessage != nullptr);
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
     dBinderService->SendReplyMessageToRemote(dBinderCode, reason, replyMessage);
     dBinderCode = 1;
     dBinderService->SendReplyMessageToRemote(dBinderCode, reason, replyMessage);
     DBinderService *temp = new DBinderService();
+    EXPECT_TRUE(temp != nullptr);
     DBinderService::instance_ = temp;
     dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     EXPECT_EQ(dBinderService, DBinderService::instance_);
 }
 
@@ -1175,6 +1343,7 @@ HWTEST_F(DBinderServiceUnitTest, AddAsynMessageTask001, TestSize.Level1)
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
     EXPECT_NE(message.get(), nullptr);
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     dBinderService->AddAsynMessageTask(message);
 }
 
@@ -1186,7 +1355,9 @@ HWTEST_F(DBinderServiceUnitTest, AddAsynMessageTask001, TestSize.Level1)
 HWTEST_F(DBinderServiceUnitTest, IsSameSession002, TestSize.Level1)
 {
     std::shared_ptr<struct SessionInfo> oldSession= std::make_shared<struct SessionInfo>();
+    EXPECT_NE(oldSession.get(), nullptr);
     std::shared_ptr<struct SessionInfo> newSession= std::make_shared<struct SessionInfo>();
+    EXPECT_NE(newSession.get(), nullptr);
     oldSession->stubIndex = 1;
     oldSession->toPort = 2;
     oldSession->fromPort = 3;
@@ -1198,6 +1369,7 @@ HWTEST_F(DBinderServiceUnitTest, IsSameSession002, TestSize.Level1)
     newSession->type = 4;
     newSession->serviceName[0] = 't';
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     EXPECT_EQ(dBinderService->IsSameSession(oldSession, newSession), false);
     newSession->stubIndex = 1;
     newSession->toPort = 12;
@@ -1222,5 +1394,6 @@ HWTEST_F(DBinderServiceUnitTest, AttachSessionObject001, TestSize.Level1)
     std::shared_ptr<struct SessionInfo> object = nullptr;
     binder_uintptr_t stub = 0;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
     EXPECT_EQ(dBinderService->AttachSessionObject(object, stub), true);
 }
