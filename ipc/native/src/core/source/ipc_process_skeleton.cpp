@@ -48,6 +48,7 @@ std::mutex IPCProcessSkeleton::procMutex_;
 IPCProcessSkeleton *IPCProcessSkeleton::instance_ = nullptr;
 IPCProcessSkeleton::DestroyInstance IPCProcessSkeleton::destroyInstance_;
 std::atomic<bool> IPCProcessSkeleton::exitFlag_ = false;
+static constexpr int32_t INT_MIDMAX = INT_MAX / 2;
 
 IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
 {
@@ -298,7 +299,7 @@ bool IPCProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
 bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    if (maxThreadNum <= 0) {
+    if (maxThreadNum <= 0 || maxThreadNum >= INT_MIDMAX) {
         ZLOGE(LOG_LABEL, "Set Invalid thread Number:%{public}d", maxThreadNum);
         return false;
     }
