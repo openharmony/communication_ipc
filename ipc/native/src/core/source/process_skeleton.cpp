@@ -57,9 +57,6 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
 
 ProcessSkeleton::~ProcessSkeleton()
 {
-    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    ZLOGW(LOG_LABEL, "destroy time:%{public}" PRIu64, curTime);
     exitFlag_ = true;
 }
 
