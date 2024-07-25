@@ -160,21 +160,23 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         ZLOGE(LOG_LABEL, "descriptor is null");
         return result;
     }
-
-    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
-    std::shared_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
-    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
-    if (lockFlag) {
-        lockGuard.lock();
-    }
     IRemoteObject *remoteObject = nullptr;
-    auto it = objects_.find(descriptor);
-    if (it != objects_.end()) {
-        // Life-time of IPCObjectProxy is extended to WEAK
-        // now it's weak reference counted, so it's safe to get raw pointer
-        remoteObject = it->second.GetRefPtr();
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
+        ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
+        if (lockFlag) {
+            lockGuard.lock();
+        }
+        auto it = objects_.find(descriptor);
+        if (it != objects_.end()) {
+            // Life-time of IPCObjectProxy is extended to WEAK
+            // now it's weak reference counted, so it's safe to get raw pointer
+            remoteObject = it->second.GetRefPtr();
+        }
     }
-    if (remoteObject == nullptr || !remoteObject->AttemptIncStrong(this)) {
+    DeadObjectInfo deadInfo;
+    if (remoteObject == nullptr || IsDeadObject(remoteObject, deadInfo) || !remoteObject->AttemptIncStrong(this)) {
         return result;
     }
     result = remoteObject;
