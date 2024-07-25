@@ -272,8 +272,9 @@ HWTEST_F(BinderInvokerUnitTest, OnAttemptAcquireTest002, TestSize.Level1)
  */
 HWTEST_F(BinderInvokerUnitTest, HandleReplyTest001, TestSize.Level1)
 {
+    bool isStubRet = false;
     BinderInvoker binderInvoker;
-    EXPECT_EQ(binderInvoker.HandleReply(nullptr), IPC_INVOKER_INVALID_DATA_ERR);
+    EXPECT_EQ(binderInvoker.HandleReply(nullptr, isStubRet), IPC_INVOKER_INVALID_DATA_ERR);
 }
 
 /**
@@ -283,10 +284,11 @@ HWTEST_F(BinderInvokerUnitTest, HandleReplyTest001, TestSize.Level1)
  */
 HWTEST_F(BinderInvokerUnitTest, HandleReplyTest002, TestSize.Level1)
 {
+    bool isStubRet = false;
     binder_transaction_data transactionData;
     BinderInvoker binderInvoker;
     binderInvoker.input_.WriteBuffer(&transactionData, sizeof(binder_transaction_data));
-    EXPECT_EQ(binderInvoker.HandleReply(nullptr), IPC_INVOKER_INVALID_REPLY_ERR);
+    EXPECT_EQ(binderInvoker.HandleReply(nullptr, isStubRet), IPC_INVOKER_INVALID_REPLY_ERR);
 }
 
 /**
