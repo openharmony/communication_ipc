@@ -26,7 +26,9 @@ class DataGenerator {
 public:
     static void Write(const uint8_t *data, size_t size)
     {
-        DataGenerator::parcel_.WriteBuffer(data, size);
+        if (!DataGenerator::parcel_.WriteBuffer(data, size)) {
+            return;
+        }
         DataGenerator::parcel_.RewindRead(0);
     }
 
@@ -45,7 +47,7 @@ private:
 };
 
 template <typename T>
-bool GenerateFromList(T &value, const std::vector<T> &candidateValues)
+static inline bool GenerateFromList(T &value, const std::vector<T> &candidateValues)
 {
     if (candidateValues.empty()) {
         return false;
@@ -58,81 +60,64 @@ bool GenerateFromList(T &value, const std::vector<T> &candidateValues)
     return true;
 }
 
-bool GenerateBool(bool &value)
+static inline bool GenerateBool(bool &value)
 {
     return DataGenerator::GetInstance().ReadBool(value);
 }
 
-bool GenerateInt8(int8_t &value)
+static inline bool GenerateInt8(int8_t &value)
 {
     return DataGenerator::GetInstance().ReadInt8(value);
 }
 
-bool GenerateInt16(int16_t &value)
+static inline bool GenerateInt16(int16_t &value)
 {
     return DataGenerator::GetInstance().ReadInt16(value);
 }
 
-bool GenerateInt32(int32_t &value)
+static inline bool GenerateInt32(int32_t &value)
 {
     return DataGenerator::GetInstance().ReadInt32(value);
 }
 
-bool GenerateInt64(int64_t &value)
+static inline bool GenerateInt64(int64_t &value)
 {
     return DataGenerator::GetInstance().ReadInt64(value);
 }
 
-bool GenerateUint8(uint8_t &value)
+static inline bool GenerateUint8(uint8_t &value)
 {
     return DataGenerator::GetInstance().ReadUint8(value);
 }
 
-bool GenerateUint16(uint16_t &value)
+static inline bool GenerateUint16(uint16_t &value)
 {
     return DataGenerator::GetInstance().ReadUint16(value);
 }
 
-bool GenerateUint32(uint32_t &value)
+static inline bool GenerateUint32(uint32_t &value)
 {
     return DataGenerator::GetInstance().ReadUint32(value);
 }
 
-bool GenerateUint64(uint64_t &value)
+static inline bool GenerateUint64(uint64_t &value)
 {
     return DataGenerator::GetInstance().ReadUint64(value);
 }
 
-bool GenerateFloat(float &value)
+static inline bool GenerateFloat(float &value)
 {
     return DataGenerator::GetInstance().ReadFloat(value);
 }
 
-bool GenerateDouble(double &value)
+static inline bool GenerateDouble(double &value)
 {
     return DataGenerator::GetInstance().ReadDouble(value);
 }
 
-bool GenerateString(std::string &value)
+static inline bool GenerateString(std::string &value)
 {
     return DataGenerator::GetInstance().ReadString(value);
-}
-
-bool GeneratePayload(std::vector<uint8_t> &payload, const std::vector<uint8_t> &prefix = {})
-{
-    uint8_t len = 0;
-    if (!DataGenerator::GetInstance().ReadUint8(len)) {
-        return false;
-    }
-    size_t readableSize = DataGenerator::GetInstance().GetReadableBytes();
-
-    len = (readableSize == 0) ? 0 : (len % readableSize);
-    payload.push_back(len + prefix.size());
-    payload.insert(payload.end(), prefix.begin(), prefix.end());
-    for (uint8_t i = 0; i < len; ++i) {
-        payload.push_back(DataGenerator::GetInstance().ReadUint8());
-    }
-    return true;
 }
 
 #endif // FUZZ_DATA_GENERATOR_H

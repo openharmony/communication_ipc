@@ -542,7 +542,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     std::shared_ptr<DBinderSessionObject> tmp = nullptr;
     auto it = proxyToSession_.find(handle);
-    if (it != proxyToSession_.end() && it->second->GetProxy() == proxy) {
+    if (it != proxyToSession_.end() && it->second != nullptr && it->second->GetProxy() == proxy) {
         tmp = it->second;
         proxyToSession_.erase(it);
         ZLOGI(LOG_LABEL, "detach handle:%{public}u from SocketId:%{public}d"
@@ -587,6 +587,10 @@ bool IPCProcessSkeleton::ProxyMoveDBinderSession(uint32_t handle, IPCObjectProxy
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     auto it = proxyToSession_.find(handle);
     if (it != proxyToSession_.end()) {
+        if (it->second == nullptr) {
+            ZLOGE(LOG_LABEL, "find object is null");
+            return false;
+        }
         ZLOGI(LOG_LABEL, "move proxy of handle:%{public}u old==new:%{public}d", handle,
             it->second->GetProxy() == proxy);
         // moves ownership to this new proxy, so old proxy should not detach this session and stubIndex
@@ -602,6 +606,10 @@ bool IPCProcessSkeleton::QueryProxyBySocketId(int32_t socketId, std::vector<uint
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
+        if (it->second == nullptr) {
+            ZLOGE(LOG_LABEL, "find object is null");
+            return false;
+        }
         if (socketId == it->second->GetSocketId()) {
             proxyHandle.push_back(it->first);
         }
@@ -617,6 +625,10 @@ uint32_t IPCProcessSkeleton::QueryHandleByDatabusSession(const std::string &name
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
 
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
+        if (it->second == nullptr) {
+            ZLOGE(LOG_LABEL, "find object is null");
+            return 0;
+        }
         if ((it->second->GetStubIndex() == stubIndex) && (it->second->GetDeviceId().compare(deviceId) == 0) &&
             (it->second->GetServiceName().compare(name) == 0)) {
             ZLOGI(LOG_LABEL, "found handle:%{public}u of session, stubIndex:%{public}" PRIu64, it->first, stubIndex);
@@ -638,6 +650,10 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::QuerySessionByInfo(con
     std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
 
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
+        if (it->second == nullptr) {
+            ZLOGE(LOG_LABEL, "find object is null");
+            return nullptr;
+        }
         if ((it->second->GetDeviceId().compare(deviceId) == 0) && (it->second->GetServiceName().compare(name) == 0)) {
             return it->second;
         }
@@ -652,6 +668,10 @@ bool IPCProcessSkeleton::StubDetachDBinderSession(uint32_t handle, uint32_t &tok
     std::unique_lock<std::shared_mutex> lockGuard(databusSessionMutex_);
     auto it = dbinderSessionObjects_.find(handle);
     if (it != dbinderSessionObjects_.end()) {
+        if (it->second == nullptr) {
+            ZLOGE(LOG_LABEL, "find object is null");
+            return false;
+        }
         tokenId = it->second->GetTokenId();
         ZLOGI(LOG_LABEL, "detach handle:%{public}u stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
             handle, it->second->GetStubIndex(), tokenId);

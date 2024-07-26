@@ -24,314 +24,295 @@
 #include "ipc_process_skeleton.h"
 
 namespace OHOS {
-    static constexpr int32_t THREAD_NAME_LEN = 10;
-    bool AttachAppInfoToStubIndexTest(const uint8_t* data, size_t size)
+    bool AttachAppInfoToStubIndexTest001()
     {
-        if (data == nullptr || size < sizeof(uint64_t)) {
-            return false;
-        }
-
-        char tmp[DEVICE_ID_SIZE_MAX] = {0};
-        if (memcpy_s(tmp, sizeof(tmp) - 1, data, size) != EOK) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
         uint32_t pid;
         uint32_t uid;
         uint32_t tokenId;
         uint64_t stubIndex;
         uint32_t listenFd;
-        if (!GenerateUint32(pid) || !GenerateUint32(uid) || !GenerateUint32(tokenId) || !GenerateUint32(listenFd)) {
-            DataGenerator::Clear();
+        std::string deviceId;
+        if (!GenerateUint32(pid) || !GenerateUint32(uid) || !GenerateUint32(tokenId) || !GenerateUint32(listenFd) ||
+            !GenerateUint64(stubIndex) || !GenerateString(deviceId)) {
             return false;
         }
-        if (!GenerateUint64(stubIndex)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::string deviceId = tmp;
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-
-        bool ret = current->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, stubIndex, listenFd);
-        DataGenerator::Clear();
-        return ret;
-    }
-
-    bool AttachCommAuthInfoTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        char tmp[DEVICE_ID_SIZE_MAX] = {0};
-        if (memcpy_s(tmp, sizeof(tmp) - 1, data, size) != EOK) {
-            return false;
-        }
-
-        sptr<IRemoteObject> remoteObj;
-        IRemoteObject *stub = remoteObj.GetRefPtr();
-        int pid = *(reinterpret_cast<const uint32_t*>(data));
-        int uid = *(reinterpret_cast<const uint32_t*>(data));
-        uint32_t tokenId = *(reinterpret_cast<const uint32_t*>(data));
-        std::string deviceId = tmp;
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-
-        bool ret = current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
-
-        return ret;
-    }
-
-    bool SetIPCProxyLimitTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        std::function<void (uint64_t num)> callback;
-        uint64_t num = *(reinterpret_cast<const uint64_t*>(data));
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        bool ret = current->SetIPCProxyLimit(num, callback);
-        return ret;
-    }
-
-    bool SetMaxWorkThreadTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        int maxThreadNum = *(reinterpret_cast<const int32_t*>(data));
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        bool ret = current->SetMaxWorkThread(maxThreadNum);
-        return ret;
-    }
-
-    bool MakeHandleDescriptorTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        int handle = *(reinterpret_cast<const int32_t*>(data));
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        std::u16string ret = current->MakeHandleDescriptor(handle);
+        current->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, stubIndex, listenFd);
         return true;
     }
 
-    bool OnThreadTerminatedTest(const uint8_t* data, size_t size)
+    bool AttachAppInfoToStubIndexTest002()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
+        uint32_t pid;
+        uint32_t uid;
+        uint32_t tokenId;
+        uint32_t listenFd;
+        std::string deviceId;
+        if (!GenerateUint32(pid) || !GenerateUint32(uid) || !GenerateUint32(tokenId) || !GenerateUint32(listenFd) ||
+            !GenerateString(deviceId)) {
             return false;
         }
-
-        char tmp[THREAD_NAME_LEN] = { 0 };
-        if (memcpy_s(tmp, sizeof(tmp) - 1, data, size) != EOK) {
-            return false;
-        }
-        std::string threadName = tmp;
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->OnThreadTerminated(threadName);
-        return ret;
+        current->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, listenFd);
+        return true;
     }
 
-    bool SpawnThreadTest(const uint8_t* data, size_t size)
+    bool AttachCommAuthInfoTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
+        sptr<IRemoteObject> remoteObj;
+        IRemoteObject *stub = remoteObj.GetRefPtr();
+
+        int pid;
+        int uid;
+        uint32_t tokenId;
+        std::string deviceId;
+        if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) || !GenerateString(deviceId)) {
             return false;
         }
-
-        int32_t policy = *(reinterpret_cast<const int32_t*>(data));
-        int32_t proto = *(reinterpret_cast<const int32_t*>(data));
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->SpawnThread(policy, proto);
-        return ret;
+        current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
+        return true;
     }
 
-    bool FindOrNewObjectTest(const uint8_t* data, size_t size)
+    bool SetIPCProxyLimitTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
+        std::function<void(uint64_t num)> callback;
+        uint64_t num;
+        if (!GenerateUint64(num)) {
             return false;
         }
-
-        int handle = *(reinterpret_cast<const int32_t*>(data));
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->FindOrNewObject(handle);
-        return ret;
+        current->SetIPCProxyLimit(num, callback);
+        return true;
     }
 
-    bool IsContainsObjectTest(const uint8_t* data, size_t size)
+    bool SetMaxWorkThreadTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        sptr<IRemoteObject> object = new IPCObjectStub(u"testStub");
-        if (object == nullptr) {
-            return false;
-        }
-
+        int maxThreadNum = 16;
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->IsContainsObject(object);
-        return ret;
+        current->SetMaxWorkThread(maxThreadNum);
+        return true;
     }
 
-    bool QueryObjectTest(const uint8_t* data, size_t size)
+    bool MakeHandleDescriptorTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        DataGenerator::Write(data, size);
-        
         int handle;
         if (!GenerateInt32(handle)) {
-            DataGenerator::Clear();
             return false;
         }
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
-            DataGenerator::Clear();
+            return false;
+        }
+        current->MakeHandleDescriptor(handle);
+        return true;
+    }
+
+    bool OnThreadTerminatedTest()
+    {
+        std::string threadName;
+        if (!GenerateString(threadName)) {
+            return false;
+        }
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->OnThreadTerminated(threadName);
+        return true;
+    }
+
+    bool SpawnThreadTest()
+    {
+        int32_t policy;
+        int32_t proto;
+        if (!GenerateInt32(policy) || !GenerateInt32(proto)) {
+            return false;
+        }
+
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->SpawnThread(policy, proto);
+        return true;
+    }
+
+    bool FindOrNewObjectTest()
+    {
+        int handle;
+        if (!GenerateInt32(handle)) {
+            return false;
+        }
+
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->FindOrNewObject(handle);
+        return true;
+    }
+
+    bool IsContainsObjectTest001()
+    {
+        sptr<IRemoteObject> object;
+
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->IsContainsObject(object);
+        return true;
+    }
+
+    bool IsContainsObjectTest002()
+    {
+        sptr<IRemoteObject> object = nullptr;
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->IsContainsObject(object);
+        return true;
+    }
+
+    bool QueryObjectTest001()
+    {
+        int handle;
+        if (!GenerateInt32(handle)) {
+            return false;
+        }
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
             return false;
         }
         const std::u16string &descriptor = current->MakeHandleDescriptor(handle);
-        
-        bool ret = current->QueryObject(descriptor);
-        DataGenerator::Clear();
-        return ret;
+        current->QueryObject(descriptor);
+        return true;
     }
 
-    bool AttachObjectTest(const uint8_t* data, size_t size)
+    bool QueryObjectTest002()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        sptr<IRemoteObject> object = new IPCObjectStub(u"testStub");
-        if (object == nullptr) {
-            return false;
-        }
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->AttachObject(object);
-        return ret;
+        current->QueryObject(u"");
+        return true;
     }
 
-    bool DetachObjectTest(const uint8_t* data, size_t size)
+    bool AttachObjectTest001()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        sptr<IRemoteObject> object = new IPCObjectStub(u"testStub");
-        if (object == nullptr) {
-            return false;
-        }
+        sptr<IRemoteObject> object = nullptr;
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->DetachObject(object);
-        return ret;
+        current->AttachObject(object);
+        return true;
     }
 
-    bool GetProxyObjectTest(const uint8_t* data, size_t size)
+    bool AttachObjectTest002()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
+        sptr<IRemoteObject> object;
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
             return false;
         }
-        DataGenerator::Write(data, size);
+        current->AttachObject(object);
+        return true;
+    }
+
+    bool DetachObjectTest001()
+    {
+        sptr<IRemoteObject> object = nullptr;
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->DetachObject(object);
+        return true;
+    }
+
+    bool DetachObjectTest002()
+    {
+        sptr<IRemoteObject> object;
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
         
+        current->DetachObject(object);
+        return true;
+    }
+
+    bool GetProxyObjectTest()
+    {
         int handle;
         bool newFlag;
         if (!GenerateInt32(handle) || !GenerateBool(newFlag)) {
-            DataGenerator::Clear();
             return false;
         }
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
-            DataGenerator::Clear();
             return false;
         }
-        bool ret = current->GetProxyObject(handle, newFlag);
-        DataGenerator::Clear();
-        return ret;
+        sptr<IRemoteObject> object = current->GetProxyObject(handle, newFlag);
+        current->DetachObject(object);
+        return true;
     }
 
-    bool GetRegistryObjectTest(const uint8_t* data, size_t size)
+    bool GetRegistryObjectTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->GetRegistryObject();
-        return ret;
+        current->GetRegistryObject();
+        return true;
     }
 
-    bool SetRegistryObjectTest(const uint8_t* data, size_t size)
+    bool SetRegistryObjectTest001()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        sptr<IRemoteObject> object = new IPCObjectStub(u"testStub");
-        if (object == nullptr) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        bool ret = current->SetRegistryObject(object);
-        return ret;
+        sptr<IRemoteObject> object = nullptr;
+        current->SetRegistryObject(object);
+        
+        return true;
     }
 
-    bool BlockUntilThreadAvailableTest(const uint8_t* data, size_t size)
+    bool SetRegistryObjectTest002()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
             return false;
         }
+        sptr<IRemoteObject> object;
+        current->SetRegistryObject(object);
+        
+        return true;
+    }
 
+    bool BlockUntilThreadAvailableTest()
+    {
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
@@ -340,12 +321,8 @@ namespace OHOS {
         return true;
     }
 
-    bool LockForNumExecutingTest(const uint8_t* data, size_t size)
+    bool LockForNumExecutingTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
@@ -354,12 +331,8 @@ namespace OHOS {
         return true;
     }
 
-    bool UnlockForNumExecutingTest(const uint8_t* data, size_t size)
+    bool UnlockForNumExecutingTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
@@ -368,640 +341,723 @@ namespace OHOS {
         return true;
     }
 
-    bool AttachRawDataTest(const uint8_t* data, size_t size)
+    bool AttachToDetachRawDataTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        DataGenerator::Write(data, size);
         int32_t socketId;
         uint32_t rawDataSize;
         if (!GenerateUint32(rawDataSize) || !GenerateInt32(socketId)) {
-            DataGenerator::Clear();
             return false;
         }
         std::shared_ptr<InvokerRawData> rawData = std::make_shared<InvokerRawData>(rawDataSize);
-        if (rawData == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->AttachRawData(socketId, rawData);
-        DataGenerator::Clear();
-        return ret;
-    }
-
-    bool DetachRawDataTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
-        int32_t socketId;
-        if (!GenerateInt32(socketId)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->DetachRawData(socketId);
-        DataGenerator::Clear();
-        return ret;
-    }
-
-    bool QueryRawDataTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
-        int32_t socketId;
-        if (!GenerateInt32(socketId)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::shared_ptr<InvokerRawData> ret = current->QueryRawData(socketId);
-        DataGenerator::Clear();
+        current->AttachRawData(socketId, rawData);
+        current->QueryRawData(socketId);
+        current->DetachRawData(socketId);
         return true;
     }
 
-    bool GetSAMgrObjectTest(const uint8_t* data, size_t size)
+    bool GetSAMgrObjectTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-
-        sptr<IRemoteObject> ret = current->GetSAMgrObject();
+        current->GetSAMgrObject();
         return true;
     }
 
-    bool ProxyDetachDBinderSessionTest001(const uint8_t* data, size_t size)
+    bool ProxyDetachDBinderSessionTest001()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        DataGenerator::Write(data, size);
         uint32_t handle;
         std::string serviceName;
         uint64_t stubIndex;
         uint32_t tokenId;
         std::string serverDeviceId;
-        
+
         if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
             !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
-            DataGenerator::Clear();
             return false;
         }
-        
         std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
             serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
-            
-        if (object == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        
-        std::shared_ptr<DBinderSessionObject> object1 = current->ProxyDetachDBinderSession(handle, object->GetProxy());
-        DataGenerator::Clear();
+        current->ProxyAttachDBinderSession(handle, object);
+        current->ProxyQueryDBinderSession(handle);
+        current->ProxyDetachDBinderSession(handle, object->GetProxy());
         return true;
     }
-    bool ProxyDetachDBinderSessionTest002(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
 
+    bool ProxyAttachDBinderSessionTest()
+    {
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        DataGenerator::Write(data, size);
         uint32_t handle;
         std::string serviceName;
         uint64_t stubIndex;
         uint32_t tokenId;
         std::string serverDeviceId;
-        
-        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
-            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        IPCObjectProxy *proxy = new IPCObjectProxy(handle, u"proxyTest", handle);
-        if (proxy == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
-            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
-            
-        if (object == nullptr) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        bool ret = current->ProxyAttachDBinderSession(handle, object);
-        if (!ret) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        
-        std::shared_ptr<DBinderSessionObject> object1 = current->ProxyDetachDBinderSession(handle, object->GetProxy());
-        DataGenerator::Clear();
-        delete(proxy);
-        return true;
-    }
-
-    bool ProxyAttachDBinderSessionTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
-        uint32_t handle;
-        std::string serviceName;
-        uint64_t stubIndex;
-        uint32_t tokenId;
-        std::string serverDeviceId;
-        
         if (!GenerateUint32(handle) || !GenerateString(serviceName) || !GenerateUint32(tokenId) ||
             !GenerateUint64(stubIndex) || !GenerateString(serverDeviceId)) {
-            DataGenerator::Clear();
             return false;
         }
-        IPCObjectProxy *proxy = new IPCObjectProxy(handle, u"proxyTest", handle);
-        if (proxy == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
+        sptr<IPCObjectProxy> remoteObj;
+        IPCObjectProxy* proxy = remoteObj.GetRefPtr();
         std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
             serviceName, serverDeviceId, stubIndex, proxy, tokenId);
-            
-        if (object == nullptr) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        bool ret = current->ProxyAttachDBinderSession(handle, object);
-        DataGenerator::Clear();
-        delete(proxy);
-        return ret;
-    }
-
-    bool ProxyQueryDBinderSessionTest(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
-        uint32_t handle;
-        
-        if (!GenerateUint32(handle)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::shared_ptr<DBinderSessionObject> ret = current->ProxyQueryDBinderSession(handle);
-        DataGenerator::Clear();
+        current->ProxyAttachDBinderSession(handle, object);
         return true;
     }
 
-    bool ProxyMoveDBinderSessionTest(const uint8_t* data, size_t size)
+    bool ProxyQueryDBinderSessionTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
-        uint32_t handle;
-        std::string serviceName;
-        uint64_t stubIndex;
-        uint32_t tokenId;
-        std::string serverDeviceId;
-        
-        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
-            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        IPCObjectProxy *proxy = new IPCObjectProxy(handle, u"proxyTest", handle);
-        if (proxy == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
-            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
-            
-        if (object == nullptr) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        bool ret = current->ProxyAttachDBinderSession(handle, object);
-        if (!ret) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        ret = current->ProxyMoveDBinderSession(handle, proxy);
-        DataGenerator::Clear();
-        return ret;
-    }
-
-    bool QueryProxyBySocketIdTest001(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return false;
-        }
-        DataGenerator::Write(data, size);
-        uint32_t handle;
-        std::string serviceName;
-        uint64_t stubIndex;
-        uint32_t tokenId;
-        std::string serverDeviceId;
-        
-        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
-            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        IPCObjectProxy *proxy = new IPCObjectProxy(handle, u"proxyTest", handle);
-        if (proxy == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
-            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
-            
-        if (object == nullptr) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        bool ret = current->ProxyAttachDBinderSession(handle, object);
-        if (!ret) {
-            DataGenerator::Clear();
-            delete(proxy);
-            return false;
-        }
-        std::vector<uint32_t> proxyHandle;
-        ret = current->QueryProxyBySocketId(handle, proxyHandle);
-        DataGenerator::Clear();
-        return ret;
-    }
-
-    bool QueryProxyBySocketIdTest002(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         uint32_t handle;
-        DataGenerator::Write(data, size);
         if (!GenerateUint32(handle)) {
-            DataGenerator::Clear();
+            return false;
+        }
+        current->ProxyQueryDBinderSession(handle);
+        return true;
+    }
+
+    bool ProxyMoveDBinderSessionTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        std::string serviceName;
+        uint64_t stubIndex;
+        uint32_t tokenId;
+        std::string serverDeviceId;
+        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
+            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
+            return false;
+        }
+        sptr<IPCObjectProxy> remoteObj;
+        IPCObjectProxy* proxy = remoteObj.GetRefPtr();
+        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
+            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+        current->ProxyAttachDBinderSession(handle, object);
+        current->ProxyMoveDBinderSession(handle, proxy);
+        return true;
+    }
+
+    bool QueryProxyBySocketIdTest001()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        std::string serviceName;
+        uint64_t stubIndex;
+        uint32_t tokenId;
+        std::string serverDeviceId;
+        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
+            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
+            return false;
+        }
+        sptr<IPCObjectProxy> remoteObj;
+        IPCObjectProxy* proxy = remoteObj.GetRefPtr();
+        
+        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
+            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+        current->ProxyAttachDBinderSession(handle, object);
+        std::vector<uint32_t> proxyHandle;
+        current->QueryProxyBySocketId(handle, proxyHandle);
+        return true;
+    }
+
+    bool QueryProxyBySocketIdTest002()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        int32_t socketId;
+        if (!GenerateInt32(socketId)) {
             return false;
         }
         std::vector<uint32_t> proxyHandle;
-        bool ret = current->QueryProxyBySocketId(handle, proxyHandle);
-        DataGenerator::Clear();
-        return ret;
+        current->QueryProxyBySocketId(socketId, proxyHandle);
+        return true;
     }
 
-    bool QuerySessionByInfoTest(const uint8_t* data, size_t size)
+    bool QuerySessionByInfoTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         std::string name;
         std::string deviceId;
-        DataGenerator::Write(data, size);
         if (!GenerateString(name) || !GenerateString(deviceId)) {
-            DataGenerator::Clear();
             return false;
         }
-        
-        std::shared_ptr<DBinderSessionObject> ret = current->QuerySessionByInfo(name, deviceId);
-        DataGenerator::Clear();
+        current->QuerySessionByInfo(name, deviceId);
         return true;
     }
 
-    bool DetachThreadLockInfoTest(const uint8_t* data, size_t size)
+    bool DetachThreadLockInfoTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        
         std::thread::id threadId = std::this_thread::get_id();
-        bool ret = current->DetachThreadLockInfo(threadId);
-        return ret;
+        current->DetachThreadLockInfo(threadId);
+        return true;
     }
 
-    bool AttachThreadLockInfoTest(const uint8_t* data, size_t size)
+    bool AttachThreadLockInfoTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         std::shared_ptr<SocketThreadLockInfo> object = std::make_shared<SocketThreadLockInfo>();
-        if (object == nullptr) {
-            return false;
-        }
         std::thread::id threadId = std::this_thread::get_id();
-        
-        bool ret = current->AttachThreadLockInfo(object, threadId);
-        return ret;
+        current->AttachThreadLockInfo(object, threadId);
+        return true;
     }
 
-    bool QueryThreadLockInfoTest(const uint8_t* data, size_t size)
+    bool QueryThreadLockInfoTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         std::shared_ptr<SocketThreadLockInfo> object = std::make_shared<SocketThreadLockInfo>();
-        if (object == nullptr) {
-            return false;
-        }
         std::thread::id threadId = std::this_thread::get_id();
-        
-        bool ret = current->AttachThreadLockInfo(object, threadId);
-        if (!ret) {
-            return false;
-        }
-        std::shared_ptr<SocketThreadLockInfo> ret2 = current->QueryThreadLockInfo(threadId);
-        if (ret2 != object) {
-            return false;
-        }
-        return ret;
+        current->AttachThreadLockInfo(object, threadId);
+        current->QueryThreadLockInfo(threadId);
+        return true;
     }
 
-    bool EraseThreadBySeqNumberTest(const uint8_t* data, size_t size)
+    bool EraseThreadBySeqNumberTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         uint64_t seqNumber;
-        DataGenerator::Write(data, size);
         if (!GenerateUint64(seqNumber)) {
-            DataGenerator::Clear();
             return false;
         }
         std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
-        if (messageInfo == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->AddThreadBySeqNumber(seqNumber, messageInfo);
-        if (!ret) {
-            DataGenerator::Clear();
-            return false;
-        }
+        current->AddThreadBySeqNumber(seqNumber, messageInfo);
         current->EraseThreadBySeqNumber(seqNumber);
-        DataGenerator::Clear();
         return true;
     }
 
-    bool AddThreadBySeqNumberTest(const uint8_t* data, size_t size)
+    bool AddThreadBySeqNumberTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         uint64_t seqNumber;
-        DataGenerator::Write(data, size);
         if (!GenerateUint64(seqNumber)) {
-            DataGenerator::Clear();
             return false;
         }
         std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
-        if (messageInfo == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->AddThreadBySeqNumber(seqNumber, messageInfo);
-        DataGenerator::Clear();
-        return ret;
+        current->AddThreadBySeqNumber(seqNumber, messageInfo);
+        return true;
     }
 
-    bool QueryThreadBySeqNumberTest001(const uint8_t* data, size_t size)
+    bool QueryThreadBySeqNumberTest001()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         uint64_t seqNumber;
-        DataGenerator::Write(data, size);
         if (!GenerateUint64(seqNumber)) {
-            DataGenerator::Clear();
             return false;
         }
         std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
-        if (messageInfo == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->AddThreadBySeqNumber(seqNumber, messageInfo);
-        if (!ret) {
-            DataGenerator::Clear();
-            return false;
-        }
-        std::shared_ptr<ThreadMessageInfo> ret2 = current->QueryThreadBySeqNumber(seqNumber);
-        if (ret2 != messageInfo) {
-            DataGenerator::Clear();
-            return false;
-        }
-        DataGenerator::Clear();
+        current->AddThreadBySeqNumber(seqNumber, messageInfo);
+        current->QueryThreadBySeqNumber(seqNumber);
         return true;
     }
 
-    bool QueryThreadBySeqNumberTest002(const uint8_t* data, size_t size)
+    bool QueryThreadBySeqNumberTest002()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         uint64_t seqNumber;
-        DataGenerator::Write(data, size);
         if (!GenerateUint64(seqNumber)) {
-            DataGenerator::Clear();
             return false;
         }
-        std::shared_ptr<ThreadMessageInfo> ret2 = current->QueryThreadBySeqNumber(seqNumber);
-        if (ret2 != nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        DataGenerator::Clear();
+        current->QueryThreadBySeqNumber(seqNumber);
         return true;
     }
 
-    bool AddSendThreadInWaitTest001(const uint8_t* data, size_t size)
+    bool AddSendThreadInWaitTest001()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         uint64_t seqNumber;
-        int userWaitTime;
-        DataGenerator::Write(data, size);
-        if (!GenerateUint64(seqNumber) || !GenerateInt32(userWaitTime)) {
-            DataGenerator::Clear();
+        if (!GenerateUint64(seqNumber)) {
             return false;
         }
         std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
-        if (messageInfo == nullptr) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
-        
-        DataGenerator::Clear();
-        return ret;
+        current->AddSendThreadInWait(seqNumber, messageInfo, 0);
+        return true;
     }
 
-    bool AddSendThreadInWaitTest002(const uint8_t* data, size_t size)
+    bool AddSendThreadInWaitTest002()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
         std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
         if (messageInfo == nullptr) {
-            DataGenerator::Clear();
             return false;
         }
         uint64_t seqNumber;
-        int userWaitTime;
-        DataGenerator::Write(data, size);
-        if (!GenerateUint64(seqNumber) || !GenerateInt32(userWaitTime) || !!GenerateBool(messageInfo->ready)) {
-            DataGenerator::Clear();
+        if (!GenerateUint64(seqNumber) || !GenerateBool(messageInfo->ready)) {
             return false;
         }
-        
-        bool ret = current->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
-        
-        DataGenerator::Clear();
-        return ret;
+        current->AddSendThreadInWait(seqNumber, messageInfo, 0);
+        return true;
     }
 
-    bool GetSocketIdleThreadNumTest(const uint8_t* data, size_t size)
+    bool GetSocketIdleThreadNumTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return false;
-        }
-
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current == nullptr) {
             return false;
         }
-        int maxThreadNum;
-        DataGenerator::Write(data, size);
-        if (!GenerateInt32(maxThreadNum)) {
-            DataGenerator::Clear();
-            return false;
-        }
-        bool ret = current->SetMaxWorkThread(maxThreadNum);
-        if (!ret) {
-            DataGenerator::Clear();
-            return false;
-        }
-        int ret2 = current->GetSocketIdleThreadNum();
-        if (ret2 > maxThreadNum) {
-            DataGenerator::Clear();
-            return false;
-        }
-        
-        DataGenerator::Clear();
+        current->GetSocketIdleThreadNum();
         return true;
+    }
+
+    bool GetSocketTotalThreadNumTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->GetSocketTotalThreadNum();
+        return true;
+    }
+
+    bool WakeUpThreadBySeqNumberTest001()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint64_t seqNumber;
+        uint32_t handle;
+        if (!GenerateUint64(seqNumber) || !GenerateUint32(handle)) {
+            return false;
+        }
+        std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
+        if (messageInfo == nullptr) {
+            return false;
+        }
+        current->AddThreadBySeqNumber(seqNumber, messageInfo);
+        current->WakeUpThreadBySeqNumber(seqNumber, handle);
+        return true;
+    }
+
+    bool WakeUpThreadBySeqNumberTest002()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint64_t seqNumber;
+        uint32_t handle;
+        if (!GenerateUint64(seqNumber) || !GenerateUint32(handle)) {
+            return false;
+        }
+        current->WakeUpThreadBySeqNumber(seqNumber, handle);
+        return true;
+    }
+
+    bool WakeUpThreadBySeqNumberTest003()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint64_t seqNumber;
+        uint32_t handle;
+        if (!GenerateUint64(seqNumber) || !GenerateUint32(handle)) {
+            return false;
+        }
+        std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
+        messageInfo->socketId = handle;
+        current->AddThreadBySeqNumber(seqNumber, messageInfo);
+        current->WakeUpThreadBySeqNumber(seqNumber, handle);
+        return true;
+    }
+
+    bool AddStubByIndexTest001()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        if (!GenerateUint32(handle)) {
+            return false;
+        }
+        IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(handle);
+
+        current->AddStubByIndex(stubObject);
+        return true;
+    }
+
+    bool AddStubByIndexTest002()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        if (!GenerateUint32(handle)) {
+            return false;
+        }
+        IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(handle);
+        current->AddStubByIndex(stubObject);
+        current->AddStubByIndex(stubObject);
+        return true;
+    }
+
+    bool QueryStubByIndexTest001()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint64_t stubIndex;
+        uint32_t handle;
+        if (!GenerateUint64(stubIndex) || !GenerateUint32(handle)) {
+            return false;
+        }
+        IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(handle);
+        current->AddStubByIndex(stubObject);
+        current->QueryStubByIndex(1);
+        return true;
+    }
+
+    bool QueryStubByIndexTest002()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->QueryStubByIndex(0);
+        return true;
+    }
+
+    bool QueryStubIndexTest001()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        if (!GenerateUint32(handle)) {
+            return false;
+        }
+        IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(handle);
+        current->QueryStubIndex(stubObject);
+        return true;
+    }
+
+    bool QueryStubIndexTest002()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        if (!GenerateUint32(handle)) {
+            return false;
+        }
+        IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(handle);
+        current->AddStubByIndex(stubObject);
+        current->QueryStubIndex(stubObject);
+        current->EraseStubIndex(stubObject);
+        return true;
+    }
+
+    bool EraseStubIndexTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        if (!GenerateUint32(handle)) {
+            return false;
+        }
+        IRemoteObject *stubObject = reinterpret_cast<IPCObjectStub *>(handle);
+        current->EraseStubIndex(stubObject);
+        return true;
+    }
+
+    bool GetSeqNumberTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->GetSeqNumber();
+        return true;
+    }
+
+    bool GetDBinderIdleHandleTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        std::shared_ptr<DBinderSessionObject> session = nullptr;
+        current->GetDBinderIdleHandle(session);
+        return true;
+    }
+
+    bool GetLocalDeviceIDTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->GetLocalDeviceID();
+        return true;
+    }
+
+    bool AttachToDetachCallbackStubTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        sptr<IPCObjectStub> callbackStub;
+        sptr<IPCObjectProxy> remoteObj;
+        IPCObjectProxy* ipcProxy = remoteObj.GetRefPtr();
+        current->AttachCallbackStub(ipcProxy, callbackStub);
+        current->QueryCallbackStub(ipcProxy);
+        current->QueryCallbackProxy(callbackStub);
+        current->DetachCallbackStub(ipcProxy);
+        return true;
+    }
+
+    bool QueryHandleByDatabusSessionTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        std::string serviceName;
+        uint64_t stubIndex;
+        uint32_t tokenId;
+        std::string serverDeviceId;
+
+        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
+            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
+            return false;
+        }
+        sptr<IPCObjectProxy> remoteObj;
+        IPCObjectProxy* proxy = remoteObj.GetRefPtr();
+        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
+            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+        current->ProxyAttachDBinderSession(handle, object);
+        current->QueryHandleByDatabusSession(serviceName, serverDeviceId, stubIndex);
+        return true;
+    }
+
+    bool StubAttachToDetachDBinderSessionTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        uint32_t handle;
+        std::string serviceName;
+        uint64_t stubIndex;
+        uint32_t tokenId;
+        std::string serverDeviceId;
+
+        if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
+            !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
+            return false;
+        }
+        sptr<IPCObjectProxy> remoteObj;
+        IPCObjectProxy* proxy = remoteObj.GetRefPtr();
+        std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
+            serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+        current->StubAttachDBinderSession(handle, object);
+        current->StubQueryDBinderSession(handle);
+        current->StubDetachDBinderSession(handle, tokenId);
+        return true;
+    }
+
+    bool GetDatabusNameTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        current->GetDatabusName();
+        return true;
+    }
+
+    bool CreateSoftbusServerTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        std::string serverName;
+        if (!GenerateString(serverName)) {
+            return false;
+        }
+        current->CreateSoftbusServer(serverName);
+        return true;
+    }
+
+    bool DetachCommAuthInfoBySocketIdTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        int pid;
+        int uid;
+        uint32_t tokenId;
+        std::string deviceId;
+        int32_t socketId;
+        sptr<IRemoteObject> remoteObj;
+        IRemoteObject *stub = remoteObj.GetRefPtr();
+        if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) ||
+            !GenerateString(deviceId) || !GenerateInt32(socketId)) {
+            return false;
+        }
+        current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
+        current->QueryCommAuthInfo(pid, uid, tokenId, deviceId);
+        current->UpdateCommAuthSocketInfo(pid, uid, tokenId, deviceId, socketId);
+        current->DetachCommAuthInfoBySocketId(socketId);
+        return true;
+    }
+
+    bool DetachCommAuthInfoByStubTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        int pid;
+        int uid;
+        uint32_t tokenId;
+        std::string deviceId;
+        int32_t socketId;
+        sptr<IRemoteObject> remoteObj;
+        IRemoteObject *stub = remoteObj.GetRefPtr();
+        if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) ||
+            !GenerateString(deviceId) || !GenerateInt32(socketId)) {
+            return false;
+        }
+        current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
+        current->DetachCommAuthInfoByStub(stub);
+        return true;
+    }
+
+    bool DetachCommAuthInfoTest()
+    {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
+        int pid;
+        int uid;
+        uint32_t tokenId;
+        std::string deviceId;
+        int32_t socketId;
+        sptr<IRemoteObject> remoteObj;
+        IRemoteObject *stub = remoteObj.GetRefPtr();
+        if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) ||
+            !GenerateString(deviceId) || !GenerateInt32(socketId)) {
+            return false;
+        }
+        current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
+        current->DetachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
+        return true;
+    }
+
+    void FuzzerTestInner()
+    {
+        AttachAppInfoToStubIndexTest001();
+        AttachAppInfoToStubIndexTest002();
+        AttachCommAuthInfoTest();
+        SetIPCProxyLimitTest();
+        SetMaxWorkThreadTest();
+        MakeHandleDescriptorTest();
+        OnThreadTerminatedTest();
+        SpawnThreadTest();
+        FindOrNewObjectTest();
+        IsContainsObjectTest001();
+        IsContainsObjectTest002();
+        QueryObjectTest001();
+        QueryObjectTest002();
+        AttachObjectTest001();
+        AttachObjectTest002();
+        DetachObjectTest001();
+        DetachObjectTest002();
+        GetProxyObjectTest();
+        GetRegistryObjectTest();
+        SetRegistryObjectTest001();
+        SetRegistryObjectTest002();
+        BlockUntilThreadAvailableTest();
+        LockForNumExecutingTest();
+        UnlockForNumExecutingTest();
+        AttachToDetachRawDataTest();
+        GetSAMgrObjectTest();
+        ProxyDetachDBinderSessionTest001();
+        ProxyAttachDBinderSessionTest();
+        ProxyQueryDBinderSessionTest();
+        ProxyMoveDBinderSessionTest();
+        QueryProxyBySocketIdTest001();
+        QueryProxyBySocketIdTest002();
+        QuerySessionByInfoTest();
+        DetachThreadLockInfoTest();
+        AttachThreadLockInfoTest();
+        QueryThreadLockInfoTest();
+        EraseThreadBySeqNumberTest();
+        AddThreadBySeqNumberTest();
+        QueryThreadBySeqNumberTest001();
+        QueryThreadBySeqNumberTest002();
+        AddSendThreadInWaitTest001();
+        AddSendThreadInWaitTest002();
+        GetSocketIdleThreadNumTest();
+        GetSocketTotalThreadNumTest();
+        WakeUpThreadBySeqNumberTest001();
+        WakeUpThreadBySeqNumberTest002();
+        WakeUpThreadBySeqNumberTest003();
     }
 }
 
@@ -1009,46 +1065,26 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::AttachAppInfoToStubIndexTest(data, size);
-    OHOS::AttachCommAuthInfoTest(data, size);
-    OHOS::SetIPCProxyLimitTest(data, size);
-    OHOS::SetMaxWorkThreadTest(data, size);
-    OHOS::MakeHandleDescriptorTest(data, size);
-    OHOS::OnThreadTerminatedTest(data, size);
-    OHOS::SpawnThreadTest(data, size);
-    OHOS::FindOrNewObjectTest(data, size);
-    OHOS::IsContainsObjectTest(data, size);
-    OHOS::QueryObjectTest(data, size);
-    OHOS::AttachObjectTest(data, size);
-    OHOS::DetachObjectTest(data, size);
-    OHOS::GetProxyObjectTest(data, size);
-    OHOS::GetRegistryObjectTest(data, size);
-    OHOS::SetRegistryObjectTest(data, size);
-    OHOS::BlockUntilThreadAvailableTest(data, size);
-    OHOS::LockForNumExecutingTest(data, size);
-    OHOS::UnlockForNumExecutingTest(data, size);
-    OHOS::AttachRawDataTest(data, size);
-    OHOS::DetachRawDataTest(data, size);
-    OHOS::QueryRawDataTest(data, size);
-    OHOS::GetSAMgrObjectTest(data, size);
-    OHOS::ProxyDetachDBinderSessionTest001(data, size);
-    OHOS::ProxyDetachDBinderSessionTest002(data, size);
-    OHOS::ProxyAttachDBinderSessionTest(data, size);
-    OHOS::ProxyQueryDBinderSessionTest(data, size);
-    OHOS::ProxyMoveDBinderSessionTest(data, size);
-    OHOS::QueryProxyBySocketIdTest001(data, size);
-    OHOS::QueryProxyBySocketIdTest002(data, size);
-    OHOS::QuerySessionByInfoTest(data, size);
-    OHOS::DetachThreadLockInfoTest(data, size);
-    OHOS::AttachThreadLockInfoTest(data, size);
-    OHOS::QueryThreadLockInfoTest(data, size);
-    OHOS::EraseThreadBySeqNumberTest(data, size);
-    OHOS::AddThreadBySeqNumberTest(data, size);
-    OHOS::QueryThreadBySeqNumberTest001(data, size);
-    OHOS::QueryThreadBySeqNumberTest002(data, size);
-    OHOS::AddSendThreadInWaitTest001(data, size);
-    OHOS::AddSendThreadInWaitTest002(data, size);
-    OHOS::GetSocketIdleThreadNumTest(data, size);
-
+    DataGenerator::Write(data, size);
+    OHOS::FuzzerTestInner();
+    OHOS::QueryStubByIndexTest001();
+    OHOS::QueryStubByIndexTest002();
+    OHOS::QueryStubIndexTest001();
+    OHOS::QueryStubIndexTest002();
+    OHOS::AddStubByIndexTest001();
+    OHOS::AddStubByIndexTest002();
+    OHOS::EraseStubIndexTest();
+    OHOS::GetSeqNumberTest();
+    OHOS::GetDBinderIdleHandleTest();
+    OHOS::GetLocalDeviceIDTest();
+    OHOS::AttachToDetachCallbackStubTest();
+    OHOS::QueryHandleByDatabusSessionTest();
+    OHOS::StubAttachToDetachDBinderSessionTest();
+    OHOS::GetDatabusNameTest();
+    OHOS::CreateSoftbusServerTest();
+    OHOS::DetachCommAuthInfoBySocketIdTest();
+    OHOS::DetachCommAuthInfoByStubTest();
+    OHOS::DetachCommAuthInfoTest();
+    DataGenerator::Clear();
     return 0;
 }
