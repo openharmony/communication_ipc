@@ -23,6 +23,7 @@ ohos_fuzztest("IPCProcessSkeletonFuzzTest") {
     "../../../../src/core/include",
     "../../../../c/rpc/include",
     "../../../../../../utils/include",
+    "../include",
   ]
   cflags = [
     "-g",
