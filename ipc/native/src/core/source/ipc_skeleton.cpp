@@ -250,11 +250,11 @@ std::string IPCSkeleton::ResetCallingIdentity()
     return "";
 }
 
-bool IPCSkeleton::SetCallingIdentity(std::string &identity)
+bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
-        return invoker->SetCallingIdentity(identity);
+        return invoker->SetCallingIdentity(identity, flag);
     }
 
     return true;
