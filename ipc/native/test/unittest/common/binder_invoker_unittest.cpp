@@ -57,10 +57,10 @@ HWTEST_F(BinderInvokerUnitTest, SetCallingIdentityTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     std::string identity;
-    bool ret = binderInvoker.SetCallingIdentity(identity);
+    bool ret = binderInvoker.SetCallingIdentity(identity, false);
     EXPECT_EQ(ret, false);
     identity = "aaa";
-    ret = binderInvoker.SetCallingIdentity(identity);
+    ret = binderInvoker.SetCallingIdentity(identity, false);
     EXPECT_EQ(ret, false);
 }
 
@@ -74,7 +74,7 @@ HWTEST_F(BinderInvokerUnitTest, SetCallingIdentityTest002, TestSize.Level1)
     BinderInvoker binderInvoker;
     std::string token = binderInvoker.ResetCallingIdentity();
     EXPECT_FALSE(token.empty());
-    bool ret = binderInvoker.SetCallingIdentity(token);
+    bool ret = binderInvoker.SetCallingIdentity(token, false);
     EXPECT_TRUE(ret);
 }
 

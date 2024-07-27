@@ -949,8 +949,9 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
     return accessToken + identity;
 }
 
-bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity)
+bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity, bool flag)
 {
+    (void)flag;
     if (identity.empty() || identity.length() <= DEVICEID_LENGTH) {
         return false;
     }

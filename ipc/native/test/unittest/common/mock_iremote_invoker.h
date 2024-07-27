@@ -67,7 +67,7 @@ public:
     MOCK_METHOD3(WriteFileDescriptor, bool(Parcel &parcel, int fd, bool takeOwnership));
     MOCK_METHOD1(FlushCommands, int(IRemoteObject *object));
     MOCK_METHOD0(ResetCallingIdentity, std::string());
-    MOCK_METHOD1(SetCallingIdentity, bool(std::string &identity));
+    MOCK_METHOD2(SetCallingIdentity, bool(std::string &identity, bool flag));
 
 #ifndef CONFIG_IPC_SINGLE
     MOCK_METHOD0(GetSAMgrObject, sptr<IRemoteObject>());

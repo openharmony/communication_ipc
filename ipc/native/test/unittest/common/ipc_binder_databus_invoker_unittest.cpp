@@ -573,7 +573,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, ResetCallingIdentityTest001, TestSize.Lev
     DBinderDatabusInvoker testInvoker;
     std::string token = testInvoker.ResetCallingIdentity();
     EXPECT_FALSE(token.empty());
-    bool ret = testInvoker.SetCallingIdentity(token);
+    bool ret = testInvoker.SetCallingIdentity(token, false);
     EXPECT_FALSE(ret);
 }
 
@@ -600,7 +600,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest001, TestSize.Level
     std::string identity = accessToken + deviceId + token;
 
     DBinderDatabusInvoker testInvoker;
-    bool result = testInvoker.SetCallingIdentity(identity);
+    bool result = testInvoker.SetCallingIdentity(identity, false);
     EXPECT_TRUE(result);
 }
 

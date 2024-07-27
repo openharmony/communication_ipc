@@ -65,7 +65,7 @@ public:
     bool OnReceiveNewConnection(int32_t socketId, int peerPid, int peerUid,
         std::string peerName, std::string networkId);
     std::string ResetCallingIdentity() override;
-    bool SetCallingIdentity(std::string &identity) override;
+    bool SetCallingIdentity(std::string &identity, bool flag) override;
     int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
     void OnMessageAvailable(int32_t socketId, const char *data, ssize_t len);
 
