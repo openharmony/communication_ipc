@@ -1009,7 +1009,7 @@ namespace OHOS {
         return true;
     }
 
-    void FuzzerTestInner()
+    void FuzzerTestInner1()
     {
         AttachAppInfoToStubIndexTest001();
         AttachAppInfoToStubIndexTest002();
@@ -1059,6 +1059,28 @@ namespace OHOS {
         WakeUpThreadBySeqNumberTest002();
         WakeUpThreadBySeqNumberTest003();
     }
+
+    void FuzzerTestInner2()
+    {
+        QueryStubByIndexTest001();
+        QueryStubByIndexTest002();
+        QueryStubIndexTest001();
+        QueryStubIndexTest002();
+        AddStubByIndexTest001();
+        AddStubByIndexTest002();
+        EraseStubIndexTest();
+        GetSeqNumberTest();
+        GetDBinderIdleHandleTest();
+        GetLocalDeviceIDTest();
+        AttachToDetachCallbackStubTest();
+        QueryHandleByDatabusSessionTest();
+        StubAttachToDetachDBinderSessionTest();
+        GetDatabusNameTest();
+        CreateSoftbusServerTest();
+        DetachCommAuthInfoBySocketIdTest();
+        DetachCommAuthInfoByStubTest();
+        DetachCommAuthInfoTest();
+    }
 }
 
 /* Fuzzer entry point */
@@ -1066,25 +1088,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     DataGenerator::Write(data, size);
-    OHOS::FuzzerTestInner();
-    OHOS::QueryStubByIndexTest001();
-    OHOS::QueryStubByIndexTest002();
-    OHOS::QueryStubIndexTest001();
-    OHOS::QueryStubIndexTest002();
-    OHOS::AddStubByIndexTest001();
-    OHOS::AddStubByIndexTest002();
-    OHOS::EraseStubIndexTest();
-    OHOS::GetSeqNumberTest();
-    OHOS::GetDBinderIdleHandleTest();
-    OHOS::GetLocalDeviceIDTest();
-    OHOS::AttachToDetachCallbackStubTest();
-    OHOS::QueryHandleByDatabusSessionTest();
-    OHOS::StubAttachToDetachDBinderSessionTest();
-    OHOS::GetDatabusNameTest();
-    OHOS::CreateSoftbusServerTest();
-    OHOS::DetachCommAuthInfoBySocketIdTest();
-    OHOS::DetachCommAuthInfoByStubTest();
-    OHOS::DetachCommAuthInfoTest();
+    OHOS::FuzzerTestInner1();
+    OHOS::FuzzerTestInner2();
     DataGenerator::Clear();
     return 0;
 }
