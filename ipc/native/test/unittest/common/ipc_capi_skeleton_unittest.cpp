@@ -200,7 +200,7 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_SetCallingIdentity_001, TestSize.Leve
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
     std::string testStr = "hello, world.";
-    EXPECT_CALL(*invoker, SetCallingIdentity(testStr))
+    EXPECT_CALL(*invoker, SetCallingIdentity(testStr, false))
         .WillRepeatedly(testing::Return(true));
 
     auto ret = OH_IPCSkeleton_SetCallingIdentity(testStr.c_str());

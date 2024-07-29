@@ -97,7 +97,7 @@ public:
 
     virtual std::string ResetCallingIdentity() = 0;
 
-    virtual bool SetCallingIdentity(std::string &identity) = 0;
+    virtual bool SetCallingIdentity(std::string &identity, bool flag) = 0;
 
 #ifndef CONFIG_IPC_SINGLE
     virtual sptr<IRemoteObject> GetSAMgrObject() = 0;

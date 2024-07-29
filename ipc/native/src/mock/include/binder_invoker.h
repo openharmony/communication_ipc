@@ -109,7 +109,7 @@ public:
 
     std::string ResetCallingIdentity() override;
 
-    bool SetCallingIdentity(std::string &identity) override;
+    bool SetCallingIdentity(std::string &identity, bool flag) override;
 
     void ExitCurrentThread();
 

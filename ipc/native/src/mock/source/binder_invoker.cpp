@@ -1420,7 +1420,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     return tempSid + "<" + accessToken + realPid + pidUid; // '<' is the separator character
 }
 
-bool BinderInvoker::SetCallingIdentity(std::string &identity)
+bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
 {
     if (identity.empty() || identity.length() <= ACCESS_TOKEN_MAX_LEN) {
         return false;
@@ -1430,6 +1430,11 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
     if (pos == std::string::npos) {
         return false;
     }
+    if (flag) {
+        ZLOGI(LABEL, "set before callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
+            callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
+            callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
+    }
     std::string callerSid_ = identity.substr(0, pos);
     callerTokenID_ = std::stoull(identity.substr(pos + 1, ACCESS_TOKEN_MAX_LEN).c_str());
     callerRealPid_ =
@@ -1438,9 +1443,11 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity)
         identity.length() - ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET).c_str());
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
-    ZLOGD(LABEL, "callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
-        callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
-        callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
+    if (flag) {
+        ZLOGI(LABEL, "set after callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
+            callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
+            callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
+    }
     return true;
 }
 

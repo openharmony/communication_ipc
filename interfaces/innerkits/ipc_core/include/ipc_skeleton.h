@@ -175,7 +175,7 @@ public:
      * @return Returns <b>true</b> if the operation succeeds; returns <b>false</b> otherwise.
      * @since 9
      */
-    static bool SetCallingIdentity(std::string &identity);
+    static bool SetCallingIdentity(std::string &identity, bool flag = false);
 };
 
 class IPCDfx {
