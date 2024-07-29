@@ -455,7 +455,7 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest001, TestSize.Level1)
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
     std::string testStr = "testStr";
-    EXPECT_CALL(*invoker, SetCallingIdentity(testStr))
+    EXPECT_CALL(*invoker, SetCallingIdentity(testStr, false))
         .WillRepeatedly(testing::Return(false));
 
     auto result = skeleton.SetCallingIdentity(testStr);
