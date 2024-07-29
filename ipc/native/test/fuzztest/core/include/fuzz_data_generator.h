@@ -24,9 +24,11 @@
 
 class DataGenerator {
 public:
+    static const size_t MAX_WRITE_SIZE = 200 * 1024;
     static void Write(const uint8_t *data, size_t size)
     {
-        if (!DataGenerator::parcel_.WriteBuffer(data, size)) {
+        size_t writeSize = (size > MAX_WRITE_SIZE) ? MAX_WRITE_SIZE : size;
+        if (!DataGenerator::parcel_.WriteBuffer(data, writeSize)) {
             return;
         }
         DataGenerator::parcel_.RewindRead(0);
