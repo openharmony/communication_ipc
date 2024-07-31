@@ -66,6 +66,9 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     ZLOGD(LABEL, "desc:%{public}s, %{public}u",
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(),
         ProcessSkeleton::ConvertAddr(this));
+    auto start = std::chrono::steady_clock::now();
+    lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        start.time_since_epoch()).count());
     InitCodeMap();
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
