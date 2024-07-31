@@ -98,6 +98,8 @@ public:
     virtual int OnSendRawData(std::shared_ptr<T> session, const void *data, size_t size) = 0;
     bool CheckTransactionData(const dbinder_transaction_data *tr) const;
     std::mutex &GetObjectMutex();
+    void PrintDBinderTransaction(const char *funcName, const char *titleName, const dbinder_transaction_data *tr);
+    void PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data, size_t length);
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
@@ -122,6 +124,8 @@ private:
     std::shared_ptr<dbinder_transaction_data> ProcessNormalData(std::shared_ptr<T> sessionObject, MessageParcel &data,
         int32_t handle, int32_t socketId, uint64_t seqNum, int cmd, __u32 code, __u32 flags, int status);
     bool MoveTransData2Buffer(std::shared_ptr<T> sessionObject, std::shared_ptr<dbinder_transaction_data> transData);
+    bool RemoveDBinderPtrData(std::shared_ptr<dbinder_transaction_data> transData, uint32_t &cutCount);
+    void OverrideMessageParcelData(std::shared_ptr<dbinder_transaction_data> tr, MessageParcel &data);
     bool MoveMessageParcel2TransData(MessageParcel &data, std::shared_ptr<T> sessionObject,
         std::shared_ptr<dbinder_transaction_data> transData, int32_t socketId, int status);
     std::shared_ptr<ThreadProcessInfo> MakeThreadProcessInfo(int32_t socketId, const char *buffer, uint32_t size);

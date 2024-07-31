@@ -25,6 +25,9 @@ public:
     explicit DBinderCallbackStub(const std::string &serviceName, const std::string &peerDeviceID,
         const std::string &localDeviceID, uint64_t stubIndex, uint32_t handle, uint32_t tokenId);
     ~DBinderCallbackStub();
+    static bool Marshalling(Parcel &parcel, const sptr<IRemoteObject> &object);
+    bool Marshalling(Parcel &parcel) const override;
+    int GetAndSaveDBinderData(pid_t pid, uid_t uid) override;
     int32_t ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
@@ -35,12 +38,15 @@ public:
 
 private:
     int32_t ProcessData(int uid, int pid, const std::string &sessionName, MessageParcel &data, MessageParcel &reply);
+    int AddDBinderCommAuth(pid_t pid, uid_t uid, const std::string &sessionName);
+    int SaveDBinderData(const std::string &sessionName);
     const std::string serviceName_;
     const std::string deviceID_;
     const std::string localDeviceID_;
     uint64_t stubIndex_;
     uint32_t handle_;
     uint32_t tokenId_;
+    std::unique_ptr<uint8_t[]> dbinderData_ {nullptr};
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_CALLBACK_STUB_H

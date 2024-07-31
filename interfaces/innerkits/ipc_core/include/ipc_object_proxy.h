@@ -22,6 +22,19 @@
 #include "iremote_object.h"
 
 namespace OHOS {
+#ifndef CONFIG_IPC_SINGLE
+struct DBinderNegotiationData {
+    pid_t peerPid;
+    pid_t peerUid;
+    uint32_t peerTokenId;
+    uint64_t stubIndex;
+    std::string peerServiceName;
+    std::string peerDeviceId;
+    std::string localServiceName;
+    std::string localDeviceId;
+};
+#endif
+
 class IPCObjectProxy : public IRemoteObject {
 public:
     explicit IPCObjectProxy(int handle, std::u16string descriptor = std::u16string(),
@@ -203,10 +216,11 @@ public:
 
     /**
      * @brief Wait for initialization.
+     * @param dbinderData dbinder object data.
      * @return void
      * @since 9
      */
-    void WaitForInit();
+    void WaitForInit(const void *dbinderData = nullptr);
 
     /**
      * @brief Obtains the interface descriptor.
@@ -243,6 +257,14 @@ private:
      * @since 9
      */
     int UpdateProto();
+
+    /**
+     * @brief Update the proxy protocol.
+     * @param dbinderData Indicates a dbinder object data.
+     * @return Returns <b>true</b> if the operation is successful; return <b>false</b> otherwise.
+     * @since 12
+     */
+    bool UpdateProto(const void *dbinderData);
 
     /**
      * @brief Release the proxy protocol.
@@ -297,7 +319,7 @@ private:
 
     /**
      * @brief Update the databus(Dbinder) client session name.
-     * @param hadle Indicates a hadel that needs to update session information.
+     * @param handle Indicates a handle that needs to update session information.
      * @param reply Indicates the object returned by the peer process.
      * @return Returns <b>true</b> if the update is successful; returns <b>false</b> Otherwise.
      * @since 9
@@ -305,11 +327,24 @@ private:
     bool UpdateDatabusClientSession(int handle, MessageParcel &reply);
 
     /**
+     * @brief Update the databus(Dbinder) client session name.
+     * @return Returns <b>true</b> if the update is successful; returns <b>false</b> Otherwise.
+     * @since 12
+     */
+    bool UpdateDatabusClientSession();
+
+    /**
      * @brief Check if there is a session.
      * @return Returns <b>true</b> if there is currently a session; returns <b>false</b> otherwise.
      * @since 9
      */
     bool CheckHaveSession();
+
+    int GetDBinderNegotiationData(int handle, MessageParcel &reply, DBinderNegotiationData &dbinderData);
+
+    int GetDBinderNegotiationData(DBinderNegotiationData &dbinderData);
+
+    bool MakeDBinderTransSession(const DBinderNegotiationData &data);
 #endif
 
 private:
@@ -325,6 +360,7 @@ private:
     std::u16string interfaceDesc_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
+    std::unique_ptr<uint8_t[]> dbinderData_{nullptr};
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_PROXY_H

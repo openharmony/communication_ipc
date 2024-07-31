@@ -287,7 +287,7 @@ void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
     }
 }
 
-void IPCObjectProxy::WaitForInit()
+void IPCObjectProxy::WaitForInit(const void *dbinderData)
 {
     // RPC proxy: AcquireHandle->AttachObject->Open Session->IncRef to Remote Stub
     {
@@ -304,8 +304,8 @@ void IPCObjectProxy::WaitForInit()
 
         if (!isFinishInit_) {
 #ifndef CONFIG_IPC_SINGLE
-            if (UpdateProto() == IRemoteObject::IF_PROT_ERROR) {
-                isRemoteDead_ = true;
+            if (!UpdateProto(dbinderData)) {
+                return;
             }
 #endif
             isFinishInit_ = true;
@@ -542,12 +542,50 @@ int IPCObjectProxy::InvokeListenThread(MessageParcel &data, MessageParcel &reply
     return SendRequestInner(false, INVOKE_LISTEN_THREAD, data, reply, option);
 }
 
+uint32_t IPCObjectProxy::GetStrongRefCountForStub()
+{
+    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(IPCThreadSkeleton::GetDefaultInvoker());
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "get default invoker failed");
+        return 0;  // 0 means get failed
+    }
+    return invoker->GetStrongRefCountForStub(handle_);
+}
+
 #ifndef CONFIG_IPC_SINGLE
 int IPCObjectProxy::UpdateProto()
 {
     int proto = GetProtoInfo();
     SetProto(proto);
     return proto;
+}
+
+bool IPCObjectProxy::UpdateProto(const void *dbinderData)
+{
+    auto data = reinterpret_cast<const dbinder_negotiation_data *>(dbinderData);
+    if (data != nullptr && data->proto == IRemoteObject::IF_PROT_DATABUS) {
+        dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+        if (dbinderData_ == nullptr) {
+            isRemoteDead_ = true;
+            SetProto(IRemoteObject::IF_PROT_ERROR);
+            ZLOGE(LABEL, "malloc dbinderData fail, handle:%{public}d", handle_);
+            return false;
+        }
+        auto tmp = reinterpret_cast<dbinder_negotiation_data *>(dbinderData_.get());
+        *tmp = *data;
+        if (!UpdateDatabusClientSession()) {
+            ZLOGE(LABEL, "UpdateDatabusClientSession fail, handle:%{public}d", handle_);
+            isRemoteDead_ = true;
+            SetProto(IRemoteObject::IF_PROT_ERROR);
+            dbinderData_ = nullptr;
+            return false;
+        }
+        SetProto(IRemoteObject::IF_PROT_DATABUS);
+        remoteDescriptor_ = data->desc;
+    } else if (CheckHaveSession()) {
+        SetProto(IRemoteObject::IF_PROT_DATABUS);
+    }
+    return true;
 }
 
 int32_t IPCObjectProxy::IncRefToRemote()
@@ -724,7 +762,7 @@ bool IPCObjectProxy::CheckHaveSession()
     return current->ProxyMoveDBinderSession(handle_, this);
 }
 
-bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply)
+bool IPCObjectProxy::MakeDBinderTransSession(const DBinderNegotiationData &data)
 {
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
@@ -732,62 +770,116 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
         ZLOGE(LABEL, "invoker is null");
         return false;
     }
-
-    uint64_t stubIndex = reply.ReadUint64();
-    std::string serviceName = reply.ReadString();
-    std::string peerID = reply.ReadString();
-    std::string localID = reply.ReadString();
-    std::string localBusName = reply.ReadString();
-    uint32_t peerTokenId = reply.ReadUint32();
-
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LABEL, "skeleton is nullptr");
         return false;
     }
-
-    if (serviceName.empty()) {
+    if (data.peerServiceName.empty()) {
         ZLOGE(LABEL, "serviceName is empty");
         return false;
     }
-    std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string::size_type pos = str.find("_");
-    std::string peerUid = str.substr(0, pos);
-    std::string peerPid = str.substr(pos + 1);
-    if (peerUid.empty() || peerPid.empty()) {
-        ZLOGE(LABEL, "peerUid or peerPid is empty");
-        return false;
-    }
 
-    std::shared_ptr<DBinderSessionObject> dbinderSession = std::make_shared<DBinderSessionObject>(
-        serviceName, peerID, stubIndex, this, peerTokenId);
+    auto dbinderSession = std::make_shared<DBinderSessionObject>(
+        data.peerServiceName, data.peerDeviceId, data.stubIndex, this, data.peerTokenId);
     if (dbinderSession == nullptr) {
         ZLOGE(LABEL, "make DBinderSessionObject fail!");
         return false;
     }
-    dbinderSession->SetPeerPid(std::stoi(peerPid));
-    dbinderSession->SetPeerUid(std::stoi(peerUid));
-    if (!current->CreateSoftbusServer(localBusName)) {
-        ZLOGE(LABEL, "create softbus server fail, name:%{public}s localID:%{public}s", localBusName.c_str(),
-            IPCProcessSkeleton::ConvertToSecureString(localID).c_str());
+    dbinderSession->SetPeerPid(data.peerPid);
+    dbinderSession->SetPeerUid(data.peerUid);
+
+    if (!current->CreateSoftbusServer(data.localServiceName)) {
+        ZLOGE(LABEL, "CreateSoftbusServer fail, name:%{public}s localID:%{public}s", data.localServiceName.c_str(),
+            IPCProcessSkeleton::ConvertToSecureString(data.localDeviceId).c_str());
         return false;
     }
     if (!invoker->UpdateClientSession(dbinderSession)) {
         // no need to remove softbus server
-        ZLOGE(LABEL, "update server session object fail!");
+        ZLOGE(LABEL, "UpdateClientSession fail!");
         return false;
     }
-    if (!current->ProxyAttachDBinderSession(handle, dbinderSession)) {
+    if (!current->ProxyAttachDBinderSession(handle_, dbinderSession)) {
         // should not get here
-        ZLOGW(LABEL, "fail to attach session for handle:%{public}d, maybe a concurrent scenarios", handle);
-        if (current->QuerySessionByInfo(serviceName, peerID) == nullptr) {
+        ZLOGW(LABEL, "ProxyAttachDBinderSession fail for handle:%{public}d, maybe a concurrent scenarios", handle_);
+        if (current->QuerySessionByInfo(data.peerServiceName, data.peerDeviceId) == nullptr) {
             ZLOGE(LABEL, "session is not exist, service:%{public}s devId:%{public}s",
-                serviceName.c_str(), IPCProcessSkeleton::ConvertToSecureString(peerID).c_str());
+                data.peerServiceName.c_str(), IPCProcessSkeleton::ConvertToSecureString(data.peerDeviceId).c_str());
             dbinderSession->CloseDatabusSession();
             return false;
         }
     }
+    ZLOGI(LABEL, "succ");
     return true;
+}
+
+int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply,
+    DBinderNegotiationData &dbinderData)
+{
+    dbinderData.stubIndex = reply.ReadUint64();
+    dbinderData.peerServiceName = reply.ReadString();
+    dbinderData.peerDeviceId = reply.ReadString();
+    dbinderData.localDeviceId = reply.ReadString();
+    dbinderData.localServiceName = reply.ReadString();
+    dbinderData.peerTokenId = reply.ReadUint32();
+    if (dbinderData.peerServiceName.empty() || dbinderData.peerDeviceId.empty() ||
+        dbinderData.localDeviceId.empty() || dbinderData.localServiceName.empty()) {
+        ZLOGE(LABEL, "invalid param");
+        return ERR_INVALID_DATA;
+    }
+
+    std::string str = dbinderData.peerServiceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
+    std::string::size_type pos = str.find("_");
+    if (pos == str.npos) {
+        ZLOGE(LABEL, "ServiceName format error");
+        return ERR_INVALID_DATA;
+    }
+    dbinderData.peerUid = std::stoi(str.substr(0, pos));
+    dbinderData.peerPid = std::stoi(str.substr(pos + 1));
+    return ERR_NONE;
+}
+
+bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply)
+{
+    DBinderNegotiationData dbinderData;
+    if (GetDBinderNegotiationData(handle, reply, dbinderData) != ERR_NONE) {
+        return false;
+    }
+    return MakeDBinderTransSession(dbinderData);
+}
+
+int IPCObjectProxy::GetDBinderNegotiationData(DBinderNegotiationData &dbinderData)
+{
+    if (dbinderData_ == nullptr) {
+        ZLOGE(LABEL, "dbinderData_ is null");
+        return ERR_INVALID_DATA;
+    }
+    auto data = reinterpret_cast<const dbinder_negotiation_data *>(dbinderData_.get());
+    dbinderData.stubIndex = data->stub_index;
+    dbinderData.peerServiceName = data->target_name;
+    dbinderData.peerDeviceId = data->target_device;
+    dbinderData.localDeviceId = data->local_device;
+    dbinderData.localServiceName = data->local_name;
+    dbinderData.peerTokenId = data->tokenid;
+
+    std::string str = dbinderData.peerServiceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
+    std::string::size_type pos = str.find("_");
+    if (pos == str.npos) {
+        ZLOGW(LABEL, "ServiceName format error");
+        return ERR_INVALID_DATA;
+    }
+    dbinderData.peerUid = std::stoi(str.substr(0, pos));
+    dbinderData.peerPid = std::stoi(str.substr(pos + 1));
+    return ERR_NONE;
+}
+
+bool IPCObjectProxy::UpdateDatabusClientSession()
+{
+    DBinderNegotiationData dbinderData;
+    if (GetDBinderNegotiationData(dbinderData) != ERR_NONE) {
+        return false;
+    }
+    return MakeDBinderTransSession(dbinderData);
 }
 
 void IPCObjectProxy::ReleaseDatabusProto()
@@ -823,16 +915,6 @@ void IPCObjectProxy::ReleaseDatabusProto()
 void IPCObjectProxy::ReleaseBinderProto()
 {
     // do nothing
-}
-
-uint32_t IPCObjectProxy::GetStrongRefCountForStub()
-{
-    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(IPCThreadSkeleton::GetDefaultInvoker());
-    if (invoker == nullptr) {
-        ZLOGE(LABEL, "get default invoker failed");
-        return 0;  // 0 means get failed
-    }
-    return invoker->GetStrongRefCountForStub(handle_);
 }
 #endif
 } // namespace OHOS

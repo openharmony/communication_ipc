@@ -71,6 +71,9 @@ namespace IPC_SINGLE {
 
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
+static constexpr pid_t INVALID_PID = -1;
+static constexpr int32_t BINDER_ALIGN_BYTES = 8;
+
 enum {
     GET_SERVICE_TRANSACTION = 0x1,
     CHECK_SERVICE_TRANSACTION,
@@ -142,17 +145,26 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 {
     int error = ERR_NONE;
     uint32_t flags = static_cast<uint32_t>(option.GetFlags());
-    MessageParcel &newData = const_cast<MessageParcel &>(data);
-    size_t oldWritePosition = newData.GetWritePosition();
-    HiTraceId traceId = HiTraceChain::GetId();
-    // set client send trace point if trace is enabled
-    HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
+    [[maybe_unused]] ThreadMigrationDisabler _d;
 
     if (!TranslateDBinderProxy(handle, data)) {
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
-    if (!WriteTransaction(BC_TRANSACTION, flags, handle, code, data, nullptr)) {
-        newData.RewindWrite(oldWritePosition);
+
+    size_t totalDBinderBufSize = 0;
+#ifndef CONFIG_IPC_SINGLE
+    if (!TranslateDBinderStub(handle, data, false, totalDBinderBufSize)) {
+        return IPC_TRANSLATE_DBINDER_STUB_ERR;
+    }
+    auto dataSize = data.GetDataSize();
+    if (totalDBinderBufSize > 0 && dataSize % BINDER_ALIGN_BYTES != 0) {
+        ZLOGI(LABEL, "not 8 bytes aligned(%{public}zu), padding it", dataSize);
+        data.WriteInt8(0);
+    }
+#endif
+
+    int cmd = (totalDBinderBufSize > 0) ? BC_TRANSACTION_SG : BC_TRANSACTION;
+    if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
@@ -168,9 +180,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
-    HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
-    // restore Parcel data
-    newData.RewindWrite(oldWritePosition);
     return error;
 }
 
@@ -343,7 +352,106 @@ bool BinderInvoker::AddCommAuth(int32_t handle, flat_binder_object *flat)
     return true;
 }
 
+bool BinderInvoker::GetDBinderCallingPidUid(int handle, bool isReply, pid_t &pid, uid_t &uid)
+{
+    if (pid == INVALID_PID) {
+        if (!isReply) {
+            MessageParcel data;
+            MessageParcel reply;
+            MessageOption option;
+            auto ret = SendRequest(handle, GET_PID_UID, data, reply, option);
+            if (ret != ERR_NONE) {
+                ZLOGE(LABEL, "GET_PID_UID failed, error:%{public}d", ret);
+                return false;
+            }
+            pid = reply.ReadUint32();
+            uid = reply.ReadUint32();
+        } else {
+            pid = GetCallerPid();
+            uid = GetCallerUid();
+        }
+        ZLOGI(LABEL, "pid:%{public}d uid:%{public}d", pid, uid);
+    }
+    return true;
+}
+
+bool BinderInvoker::TranslateDBinderStub(int handle, MessageParcel &parcel, bool isReply, size_t &totalDBinderBufSize)
+{
+    pid_t pid = INVALID_PID;
+    uid_t uid = INVALID_PID;
+    uintptr_t dataBuf = parcel.GetData();
+    size_t totalSize = parcel.GetDataSize();
+    size_t objCount = parcel.GetOffsetsSize();
+    binder_size_t *objOffset = reinterpret_cast<binder_size_t *>(parcel.GetObjectOffsets());
+    size_t alignSize = 0;
+
+    for (size_t i = 0; i < objCount; ++i) {
+        auto obj = reinterpret_cast<binder_buffer_object *>(dataBuf + objOffset[i]);
+        if ((obj->hdr.type == BINDER_TYPE_PTR) && (obj->length == sizeof(dbinder_negotiation_data))) {
+            alignSize = (obj->length + (sizeof(uint64_t) - 1)) & ~(sizeof(uint64_t) - 1);
+            if (alignSize != obj->length) {
+                ZLOGW(LABEL, "alignSize(%{public}zu) != obj.length(%{public}llu)", alignSize, obj->length);
+            }
+            totalDBinderBufSize += alignSize;
+            // skip to next object
+            ++i;
+            if ((i >= objCount) || (objOffset[i] + sizeof(flat_binder_object) > totalSize)) {
+                ZLOGW(LABEL, "over length, i:%{public}zu count:%{public}zu offset:%{public}llu totalSize:%{public}zu",
+                    i, objCount, objOffset[i], totalSize);
+                break;
+            }
+            auto flat = reinterpret_cast<flat_binder_object *>(dataBuf + objOffset[i]);
+            if (flat->hdr.type != BINDER_TYPE_BINDER) {
+                ZLOGE(LABEL, "unexpected binder type:%{public}d", flat->hdr.type);
+                return false;
+            }
+            if (!GetDBinderCallingPidUid(handle, isReply, pid, uid)) {
+                ZLOGE(LABEL, "GetDBinderCallingPidUid fail, cookie:%{public}llu", flat->cookie);
+                return false;
+            }
+
+            auto stub = reinterpret_cast<IPCObjectStub *>(flat->cookie);
+            if (stub->GetAndSaveDBinderData(pid, uid) != ERR_NONE) {
+                ZLOGE(LABEL, "GetAndSaveDBinderData fail, cookie:%{public}llu", flat->cookie);
+                return false;
+            }
+            ZLOGI(LABEL, "succ, cookie:%{public}llu", flat->cookie);
+        }
+    }
+    return true;
+}
+
+bool BinderInvoker::UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_data &dbinderData)
+{
+    auto offset = parcel.GetReadPosition();
+    auto *buffer = parcel.ReadBuffer(sizeof(binder_object_header), false);
+    if (buffer == nullptr) {
+        ZLOGE(LABEL, "null object buffer");
+        return false;
+    }
+    auto *hdr = reinterpret_cast<const binder_object_header *>(buffer);
+    if (hdr->type != BINDER_TYPE_PTR) {
+        parcel.RewindRead(offset);
+        return false;
+    }
+    ZLOGI(LABEL, "PTR");
+    parcel.RewindRead(offset);
+    buffer = parcel.ReadBuffer(sizeof(binder_buffer_object), false);
+    if (buffer == nullptr) {
+        ZLOGE(LABEL, "null object buffer");
+        return false;
+    }
+    auto *obj = reinterpret_cast<const binder_buffer_object *>(buffer);
+    if (((obj->flags & BINDER_BUFFER_FLAG_HAS_DBINDER) == 0) || (obj->length != sizeof(dbinder_negotiation_data))) {
+        ZLOGW(LABEL, "no dbinder buffer flag");
+        parcel.RewindRead(offset);
+        return false;
+    }
+    dbinderData = *reinterpret_cast<dbinder_negotiation_data *>(obj->buffer);
+    return true;
+}
 #endif
+
 bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -425,11 +533,23 @@ void BinderInvoker::StartWorkLoop()
 
 int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
 {
-    int error = WriteTransaction(BC_REPLY, flags, -1, 0, reply, &result);
+    size_t totalDBinderBufSize = 0;
+#ifndef CONFIG_IPC_SINGLE
+    if (!TranslateDBinderStub(-1, reply, true, totalDBinderBufSize)) {
+        return IPC_TRANSLATE_DBINDER_STUB_ERR;
+    }
+    auto replySize = reply.GetDataSize();
+    if (totalDBinderBufSize > 0 && replySize % BINDER_ALIGN_BYTES != 0) {
+        ZLOGI(LABEL, "not 8 bytes aligned(%{public}zu), padding it", replySize);
+        reply.WriteInt8(0);
+    }
+#endif
+
+    int cmd = (totalDBinderBufSize > 0) ? BC_REPLY_SG : BC_REPLY;
+    int error = WriteTransaction(cmd, flags, -1, 0, reply, &result, totalDBinderBufSize);
     if (error < ERR_NONE) {
         return error;
     }
-
     return WaitForCompletion();
 }
 
@@ -658,13 +778,10 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     if (tr.offsets_size > 0) {
         data->InjectOffsets(tr.data.ptr.offsets, tr.offsets_size / sizeof(binder_size_t));
     }
-    uint32_t &newflags = const_cast<uint32_t &>(tr.flags);
-    int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr.target.handle),
-        tr.code, *data, newflags);
+
     InvokerProcInfo oldInvokerProcInfo = {
         callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_, 0 };
     uint32_t oldStatus = status_;
-
     callerSid_ = (trSecctx.secctx != 0) ? reinterpret_cast<char *>(trSecctx.secctx) : "";
     callerPid_ = tr.sender_pid;
     callerUid_ = tr.sender_euid;
@@ -682,8 +799,6 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
 
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int32_t error = TargetStubSendRequest(tr, *data, reply, option, flagValue);
-
-    HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr.target.handle), tr.code, isServerTraced, newflags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
@@ -882,6 +997,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
 
 void BinderInvoker::JoinThread(bool initiative)
 {
+    [[maybe_unused]] ThreadMigrationDisabler _d;
     isMainWorkThread = initiative;
     output_.WriteUint32(initiative ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
     StartWorkLoop();
@@ -951,9 +1067,12 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 }
 
 bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, uint32_t code, const MessageParcel &data,
-    const int32_t *status)
+    const int32_t *status, size_t totalDBinderBufSize)
 {
-    binder_transaction_data tr {};
+    binder_transaction_data_sg tr_sg {};
+    auto &tr = tr_sg.transaction_data;
+    bool isContainPtrType = totalDBinderBufSize > 0;
+
     tr.target.handle = (uint32_t)handle;
     tr.code = code;
     tr.flags = flags;
@@ -964,6 +1083,7 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
         tr.data.ptr.buffer = (binder_uintptr_t)data.GetData();
         tr.offsets_size = data.GetOffsetsSize() * sizeof(binder_size_t);
         tr.data.ptr.offsets = data.GetObjectOffsets();
+        tr_sg.buffers_size = isContainPtrType ? totalDBinderBufSize : 0;
     } else if (status != nullptr) {
         // Send this parcel's status through the binder.
         tr.flags |= TF_STATUS_CODE;
@@ -974,10 +1094,12 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
     }
 
     if (!output_.WriteInt32(cmd)) {
-        ZLOGE(LABEL, "WriteTransaction Command failure");
+        ZLOGE(LABEL, "write cmd fail");
         return false;
     }
-    return output_.WriteBuffer(&tr, sizeof(binder_transaction_data));
+    const void *buf = isContainPtrType ? static_cast<const void *>(&tr_sg) : static_cast<const void *>(&tr);
+    size_t bufSize = isContainPtrType ? sizeof(tr_sg) : sizeof(tr);
+    return output_.WriteBuffer(buf, bufSize);
 }
 
 void BinderInvoker::OnTransactionComplete(
@@ -1314,6 +1436,16 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
 
 sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
 {
+#ifndef CONFIG_IPC_SINGLE
+    auto offset = parcel.GetReadPosition();
+    dbinder_negotiation_data dbinderData;
+    bool isDBinderObj = UnFlattenDBinderObject(parcel, dbinderData);
+    auto offset2 = parcel.GetReadPosition();
+    if (offset != offset2) {
+        ZLOGW(LABEL, "offset:%{public}zu offset2:%{public}zu isDBinderObj:%{public}d",
+            offset, offset2, isDBinderObj);
+    }
+#endif
     const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object), false);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "null object buffer");
@@ -1333,7 +1465,14 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
             break;
         }
         case BINDER_TYPE_HANDLE: {
+#ifndef CONFIG_IPC_SINGLE
+            if (isDBinderObj) {
+                ZLOGI(LABEL, "dbinder BINDER_TYPE_HANDLE");
+            }
+            remoteObject = current->FindOrNewObject(flat->handle, isDBinderObj ? &dbinderData : nullptr);
+#else
             remoteObject = current->FindOrNewObject(flat->handle);
+#endif
             break;
         }
         default:
@@ -1342,9 +1481,8 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
     }
 
     if (!current->IsContainsObject(remoteObject)) {
-                remoteObject = nullptr;
-            }
-
+        remoteObject = nullptr;
+    }
     return remoteObject;
 }
 
