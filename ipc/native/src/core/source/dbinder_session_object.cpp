@@ -97,7 +97,9 @@ uint64_t DBinderSessionObject::GetStubIndex() const
 
 uint32_t DBinderSessionObject::GetFlatSessionLen()
 {
-    return sizeof(struct FlatDBinderSession);
+    auto length = sizeof(struct FlatDBinderSession);
+    ZLOGD(LOG_LABEL, "FlatDBinderSession size:%{public}zu", length);
+    return length;
 }
 
 int32_t DBinderSessionObject::GetSocketId() const
