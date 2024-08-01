@@ -1116,7 +1116,7 @@ bool BinderInvoker::PingService(int32_t handle)
 
 bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive()) || (object == nullptr)) {
         return false;
     }
 
