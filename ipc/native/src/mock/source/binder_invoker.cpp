@@ -928,7 +928,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
             // we still have some bytes not been handled.
             PrintParcelData(input, "input_");
             PrintParcelData(output_, "output_");
-            ZLOEF(LABEL, "still have some bytes not been handled result:%{public}d", error);
+            ZLOGE(LABEL, "still have some bytes not been handled result:%{public}d", error);
         } else {
             output_.FlushBuffer();
         }
