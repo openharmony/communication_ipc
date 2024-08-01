@@ -16,7 +16,6 @@
 #include "binder_invoker.h"
 
 #include <chrono>
-#include <csignal>
 #include <securec.h>
 
 #include "access_token_adapter.h"
@@ -929,12 +928,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
             // we still have some bytes not been handled.
             PrintParcelData(input, "input_");
             PrintParcelData(output_, "output_");
-            ZLOGF(LABEL, "still have some bytes not been handled result:%{public}d", error);
-            int ret = raise(SIGABRT);
-            if (ret != ERR_NONE) {
-                ZLOGE(LABEL, "raise SIGABRT result:%{public}d", ret);
-            }
-            return error;
+            ZLOEF(LABEL, "still have some bytes not been handled result:%{public}d", error);
         } else {
             output_.FlushBuffer();
         }
@@ -1476,10 +1470,10 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
     std::string formatStr;
     size_t size = parcel.GetDataSize();
     auto data = reinterpret_cast<const uint8_t *>(parcel.GetData());
-    size_t index = 0;
-    while (index < size) {
-        formatStr += std::to_string(data[index]) + ','
-        ++index;
+    size_t idex = 0;
+    while (idex < size) {
+        formatStr += std::to_string(data[idex]) + ','
+        ++idex;
     }
     ZLOGE(LABEL, 
         "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s"
