@@ -60,6 +60,9 @@ namespace OHOS {
             return false;
         }
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return false;
+        }
         current->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, listenFd);
         current->DetachAppInfoToStubIndex(listenFd);
         current->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, listenFd);
