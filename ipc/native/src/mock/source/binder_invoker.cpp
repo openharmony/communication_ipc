@@ -927,6 +927,8 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
             // we still have some bytes not been handled.
+            PrintParcelData(input, "input_");
+            PrintParcelData(output_, "output_");
             ZLOGF(LABEL, "still have some bytes not been handled result:%{public}d", error);
             int ret = raise(SIGABRT);
             if (ret != ERR_NONE) {
@@ -1467,6 +1469,21 @@ uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
     }
 
     return info.strong_count;
+}
+
+void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelName)
+{
+    std::string formatStr;
+    size_t size = parcel.GetDataSize();
+    auto data = reinterpret_cast<const uint8_t *>(parcel.GetData());
+    size_t index = 0;
+    while (index < size) {
+        formatStr += std::to_string(data[index]) + ','
+        ++index;
+    }
+    ZLOGE(LABEL, 
+        "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s"
+        parcelName.c_str(), size, parcel.GetReadPossition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
 #ifdef CONFIG_ACTV_BINDER
