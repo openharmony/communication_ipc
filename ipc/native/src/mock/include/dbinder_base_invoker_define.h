@@ -130,6 +130,8 @@ private:
 
 private:
     std::mutex objectMutex_;
+    static constexpr int32_t REPLY_RETRY_COUNT = 5;
+    static constexpr int32_t REPLY_RETRY_WAIT_MS = 10;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_BASE_INVOKER_DEFINE_H
