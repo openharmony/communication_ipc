@@ -188,7 +188,7 @@ HWTEST_F(BinderInvokerUnitTest, SetRegistryObject004, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     sptr<IRemoteObject> testProxy = nullptr;
-    bool ret = binderInvoker.SetRegistryObject(testProxy);
+    bool ret = binderInvoker.SetRegistryObject(testProxy, true);
     EXPECT_EQ(ret, false);
 }
 
