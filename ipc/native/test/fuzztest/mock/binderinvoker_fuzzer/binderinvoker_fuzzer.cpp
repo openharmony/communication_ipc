@@ -133,9 +133,11 @@ namespace OHOS {
         if (invoker == nullptr) {
             return;
         }
+        bool flag;
+        GenerateBool(flag);
         std::string identity;
         GenerateString(identity);
-        invoker->SetCallingIdentity(identity);
+        invoker->SetCallingIdentity(identity, flag);
         invoker->ResetCallingIdentity();
         delete invoker;
     }
