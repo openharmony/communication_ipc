@@ -127,12 +127,17 @@ template <class T> void DBinderBaseInvoker<T>::ProcessReply(dbinder_transaction_
     }
 
     std::shared_ptr<ThreadMessageInfo> messageInfo = current->QueryThreadBySeqNumber(tr->seqNumber);
-    if (messageInfo == nullptr) {
-        ZLOGE(LOG_LABEL, "no thread waiting reply message of this seqNumber:%{public}llu listenFd:%{public}d",
-            tr->seqNumber, listenFd);
-        DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SEQ_MESSAGE_NULL, __FUNCTION__);
-        /* messageInfo is null, no thread need to wakeup */
-        return;
+    int32_t retryCount = 0;
+    while (messageInfo == nullptr) {
+        ZLOGW(LOG_LABEL, "query thread for reply failed, seqNum:%{public}llu, listenFd:%{public}d, retry:%{public}d",
+            tr->seqNumber, listenFd, retryCount++);
+        if (retryCount == REPLY_RETRY_COUNT) {
+            ZLOGE(LOG_LABEL, "query thread for reply failed, no thread waiting reply message");
+            DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_SEQ_MESSAGE_NULL, __FUNCTION__);
+            return;  // messageInfo is null, no thread need to wakeup
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(REPLY_RETRY_WAIT_MS));
+        messageInfo = current->QueryThreadBySeqNumber(tr->seqNumber);
     }
 
     /* tr->sizeOfSelf > sizeof(dbinder_transaction_data) is checked in CheckTransactionData */
