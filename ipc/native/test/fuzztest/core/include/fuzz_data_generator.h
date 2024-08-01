@@ -28,9 +28,7 @@ public:
     static void Write(const uint8_t *data, size_t size)
     {
         size_t writeSize = (size > MAX_WRITE_SIZE) ? MAX_WRITE_SIZE : size;
-        if (!DataGenerator::parcel_.WriteBuffer(data, writeSize)) {
-            return;
-        }
+        DataGenerator::parcel_.WriteBuffer(data, writeSize);
         DataGenerator::parcel_.RewindRead(0);
     }
 
