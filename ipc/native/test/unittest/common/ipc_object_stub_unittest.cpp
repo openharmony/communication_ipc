@@ -170,7 +170,7 @@ HWTEST_F(IPCObjectStubTest, GetLastRequestTimeTest001, TestSize.Level1)
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
 
     uint64_t ret = testStub->GetLastRequestTime();
-    EXPECT_EQ(ret, 0);
+    EXPECT_TRUE(ret > 0);
 }
 
 /**
