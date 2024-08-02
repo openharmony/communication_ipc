@@ -1477,7 +1477,7 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
         ++idex;
     }
     ZLOGE(LABEL,
-        "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s"
+        "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s",
         parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
