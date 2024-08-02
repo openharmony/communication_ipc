@@ -926,7 +926,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
             // we still have some bytes not been handled.
-            PrintParcelData(input, "input_");
+            PrintParcelData(input_, "input_");
             PrintParcelData(output_, "output_");
             ZLOGE(LABEL, "still have some bytes not been handled result:%{public}d, write_consumed:%{public}zu",
                 error, static_cast<size_t>(bwr.write_consumed));
