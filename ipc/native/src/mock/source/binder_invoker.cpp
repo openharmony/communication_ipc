@@ -1473,7 +1473,7 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
     auto data = reinterpret_cast<const uint8_t *>(parcel.GetData());
     size_t idex = 0;
     while (idex < size) {
-        formatStr += std::to_string(data[idex]) + ','
+        formatStr += std::to_string(data[idex]) + ',';
         ++idex;
     }
     ZLOGE(LABEL, 
