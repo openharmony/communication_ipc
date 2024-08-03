@@ -79,6 +79,11 @@ IPCObjectProxy::~IPCObjectProxy()
     ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
         ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
         ProcessSkeleton::ConvertAddr(this));
+    std::string desc = Str16ToStr8(remoteDescriptor_);
+    if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
+        ZLOGI(LABEL, "destroy handle:%{public}u desc:%{public}s %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+    }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");
@@ -116,6 +121,11 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
 {
     if (code != DUMP_TRANSACTION && code > MAX_TRANSACTION_ID) {
         return IPC_PROXY_INVALID_CODE_ERR;
+    }
+    std::string desc = Str16ToStr8(remoteDescriptor_);
+    if (desc == "ohos.aafwk.AbilityManager") {
+        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
     }
 
     auto beginTime = std::chrono::steady_clock::now();
@@ -180,6 +190,12 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
 
     MessageParcel data, reply;
     MessageOption option;
+
+    std::string desc = Str16ToStr8(remoteDescriptor_);
+    if (desc == "ohos.aafwk.AbilityToken") {
+        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
+    }
 
     int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
@@ -336,6 +352,11 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
 {
     // IPC proxy: DetachObject->ReleaseHandle
     // RPC proxy: DecRef to Remote Stub->Close Session->DetachObject->ReleaseHandle
+    std::string desc = Str16ToStr8(remoteDescriptor_);
+    if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
+        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+    }
     ZLOGD(LABEL, "handle:%{public}u proto:%{public}d", handle_, proto_);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
