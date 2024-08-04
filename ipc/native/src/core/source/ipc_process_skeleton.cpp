@@ -187,7 +187,7 @@ std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
     return Str8ToStr16(descriptor);
 }
 
-sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
+sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle, const dbinder_negotiation_data *dbinderData)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     bool newFlag = false;
@@ -201,7 +201,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle)
         return result;
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
-    proxy->WaitForInit();
+    proxy->WaitForInit(dbinderData);
 #ifndef CONFIG_IPC_SINGLE
     if (proxy->GetProto() == IRemoteObject::IF_PROT_ERROR) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(

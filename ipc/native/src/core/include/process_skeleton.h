@@ -21,6 +21,7 @@
 #include <shared_mutex>
 
 #include "iremote_object.h"
+#include "sys_binder.h"
 
 namespace OHOS {
 struct DeadObjectInfo {
@@ -43,10 +44,13 @@ struct InvokerProcInfo {
 class ProcessSkeleton {
 public:
     static std::string ConvertToSecureDesc(const std::string &str);
-    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
     static uint32_t ConvertAddr(const void *ptr);
     static ProcessSkeleton* GetInstance();
+    static bool FlattenDBinderData(Parcel &parcel, const dbinder_negotiation_data *&dbinderData);
+    static bool UnFlattenDBinderData(Parcel &parcel, dbinder_negotiation_data *&dbinderData);
+
+    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
     void SetSamgrFlag(bool flag);
