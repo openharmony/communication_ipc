@@ -16,7 +16,6 @@
 #include "binder_invoker.h"
 
 #include <chrono>
-#include <csignal>
 #include <securec.h>
 
 #include "access_token_adapter.h"
@@ -927,12 +926,10 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (bwr.write_consumed > 0) {
         if (bwr.write_consumed < output_.GetDataSize()) {
             // we still have some bytes not been handled.
-            ZLOGF(LABEL, "still have some bytes not been handled result:%{public}d", error);
-            int ret = raise(SIGABRT);
-            if (ret != ERR_NONE) {
-                ZLOGE(LABEL, "raise SIGABRT result:%{public}d", ret);
-            }
-            return error;
+            PrintParcelData(input_, "input_");
+            PrintParcelData(output_, "output_");
+            ZLOGE(LABEL, "still have some bytes not been handled result:%{public}d, write_consumed:%{public}zu",
+                error, static_cast<size_t>(bwr.write_consumed));
         } else {
             output_.FlushBuffer();
         }
@@ -1467,6 +1464,21 @@ uint32_t BinderInvoker::GetStrongRefCountForStub(uint32_t handle)
     }
 
     return info.strong_count;
+}
+
+void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelName)
+{
+    std::string formatStr;
+    size_t size = parcel.GetDataSize();
+    auto data = reinterpret_cast<const uint8_t *>(parcel.GetData());
+    size_t idex = 0;
+    while (idex < size) {
+        formatStr += std::to_string(data[idex]) + ',';
+        ++idex;
+    }
+    ZLOGE(LABEL,
+        "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s",
+        parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
 #ifdef CONFIG_ACTV_BINDER
