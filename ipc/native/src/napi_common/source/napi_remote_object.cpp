@@ -787,6 +787,18 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
     return jsRemoteProxy;
 }
 
+bool NAPI_ohos_rpc_ClearNativeRemoteProxy(napi_env env, napi_value jsRemoteProxy)
+{
+    NAPIRemoteProxyHolder *holder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
+    if (holder == nullptr) {
+        ZLOGE(LOG_LABEL, "holder null");
+        return false;
+    }
+    ZLOGI(LOG_LABEL, "clear native remote proxy");
+    holder->object_ = nullptr;
+    return true;
+}
+
 sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value object)
 {
     if (object != nullptr) {

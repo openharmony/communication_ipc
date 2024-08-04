@@ -64,6 +64,15 @@ EXTERN_C_END
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target);
 
 /**
+ * @brief Clear native proxy object that associated with js object.
+ * @param env Indicates the environment in which NAPI is called.
+ * @param jsRemoteProxy Indicates the js object(the associated native object will be cleared).
+ * @return Returns <b>true</b> if the operation succeeds; return <b>false</b> Otherwise.
+ * @since 9
+ */
+bool NAPI_ohos_rpc_ClearNativeRemoteProxy(napi_env env, napi_value jsRemoteProxy);
+
+/**
  * @brief Get a native remote object.
  * @param env Indicates the environment in which NAPI is called.
  * @param object Indicates the object obtained.
