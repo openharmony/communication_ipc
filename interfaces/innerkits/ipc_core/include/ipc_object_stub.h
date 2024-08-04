@@ -218,6 +218,17 @@ public:
      * @since 12
      */
     void SetRequestSidFlag(bool flag);
+
+    /**
+     * @brief Get and save the dbinder object data.
+     * @param pid Indicates the sender pid.
+     * @param uid Indicates the sender uid.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * defined in {@link ipc_types.h} otherwise.
+     * @since 12
+     */
+    virtual int GetAndSaveDBinderData(pid_t pid, uid_t uid);
+
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Invoker the calling thread.
@@ -262,8 +273,10 @@ public:
      * @since 9
      */
     int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code);
+#endif
 
 private:
+#ifndef CONFIG_IPC_SINGLE
     std::string GetSessionName();
     int GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
@@ -277,7 +290,7 @@ private:
     int DBinderGetSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int DBinderGetPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 #endif
-private:
+
     bool IsDeviceIdIllegal(const std::string &deviceID);
     int DBinderPingTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int DBinderInterfaceTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
@@ -286,7 +299,6 @@ private:
     int SendRequestInner(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void InitCodeMap();
 
-private:
     std::recursive_mutex serialRecursiveMutex_;
     bool serialInvokeFlag_;
     uint64_t lastRequestTime_;

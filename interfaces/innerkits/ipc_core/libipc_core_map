@@ -73,6 +73,8 @@
             "OHOS::IRemoteObject::GetInterfaceDescriptor()";
             "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
+            "OHOS::IPCObjectStub::GetAndSaveDBinderData(int, unsigned int)";
+            "virtual thunk to OHOS::IPCObjectStub::GetAndSaveDBinderData(int, unsigned int)";
         };
     local:
         *;

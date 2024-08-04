@@ -14,6 +14,7 @@
 import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder"
 
 config("libdbinder_config") {
@@ -59,7 +60,11 @@ ohos_shared_library("libdbinder") {
   ]
 
   configs = [ ":libdbinder_private_config" ]
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
+  deps = [
+    "$IPC_CORE_ROOT/src/core:ipc_common",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+  ]
+
   external_deps = [
     "c_utils:utils",
     "ffrt:libffrt",

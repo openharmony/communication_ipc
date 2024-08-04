@@ -729,4 +729,12 @@ void IPCObjectStub::SetRequestSidFlag(bool flag)
     requestSidFlag_ = flag;
 #endif
 }
+
+int IPCObjectStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
+{
+    (void)pid;
+    (void)uid;
+    ZLOGW(LABEL, "unexpected call");
+    return ERR_INVALID_STATE;
+}
 } // namespace OHOS

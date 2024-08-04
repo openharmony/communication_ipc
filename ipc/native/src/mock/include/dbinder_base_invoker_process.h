@@ -89,7 +89,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
         option.SetFlags(flags);
         // cannot use stub any more after SendRequest because this cmd may be
         // dbinder dec ref and thus stub will be destroyed
-        int error = stubObject->SendRequest(tr->code, data, reply, option);
+        error = stubObject->SendRequest(tr->code, data, reply, option);
         if (error != ERR_NONE) {
             ZLOGW(LOG_LABEL, "stub sendrequest failed, cmd:%{public}u error:%{public}d "
                 "listenFd:%{public}d seq:%{public}" PRIu64, tr->code, error, listenFd, senderSeqNumber);
@@ -265,5 +265,140 @@ std::shared_ptr<ThreadProcessInfo> DBinderBaseInvoker<T>::MakeThreadProcessInfo(
     return processInfo;
 }
 
+template <class T>
+bool DBinderBaseInvoker<T>::RemoveDBinderPtrData(std::shared_ptr<dbinder_transaction_data> tr, uint32_t &cutCount)
+{
+    size_t i = 0;
+    size_t objCount = tr->offsets_size / sizeof(binder_size_t);
+    while (i < objCount) {
+        binder_size_t *offsets = reinterpret_cast<binder_size_t *>(tr->buffer + tr->buffer_size);
+        auto obj = reinterpret_cast<binder_object_header *>(tr->buffer + offsets[i]);
+        if (obj->type == BINDER_TYPE_PTR) {
+            ZLOGI(LOG_LABEL, "ptr object offset:%{public}llu", offsets[i]);
+            // record deleted offset
+            binder_size_t delOffset = offsets[i];
+            // update these offsets that following the deleted offset
+            for (size_t j = i; (j + 1) < objCount; j++) {
+                offsets[j] = offsets[j + 1] - sizeof(binder_buffer_object);
+            }
+            // update total offsets size
+            tr->offsets_size -= sizeof(binder_size_t);
+
+            // remove ptr space in the buffer
+            size_t removeSize = tr->buffer_size + tr->offsets_size - delOffset - sizeof(binder_buffer_object);
+            errno_t ret = memmove_s(tr->buffer + delOffset, removeSize,
+                tr->buffer + delOffset + sizeof(binder_buffer_object), removeSize);
+            if (ret != EOK) {
+                ZLOGE(LOG_LABEL, "memmove fail, %{public}d", ret);
+                return false;
+            }
+            // update buffer size
+            tr->buffer_size -= sizeof(binder_buffer_object);
+            // update offsets
+            tr->offsets = tr->buffer_size;
+
+            // clear the disused buffer space
+            size_t delSize = sizeof(binder_size_t) + sizeof(binder_buffer_object) + T::GetFlatSessionLen();
+            memset_s(tr->buffer + tr->buffer_size + tr->offsets_size, delSize, 0, delSize);
+            // update sizeofSelf
+            tr->sizeOfSelf -= delSize;
+            ++cutCount;
+        }
+        ++i;
+    }
+    return true;
+}
+
+template <class T>
+void DBinderBaseInvoker<T>::OverrideMessageParcelData(std::shared_ptr<dbinder_transaction_data> tr, MessageParcel &data)
+{
+    // override data(MessageParcel)
+    data.FlushBuffer();
+    data.WriteBuffer(reinterpret_cast<const void *>(tr->buffer), tr->buffer_size);
+    // set offsets
+    size_t objCount = tr->offsets_size / sizeof(binder_size_t);
+    if (objCount > 0) {
+        data.InjectOffsets(reinterpret_cast<binder_uintptr_t>(tr->buffer + tr->offsets), objCount);
+    }
+}
+
+template <class T>
+void DBinderBaseInvoker<T>::PrintDBinderTransaction(const char *funcName, const char *titleName,
+    const dbinder_transaction_data *tr)
+{
+    if (funcName == nullptr || titleName == nullptr || tr == nullptr) {
+        ZLOGE(LOG_LABEL, "invalid param");
+        return;
+    }
+    ZLOGI(LOG_LABEL, "[%{public}s %{public}s]: sizeOfSelf:%{public}u, magic:%{public}u, version:%{public}u, "
+        "cmd:%{public}d, code:%{public}u, flags:%{public}u, cookie:%{public}llu, seqNumber:%{public}llu, "
+        "buffer_size:%{public}llu, offsets_size:%{public}llu, offsets:%{public}llu, "
+        "sizeof(dbinder_transaction_data):%{public}zu",
+        funcName, titleName, tr->sizeOfSelf, tr->magic, tr->version, tr->cmd, tr->code, tr->flags, tr->cookie,
+        tr->seqNumber, tr->buffer_size, tr->offsets_size, tr->offsets, sizeof(dbinder_transaction_data));
+}
+
+template <class T>
+void DBinderBaseInvoker<T>::PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data,
+    size_t length)
+{
+    std::string format;
+    size_t idx = 0;
+    while (idx < length) {
+        format += std::to_string(data[idx]) + ',';
+        ++idx;
+    }
+    ZLOGI(LOG_LABEL, "[%{public}s %{public}s]: length:%{public}zu, content:%{public}s",
+        funcName, titleName, length, format.c_str());
+}
+
+template <class T>
+bool DBinderBaseInvoker<T>::MoveMessageParcel2TransData(MessageParcel &data, std::shared_ptr<T> sessionObject,
+    std::shared_ptr<dbinder_transaction_data> transData, int32_t socketId, int status)
+{
+    if (data.GetDataSize() > 0) {
+        /* Send this parcel's data through the socket. */
+        transData->buffer_size = data.GetDataSize();
+        uint32_t useSize = transData->sizeOfSelf - sizeof(dbinder_transaction_data);
+        int memcpyResult =
+            memcpy_s(transData->buffer, useSize, reinterpret_cast<void *>(data.GetData()), transData->buffer_size);
+        if (data.GetOffsetsSize() > 0) {
+            memcpyResult += memcpy_s(transData->buffer + transData->buffer_size, useSize - transData->buffer_size,
+                reinterpret_cast<void *>(data.GetObjectOffsets()), data.GetOffsetsSize() * sizeof(binder_size_t));
+        }
+        if (memcpyResult != 0) {
+            ZLOGE(LOG_LABEL, "parcel data memcpy_s failed, socketId:%{public}d", socketId);
+            return false;
+        }
+        transData->offsets_size = data.GetOffsetsSize() * sizeof(binder_size_t);
+        transData->offsets = transData->buffer_size;
+
+        // remove dbinder PTR data
+        uint32_t cutCount = 0;
+        if (!RemoveDBinderPtrData(transData, cutCount)) {
+            ZLOGE(LOG_LABEL, "RemoveDBinderPtrData fail");
+            return false;
+        }
+        if (cutCount > 0) {
+            OverrideMessageParcelData(transData, data);
+        }
+
+        if (!CheckTransactionData(transData.get())) {
+            ZLOGE(LOG_LABEL, "check trans data fail, socketId:%{public}d", socketId);
+            return false;
+        }
+        if (!IRemoteObjectTranslateWhenSend(reinterpret_cast<char *>(transData->buffer), transData->buffer_size,
+            data, socketId, sessionObject)) {
+            ZLOGE(LOG_LABEL, "translate object failed, socketId:%{public}d", socketId);
+            return false;
+        }
+    } else {
+        transData->flags |= TF_STATUS_CODE;
+        transData->buffer_size = sizeof(binder_size_t);
+        transData->offsets_size = static_cast<binder_size_t>(status);
+        transData->offsets = transData->buffer_size;
+    }
+    return true;
+}
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_BASE_INVOKER_PROCESS_H

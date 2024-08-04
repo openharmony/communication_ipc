@@ -259,45 +259,6 @@ void DBinderBaseInvoker<T>::ConstructTransData(MessageParcel &data, dbinder_tran
 }
 
 template <class T>
-bool DBinderBaseInvoker<T>::MoveMessageParcel2TransData(MessageParcel &data, std::shared_ptr<T> sessionObject,
-    std::shared_ptr<dbinder_transaction_data> transData, int32_t socketId, int status)
-{
-    if (data.GetDataSize() > 0) {
-        /* Send this parcel's data through the socket. */
-        transData->buffer_size = data.GetDataSize();
-        uint32_t useSize = transData->sizeOfSelf - sizeof(dbinder_transaction_data);
-        int memcpyResult =
-            memcpy_s(transData->buffer, useSize, reinterpret_cast<void *>(data.GetData()), transData->buffer_size);
-        if (data.GetOffsetsSize() > 0) {
-            memcpyResult += memcpy_s(transData->buffer + transData->buffer_size, useSize - transData->buffer_size,
-                reinterpret_cast<void *>(data.GetObjectOffsets()), data.GetOffsetsSize() * sizeof(binder_size_t));
-        }
-        if (memcpyResult != 0) {
-            ZLOGE(LOG_LABEL, "parcel data memcpy_s failed, socketId:%{public}d", socketId);
-            return false;
-        }
-        transData->offsets_size = data.GetOffsetsSize() * sizeof(binder_size_t);
-        transData->offsets = transData->buffer_size;
-
-        if (!CheckTransactionData(transData.get())) {
-            ZLOGE(LOG_LABEL, "check trans data fail, socketId:%{public}d", socketId);
-            return false;
-        }
-        if (!IRemoteObjectTranslateWhenSend(reinterpret_cast<char *>(transData->buffer), transData->buffer_size,
-            data, socketId, sessionObject)) {
-            ZLOGE(LOG_LABEL, "translate object failed, socketId:%{public}d", socketId);
-            return false;
-        }
-    } else {
-        transData->flags |= TF_STATUS_CODE;
-        transData->buffer_size = sizeof(binder_size_t);
-        transData->offsets_size = static_cast<binder_size_t>(status);
-        transData->offsets = transData->buffer_size;
-    }
-    return true;
-}
-
-template <class T>
 bool DBinderBaseInvoker<T>::TranslateRawData(char *dataBuffer, MessageParcel &data, uint32_t socketId)
 {
     if (data.GetOffsetsSize() <= 0 || socketId == 0) {
