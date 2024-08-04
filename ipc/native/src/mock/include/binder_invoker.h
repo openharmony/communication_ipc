@@ -205,6 +205,8 @@ private:
 
     void RestoreInvokerProcInfo(const InvokerProcInfo &info);
 
+    void PrintParcelData(Parcel &parcel, const std::string &parcelName);
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
 #endif
