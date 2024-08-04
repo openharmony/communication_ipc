@@ -86,12 +86,12 @@ BinderInvoker::BinderInvoker()
         reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
-    ZLOGD(LABEL, "created %{public}u", ProcessSkeleton::ConvertAddr(this));
+    ZLOGI(LABEL, "created invoker %{public}u", ProcessSkeleton::ConvertAddr(this));
 }
 
 BinderInvoker::~BinderInvoker()
 {
-    ZLOGD(LABEL, "destroyed %{public}u", ProcessSkeleton::ConvertAddr(this));
+    ZLOGI(LABEL, "destroyed invoker %{public}u", ProcessSkeleton::ConvertAddr(this));
     auto current = ProcessSkeleton::GetInstance();
     if (current != nullptr) {
         current->DetachInvokerProcInfo(true);
