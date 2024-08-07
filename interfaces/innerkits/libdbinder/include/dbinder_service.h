@@ -110,6 +110,8 @@ enum DBinderErrorCode {
     INVOKE_STUB_THREAD_FAILED   = 111,
     SESSION_NAME_INVALID        = 112,
     SA_NOT_AVAILABLE            = 113,
+    SAID_INVALID_ERR            = 114,
+    SA_NOT_DISTRUBUTED_ERR      = 115,
 };
 
 // Description of thread locking information parameters.
@@ -305,10 +307,11 @@ private:
     static void StopRemoteListener();
     std::u16string GetRegisterService(binder_uintptr_t binderObject);
     int32_t InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
-    bool OnRemoteReplyMessage(const struct DHandleEntryTxRx *replyMessage);
-    bool OnRemoteErrorMessage(const struct DHandleEntryTxRx *replyMessage);
-    void MakeSessionByReplyMessage(const struct DHandleEntryTxRx *replyMessage);
-    bool OnRemoteInvokerMessage(const struct DHandleEntryTxRx *message);
+    bool CheckAndAmendSaId(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
+    bool OnRemoteReplyMessage(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
+    bool OnRemoteErrorMessage(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
+    void MakeSessionByReplyMessage(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
+    bool OnRemoteInvokerMessage(std::shared_ptr<struct DHandleEntryTxRx> message);
     void WakeupThreadByStub(uint32_t seqNumber);
     void DetachThreadLockInfo(uint32_t seqNumber);
     bool AttachThreadLockInfo(uint32_t seqNumber, const std::string &networkId,
@@ -325,11 +328,11 @@ private:
     std::shared_ptr<struct DHandleEntryTxRx> CreateMessage(const sptr<DBinderServiceStub> &stub, uint32_t seqNumber,
         uint32_t pid, uint32_t uid);
     bool SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
-    bool IsInvalidStub(const struct DHandleEntryTxRx *replyMessage);
+    bool IsInvalidStub(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     bool CopyDeviceIdInfo(std::shared_ptr<struct SessionInfo> &session,
-        const struct DHandleEntryTxRx *replyMessage);
+        std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     void InitializeSession(std::shared_ptr<struct SessionInfo> &session,
-        const struct DHandleEntryTxRx *replyMessage);
+        std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     uint16_t AllocFreeSocketPort();
     std::string GetLocalDeviceID();
     binder_uintptr_t AddStubByTag(binder_uintptr_t stub);
@@ -352,9 +355,9 @@ private:
     bool CheckInvokeListenThreadIllegal(IPCObjectProxy *proxy, MessageParcel &data, MessageParcel &reply);
     bool CheckStubIndexAndSessionNameIllegal(uint64_t stubIndex, const std::string &serverSessionName,
         const std::string &deviceId, IPCObjectProxy *proxy);
-    bool SetReplyMessage(struct DHandleEntryTxRx *replyMessage, uint64_t stubIndex,
+    bool SetReplyMessage(std::shared_ptr<struct DHandleEntryTxRx> replyMessage, uint64_t stubIndex,
         const std::string &serverSessionName, uint32_t selfTokenId, IPCObjectProxy *proxy);
-    uint32_t OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, struct DHandleEntryTxRx *replyMessage,
+    uint32_t OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, std::shared_ptr<struct DHandleEntryTxRx> replyMessage,
         std::string &remoteDeviceId, int pid, int uid, uint32_t tokenId);
     bool IsDeviceIdIllegal(const std::string &deviceID);
     std::string GetDatabusNameByProxy(IPCObjectProxy *proxy);
@@ -363,7 +366,7 @@ private:
     bool RegisterRemoteProxyInner(std::u16string serviceName, binder_uintptr_t binder);
     bool CheckSystemAbilityId(int32_t systemAbilityId);
     bool HandleInvokeListenThread(IPCObjectProxy *proxy, uint64_t stubIndex, std::string serverSessionName,
-        struct DHandleEntryTxRx *replyMessage);
+        std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     bool ReStartRemoteListener();
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
         std::shared_ptr<DHandleEntryTxRx> loadSaItem);
