@@ -88,7 +88,7 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
                 .thisVarRef = jsObjectRef_
             };
             work->data = reinterpret_cast<void *>(param);
-            uv_queue_work(loop, work, [](uv_work_t *work) {
+            int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
                 ZLOGD(LOG_LABEL, "enter work pool.");
             }, [](uv_work_t *work, int status) {
                 OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
@@ -102,6 +102,9 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
                 delete param;
                 delete work;
             });
+            if (uvRet != 0) {
+                ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+            }
         }
     }
 }
