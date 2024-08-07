@@ -663,7 +663,8 @@ bool DBinderService::OnRemoteInvokerMessage(std::shared_ptr<struct DHandleEntryT
     bool isSaAvailable = dbinderCallback_->LoadSystemAbilityFromRemote(replyMessage->deviceIdInfo.fromDeviceId,
         static_cast<int32_t>(replyMessage->stubIndex));
     if (!isSaAvailable) {
-        DBINDER_LOGE(LOG_LABEL, "fail to call the system ability:%{public}llu", replyMessage->stubIndex);
+        DBINDER_LOGE(LOG_LABEL, "fail to call the system ability:%{public}d",
+            static_cast<int32_t>(replyMessage->stubIndex));
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_CALL_SYSTEM_ABILITY_FAIL, __FUNCTION__);
         PopLoadSaItem(replyMessage->deviceIdInfo.fromDeviceId, static_cast<int32_t>(replyMessage->stubIndex));
         SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_AVAILABLE, replyMessage);
