@@ -62,7 +62,6 @@ IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
 IPCWorkThreadPool::~IPCWorkThreadPool()
 {
     StopAllThreads();
-    threads_.clear();
 }
 
 void IPCWorkThreadPool::StopAllThreads()
@@ -71,6 +70,7 @@ void IPCWorkThreadPool::StopAllThreads()
     for (auto it = threads_.begin(); it != threads_.end(); it++) {
         it->second->StopWorkThread();
     }
+    threads_.clear();
 }
 
 bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
@@ -86,7 +86,8 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
         return false;
     }
 #endif
-    std::string threadName = MakeThreadName(proto);
+    int threadIndex = 0;
+    std::string threadName = MakeThreadName(proto, threadIndex);
     ZLOGD(LOG_LABEL, "name:%{public}s", threadName.c_str());
 
     if (threads_.find(threadName) == threads_.end()) {
@@ -105,22 +106,17 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
             idleSocketThreadNum_--;
             ZLOGD(LOG_LABEL, "now idleSocketThreadNum:%{public}d", idleSocketThreadNum_);
         }
-        newThread->Start(policy, proto, threadName);
+        newThread->Start(policy, proto, threadIndex);
         return true;
     }
     return false;
 }
 
-std::string IPCWorkThreadPool::MakeThreadName(int proto)
+std::string IPCWorkThreadPool::MakeThreadName(int proto, int &threadIndex)
 {
     int sequence = threadSequence_.fetch_add(1, std::memory_order_relaxed);
-    if (proto == IRemoteObject::IF_PROT_DATABUS) {
-        std::string threadName = "OS_DRPC";
-        return threadName + "_" + std::to_string(sequence);
-    } else {
-        std::string threadName = "OS_IPC";
-        return threadName + "_" + std::to_string(sequence);
-    }
+    threadIndex = sequence;
+    return IPCWorkThread::MakeBasicThreadName(proto, sequence);
 }
 
 bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
