@@ -111,7 +111,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
         .thisVarRef = ref
     };
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {
+    int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGD(LOG_LABEL, "enter work pool.");
     }, [](uv_work_t *work, int status) {
         ZLOGI(LOG_LABEL, "decrease on uv work thread");
@@ -123,6 +123,9 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
         delete param;
         delete work;
     });
+    if (uvRet != 0) {
+        ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+    }
 }
 
 static void *RemoteObjectDetachCb(napi_env engine, void *value, void *hint)
@@ -236,7 +239,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
         };
 
         work->data = reinterpret_cast<void *>(param);
-        uv_queue_work(loop, work, [](uv_work_t *work) {
+        int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
             ZLOGD(LOG_LABEL, "enter work pool.");
         }, [](uv_work_t *work, int status) {
             OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
@@ -248,8 +251,12 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
         });
-        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-        param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
+        if (uvRet != 0) {
+            ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+        } else {
+            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+            param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
+        }
         delete param;
         delete work;
     }
@@ -271,7 +278,7 @@ NAPIRemoteObject::~NAPIRemoteObject()
                 .thisVarRef = thisVarRef_
             };
             work->data = reinterpret_cast<void *>(param);
-            uv_queue_work(loop, work, [](uv_work_t *work) {
+            int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
                 ZLOGD(LOG_LABEL, "enter work pool.");
             }, [](uv_work_t *work, int status) {
                 OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
@@ -282,6 +289,9 @@ NAPIRemoteObject::~NAPIRemoteObject()
                 delete param;
                 delete work;
             });
+            if (uvRet != 0) {
+                ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+            }
         }
         thisVarRef_ = nullptr;
     }
@@ -476,7 +486,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         std::chrono::steady_clock::now().time_since_epoch()).count());
     ZLOGD(LOG_LABEL, "start nv queue work loop. desc:%{public}s time:%{public}" PRIu64,
         Str16ToStr8(descriptor_).c_str(), curTime);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {
+    int uvRet = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
         ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u time:%{public}" PRIu64,
@@ -721,9 +731,15 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         param->lockInfo->condition.notify_all();
         napi_close_handle_scope(param->env, scope);
     }, uv_qos_user_initiated);
-    std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
-    jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
-    int ret = jsParam->result;
+    int ret = 0;
+    if (uvRet != 0) {
+        ZLOGE(LOG_LABEL, "uv_queue_work_with_qos failed, ret:%{public}d", uvRet);
+        ret = -1;
+    } else {
+        std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
+        jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
+        ret = jsParam->result;
+    }
     delete jsParam;
     delete work;
     return ret;
@@ -1022,9 +1038,12 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             delete work;
         };
     }
-    uv_queue_work(loop, work, [](uv_work_t *work) {
+    int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGD(LOG_LABEL, "enter work pool.");
     }, afterWorkCb);
+    if (uvRet != 0) {
+        ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+    }
 }
 
 napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t code,
