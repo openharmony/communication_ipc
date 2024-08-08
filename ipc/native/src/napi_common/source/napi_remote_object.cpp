@@ -734,7 +734,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     int ret = 0;
     if (uvRet != 0) {
         ZLOGE(LOG_LABEL, "uv_queue_work_with_qos failed, ret:%{public}d", uvRet);
-        ret = -1; 
+        ret = -1;
     } else {
         std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
         jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
