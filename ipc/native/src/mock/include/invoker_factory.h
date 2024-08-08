@@ -37,7 +37,7 @@ private:
     InvokerFactory(const InvokerFactory &) = delete;
     InvokerFactory();
     ~InvokerFactory();
-    static bool isAvailable_;
+    static std::atomic<bool> isAvailable_;
     std::mutex factoryMutex_;
     std::unordered_map<int, InvokerCreator> creators_;
 };
