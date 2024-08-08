@@ -270,6 +270,11 @@ bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invok
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(invokerProcMutex_);
+    if (!invokeInfo.invoker) {
+        ZLOGE(LOG_LABEL, "invoker dead, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
+            invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId, invokeInfo.firstTokenId);
+        return false;
+    }
     std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
     auto result = invokerProcInfo_.insert_or_assign(key, invokeInfo);
     auto &info = result.first->second;
