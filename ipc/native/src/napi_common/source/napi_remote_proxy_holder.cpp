@@ -108,9 +108,12 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     };
     work->data = reinterpret_cast<void *>(param);
     ZLOGI(LOG_LABEL, "start to queue");
-    uv_queue_work(loop, work, [](uv_work_t *work) {
+    int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGD(LOG_LABEL, "enter work pool.");
     }, AfterWorkCallback);
+    if (uvRet != 0) {
+        ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+    }
 }
 
 bool NAPIDeathRecipient::Matches(napi_value object)

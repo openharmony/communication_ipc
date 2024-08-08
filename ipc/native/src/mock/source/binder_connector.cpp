@@ -227,7 +227,7 @@ uint64_t BinderConnector::GetSelfTokenID()
     }
     int fd = open(TOKENID_DEVNODE, O_RDWR);
     if (fd < 0) {
-        ZLOGE(LABEL, "fail to open tokenId node");
+        ZLOGE(LABEL, "fail to open tokenId node, errno:%{public}d", errno);
         return 0;
     }
     int ret = ioctl(fd, ACCESS_TOKENID_GET_TOKENID, &selfTokenID_);
@@ -245,7 +245,7 @@ uint64_t BinderConnector::GetSelfFirstCallerTokenID()
     }
     int fd = open(TOKENID_DEVNODE, O_RDWR);
     if (fd < 0) {
-        ZLOGE(LABEL, "fail to open tokenId node");
+        ZLOGE(LABEL, "fail to open tokenId node, errno:%{public}d", errno);
         return 0;
     }
     uint64_t token = 0;
