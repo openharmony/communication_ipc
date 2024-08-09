@@ -77,6 +77,7 @@
             "OHOS::MessageParcel::GetRawDataSize() const";
             "OHOS::MessageParcel::GetRawDataCapacity() const";
             "OHOS::MessageParcel::ClearFileDescriptor()";
+            "OHOS::MessageParcel::GetInterfaceToken() const";
             "OHOS::PeerHolder::PeerHolder(OHOS::sptr<OHOS::IRemoteObject> const&)";
             "OHOS::PeerHolder::Remote()";
             "OHOS::IRemoteObject::CheckObjectLegality() const";

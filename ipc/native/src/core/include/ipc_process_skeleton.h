@@ -78,6 +78,14 @@ public:
 
     static IPCProcessSkeleton *GetCurrent();
     static std::string ConvertToSecureString(const std::string &str);
+    static inline const char *GetIPCRuntimeInfo()
+    {
+#ifndef CONFIG_IPC_SINGLE
+        return "ipc_core";
+#else
+        return "ipc_single";
+#endif
+    };
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
