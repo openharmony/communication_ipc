@@ -38,8 +38,6 @@ namespace OHOS {
 using namespace IPC_SINGLE;
 #endif
 
-static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "BinderSkeleton" };
-
 static std::string GetSid()
 {
     char *con = nullptr;
