@@ -351,6 +351,7 @@ bool MessageParcel::WriteInterfaceToken(std::u16string name)
         return false;
     }
 
+    interfaceToken_ = name;
     return WriteString16(name);
 }
 
@@ -358,7 +359,13 @@ std::u16string MessageParcel::ReadInterfaceToken()
 {
     [[maybe_unused]] int32_t strictModePolicy = ReadInt32();
     [[maybe_unused]] int32_t workSource = ReadInt32();
-    return ReadString16();
+    interfaceToken_ = ReadString16();
+    return interfaceToken_;
+}
+
+std::u16string MessageParcel::GetInterfaceToken() const
+{
+    return interfaceToken_;
 }
 
 bool MessageParcel::WriteRawData(const void *data, size_t size)
