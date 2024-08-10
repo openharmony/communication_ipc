@@ -976,7 +976,6 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
 int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     auto start = std::chrono::steady_clock::now();
-    bool isPrint = false;
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
