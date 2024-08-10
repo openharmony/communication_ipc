@@ -1,5 +1,5 @@
 {
-    "name": "@openharmony/ipc",
+    "name": "@ohos/ipc",
     "version": "3.0",
     "description": "ipc",
     "publishAs": "code-segment",
