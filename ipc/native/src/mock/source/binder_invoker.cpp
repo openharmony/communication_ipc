@@ -70,8 +70,10 @@ namespace IPC_SINGLE {
 
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
+#ifndef CONFIG_IPC_SINGLE
 static constexpr pid_t INVALID_PID = -1;
 static constexpr int32_t BINDER_ALIGN_BYTES = 8;
+#endif
 
 enum {
     GET_SERVICE_TRANSACTION = 0x1,

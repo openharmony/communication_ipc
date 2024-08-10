@@ -69,7 +69,6 @@ binder_uintptr_t DBinderServiceStub::GetBinderObject() const
 int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    int result = ERR_NONE;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     if (dBinderService == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "DBinderService is nullptr");
@@ -119,8 +118,7 @@ int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, Mes
             return DBINDER_SERVICE_PROCESS_PROTO_ERR;
         }
     }
-
-    return result;
+    return ERR_NONE;
 }
 
 int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -350,7 +348,6 @@ bool DBinderServiceStub::CheckSessionObjectValidity()
 
 int DBinderServiceStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
 {
-    int result = ERR_NONE;
     if (uid < 0 || pid < 0) {
         DBINDER_LOGE(LOG_LABEL, "uid(%{public}d) or pid(%{public}d) is invalid", uid, pid);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_UID_OR_PID_FAIL, __FUNCTION__);
