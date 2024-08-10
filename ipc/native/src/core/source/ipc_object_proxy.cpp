@@ -122,6 +122,9 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     if (code != DUMP_TRANSACTION && code > MAX_TRANSACTION_ID) {
         return IPC_PROXY_INVALID_CODE_ERR;
     }
+    if (remoteDescriptor_.empty()) {
+        remoteDescriptor_ = data.GetInterfaceToken();
+    }
     std::string desc = Str16ToStr8(remoteDescriptor_);
     if (desc == "ohos.aafwk.AbilityManager") {
         ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,

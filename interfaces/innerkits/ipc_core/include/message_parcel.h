@@ -183,13 +183,21 @@ public:
     bool Append(MessageParcel &data);
 
     /**
-     * @brief Print the content in MessgaeParcel buffer.
+     * @brief Print the content in MessageParcel buffer.
      * @param funcName Indicates the invoke function name.
      * @param lineNum Indicates the invoke function line number.
      * @return void
      * @since 12
      */
     void PrintBuffer(const char *funcName, const size_t lineNum);
+
+    /**
+     * @brief Get the interface token string.
+     * @return Returns a valid interface token string, if WriteInterfaceToken or ReadInterfaceToken is called;
+     *         returns an empty string otherwise.
+     * @since 12
+     */
+    std::u16string GetInterfaceToken() const;
 
 private:
 #ifndef CONFIG_IPC_SINGLE
@@ -222,6 +230,7 @@ private:
     void *kernelMappedRead_;
     std::shared_ptr<char> rawData_;
     size_t rawDataSize_;
+    std::u16string interfaceToken_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_MESSAGE_PARCEL_H
