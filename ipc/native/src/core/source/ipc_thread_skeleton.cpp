@@ -56,6 +56,13 @@ void IPCThreadSkeleton::TlsDestructor(void *args)
         ZLOGE(LOG_LABEL, "current is nullptr");
         return;
     }
+
+    uint32_t ret = current->usingFlag_.load();
+    if ((ret != INVOKER_USE_MAGIC) && (ret != INVOKER_IDLE_MAGIC))  {
+        ZLOGF(LOG_LABEL, "memory may be damaged, ret:%{public}u", ret);
+        return;
+    }
+
     uint32_t itemIndex = static_cast<uint32_t>(IRemoteObject::IF_PROT_BINDER);
     if (itemIndex < IPCThreadSkeleton::INVOKER_MAX_COUNT && current->invokers_[itemIndex] != nullptr) {
         BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(current->invokers_[itemIndex]);
