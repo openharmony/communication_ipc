@@ -273,8 +273,7 @@ bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invok
     auto result = invokerProcInfo_.insert_or_assign(key, invokeInfo);
     auto &info = result.first->second;
     ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-        ConvertAddr(reinterpret_cast<void*>(info.invoker)), info.pid, info.realPid,
-        info.uid, info.tokenId, info.firstTokenId);
+        info.invoker, info.pid, info.realPid, info.uid, info.tokenId, info.firstTokenId);
     return result.second;
 }
 
@@ -289,8 +288,8 @@ bool ProcessSkeleton::QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invoke
     }
     invokeInfo = it->second;
     ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-        ConvertAddr(reinterpret_cast<void*>(invokeInfo.invoker)), invokeInfo.pid, invokeInfo.realPid,
-        invokeInfo.uid, invokeInfo.tokenId, invokeInfo.firstTokenId);
+        invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
+        invokeInfo.firstTokenId);
     return true;
 }
 
@@ -303,8 +302,8 @@ bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
     if (it != invokerProcInfo_.end()) {
         auto &invokeInfo = it->second;
         ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-            ConvertAddr(reinterpret_cast<void*>(invokeInfo.invoker)), invokeInfo.pid, invokeInfo.realPid,
-            invokeInfo.uid, invokeInfo.tokenId, invokeInfo.firstTokenId);
+            invokeInfo.invoker, invokeInfo.pid, invokeInfo.realPid, invokeInfo.uid, invokeInfo.tokenId,
+            invokeInfo.firstTokenId);
         invokerProcInfo_.erase(it);
         return true;
     }
