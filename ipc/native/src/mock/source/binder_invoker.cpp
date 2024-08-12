@@ -577,7 +577,7 @@ void BinderInvoker::RestoreInvokerProcInfo(const InvokerProcInfo &info)
 void BinderInvoker::AttachInvokerProcInfoWrapper()
 {
     InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_,
-        callerUid_, callerTokenID_, firstTokenID_, callerSid_, reinterpret_cast<uintptr_t>(this) };
+        callerUid_, callerTokenID_, firstTokenID_, callerSid_, ProcessSkeleton::ConvertAddr(this) };
     auto current = ProcessSkeleton::GetInstance();
     if (current != nullptr) {
         current->AttachInvokerProcInfo(true, invokerInfo);
