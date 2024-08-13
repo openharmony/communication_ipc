@@ -249,6 +249,7 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
+    std::atomic<uint32_t> sendNestCount_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif
