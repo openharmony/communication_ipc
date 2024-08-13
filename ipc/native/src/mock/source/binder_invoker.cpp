@@ -164,9 +164,14 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     }
 #endif
 
+    if (sendNestCount_ > 0) {
+        ZLOGW(LABEL, "request nesting occurs, count:%{public}u", sendNestCount_.load());
+    }
+    ++sendNestCount_;
     int cmd = (totalDBinderBufSize > 0) ? BC_TRANSACTION_SG : BC_TRANSACTION;
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
+        --sendNestCount_;
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -181,6 +186,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
+    --sendNestCount_;
     return error;
 }
 
@@ -1016,13 +1022,13 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     }
 
     binder_write_read bwr;
-    const bool readAvail = input_.GetReadableBytes() == 0;
-    const size_t outAvail = (!doRead || readAvail) ? output_.GetDataSize() : 0;
+    const bool needRead = input_.GetReadableBytes() == 0;
+    const size_t outAvail = (!doRead || needRead) ? output_.GetDataSize() : 0;
 
     bwr.write_size = (binder_size_t)outAvail;
     bwr.write_buffer = output_.GetData();
 
-    if (doRead && readAvail) {
+    if (doRead && needRead) {
         bwr.read_size = input_.GetDataCapacity();
         bwr.read_buffer = input_.GetData();
     } else {
@@ -1041,12 +1047,13 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
 #endif
     if (bwr.write_consumed > 0) {
-        if (bwr.write_consumed < output_.GetDataSize()) {
+        if (bwr.write_consumed < outAvail) {
             // we still have some bytes not been handled.
             PrintParcelData(input_, "input_");
             PrintParcelData(output_, "output_");
-            ZLOGE(LABEL, "still have some bytes not been handled result:%{public}d, write_consumed:%{public}zu",
-                error, static_cast<size_t>(bwr.write_consumed));
+            ZLOGE(LABEL, "binder write_consumed:%{public}llu exception, "
+                "outAvail:%{public}zu read_consumed:%{public}llu",
+                bwr.write_consumed, outAvail, bwr.read_consumed);
         } else {
             output_.FlushBuffer();
         }
