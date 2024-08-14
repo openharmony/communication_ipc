@@ -921,6 +921,10 @@ void IPCProcessSkeleton::WakeUpThreadBySeqNumber(uint64_t seqNumber, uint32_t ha
 bool IPCProcessSkeleton::AddSendThreadInWait(uint64_t seqNumber, std::shared_ptr<ThreadMessageInfo> messageInfo,
     int userWaitTime)
 {
+    if (messageInfo == nullptr) {
+        ZLOGE(LOG_LABEL, "messageInfo is nullptr");
+        return false;
+    }
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (!AddThreadBySeqNumber(seqNumber, messageInfo)) {
         ZLOGE(LOG_LABEL, "add seqNumber:%{public}" PRIu64 " failed", seqNumber);

@@ -363,7 +363,12 @@ bool BinderInvoker::GetDBinderCallingPidUid(int handle, bool isReply, pid_t &pid
                 ZLOGE(LABEL, "GET_PID_UID failed, error:%{public}d", ret);
                 return false;
             }
-            pid = reply.ReadUint32();
+            uint32_t tempPid = reply.ReadUint32();
+            if (tempPid > static_cast<uint32_t>(std::numeric_limits<pid_t>::max())) {
+                ZLOGE(LABEL, "PID overflow: %{public}u", tempPid);
+                return false;
+            }
+            pid = static_cast<pid_t>(tempPid);
             uid = reply.ReadUint32();
         } else {
             pid = GetCallerPid();

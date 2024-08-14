@@ -50,6 +50,39 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
     }
 }
 
+void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
+{
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    uv_work_t *work = new(std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        ZLOGE(LOG_LABEL, "failed to new work");
+        return;
+    }
+    OperateJsRefParam *param = new OperateJsRefParam {
+        .env = env_,
+        .thisVarRef = jsObjectRef_
+    };
+    work->data = reinterpret_cast<void *>(param);
+    int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
+        ZLOGD(LOG_LABEL, "enter work pool.");
+    }, [](uv_work_t *work, int status) {
+        OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
+        if (napiStatus != napi_ok) {
+            ZLOGE(LOG_LABEL, "failed to delete ref on uv work");
+        }
+        napi_close_handle_scope(param->env, scope);
+        delete param;
+        delete work;
+    });
+    if (uvRet != 0) {
+        ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+    }
+}
+
 NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
 {
     if (env_ == nullptr) {
@@ -76,35 +109,7 @@ NAPIRemoteObjectHolder::~NAPIRemoteObjectHolder()
                 ZLOGE(LOG_LABEL, "failed to delete ref");
             }
         } else {
-            uv_loop_s *loop = nullptr;
-            napi_get_uv_event_loop(env_, &loop);
-            uv_work_t *work = new(std::nothrow) uv_work_t;
-            if (work == nullptr) {
-                ZLOGE(LOG_LABEL, "failed to new work");
-                return;
-            }
-            OperateJsRefParam *param = new OperateJsRefParam {
-                .env = env_,
-                .thisVarRef = jsObjectRef_
-            };
-            work->data = reinterpret_cast<void *>(param);
-            int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
-                ZLOGD(LOG_LABEL, "enter work pool.");
-            }, [](uv_work_t *work, int status) {
-                OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
-                napi_handle_scope scope = nullptr;
-                napi_open_handle_scope(param->env, &scope);
-                napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
-                if (napiStatus != napi_ok) {
-                    ZLOGE(LOG_LABEL, "failed to delete ref on uv work");
-                }
-                napi_close_handle_scope(param->env, scope);
-                delete param;
-                delete work;
-            });
-            if (uvRet != 0) {
-                ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
-            }
+            DeleteJsObjectRefInUvWork();
         }
     }
 }

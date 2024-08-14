@@ -64,6 +64,8 @@ public:
     };
 
 private:
+    void DeleteJsObjectRefInUvWork();
+
     std::mutex mutex_;
     napi_env env_ = nullptr;
     std::thread::id jsThreadId_;
