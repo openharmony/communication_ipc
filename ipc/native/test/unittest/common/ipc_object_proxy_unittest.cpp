@@ -1334,7 +1334,9 @@ HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest001, TestSize.Level1)
     std::string sessionName = "testSessionName";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    ASSERT_TRUE(invoker != nullptr);
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_TRUE(current != nullptr);
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
 
     EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
@@ -1358,7 +1360,9 @@ HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest002, TestSize.Level1)
     std::string sessionName = "testSessionName";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    ASSERT_TRUE(invoker != nullptr);
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_TRUE(current != nullptr);
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
 
     EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
