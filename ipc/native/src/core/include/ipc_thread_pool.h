@@ -59,7 +59,7 @@ public:
 
 private:
     static constexpr int PROTO_NUM = 2;
-    std::string MakeThreadName(int proto);
+    std::string MakeThreadName(int proto, int &threadIndex);
     std::map<std::string, sptr<IPCWorkThread>> threads_;
     std::atomic<int> threadSequence_;
     int maxThreadNum_;

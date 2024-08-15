@@ -34,6 +34,7 @@
 #include "memory"
 #include "new"
 #include "parcel.h"
+#include "process_skeleton.h"
 #include "refbase.h"
 #include "securec.h"
 #include "sys_binder.h"
@@ -119,7 +120,6 @@ MessageParcel::~MessageParcel()
     }
 
     ClearFileDescriptor();
-
     rawData_ = nullptr;
     rawDataSize_ = 0;
 }
@@ -160,6 +160,25 @@ bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_
     }
     return WriteRemoteObject(fakeStub);
 }
+
+bool MessageParcel::UpdateDBinderDataOffset(size_t offset)
+{
+    size_t curOffset = GetWritePosition();
+    const binder_buffer_object *obj = reinterpret_cast<const binder_buffer_object *>(GetData() + offset);
+    if (obj->hdr.type == BINDER_TYPE_PTR) {
+        if (obj->length == sizeof(dbinder_negotiation_data)) {
+            // update dbinder object offset
+            size_t objOffset = offset + sizeof(binder_buffer_object);
+            if (!WriteObjectOffset(objOffset)) {
+                RewindWrite(curOffset);
+                ZLOGE(LOG_LABEL, "update obj offset:%{public}zu fail, ptr offset:%{public}zu", objOffset, offset);
+                return false;
+            }
+            ZLOGI(LOG_LABEL, "update obj offset:%{public}zu, ptr offset:%{public}zu", objOffset, offset);
+        }
+    }
+    return true;
+}
 #endif
 
 bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
@@ -181,11 +200,20 @@ bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
         }
     }
 #endif
-    auto result = WriteObject<IRemoteObject>(object);
-    if (result == false) {
-        return result;
+
+#ifndef CONFIG_IPC_SINGLE
+    auto offset = GetWritePosition();
+#endif
+    if (!WriteObject<IRemoteObject>(object)) {
+        return false;
     }
-    return result;
+#ifndef CONFIG_IPC_SINGLE
+    if (!UpdateDBinderDataOffset(offset)) {
+        RewindWrite(offset);
+        return false;
+    }
+#endif
+    return true;
 }
 
 sptr<IRemoteObject> MessageParcel::ReadRemoteObject()
@@ -230,13 +258,14 @@ int MessageParcel::ReadFileDescriptor()
     sptr<IPCFileDescriptor> descriptor = ReadObject<IPCFileDescriptor>();
     if (descriptor == nullptr) {
         ZLOGE(LOG_LABEL, "ReadObject failed");
-        return -1;
+        return INVALID_FD;
     }
     int fd = descriptor->GetFd();
     if (fd < 0) {
         ZLOGE(LOG_LABEL, "get fd failed, invalid fd:%{public}d", fd);
-        return -1;
+        return INVALID_FD;
     }
+
     int dupFd = dup(fd);
     if (dupFd < 0) {
         ZLOGE(LOG_LABEL, "dup failed, fd:%{public}d, errno:%{public}d", fd, errno);
@@ -322,6 +351,7 @@ bool MessageParcel::WriteInterfaceToken(std::u16string name)
         return false;
     }
 
+    interfaceToken_ = name;
     return WriteString16(name);
 }
 
@@ -329,7 +359,13 @@ std::u16string MessageParcel::ReadInterfaceToken()
 {
     [[maybe_unused]] int32_t strictModePolicy = ReadInt32();
     [[maybe_unused]] int32_t workSource = ReadInt32();
-    return ReadString16();
+    interfaceToken_ = ReadString16();
+    return interfaceToken_;
+}
+
+std::u16string MessageParcel::GetInterfaceToken() const
+{
+    return interfaceToken_;
 }
 
 bool MessageParcel::WriteRawData(const void *data, size_t size)
@@ -386,6 +422,7 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
     if (rawData_ != nullptr || rawData == nullptr) {
         return false;
     }
+    ZLOGD(LOG_LABEL, "enter");
     rawData_ = rawData;
     rawDataSize_ = size;
     writeRawDataFd_ = 0;
@@ -551,5 +588,36 @@ bool MessageParcel::Append(MessageParcel &data)
         }
     }
     return true;
+}
+
+void MessageParcel::PrintBuffer(const char *funcName, const size_t lineNum)
+{
+    if (funcName == nullptr) {
+        ZLOGE(LOG_LABEL, "invalid param, funcName is null");
+        return;
+    }
+    ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: DataSize:%{public}zu, WP:%{public}zu, RP:%{public}zu",
+        funcName, lineNum, ProcessSkeleton::ConvertAddr(this), GetDataSize(), GetWritePosition(), GetReadPosition());
+    std::string format;
+    size_t idx = 0;
+    size_t size = GetOffsetsSize();
+    auto objOffsets = reinterpret_cast<binder_size_t *>(GetObjectOffsets());
+    while (idx < size) {
+        format += std::to_string(objOffsets[idx]) + ',';
+        ++idx;
+    }
+    ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: ObjSize:%{public}zu, ObjOffsets:%{public}s",
+        funcName, lineNum, ProcessSkeleton::ConvertAddr(this), size, format.c_str());
+
+    format.clear();
+    idx = 0;
+    size = GetDataSize();
+    auto data = reinterpret_cast<const uint8_t *>(GetData());
+    while (idx < size) {
+        format += std::to_string(data[idx]) + ',';
+        ++idx;
+    }
+    ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: data:%{public}s", funcName, lineNum,
+        ProcessSkeleton::ConvertAddr(this), format.c_str());
 }
 } // namespace OHOS

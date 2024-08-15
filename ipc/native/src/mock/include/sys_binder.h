@@ -82,6 +82,7 @@ struct binder_buffer_object {
 };
 enum {
     BINDER_BUFFER_FLAG_HAS_PARENT = 0x01,
+    BINDER_BUFFER_FLAG_HAS_DBINDER = 0x01 << 31,
 };
 struct binder_fd_array_object {
     struct binder_object_header hdr;
@@ -267,6 +268,8 @@ static const uint32_t PID_LEN = 32;
 static const uint32_t RPC_DEFAULT_VERSION_NUM = 1;
 static const uint32_t SUPPORT_TOKENID_VERSION_NUM = 2;
 static const uint32_t TOKENID_MAGIC = 0X544F4B49;
+static const uint32_t SESSION_NAME_LENGTH = 64;
+static const uint32_t DBINDER_DESC_LENGTH = 64;
 
 enum {
     BINDER_TYPE_REMOTE_BINDER = B_PACK_CHARS('r', 'b', '*', B_TYPE_LARGE),
@@ -295,6 +298,18 @@ struct dbinder_transaction_data {
     binder_size_t buffer_size;
     binder_size_t offsets_size;
     binder_uintptr_t offsets;
-    unsigned char buffer[0];
+    unsigned char buffer[];
+};
+
+struct dbinder_negotiation_data {
+    __u32 proto;
+    __u32 tokenid;
+    __u64 stub_index;
+    char target_name[SESSION_NAME_LENGTH + 1];
+    char local_name[SESSION_NAME_LENGTH + 1];
+    char target_device[DEVICEID_LENGTH + 1];
+    char local_device[DEVICEID_LENGTH + 1];
+    char16_t desc[DBINDER_DESC_LENGTH + 1];
+    char reserved[3];
 };
 #endif // OHOS_IPC_SYS_BINDER_H

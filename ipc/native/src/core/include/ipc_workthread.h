@@ -40,11 +40,13 @@ public:
         ACTV_ACTIVE,
 #endif
     };
+
+    static std::string MakeBasicThreadName(int proto, int threadIndex);
     explicit IPCWorkThread(std::string threadName);
 
     ~IPCWorkThread();
 
-    void Start(int policy, int proto, std::string threadName);
+    void Start(int policy, int proto, int threadIndex);
 
     void StopWorkThread();
     int proto_ = IRemoteObject::IF_PROT_DEFAULT;
@@ -54,6 +56,7 @@ private:
     std::thread thread_;
     std::string threadName_;
     static void *ThreadHandler(void *args);
+    static void JoinThread(int proto, int policy);
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThread" };
 };
 #ifdef CONFIG_IPC_SINGLE

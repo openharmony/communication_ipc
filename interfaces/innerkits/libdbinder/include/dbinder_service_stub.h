@@ -34,6 +34,23 @@ public:
     ~DBinderServiceStub();
 
     /**
+     * @brief Serialize a specified DBinderServiceStub object.
+     * @param parcel Indicates the object storing the data.
+     * @param object Indicates the serialized object.
+     * @return Returns <b>true</b> if serialized successfully; returns <b>false</b> otherwise.
+     * @since 12
+     */
+    static bool Marshalling(Parcel &parcel, const sptr<IRemoteObject> &object);
+
+    /**
+     * @brief Serialize self.
+     * @param parcel Indicates the object storing the data.
+     * @return Returns <b>true</b> if serialized successfully; returns <b>false</b> otherwise.
+     * @since 12
+     */
+    bool Marshalling(Parcel &parcel) const override;
+
+    /**
      * @brief Gets the process protocol.
      * @param code Indicates the message code of the request.
      * @param data Indicates the object storing the data to be sent.
@@ -54,6 +71,16 @@ public:
      * @since 9
      */
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+
+    /**
+     * @brief Get and save the dbinder object data.
+     * @param pid Indicates the sender pid.
+     * @param uid Indicates the sender uid.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * defined in {@link ipc_types.h} otherwise.
+     * @since 12
+     */
+    int GetAndSaveDBinderData(pid_t pid, uid_t uid) override;
 
     /**
      * @brief Obtains the service name.
@@ -77,12 +104,16 @@ public:
     binder_uintptr_t GetBinderObject() const;
 
 private:
-    const std::string serviceName_;
-    const std::string deviceID_;
-    binder_uintptr_t binderObject_;
     int32_t ProcessDeathRecipient(MessageParcel &data, MessageParcel &reply);
     int32_t AddDbinderDeathRecipient(MessageParcel &data, MessageParcel &reply);
     int32_t RemoveDbinderDeathRecipient(MessageParcel &data, MessageParcel &reply);
+    bool CheckSessionObjectValidity();
+    int SaveDBinderData(const std::string &localBusName);
+
+    const std::string serviceName_;
+    const std::string deviceID_;
+    binder_uintptr_t binderObject_;
+    std::unique_ptr<uint8_t[]> dbinderData_ {nullptr};
 };
 } // namespace OHOS
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDER_STUB_H

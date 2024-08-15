@@ -78,6 +78,14 @@ public:
 
     static IPCProcessSkeleton *GetCurrent();
     static std::string ConvertToSecureString(const std::string &str);
+    static inline const char *GetIPCRuntimeInfo()
+    {
+#ifndef CONFIG_IPC_SINGLE
+        return "ipc_core";
+#else
+        return "ipc_single";
+#endif
+    };
 
 #ifndef CONFIG_IPC_SINGLE
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
@@ -90,7 +98,7 @@ public:
     bool OnThreadTerminated(const std::string &threadName);
     bool SpawnThread(int policy = IPCWorkThread::SPAWN_PASSIVE, int proto = IRemoteObject::IF_PROT_DEFAULT);
 
-    sptr<IRemoteObject> FindOrNewObject(int handle);
+    sptr<IRemoteObject> FindOrNewObject(int handle, const dbinder_negotiation_data *dbinderData = nullptr);
     bool IsContainsObject(IRemoteObject *object);
     sptr<IRemoteObject> QueryObject(const std::u16string &descriptor, bool lockFlag = true);
     bool AttachObject(IRemoteObject *object, bool lockFlag = true);
