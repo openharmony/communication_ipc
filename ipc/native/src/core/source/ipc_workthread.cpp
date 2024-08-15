@@ -39,6 +39,12 @@ namespace IPC_SINGLE {
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThread" };
 
+struct IPCWorkThreadParam {
+    int proto;
+    int policy;
+    int index;
+};
+
 IPCWorkThread::IPCWorkThread(std::string threadName) : threadName_(std::move(threadName)) {}
 
 IPCWorkThread::~IPCWorkThread()
@@ -46,24 +52,20 @@ IPCWorkThread::~IPCWorkThread()
     StopWorkThread();
 }
 
-void *IPCWorkThread::ThreadHandler(void *args)
+std::string IPCWorkThread::MakeBasicThreadName(int proto, int threadIndex)
 {
-    IPCWorkThread *threadObj = (IPCWorkThread *)args;
-    if (threadObj == nullptr) {
-        return nullptr;
-    }
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
-    threadObj->threadName_ += "_" + std::to_string(syscall(SYS_gettid));
-    int32_t ret = prctl(PR_SET_NAME, threadObj->threadName_.c_str());
-    if (ret != 0) {
-        ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d",
-            threadObj->threadName_.c_str(), ret);
+    if (proto == IRemoteObject::IF_PROT_DATABUS) {
+        return "OS_RPC_" + std::to_string(threadIndex);
     } else {
-        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
-            threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str());
+        return "OS_IPC_" + std::to_string(threadIndex);
     }
+}
+
+void IPCWorkThread::JoinThread(int proto, int policy)
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto);
     if (invoker != nullptr) {
-        switch (threadObj->policy_) {
+        switch (policy) {
             case SPAWN_PASSIVE:
                 invoker->JoinThread(false);
                 break;
@@ -85,17 +87,38 @@ void *IPCWorkThread::ThreadHandler(void *args)
                 break;
 #endif
             default:
-                ZLOGE(LOG_LABEL, "policy:%{public}d", threadObj->policy_);
+                ZLOGE(LOG_LABEL, "invalid policy:%{public}d", policy);
                 break;
         }
     }
+}
+
+void *IPCWorkThread::ThreadHandler(void *args)
+{
+    auto param = (IPCWorkThreadParam *)args;
+    if (param == nullptr) {
+        return nullptr;
+    }
+
+    std::string basicName = MakeBasicThreadName(param->proto, param->index);
+    std::string threadName = basicName + "_" + std::to_string(syscall(SYS_gettid));
+    int32_t ret = prctl(PR_SET_NAME, threadName.c_str());
+    if (ret != 0) {
+        ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d", threadName.c_str(), ret);
+    } else {
+        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
+            param->proto, param->policy, threadName.c_str());
+    }
+
+    JoinThread(param->proto, param->policy);
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
-        current->OnThreadTerminated(threadObj->threadName_);
+        current->OnThreadTerminated(basicName);
     }
     ZLOGW(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s",
-        threadObj->proto_, threadObj->policy_, threadObj->threadName_.c_str());
+        param->proto, param->policy, threadName.c_str());
+    delete param;
     return nullptr;
 }
 
@@ -107,13 +130,21 @@ void IPCWorkThread::StopWorkThread()
     }
 }
 
-void IPCWorkThread::Start(int policy, int proto, std::string threadName)
+void IPCWorkThread::Start(int policy, int proto, int threadIndex)
 {
+    auto param = new (std::nothrow) IPCWorkThreadParam();
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "create IPCWorkThreadParam failed");
+        return;
+    }
+
     policy_ = policy;
     proto_ = proto;
-    threadName_ = threadName;
+    param->policy = policy;
+    param->proto = proto;
+    param->index = threadIndex;
     pthread_t threadId;
-    int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, this);
+    int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, param);
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
         return;

@@ -77,6 +77,7 @@
             "OHOS::MessageParcel::GetRawDataSize() const";
             "OHOS::MessageParcel::GetRawDataCapacity() const";
             "OHOS::MessageParcel::ClearFileDescriptor()";
+            "OHOS::MessageParcel::GetInterfaceToken() const";
             "OHOS::PeerHolder::PeerHolder(OHOS::sptr<OHOS::IRemoteObject> const&)";
             "OHOS::PeerHolder::Remote()";
             "OHOS::IRemoteObject::CheckObjectLegality() const";
@@ -96,6 +97,8 @@
             "OHOS::IRemoteObject::GetInterfaceDescriptor()";
             "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
+            "OHOS::IPCObjectStub::GetAndSaveDBinderData(int, unsigned int)";
+            "virtual thunk to OHOS::IPCObjectStub::GetAndSaveDBinderData(int, unsigned int)";
             "OHOS::IPC_SINGLE::InvokerFactory::Get()";
             "OHOS::IPC_SINGLE::InvokerFactory::Register(int, std::__h::function<OHOS::IPC_SINGLE::IRemoteInvoker* ()>)";
         };

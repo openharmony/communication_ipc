@@ -182,19 +182,44 @@ public:
      */
     bool Append(MessageParcel &data);
 
+    /**
+     * @brief Print the content in MessageParcel buffer.
+     * @param funcName Indicates the invoke function name.
+     * @param lineNum Indicates the invoke function line number.
+     * @return void
+     * @since 12
+     */
+    void PrintBuffer(const char *funcName, const size_t lineNum);
+
+    /**
+     * @brief Get the interface token string.
+     * @return Returns a valid interface token string, if WriteInterfaceToken or ReadInterfaceToken is called;
+     *         returns an empty string otherwise.
+     * @since 12
+     */
+    std::u16string GetInterfaceToken() const;
+
 private:
 #ifndef CONFIG_IPC_SINGLE
-
     /**
      * @brief Write to the DBinder proxy object.
      * @param object Indicates an IRemoteObject type object.
      * @param handle Indicates the handle to write.
      * @param stubIndex Indicates the stub index to write to.
      * @return Returns <b>true</b> if the write succeeds; returns <b>false</b> otherwise.
-     * @since
+     * @since 9
      */
     bool WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_t handle, uint64_t stubIndex);
+
+    /**
+     * @brief Update the DBinder object's offset.
+     * @param offset Indicates the object offset.
+     * @return Returns <b>true</b> if the update succeeds; returns <b>false</b> otherwise.
+     * @since 12
+     */
+    bool UpdateDBinderDataOffset(size_t offset);
 #endif
+
     static constexpr size_t MAX_RAWDATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_RAWDATA_SIZE = 32 * 1024;         // 32k
     bool needCloseFd_ = false;
@@ -205,6 +230,7 @@ private:
     void *kernelMappedRead_;
     std::shared_ptr<char> rawData_;
     size_t rawDataSize_;
+    std::u16string interfaceToken_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_MESSAGE_PARCEL_H

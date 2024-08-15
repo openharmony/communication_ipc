@@ -140,7 +140,7 @@ private:
     int TransactWithDriver(bool doRead = true);
 
     bool WriteTransaction(int cmd, uint32_t flags, int32_t handle, uint32_t code, const MessageParcel &data,
-        const int *status);
+        const int *status, size_t totalDBinderBufSize);
 
     int WaitForCompletion(MessageParcel *reply = nullptr, int32_t *acquireResult = nullptr);
 
@@ -205,8 +205,16 @@ private:
 
     void RestoreInvokerProcInfo(const InvokerProcInfo &info);
 
+    void PrintParcelData(Parcel &parcel, const std::string &parcelName);
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
+
+    bool TranslateDBinderStub(int handle, MessageParcel &parcel, bool isReply, size_t &totalDBinderBufSize);
+
+    bool GetDBinderCallingPidUid(int handle, bool isReply, pid_t &pid, uid_t &uid);
+
+    bool UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_data &dbinderData);
 #endif
 
 #ifdef CONFIG_ACTV_BINDER
@@ -241,6 +249,7 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
+    std::atomic<uint32_t> sendNestCount_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif

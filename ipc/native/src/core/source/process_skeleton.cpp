@@ -21,6 +21,7 @@
 #include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
+#include "securec.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -348,5 +349,34 @@ uint32_t ProcessSkeleton::ConvertAddr(const void *ptr)
         return 0;
     }
     return static_cast<uint32_t>((reinterpret_cast<uintptr_t>(ptr)) & IPC_OBJECT_MASK);
+}
+
+bool ProcessSkeleton::FlattenDBinderData(Parcel &parcel, const dbinder_negotiation_data *&dbinderData)
+{
+    size_t start = parcel.GetWritePosition();
+    binder_buffer_object obj;
+    obj.hdr.type = BINDER_TYPE_PTR;
+    obj.flags = BINDER_BUFFER_FLAG_HAS_DBINDER;
+    obj.buffer = reinterpret_cast<binder_uintptr_t>(dbinderData);
+    obj.length = sizeof(dbinder_negotiation_data);
+    if (!parcel.WriteBuffer(&obj, sizeof(binder_buffer_object))) {
+        ZLOGE(LOG_LABEL, "WriteBuffer fail");
+        return false;
+    }
+    size_t stop = parcel.GetWritePosition();
+    ZLOGD(LOG_LABEL, "serialization:%{public}zu sizeof:%{public}zu", stop - start, sizeof(binder_buffer_object));
+    return true;
+}
+
+bool ProcessSkeleton::UnFlattenDBinderData(Parcel &parcel, dbinder_negotiation_data *&dbinderData)
+{
+    auto *buf = parcel.ReadBuffer(sizeof(binder_buffer_object), false);
+    if (buf == nullptr) {
+        return false;
+    }
+    auto obj = reinterpret_cast<const binder_buffer_object *>(buf);
+    auto ret = memcpy_s(dbinderData, sizeof(dbinder_negotiation_data),
+        reinterpret_cast<const void *>(obj->buffer), obj->length);
+    return (ret == EOK);
 }
 } // namespace OHOS
