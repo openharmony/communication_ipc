@@ -350,6 +350,7 @@ private:
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
+    std::mutex descMutex_;
 
     std::vector<sptr<DeathRecipient>> recipients_;
     const uint32_t handle_;
