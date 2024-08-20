@@ -122,8 +122,11 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     if (code != DUMP_TRANSACTION && code > MAX_TRANSACTION_ID) {
         return IPC_PROXY_INVALID_CODE_ERR;
     }
-    if (remoteDescriptor_.empty()) {
-        remoteDescriptor_ = data.GetInterfaceToken();
+    {
+        std::lock_guard<std::mutex> lock(descMutex_);
+        if (remoteDescriptor_.empty()) {
+            remoteDescriptor_ = data.GetInterfaceToken();
+        }
     }
     std::string desc = Str16ToStr8(remoteDescriptor_);
     if (desc == "ohos.aafwk.AbilityManager") {
@@ -887,58 +890,4 @@ int IPCObjectProxy::GetDBinderNegotiationData(DBinderNegotiationData &dbinderDat
     dbinderData.peerTokenId = data->tokenid;
 
     std::string str = dbinderData.peerServiceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string::size_type pos = str.find("_");
-    if (pos == str.npos) {
-        ZLOGW(LABEL, "ServiceName format error");
-        return ERR_INVALID_DATA;
-    }
-    dbinderData.peerUid = std::stoi(str.substr(0, pos));
-    dbinderData.peerPid = std::stoi(str.substr(pos + 1));
-    return ERR_NONE;
-}
-
-bool IPCObjectProxy::UpdateDatabusClientSession()
-{
-    DBinderNegotiationData dbinderData;
-    if (GetDBinderNegotiationData(dbinderData) != ERR_NONE) {
-        return false;
-    }
-    return MakeDBinderTransSession(dbinderData);
-}
-
-void IPCObjectProxy::ReleaseDatabusProto()
-{
-    if (handle_ == 0) {
-        ZLOGW(LABEL, "handle == 0, do nothing");
-        return;
-    }
-
-    MessageParcel data, reply;
-    MessageOption option = { MessageOption::TF_ASYNC };
-    int err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
-    if (err != ERR_NONE) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
-        // do nothing, if this cmd failed, stub's refcount will be decreased when OnSessionClosed called
-    }
-
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        ZLOGE(LABEL, "release databus proto skeleton is null");
-        return;
-    }
-    std::shared_ptr<DBinderSessionObject> toBeDelete = current->ProxyDetachDBinderSession(handle_, this);
-    if (toBeDelete != nullptr &&
-        // make sure session corresponding to this sessionName and deviceId is no longer used by other proxy
-        current->QuerySessionByInfo(toBeDelete->GetServiceName(), toBeDelete->GetDeviceId()) == nullptr) {
-        // close session in lock
-        toBeDelete->CloseDatabusSession();
-    }
-}
-
-void IPCObjectProxy::ReleaseBinderProto()
-{
-    // do nothing
-}
-#endif
-} // namespace OHOS
+    std:
