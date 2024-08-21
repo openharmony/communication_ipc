@@ -565,22 +565,16 @@ void BinderInvoker::OnBinderDied()
     ZLOGD(LABEL, "enter");
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
-    if ((proxy == nullptr) || (proxy->GetSptrRefCount() <= 0)) {
-        ZLOGE(LABEL, "Invalid proxy object %{public}u.", ProcessSkeleton::ConvertAddr(proxy));
-        return;
-    }
-    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    DeadObjectInfo deadInfo;
-    if ((current != nullptr) && current->IsDeadObject(proxy, deadInfo)) {
-        ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-            ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
-    } else {
-        if (proxy->AttemptIncStrongRef(this)) {
-            proxy->SendObituary();
-            proxy->DecStrongRef(this);
-        } else {
-            ZLOGW(LABEL, "failed to increment strong reference count");
+    if (proxy != nullptr) {
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        DeadObjectInfo deadInfo;
+        if ((current != nullptr) && current->IsDeadObject(proxy, deadInfo)) {
+            ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
+                ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
+                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+            } else {
+                ZLOGW(LABEL, "failed to increment strong reference count");
+            }
         }
     }
 
@@ -604,7 +598,7 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
     RefCounter *refs = reinterpret_cast<RefCounter *>(refsPointer);
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((obj == nullptr) || (refs == nullptr)) {
-        ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(obj));
+        ZLOGE(LABEL, "FAIL!");
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
@@ -615,10 +609,7 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         return;
     }
-    if (obj->GetSptrRefCount() <= 0) {
-        ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(obj));
-        return;
-    }
+
     size_t rewindPos = output_.GetWritePosition();
     if (cmd == BR_ACQUIRE) {
         obj->IncStrongRef(this);
@@ -649,7 +640,7 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     RefCounter *refs = reinterpret_cast<RefCounter *>(refsPointer);
     IRemoteObject *obj = reinterpret_cast<IRemoteObject *>(objectPointer);
     if ((refs == nullptr) || (obj == nullptr)) {
-        ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(obj));
+        ZLOGE(LABEL, "FAIL!");
         return;
     }
 
@@ -664,9 +655,7 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
             return;
         }
-        if (obj->GetSptrRefCount() > 0) {
-            obj->DecStrongRef(this);
-        }
+        obj->DecStrongRef(this);
     } else {
         refs->DecWeakRefCount(this);
     }
@@ -740,18 +729,14 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
     int count = 0;
     if ((refs != nullptr) && (tr.cookie) && (refs->AttemptIncStrongRef(this, count))) {
         auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr.cookie);
-        if (targetObject == nullptr) {
-            ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(targetObject));
-            return error;
-        }
-        DeadObjectInfo deadInfo;
-        auto current = ProcessSkeleton::GetInstance();
-        if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
-            ZLOGE(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-                ProcessSkeleton::ConvertAddr(targetObject),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
-        } else {
-            if (targetObject->GetSptrRefCount() > 0) {
+        if (targetObject != nullptr) {
+            DeadObjectInfo deadInfo;
+            auto current = ProcessSkeleton::GetInstance();
+            if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
+                ZLOGE(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
+                    ProcessSkeleton::ConvertAddr(targetObject),
+                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+            } else {
                 error = targetObject->SendRequest(tr.code, data, reply, option);
                 targetObject->DecStrongRef(this);
             }
