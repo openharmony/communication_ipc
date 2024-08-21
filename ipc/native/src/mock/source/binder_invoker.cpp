@@ -572,7 +572,7 @@ void BinderInvoker::OnBinderDied()
             ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
-            } else {
+        } else {
             if (proxy->AttemptIncStrongRef(this)) {
                 proxy->SendObituary();
                 proxy->DecStrongRef(this);
