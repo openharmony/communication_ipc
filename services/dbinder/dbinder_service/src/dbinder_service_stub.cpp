@@ -41,7 +41,9 @@ DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::st
     dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
     if (dbinderData_ == nullptr) {
         DBINDER_LOGW(LOG_LABEL, "malloc dbinderData_ fail");
+        return;
     }
+    memset_s(dbinderData_.get(), sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
 }
 
 DBinderServiceStub::~DBinderServiceStub()
