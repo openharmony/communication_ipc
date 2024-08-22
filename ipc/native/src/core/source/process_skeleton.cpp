@@ -315,7 +315,7 @@ bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
 {
     bool isPrint = false;
     if (err == lastErr) {
-        if (lastErrCnt == INT_MAX) {
+        if (lastErrCnt >= INT_MAX) {
             lastErrCnt = 0;
         }
         if (++lastErrCnt % PRINT_ERR_CNT == 0) {
