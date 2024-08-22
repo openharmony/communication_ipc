@@ -29,6 +29,10 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
+namespace {
+constexpr int TEST_STUB_INDEX = 1234;
+}
+
 class DBinderServiceUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -677,6 +681,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage002, TestSize.Level1)
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
     memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    message->stubIndex = TEST_STUB_INDEX;
     dBinderService->dbinderCallback_ = std::make_shared<TestRpcSystemAbilityCallback>();
     EXPECT_TRUE(dBinderService->dbinderCallback_ != nullptr);
     bool res = dBinderService->OnRemoteInvokerMessage(message);
