@@ -108,7 +108,7 @@ HWTEST_F(IPCFileDescOpsTest, Marshalling001, TestSize.Level1)
 
     Parcel parcel;
     auto ret = fdesc.Marshalling(parcel);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 }
 
 HWTEST_F(IPCFileDescOpsTest, Unmarshalling001, TestSize.Level1)
