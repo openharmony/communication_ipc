@@ -207,6 +207,8 @@ private:
 
     void PrintParcelData(Parcel &parcel, const std::string &parcelName);
 
+    void UpdateConsumedData(const binder_write_read &bwr, const size_t outAvail);
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
 
