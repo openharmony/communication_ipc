@@ -76,10 +76,18 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
 
 IPCObjectProxy::~IPCObjectProxy()
 {
-    ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
-        ProcessSkeleton::ConvertAddr(this));
-    std::string desc = Str16ToStr8(remoteDescriptor_);
+    std::string desc;
+    DeadObjectInfo obj;
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+            ProcessSkeleton::ConvertAddr(this));
+        desc = Str16ToStr8(remoteDescriptor_);
+        obj = { handle_, curTime, curTime, remoteDescriptor_ };
+    }
     if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
         ZLOGI(LABEL, "destroy handle:%{public}u desc:%{public}s %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
@@ -94,10 +102,14 @@ IPCObjectProxy::~IPCObjectProxy()
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
-    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    DeadObjectInfo obj = { handle_, curTime, curTime, remoteDescriptor_ };
     current->AttachDeadObject(this, obj);
+    // for map clean
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (!recipients_.empty()) {
+            recipients_.clear();
+        }
+    }
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
@@ -108,8 +120,11 @@ int32_t IPCObjectProxy::GetObjectRefCount()
     if (err == ERR_NONE) {
         return reply.ReadInt32();
     }
-    PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+    }
     return 0;
 }
 
@@ -127,13 +142,14 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     if (code != DUMP_TRANSACTION && code > MAX_TRANSACTION_ID) {
         return IPC_PROXY_INVALID_CODE_ERR;
     }
+    std::string desc;
     {
-        std::lock_guard<std::mutex> lock(descMutex_);
+        std::unique_lock<std::shared_mutex> lockGuard(descMutex_);
         if (remoteDescriptor_.empty()) {
             remoteDescriptor_ = data.GetInterfaceToken();
         }
+        desc = Str16ToStr8(remoteDescriptor_);
     }
-    std::string desc = Str16ToStr8(remoteDescriptor_);
     if (desc == "ohos.aafwk.AbilityManager") {
         ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
@@ -145,12 +161,12 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     auto timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime).count();
     if (timeInterval > SEND_REQUEST_TIMEOUT) {
         ZLOGW(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
-            timeInterval, code, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            timeInterval, code, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
     }
     if (err != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
             PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+                ProcessSkeleton::ConvertToSecureDesc(desc));
         }
     }
 
@@ -166,6 +182,7 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
     MessageOption &option)
 {
     if (IsObjectDead()) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         ZLOGD(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return ERR_DEAD_OBJECT;
@@ -201,8 +218,11 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
 
     MessageParcel data, reply;
     MessageOption option;
-
-    std::string desc = Str16ToStr8(remoteDescriptor_);
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     if (desc == "ohos.aafwk.AbilityToken") {
         ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
@@ -211,7 +231,7 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(desc));
         return std::u16string();
     }
     interfaceDesc_ = reply.ReadString16();
@@ -226,6 +246,7 @@ std::string IPCObjectProxy::GetSessionName()
 
     int err = SendRequestInner(false, GET_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::string("");
@@ -240,6 +261,7 @@ std::string IPCObjectProxy::GetGrantedSessionName()
 
     int err = SendRequestInner(false, GET_GRANTED_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::string("");
@@ -268,6 +290,7 @@ std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
     }
     int err = SendRequestInner(false, GET_SESSION_NAME_PID_UID, data, reply, option);
     if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         return std::string("");
@@ -291,6 +314,7 @@ int IPCObjectProxy::RemoveSessionName(const std::string &sessionName)
     }
     int err = SendRequestInner(false, REMOVE_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
     }
@@ -316,6 +340,11 @@ void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
 
 void IPCObjectProxy::WaitForInit(const void *dbinderData)
 {
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     // RPC proxy: AcquireHandle->AttachObject->Open Session->IncRef to Remote Stub
     {
         std::lock_guard<std::mutex> lockGuard(initMutex_);
@@ -324,7 +353,7 @@ void IPCObjectProxy::WaitForInit(const void *dbinderData)
         // we may find the same proxy that has been marked as dead. Thus, we need to check again.
         if (IsObjectDead()) {
             ZLOGW(LABEL, "proxy is dead, init again, handle:%{public}d desc:%{public}s",
-                handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+                handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
             isRemoteDead_ = false;
             isFinishInit_ = false;
         }
@@ -363,7 +392,11 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
 {
     // IPC proxy: DetachObject->ReleaseHandle
     // RPC proxy: DecRef to Remote Stub->Close Session->DetachObject->ReleaseHandle
-    std::string desc = Str16ToStr8(remoteDescriptor_);
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
         ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
@@ -400,16 +433,21 @@ bool IPCObjectProxy::IsObjectDead() const
 
 bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (IsObjectDead()) {
         ZLOGE(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
     recipients_.push_back(recipient);
     if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return true;
     }
 
@@ -421,31 +459,36 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 
     if (!invoker->AddDeathRecipient(handle_, this)) {
         ZLOGE(LABEL, "fail to add binder death recipient, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
         if (!AddDbinderDeathRecipient()) {
             ZLOGE(LABEL, "failed to add dbinder death recipient, handle:%{public}d desc:%{public}s",
-                handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+                handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
             return false;
         }
     }
 #endif
     ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}u", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+        ProcessSkeleton::ConvertToSecureDesc(desc).c_str(),
         ProcessSkeleton::ConvertAddr(this));
     return true;
 }
 
 bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     if (IsObjectDead()) {
         ZLOGD(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
     bool recipientErased = false;
@@ -457,7 +500,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
     if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
         ZLOGI(LABEL, "death recipient is already unregistered, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return true;
     }
 
@@ -476,7 +519,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
         }
 #endif
         ZLOGD(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}u", status && dbinderStatus,
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(),
             ProcessSkeleton::ConvertAddr(this));
         return status && dbinderStatus;
     }
@@ -485,9 +528,13 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 void IPCObjectProxy::SendObituary()
 {
-    ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
-        ProcessSkeleton::ConvertAddr(this));
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
+            ProcessSkeleton::ConvertAddr(this));
+    }
+    
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
@@ -551,8 +598,13 @@ int IPCObjectProxy::GetProto() const
 
 int32_t IPCObjectProxy::NoticeServiceDie()
 {
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -561,7 +613,7 @@ int32_t IPCObjectProxy::NoticeServiceDie()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(desc));
         return IPC_PROXY_TRANSACTION_ERR;
     }
 
@@ -613,7 +665,10 @@ bool IPCObjectProxy::UpdateProto(const void *dbinderData)
             return false;
         }
         SetProto(IRemoteObject::IF_PROT_DATABUS);
-        remoteDescriptor_ = data->desc;
+        {
+            std::unique_lock<std::shared_mutex> lockGuard(descMutex_);
+            remoteDescriptor_ = data->desc;
+        }
     } else if (CheckHaveSession()) {
         SetProto(IRemoteObject::IF_PROT_DATABUS);
     }
@@ -627,6 +682,7 @@ int32_t IPCObjectProxy::IncRefToRemote()
 
     int32_t err = SendRequestInner(false, DBINDER_INCREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         // do nothing
@@ -682,6 +738,7 @@ int IPCObjectProxy::GetProtoInfo()
 
     switch (reply.ReadUint32()) {
         case IRemoteObject::IF_PROT_BINDER: {
+            std::unique_lock<std::shared_mutex> lockGuard(descMutex_);
             remoteDescriptor_ = reply.ReadString16();
             ZLOGD(LABEL, "binder, handle:%{public}u desc:%{public}s",
                 handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
@@ -689,6 +746,7 @@ int IPCObjectProxy::GetProtoInfo()
         }
         case IRemoteObject::IF_PROT_DATABUS: {
             if (UpdateDatabusClientSession(handle_, reply)) {
+                std::unique_lock<std::shared_mutex> lockGuard(descMutex_);
                 remoteDescriptor_ = reply.ReadString16();
                 ZLOGD(LABEL, "dbinder, handle:%{public}u desc:%{public}s",
                     handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
@@ -709,29 +767,36 @@ int IPCObjectProxy::GetProtoInfo()
 
 bool IPCObjectProxy::AddDbinderDeathRecipient()
 {
+    std::string desc;
+    std::u16string remoteDescriptorTmp;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        remoteDescriptorTmp = remoteDescriptor_;
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGW(LABEL, "get current fail, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
 
     if (current->QueryCallbackStub(this) != nullptr) {
         ZLOGW(LABEL, "already attach callback stub, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return true;
     }
 
     //note that cannot use this proxy's descriptor
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + remoteDescriptor_);
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + remoteDescriptorTmp);
     if (callbackStub == nullptr) {
         ZLOGE(LABEL, "create IPCObjectStub object failed, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
     if (!current->AttachCallbackStub(this, callbackStub)) {
         ZLOGW(LABEL, "already attach new callback stub, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
 
@@ -744,7 +809,7 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(desc));
         current->DetachCallbackStub(this);
         return false;
     }
@@ -754,17 +819,22 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
 
 bool IPCObjectProxy::RemoveDbinderDeathRecipient()
 {
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = Str16ToStr8(remoteDescriptor_);
+    }
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LABEL, "get current fail");
         return false;
     }
     ZLOGW(LABEL, "handle:%{public}d desc:%{public}s", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+        ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
     sptr<IPCObjectStub> callbackStub = current->DetachCallbackStub(this);
     if (callbackStub == nullptr) {
         ZLOGE(LABEL, "get callbackStub fail, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
 
@@ -777,7 +847,7 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(desc));
         // do nothing, even send request failed
     }
     return err == ERR_NONE;
@@ -925,6 +995,7 @@ void IPCObjectProxy::ReleaseDatabusProto()
     MessageOption option = { MessageOption::TF_ASYNC };
     int err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         // do nothing, if this cmd failed, stub's refcount will be decreased when OnSessionClosed called
