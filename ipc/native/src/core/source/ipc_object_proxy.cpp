@@ -84,6 +84,11 @@ IPCObjectProxy::~IPCObjectProxy()
         ZLOGI(LABEL, "destroy handle:%{public}u desc:%{public}s %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
     }
+    auto pos = desc.find("IVpnStateCallback");
+    if (pos != std::string::npos) {
+        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+    }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");
