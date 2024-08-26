@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <vector>
+#include <shared_mutex>
 
 #include "iremote_object.h"
 
@@ -350,7 +351,7 @@ private:
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
-    std::mutex descMutex_;
+    std::shared_mutex descMutex_;
 
     std::vector<sptr<DeathRecipient>> recipients_;
     const uint32_t handle_;
