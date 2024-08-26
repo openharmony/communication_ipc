@@ -295,7 +295,10 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
         ZLOGE(LOG_LABEL, "get session buffer fail");
         return false;
     }
-
+    if (transData == nullptr) {
+        ZLOGE(LOG_LABEL, "transData is nullptr");
+        return false;
+    }
     uint32_t sendSize = transData->sizeOfSelf;
     char *sendBuffer = sessionBuff->GetSendBufferAndLock(sendSize);
     /* session buffer contain mutex, need release mutex */
@@ -485,6 +488,10 @@ template <class T> std::shared_ptr<ThreadMessageInfo> DBinderBaseInvoker<T>::Mak
 
 template<class T> uint32_t DBinderBaseInvoker<T>::MakeRemoteHandle(std::shared_ptr<T> session)
 {
+    if (session == nullptr) {
+        ZLOGE(LOG_LABEL, "session is nullptr");
+        return 0;
+    }
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");

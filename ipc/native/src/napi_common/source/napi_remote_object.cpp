@@ -397,6 +397,9 @@ napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
     CallbackParam *param = static_cast<CallbackParam *>(data);
+    if (param == NULL) {
+        ZLOGI(LOG_LABEL, "param is null");
+    }
     NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
     param->result = ERR_UNKNOWN_TRANSACTION;
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
