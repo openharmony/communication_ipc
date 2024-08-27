@@ -127,7 +127,7 @@ private:
     static bool JS_WriteRawDataForTypedArray(napi_env env, napi_value jsTypedArray,
                                              size_t size, NAPI_MessageSequence *napiSequence);
     static napi_value JS_checkWriteArrayBufferArgs(napi_env env, size_t argc, napi_value* argv);
-    static bool JS_writeVectorByTypeCode(napi_env env, int32_t typeCode, void *data,
+    static bool JS_writeVectorByTypeCode(int32_t typeCode, void *data,
                                          size_t byteLength, NAPI_MessageSequence *napiSequence);
     static napi_value JS_readVectorByTypeCode(napi_env env, int32_t typeCode, NAPI_MessageSequence *napiSequence);
 
