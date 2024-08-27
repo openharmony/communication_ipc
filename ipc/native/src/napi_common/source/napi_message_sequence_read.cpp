@@ -398,6 +398,7 @@ napi_value NAPI_MessageSequence::JS_readByteArray(napi_env env, napi_callback_in
     uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
 
     if (argc > 0) {
+        CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
         napi_value checkArgsResult = JS_checkReadArrayArgs(env, info, argc, thisVar, argv);
         if (checkArgsResult == nullptr) {
