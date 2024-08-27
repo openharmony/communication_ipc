@@ -1041,20 +1041,20 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             ZLOGE(LABEL, "binder write_consumed:%{public}llu exception, "
                 "outAvail:%{public}zu read_consumed:%{public}llu",
                 bwr.write_consumed, outAvail, bwr.read_consumed);
+        }
+
+        // Moves the data that is not consumed by the binder to the output_ buffer header.
+        if (bwr.write_consumed < output_.GetDataSize()) {
+            ZLOGI(LABEL, "moves the data that is not consumed by the binder, "
+                "write_consumed:%{public}llu outAvail:%{public}zu GetDataSize:%{public}zu",
+                bwr.write_consumed, outAvail, output_.GetDataSize());
+            Parcel temp;
+            temp.WriteBuffer(reinterpret_cast<void *>(output_.GetData() + bwr.write_consumed),
+                output_.GetDataSize() - bwr.write_consumed);
+            output_.FlushBuffer();
+            output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
-            // Moves the data that is not consumed by the binder to the output_ buffer header.
-            if (outAvail < output_.GetDataSize()) {
-                ZLOGI(LABEL, "moves the data that is not consumed by the binder, "
-                    "write_consumed:%{public}llu outAvail:%{public}zu GetDataSize:%{public}zu",
-                    bwr.write_consumed, outAvail, output_.GetDataSize());
-                Parcel temp;
-                temp.WriteBuffer(reinterpret_cast<void *>(output_.GetData() + bwr.write_consumed),
-                    output_.GetDataSize() - bwr.write_consumed);
-                output_.FlushBuffer();
-                output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
-            } else {
-                output_.FlushBuffer();
-            }
+            output_.FlushBuffer();
         }
     }
     if (bwr.read_consumed > 0) {
