@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -264,7 +264,11 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
         current->UnlockObjectMutex();
         return result;
     }
-    AttachObject(result.GetRefPtr(), false);
+    if (!AttachObject(result.GetRefPtr(), false)) {
+        ZLOGE(LOG_LABEL, "AttachObject failed!");
+        current->UnlockObjectMutex();
+        return nullptr;
+    }
     newFlag = true;
     current->UnlockObjectMutex();
     return result;

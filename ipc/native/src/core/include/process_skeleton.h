@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 #include <shared_mutex>
+#include <unordered_map>
 
 #include "iremote_object.h"
 #include "sys_binder.h"
@@ -101,7 +102,7 @@ private:
     std::map<IRemoteObject *, bool> isContainStub_;
 
     std::shared_mutex deadObjectMutex_;
-    std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
+    std::unordered_map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
     uint64_t deadObjectClearTime_ = 0;
     uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
     std::atomic<uint64_t> proxyObjectCountNum_ = 0;
