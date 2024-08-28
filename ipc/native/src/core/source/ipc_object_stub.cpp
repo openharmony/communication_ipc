@@ -627,6 +627,11 @@ std::string IPCObjectStub::GetSessionName()
         return std::string("");
     }
 
+    if (!object->IsProxyObject()) {
+        ZLOGE(LABEL, "object is not a proxy pbject");
+        return std::string("");
+    }
+
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     return samgr->GetGrantedSessionName();
 }
