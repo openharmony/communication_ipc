@@ -262,7 +262,8 @@ int IPCObjectStub::DBinderIncRefsTransaction(uint32_t code,
     // update listenFd
     ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
         listenFd, stubIndex, tokenId);
-    current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
+    AppAuthInfo appAuthInfo = { callerPid, callerUid, tokenId, listenFd, stubIndex, nullptr, callerDevId };
+    current->AttachOrUpdateAppAuthInfo(appAuthInfo);
     return ERR_NONE;
 }
 
@@ -288,8 +289,8 @@ int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code,
     }
     int32_t listenFd = invoker->GetClientFd();
     // detach info whose listen fd equals the given one
-    if (current->DetachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd)) {
-        current->DetachCommAuthInfo(this, callerPid, callerUid, tokenId, callerDevId);
+    AppAuthInfo appAuthInfo = { callerPid, callerUid, tokenId, listenFd, stubIndex, this, callerDevId };
+    if (current->DetachAppAuthInfo(appAuthInfo)) {
         DecStrongRef(this);
     }
     return ERR_NONE;
@@ -404,9 +405,8 @@ void IPCObjectStub::OnLastStrongRef(const void *objectId)
         // we only need to erase stub index here, commAuth and appInfo
         // has already been removed either in dbinder dec refcount case
         // or OnSessionClosed, we also remove commAuth and appInfo in case of leak
-        current->DetachCommAuthInfoByStub(this);
         uint64_t stubIndex = current->EraseStubIndex(this);
-        current->DetachAppInfoToStubIndex(stubIndex);
+        current->DetachAppAuthInfoByStub(this, stubIndex);
 #endif
     }
 }
@@ -538,14 +538,11 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
         ZLOGE(LABEL, "write to parcel fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    // mark listen fd as 0
-    if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, remoteTokenId, remoteDeviceId, stubIndex, 0)) {
-        ZLOGW(LABEL, "app info already existed, replace with 0");
-    }
-    if (current->AttachCommAuthInfo(this, remotePid, remoteUid, remoteTokenId, remoteDeviceId)) {
+
+    // mark socketId as 0
+    AppAuthInfo appAuthInfo = { remotePid, remoteUid, remoteTokenId, 0, stubIndex, this, remoteDeviceId };
+    if (current->AttachOrUpdateAppAuthInfo(appAuthInfo)) {
         IncStrongRef(this);
-    } else {
-        ZLOGW(LABEL, "comm auth info attached already");
     }
 
     return ERR_NONE;
@@ -598,17 +595,13 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
             return BINDER_CALLBACK_STUBINDEX_ERR;
         }
     }
-    ZLOGW(LABEL, "add auth info, pid:%{public}u uid:%{public}u deviceId:%{public}s stubIndex:%{public}" PRIu64
-        " tokenId:%{public}u", remotePid, remoteUid,
+    ZLOGW(LABEL, "add auth info, pid:%{public}u uid:%{public}u deviceId:%{public}s "
+        "stubIndex:%{public}" PRIu64 " tokenId:%{public}u", remotePid, remoteUid,
         IPCProcessSkeleton::ConvertToSecureString(remoteDeviceId).c_str(), stubIndex, tokenId);
     // mark listen fd as 0
-    if (!current->AttachAppInfoToStubIndex(remotePid, remoteUid, tokenId, remoteDeviceId, stubIndex, 0)) {
-        ZLOGW(LABEL, "app info already attached, replace with 0");
-    }
-    if (current->AttachCommAuthInfo(this, remotePid, remoteUid, tokenId, remoteDeviceId)) {
+    AppAuthInfo appAuthInfo = { remotePid, remoteUid, tokenId, 0, stubIndex, this, remoteDeviceId };
+    if (current->AttachOrUpdateAppAuthInfo(appAuthInfo)) {
         IncStrongRef(this);
-    } else {
-        ZLOGW(LABEL, "comm auth info attached already");
     }
     return ERR_NONE;
 }
