@@ -201,7 +201,7 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
 
     int status = invoker->SendRequest(handle_, code, data, reply, option);
     if (status == ERR_DEAD_OBJECT) {
-        MarkObjectDied();
+        SetObjectDied(true);
     }
     return status;
 }
@@ -354,7 +354,7 @@ void IPCObjectProxy::WaitForInit(const void *dbinderData)
         if (IsObjectDead()) {
             ZLOGW(LABEL, "proxy is dead, init again, handle:%{public}d desc:%{public}s",
                 handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
-            isRemoteDead_ = false;
+            SetObjectDied(false);
             isFinishInit_ = false;
         }
 
@@ -372,7 +372,7 @@ void IPCObjectProxy::WaitForInit(const void *dbinderData)
             if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
                 if (!CheckHaveSession()) {
                     SetProto(IRemoteObject::IF_PROT_ERROR);
-                    isRemoteDead_ = true;
+                    SetObjectDied(true);
                 }
             }
 #endif
@@ -382,7 +382,7 @@ void IPCObjectProxy::WaitForInit(const void *dbinderData)
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
         if (IncRefToRemote() != ERR_NONE) {
             SetProto(IRemoteObject::IF_PROT_ERROR);
-            isRemoteDead_ = true;
+            SetObjectDied(true);
         }
     }
 #endif
@@ -420,15 +420,14 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
     current->DetachObject(this);
 }
 
-/* mutex_ should be called before set or get isRemoteDead_ status */
-void IPCObjectProxy::MarkObjectDied()
+void IPCObjectProxy::SetObjectDied(bool isDied)
 {
-    isRemoteDead_ = true;
+    isRemoteDead_.store(isDied);
 }
 
 bool IPCObjectProxy::IsObjectDead() const
 {
-    return isRemoteDead_;
+    return isRemoteDead_.load();
 }
 
 bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
@@ -542,10 +541,10 @@ void IPCObjectProxy::SendObituary()
         }
     }
 #endif
+    SetObjectDied(true);
     std::vector<sptr<DeathRecipient>> toBeReport;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        MarkObjectDied();
         toBeReport = recipients_;
         recipients_.clear();
     }
@@ -650,7 +649,7 @@ bool IPCObjectProxy::UpdateProto(const void *dbinderData)
     if (data != nullptr && data->proto == IRemoteObject::IF_PROT_DATABUS) {
         dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
         if (dbinderData_ == nullptr) {
-            isRemoteDead_ = true;
+            SetObjectDied(true);
             SetProto(IRemoteObject::IF_PROT_ERROR);
             ZLOGE(LABEL, "malloc dbinderData fail, handle:%{public}d", handle_);
             return false;
@@ -659,7 +658,7 @@ bool IPCObjectProxy::UpdateProto(const void *dbinderData)
         *tmp = *data;
         if (!UpdateDatabusClientSession()) {
             ZLOGE(LABEL, "UpdateDatabusClientSession fail, handle:%{public}d", handle_);
-            isRemoteDead_ = true;
+            SetObjectDied(true);
             SetProto(IRemoteObject::IF_PROT_ERROR);
             dbinderData_ = nullptr;
             return false;
