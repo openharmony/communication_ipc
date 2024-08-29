@@ -1932,7 +1932,7 @@ napi_value NAPI_MessageSequence::JS_writeArrayBuffer(napi_env env, napi_callback
     int32_t typeCode = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_1], &typeCode);
 
-    bool writeSuccess = JS_writeVectorByTypeCode(env, typeCode, data, byteLength, napiSequence);
+    bool writeSuccess = JS_writeVectorByTypeCode(typeCode, data, byteLength, napiSequence);
     if (!writeSuccess) {
         ZLOGE(LOG_LABEL, "write buffer failed");
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
@@ -1943,8 +1943,7 @@ napi_value NAPI_MessageSequence::JS_writeArrayBuffer(napi_env env, napi_callback
     return napiValue;
 }
 
-bool NAPI_MessageSequence::JS_writeVectorByTypeCode(napi_env env,
-                                                    int32_t typeCode,
+bool NAPI_MessageSequence::JS_writeVectorByTypeCode(int32_t typeCode,
                                                     void *data,
                                                     size_t byteLength,
                                                     NAPI_MessageSequence *napiSequence)
