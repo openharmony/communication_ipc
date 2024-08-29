@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -149,9 +149,14 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
         }
     }
     auto result = objects_.insert_or_assign(descriptor, wp);
-    ZLOGD(LOG_LABEL, "attach desc:%{public}s inserted:%{public}d",
-        ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), result.second);
-    return result.second;
+    if (result.second) {
+        ZLOGD(LOG_LABEL, "attach %{public}d desc:%{public}s inserted",
+            ConvertAddr(object), ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+    } else {
+        ZLOGW(LOG_LABEL, "attach %{public}d desc:%{public}s assign",
+            ConvertAddr(object), ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+    }
+    return true;
 }
 
 sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descriptor, bool lockFlag)
@@ -177,7 +182,11 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         }
     }
     DeadObjectInfo deadInfo;
-    if (remoteObject == nullptr || IsDeadObject(remoteObject, deadInfo) || !remoteObject->AttemptIncStrong(this)) {
+    bool isNullObject = (remoteObject == nullptr);
+    bool isDeadObject = IsDeadObject(remoteObject, deadInfo);
+    if (isNullObject || isDeadObject || !remoteObject->AttemptIncStrong(this)) {
+        ZLOGE(LOG_LABEL, "remoteObject is null or dead or AttemptIncStrong failed, "
+            "isNullObject:%{public}d, isDeadObject:%{public}d", isNullObject, isDeadObject);
         return result;
     }
     result = remoteObject;
@@ -254,7 +263,9 @@ void ProcessSkeleton::DetachTimeoutDeadObject()
         return;
     }
     deadObjectClearTime_ = curTime;
-    for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end();) {
+    size_t index = 0;
+    size_t recordSize = deadObjectRecord_.size();
+    for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end() && index < recordSize; ++index) {
         if (curTime - it->second.agingTime >= DEAD_OBJECT_TIMEOUT) {
             ZLOGD(LOG_LABEL, "erase %{public}u handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
                 ConvertAddr(it->first), it->second.handle,
