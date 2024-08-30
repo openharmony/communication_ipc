@@ -238,7 +238,7 @@ public:
     uint32_t GetStrongRefCountForStub();
 
 private:
-    void MarkObjectDied();
+    void SetObjectDied(bool isDied);
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
@@ -357,7 +357,7 @@ private:
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
-    bool isRemoteDead_;
+    std::atomic<bool> isRemoteDead_;
     std::u16string remoteDescriptor_;
     std::u16string interfaceDesc_;
     int lastErr_ = 0;
