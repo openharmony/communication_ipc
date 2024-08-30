@@ -1420,12 +1420,14 @@ bool IPCProcessSkeleton::AttachOrUpdateAppAuthInfo(const AppAuthInfo &appAuthInf
     if (it != appInfoToStubIndex_.end()) {
         if (appAuthInfo.stubIndex != 0) {
             it->second.insert_or_assign(appAuthInfo.stubIndex, appAuthInfo.socketId);
-        } else {
+        } else if (appAuthInfo.socketId != 0) {
             for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
                 it2->second = appAuthInfo.socketId;
             }
+            ZLOGW(LOG_LABEL, "app info already existed, update socketId:%{public}d", appAuthInfo.socketId);
+        } else {
+            ZLOGE(LOG_LABEL, "stubindex and socketId are both invalid");
         }
-        ZLOGW(LOG_LABEL, "app info already existed, update socketId:%{public}d", appAuthInfo.socketId);
     } else {
         appInfoToStubIndex_[appInfo].insert(std::make_pair(appAuthInfo.stubIndex, appAuthInfo.socketId));
     }
