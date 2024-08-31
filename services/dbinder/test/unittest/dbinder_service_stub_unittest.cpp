@@ -669,3 +669,102 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient005, TestSize.Le
     int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
 }
+
+/**
+ * @tc.name: GetAndSaveDBinderData001
+ * @tc.desc: Verify the GetAndSaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, GetAndSaveDBinderData001, TestSize.Level1)
+{
+    const std::string service = "serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    pid_t pid = -1;
+    uid_t uid = -1;
+
+    int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
+    EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: GetAndSaveDBinderData002
+ * @tc.desc: Verify the GetAndSaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, GetAndSaveDBinderData002, TestSize.Level1)
+{
+    const std::string service = "serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    pid_t pid = 1234;
+    uid_t uid = 1001;
+    int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
+    EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: Marshalling001
+ * @tc.desc: Verify the Marshalling function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, Marshalling001, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObject = nullptr;
+    const std::string service = "serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    Parcel parcel;
+    bool result = dBinderServiceStub.Marshalling(parcel, nullObject);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: Marshalling002
+ * @tc.desc: Verify the Marshalling function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, Marshalling002, TestSize.Level1)
+{
+    const std::string service = "serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    const std::string service2 = "serviceTest2";
+    const std::string device2 = "deviceTest2";
+    sptr<IRemoteObject> stubObject = new DBinderServiceStub(service2, device2, object);
+    EXPECT_TRUE(stubObject != nullptr);
+    Parcel parcel;
+    bool result = dBinderServiceStub.Marshalling(parcel, stubObject);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: Marshalling003
+ * @tc.desc: Verify the Marshalling function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, Marshalling003, TestSize.Level1)
+{
+    const std::string service1 = "serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub1(service1, device1, object);
+
+    const std::string service2 = "serviceTest2";
+    const std::string device2 = "deviceTest2";
+    DBinderServiceStub* dBinderServiceStub2 =  new DBinderServiceStub(service2, device2, object);
+    dBinderServiceStub2->dbinderData_ = nullptr;
+    sptr<IRemoteObject> stubObject = dBinderServiceStub2;
+
+    Parcel parcel;
+    bool result = dBinderServiceStub1.Marshalling(parcel, stubObject);
+    EXPECT_FALSE(result);
+}
