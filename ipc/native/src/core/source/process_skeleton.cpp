@@ -322,7 +322,7 @@ bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
     return false;
 }
 
-bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
+bool ProcessSkeleton::IsPrint(int err, std::atomic<int> &lastErr, std::atomic<int> &lastErrCnt)
 {
     bool isPrint = false;
     if (err == lastErr) {
