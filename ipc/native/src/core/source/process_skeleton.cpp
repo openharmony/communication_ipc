@@ -150,7 +150,6 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
-    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
     if (lockFlag) {
         lockGuard.lock();
     }
@@ -162,6 +161,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
+
     if (object->IsProxyObject()) {
         uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
         if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
@@ -321,7 +321,7 @@ bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
     return false;
 }
 
-bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
+bool ProcessSkeleton::IsPrint(int err, std::atomic<int> &lastErr, std::atomic<int> &lastErrCnt)
 {
     bool isPrint = false;
     if (err == lastErr) {

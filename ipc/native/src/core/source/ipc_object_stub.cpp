@@ -647,7 +647,6 @@ std::string IPCObjectStub::GetSessionName()
         ZLOGE(LABEL, "get object is null");
         return std::string("");
     }
-
     if (!object->IsProxyObject()) {
         ZLOGE(LABEL, "object is not a proxy pbject");
         return std::string("");
