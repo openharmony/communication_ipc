@@ -133,7 +133,7 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
             break;
         }
         case DBINDER_OBITUARY_TRANSACTION: {
-            result = ProcessDeathRecipient(data, reply);
+            result = ProcessDeathRecipient(data);
             break;
         }
         default: {
@@ -146,22 +146,22 @@ int32_t DBinderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
     return result;
 }
 
-int32_t DBinderServiceStub::ProcessDeathRecipient(MessageParcel &data, MessageParcel &reply)
+int32_t DBinderServiceStub::ProcessDeathRecipient(MessageParcel &data)
 {
     int32_t processType = data.ReadInt32();
     DBINDER_LOGD(LOG_LABEL, "recv, DBINDER_OBITUARY_TRANSACTION type:%{public}d", processType);
     if (processType == IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT) {
-        return AddDbinderDeathRecipient(data, reply);
+        return AddDbinderDeathRecipient(data);
     }
 
     if (processType == IRemoteObject::DeathRecipient::REMOVE_DEATH_RECIPIENT) {
-        return RemoveDbinderDeathRecipient(data, reply);
+        return RemoveDbinderDeathRecipient(data);
     }
 
     return DBINDER_SERVICE_UNKNOW_TRANS_ERR;
 }
 
-int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, MessageParcel &reply)
+int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     if (object == nullptr) {
@@ -203,7 +203,7 @@ int32_t DBinderServiceStub::AddDbinderDeathRecipient(MessageParcel &data, Messag
     return ERR_NONE;
 }
 
-int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data, MessageParcel &reply)
+int32_t DBinderServiceStub::RemoveDbinderDeathRecipient(MessageParcel &data)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     if (object == nullptr) {
