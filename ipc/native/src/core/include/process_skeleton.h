@@ -18,6 +18,7 @@
 
 #include <map>
 #include <mutex>
+#include <atomic>
 #include <shared_mutex>
 #include <unordered_map>
 
@@ -45,7 +46,7 @@ struct InvokerProcInfo {
 class ProcessSkeleton {
 public:
     static std::string ConvertToSecureDesc(const std::string &str);
-    static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
+    static bool IsPrint(int err, std::atomic<int> &lastErr, std::atomic<int> &lastErrCnt);
     static uint32_t ConvertAddr(const void *ptr);
     static ProcessSkeleton* GetInstance();
     static bool FlattenDBinderData(Parcel &parcel, const dbinder_negotiation_data *&dbinderData);
