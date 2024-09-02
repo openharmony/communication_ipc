@@ -464,7 +464,6 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         ZLOGE(LABEL, "invoker is null");
         return false;
     }
-
     if (!invoker->AddDeathRecipient(handle_, this)) {
         ZLOGE(LABEL, "fail to add binder death recipient, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
@@ -500,7 +499,6 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
-
     bool recipientErased = false;
     for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
         if (iter->second->recipient_ == recipient) {
@@ -509,13 +507,11 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             break;
         }
     }
-
     if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
         ZLOGI(LABEL, "death recipient is already unregistered, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return true;
     }
-
     if (recipientErased && recipients_.empty()) {
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
         if (invoker == nullptr) {
@@ -576,7 +572,6 @@ void IPCObjectProxy::SendObituary()
             ZLOGE(LABEL, "invoker is null");
         }
     }
-
     for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
         if (iter->second->IsDlclosed()) {
             ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", iter->first.c_str());
@@ -807,7 +802,7 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     }
 
     //note that cannot use this proxy's descriptor
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + remoteDescriptor_);
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"DbinderDeathRecipient" + remoteDescriptorTmp);
     if (callbackStub == nullptr) {
         ZLOGE(LABEL, "create IPCObjectStub object failed, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
@@ -827,8 +822,7 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(desc),
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
             ProcessSkeleton::ConvertAddr(this));
         current->DetachCallbackStub(this);
         return false;
