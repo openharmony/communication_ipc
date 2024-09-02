@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_BINDER_INVOKER_H
 #define OHOS_IPC_BINDER_INVOKER_H
 
+#include <atomic>
 #include <unistd.h>
 #include <sys/types.h>
 #include <unordered_set>
@@ -249,8 +250,8 @@ private:
     uint32_t status_;
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
     InvokerProcInfo invokerInfo_;
-    int lastErr_ = 0;
-    int lastErrCnt_ = 0;
+    std::atomic<int> lastErr_ = 0;
+    std::atomic<int> lastErrCnt_ = 0;
     std::atomic<uint32_t> sendNestCount_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
