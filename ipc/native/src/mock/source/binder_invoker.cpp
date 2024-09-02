@@ -1031,6 +1031,38 @@ void BinderInvoker::JoinThread(bool initiative)
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
 
+void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_t outAvail)
+{
+    if (bwr.write_consumed > 0) {
+        if (bwr.write_consumed < outAvail) {
+            // we still have some bytes not been handled.
+            PrintParcelData(input_, "input_");
+            PrintParcelData(output_, "output_");
+            ZLOGE(LABEL, "binder write_consumed:%{public}llu exception, "
+                "outAvail:%{public}zu read_consumed:%{public}llu",
+                bwr.write_consumed, outAvail, bwr.read_consumed);
+        }
+
+        // Moves the data that is not consumed by the binder to the output_ buffer header.
+        if (bwr.write_consumed < output_.GetDataSize()) {
+            ZLOGI(LABEL, "moves the data that is not consumed by the binder, "
+                "write_consumed:%{public}llu outAvail:%{public}zu GetDataSize:%{public}zu",
+                bwr.write_consumed, outAvail, output_.GetDataSize());
+            Parcel temp;
+            temp.WriteBuffer(reinterpret_cast<void *>(output_.GetData() + bwr.write_consumed),
+                output_.GetDataSize() - bwr.write_consumed);
+            output_.FlushBuffer();
+            output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
+        } else {
+            output_.FlushBuffer();
+        }
+    }
+    if (bwr.read_consumed > 0) {
+        input_.SetDataSize(bwr.read_consumed);
+        input_.RewindRead(0);
+    }
+}
+
 int BinderInvoker::TransactWithDriver(bool doRead)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -1062,22 +1094,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 #else
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
 #endif
-    if (bwr.write_consumed > 0) {
-        if (bwr.write_consumed < outAvail) {
-            // we still have some bytes not been handled.
-            PrintParcelData(input_, "input_");
-            PrintParcelData(output_, "output_");
-            ZLOGE(LABEL, "binder write_consumed:%{public}llu exception, "
-                "outAvail:%{public}zu read_consumed:%{public}llu",
-                bwr.write_consumed, outAvail, bwr.read_consumed);
-        } else {
-            output_.FlushBuffer();
-        }
-    }
-    if (bwr.read_consumed > 0) {
-        input_.SetDataSize(bwr.read_consumed);
-        input_.RewindRead(0);
-    }
+    UpdateConsumedData(bwr, outAvail);
     if (error != ERR_NONE) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
