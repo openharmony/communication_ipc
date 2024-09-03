@@ -96,8 +96,8 @@ private:
     sptr<IRemoteObject> registryObject_ = nullptr;
     bool isSamgr_ = false;
 
-    std::map<std::u16string, wptr<IRemoteObject>> objects_;
-    std::map<IRemoteObject *, bool> isContainStub_;
+    std::unordered_map<std::u16string, wptr<IRemoteObject>> objects_;
+    std::unordered_map<IRemoteObject *, bool> isContainStub_;
 
     std::shared_mutex deadObjectMutex_;
     std::unordered_map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
@@ -107,7 +107,7 @@ private:
     std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
 
     std::shared_mutex invokerProcMutex_;
-    std::map<std::string, InvokerProcInfo> invokerProcInfo_;
+    std::unordered_map<std::string, InvokerProcInfo> invokerProcInfo_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
