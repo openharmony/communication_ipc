@@ -104,9 +104,9 @@ public:
     binder_uintptr_t GetBinderObject() const;
 
 private:
-    int32_t ProcessDeathRecipient(MessageParcel &data, MessageParcel &reply);
-    int32_t AddDbinderDeathRecipient(MessageParcel &data, MessageParcel &reply);
-    int32_t RemoveDbinderDeathRecipient(MessageParcel &data, MessageParcel &reply);
+    int32_t ProcessDeathRecipient(MessageParcel &data);
+    int32_t AddDbinderDeathRecipient(MessageParcel &data);
+    int32_t RemoveDbinderDeathRecipient(MessageParcel &data);
     bool CheckSessionObjectValidity();
     int SaveDBinderData(const std::string &localBusName);
 
