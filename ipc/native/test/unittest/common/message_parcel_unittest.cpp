@@ -457,6 +457,7 @@ HWTEST_F(MessageParcelTest, WriteRawDataTest001, TestSize.Level1)
     MessageParcel parcel;
     char data[1] = { 0 };
     auto ret = parcel.WriteRawData(data, 1);
+    parcel.PrintBuffer(__FUNCTION__, __LINE__);
     ASSERT_TRUE(ret);
 }
 
@@ -469,6 +470,7 @@ HWTEST_F(MessageParcelTest, WriteRawDataTest002, TestSize.Level1)
 {
     MessageParcel parcel;
     auto ret = parcel.WriteRawData(nullptr, 1);
+    parcel.PrintBuffer(__FUNCTION__, __LINE__);
     ASSERT_TRUE(!ret);
 }
 
