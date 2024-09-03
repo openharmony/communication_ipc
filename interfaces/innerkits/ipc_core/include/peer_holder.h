@@ -19,6 +19,10 @@
 #include "iremote_object.h"
 
 namespace OHOS {
+
+constexpr uint32_t BEFORE_MAGIC = 0x5A5A5A5A;
+constexpr uint32_t AFTER_MAGIC = 0xA5A5A5A5;
+
 class PeerHolder {
 protected:
     PeerHolder(const sptr<IRemoteObject> &object);
@@ -33,7 +37,19 @@ protected:
     sptr<IRemoteObject> Remote();
 
 private:
+    uint32_t beforeMagic_ = BEFORE_MAGIC;
     const sptr<IRemoteObject> remoteObject_;
+    uint32_t afterMagic_ = AFTER_MAGIC;
+
+    uint32_t GetBeforeMagic()
+    {
+        return beforeMagic_;
+    }
+
+    uint32_t GetAfterMagic()
+    {
+        return afterMagic_;
+    }
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PEER_HOLDER_H
