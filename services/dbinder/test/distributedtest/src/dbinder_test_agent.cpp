@@ -21,7 +21,7 @@
 #include "distributed_agent.h"
 #include "dbinder_service_test_helper.h"
 #include "log_tags.h"
-#include "softbus_bus_center.h"
+#include "dsoftbus_interface.h"
 
 using namespace testing;
 using namespace OHOS;
