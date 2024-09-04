@@ -39,9 +39,6 @@ config("ipc_util_config") {
   if (defined(build_public_version) && build_public_version) {
     cflags += [ "-DBUILD_PUBLIC_VERSION" ]
   }
-  if (ipc_feature_actv_binder_enabled) {
-    cflags += [ "-DCONFIG_ACTV_BINDER" ]
-  }
 }
 
 config("dsoftbus_header_deps_config") {
