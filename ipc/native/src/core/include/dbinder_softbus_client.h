@@ -20,10 +20,8 @@
 #include <string>
 #include <atomic>
 
-#include "inner_socket.h"
 #include "nocopyable.h"
-#include "socket.h"
-#include "softbus_bus_center.h"
+#include "dsoftbus_interface.h"
 
 namespace OHOS {
 enum {
