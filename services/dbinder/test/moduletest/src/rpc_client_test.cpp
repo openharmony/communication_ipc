@@ -17,7 +17,7 @@
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
-#include "softbus_bus_center.h"
+#include "dsoftbus_interface.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
 #include "rpc_test.h"
