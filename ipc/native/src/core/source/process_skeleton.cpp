@@ -125,17 +125,27 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     // This handle may have already been replaced with a new IPCObjectProxy,
     // if someone failed the AttemptIncStrong.
     auto iterator = objects_.find(descriptor);
-    if (iterator != objects_.end()) {
-        if (object->IsProxyObject()) {
-            proxyObjectCountNum_.fetch_sub(1, std::memory_order_relaxed);
-        }
-        objects_.erase(iterator);
-        ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+    if (iterator == objects_.end()) {
+        ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated",
+            ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+        return false;
+    }
+
+    if (object->IsProxyObject()) {
+        proxyObjectCountNum_.fetch_sub(1, std::memory_order_relaxed);
+    }
+
+    if (iterator->second.GetRefPtr() != object) {
+        ZLOGD(LOG_LABEL, "can not erase it because addr if different, "
+            "desc:%{public}s, recorded object:%{public}u, detach object:%{public}u",
+            ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), ConvertAddr(iterator->second.GetRefPtr()),
+            ConvertAddr(object));
         return true;
     }
-    ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated",
-        ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
-    return false;
+
+    objects_.erase(iterator);
+    ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+    return true;
 }
 
 bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &descriptor, bool lockFlag)
@@ -196,14 +206,23 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
             remoteObject = it->second.GetRefPtr();
         }
     }
-    DeadObjectInfo deadInfo;
-    bool isNullObject = (remoteObject == nullptr);
-    bool isDeadObject = IsDeadObject(remoteObject, deadInfo);
-    if (isNullObject || isDeadObject || !remoteObject->AttemptIncStrong(this)) {
-        ZLOGE(LOG_LABEL, "remoteObject is null or dead or AttemptIncStrong failed, "
-            "isNullObject:%{public}d, isDeadObject:%{public}d", isNullObject, isDeadObject);
+
+    if (remoteObject == nullptr) {
+        ZLOGD(LOG_LABEL, "not found object, desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
         return result;
     }
+
+    DeadObjectInfo deadInfo;
+    if (IsDeadObject(remoteObject, deadInfo)) {
+        ZLOGD(LOG_LABEL, "object %{public}d is dead", ConvertAddr(remoteObject));
+        return result;
+    }
+
+    if (!remoteObject->AttemptIncStrong(this)) {
+        ZLOGD(LOG_LABEL, "object %{public}d AttemptIncStrong failed", ConvertAddr(remoteObject));
+        return result;
+    }
+
     result = remoteObject;
     result->CheckIsAttemptAcquireSet(this);
 
