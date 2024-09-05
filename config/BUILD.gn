@@ -17,7 +17,7 @@ import("../config.gni")
 
 SUBSYSTEM_DIR = "../"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
-DSOFTBUS_INTERFACES_PATH = "../../dsoftbus"
+DSOFTBUS_INTERFACES_PATH = "$SUBSYSTEM_DIR/dl_deps"
 
 config("ipc_util_config") {
   # header file path
@@ -44,10 +44,5 @@ config("ipc_util_config") {
 }
 
 config("dsoftbus_header_deps_config") {
-  include_dirs = [
-    "$DSOFTBUS_INTERFACES_PATH/interfaces/inner_kits/transport",
-    "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/bus_center",
-    "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/common",
-    "$DSOFTBUS_INTERFACES_PATH/interfaces/kits/transport",
-  ]
+  include_dirs = [ "$DSOFTBUS_INTERFACES_PATH" ]
 }
