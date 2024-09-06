@@ -35,7 +35,7 @@ int JavaOhosRpcMessageOptionGetFlags(JNIEnv *env, jobject object)
     if ((g_jMessageOption.flagsField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.flagsField);
     }
-    return JNI_OK;
+    return 0;
 }
 
 /*
@@ -47,7 +47,7 @@ int JavaOhosRpcMessageOptionGetWaitTime(JNIEnv *env, jobject object)
     if ((g_jMessageOption.waitTimeField != nullptr) && (env != nullptr)) {
         return env->GetIntField(object, g_jMessageOption.waitTimeField);
     }
-    return JNI_OK;
+    return 0;
 }
 
 /*
@@ -106,12 +106,12 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
 {
     ZLOGD(LABEL, "enter");
     if (env == nullptr) {
-        return JNI_ERR;
+        return -1;
     }
     jclass klazz = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("ohos/rpc/MessageOption")));
     if (klazz == nullptr) {
         ZLOGE(LABEL, "could not find class for MessageOption");
-        return JNI_ERR;
+        return -1;
     }
     g_jMessageOption.klazz = reinterpret_cast<jclass>(env->NewGlobalRef(klazz));
     g_jMessageOption.initMethod = env->GetMethodID(g_jMessageOption.klazz, "<init>", "(II)V");
@@ -121,7 +121,7 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageOption.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return JNI_ERR;
+        return -1;
     }
 
     g_jMessageOption.flagsField = env->GetFieldID(g_jMessageOption.klazz, "mFlags", "I");
@@ -131,7 +131,7 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageOption.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return JNI_ERR;
+        return -1;
     }
 
     g_jMessageOption.waitTimeField = env->GetFieldID(g_jMessageOption.klazz, "mWaitTime", "I");
@@ -141,8 +141,8 @@ int JavaOhosRpcMessageOptionRegisterNativeMethods(JNIEnv *env)
             env->DeleteGlobalRef(g_jMessageOption.klazz);
         }
         env->DeleteGlobalRef(klazz);
-        return JNI_ERR;
+        return -1;
     }
-    return JNI_OK;
+    return 0;
 }
 } // namespace OHOS
