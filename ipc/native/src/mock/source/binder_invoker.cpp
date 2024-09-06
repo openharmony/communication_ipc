@@ -1686,6 +1686,11 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
         parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
+bool BinderInvoker::IsSendRequesting()
+{
+    return sendRequestCount_ > 0;
+}
+
 #ifdef CONFIG_ACTV_BINDER
 void BinderInvoker::JoinActvThread(bool initiative)
 {
