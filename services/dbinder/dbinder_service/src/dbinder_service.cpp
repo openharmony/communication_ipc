@@ -27,7 +27,7 @@
 #include "dbinder_sa_death_recipient.h"
 #include "dbinder_service_stub.h"
 #include "ffrt.h"
-#include "softbus_bus_center.h"
+#include "dsoftbus_interface.h"
 
 namespace OHOS {
 

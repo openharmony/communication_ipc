@@ -18,6 +18,7 @@
 
 #include <map>
 #include <mutex>
+#include <atomic>
 #include <shared_mutex>
 #include <unordered_map>
 
@@ -45,7 +46,7 @@ struct InvokerProcInfo {
 class ProcessSkeleton {
 public:
     static std::string ConvertToSecureDesc(const std::string &str);
-    static bool IsPrint(int err, int &lastErr, int &lastErrCnt);
+    static bool IsPrint(int err, std::atomic<int> &lastErr, std::atomic<int> &lastErrCnt);
     static uint32_t ConvertAddr(const void *ptr);
     static ProcessSkeleton* GetInstance();
     static bool FlattenDBinderData(Parcel &parcel, const dbinder_negotiation_data *&dbinderData);
@@ -96,8 +97,8 @@ private:
     sptr<IRemoteObject> registryObject_ = nullptr;
     bool isSamgr_ = false;
 
-    std::map<std::u16string, wptr<IRemoteObject>> objects_;
-    std::map<IRemoteObject *, bool> isContainStub_;
+    std::unordered_map<std::u16string, wptr<IRemoteObject>> objects_;
+    std::unordered_map<IRemoteObject *, bool> isContainStub_;
 
     std::shared_mutex deadObjectMutex_;
     std::unordered_map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
@@ -107,7 +108,7 @@ private:
     std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
 
     std::shared_mutex invokerProcMutex_;
-    std::map<std::string, InvokerProcInfo> invokerProcInfo_;
+    std::unordered_map<std::string, InvokerProcInfo> invokerProcInfo_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H

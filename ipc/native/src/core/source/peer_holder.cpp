@@ -15,14 +15,23 @@
 
 #include "peer_holder.h"
 
+#include "ipc_debug.h"
 #include "iremote_object.h"
+#include "log_tags.h"
 #include "refbase.h"
 
 namespace OHOS {
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PEER_HOLDER, "PeerHolder" };
+
 PeerHolder::PeerHolder(const sptr<IRemoteObject> &object) : remoteObject_(object) {}
 
 sptr<IRemoteObject> PeerHolder::Remote()
 {
+    if (GetBeforeMagic() != BEFORE_MAGIC || GetAfterMagic() != AFTER_MAGIC) {
+        ZLOGE(LOG_LABEL, "remoteObject invalid, beforeMagic:%{public}x afterMagic:%{public}x",
+            beforeMagic_, afterMagic_);
+        return nullptr;
+    }
     return remoteObject_;
 }
 } // namespace OHOS

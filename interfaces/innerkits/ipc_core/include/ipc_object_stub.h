@@ -18,6 +18,7 @@
 
 #include <list>
 #include <map>
+#include <atomic>
 #include "ipc_object_proxy.h"
 #include "iremote_object.h"
 
@@ -305,8 +306,8 @@ private:
     using IPCObjectStubFunc = int(IPCObjectStub::*)(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     std::map<uint32_t, IPCObjectStubFunc> funcMap_;
-    int lastErrCode_ = 0;
-    int lastErrCnt_ = 0;
+    std::atomic<int> lastErrCode_ = 0;
+    std::atomic<int> lastErrCnt_ = 0;
     std::atomic<bool> requestSidFlag_ = false;
 };
 } // namespace OHOS

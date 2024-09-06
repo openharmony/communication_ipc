@@ -38,6 +38,7 @@ ohos_shared_library("ipc_common") {
   ]
 
   configs = [
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_common_private_config",
   ]

@@ -302,6 +302,7 @@ int DBinderServiceStub::SaveDBinderData(const std::string &localBusName)
     }
 
     dbinder_negotiation_data *dbinderData = reinterpret_cast<dbinder_negotiation_data *>(dbinderData_.get());
+    (void)memset_s(dbinderData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
     dbinderData->proto = IRemoteObject::IF_PROT_DATABUS;
     dbinderData->stub_index = session->stubIndex;
     dbinderData->tokenid = session->deviceIdInfo.tokenId;
