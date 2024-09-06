@@ -259,7 +259,7 @@ private:
 
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     std::map<uint64_t, std::shared_ptr<ThreadMessageInfo>> seqNumberToThread_;
-    std::map<uint64_t, IRemoteObject *> stubObjects_;
+    std::unordered_map<uint64_t, IRemoteObject *> stubObjects_;
     std::map<std::thread::id, std::shared_ptr<SocketThreadLockInfo>> threadLockInfo_;
     std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> proxyToSession_;
     std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> dbinderSessionObjects_;
