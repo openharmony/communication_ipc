@@ -164,14 +164,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     }
 #endif
 
-    if (sendNestCount_ > 0) {
-        ZLOGW(LABEL, "request nesting occurs, count:%{public}u", sendNestCount_.load());
-    }
-    ++sendNestCount_;
     int cmd = (totalDBinderBufSize > 0) ? BC_TRANSACTION_SG : BC_TRANSACTION;
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
-        --sendNestCount_;
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -186,7 +181,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
-    --sendNestCount_;
     return error;
 }
 
