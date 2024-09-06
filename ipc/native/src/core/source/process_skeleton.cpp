@@ -58,7 +58,22 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
 
 ProcessSkeleton::~ProcessSkeleton()
 {
+    ZLOGI(LOG_LABEL, "enter");
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     exitFlag_ = true;
+    {
+        std::unique_lock<std::shared_mutex> objLock(objMutex_);
+        objects_.clear();
+        isContainStub_.clear();
+    }
+    {
+        std::unique_lock<std::shared_mutex> deadObjLock(deadObjectMutex_);
+        deadObjectRecord_.clear();
+    }
+    {
+        std::unique_lock<std::shared_mutex> invokerProcLock(invokerProcMutex_);
+        invokerProcInfo_.clear();
+    }
 }
 
 sptr<IRemoteObject> ProcessSkeleton::GetRegistryObject()
@@ -322,7 +337,7 @@ bool ProcessSkeleton::DetachInvokerProcInfo(bool isLocal)
     return false;
 }
 
-bool ProcessSkeleton::IsPrint(int err, int &lastErr, int &lastErrCnt)
+bool ProcessSkeleton::IsPrint(int err, std::atomic<int> &lastErr, std::atomic<int> &lastErrCnt)
 {
     bool isPrint = false;
     if (err == lastErr) {

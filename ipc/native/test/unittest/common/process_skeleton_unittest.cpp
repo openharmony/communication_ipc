@@ -198,8 +198,8 @@ HWTEST_F(ProcessSkeletonUnitTest, ConvertToSecureDescTest001, TestSize.Level1)
  */
 HWTEST_F(ProcessSkeletonUnitTest, IsPrintTest001, TestSize.Level1)
 {
-    int lastErr = 0;
-    int lastErrCnt = 0;
+    std::atomic<int> lastErr = 0;
+    std::atomic<int> lastErrCnt = 0;
     bool isPrint = ProcessSkeleton::IsPrint(1, lastErr, lastErrCnt);
     EXPECT_EQ(isPrint, true);
     EXPECT_EQ(lastErr, 1);

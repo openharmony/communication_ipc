@@ -41,6 +41,8 @@ using namespace OHOS;
 
 namespace {
 constexpr pid_t ALLOWED_UID = 10000;
+constexpr pid_t VALID_PID = 1234;
+constexpr pid_t VALID_UID = 1000;
 }
 
 class IPCObjectStubTest : public testing::Test {
@@ -1202,4 +1204,17 @@ HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
     EXPECT_EQ(ret, 1);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
+}
+
+/**
+ * @tc.name: GetAndSaveDBinderDataTest001
+ * @tc.desc: Verify the GetAndSaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, GetAndSaveDBinderDataTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+
+    int result = testStub->GetAndSaveDBinderData(VALID_PID, VALID_UID);
+    EXPECT_EQ(result, ERR_INVALID_STATE);
 }
