@@ -85,6 +85,7 @@ ohos_shared_library("ipc_core") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

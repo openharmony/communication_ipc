@@ -44,7 +44,8 @@
           "hisysevent",
           "json",
           "selinux",
-          "rust"
+          "rust",
+          "faultloggerd"
         ],
         "third_party": [
         ]
