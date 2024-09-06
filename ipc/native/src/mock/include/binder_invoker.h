@@ -116,6 +116,8 @@ public:
 
     uint32_t GetStrongRefCountForStub(uint32_t handle);
 
+    bool IsSendRequesting();
+
 #ifndef CONFIG_IPC_SINGLE
     int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
 
