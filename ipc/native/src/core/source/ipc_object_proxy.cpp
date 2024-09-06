@@ -88,10 +88,6 @@ IPCObjectProxy::~IPCObjectProxy()
         desc = Str16ToStr8(remoteDescriptor_);
         obj = { handle_, curTime, curTime, remoteDescriptor_ };
     }
-    if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
-        ZLOGI(LABEL, "destroy handle:%{public}u desc:%{public}s %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-    }
     auto pos = desc.find("IVpnStateCallback");
     if (pos != std::string::npos) {
         ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
@@ -149,10 +145,6 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
             remoteDescriptor_ = data.GetInterfaceToken();
         }
         desc = Str16ToStr8(remoteDescriptor_);
-    }
-    if (desc == "ohos.aafwk.AbilityManager") {
-        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
     }
 
     auto beginTime = std::chrono::steady_clock::now();
@@ -222,10 +214,6 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         desc = Str16ToStr8(remoteDescriptor_);
-    }
-    if (desc == "ohos.aafwk.AbilityToken") {
-        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
     }
 
     int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
@@ -396,10 +384,6 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         desc = Str16ToStr8(remoteDescriptor_);
-    }
-    if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
-        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
     }
     ZLOGD(LABEL, "handle:%{public}u proto:%{public}d", handle_, proto_);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
