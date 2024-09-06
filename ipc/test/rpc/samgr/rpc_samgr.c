@@ -38,7 +38,7 @@ enum {
     ADD_REMOTE_SYSTEM_ABILITY_TRANSACTION = 4,
 };
 
-static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
+int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 {
     RPC_LOG_INFO("AddSystemAbility called.... handle = %d", sid->handle);
     RPC_LOG_INFO("AddSystemAbility called.... cookie = %u", sid->cookie);
@@ -57,7 +57,7 @@ static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     return ERR_NONE;
 }
 
-static int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
+int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
     SvcInfo* node = NULL;
     SvcInfo* next = NULL;
@@ -74,7 +74,7 @@ static int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity 
     return ERR_FAILED;
 }
 
-static int32_t AddRemoteSystemAbility(int32_t saId, SvcIdentity *sid)
+int32_t AddRemoteSystemAbility(int32_t saId, SvcIdentity *sid)
 {
     if (AddSystemAbility(saId, sid) == ERR_FAILED) {
         RPC_LOG_ERROR("AddSystemAbility failed");
@@ -90,7 +90,7 @@ static int32_t AddRemoteSystemAbility(int32_t saId, SvcIdentity *sid)
     return ERR_NONE;
 }
 
-static int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
+int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
 {
     int32_t saId;
     ReadInt32(data, &saId);
@@ -111,7 +111,7 @@ static int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     return ret;
 }
 
-static int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
+int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
     RPC_LOG_INFO("OnRemoteRequest called.... code = %u", code);

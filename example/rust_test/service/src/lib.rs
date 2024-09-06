@@ -20,8 +20,8 @@ extern crate ipc_rust;
 mod access_token;
 
 use ipc_rust::{
-    IRemoteBroker, IRemoteObj, RemoteStub, IpcResult,
-    IpcStatusCode, RemoteObj, define_remote_object, FIRST_CALL_TRANSACTION,
+    IRemoteBroker, IRemoteObj, RemoteStub, IpcResult, IpcStatusCode,
+    RemoteObj, define_remote_object, FIRST_CALL_TRANSACTION,
 };
 use ipc_rust::{
     MsgParcel, BorrowedMsgParcel,

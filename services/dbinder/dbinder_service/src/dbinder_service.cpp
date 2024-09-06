@@ -482,7 +482,7 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     std::unique_lock<std::mutex> lock(threadLockInfo->mutex);
     if (threadLockInfo->condition.wait_for(lock, std::chrono::seconds(WAIT_FOR_REPLY_MAX_SEC),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
-        DBINDER_LOGE(LOG_LABEL, "get remote data timeout or ssession is closed, seq:%{public}u", seqNumber);
+        DBINDER_LOGE(LOG_LABEL, "get remote data timeout or ssession is  closed, seq:%{public}u", seqNumber);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_WAIT_REPLY_TIMEOUT, __FUNCTION__);
         DetachThreadLockInfo(seqNumber);
         threadLockInfo->ready = false;
@@ -530,7 +530,7 @@ std::shared_ptr<DHandleEntryTxRx> DBinderService::PopLoadSaItem(const std::strin
     std::lock_guard<std::shared_mutex> lockGuard(loadSaMutex_);
     auto it = std::find_if(loadSaReply_.begin(), loadSaReply_.end(), checkSaItem);
     if (it == loadSaReply_.end()) {
-        DBINDER_LOGI(LOG_LABEL, "findSaItem failed saId:%{public}d, deviceId:%{public}s",
+        DBINDER_LOGI(LOG_LABEL, "no msg for saId:%{public}d, deviceId:%{public}s",
             systemAbilityId, DBinderService::ConvertToSecureDeviceID(srcNetworkId).c_str());
         return nullptr;
     }
@@ -670,6 +670,7 @@ bool DBinderService::OnRemoteInvokerMessage(std::shared_ptr<struct DHandleEntryT
         SendReplyMessageToRemote(MESSAGE_AS_REMOTE_ERROR, SA_NOT_AVAILABLE, replyMessage);
         return false;
     }
+
     return true;
 }
 
@@ -763,7 +764,8 @@ bool DBinderService::SetReplyMessage(std::shared_ptr<struct DHandleEntryTxRx> re
     return true;
 }
 
-uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy, std::shared_ptr<struct DHandleEntryTxRx> replyMessage,
+uint32_t DBinderService::OnRemoteInvokerDataBusMessage(IPCObjectProxy *proxy,
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage,
     std::string &remoteDeviceId, int pid, int uid, uint32_t tokenId)
 {
     if (CheckDeviceIdIllegal(remoteDeviceId)) {
