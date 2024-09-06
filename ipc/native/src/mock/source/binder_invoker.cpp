@@ -19,6 +19,7 @@
 #include <securec.h>
 
 #include "access_token_adapter.h"
+#include "backtrace_local.h"
 #include "binder_debug.h"
 #include "hilog/log.h"
 #include "hitrace_invoker.h"
@@ -164,17 +165,13 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     }
 #endif
 
-    if (sendNestCount_ > 0) {
-        ZLOGW(LABEL, "request nesting occurs, count:%{public}u", sendNestCount_.load());
-    }
-    ++sendNestCount_;
     int cmd = (totalDBinderBufSize > 0) ? BC_TRANSACTION_SG : BC_TRANSACTION;
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
-        --sendNestCount_;
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
+    ++sendRequestCount_;
     if ((flags & TF_ONE_WAY) != 0) {
         error = WaitForCompletion(nullptr);
     } else {
@@ -186,7 +183,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
-    --sendNestCount_;
+    --sendRequestCount_;
     return error;
 }
 
@@ -490,16 +487,21 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
     if (error != ERR_NONE) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LABEL, "fail to flush commands with error:%{public}d time:%{public}" PRIu64, error, curTime);
+        ZLOGE(LABEL, "failed, error:%{public}d time:%{public}" PRIu64, error, curTime);
     }
 
     if (output_.GetDataSize() > 0) {
         error = TransactWithDriver(false);
-        ZLOGE(LABEL, "flush commands again with return value:%{public}d", error);
     }
     if (error != ERR_NONE || output_.GetDataSize() > 0) {
-        ZLOGE(LABEL, "flush commands with error:%{public}d, left data size:%{public}zu", error,
-            output_.GetDataSize());
+        ZLOGW(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
+        PrintParcelData(output_, "output_");
+        std::string backtrace;
+        if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
+            ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+        } else {
+            ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+        }
     }
 
     return error;
@@ -1055,6 +1057,7 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
             output_.FlushBuffer();
+            sendNestCount_ = 0;
         }
     }
     if (bwr.read_consumed > 0) {
@@ -1071,7 +1074,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     binder_write_read bwr;
     const bool needRead = input_.GetReadableBytes() == 0;
-    const size_t outAvail = (!doRead || needRead) ? output_.GetDataSize() : 0;
+    const size_t outAvail = (!doRead || needRead || sendRequestCount_ > 0) ? output_.GetDataSize() : 0;
 
     bwr.write_size = (binder_size_t)outAvail;
     bwr.write_buffer = output_.GetData();
@@ -1079,6 +1082,16 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (doRead && needRead) {
         bwr.read_size = input_.GetDataCapacity();
         bwr.read_buffer = input_.GetData();
+    } else if (sendRequestCount_ > 0) {
+        Parcel temp;
+        auto readSize = input_.GetReadableBytes();
+        temp.WriteBuffer(reinterpret_cast<void *>(input_.GetData() + input_.GetReadPosition()), readSize);
+        input_.RewindWrite(0);
+        input_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
+        input_.SetDataSize(temp.GetDataSize());
+        input_.RewindRead(0);
+        bwr.read_size = input_.GetDataCapacity() - input_.GetDataSize();
+        bwr.read_buffer = input_.GetData() + input_.GetDataSize();
     } else {
         bwr.read_size = 0;
         bwr.read_buffer = 0;
@@ -1137,7 +1150,20 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
     }
     const void *buf = isContainPtrType ? static_cast<const void *>(&tr_sg) : static_cast<const void *>(&tr);
     size_t bufSize = isContainPtrType ? sizeof(tr_sg) : sizeof(tr);
-    return output_.WriteBuffer(buf, bufSize);
+    bool ret = output_.WriteBuffer(buf, bufSize);
+
+    if (sendNestCount_ > 0) {
+        ZLOGW(LABEL, "request nesting occurs, handle:%{public}d count:%{public}u", handle, sendNestCount_.load());
+        PrintParcelData(output_, "output_");
+        std::string backtrace;
+        if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
+            ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+        } else {
+            ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+        }
+    }
+    ++sendNestCount_;
+    return ret;
 }
 
 void BinderInvoker::OnTransactionComplete(

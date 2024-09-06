@@ -213,6 +213,8 @@ struct binder_pri_ptr_cookie {
     binder_uintptr_t ptr;
     binder_uintptr_t cookie;
 };
+
+/* 31~30(3bit) rw, 29~16(14bit) size, 15~8(8bit) magic, 7~0(8bit) seq */
 enum binder_driver_return_protocol {
     BR_ERROR = _IOR('r', 0, __s32),
     BR_OK = _IO('r', 1),
