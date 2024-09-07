@@ -15,6 +15,7 @@
 
 #include "iremote_broker.h"
 
+#include <dlfcn.h>
 #include <utility>
 
 #include "__mutex_base"
@@ -42,7 +43,7 @@ BrokerRegistration::~BrokerRegistration()
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
     isUnloading = true;
     for (auto it1 = objects_.begin(); it1 != objects_.end();) {
-        BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(*it1);
+        BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(it1->first);
         object->isSoUnloaded = true;
         it1 = objects_.erase(it1);
     }
@@ -65,12 +66,16 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
     if (it == creators_.end()) {
         ret = creators_.insert({ descriptor, creator }).second;
     }
-    auto it1 = std::find_if(objects_.begin(), objects_.end(), [descriptor](uintptr_t id) {
-        const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(id);
+    auto it1 = std::find_if(objects_.begin(), objects_.end(), [descriptor](std::pair<uintptr_t, std::string> value) {
+        const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(value.first);
         return object->descriptor_ == descriptor;
     });
     if (it1 == objects_.end()) {
-        objects_.push_back(reinterpret_cast<uintptr_t>(object));
+        std::string soPath = GetObjectSoPath(reinterpret_cast<uintptr_t>(object));
+        if (soPath.empty()) {
+            return false;
+        }
+        objects_.insert(std::make_pair(reinterpret_cast<uintptr_t>(object), soPath));
     }
     return ret;
 }
@@ -82,18 +87,25 @@ void BrokerRegistration::Unregister(const std::u16string &descriptor)
         ZLOGE(LABEL, "BrokerRegistration is Unloading");
         return;
     }
-    if (!descriptor.empty()) {
-        auto it = creators_.find(descriptor);
-        if (it != creators_.end()) {
-            creators_.erase(it);
+    if (descriptor.empty()) {
+        return;
+    }
+    auto it = creators_.find(descriptor);
+    if (it != creators_.end()) {
+        creators_.erase(it);
+    }
+    auto it1 = std::find_if(objects_.begin(), objects_.end(),
+        [descriptor, this](std::pair<uintptr_t, std::string> value) {
+        std::string soPath = GetObjectSoPath(value.first);
+        if (soPath.empty() || (soPath != value.second)) {
+            ZLOGE(LABEL, "path:%{public}s is dlcosed", value.second.c_str());
+            return false;
         }
-        auto it1 = std::find_if(objects_.begin(), objects_.end(), [descriptor](uintptr_t id) {
-            const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(id);
-            return object->descriptor_ == descriptor;
-        });
-        if (it1 != objects_.end()) {
-            objects_.erase(it1);
-        }
+        const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(value.first);
+        return object->descriptor_ == descriptor;
+    });
+    if (it1 != objects_.end()) {
+        objects_.erase(it1);
     }
 }
 
@@ -113,5 +125,16 @@ sptr<IRemoteBroker> BrokerRegistration::NewInstance(const std::u16string &descri
         }
     }
     return broker;
+}
+
+std::string BrokerRegistration::GetObjectSoPath(uintptr_t ptr)
+{
+    Dl_info info;
+    int32_t ret = dladdr(reinterpret_cast<void *>(ptr), &info);
+    if ((ret == 0) || (ret == -1) || (info.dli_fname == nullptr)) {
+        ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
+        return "";
+    }
+    return info.dli_fname;
 }
 } // namespace OHOS
