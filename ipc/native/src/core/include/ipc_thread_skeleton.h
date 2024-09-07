@@ -52,6 +52,9 @@ public:
 
     static void SaveThreadName(const std::string &name);
 
+    static bool UpdateSendRequestCount(int delta);
+    bool IsSendRequesting();
+
     // Joint Current thread into IPC Work Group
     void JoinWorkThread(int proto);
     // Quit current thread from IPC work group.
@@ -68,6 +71,7 @@ private:
     static constexpr uint32_t INVOKER_MAX_COUNT = 2;
     IRemoteInvoker *invokers_[INVOKER_MAX_COUNT] = {nullptr, nullptr};
     const pid_t tid_;
+    std::atomic<int32_t> sendRequestCount_ = 0;
     std::string threadName_;
 };
 #ifdef CONFIG_IPC_SINGLE
