@@ -17,6 +17,7 @@
 
 #include <cinttypes>
 #include <memory>
+#include <sys/prctl.h>
 #include <sys/syscall.h>
 
 #include "binder_invoker.h"
@@ -41,6 +42,7 @@ using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
 
+static constexpr uint32_t MAX_THREAD_NAME_LEN = 20;
 static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "IPCThreadSkeleton" };
 
 extern "C" __attribute__((destructor)) void DeleteTlsKey()
@@ -74,7 +76,43 @@ void IPCThreadSkeleton::TlsDestructor(void *args)
 
 void IPCThreadSkeleton::MakeTlsKey()
 {
-    pthread_key_create(&TLSKey_, IPCThreadSkeleton::TlsDestructor);
+    auto ret = pthread_key_create(&TLSKey_, IPCThreadSkeleton::TlsDestructor);
+    if (ret != 0) {
+        ZLOGE(LOG_LABEL, "pthread_key_create fail, ret:%{public}d", ret);
+        return;
+    }
+    ZLOGI(LOG_LABEL, "key:%{public}d", TLSKey_);
+}
+
+void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
+{
+    if (instance == nullptr) {
+        ZLOGE(LOG_LABEL, "instance is null");
+        return;
+    }
+
+    auto tid = gettid();
+    if (instance->tid_ != tid) {
+        auto invoker = reinterpret_cast<BinderInvoker *>(instance->GetDefaultInvoker());
+        if (invoker != nullptr && invoker->IsSendRequesting()) {
+            ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, "
+                "key:%{public}u instance:%{public}u threadName:%{public}s",
+                tid, instance->tid_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
+                instance->threadName_.c_str());
+        }
+        pthread_setspecific(TLSKey_, nullptr);
+        instance = new (std::nothrow) IPCThreadSkeleton();
+    }
+}
+
+void IPCThreadSkeleton::SaveThreadName(const std::string &name)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return;
+    }
+    CHECK_INSTANCE_EXIT(current->exitFlag_);
+    current->threadName_ = name;
 }
 
 IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
@@ -86,16 +124,24 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
         CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
+        GetVaildInstance(current);
     } else {
         current = new (std::nothrow) IPCThreadSkeleton();
     }
     return current;
 }
 
-IPCThreadSkeleton::IPCThreadSkeleton()
+IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
 {
     ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
     pthread_setspecific(TLSKey_, this);
+    char name[MAX_THREAD_NAME_LEN] = {0};
+    auto ret = prctl(PR_GET_NAME, name);
+    if (ret != 0) {
+        ZLOGW(LOG_LABEL, "get thread name fail, tid:%{public}d ret:%{public}d", tid_, ret);
+        return;
+    }
+    threadName_ = name;
 }
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
