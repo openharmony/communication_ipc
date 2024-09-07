@@ -401,7 +401,13 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
-    recipients_.push_back(recipient);
+
+    std::string soPath = GetObjectSoPath(recipient);
+    if (soPath.empty()) {
+        return false;
+    }
+    recipients_.insert(std::make_pair(soPath, recipient));
+
     if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
@@ -443,11 +449,19 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
         return false;
     }
+
+    std::string soPath = GetObjectSoPath(recipient);
+    if (soPath.empty()) {
+        return false;
+    }
+
     bool recipientErased = false;
-    auto it = find(recipients_.begin(), recipients_.end(), recipient);
-    if (it != recipients_.end()) {
-        recipients_.erase(it);
-        recipientErased = true;
+    for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
+        if (iter->second == recipient) {
+            recipients_.erase(iter);
+            recipientErased = true;
+            break;
+        }
     }
 
     if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
@@ -478,6 +492,31 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     return recipientErased;
 }
 
+std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
+{
+    if (recipient == nullptr) {
+        ZLOGE(LABEL, "recipient is deleted");
+        return "";
+    }
+
+    Dl_info info;
+    int32_t ret = dladdr(reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient.GetRefPtr())), &info);
+    if ((ret == 0) || (info.dli_fname == nullptr)) {
+        ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
+        return "";
+    }
+    return info.dli_fname;
+}
+
+bool IPCObjectProxy::IsDlclosed(std::string soPath, sptr<DeathRecipient> recipient)
+{
+    std::string current = GetObjectSoPath(recipient);
+    if (current.empty() || (current != soPath)) {
+        return true;
+    }
+    return false;
+}
+
 void IPCObjectProxy::SendObituary()
 {
     ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
@@ -490,11 +529,17 @@ void IPCObjectProxy::SendObituary()
         }
     }
 #endif
-    std::vector<sptr<DeathRecipient>> toBeReport;
+    std::unordered_multimap<std::string, sptr<DeathRecipient>> toBeReport;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         MarkObjectDied();
-        toBeReport = recipients_;
+        for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
+            if (IsDlclosed(iter->first, iter->second)) {
+                ZLOGE(LABEL, "path:%{public}s is dlcosed", iter->first.c_str());
+                continue;
+            }
+            toBeReport.insert(std::make_pair(iter->first, iter->second));
+        }
         recipients_.clear();
     }
 
@@ -507,9 +552,12 @@ void IPCObjectProxy::SendObituary()
         }
     }
 
-    const size_t size = toBeReport.size();
-    for (size_t i = 0; i < size; i++) {
-        sptr<DeathRecipient> recipient = toBeReport[i];
+    for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
+        if (IsDlclosed(iter->first, iter->second)) {
+            ZLOGE(LABEL, "path:%{public}s is dlcosed", iter->first.c_str());
+            continue;
+        }
+        sptr<DeathRecipient> recipient = iter->second;
         if (recipient != nullptr) {
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
             recipient->OnRemoteDied(this);
