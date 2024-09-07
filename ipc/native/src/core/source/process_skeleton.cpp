@@ -65,7 +65,7 @@ ProcessSkeleton::~ProcessSkeleton()
         isContainStub_.clear();
     }
     {
-        std::shared_lock<std::shared_mutex> lockGuard(validObjectMutex_);
+        std::unique_lock<std::shared_mutex> validObjLock(validObjectMutex_);
         validObjectRecord_.clear();
     }
     {
