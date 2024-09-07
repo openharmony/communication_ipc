@@ -84,10 +84,6 @@ IPCObjectProxy::~IPCObjectProxy()
             ProcessSkeleton::ConvertAddr(this));
         desc = Str16ToStr8(remoteDescriptor_);
     }
-    if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
-        ZLOGI(LABEL, "destroy handle:%{public}u desc:%{public}s %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-    }
     auto pos = desc.find("IVpnStateCallback");
     if (pos != std::string::npos) {
         ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
@@ -145,10 +141,6 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
             remoteDescriptor_ = data.GetInterfaceToken();
         }
         desc = Str16ToStr8(remoteDescriptor_);
-    }
-    if (desc == "ohos.aafwk.AbilityManager") {
-        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
     }
 
     auto beginTime = std::chrono::steady_clock::now();
@@ -218,10 +210,6 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         desc = Str16ToStr8(remoteDescriptor_);
-    }
-    if (desc == "ohos.aafwk.AbilityToken") {
-        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s refcnt:%{public}d %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), GetSptrRefCount(), ProcessSkeleton::ConvertAddr(this));
     }
 
     int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
@@ -393,10 +381,6 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         desc = Str16ToStr8(remoteDescriptor_);
     }
-    if (desc == "ohos.aafwk.AbilityToken" || desc == "ohos.aafwk.AbilityManager") {
-        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
-            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-    }
     ZLOGD(LABEL, "handle:%{public}u proto:%{public}d", handle_, proto_);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
@@ -439,7 +423,13 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
-    recipients_.push_back(recipient);
+
+    std::string soPath = GetObjectSoPath(recipient);
+    if (soPath.empty()) {
+        return false;
+    }
+    recipients_.insert(std::make_pair(soPath, recipient));
+
     if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
@@ -486,10 +476,16 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
+
+    std::string soPath = GetObjectSoPath(recipient);
+    if (soPath.empty()) {
+        return false;
+    }
+
     bool recipientErased = false;
-    auto it = find(recipients_.begin(), recipients_.end(), recipient);
-    if (it != recipients_.end()) {
-        recipients_.erase(it);
+    auto iter = recipients_.find(soPath);
+    if (iter != recipients_.end()) {
+        recipients_.erase(iter);
         recipientErased = true;
     }
 
@@ -521,6 +517,26 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     return recipientErased;
 }
 
+std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
+{
+    Dl_info info;
+    int32_t ret = dladdr(reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient.GetRefPtr())), &info);
+    if ((ret == 0) || (ret == -1) || (info.dli_fname == nullptr)) {
+        ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
+        return "";
+    }
+    return info.dli_fname;
+}
+
+bool IPCObjectProxy::IsDlclosed(std::string soPath, sptr<DeathRecipient> recipient)
+{
+    std::string current = GetObjectSoPath(recipient);
+    if (current.empty() || (current != soPath)) {
+        return true;
+    }
+    return false;
+}
+
 void IPCObjectProxy::SendObituary()
 {
     {
@@ -529,7 +545,7 @@ void IPCObjectProxy::SendObituary()
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
             ProcessSkeleton::ConvertAddr(this));
     }
-    
+
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
@@ -538,10 +554,16 @@ void IPCObjectProxy::SendObituary()
     }
 #endif
     SetObjectDied(true);
-    std::vector<sptr<DeathRecipient>> toBeReport;
+    std::unordered_multimap<std::string, sptr<DeathRecipient>> toBeReport;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        toBeReport = recipients_;
+        for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
+            if (IsDlclosed(iter->first, iter->second)) {
+                ZLOGE(LABEL, "path:%{public}s is dlcosed", iter->first.c_str());
+                continue;
+            }
+            toBeReport.insert(std::make_pair(iter->first, iter->second));
+        }
         recipients_.clear();
     }
 
@@ -554,9 +576,12 @@ void IPCObjectProxy::SendObituary()
         }
     }
 
-    const size_t size = toBeReport.size();
-    for (size_t i = 0; i < size; i++) {
-        sptr<DeathRecipient> recipient = toBeReport[i];
+    for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
+        if (IsDlclosed(iter->first, iter->second)) {
+            ZLOGE(LABEL, "path:%{public}s is dlcosed", iter->first.c_str());
+            continue;
+        }
+        sptr<DeathRecipient> recipient = iter->second;
         if (recipient != nullptr) {
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
             recipient->OnRemoteDied(this);

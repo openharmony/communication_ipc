@@ -116,6 +116,8 @@ public:
 
     uint32_t GetStrongRefCountForStub(uint32_t handle);
 
+    bool IsSendRequesting();
+
 #ifndef CONFIG_IPC_SINGLE
     int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
 
@@ -252,7 +254,7 @@ private:
     InvokerProcInfo invokerInfo_;
     std::atomic<int> lastErr_ = 0;
     std::atomic<int> lastErrCnt_ = 0;
-    std::atomic<uint32_t> sendNestCount_ = 0;
+    std::atomic<uint32_t> sendRequestCount_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif
