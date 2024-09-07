@@ -264,7 +264,7 @@ bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     if (current == nullptr) {
-        return nullptr;
+        return false;
     }
     CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, false);
     current->sendRequestCount_ += delta;
