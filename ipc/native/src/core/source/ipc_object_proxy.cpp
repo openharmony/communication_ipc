@@ -71,22 +71,18 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
-    current->DetachDeadObject(this);
+    current->AttachValidObject(this);
 }
 
 IPCObjectProxy::~IPCObjectProxy()
 {
     std::string desc;
-    DeadObjectInfo obj;
-    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
             ProcessSkeleton::ConvertAddr(this));
         desc = Str16ToStr8(remoteDescriptor_);
-        obj = { handle_, curTime, curTime, remoteDescriptor_ };
     }
     auto pos = desc.find("IVpnStateCallback");
     if (pos != std::string::npos) {
@@ -98,7 +94,7 @@ IPCObjectProxy::~IPCObjectProxy()
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
-    current->AttachDeadObject(this, obj);
+    current->DetachValidObject(this);
     // for unordered_multimap clean
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);

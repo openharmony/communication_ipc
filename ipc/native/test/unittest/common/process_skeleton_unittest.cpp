@@ -98,36 +98,50 @@ HWTEST_F(ProcessSkeletonUnitTest, QueryObjectTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AttachDeadObjectTest001
- * @tc.desc: Verify the AttachDeadObject function
+ * @tc.name: AttachValidObjectTest001
+ * @tc.desc: Verify the AttachValidObject function
  * @tc.type: FUNC
  */
-HWTEST_F(ProcessSkeletonUnitTest, AttachDeadObjectTest001, TestSize.Level1)
+HWTEST_F(ProcessSkeletonUnitTest, AttachValidObjectTest001, TestSize.Level1)
 {
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
     ASSERT_TRUE(object != nullptr);
-    DeadObjectInfo info = {1, 0, 0, object->GetObjectDescriptor()};
-    bool ret = skeleton->AttachDeadObject(object.GetRefPtr(), info);
+    bool ret = skeleton->AttachValidObject(object.GetRefPtr());
     EXPECT_EQ(ret, true);
 }
 
 /**
- * @tc.name: DetachDeadObjectTest001
- * @tc.desc: Verify the DetachDeadObject function
+ * @tc.name: DetachValidObjectTest001
+ * @tc.desc: Verify the DetachValidObject function
  * @tc.type: FUNC
  */
-HWTEST_F(ProcessSkeletonUnitTest, DetachDeadObjectTest001, TestSize.Level1)
+HWTEST_F(ProcessSkeletonUnitTest, DetachValidObjectTest001, TestSize.Level1)
 {
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    DeadObjectInfo info = {1, 0, 0, object->GetObjectDescriptor()};
-    skeleton->AttachDeadObject(object.GetRefPtr(), info);
-    bool ret = skeleton->DetachDeadObject(object.GetRefPtr());
+    skeleton->AttachValidObject(object.GetRefPtr());
+    bool ret = skeleton->DetachValidObject(object.GetRefPtr());
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsValidObjectTest001
+ * @tc.desc: Verify the IsValidObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, IsValidObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    skeleton->AttachValidObject(object.GetRefPtr());
+    bool ret = skeleton->IsValidObject(object.GetRefPtr());
     EXPECT_EQ(ret, true);
 }
 
