@@ -1062,7 +1062,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     binder_write_read bwr;
     const bool needRead = input_.GetReadableBytes() == 0;
-    const size_t outAvail = (!doRead || needRead || sendRequestCount_ > 0) ? output_.GetDataSize() : 0;
+    const size_t outAvail = (!doRead || needRead/* || sendRequestCount_ > 0*/) ? output_.GetDataSize() : 0;
 
     bwr.write_size = (binder_size_t)outAvail;
     bwr.write_buffer = output_.GetData();
@@ -1070,7 +1070,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (doRead && needRead) {
         bwr.read_size = input_.GetDataCapacity();
         bwr.read_buffer = input_.GetData();
-    } else if (sendRequestCount_ > 0) {
+    } /*else if (sendRequestCount_ > 0) {
         Parcel temp;
         auto readSize = input_.GetReadableBytes();
         temp.WriteBuffer(reinterpret_cast<void *>(input_.GetData() + input_.GetReadPosition()), readSize);
@@ -1080,7 +1080,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
         input_.RewindRead(0);
         bwr.read_size = input_.GetDataCapacity() - input_.GetDataSize();
         bwr.read_buffer = input_.GetData() + input_.GetDataSize();
-    } else {
+    }*/ else {
         bwr.read_size = 0;
         bwr.read_buffer = 0;
     }
