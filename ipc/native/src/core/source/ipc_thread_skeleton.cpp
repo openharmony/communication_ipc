@@ -93,8 +93,7 @@ void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
 
     auto tid = gettid();
     if (instance->tid_ != tid) {
-        auto invoker = reinterpret_cast<BinderInvoker *>(instance->GetDefaultInvoker());
-        if (invoker != nullptr && invoker->IsSendRequesting()) {
+        if (instance->IsSendRequesting()) {
             ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, "
                 "key:%{public}u instance:%{public}u threadName:%{public}s",
                 tid, instance->tid_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
@@ -259,6 +258,22 @@ void IPCThreadSkeleton::StopWorkThread(int proto)
     if (invoker != nullptr) {
         invoker->StopWorkThread();
     }
+}
+
+bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, false);
+    current->sendRequestCount_ += delta;
+    return true;
+}
+
+bool IPCThreadSkeleton::IsSendRequesting()
+{
+    return sendRequestCount_ > 0;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
