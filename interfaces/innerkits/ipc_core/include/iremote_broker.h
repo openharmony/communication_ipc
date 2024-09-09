@@ -115,10 +115,9 @@ private:
     BrokerRegistration(BrokerRegistration &&) = delete;
     BrokerRegistration &operator = (const BrokerRegistration &) = delete;
     BrokerRegistration &operator = (BrokerRegistration &&) = delete;
-    std::string GetObjectSoPath(uintptr_t ptr);
     std::mutex creatorMutex_;
     std::unordered_map<std::u16string, Constructor> creators_;
-    std::unordered_map<uintptr_t, std::string> objects_;
+    std::vector<uintptr_t> objects_;
     std::atomic<bool> isUnloading = false;
 };
 
