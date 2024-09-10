@@ -395,7 +395,6 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient001, TestSize.Level1)
 
     MessageParcel data;
     data.WriteInt32(IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT);
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
 }
@@ -414,7 +413,6 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient002, TestSize.Level1)
 
     MessageParcel data;
     data.WriteInt32(IRemoteObject::DeathRecipient::REMOVE_DEATH_RECIPIENT);
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
 }
@@ -433,7 +431,6 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient003, TestSize.Level1)
 
     MessageParcel data;
     data.WriteInt32(UNKNOWN_TRANSACTION_CODE);
-    MessageParcel reply;
 
     int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_UNKNOW_TRANS_ERR);
@@ -453,7 +450,6 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient004, TestSize.Level1)
 
     MessageParcel data;
     data.WriteString("");
-    MessageParcel reply;
 
     int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
@@ -471,7 +467,6 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient001, TestSize.Level
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
     MessageParcel data;
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
 }
@@ -493,7 +488,6 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient002, TestSize.Level
     MessageParcel data;
     data.WriteRemoteObject(callbackStub);
     data.WriteString("");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
 }
@@ -515,7 +509,6 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient003, TestSize.Level
     MessageParcel data;
     data.WriteRemoteObject(callbackStub);
     data.WriteString("test");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
 }
@@ -537,7 +530,6 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient004, TestSize.Level
     MessageParcel data;
     data.WriteRemoteObject(callbackProxy);
     data.WriteString("test");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
     EXPECT_EQ(ret, ERR_NONE);
 }
@@ -559,7 +551,6 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient005, TestSize.Level
     MessageParcel data;
     data.WriteRemoteObject(callbackProxy);
     data.WriteString("");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
 }
@@ -577,7 +568,6 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient001, TestSize.Le
     DBinderServiceStub dBinderServiceStub(service, device, object);
 
     MessageParcel data;
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
 }
@@ -599,7 +589,6 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient002, TestSize.Le
     MessageParcel data;
     data.WriteRemoteObject(callbackProxy);
     data.WriteString("test");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
     EXPECT_EQ(ret, ERR_NONE);
 }
@@ -621,7 +610,6 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient003, TestSize.Le
     MessageParcel data;
     data.WriteRemoteObject(callbackProxy);
     data.WriteString("");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
 }
@@ -643,7 +631,6 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient004, TestSize.Le
     MessageParcel data;
     data.WriteRemoteObject(callbackStub);
     data.WriteString("test");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
 }
@@ -665,7 +652,6 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient005, TestSize.Le
     MessageParcel data;
     data.WriteRemoteObject(callbackStub);
     data.WriteString("");
-    MessageParcel reply;
     int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
     EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
 }
