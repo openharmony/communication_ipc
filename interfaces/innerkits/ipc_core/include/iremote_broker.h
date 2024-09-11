@@ -57,7 +57,7 @@ public:
     virtual ~BrokerDelegatorBase() = default;
 
 public:
-    bool isSoUnloaded = false;
+    std::atomic<bool> isSoUnloaded = false;
     std::u16string descriptor_;
 };
 
