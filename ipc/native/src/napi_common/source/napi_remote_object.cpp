@@ -21,6 +21,7 @@
 
 #include "iremote_invoker.h"
 #include "ipc_debug.h"
+#include "ipc_process_skeleton.h"
 #include "log_tags.h"
 #include "napi_process_skeleton.h"
 #include "napi_message_parcel.h"
@@ -340,7 +341,8 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     ZLOGI(LOG_LABEL, "callingPid:%{public}u, callingUid:%{public}u,"
         "callingDeviceID:%{public}s, localDeviceId:%{public}s, localCalling:%{public}d",
         param->callingInfo.callingPid, param->callingInfo.callingUid,
-        param->callingInfo.callingDeviceID.c_str(), param->callingInfo.localDeviceID.c_str(),
+        IPCProcessSkeleton::ConvertToSecureString(param->callingInfo.callingDeviceID).c_str(),
+        IPCProcessSkeleton::ConvertToSecureString(param->callingInfo.localDeviceID).c_str(),
         param->callingInfo.isLocalCalling);
     int ret = OnJsRemoteRequest(param);
     ZLOGI(LOG_LABEL, "OnJsRemoteRequest done, ret:%{public}d", ret);
