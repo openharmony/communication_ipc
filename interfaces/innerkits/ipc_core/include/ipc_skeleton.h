@@ -26,7 +26,7 @@ public:
 
     /**
      * @brief Set the maximum number of threads.
-     * @param maxThreadNum default max is 16, only if you need a customize value.
+     * @param maxThreadNum default max is 4, only if you need a customize value.
      * @return Returns <b>true</b> if the operation succeeds; return <b>false</b> Otherwise.
      * @since 9
      */

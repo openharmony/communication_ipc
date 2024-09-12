@@ -364,7 +364,7 @@ int OH_IPCParcel_ReadInterfaceToken(const OHIPCParcel *parcel, char **token, int
         return OH_IPC_PARCEL_READ_ERROR;
     }
 
-    int memLength = static_cast<int>(strToken.length()) + 1;
+    int memLength = strToken.length() + 1;
     *token = static_cast<char*>(allocator(memLength));
     if (*token == nullptr) {
         parcel->msgParcel->RewindRead(readPosition);

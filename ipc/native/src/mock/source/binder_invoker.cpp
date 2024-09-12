@@ -70,10 +70,8 @@ namespace IPC_SINGLE {
 
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
-#ifndef CONFIG_IPC_SINGLE
 static constexpr pid_t INVALID_PID = -1;
 static constexpr int32_t BINDER_ALIGN_BYTES = 8;
-#endif
 
 enum {
     GET_SERVICE_TRANSACTION = 0x1,
@@ -578,7 +576,7 @@ void BinderInvoker::OnBinderDied()
     DeadObjectInfo deadInfo;
     if ((current != nullptr) && current->IsDeadObject(proxy, deadInfo)) {
         ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-            ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
+                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
     } else {
         if (proxy->AttemptIncStrongRef(this)) {
@@ -588,7 +586,6 @@ void BinderInvoker::OnBinderDied()
             ZLOGW(LABEL, "failed to increment strong reference count");
         }
     }
-
     size_t rewindPos = output_.GetWritePosition();
     if (!output_.WriteInt32(BC_DEAD_BINDER_DONE)) {
         return;
@@ -620,6 +617,7 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
         return;
     }
+
     if (obj->GetSptrRefCount() <= 0) {
         ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(obj));
         return;
@@ -746,7 +744,7 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
     if ((refs != nullptr) && (tr.cookie) && (refs->AttemptIncStrongRef(this, count))) {
         auto *targetObject = reinterpret_cast<IPCObjectStub *>(tr.cookie);
         if (targetObject == nullptr) {
-            ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(targetObject));
+            ZLOGE(LABEL, "Invalid stub object");
             return error;
         }
         DeadObjectInfo deadInfo;
@@ -1042,7 +1040,7 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
                 "outAvail:%{public}zu read_consumed:%{public}llu",
                 bwr.write_consumed, outAvail, bwr.read_consumed);
         }
-
+        
         // Moves the data that is not consumed by the binder to the output_ buffer header.
         if (bwr.write_consumed < output_.GetDataSize()) {
             ZLOGI(LABEL, "moves the data that is not consumed by the binder, "
@@ -1276,7 +1274,7 @@ bool BinderInvoker::PingService(int32_t handle)
 
 bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive()) || (object == nullptr)) {
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
         return false;
     }
 
@@ -1517,7 +1515,6 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
             ZLOGE(LABEL, "unknown binder type:%{public}u", flat->hdr.type);
             break;
     }
-
     if (!current->IsContainsObject(remoteObject)) {
         remoteObject = nullptr;
     }
@@ -1657,7 +1654,7 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
     }
     ZLOGE(LABEL,
         "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s",
-        parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
+        parcelName.c_str(), size, parcel.GetReadPosition(),  parcel.GetWritePosition(), formatStr.c_str());
 }
 
 #ifdef CONFIG_ACTV_BINDER
