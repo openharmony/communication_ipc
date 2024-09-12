@@ -22,7 +22,8 @@
 namespace OHOS {
 class CommAuthInfo {
 public:
-    CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId);
+    CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
+        const std::string &deviceId, int32_t socketId = 0);
     virtual ~CommAuthInfo();
     IRemoteObject *GetStubObject() const;
     int GetRemotePid() const;
