@@ -68,7 +68,7 @@ static bool IpcIoPushRef(IpcIo *io, uint32_t handle, uintptr_t cookie)
     return true;
 }
 
-static struct flat_binder_object *IpcIoPopRef(IpcIo *io)
+struct flat_binder_object *IpcIoPopRef(IpcIo *io)
 {
     if (io->offsetsCur == NULL) {
         RPC_LOG_ERROR("Io push object current is null.");

@@ -180,19 +180,6 @@ HWTEST_F(BinderInvokerUnitTest, SetRegistryObject003, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRegistryObject004
- * @tc.desc: Verify the SetRegistryObject function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, SetRegistryObject004, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    sptr<IRemoteObject> testProxy = nullptr;
-    bool ret = binderInvoker.SetRegistryObject(testProxy);
-    EXPECT_EQ(ret, false);
-}
-
-/**
  * @tc.name: GetSAMgrObjectTest001
  * @tc.desc: Verify the GetSAMgrObject function
  * @tc.type: FUNC

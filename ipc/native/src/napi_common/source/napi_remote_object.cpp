@@ -49,7 +49,6 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
-static NAPI_CallingInfo g_oldCallingInfo = { 0 };
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
 {
@@ -374,7 +373,6 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
     CallbackParam *param = static_cast<CallbackParam *>(data);
     bool result = false;
     napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
     if (!result) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -403,7 +401,6 @@ napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info
         ZLOGE(LOG_LABEL, "param is nullptr");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
     param->result = ERR_UNKNOWN_TRANSACTION;
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
@@ -651,19 +648,20 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             napi_close_handle_scope(param->env, scope);
             return;
         }
-
-        NAPI_RemoteObject_saveOldCallingInfo(param->env, g_oldCallingInfo);
+        NAPI_CallingInfo oldCallingInfo;
+        NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
         NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
         // start to call onRemoteRequest
         size_t argc2 = 4;
         napi_value argv2[] = { jsCode, jsData, jsReply, jsOption };
         napi_value returnVal;
         napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc2, argv2, &returnVal);
+        // Reset old calling pid, uid, device id
+        NAPI_RemoteObject_resetOldCallingInfo(param->env, oldCallingInfo);
 
         do {
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "OnRemoteRequest got exception");
-                NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
@@ -674,7 +672,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             napi_is_promise(param->env, returnVal, &returnIsPromise);
             if (!returnIsPromise) {
                 ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
-                NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
                 bool result = false;
                 napi_get_value_bool(param->env, returnVal, &result);
                 if (!result) {
@@ -695,7 +692,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             napi_get_named_property(param->env, returnVal, "then", &promiseThen);
             if (promiseThen == nullptr) {
                 ZLOGE(LOG_LABEL, "get promiseThen failed");
-                NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
                 param->result = -1;
                 break;
             }
@@ -703,7 +699,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             ret = napi_create_function(param->env, "thenCallback", NAPI_AUTO_LENGTH, ThenCallback, param, &thenValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "thenCallback got exception");
-                NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
@@ -712,7 +707,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
                 NAPI_AUTO_LENGTH, CatchCallback, param, &catchValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "catchCallback got exception");
-                NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
@@ -724,7 +718,6 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             ret = napi_call_function(env, returnVal, promiseThen, THEN_ARGC, thenArgv, &thenReturnValue);
             if (ret != napi_ok) {
                 ZLOGE(LOG_LABEL, "PromiseThen got exception");
-                NAPI_RemoteObject_resetOldCallingInfo(param->env, g_oldCallingInfo);
                 param->result = ERR_UNKNOWN_TRANSACTION;
                 break;
             }

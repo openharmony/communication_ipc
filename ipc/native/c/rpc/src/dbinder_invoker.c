@@ -772,7 +772,7 @@ void RpcStopWorkThread(void)
     threadContext->stopWorkThread = true;
 }
 
-static int32_t RpcSetRegistryObject(SvcIdentity target, SvcIdentity *samgr)
+int32_t RpcSetRegistryObject(SvcIdentity target, SvcIdentity *samgr)
 {
     (void)target;
     (void)samgr;

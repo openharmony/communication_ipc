@@ -934,14 +934,14 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
     jclass clazz = env->FindClass("ohos/rpc/RemoteObject");
     if (clazz == nullptr) {
         ZLOGE(LABEL, "Could not find class:RemoteObject");
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteStub.klass = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
     if (g_jRemoteStub.klass == nullptr) {
         ZLOGE(LABEL, "JRemoteObject NewGlobalRef failed");
         env->DeleteLocalRef(clazz);
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteStub.methodDispatchRequest = env->GetMethodID(clazz, "dispatchRequest", "(IJJLohos/rpc/MessageOption;)Z");
@@ -949,7 +949,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteObject get method execTransact failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
         env->DeleteLocalRef(clazz);
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteStub.methodDispatchDump = env->GetMethodID(clazz, "dispatchDump", "(IJJLohos/rpc/MessageOption;)Z");
@@ -957,7 +957,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteObject get method execTransact failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
         env->DeleteLocalRef(clazz);
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteStub.fieldNativeHolder = env->GetFieldID(clazz, "mNativeHolder", "J");
@@ -965,7 +965,7 @@ int JavaOhosRpcRemoteObjectRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteObject get field mNativeHolder failed");
         env->DeleteGlobalRef(g_jRemoteStub.klass);
         env->DeleteLocalRef(clazz);
-        return JNI_ERR;
+        return -1;
     }
 
     return JkitRegisterNativeMethods(env, "ohos/rpc/RemoteObject", sObjectMethods, NUM_METHODS(sObjectMethods));
@@ -976,7 +976,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
     jclass clazz = env->FindClass("ohos/rpc/RemoteProxy");
     if (clazz == nullptr) {
         ZLOGE(LABEL, "Could not find class:RemoteProxy");
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteProxy.klass = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
@@ -985,7 +985,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         ZLOGE(LABEL, "JRemoteProxy get method getInstance failed");
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
         env->DeleteLocalRef(clazz);
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteProxy.methodSendObituary =
@@ -994,7 +994,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
         env->DeleteLocalRef(clazz);
         ZLOGE(LABEL, "JRemoteProxy get method sendObituary failed");
-        return JNI_ERR;
+        return -1;
     }
 
     g_jRemoteProxy.fieldNativeData = env->GetFieldID(clazz, "mNativeData", "J");
@@ -1002,7 +1002,7 @@ int JavaOhosRpcRemoteProxyRegisterNativeMethods(JNIEnv *env)
         env->DeleteGlobalRef(g_jRemoteProxy.klass);
         env->DeleteLocalRef(clazz);
         ZLOGE(LABEL, "JRemoteProxy get field mNativeData failed");
-        return JNI_ERR;
+        return -1;
     }
 
     return JkitRegisterNativeMethods(env, "ohos/rpc/RemoteProxy", sProxyMethods, NUM_METHODS(sProxyMethods));
@@ -1012,55 +1012,55 @@ int RegisterJavaRpcNativeMethods(JNIEnv *env)
 {
     if (JniHelperRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JniHelper Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
     if (JavaOhosRpcMessageOptionRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register MessageOption Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
     if (JavaOhosRpcMessageParcelRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register MessageParcel Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
     if (JavaOhosRpcIpcSkeletonRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register IPCSkeleton Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
     if (JavaOhosRpcRemoteObjectRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JRemoteObject Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
     if (JavaOhosRpcRemoteProxyRegisterNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JRemoteProxy Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
     if (Java_ohos_utils_Parcel_registerNativeMethods(env) < 0) {
         ZLOGE(LABEL, "Register JParcel Native Methods failed");
-        return JNI_ERR;
+        return -1;
     }
 
-    return JNI_OK;
+    return 0;
 }
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
     if (vm == nullptr) {
-        return JNI_ERR;
+        return -1;
     }
     if (!g_ipcNativeMethodsLoaded) {
         JNIEnv *env = NULL;
         if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_4) != JNI_OK) {
-            return JNI_ERR;
+            return -1;
         }
 
         if (RegisterJavaRpcNativeMethods(env) < 0) {
-            return JNI_ERR;
+            return -1;
         }
 
         JNIEnvHelper::nativeInit(vm);
