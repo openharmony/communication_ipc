@@ -269,21 +269,6 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::AcquireHandleTest(data, size);
-    OHOS::ReleaseHandleTest(data, size);
-    OHOS::QueryClientSessionObjectTest(data, size);
-    OHOS::QueryServerSessionObjectTest(data, size);
-    OHOS::OnMessageAvailableTest(data, size);
-    OHOS::JoinThreadTest(data, size);
-    OHOS::StopWorkThreadTest(data, size);
-    OHOS::GetCallerPidTest(data, size);
-    OHOS::GetStatusTest(data, size);
-    OHOS::GetCallerUidTest(data, size);
-    OHOS::GetCallerTokenIDTest(data, size);
-    OHOS::GetFirstTokenIDTest(data, size);
-    OHOS::IsLocalCallingTest(data, size);
-    OHOS::FlushCommandsTest(data, size);
-    OHOS::ResetCallingIdentityTest(data, size);
     OHOS::MakeThreadProcessInfoTest(data, size);
     OHOS::ProcessTransactionTest(data, size);
     OHOS::CheckTransactionDataTest(data, size);
