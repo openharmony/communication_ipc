@@ -245,6 +245,7 @@ bool ProcessSkeleton::AttachValidObject(IRemoteObject *object, bool isValid)
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(validObjectMutex_);
     auto result = validObjectRecord_.insert_or_assign(object, isValid);
+    ZLOGD(LOG_LABEL, "%{public}u inserted:%{public}d", ConvertAddr(object), result.second);
     return result.second;
 }
 
