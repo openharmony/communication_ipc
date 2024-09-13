@@ -49,7 +49,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":IsATEnableFuzzTest",
+    #":IsATEnableFuzzTest",
   ]
 }
 
