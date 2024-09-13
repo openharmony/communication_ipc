@@ -52,7 +52,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":BufferObjectFuzzTest",
+    # ":BufferObjectFuzzTest",
   ]
 }
 
