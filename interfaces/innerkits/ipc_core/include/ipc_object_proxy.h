@@ -25,7 +25,7 @@
 #include "iremote_object.h"
 
 namespace OHOS {
-#define GET_FIRST_VIRTUAL_FUNC_ADDR(ptr) (*reinterpret_cast<int *>(*reinterpret_cast<int *>(ptr)))
+#define GET_FIRST_VIRTUAL_FUNC_ADDR(ptr) (*reinterpret_cast<uintptr_t *>(*reinterpret_cast<uintptr_t *>(ptr)))
 #ifndef CONFIG_IPC_SINGLE
 struct DBinderNegotiationData {
     pid_t peerPid;
