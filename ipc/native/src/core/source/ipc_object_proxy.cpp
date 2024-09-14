@@ -485,10 +485,12 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     }
 
     bool recipientErased = false;
-    auto iter = recipients_.find(soPath);
-    if (iter != recipients_.end()) {
-        recipients_.erase(iter);
-        recipientErased = true;
+    for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
+        if (iter->second == recipient) {
+            recipients_.erase(iter);
+            recipientErased = true;
+            break;
+        }
     }
 
     if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
@@ -521,9 +523,14 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
 {
+    if (recipient == nullptr) {
+        ZLOGE(LABEL, "recipient is deleted");
+        return "";
+    }
+
     Dl_info info;
     int32_t ret = dladdr(reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient.GetRefPtr())), &info);
-    if ((ret == 0) || (ret == -1) || (info.dli_fname == nullptr)) {
+    if ((ret == 0) || (info.dli_fname == nullptr)) {
         ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
         return "";
     }
