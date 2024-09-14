@@ -19,7 +19,7 @@
 #include <condition_variable>
 #include <functional>
 #include <thread>
-#include <map>
+#include <unordered_map>
 #include <atomic>
 #include <mutex>
 #include <ipc_workthread.h>
@@ -60,7 +60,7 @@ public:
 private:
     static constexpr int PROTO_NUM = 2;
     std::string MakeThreadName(int proto, int &threadIndex);
-    std::map<std::string, sptr<IPCWorkThread>> threads_;
+    std::unordered_map<std::string, sptr<IPCWorkThread>> threads_;
     std::atomic<int> threadSequence_;
     int maxThreadNum_;
     int idleThreadNum_;
