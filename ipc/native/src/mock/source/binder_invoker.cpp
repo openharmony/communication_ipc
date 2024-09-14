@@ -1605,7 +1605,6 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
     if (identity.empty() || identity.length() <= ACCESS_TOKEN_MAX_LEN) {
         return false;
     }
-
     auto pos = identity.find('<');
     if (pos == std::string::npos) {
         return false;
@@ -1615,12 +1614,34 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
             callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
             callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
     }
-    std::string callerSid_ = identity.substr(0, pos);
-    callerTokenID_ = std::stoull(identity.substr(pos + 1, ACCESS_TOKEN_MAX_LEN).c_str());
-    callerRealPid_ =
-        static_cast<int>(std::stoull(identity.substr(pos + 1 + ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN).c_str()));
-    uint64_t pidUid = std::stoull(identity.substr(pos + 1 + ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET,
-        identity.length() - ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET).c_str());
+    std::string callerSid;
+    if (!ProcessSkeleton::GetSubStr(identity, callerSid, 0, pos)) {
+        ZLOGE(LABEL, "Identity param callerSid is invalid, callerSid:%{public}s", callerSid.c_str());
+        return false;
+    }
+    std::string tokenIdStr;
+    if (!ProcessSkeleton::GetSubStr(identity, tokenIdStr, pos + 1, ACCESS_TOKEN_MAX_LEN) ||
+        !ProcessSkeleton::IsNumStr(tokenIdStr)) {
+        ZLOGE(LABEL, "Identity param tokenId is invalid, tokenIdStr:%{public}s", tokenIdStr.c_str());
+        return false;
+    }
+    std::string realPidStr;
+    if (!ProcessSkeleton::GetSubStr(identity, realPidStr, pos + 1 + ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN) ||
+        !ProcessSkeleton::IsNumStr(realPidStr)) {
+        ZLOGE(LABEL, "Identity param realPid is invalid, realPidStr:%{public}s", realPidStr.c_str());
+        return false;
+    }
+    std::string pidUidStr;
+    size_t offset = pos + 1 + ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET;
+    size_t subLen = identity.length() - ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET;
+    if (!ProcessSkeleton::GetSubStr(identity, pidUidStr, offset, subLen) || !ProcessSkeleton::IsNumStr(pidUidStr)) {
+        ZLOGE(LABEL, "Identity param pidUid is invalid, pidUidStr:%{public}s", pidUidStr.c_str());
+        return false;
+    }
+    callerSid_ = callerSid;
+    callerTokenID_ = std::stoull(tokenIdStr.c_str());
+    callerRealPid_ = static_cast<int>(std::stoull(realPidStr.c_str()));
+    uint64_t pidUid = std::stoull(pidUidStr.c_str());
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
     if (flag) {
