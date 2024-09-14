@@ -16,12 +16,14 @@
 #ifndef OHOS_IPC_IPC_OBJECT_PROXY_H
 #define OHOS_IPC_IPC_OBJECT_PROXY_H
 
+#include <dlfcn.h>
 #include <mutex>
-#include <vector>
+#include <unordered_map>
 
 #include "iremote_object.h"
 
 namespace OHOS {
+#define GET_FIRST_VIRTUAL_FUNC_ADDR(ptr) (*reinterpret_cast<uintptr_t *>(*reinterpret_cast<uintptr_t *>(ptr)))
 #ifndef CONFIG_IPC_SINGLE
 struct DBinderNegotiationData {
     pid_t peerPid;
@@ -241,6 +243,8 @@ private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
+    std::string GetObjectSoPath(sptr<DeathRecipient> recipient);
+    bool IsDlclosed(std::string soPath, sptr<DeathRecipient> recipient);
 
 #ifndef CONFIG_IPC_SINGLE
     /**
@@ -352,7 +356,7 @@ private:
     std::recursive_mutex mutex_;
     std::mutex descMutex_;
 
-    std::vector<sptr<DeathRecipient>> recipients_;
+    std::unordered_multimap<std::string, sptr<DeathRecipient>> recipients_;
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
