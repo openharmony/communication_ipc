@@ -64,6 +64,16 @@ struct ThreadProcessInfo {
     uint32_t packageSize;
     std::shared_ptr<char> buffer;
 };
+
+struct AppAuthInfo {
+    uint32_t pid;
+    uint32_t uid;
+    uint32_t tokenId;
+    int32_t socketId;
+    uint64_t stubIndex;
+    IRemoteObject *stub;
+    std::string deviceId;
+};
 #endif
 
 class IPCProcessSkeleton {
@@ -163,6 +173,12 @@ public:
     bool QueryCommAuthInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId);
     void UpdateCommAuthSocketInfo(int pid, int uid, uint32_t &tokenId, const std::string &deviceId,
         const int32_t socketId);
+    bool AttachOrUpdateAppAuthInfo(const AppAuthInfo &appAuthInfo);
+    bool DetachAppAuthInfo(const AppAuthInfo &appAuthInfo);
+    void DetachAppAuthInfoByStub(IRemoteObject *stub, uint64_t stubIndex);
+    std::list<uint64_t> DetachAppAuthInfoBySocketId(int32_t socketId);
+    bool QueryCommAuthInfo(AppAuthInfo &appAuthInfo);
+    bool QueryAppInfoToStubIndex(const AppAuthInfo &appAuthInfo);
     bool AddDataThreadToIdle(const std::thread::id &threadId);
     bool DeleteDataThreadFromIdle(const std::thread::id &threadId);
     std::thread::id GetIdleDataThread();
@@ -256,6 +272,7 @@ private:
     std::shared_mutex appInfoToIndexMutex_;
     std::shared_mutex commAuthMutex_;
     std::shared_mutex dbinderSentMutex_;
+    std::shared_mutex appAuthMutex_;
 
     std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
     std::map<uint64_t, std::shared_ptr<ThreadMessageInfo>> seqNumberToThread_;

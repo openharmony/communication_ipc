@@ -1409,6 +1409,196 @@ void IPCProcessSkeleton::UpdateCommAuthSocketInfo(int pid, int uid, uint32_t &to
     }
 }
 
+bool IPCProcessSkeleton::AttachOrUpdateAppAuthInfo(const AppAuthInfo &appAuthInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s stubIndex:%{public}" PRIu64
+        " socketId:%{public}d", appAuthInfo.pid, appAuthInfo.uid, appAuthInfo.tokenId,
+        ConvertToSecureString(appAuthInfo.deviceId).c_str(), appAuthInfo.stubIndex, appAuthInfo.socketId);
+
+    std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
+    std::string appInfo = appAuthInfo.deviceId + UIntToString(appAuthInfo.pid) +
+        UIntToString(appAuthInfo.uid) + UIntToString(appAuthInfo.tokenId);
+    auto it = appInfoToStubIndex_.find(appInfo);
+    if (it != appInfoToStubIndex_.end()) {
+        if (appAuthInfo.stubIndex != 0) {
+            it->second.insert_or_assign(appAuthInfo.stubIndex, appAuthInfo.socketId);
+        } else if (appAuthInfo.socketId != 0) {
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                it2->second = appAuthInfo.socketId;
+            }
+            ZLOGW(LOG_LABEL, "app info already existed, update socketId:%{public}d", appAuthInfo.socketId);
+        } else {
+            ZLOGE(LOG_LABEL, "stubindex and socketid are both invalid");
+        }
+    } else {
+        appInfoToStubIndex_[appInfo].insert(std::make_pair(appAuthInfo.stubIndex, appAuthInfo.socketId));
+    }
+
+    if (appAuthInfo.stub == nullptr) {
+        return false;
+    }
+
+    auto check = [&appAuthInfo, this](const std::shared_ptr<CommAuthInfo> &auth) {
+        return IsSameRemoteObject(appAuthInfo.stub, appAuthInfo.pid, appAuthInfo.uid,
+            appAuthInfo.tokenId, appAuthInfo.deviceId, auth);
+    };
+    auto iter = std::find_if(commAuth_.begin(), commAuth_.end(), check);
+    if ((iter != commAuth_.end()) && (appAuthInfo.socketId != 0)) {
+        (*iter)->SetRemoteSocketId(appAuthInfo.socketId);
+        ZLOGW(LOG_LABEL, "comm auth info already existed, update socketId:%{public}d", appAuthInfo.socketId);
+        return false;
+    }
+
+    std::shared_ptr<CommAuthInfo> authObject = std::make_shared<CommAuthInfo>(
+        appAuthInfo.stub, appAuthInfo.pid, appAuthInfo.uid,
+        appAuthInfo.tokenId, appAuthInfo.deviceId, appAuthInfo.socketId);
+    commAuth_.push_front(authObject);
+    return true;
+}
+
+bool IPCProcessSkeleton::DetachAppAuthInfo(const AppAuthInfo &appAuthInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::string appInfo = appAuthInfo.deviceId + UIntToString(appAuthInfo.pid) +
+        UIntToString(appAuthInfo.uid) + UIntToString(appAuthInfo.tokenId);
+
+    std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
+    bool result = false;
+    auto it = appInfoToStubIndex_.find(appInfo);
+    if (it != appInfoToStubIndex_.end()) {
+        std::map<uint64_t, int32_t> &indexes = it->second;
+        auto it2 = indexes.find(appAuthInfo.stubIndex);
+        if (it2 != indexes.end() && it2->second == appAuthInfo.socketId) {
+            indexes.erase(it2);
+            result = true;
+        }
+        if (indexes.empty()) {
+            appInfoToStubIndex_.erase(it);
+        }
+    }
+    if (!result) {
+        return false;
+    }
+
+    auto check = [&appAuthInfo, this](const std::shared_ptr<CommAuthInfo> &auth) {
+        return IsSameRemoteObject(appAuthInfo.stub, appAuthInfo.pid, appAuthInfo.uid,
+            appAuthInfo.tokenId, appAuthInfo.deviceId, auth);
+    };
+
+    auto iter = std::find_if(commAuth_.begin(), commAuth_.end(), check);
+    if (iter != commAuth_.end()) {
+        commAuth_.erase(iter);
+    }
+    ZLOGI(LOG_LABEL, "pid:%{public}u uid:%{public}u tokenId:%{public}u deviceId:%{public}s"
+        " stubIndex:%{public}" PRIu64 " socketId:%{public}u result:%{public}d",
+        appAuthInfo.pid, appAuthInfo.uid, appAuthInfo.tokenId, ConvertToSecureString(appAuthInfo.deviceId).c_str(),
+        appAuthInfo.stubIndex, appAuthInfo.socketId, result);
+
+    return true;
+}
+
+void IPCProcessSkeleton::DetachAppAuthInfoByStub(IRemoteObject *stub, uint64_t stubIndex)
+{
+    CHECK_INSTANCE_EXIT(exitFlag_);
+    auto check = [&stub](const std::shared_ptr<CommAuthInfo> &auth) {
+        return (auth != nullptr) && (auth->GetStubObject() == stub);
+    };
+    std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
+    commAuth_.erase(std::remove_if(commAuth_.begin(), commAuth_.end(), check), commAuth_.end());
+
+    for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end();) {
+        if (it->second.erase(stubIndex) > 0) {
+            ZLOGI(LOG_LABEL, "earse stubIndex:%{public}" PRIu64 " of appInfo:%{public}s",
+                stubIndex, ConvertToSecureString(it->first).c_str());
+        }
+        if (it->second.size() == 0) {
+            it = appInfoToStubIndex_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+std::list<uint64_t> IPCProcessSkeleton::DetachAppAuthInfoBySocketId(int32_t socketId)
+{
+    std::list<uint64_t> indexes;
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, indexes);
+    auto check = [&socketId](const std::shared_ptr<CommAuthInfo> &auth) {
+        return (auth != nullptr) && (auth->GetRemoteSocketId() == socketId);
+    };
+
+    std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
+    commAuth_.erase(std::remove_if(commAuth_.begin(), commAuth_.end(), check), commAuth_.end());
+
+    uint32_t indexCnt = 0;
+    bool appInfoErase = false;
+    for (auto it = appInfoToStubIndex_.begin(); it != appInfoToStubIndex_.end();) {
+        std::map<uint64_t, int32_t> &mapItem = it->second;
+        for (auto it2 = mapItem.begin(); it2 != mapItem.end();) {
+            if (it2->second == socketId) {
+                indexes.push_back(it2->first);
+                it2 = mapItem.erase(it2);
+                indexCnt++;
+            } else {
+                ++it2;
+            }
+        }
+        if (mapItem.empty()) {
+            it = appInfoToStubIndex_.erase(it);
+            appInfoErase = true;
+        } else {
+            ++it;
+        }
+    }
+    ZLOGI(LOG_LABEL, "socketId:%{public}d, indexCnt:%{public}u appInfoErase:%{public}d",
+        socketId, indexCnt, appInfoErase);
+    return indexes;
+}
+
+bool IPCProcessSkeleton::QueryCommAuthInfo(AppAuthInfo &appAuthInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    auto check = [&appAuthInfo, this](const std::shared_ptr<CommAuthInfo> &auth) {
+        return IsSameRemoteObject(appAuthInfo.pid, appAuthInfo.uid, appAuthInfo.deviceId, auth);
+    };
+
+    std::shared_lock<std::shared_mutex> lockGuard(appAuthMutex_);
+    auto it = std::find_if(commAuth_.begin(), commAuth_.end(), check);
+    if (it != commAuth_.end()) {
+        if ((*it) == nullptr) {
+            ZLOGE(LOG_LABEL, "CommAuthInfo is nullptr");
+            return false;
+        }
+        appAuthInfo.tokenId = (*it)->GetRemoteTokenId();
+        return true;
+    }
+    ZLOGE(LOG_LABEL, "NOT exist, deviceId:%{public}s pid:%{public}u uid:%{public}u",
+        IPCProcessSkeleton::ConvertToSecureString(appAuthInfo.deviceId).c_str(), appAuthInfo.pid, appAuthInfo.uid);
+    return false;
+}
+
+bool IPCProcessSkeleton::QueryAppInfoToStubIndex(const AppAuthInfo &appAuthInfo)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::string appInfo = appAuthInfo.deviceId + UIntToString(appAuthInfo.pid) +
+        UIntToString(appAuthInfo.uid) + UIntToString(appAuthInfo.tokenId);
+
+    std::shared_lock<std::shared_mutex> lockGuard(appAuthMutex_);
+    auto it = appInfoToStubIndex_.find(appInfo);
+    if (it != appInfoToStubIndex_.end()) {
+        auto it2 = it->second.find(appAuthInfo.stubIndex);
+        // listenFd may be marked as 0
+        if (it2 != it->second.end() && (it2->second == 0 || it2->second == appAuthInfo.socketId)) {
+            ZLOGD(LOG_LABEL, "found appInfo:%{public}s stubIndex:%{public}" PRIu64,
+                ConvertToSecureString(appInfo).c_str(), appAuthInfo.stubIndex);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void IPCProcessSkeleton::DetachCommAuthInfoByStub(IRemoteObject *stub)
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
