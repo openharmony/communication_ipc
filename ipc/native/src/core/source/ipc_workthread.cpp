@@ -95,11 +95,23 @@ void IPCWorkThread::JoinThread(int proto, int policy)
 
 void *IPCWorkThread::ThreadHandler(void *args)
 {
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get IPCProcessSkeleton object failed");
+        return nullptr;
+    }
+
+    if (current->GetThreadStopFlag()) {
+        ZLOGW(LOG_LABEL, "the stop flag is true, thread start exit");
+        return nullptr;
+    }
+
     auto param = (IPCWorkThreadParam *)args;
     if (param == nullptr) {
         return nullptr;
     }
 
+    current->IncreaseThreadCount();
     std::string basicName = MakeBasicThreadName(param->proto, param->index);
     std::string threadName = basicName + "_" + std::to_string(syscall(SYS_gettid));
     int32_t ret = prctl(PR_SET_NAME, threadName.c_str());
@@ -113,13 +125,14 @@ void *IPCWorkThread::ThreadHandler(void *args)
 
     JoinThread(param->proto, param->policy);
 
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
         current->OnThreadTerminated(basicName);
     }
     ZLOGW(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s",
         param->proto, param->policy, threadName.c_str());
     delete param;
+    current->DecreaseThreadCount();
     return nullptr;
 }
 
