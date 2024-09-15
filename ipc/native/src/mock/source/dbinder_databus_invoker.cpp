@@ -605,8 +605,8 @@ void DBinderDatabusInvoker::OnDatabusSessionClientSideClosed(int32_t socketId)
                 remoteProxy->SendObituary();
                 ZLOGD(LOG_LABEL, "SendObituary end, desc:%{public}s", descStr8.c_str());
             } else {
-                ZLOGW(LOG_LABEL, "desc:%{public}s does not subscribe death notice",
-                    descStr8.c_str());
+                remoteProxy->SetObjectDied(true);
+                ZLOGW(LOG_LABEL, "desc:%{public}s does not subscribe death notice", descStr8.c_str());
             }
         } else {
             ZLOGE(LOG_LABEL, "cannot find proxy with desc:%{public}s", descStr8.c_str());
