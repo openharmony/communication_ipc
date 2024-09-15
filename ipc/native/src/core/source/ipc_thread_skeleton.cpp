@@ -21,7 +21,6 @@
 #include <sys/syscall.h>
 
 #include "binder_invoker.h"
-#include "check_instance_exit.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
 #include "invoker_factory.h"
@@ -110,7 +109,9 @@ void IPCThreadSkeleton::SaveThreadName(const std::string &name)
     if (current == nullptr) {
         return;
     }
-    CHECK_INSTANCE_EXIT(current->exitFlag_);
+    if (CheckInstanceIsExiting(current->exitFlag_)) {
+        return;
+    }
     current->threadName_ = name;
 }
 
@@ -122,7 +123,9 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     void *curTLS = pthread_getspecific(TLSKey_);
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
-        CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
+        if (CheckInstanceIsExiting(current->exitFlag_)) {
+            return nullptr;
+        }
         GetVaildInstance(current);
     } else {
         current = new (std::nothrow) IPCThreadSkeleton();
@@ -145,7 +148,7 @@ IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
-    exitFlag_ = true;
+    exitFlag_ = INVOKER_IDLE_MAGIC;
     pthread_setspecific(TLSKey_, nullptr);
     uint32_t ret = usingFlag_.load();
     while (ret == INVOKER_USE_MAGIC) {
@@ -164,6 +167,21 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
     }
 }
 
+bool IPCThreadSkeleton::CheckInstanceIsExiting(std::atomic<uint32_t> &flag)
+{
+    if (flag == INVOKER_USE_MAGIC) {
+        return false;
+    }
+
+    if (flag == INVOKER_IDLE_MAGIC) {
+        ZLOGE(LOG_LABEL, "Instance is exiting");
+        return true;
+    }
+
+    ZLOGE(LOG_LABEL, "Memory may be damaged, flag:%{public}u", flag.load());
+    return true;
+}
+
 IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
 {
     if (proto < 0 || static_cast<uint32_t>(proto) >= IPCThreadSkeleton::INVOKER_MAX_COUNT) {
@@ -175,7 +193,9 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     if (current == nullptr) {
         return nullptr;
     }
-    CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
+    if (CheckInstanceIsExiting(current->exitFlag_)) {
+        return nullptr;
+    }
 
     if ((current->usingFlag_ != INVOKER_USE_MAGIC) && (current->usingFlag_ != INVOKER_IDLE_MAGIC)) {
         ZLOGF(LOG_LABEL, "memory may be damaged, flag:%{public}u", current->usingFlag_.load());
@@ -266,7 +286,9 @@ bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
     if (current == nullptr) {
         return false;
     }
-    CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, false);
+    if (CheckInstanceIsExiting(current->exitFlag_)) {
+        return false;
+    }
     current->sendRequestCount_ += delta;
     return true;
 }

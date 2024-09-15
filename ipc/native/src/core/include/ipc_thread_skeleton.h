@@ -53,6 +53,9 @@ public:
     static void SaveThreadName(const std::string &name);
 
     static bool UpdateSendRequestCount(int delta);
+
+    static bool CheckInstanceIsExiting(std::atomic<uint32_t> &flag);
+
     bool IsSendRequesting();
 
     // Joint Current thread into IPC Work Group
@@ -66,7 +69,7 @@ public:
 private:
     static pthread_key_t TLSKey_;
     static pthread_once_t TLSKeyOnce_;
-    std::atomic<bool> exitFlag_ = false;
+    std::atomic<uint32_t> exitFlag_ = INVOKER_USE_MAGIC;
     std::atomic<uint32_t> usingFlag_ = INVOKER_IDLE_MAGIC;
     static constexpr uint32_t INVOKER_MAX_COUNT = 2;
     IRemoteInvoker *invokers_[INVOKER_MAX_COUNT] = {nullptr, nullptr};
