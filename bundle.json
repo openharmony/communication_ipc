@@ -43,7 +43,8 @@
           "bounds_checking_function",
           "hisysevent",
           "json",
-          "selinux"
+          "selinux",
+          "faultloggerd"
         ],
         "third_party": [
         ]
