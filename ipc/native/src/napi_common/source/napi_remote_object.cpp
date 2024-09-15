@@ -1396,7 +1396,7 @@ static napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_inf
 static napi_value NAPI_RemoteObject_Reclaim(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
-    napi_get_boolean(env, false, &result);
+    napi_get_undefined(env, &result);
     return result;
 }
 
