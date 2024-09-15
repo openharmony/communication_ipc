@@ -131,6 +131,15 @@ bool NAPIDeathRecipient::Matches(napi_value object)
     return result;
 }
 
+napi_ref NAPIDeathRecipient::GetDeathRecipientRef() const
+{
+    return deathRecipientRef_;
+}
+
+void NAPIDeathRecipient::CleanDeatRecipientRef()
+{
+    deathRecipientRef_ = nullptr;
+}
 NAPIDeathRecipientList::NAPIDeathRecipientList() {}
 
 NAPIDeathRecipientList::~NAPIDeathRecipientList()
