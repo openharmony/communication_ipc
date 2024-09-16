@@ -1393,6 +1393,13 @@ static napi_value NAPI_RemoteObject_isObjectDead(napi_env env, napi_callback_inf
     return result;
 }
 
+static napi_value NAPI_RemoteObject_Reclaim(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
 EXTERN_C_START
 /*
  * function for module exports
@@ -1416,6 +1423,7 @@ napi_value NAPIRemoteObjectExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("removeDeathRecipient", NAPI_RemoteObject_removeDeathRecipient),
         DECLARE_NAPI_FUNCTION("unregisterDeathRecipient", NAPI_RemoteObject_unregisterDeathRecipient),
         DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteObject_isObjectDead),
+        DECLARE_NAPI_FUNCTION("reclaim", NAPI_RemoteObject_Reclaim),
     };
     napi_value constructor = nullptr;
     napi_define_class(env, className.c_str(), className.length(), RemoteObject_JS_Constructor, nullptr,

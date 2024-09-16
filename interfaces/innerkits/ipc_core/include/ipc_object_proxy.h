@@ -240,8 +240,9 @@ public:
      */
     uint32_t GetStrongRefCountForStub();
 
-private:
     void SetObjectDied(bool isDied);
+
+private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
