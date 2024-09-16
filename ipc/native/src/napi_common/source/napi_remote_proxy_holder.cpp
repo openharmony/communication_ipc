@@ -140,6 +140,7 @@ void NAPIDeathRecipient::CleanDeatRecipientRef()
 {
     deathRecipientRef_ = nullptr;
 }
+
 NAPIDeathRecipientList::NAPIDeathRecipientList() {}
 
 NAPIDeathRecipientList::~NAPIDeathRecipientList()
