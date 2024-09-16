@@ -116,15 +116,14 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         .env = env,
         .traceId = 0,
     };
-    IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
-    if (targetProxy != nullptr) {
-        std::string remoteDescriptor = Str16ToStr8(targetProxy->GetInterfaceDescriptor());
-        if (!remoteDescriptor.empty()) {
-            sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
-            sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
-            StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
-        }
+
+    std::string remoteDescriptor = Str16ToStr8(target->GetInterfaceDescriptor());
+    if (!remoteDescriptor.empty()) {
+        sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
+        sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
+        StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
     }
+
     napi_create_reference(env, argv[ARGV_INDEX_0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[ARGV_INDEX_1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[ARGV_INDEX_2], 1, &sendRequestParam->jsReplyRef);
@@ -163,15 +162,13 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .env = env,
         .traceId = 0,
     };
-    IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
-    if (targetProxy != nullptr) {
-        std::string remoteDescriptor = Str16ToStr8(targetProxy->GetInterfaceDescriptor());
-        if (!remoteDescriptor.empty()) {
-            sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
-            sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
-            StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
-        }
+    std::string remoteDescriptor = Str16ToStr8(target->GetInterfaceDescriptor());
+    if (!remoteDescriptor.empty()) {
+        sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
+        sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
+        StartAsyncTrace(HITRACE_TAG_RPC, (sendRequestParam->traceValue).c_str(), sendRequestParam->traceId);
     }
+
     napi_create_reference(env, argv[ARGV_INDEX_0], 1, &sendRequestParam->jsCodeRef);
     napi_create_reference(env, argv[ARGV_INDEX_1], 1, &sendRequestParam->jsDataRef);
     napi_create_reference(env, argv[ARGV_INDEX_2], 1, &sendRequestParam->jsReplyRef);
@@ -604,7 +601,7 @@ napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_i
         napi_create_string_utf8(env, "", 0, &result);
         return result;
     }
-    IPCObjectProxy *target = reinterpret_cast<IPCObjectProxy *>(holder->object_.GetRefPtr());
+    sptr<IRemoteObject> target = holder->object_;
     if (target == nullptr) {
         ZLOGE(LOG_LABEL, "Invalid proxy object");
         napi_create_string_utf8(env, "", 0, &result);
@@ -630,7 +627,7 @@ napi_value NAPI_RemoteProxy_getDescriptor(napi_env env, napi_callback_info info)
         ZLOGE(LOG_LABEL, "proxy holder is nullptr");
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
     }
-    IPCObjectProxy *target = reinterpret_cast<IPCObjectProxy *>(holder->object_.GetRefPtr());
+    sptr<IRemoteObject> target = holder->object_;
     if (target == nullptr) {
         ZLOGE(LOG_LABEL, "proxy object is nullptr");
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
@@ -657,7 +654,7 @@ napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
         napi_get_boolean(env, false, &result);
         return result;
     }
-    IPCObjectProxy *target = reinterpret_cast<IPCObjectProxy *>(holder->object_.GetRefPtr());
+    sptr<IRemoteObject> target = holder->object_;
     if (target == nullptr) {
         ZLOGE(LOG_LABEL, "Invalid proxy object");
         napi_get_boolean(env, false, &result);
@@ -671,6 +668,25 @@ napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
         napi_get_boolean(env, false, &result);
         return result;
     }
+}
+
+napi_value NAPI_RemoteProxy_Reclaim(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    NAPIRemoteProxyHolder *proxyHolder = nullptr;
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&proxyHolder));
+    if (proxyHolder == nullptr) {
+        ZLOGE(LOG_LABEL, "failed to get proxy holder");
+        return result;
+    }
+
+    ZLOGI(LOG_LABEL, "remoteProxy reclaim");
+    proxyHolder->object_ = nullptr;
+    return result;
 }
 
 napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
@@ -720,6 +736,7 @@ napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("sendRequest", NAPI_RemoteProxy_sendRequest),
         DECLARE_NAPI_FUNCTION("sendMessageRequest", NAPI_RemoteProxy_sendMessageRequest),
         DECLARE_NAPI_FUNCTION("isObjectDead", NAPI_RemoteProxy_isObjectDead),
+        DECLARE_NAPI_FUNCTION("reclaim", NAPI_RemoteProxy_Reclaim),
         DECLARE_NAPI_STATIC_PROPERTY("PING_TRANSACTION", pingTransaction),
         DECLARE_NAPI_STATIC_PROPERTY("DUMP_TRANSACTION", dumpTransaction),
         DECLARE_NAPI_STATIC_PROPERTY("INTERFACE_TRANSACTION", interfaceTransaction),
