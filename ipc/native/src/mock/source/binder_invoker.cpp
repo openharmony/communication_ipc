@@ -1600,6 +1600,16 @@ std::string BinderInvoker::ResetCallingIdentity()
     return tempSid + "<" + accessToken + realPid + pidUid; // '<' is the separator character
 }
 
+void BinderInvoker::PrintIdentity(bool isPrint, bool isBefore)
+{
+    if (!isPrint) {
+        return;
+    }
+    ZLOGI(LABEL, "%{public}s callingIdentity, callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
+        callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
+        isBefore ? "Before" : "After", callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
+}
+
 bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
 {
     if (identity.empty() || identity.length() <= ACCESS_TOKEN_MAX_LEN) {
@@ -1609,33 +1619,33 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
     if (pos == std::string::npos) {
         return false;
     }
-    if (flag) {
-        ZLOGI(LABEL, "set before callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
-            callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
-            callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
-    }
+    PrintIdentity(flag, true);
     std::string callerSid;
     if (!ProcessSkeleton::GetSubStr(identity, callerSid, 0, pos)) {
-        ZLOGE(LABEL, "Identity param callerSid is invalid, callerSid:%{public}s", callerSid.c_str());
+        ZLOGE(LABEL, "Identity param callerSid is invalid");
         return false;
     }
     std::string tokenIdStr;
     if (!ProcessSkeleton::GetSubStr(identity, tokenIdStr, pos + 1, ACCESS_TOKEN_MAX_LEN) ||
         !ProcessSkeleton::IsNumStr(tokenIdStr)) {
-        ZLOGE(LABEL, "Identity param tokenId is invalid, tokenIdStr:%{public}s", tokenIdStr.c_str());
+        ZLOGE(LABEL, "Identity param tokenId is invalid");
         return false;
     }
     std::string realPidStr;
     if (!ProcessSkeleton::GetSubStr(identity, realPidStr, pos + 1 + ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN) ||
         !ProcessSkeleton::IsNumStr(realPidStr)) {
-        ZLOGE(LABEL, "Identity param realPid is invalid, realPidStr:%{public}s", realPidStr.c_str());
+        ZLOGE(LABEL, "Identity param realPid is invalid");
         return false;
     }
     std::string pidUidStr;
     size_t offset = pos + 1 + ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET;
-    size_t subLen = identity.length() - ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET;
+    if (identity.length() <= offset) {
+        ZLOGE(LABEL, "Identity param no pidUid, len:%{public}zu, offset:%{public}zu", identity.length(), offset);
+        return false;
+    }
+    size_t subLen = identity.length() - offset;
     if (!ProcessSkeleton::GetSubStr(identity, pidUidStr, offset, subLen) || !ProcessSkeleton::IsNumStr(pidUidStr)) {
-        ZLOGE(LABEL, "Identity param pidUid is invalid, pidUidStr:%{public}s", pidUidStr.c_str());
+        ZLOGE(LABEL, "Identity param pidUid is invalid");
         return false;
     }
     callerSid_ = callerSid;
@@ -1644,11 +1654,7 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
     uint64_t pidUid = std::stoull(pidUidStr.c_str());
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
-    if (flag) {
-        ZLOGI(LABEL, "set after callerSid:%{public}s, callerTokenID:%{public}" PRIu64 ", \
-            callerRealPid:%{public}u, callerUid:%{public}u, callerPid:%{public}u",
-            callerSid_.c_str(), callerTokenID_, callerRealPid_, callerUid_, callerPid_);
-    }
+    PrintIdentity(flag, false);
     return true;
 }
 

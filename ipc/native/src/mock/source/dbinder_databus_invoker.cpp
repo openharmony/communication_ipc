@@ -958,22 +958,27 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity, bool flag)
     std::string tokenIdStr;
     if (!ProcessSkeleton::GetSubStr(identity, tokenIdStr, 0, ACCESS_TOKEN_MAX_LEN) ||
         !ProcessSkeleton::IsNumStr(tokenIdStr)) {
-        ZLOGE(LOG_LABEL, "Identity param tokenId is invalid, tokenIdStr:%{public}s", tokenIdStr.c_str());
+        ZLOGE(LOG_LABEL, "Identity param tokenId is invalid");
         return false;
     }
     std::string deviceId;
     if (!ProcessSkeleton::GetSubStr(identity, deviceId, ACCESS_TOKEN_MAX_LEN, DEVICEID_LENGTH)) {
-        ZLOGE(LOG_LABEL, "Identity param deviceId is invalid, deviceId:%{public}s", deviceId.c_str());
+        ZLOGE(LOG_LABEL, "Identity param deviceId is invalid");
+        return false;
     }
     std::string tokenStr;
-    if (!ProcessSkeleton::GetSubStr(identity, tokenStr, ACCESS_TOKEN_MAX_LEN + DEVICEID_LENGTH,
-        identity.length() - ACCESS_TOKEN_MAX_LEN - DEVICEID_LENGTH) || !ProcessSkeleton::IsNumStr(tokenStr)) {
-        ZLOGE(LOG_LABEL, "Identity param token is invalid, tokenStr:%{public}s", tokenStr.c_str());
+    size_t offset = ACCESS_TOKEN_MAX_LEN + DEVICEID_LENGTH;
+    if (identity.length() <= offset) {
+        ZLOGE(LOG_LABEL, "Identity param no token, len:%{public}zu, offset:%{public}zu", identity.length(), offset);
+        return false;
+    }
+    size_t subLen = identity.length() - offset;
+    if (!ProcessSkeleton::GetSubStr(identity, tokenStr, offset, subLen) || !ProcessSkeleton::IsNumStr(tokenStr)) {
+        ZLOGE(LOG_LABEL, "Identity param token is invalid");
         return false;
     }
     uint64_t tokenId = std::stoull(tokenIdStr.c_str());
     uint64_t token = std::stoull(tokenStr.c_str());
-
     callerUid_ = static_cast<int>(token >> PID_LEN);
     callerPid_ = static_cast<int>(token);
     callerDeviceID_ = deviceId;
