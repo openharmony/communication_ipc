@@ -34,9 +34,9 @@ public:
 
     bool Matches(napi_value object);
 
-    napi_ref GetDeathRecipientRef() const
+    napi_ref GetDeathRecipientRef() const;
 
-    void CleanDeatRecipientRef()
+    void CleanDeatRecipientRef();
 
 protected:
     virtual ~NAPIDeathRecipient() = default;
