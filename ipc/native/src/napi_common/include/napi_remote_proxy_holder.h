@@ -34,6 +34,10 @@ public:
 
     bool Matches(napi_value object);
 
+    napi_ref GetDeathRecipientRef() const;
+
+    void CleanDeatRecipientRef();
+
 protected:
     virtual ~NAPIDeathRecipient() = default;
 
@@ -42,7 +46,7 @@ private:
 
     struct OnRemoteDiedParam {
         napi_env env;
-        napi_ref deathRecipientRef;
+        sptr<NAPIDeathRecipient> deathRecipient;
     };
     napi_env env_ = nullptr;
     napi_ref deathRecipientRef_ = nullptr;
