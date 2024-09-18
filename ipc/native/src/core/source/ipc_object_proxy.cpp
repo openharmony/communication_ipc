@@ -409,7 +409,6 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         return false;
     }
     recipients_.insert(std::make_pair(soPath, recipient));
-
     if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
             handle_, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str());
