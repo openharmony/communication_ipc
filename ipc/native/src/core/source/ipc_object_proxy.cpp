@@ -526,7 +526,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     return recipientErased;
 }
 
-std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
+std::string IPCObjectProxy::GetObjectSoPath(DeathRecipient *recipient)
 {
     if (recipient == nullptr) {
         ZLOGE(LABEL, "recipient is deleted");
@@ -534,7 +534,7 @@ std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
     }
 
     Dl_info info;
-    int32_t ret = dladdr(reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient.GetRefPtr())), &info);
+    int32_t ret = dladdr(reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient)), &info);
     if ((ret == 0) || (info.dli_fname == nullptr)) {
         ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
         return "";
@@ -542,7 +542,7 @@ std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
     return info.dli_fname;
 }
 
-bool IPCObjectProxy::IsDlclosed(std::string soPath, sptr<DeathRecipient> recipient)
+bool IPCObjectProxy::IsDlclosed(std::string soPath, DeathRecipient *recipient)
 {
     std::string current = GetObjectSoPath(recipient);
     if (current.empty() || (current != soPath)) {
@@ -572,7 +572,8 @@ void IPCObjectProxy::SendObituary()
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
-            if (IsDlclosed(iter->first, iter->second)) {
+            DeathRecipient *temp = iter->second.GetRefPtr();
+            if (IsDlclosed(iter->first, temp)) {
                 ZLOGE(LABEL, "path:%{public}s is dlcosed", iter->first.c_str());
                 continue;
             }
@@ -591,7 +592,8 @@ void IPCObjectProxy::SendObituary()
     }
 
     for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
-        if (IsDlclosed(iter->first, iter->second)) {
+        DeathRecipient *temp = iter->second.GetRefPtr();
+        if (IsDlclosed(iter->first, temp)) {
             ZLOGE(LABEL, "path:%{public}s is dlcosed", iter->first.c_str());
             continue;
         }
