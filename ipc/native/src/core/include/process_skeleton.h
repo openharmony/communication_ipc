@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,17 +19,12 @@
 #include <map>
 #include <mutex>
 #include <shared_mutex>
+#include <unordered_map>
 
 #include "iremote_object.h"
 #include "sys_binder.h"
 
 namespace OHOS {
-struct DeadObjectInfo {
-    int32_t handle;
-    uint64_t deadTime;
-    uint64_t agingTime;
-    std::u16string desc;
-};
 
 struct InvokerProcInfo {
     pid_t pid;
@@ -62,9 +57,9 @@ public:
     bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
     bool LockObjectMutex();
     bool UnlockObjectMutex();
-    bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo &objInfo);
-    bool DetachDeadObject(IRemoteObject *object);
-    bool IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo);
+    bool AttachValidObject(IRemoteObject *object, bool isValid = true);
+    bool DetachValidObject(IRemoteObject *object);
+    bool IsValidObject(IRemoteObject *object);
     bool AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool DetachInvokerProcInfo(bool isLocal);
@@ -73,7 +68,6 @@ private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
     ProcessSkeleton() = default;
     ~ProcessSkeleton();
-    void DetachTimeoutDeadObject();
 
     class DestroyInstance {
     public:
@@ -95,18 +89,17 @@ private:
     sptr<IRemoteObject> registryObject_ = nullptr;
     bool isSamgr_ = false;
 
-    std::map<std::u16string, wptr<IRemoteObject>> objects_;
-    std::map<IRemoteObject *, bool> isContainStub_;
+    std::unordered_map<std::u16string, wptr<IRemoteObject>> objects_;
+    std::unordered_map<IRemoteObject *, bool> isContainStub_;
 
-    std::shared_mutex deadObjectMutex_;
-    std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
-    uint64_t deadObjectClearTime_ = 0;
+    std::shared_mutex validObjectMutex_;
+    std::unordered_map<IRemoteObject *, bool> validObjectRecord_;
     uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
     std::atomic<uint64_t> proxyObjectCountNum_ = 0;
     std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
 
     std::shared_mutex invokerProcMutex_;
-    std::map<std::string, InvokerProcInfo> invokerProcInfo_;
+    std::unordered_map<std::string, InvokerProcInfo> invokerProcInfo_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H
