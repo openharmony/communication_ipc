@@ -58,7 +58,7 @@ using namespace IPC_SINGLE;
         handle, error, (desc).c_str(), curTime)
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
-static const long long int SEND_REQUEST_TIMEOUT = 2000;
+static constexpr int SEND_REQUEST_TIMEOUT = 2000;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
     : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
@@ -71,7 +71,7 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
-    current->DetachDeadObject(this);
+    current->AttachValidObject(this);
 }
 
 IPCObjectProxy::~IPCObjectProxy()
@@ -84,15 +84,17 @@ IPCObjectProxy::~IPCObjectProxy()
         ZLOGI(LABEL, "destroy handle:%{public}u desc:%{public}s %{public}u", handle_,
             ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
     }
+    auto pos = desc.find("IVpnStateCallback");
+    if (pos != std::string::npos) {
+        ZLOGI(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+    }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
-    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    DeadObjectInfo obj = { handle_, curTime, curTime, remoteDescriptor_ };
-    current->AttachDeadObject(this, obj);
+    current->DetachValidObject(this);
 }
 
 int32_t IPCObjectProxy::GetObjectRefCount()
@@ -148,7 +150,6 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
                 ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
         }
     }
-
     return err;
 }
 
@@ -496,8 +497,8 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 
 std::string IPCObjectProxy::GetObjectSoPath(sptr<DeathRecipient> recipient)
 {
-    if (recipient == nullptr) {
-        ZLOGE(LABEL, "recipient is deleted");
+    if (recipient.GetRefPtr() == nullptr) {
+        ZLOGE(LABEL, "recipient is delete");
         return "";
     }
 

@@ -181,7 +181,6 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
-    
     --sendRequestCount_;
     return error;
 }
@@ -576,11 +575,8 @@ void BinderInvoker::OnBinderDied()
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    DeadObjectInfo deadInfo;
-    if ((current != nullptr) && current->IsDeadObject(proxy, deadInfo)) {
-        ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+    if ((current != nullptr) && !current->IsValidObject(proxy)) {
+        ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(proxy));
     } else {
         if (proxy->AttemptIncStrongRef(this)) {
             proxy->SendObituary();
@@ -613,11 +609,8 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    DeadObjectInfo deadInfo;
-    if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
-        ZLOGE(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-            ProcessSkeleton::ConvertAddr(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+    if ((current != nullptr) && !current->IsValidObject(obj)) {
+        ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
         return;
     }
 
@@ -663,11 +656,8 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
         ProcessSkeleton::ConvertAddr(refs), ProcessSkeleton::ConvertAddr(obj));
     if (cmd == BR_RELEASE) {
         ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-        DeadObjectInfo deadInfo;
-        if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
-            ZLOGD(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-                ProcessSkeleton::ConvertAddr(obj),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+        if ((current != nullptr) && !current->IsValidObject(obj)) {
+            ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
             return;
         }
         if (obj->GetSptrRefCount() > 0) {
@@ -750,12 +740,9 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
             ZLOGE(LABEL, "Invalid stub object");
             return error;
         }
-        DeadObjectInfo deadInfo;
         auto current = ProcessSkeleton::GetInstance();
-        if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
-            ZLOGE(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-                ProcessSkeleton::ConvertAddr(targetObject),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+        if ((current != nullptr) && !current->IsValidObject(targetObject)) {
+            ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(targetObject));
         } else {
             if (targetObject->GetSptrRefCount() > 0) {
                 error = targetObject->SendRequest(tr.code, data, reply, option);
