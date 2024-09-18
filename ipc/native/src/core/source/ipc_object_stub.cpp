@@ -77,7 +77,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     if (current->GetSamgrFlag()) {
         SetRequestSidFlag(true);
     }
-    current->DetachDeadObject(this);
+    current->AttachValidObject(this);
 }
 
 IPCObjectStub::~IPCObjectStub()
@@ -92,8 +92,7 @@ IPCObjectStub::~IPCObjectStub()
     }
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    DeadObjectInfo obj = { -1, curTime, curTime, descriptor_ };
-    current->AttachDeadObject(this, obj);
+    current->DetachValidObject(this);
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)

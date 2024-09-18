@@ -25,12 +25,6 @@
 #include "sys_binder.h"
 
 namespace OHOS {
-struct DeadObjectInfo {
-    int32_t handle;
-    uint64_t deadTime;
-    uint64_t agingTime;
-    std::u16string desc;
-};
 
 struct InvokerProcInfo {
     pid_t pid;
@@ -65,9 +59,9 @@ public:
     bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
     bool LockObjectMutex();
     bool UnlockObjectMutex();
-    bool AttachDeadObject(IRemoteObject *object, DeadObjectInfo &objInfo);
-    bool DetachDeadObject(IRemoteObject *object);
-    bool IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo);
+    bool AttachValidObject(IRemoteObject *object, bool isValid = true);
+    bool DetachValidObject(IRemoteObject *object);
+    bool IsValidObject(IRemoteObject *object);
     bool AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool DetachInvokerProcInfo(bool isLocal);
@@ -76,7 +70,6 @@ private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
     ProcessSkeleton() = default;
     ~ProcessSkeleton();
-    void DetachTimeoutDeadObject();
 
     class DestroyInstance {
     public:
@@ -101,9 +94,8 @@ private:
     std::unordered_map<std::u16string, wptr<IRemoteObject>> objects_;
     std::unordered_map<IRemoteObject *, bool> isContainStub_;
 
-    std::shared_mutex deadObjectMutex_;
-    std::unordered_map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
-    uint64_t deadObjectClearTime_ = 0;
+    std::shared_mutex validObjectMutex_;
+    std::unordered_map<IRemoteObject *, bool> validObjectRecord_;
     uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
     std::atomic<uint64_t> proxyObjectCountNum_ = 0;
     std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
