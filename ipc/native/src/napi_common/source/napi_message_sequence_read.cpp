@@ -395,7 +395,12 @@ napi_value NAPI_MessageSequence::JS_readByteArray(napi_env env, napi_callback_in
         ZLOGE(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
+    uint32_t maxBytesLen = MAX_BYTES_LENGTH;
     uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
+    if (arrayLength >= maxBytesLen) {
+        ZLOGE(LOG_LABEL, "byte array length too large");
+        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+    }
 
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiSequence);

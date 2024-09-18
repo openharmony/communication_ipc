@@ -27,13 +27,12 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
-std::atomic<bool> InvokerFactory::isAvailable_ = true;
+bool InvokerFactory::isAvailable_ = true;
 
 InvokerFactory::InvokerFactory() {}
 
 InvokerFactory::~InvokerFactory()
 {
-    std::lock_guard<std::mutex> lockGuard(factoryMutex_);
     isAvailable_ = false;
     creators_.clear();
 }
