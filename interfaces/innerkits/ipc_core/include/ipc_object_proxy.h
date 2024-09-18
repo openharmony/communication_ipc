@@ -246,8 +246,8 @@ private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
-    std::string GetObjectSoPath(sptr<DeathRecipient> recipient);
-    bool IsDlclosed(std::string soPath, sptr<DeathRecipient> recipient);
+    std::string GetObjectSoPath(DeathRecipient *recipient);
+    bool IsDlclosed(std::string soPath, DeathRecipient *recipient);
 
 #ifndef CONFIG_IPC_SINGLE
     /**
