@@ -169,6 +169,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
+    ++sendRequestCount_;
     if ((flags & TF_ONE_WAY) != 0) {
         error = WaitForCompletion(nullptr);
     } else {
@@ -180,6 +181,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
+    --sendRequestCount_;
     return error;
 }
 
@@ -490,7 +492,7 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
         error = TransactWithDriver(false);
     }
     if (error != ERR_NONE || output_.GetDataSize() > 0) {
-        ZLOGE(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
+        ZLOGW(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
         PrintParcelData(output_, "output_");
         std::string backtrace;
         if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
@@ -1657,6 +1659,11 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
     ZLOGE(LABEL,
         "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s",
         parcelName.c_str(), size, parcel.GetReadPosition(),  parcel.GetWritePosition(), formatStr.c_str());
+}
+
+bool BinderInvoker::IsSendRequesting()
+{
+    return sendRequestCount_ > 0;
 }
 
 #ifdef CONFIG_ACTV_BINDER
