@@ -78,7 +78,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     if (current->GetSamgrFlag()) {
         SetRequestSidFlag(true);
     }
-    current->DetachDeadObject(this);
+    current->AttachValidObject(this);
 }
 
 IPCObjectStub::~IPCObjectStub()
@@ -93,8 +93,7 @@ IPCObjectStub::~IPCObjectStub()
     }
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    DeadObjectInfo obj = { -1, curTime, curTime, descriptor_ };
-    current->AttachDeadObject(this, obj);
+    current->DetachValidObject(this);
 }
 
 void IPCObjectStub::InitCodeMap()
@@ -262,7 +261,8 @@ int IPCObjectStub::DBinderIncRefsTransaction(uint32_t code,
     // update listenFd
     ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u",
         listenFd, stubIndex, tokenId);
-    current->AttachAppInfoToStubIndex(callerPid, callerUid, tokenId, callerDevId, stubIndex, listenFd);
+        AppAuthInfo appAuthInfo = { callerPid, callerUid, tokenId, listenFd, stubIndex, nullptr, callerDevId };
+    current->AttachOrUpdateAppAuthInfo(appAuthInfo);
     return ERR_NONE;
 }
 

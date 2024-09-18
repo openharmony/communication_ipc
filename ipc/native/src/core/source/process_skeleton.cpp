@@ -26,8 +26,6 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "ProcessSkeleton" };
-static constexpr uint64_t DEAD_OBJECT_TIMEOUT = 20 * (60 * 1000); // min
-static constexpr uint64_t DEAD_OBJECT_CHECK_INTERVAL = 11 * (60 * 1000); // min
 static constexpr int PRINT_ERR_CNT = 100;
 
 #ifdef __aarch64__
@@ -67,8 +65,8 @@ ProcessSkeleton::~ProcessSkeleton()
         isContainStub_.clear();
     }
     {
-        std::unique_lock<std::shared_mutex> deadObjLock(deadObjectMutex_);
-        deadObjectRecord_.clear();
+        std::unique_lock<std::shared_mutex> validObjLock(validObjectMutex_);
+        validObjectRecord_.clear();
     }
     {
         std::unique_lock<std::shared_mutex> invokerProcLock(invokerProcMutex_);
@@ -125,17 +123,27 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     // This handle may have already been replaced with a new IPCObjectProxy,
     // if someone failed the AttemptIncStrong.
     auto iterator = objects_.find(descriptor);
-    if (iterator != objects_.end()) {
-        if (object->IsProxyObject()) {
-            proxyObjectCountNum_.fetch_sub(1, std::memory_order_relaxed);
-        }
-        objects_.erase(iterator);
-        ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+    if (iterator == objects_.end()) {
+        ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated",
+            ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+        return false;
+    }
+
+    if (object->IsProxyObject()) {
+        proxyObjectCountNum_.fetch_sub(1, std::memory_order_relaxed);
+    }
+
+    if (iterator->second.GetRefPtr() != object) {
+        ZLOGD(LOG_LABEL, "can not erase it because addr if different, "
+            "desc:%{public}s, recorded object:%{public}u, detach object:%{public}u",
+            ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), ConvertAddr(iterator->second.GetRefPtr()),
+            ConvertAddr(object));
         return true;
     }
-    ZLOGD(LOG_LABEL, "not found, desc:%{public}s maybe has been updated",
-        ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
-    return false;
+
+    objects_.erase(iterator);
+    ZLOGD(LOG_LABEL, "erase desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
+    return true;
 }
 
 bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &descriptor, bool lockFlag)
@@ -154,7 +162,6 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
     wptr<IRemoteObject> wp = object;
-
     if (object->IsProxyObject()) {
         uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
         if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
@@ -196,14 +203,22 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
             remoteObject = it->second.GetRefPtr();
         }
     }
-    DeadObjectInfo deadInfo;
-    bool isNullObject = (remoteObject == nullptr);
-    bool isDeadObject = IsDeadObject(remoteObject, deadInfo);
-    if (isNullObject || isDeadObject || !remoteObject->AttemptIncStrong(this)) {
-        ZLOGE(LOG_LABEL, "remoteObject is null or dead or AttemptIncStrong failed, "
-            "isNullObject:%{public}d, isDeadObject:%{public}d", isNullObject, isDeadObject);
+
+    if (remoteObject == nullptr) {
+        ZLOGD(LOG_LABEL, "not found object, desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
         return result;
     }
+
+    if (!IsValidObject(remoteObject)) {
+        ZLOGD(LOG_LABEL, "object %{public}d is inValid", ConvertAddr(remoteObject));
+        return result;
+    }
+
+    if (!remoteObject->AttemptIncStrong(this)) {
+        ZLOGD(LOG_LABEL, "object %{public}d AttemptIncStrong failed", ConvertAddr(remoteObject));
+        return result;
+    }
+
     result = remoteObject;
     result->CheckIsAttemptAcquireSet(this);
 
@@ -224,72 +239,41 @@ bool ProcessSkeleton::UnlockObjectMutex()
     return true;
 }
 
-bool ProcessSkeleton::AttachDeadObject(IRemoteObject *object, DeadObjectInfo &objInfo)
+bool ProcessSkeleton::AttachValidObject(IRemoteObject *object, bool isValid)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
-    auto result = deadObjectRecord_.insert_or_assign(object, objInfo);
-    ZLOGD(LOG_LABEL, "%{public}u handle:%{public}d desc:%{public}s inserted:%{public}d",
-        ConvertAddr(object), objInfo.handle,
-        ConvertToSecureDesc(Str16ToStr8(objInfo.desc)).c_str(), result.second);
-    DetachTimeoutDeadObject();
+    std::unique_lock<std::shared_mutex> lockGuard(validObjectMutex_);
+    auto result = validObjectRecord_.insert_or_assign(object, isValid);
+    ZLOGD(LOG_LABEL, "%{public}u inserted:%{public}d", ConvertAddr(object), result.second);
     return result.second;
 }
 
-bool ProcessSkeleton::DetachDeadObject(IRemoteObject *object)
+bool ProcessSkeleton::DetachValidObject(IRemoteObject *object)
 {
     bool ret = false;
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    std::unique_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
-    auto it = deadObjectRecord_.find(object);
-    if (it != deadObjectRecord_.end()) {
-        ZLOGD(LOG_LABEL, "erase %{public}u handle:%{public}d desc:%{public}s", ConvertAddr(object),
-            it->second.handle, ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str());
-        deadObjectRecord_.erase(it);
+    std::unique_lock<std::shared_mutex> lockGuard(validObjectMutex_);
+    auto it = validObjectRecord_.find(object);
+    if (it != validObjectRecord_.end()) {
+        ZLOGD(LOG_LABEL, "erase %{public}u ", ConvertAddr(object));
+        validObjectRecord_.erase(it);
         ret = true;
     }
-    DetachTimeoutDeadObject();
     return ret;
 }
 
-bool ProcessSkeleton::IsDeadObject(IRemoteObject *object, DeadObjectInfo &deadInfo)
+bool ProcessSkeleton::IsValidObject(IRemoteObject *object)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    std::shared_lock<std::shared_mutex> lockGuard(deadObjectMutex_);
-    auto it = deadObjectRecord_.find(object);
-    if (it != deadObjectRecord_.end()) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        auto &info = it->second;
-        info.agingTime = curTime;
-        deadInfo = info;
-        return true;
+    if (object == nullptr) {
+        return false;
+    }
+    std::shared_lock<std::shared_mutex> lockGuard(validObjectMutex_);
+    auto it = validObjectRecord_.find(object);
+    if (it != validObjectRecord_.end()) {
+        return it->second;
     }
     return false;
-}
-
-void ProcessSkeleton::DetachTimeoutDeadObject()
-{
-    CHECK_INSTANCE_EXIT(exitFlag_);
-    // don't lock in the function.
-    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    if (curTime < DEAD_OBJECT_CHECK_INTERVAL + deadObjectClearTime_) {
-        return;
-    }
-    deadObjectClearTime_ = curTime;
-    size_t index = 0;
-    size_t recordSize = deadObjectRecord_.size();
-    for (auto it = deadObjectRecord_.begin(); it != deadObjectRecord_.end() && index < recordSize; ++index) {
-        if (curTime - it->second.agingTime >= DEAD_OBJECT_TIMEOUT) {
-            ZLOGD(LOG_LABEL, "erase %{public}u handle:%{public}d desc:%{public}s time:%{public}" PRIu64,
-                ConvertAddr(it->first), it->second.handle,
-                ConvertToSecureDesc(Str16ToStr8(it->second.desc)).c_str(), it->second.deadTime);
-            it = deadObjectRecord_.erase(it);
-            continue;
-        }
-        ++it;
-    }
 }
 
 bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo)
