@@ -382,4 +382,22 @@ bool ProcessSkeleton::UnFlattenDBinderData(Parcel &parcel, dbinder_negotiation_d
         reinterpret_cast<const void *>(obj->buffer), obj->length);
     return (ret == EOK);
 }
+
+bool ProcessSkeleton::GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length)
+{
+    if (str.empty() || str.length() < offset + length) {
+        ZLOGE(LOG_LABEL, "strLen:%{public}zu, offset:%{public}zu, subLen:%{public}zu", str.length(), offset, length);
+        return false;
+    }
+    substr = str.substr(offset, length);
+    return true;
+}
+
+bool ProcessSkeleton::IsNumStr(const std::string &str)
+{
+    if (str.empty()) {
+        return false;
+    }
+    return std::all_of(str.begin(), str.end(), ::isdigit);
+}
 } // namespace OHOS
