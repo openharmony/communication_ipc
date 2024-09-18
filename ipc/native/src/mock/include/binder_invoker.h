@@ -212,6 +212,8 @@ private:
 
     void UpdateConsumedData(const binder_write_read &bwr, const size_t outAvail);
 
+    void PrintIdentity(bool isPrint, bool isBefore);
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
 
