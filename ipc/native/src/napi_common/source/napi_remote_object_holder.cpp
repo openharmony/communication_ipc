@@ -63,11 +63,6 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
         .env = env_,
         .thisVarRef = jsObjectRef_
     };
-    if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "failed to new param");
-        delete work;
-        return;
-    }
     work->data = reinterpret_cast<void *>(param);
     int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGD(LOG_LABEL, "enter work pool.");
