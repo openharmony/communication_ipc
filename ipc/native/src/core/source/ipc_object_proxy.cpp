@@ -51,11 +51,11 @@ namespace OHOS {
 using namespace IPC_SINGLE;
 #endif
 
-#define PRINT_SEND_REQUEST_FAIL_INFO(handle, error, desc) \
+#define PRINT_SEND_REQUEST_FAIL_INFO(handle, error, desc, proxy) \
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(   \
         std::chrono::steady_clock::now().time_since_epoch()).count());                               \
-    ZLOGE(LABEL, "failed, handle:%{public}d error:%{public}d desc:%{public}s time:%{public}" PRIu64, \
-        handle, error, (desc).c_str(), curTime)
+    ZLOGE(LABEL, "failed, handle:%{public}d error:%{public}d desc:%{public}s proxy:%{public}u time:%{public}" PRIu64, \
+        handle, error, (desc).c_str(), proxy, curTime)
 
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr int SEND_REQUEST_TIMEOUT = 2000;
@@ -106,7 +106,8 @@ int32_t IPCObjectProxy::GetObjectRefCount()
         return reply.ReadInt32();
     }
     PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+        ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+        ProcessSkeleton::ConvertAddr(this));
     return 0;
 }
 
@@ -146,8 +147,8 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     }
     if (err != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
-            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
+                ProcessSkeleton::ConvertAddr(this));
         }
     }
     return err;
@@ -208,8 +209,8 @@ std::u16string IPCObjectProxy::GetInterfaceDescriptor()
 
     int err = SendRequestInner(false, INTERFACE_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
+            ProcessSkeleton::ConvertAddr(this));
         return std::u16string();
     }
     interfaceDesc_ = reply.ReadString16();
@@ -225,7 +226,8 @@ std::string IPCObjectProxy::GetSessionName()
     int err = SendRequestInner(false, GET_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         return std::string("");
     }
     return reply.ReadString();
@@ -239,7 +241,8 @@ std::string IPCObjectProxy::GetGrantedSessionName()
     int err = SendRequestInner(false, GET_GRANTED_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         return std::string("");
     }
 
@@ -267,7 +270,8 @@ std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
     int err = SendRequestInner(false, GET_SESSION_NAME_PID_UID, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         return std::string("");
     }
 
@@ -290,7 +294,8 @@ int IPCObjectProxy::RemoveSessionName(const std::string &sessionName)
     int err = SendRequestInner(false, REMOVE_SESSION_NAME, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
     }
     return err;
 }
@@ -607,7 +612,8 @@ int32_t IPCObjectProxy::NoticeServiceDie()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         return IPC_PROXY_TRANSACTION_ERR;
     }
 
@@ -674,7 +680,8 @@ int32_t IPCObjectProxy::IncRefToRemote()
     int32_t err = SendRequestInner(false, DBINDER_INCREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         // do nothing
     }
     return err;
@@ -790,7 +797,8 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         current->DetachCallbackStub(this);
         return false;
     }
@@ -823,7 +831,8 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         // do nothing, even send request failed
     }
     return err == ERR_NONE;
@@ -972,7 +981,8 @@ void IPCObjectProxy::ReleaseDatabusProto()
     int err = SendRequestInner(false, DBINDER_DECREFS_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)));
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            ProcessSkeleton::ConvertAddr(this));
         // do nothing, if this cmd failed, stub's refcount will be decreased when OnSessionClosed called
     }
 
