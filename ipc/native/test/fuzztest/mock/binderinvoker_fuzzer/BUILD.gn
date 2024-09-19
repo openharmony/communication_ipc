@@ -20,7 +20,6 @@ ohos_fuzztest("BinderInvokerFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file = "../binderinvoker_fuzzer"
   include_dirs = [
-    "../../core/include",
     "../../../../../../utils/include",
     "../../../../c/rpc/include",
     "../../../../src/core/include",

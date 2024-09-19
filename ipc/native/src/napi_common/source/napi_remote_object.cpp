@@ -396,16 +396,17 @@ napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
+    napi_value res;
     CallbackParam *param = static_cast<CallbackParam *>(data);
     if (param == nullptr) {
         ZLOGE(LOG_LABEL, "param is nullptr");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
+
     param->result = ERR_UNKNOWN_TRANSACTION;
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
     param->lockInfo->condition.notify_all();
-    napi_value res;
     napi_get_undefined(env, &res);
     return res;
 }
@@ -796,6 +797,10 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
     status = napi_new_instance(env, constructor, 0, nullptr, &jsRemoteProxy);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteProxy");
     NAPIRemoteProxyHolder *proxyHolder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
+    if (proxyHolder == nullptr) {
+        ZLOGE(LOG_LABEL, "proxyHolder null");
+        return nullptr;
+    }
     proxyHolder->object_ = target;
     proxyHolder->list_ = new NAPIDeathRecipientList();
 
