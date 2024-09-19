@@ -18,6 +18,7 @@
 
 #include <dlfcn.h>
 #include <mutex>
+#include <atomic>
 #include <unordered_map>
 
 #include "iremote_object.h"
@@ -363,8 +364,8 @@ private:
     bool isRemoteDead_;
     std::u16string remoteDescriptor_;
     std::u16string interfaceDesc_;
-    int lastErr_ = 0;
-    int lastErrCnt_ = 0;
+    std::atomic<int> lastErr_ = 0;
+    std::atomic<int> lastErrCnt_ = 0;
     std::unique_ptr<uint8_t[]> dbinderData_{nullptr};
 };
 } // namespace OHOS
