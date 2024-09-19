@@ -147,8 +147,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     }
     if (err != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
-            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
                 ProcessSkeleton::ConvertAddr(this));
         }
     }
