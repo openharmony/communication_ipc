@@ -147,7 +147,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     }
     if (err != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
-            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
+            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
                 ProcessSkeleton::ConvertAddr(this));
         }
     }
@@ -611,7 +611,8 @@ int32_t IPCObjectProxy::NoticeServiceDie()
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE || reply.ReadInt32() != ERR_NONE) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
             ProcessSkeleton::ConvertAddr(this));
         return IPC_PROXY_TRANSACTION_ERR;
     }
@@ -795,7 +796,8 @@ bool IPCObjectProxy::AddDbinderDeathRecipient()
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
             ProcessSkeleton::ConvertAddr(this));
         current->DetachCallbackStub(this);
         return false;
@@ -828,7 +830,8 @@ bool IPCObjectProxy::RemoveDbinderDeathRecipient()
 
     int err = SendLocalRequest(DBINDER_OBITUARY_TRANSACTION, data, reply, option);
     if (err != ERR_NONE) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)),
             ProcessSkeleton::ConvertAddr(this));
         // do nothing, even send request failed
     }
