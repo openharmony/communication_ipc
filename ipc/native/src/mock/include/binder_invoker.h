@@ -258,6 +258,7 @@ private:
     std::atomic<int> lastErrCnt_ = 0;
     std::atomic<int32_t> sendNestCount_ = 0;
     std::atomic<int32_t> sendRequestCount_ = 0;
+    std::atomic<uint32_t> inputReservedSize_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif
