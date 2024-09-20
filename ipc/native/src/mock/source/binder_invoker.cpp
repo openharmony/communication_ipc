@@ -1042,13 +1042,18 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             output_.FlushBuffer();
             output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
+            --sendNestCount_;
+            if (sendNestCount_ > 0) {
+                ZLOGW(LABEL, "unexpected sendNestCount:%{public}d", sendNestCount_.load());
+                PrintParcelData(output_, "output_");
+            }
             output_.FlushBuffer();
-            sendNestCount_ = 0;
         }
     }
     if (bwr.read_consumed > 0) {
-        input_.SetDataSize(bwr.read_consumed);
+        input_.SetDataSize(inputReservedSize_ + bwr.read_consumed);
         input_.RewindRead(0);
+        inputReservedSize_ = 0;
     }
 }
 
@@ -1060,7 +1065,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     binder_write_read bwr;
     const bool needRead = input_.GetReadableBytes() == 0;
-    const size_t outAvail = (!doRead || needRead) ? output_.GetDataSize() : 0;
+    const size_t outAvail = (!doRead || needRead || sendNestCount_ > 0) ? output_.GetDataSize() : 0;
 
     bwr.write_size = (binder_size_t)outAvail;
     bwr.write_buffer = output_.GetData();
@@ -1068,6 +1073,22 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (doRead && needRead) {
         bwr.read_size = input_.GetDataCapacity();
         bwr.read_buffer = input_.GetData();
+    } else if (sendNestCount_ > 0 && input_.GetReadPosition() > 0 && input_.GetReadableBytes() > 0) {
+        auto readSize = input_.GetReadableBytes();
+        PrintParcelData(input_, "input_ before moving");
+        Parcel temp;
+        temp.WriteBuffer(reinterpret_cast<void *>(input_.GetData() + input_.GetReadPosition()), readSize);
+        input_.RewindWrite(0);
+        input_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), readSize);
+        input_.SetDataSize(readSize);
+        input_.RewindRead(0);
+        input_.RewindWrite(0);
+        inputReservedSize_ = readSize;
+        PrintParcelData(input_, "input_ after moving");
+        bwr.read_size = input_.GetDataCapacity() - input_.GetDataSize();
+        bwr.read_buffer = input_.GetData() + input_.GetDataSize();
+        ZLOGI(LABEL, "read_size:%{public}llu read_buffer:%{public}llu readSize:%{public}zu inputSize:%{public}zu",
+            bwr.read_size, bwr.read_buffer, readSize, input_.GetDataSize());
     } else {
         bwr.read_size = 0;
         bwr.read_buffer = 0;
