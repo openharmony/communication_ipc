@@ -35,6 +35,7 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
+static constexpr uint32_t WAIT_TIME = 10;
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
@@ -255,7 +256,11 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
             ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
         } else {
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
+            if (!param->lockInfo->ready && !param->lockInfo->condition.wait_for(lock,
+                std::chrono::seconds(WAIT_TIME), [&param] { return param->lockInfo->ready; })) {
+                param->lockInfo->ready = true;
+                ZLOGE(LOG_LABEL, "wait uv_queue_work timeout");
+            }
         }
         delete param;
         delete work;
@@ -740,8 +745,14 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         ret = -1;
     } else {
         std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
-        jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
-        ret = jsParam->result;
+        if (!jsParam->lockInfo->ready && !jsParam->lockInfo->condition.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [&jsParam] { return jsParam->lockInfo->ready; })) {
+            jsParam->lockInfo->ready = true;
+            ZLOGE(LOG_LABEL, "wait for js callback timeout");
+            ret = -1;
+        } else {
+            ret = jsParam->result;
+        }
     }
     delete jsParam;
     delete work;
