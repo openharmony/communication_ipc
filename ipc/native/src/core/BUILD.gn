@@ -25,6 +25,7 @@ ohos_shared_library("ipc_common") {
   sanitize = {
     integer_overflow = true
   }
+  branch_protector_ret = "pac_ret"
   include_dirs = [
     "$IPC_CORE_ROOT/src/mock/include",
     "$SUBSYSTEM_DIR/utils/include",
