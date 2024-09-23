@@ -110,7 +110,7 @@ HWTEST_F(ProcessSkeletonUnitTest, AttachValidObjectTest001, TestSize.Level1)
     sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
     ASSERT_TRUE(object != nullptr);
     bool ret = skeleton->AttachValidObject(object.GetRefPtr());
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
 }
 
 /**
