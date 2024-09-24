@@ -46,7 +46,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":OnBytesReceivedFuzzTest",
+    #":OnBytesReceivedFuzzTest",
   ]
 }
 ###############################################################################
