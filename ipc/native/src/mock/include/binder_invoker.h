@@ -245,7 +245,7 @@ private:
 
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
-    static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
+    static constexpr int IPC_DEFAULT_PARCEL_SIZE = 512;
     static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
     static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
     Parcel input_;
