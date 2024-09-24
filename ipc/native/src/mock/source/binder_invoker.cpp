@@ -493,6 +493,7 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
     }
     if (error != ERR_NONE || output_.GetDataSize() > 0) {
         ZLOGW(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
+        PrintParcelData(input_, "input_");
         PrintParcelData(output_, "output_");
         std::string backtrace;
         if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
@@ -526,6 +527,9 @@ void BinderInvoker::StartWorkLoop()
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
             ZLOGE(LABEL, "returned unexpected error:%{public}d, aborting", error);
             break;
+        }
+        if (input_.GetReadableBytes() == 0) {
+            continue;
         }
         uint32_t cmd = input_.ReadUint32();
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -992,6 +996,14 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     if (error != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
             ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
+            PrintParcelData(input_, "input_");
+            PrintParcelData(output_, "output_");
+            std::string backtrace;
+            if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
+                ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+            } else {
+                ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+            }
         }
     }
     if (cmd != BR_TRANSACTION) {
@@ -1042,13 +1054,19 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             output_.FlushBuffer();
             output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
+            --sendNestCount_;
+            if (sendNestCount_ > 0) {
+                ZLOGW(LABEL, "unexpected sendNestCount:%{public}d", sendNestCount_.load());
+                PrintParcelData(input_, "input_");
+                PrintParcelData(output_, "output_");
+            }
             output_.FlushBuffer();
-            sendNestCount_ = 0;
         }
     }
     if (bwr.read_consumed > 0) {
-        input_.SetDataSize(bwr.read_consumed);
+        input_.SetDataSize(inputReservedSize_ + bwr.read_consumed);
         input_.RewindRead(0);
+        inputReservedSize_ = 0;
     }
 }
 
@@ -1060,7 +1078,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     binder_write_read bwr;
     const bool needRead = input_.GetReadableBytes() == 0;
-    const size_t outAvail = (!doRead || needRead) ? output_.GetDataSize() : 0;
+    const size_t outAvail = (!doRead || needRead || sendNestCount_ > 0) ? output_.GetDataSize() : 0;
 
     bwr.write_size = (binder_size_t)outAvail;
     bwr.write_buffer = output_.GetData();
@@ -1068,7 +1086,25 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (doRead && needRead) {
         bwr.read_size = input_.GetDataCapacity();
         bwr.read_buffer = input_.GetData();
+    } else if (sendNestCount_ > 0 && input_.GetReadPosition() > 0 && input_.GetReadableBytes() > 0) {
+        auto readSize = input_.GetReadableBytes();
+        Parcel temp;
+        temp.WriteBuffer(reinterpret_cast<void *>(input_.GetData() + input_.GetReadPosition()), readSize);
+        input_.RewindWrite(0);
+        input_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), readSize);
+        input_.SetDataSize(readSize);
+        input_.RewindRead(0);
+        input_.RewindWrite(0);
+        inputReservedSize_ = readSize;
+        bwr.read_size = input_.GetDataCapacity() - input_.GetDataSize();
+        bwr.read_buffer = input_.GetData() + input_.GetDataSize();
     } else {
+        if (sendNestCount_ > 0) {
+            bwr.write_size = 0;
+            ZLOGW(LABEL, "input_ is full, delay to send request!");
+            PrintParcelData(input_, "input_");
+            PrintParcelData(output_, "output_");
+        }
         bwr.read_size = 0;
         bwr.read_buffer = 0;
     }
@@ -1130,6 +1166,7 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
 
     if (sendNestCount_ > 0) {
         ZLOGW(LABEL, "request nesting occurs, handle:%{public}d count:%{public}u", handle, sendNestCount_.load());
+        PrintParcelData(input_, "input_");
         PrintParcelData(output_, "output_");
         std::string backtrace;
         if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {

@@ -245,7 +245,7 @@ private:
 
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
-    static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
+    static constexpr int IPC_DEFAULT_PARCEL_SIZE = 512;
     static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
     static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
     Parcel input_;
@@ -258,6 +258,7 @@ private:
     std::atomic<int> lastErrCnt_ = 0;
     std::atomic<int32_t> sendNestCount_ = 0;
     std::atomic<int32_t> sendRequestCount_ = 0;
+    std::atomic<uint32_t> inputReservedSize_ = 0;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif
