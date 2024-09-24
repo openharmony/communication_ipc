@@ -48,7 +48,6 @@ ohos_shared_library("ipc_common") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "json:nlohmann_json_static",
   ]
 
   defines = [ "FFRT_IPC_ENABLE" ]
