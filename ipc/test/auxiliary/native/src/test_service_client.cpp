@@ -40,15 +40,6 @@ int TestServiceClient::ConnectService()
         sptr<IRemoteObject::DeathRecipient> death(new TestDeathRecipient());
         object->AddDeathRecipient(death.GetRefPtr());
         testService_ = iface_cast<ITestService>(object);
-
-        Dl_info info;
-        int32_t ret = dladdr(reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(death.GetRefPtr())), &info);
-        if ((ret == 0) || (ret == -1) || (info.dli_fname == nullptr)) {
-            ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
-            return -1;
-        }
-        std::string pathSo = info.dli_fname;
-        ZLOGI(LABEL, "path: %{public}s", pathSo.c_str());
     }
 
     if (testService_ == nullptr) {

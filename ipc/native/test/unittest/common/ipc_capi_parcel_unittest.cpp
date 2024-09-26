@@ -131,8 +131,17 @@ uint32_t IpcCApiParcelUnitTest::CalcSpendTime(TimePoint& start, TimePoint& end)
 void IpcCApiParcelUnitTest::PerformanceStatistic(uint32_t writeAvg, uint32_t readAvg,
     uint32_t writeCppAvg, uint32_t readCppAvg)
 {
+    static constexpr uint32_t percent = 100;
+    static constexpr uint32_t percentRange = 105;
+    static constexpr uint32_t errorValue = 5000; // ns
     std::cout << "OHIPCParcel writeAvg:" << writeAvg << "ns, readAvg:" << readAvg << "ns" << std::endl;
     std::cout << "MessageParcel writeAvg:" << writeCppAvg << "ns, readAvg:" << readCppAvg << "ns" << std::endl;
+    if (writeCppAvg >= errorValue) {
+        ASSERT_LE(writeAvg * percent, writeCppAvg * percentRange);
+    }
+    if (readCppAvg >= errorValue) {
+        ASSERT_LE(readAvg * percent, readCppAvg * percentRange);
+    }
 }
 
 void IpcCApiParcelUnitTest::ReadWriteString(const char *str, uint32_t &writeDuration, uint32_t &readDuration)

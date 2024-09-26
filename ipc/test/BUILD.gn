@@ -15,7 +15,6 @@ import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
-IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
 
 config("ipc_test_config") {
   include_dirs = [
@@ -24,7 +23,6 @@ config("ipc_test_config") {
     "$SUBSYSTEM_DIR/utils/include",
     "$SUBSYSTEM_DIR/ipc/native/src/mock/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include",
-    "$IPC_CORE_ROOT/src/c_api/include",
   ]
 }
 
