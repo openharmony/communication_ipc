@@ -150,7 +150,6 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(objMutex_, std::defer_lock);
-    ZLOGD(LOG_LABEL, "The value of lockflag is:%{public}d", lockFlag);
     if (lockFlag) {
         lockGuard.lock();
     }
