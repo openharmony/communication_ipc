@@ -926,6 +926,7 @@ int BinderInvoker::HandleReply(MessageParcel *reply, bool &isStubRet)
     auto allocator = new (std::nothrow) BinderAllocator();
     if (allocator == nullptr) {
         ZLOGE(LABEL, "create BinderAllocator object failed");
+        FreeBuffer(reinterpret_cast<void *>(tr->data.ptr.buffer));
         return IPC_INVOKER_INVALID_DATA_ERR;
     }
     if (!reply->SetAllocator(allocator)) {
