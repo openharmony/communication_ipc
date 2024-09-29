@@ -780,7 +780,7 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(int32_t socketId, uint64_t stub
     }
     uint32_t callerTokenId = session->GetTokenId();
     AppAuthInfo appAuthInfo = { pid, uid, callerTokenId, socketId, stubIndex, nullptr, deviceId };
-    if (!current->QueryAppInfoToStubIndex(appAuthInfo)) {
+    if (current->QueryAppInfoToStubIndex(appAuthInfo) == false) {
         ZLOGE(LOG_LABEL, "stubIndex:%{public}" PRIu64 " is NOT belong to caller, pid:%{public}d uid:%{public}d"
             " deviceId:%{public}s socketId:%{public}d callerTokenId:%{public}u", stubIndex, pid, uid,
             IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(), socketId, callerTokenId);
