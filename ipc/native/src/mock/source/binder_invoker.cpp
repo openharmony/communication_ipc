@@ -99,6 +99,8 @@ BinderInvoker::~BinderInvoker()
     if (current != nullptr) {
         current->DetachInvokerProcInfo(true);
     }
+    ProcDeferredDecRefs();
+    FlushCommands(nullptr);
 }
 
 bool BinderInvoker::AcquireHandle(int32_t handle)
@@ -544,6 +546,7 @@ void BinderInvoker::StartWorkLoop()
             ZLOGW(LABEL, "exit, userError:%{public}d", userError);
             break;
         }
+        ProcDeferredDecRefs();
     } while (error != -ECONNREFUSED && error != -EBADF && !stopWorkThread);
 }
 
@@ -631,17 +634,11 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
         result = output_.WriteInt32(BC_INCREFS_DONE);
     }
 
-    if (!result || !output_.WritePointer(refsPointer)) {
+    if (!result || !output_.WritePointer(refsPointer) || !output_.WritePointer(objectPointer)) {
         if (!output_.RewindWrite(rewindPos)) {
             output_.FlushBuffer();
         }
         return;
-    }
-
-    if (!output_.WritePointer(objectPointer)) {
-        if (!output_.RewindWrite(rewindPos)) {
-            output_.FlushBuffer();
-        }
     }
 }
 
@@ -659,16 +656,13 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     ZLOGD(LABEL, "refcount:%{public}d refs:%{public}u obj:%{public}u", refs->GetStrongRefCount(),
         ProcessSkeleton::ConvertAddr(refs), ProcessSkeleton::ConvertAddr(obj));
     if (cmd == BR_RELEASE) {
-        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-        if ((current != nullptr) && !current->IsValidObject(obj)) {
-            ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
-            return;
-        }
         if (obj->GetSptrRefCount() > 0) {
-            obj->DecStrongRef(this);
+            std::lock_guard<std::mutex> lock(strongRefMutex_);
+            decStrongRefs_.push_back(obj);
         }
     } else {
-        refs->DecWeakRefCount(this);
+        std::lock_guard<std::mutex> lock(weakRefMutex_);
+        decWeakRefs_.push_back(refs);
     }
 }
 
@@ -1059,14 +1053,14 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
                 ZLOGW(LABEL, "unexpected sendNestCount:%{public}d", sendNestCount_.load());
                 PrintParcelData(input_, "input_");
                 PrintParcelData(output_, "output_");
+                sendNestCount_ = 0;
             }
             output_.FlushBuffer();
         }
     }
     if (bwr.read_consumed > 0) {
-        input_.SetDataSize(inputReservedSize_ + bwr.read_consumed);
+        input_.SetDataSize(bwr.read_consumed);
         input_.RewindRead(0);
-        inputReservedSize_ = 0;
     }
 }
 
@@ -1078,7 +1072,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     binder_write_read bwr;
     const bool needRead = input_.GetReadableBytes() == 0;
-    const size_t outAvail = (!doRead || needRead || sendNestCount_ > 0) ? output_.GetDataSize() : 0;
+    const size_t outAvail = (!doRead || needRead) ? output_.GetDataSize() : 0;
 
     bwr.write_size = (binder_size_t)outAvail;
     bwr.write_buffer = output_.GetData();
@@ -1086,25 +1080,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
     if (doRead && needRead) {
         bwr.read_size = input_.GetDataCapacity();
         bwr.read_buffer = input_.GetData();
-    } else if (sendNestCount_ > 0 && input_.GetReadPosition() > 0 && input_.GetReadableBytes() > 0) {
-        auto readSize = input_.GetReadableBytes();
-        Parcel temp;
-        temp.WriteBuffer(reinterpret_cast<void *>(input_.GetData() + input_.GetReadPosition()), readSize);
-        input_.RewindWrite(0);
-        input_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), readSize);
-        input_.SetDataSize(readSize);
-        input_.RewindRead(0);
-        input_.RewindWrite(0);
-        inputReservedSize_ = readSize;
-        bwr.read_size = input_.GetDataCapacity() - input_.GetDataSize();
-        bwr.read_buffer = input_.GetData() + input_.GetDataSize();
     } else {
-        if (sendNestCount_ > 0) {
-            bwr.write_size = 0;
-            ZLOGW(LABEL, "input_ is full, delay to send request!");
-            PrintParcelData(input_, "input_");
-            PrintParcelData(output_, "output_");
-        }
         bwr.read_size = 0;
         bwr.read_buffer = 0;
     }
@@ -1728,6 +1704,38 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
 bool BinderInvoker::IsSendRequesting()
 {
     return sendRequestCount_ > 0;
+}
+
+void BinderInvoker::ProcDeferredDecRefs()
+{
+    if (input_.GetReadableBytes() > 0) {
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(weakRefMutex_);
+        for (size_t idx = 0; idx < decWeakRefs_.size(); ++idx) {
+            auto &ref = decWeakRefs_[idx];
+            ref->DecWeakRefCount(this);
+        }
+        decWeakRefs_.clear();
+    }
+    {
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        if (current == nullptr) {
+            ZLOGE(LABEL, "ProcessSkeleton is null");
+            return;
+        }
+        std::lock_guard<std::mutex> lock(strongRefMutex_);
+        for (size_t idx = 0; idx < decStrongRefs_.size(); ++idx) {
+            auto &obj = decStrongRefs_[idx];
+            if (!current->IsValidObject(obj)) {
+                ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
+                continue;
+            }
+            obj->DecStrongRef(this);
+        }
+        decStrongRefs_.clear();
+    }
 }
 
 #ifdef CONFIG_ACTV_BINDER
