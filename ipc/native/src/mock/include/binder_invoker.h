@@ -24,11 +24,33 @@
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
 #include "process_skeleton.h"
+#include <securec.h>
 #ifdef CONFIG_ACTV_BINDER
 #include "actv_binder.h"
 #endif
 
 namespace OHOS {
+
+/* dfx interface,type is 0 for string */
+extern "C" uintptr_t DFX_SetCrashObj(uint8_t type, uintptr_t addr);
+extern "C" void DFX_ResetCrashObj(uintptr_t crashObj);
+
+struct CrashObjDumper {
+public:
+    explicit CrashObjDumper(const char *str)
+    {
+        if (str == nullptr) {
+            return;
+        }
+        ptr_ = DFX_SetCrashObj(0, reinterpret_cast<uintptr_t>(str));
+    }
+    ~CrashObjDumper()
+    {
+        DFX_ResetCrashObj(ptr_);
+    }
+private:
+    uintptr_t ptr_ = 0;
+};
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
