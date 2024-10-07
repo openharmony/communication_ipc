@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,10 +62,7 @@ BinderConnector::~BinderConnector()
         vmAddr_ = MAP_FAILED;
     }
 
-    if (driverFD_ >= 0) {
-        close(driverFD_);
-        driverFD_ = -1;
-    }
+    CloseDriverFd();
 };
 
 bool BinderConnector::IsDriverAlive()
@@ -197,6 +194,9 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
     int err = -EINTR;
 
     while (err == -EINTR) {
+        if (driverFD_ < 0) {
+            return -EBADF;
+        }
         if (ioctl(driverFD_, request, value) >= 0) {
             err = ERR_NONE;
         } else {
@@ -255,6 +255,15 @@ uint64_t BinderConnector::GetSelfFirstCallerTokenID()
     }
     close(fd);
     return token;
+}
+
+void BinderConnector::CloseDriverFd()
+{
+    if (driverFD_ >= 0) {
+        int tmpFd = driverFD_;
+        driverFD_ = -1;
+        close(tmpFd);
+    }
 }
 
 BinderConnector *BinderConnector::GetInstance()

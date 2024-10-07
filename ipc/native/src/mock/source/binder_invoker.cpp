@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,7 +68,6 @@ namespace IPC_SINGLE {
 #endif
 
 #define PIDUID_OFFSET 2
-
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
 #ifndef CONFIG_IPC_SINGLE
@@ -527,6 +526,10 @@ void BinderInvoker::StartWorkLoop()
     }
     int error;
     do {
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr || current->GetThreadStopFlag()) {
+            break;
+        }
         error = TransactWithDriver();
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
             ZLOGE(LABEL, "returned unexpected error:%{public}d, aborting", error);
@@ -536,7 +539,7 @@ void BinderInvoker::StartWorkLoop()
             continue;
         }
         uint32_t cmd = input_.ReadUint32();
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        current = IPCProcessSkeleton::GetCurrent();
         if (current != nullptr) {
             current->LockForNumExecuting();
         }
