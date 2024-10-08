@@ -19,6 +19,7 @@
 
 #include "__mutex_base"
 #include "algorithm"
+#include "backtrace_local.h"
 #include "errors.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
@@ -57,6 +58,7 @@ using namespace IPC_SINGLE;
     ZLOGE(LABEL, "failed, handle:%{public}d error:%{public}d desc:%{public}s proxy:%{public}u time:%{public}" PRIu64, \
         handle, error, (desc).c_str(), proxy, curTime)
 
+using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr int SEND_REQUEST_TIMEOUT = 2000;
 
@@ -152,10 +154,16 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
         ZLOGW(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
             timeInterval, code, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
     }
-    if (err != ERR_NONE) {
-        if (ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
-            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
-                ProcessSkeleton::ConvertAddr(this));
+    if (err != ERR_NONE && ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, ProcessSkeleton::ConvertToSecureDesc(desc),
+            ProcessSkeleton::ConvertAddr(this));
+        if (err == BR_FAILED_REPLY) {
+            std::string backtrace;
+            if (!GetBacktrace(backtrace, false)) {
+                ZLOGE(LABEL, "GetBacktrace fail");
+            } else {
+                ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+            }
         }
     }
     return err;
