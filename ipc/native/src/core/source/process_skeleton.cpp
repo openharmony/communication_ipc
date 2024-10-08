@@ -208,8 +208,8 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         ZLOGD(LOG_LABEL, "not found object, desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
         return result;
     }
-
-    if (!IsValidObject(remoteObject)) {
+    std::u16string desc;
+    if (!IsValidObject(remoteObject, desc)) {
         ZLOGD(LOG_LABEL, "object %{public}d is inValid", ConvertAddr(remoteObject));
         return result;
     }
@@ -239,12 +239,13 @@ bool ProcessSkeleton::UnlockObjectMutex()
     return true;
 }
 
-bool ProcessSkeleton::AttachValidObject(IRemoteObject *object, bool isValid)
+bool ProcessSkeleton::AttachValidObject(IRemoteObject *object, const std::u16string &desc)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(validObjectMutex_);
-    auto result = validObjectRecord_.insert_or_assign(object, isValid);
-    ZLOGD(LOG_LABEL, "%{public}u inserted:%{public}d", ConvertAddr(object), result.second);
+    auto result = validObjectRecord_.insert_or_assign(object, desc);
+    ZLOGD(LOG_LABEL, "%{public}u descriptor:%{public}s", ConvertAddr(object),
+        ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
     return result.second;
 }
 
@@ -262,7 +263,7 @@ bool ProcessSkeleton::DetachValidObject(IRemoteObject *object)
     return ret;
 }
 
-bool ProcessSkeleton::IsValidObject(IRemoteObject *object)
+bool ProcessSkeleton::IsValidObject(IRemoteObject *object, std::u16string &desc)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     if (object == nullptr) {
@@ -271,7 +272,10 @@ bool ProcessSkeleton::IsValidObject(IRemoteObject *object)
     std::shared_lock<std::shared_mutex> lockGuard(validObjectMutex_);
     auto it = validObjectRecord_.find(object);
     if (it != validObjectRecord_.end()) {
-        return it->second;
+        desc = it->second;
+        ZLOGD(LOG_LABEL, "%{public}u descriptor:%{public}s", ConvertAddr(object),
+            ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
+        return true;
     }
     return false;
 }
