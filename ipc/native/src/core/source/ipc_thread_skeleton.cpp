@@ -109,7 +109,7 @@ void IPCThreadSkeleton::SaveThreadName(const std::string &name)
     if (current == nullptr) {
         return;
     }
-    if (CheckInstanceIsExiting(current->exitFlag_)) {
+    if (IsInstanceException(current->exitFlag_)) {
         return;
     }
     current->threadName_ = name;
@@ -123,7 +123,7 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     void *curTLS = pthread_getspecific(TLSKey_);
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
-        if (CheckInstanceIsExiting(current->exitFlag_)) {
+        if (IsInstanceException(current->exitFlag_)) {
             return nullptr;
         }
         GetVaildInstance(current);
@@ -167,7 +167,7 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
     }
 }
 
-bool IPCThreadSkeleton::CheckInstanceIsExiting(std::atomic<uint32_t> &flag)
+bool IPCThreadSkeleton::IsInstanceException(std::atomic<uint32_t> &flag)
 {
     if (flag == INVOKER_USE_MAGIC) {
         return false;
@@ -193,7 +193,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     if (current == nullptr) {
         return nullptr;
     }
-    if (CheckInstanceIsExiting(current->exitFlag_)) {
+    if (IsInstanceException(current->exitFlag_)) {
         return nullptr;
     }
 
@@ -286,7 +286,7 @@ bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
     if (current == nullptr) {
         return false;
     }
-    if (CheckInstanceIsExiting(current->exitFlag_)) {
+    if (IsInstanceException(current->exitFlag_)) {
         return false;
     }
     current->sendRequestCount_ += delta;
