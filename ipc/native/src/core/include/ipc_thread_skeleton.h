@@ -54,7 +54,7 @@ public:
 
     static bool UpdateSendRequestCount(int delta);
 
-    static bool CheckInstanceIsExiting(std::atomic<uint32_t> &flag);
+    static bool IsInstanceException(std::atomic<uint32_t> &flag);
 
     bool IsSendRequesting();
 
