@@ -60,9 +60,9 @@ public:
     bool DetachObject(IRemoteObject *object, const std::u16string &descriptor);
     bool LockObjectMutex();
     bool UnlockObjectMutex();
-    bool AttachValidObject(IRemoteObject *object, bool isValid = true);
+    bool AttachValidObject(IRemoteObject *object, const std::u16string &desc);
     bool DetachValidObject(IRemoteObject *object);
-    bool IsValidObject(IRemoteObject *object);
+    bool IsValidObject(IRemoteObject *object, std::u16string &desc);
     bool AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool QueryInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo);
     bool DetachInvokerProcInfo(bool isLocal);
@@ -96,7 +96,7 @@ private:
     std::unordered_map<IRemoteObject *, bool> isContainStub_;
 
     std::shared_mutex validObjectMutex_;
-    std::unordered_map<IRemoteObject *, bool> validObjectRecord_;
+    std::unordered_map<IRemoteObject *, std::u16string> validObjectRecord_;
     uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
     std::atomic<uint64_t> proxyObjectCountNum_ = 0;
     std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
