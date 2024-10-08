@@ -217,13 +217,15 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return false;
     }
-    uint32_t peerTokenId = 0;
-    if (!current->QueryCommAuthInfo(peerPid, peerUid, peerTokenId, networkId)) {
+
+    AppAuthInfo appAuthInfo = { peerPid, peerUid, 0, socketId, 0, nullptr, networkId };
+    if (!current->QueryCommAuthInfo(appAuthInfo)) {
         ZLOGE(LOG_LABEL, "remote device is not auth, socket:%{public}d, peerName:%{public}s",
             socketId, peerName.c_str());
         return false;
     }
-    current->UpdateCommAuthSocketInfo(peerPid, peerUid, peerTokenId, networkId, socketId);
+
+    uint32_t peerTokenId = appAuthInfo.tokenId;
     uint32_t oldTokenId = 0;
     if (current->StubDetachDBinderSession(socketId, oldTokenId)) {
         ZLOGI(LOG_LABEL, "delete left socketId:%{public}d device:%{public}s oldTokenId:%{public}u", socketId,
@@ -242,8 +244,8 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
         "oldTokenId:%{public}u socketId:%{public}d", peerPid, peerUid,
         IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(),
         peerTokenId, oldTokenId, socketId);
-    // update listen fd
-    current->AttachAppInfoToStubIndex(peerPid, peerUid, peerTokenId, networkId, socketId);
+    // update socketId
+    current->AttachOrUpdateAppAuthInfo(appAuthInfo);
     return true;
 }
 
@@ -625,9 +627,8 @@ void DBinderDatabusInvoker::OnDatabusSessionServerSideClosed(int32_t socketId)
         return;
     }
     bool ret = current->StubDetachDBinderSession(socketId, tokenId);
-    current->DetachCommAuthInfoBySocketId(socketId);
-    // detach info whose listen fd equals the given one
-    std::list<uint64_t> stubIndexs = current->DetachAppInfoToStubIndex(socketId);
+    // detach info whose socketId equals the given one
+    std::list<uint64_t> stubIndexs = current->DetachAppAuthInfoBySocketId(socketId);
     std::lock_guard<std::mutex> lockGuard(GetObjectMutex());
     for (auto it = stubIndexs.begin(); it != stubIndexs.end(); it++) {
         // note that we canont remove mapping from stub to index here because other session may still be used
@@ -637,7 +638,6 @@ void DBinderDatabusInvoker::OnDatabusSessionServerSideClosed(int32_t socketId)
         }
         // a proxy doesn't refers this stub, we need to dec ref
         stub->DecStrongRef(this);
-        ZLOGI(LOG_LABEL, "socketId:%{public}d", socketId);
     }
     ZLOGI(LOG_LABEL, "socketId:%{public}d ret:%{public}d", socketId, ret);
 }
@@ -779,7 +779,8 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(int32_t socketId, uint64_t stub
         return IPC_SKELETON_ERR;
     }
     uint32_t callerTokenId = session->GetTokenId();
-    if (current->QueryAppInfoToStubIndex(pid, uid, callerTokenId, deviceId, stubIndex, socketId) == false) {
+    AppAuthInfo appAuthInfo = { pid, uid, callerTokenId, socketId, stubIndex, nullptr, deviceId };
+    if (current->QueryAppInfoToStubIndex(appAuthInfo) == false) {
         ZLOGE(LOG_LABEL, "stubIndex:%{public}" PRIu64 " is NOT belong to caller, pid:%{public}d uid:%{public}d"
             " deviceId:%{public}s socketId:%{public}d callerTokenId:%{public}u", stubIndex, pid, uid,
             IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(), socketId, callerTokenId);
@@ -877,15 +878,11 @@ bool DBinderDatabusInvoker::ConnectRemoteObject2Session(IRemoteObject *stubObjec
     ZLOGI(LOG_LABEL, "pid:%{public}d uid:%{public}d deviceId:%{public}s tokenId:%{public}u "
         "stubIndex:%{public}" PRIu64, peerPid, peerUid, IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(),
         tokenId, stubIndex);
-    // mark listen fd as 0
-    if (!current->AttachAppInfoToStubIndex(peerPid, peerUid, tokenId, deviceId, stubIndex, 0)) {
-        ZLOGI(LOG_LABEL, "app info already existed, replace with 0");
-    }
-    if (current->AttachCommAuthInfo(stubObject, peerPid, peerUid, tokenId, deviceId)) {
+    // mark socketId as 0
+    AppAuthInfo appAuthInfo = { peerPid, peerUid, tokenId, 0, stubIndex, stubObject, deviceId };
+    if (current->AttachOrUpdateAppAuthInfo(appAuthInfo)) {
         // first time send this stub to proxy indicating by deviceId, pid, uid
         stubObject->IncStrongRef(this);
-    } else {
-        ZLOGI(LOG_LABEL, "comm auth info attached already");
     }
     return true;
 }
