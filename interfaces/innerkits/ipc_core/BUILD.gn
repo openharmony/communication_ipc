@@ -30,7 +30,6 @@ ohos_shared_library("ipc_core") {
     integer_overflow = true
   }
   version_script = "libipc_core_map"
-  branch_protector_ret = "pac_ret"
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$IPC_CORE_ROOT/c/rpc/include",
