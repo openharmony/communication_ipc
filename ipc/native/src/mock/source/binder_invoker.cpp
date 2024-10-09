@@ -499,8 +499,8 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
         PrintParcelData(input_, "input_");
         PrintParcelData(output_, "output_");
         std::string backtrace;
-        if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
-            ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+        if (!GetBacktrace(backtrace, false)) {
+            ZLOGE(LABEL, "GetBacktrace fail");
         } else {
             ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
         }
@@ -1005,8 +1005,8 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
             PrintParcelData(input_, "input_");
             PrintParcelData(output_, "output_");
             std::string backtrace;
-            if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
-                ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+            if (!GetBacktrace(backtrace, false)) {
+                ZLOGE(LABEL, "GetBacktrace fail");
             } else {
                 ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
             }
@@ -1157,8 +1157,8 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
         PrintParcelData(input_, "input_");
         PrintParcelData(output_, "output_");
         std::string backtrace;
-        if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
-            ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+        if (!GetBacktrace(backtrace, false)) {
+            ZLOGE(LABEL, "GetBacktrace fail");
         } else {
             ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
         }
