@@ -31,7 +31,6 @@ config("libipc_c_private_config") {
 }
 
 ohos_static_library("ipc_rust_cxx") {
-  branch_protector_ret = "pac_ret"
   sources = [
     "src/cxx/parcel_wrapper.cpp",
     "src/cxx/remote_object_wrapper.cpp",

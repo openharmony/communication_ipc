@@ -26,7 +26,6 @@ config("libipc_capi_public_config") {
 }
 
 ohos_shared_library("ipc_capi") {
-  branch_protector_ret = "pac_ret"
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include",

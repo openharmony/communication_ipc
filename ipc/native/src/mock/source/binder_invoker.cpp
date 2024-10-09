@@ -1514,21 +1514,18 @@ bool BinderInvoker::FlattenObject(Parcel &parcel, const IRemoteObject *object) c
 sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
 {
 #ifndef CONFIG_IPC_SINGLE
-    auto offset = parcel.GetReadPosition();
     dbinder_negotiation_data dbinderData;
     bool isDBinderObj = UnFlattenDBinderObject(parcel, dbinderData);
-    auto offset2 = parcel.GetReadPosition();
-    if (offset != offset2) {
-        ZLOGW(LABEL, "offset:%{public}zu offset2:%{public}zu isDBinderObj:%{public}d",
-            offset, offset2, isDBinderObj);
-    }
 #endif
+    if (!parcel.CheckOffsets()) {
+        ZLOGE(LABEL, "Parcel CheckOffsets fail");
+        return nullptr;
+    }
     const uint8_t *buffer = parcel.ReadBuffer(sizeof(flat_binder_object), false);
     if (buffer == nullptr) {
         ZLOGE(LABEL, "null object buffer");
         return nullptr;
     }
-
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         return nullptr;
@@ -1538,7 +1535,12 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
     auto *flat = reinterpret_cast<const flat_binder_object *>(buffer);
     switch (flat->hdr.type) {
         case BINDER_TYPE_BINDER: {
-            remoteObject = reinterpret_cast<IRemoteObject *>(flat->cookie);
+            auto stubObject = reinterpret_cast<IRemoteObject *>(flat->cookie);
+            if (!current->IsContainsObject(stubObject)) {
+                ZLOGE(LABEL, "invalid binder cookie:%{public}llu", flat->cookie);
+                return nullptr;
+            }
+            remoteObject = stubObject;
             break;
         }
         case BINDER_TYPE_HANDLE: {
@@ -1555,9 +1557,6 @@ sptr<IRemoteObject> BinderInvoker::UnflattenObject(Parcel &parcel)
         default:
             ZLOGE(LABEL, "unknown binder type:%{public}u", flat->hdr.type);
             break;
-    }
-    if (!current->IsContainsObject(remoteObject)) {
-        remoteObject = nullptr;
     }
     return remoteObject;
 }
