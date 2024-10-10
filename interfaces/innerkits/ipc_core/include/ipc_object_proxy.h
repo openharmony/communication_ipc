@@ -352,6 +352,9 @@ private:
     bool MakeDBinderTransSession(const DBinderNegotiationData &data);
 #endif
 
+    bool RegisterBinderDeathRecipient();
+    bool UnRegisterBinderDeathRecipient();
+
     struct DeathRecipientAddrInfo : public virtual RefBase {
     public:
         explicit DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient);
@@ -370,7 +373,7 @@ private:
     std::recursive_mutex mutex_;
     std::shared_mutex descMutex_;
 
-    std::unordered_multimap<std::string, sptr<DeathRecipientAddrInfo>> recipients_;
+    std::unordered_map<DeathRecipient *, sptr<DeathRecipientAddrInfo>> recipients_;
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
