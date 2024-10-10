@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <memory>
 #include <pthread.h>
+#include <process_skeleton.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -108,6 +109,10 @@ void *IPCWorkThread::ThreadHandler(void *args)
     } else {
         ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
             param->proto, param->policy, threadName.c_str());
+        IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(param->proto);
+        if (invoker != nullptr) {
+            ZLOGI(LOG_LABEL, "invoker:%{public}u ", ProcessSkeleton::Convertaddr(invoker));
+        }
     }
     IPCThreadSkeleton::SaveThreadName(threadName);
 
