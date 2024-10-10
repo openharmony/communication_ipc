@@ -111,7 +111,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
             param->proto, param->policy, threadName.c_str());
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(param->proto);
         if (invoker != nullptr) {
-            ZLOGI(LOG_LABEL, "invoker:%{public}u ", ProcessSkeleton::Convertaddr(invoker));
+            ZLOGI(LOG_LABEL, "invoker:%{public}u ", ProcessSkeleton::ConvertAddr(invoker));
         }
     }
     IPCThreadSkeleton::SaveThreadName(threadName);
