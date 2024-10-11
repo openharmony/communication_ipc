@@ -244,8 +244,6 @@ private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
-    std::string GetObjectSoPath(sptr<DeathRecipient> recipient);
-    bool IsDlclosed(std::string soPath, sptr<DeathRecipient> recipient);
 
 #ifndef CONFIG_IPC_SINGLE
     /**
@@ -352,12 +350,25 @@ private:
     bool MakeDBinderTransSession(const DBinderNegotiationData &data);
 #endif
 
+    struct DeathRecipientAddrInfo : public virtual RefBase {
+    public:
+        explicit DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient);
+        ~DeathRecipientAddrInfo();
+
+        std::string GetNewSoPath();
+        bool IsDlclosed();
+    public:
+        sptr<DeathRecipient> recipient_;
+        void *soFuncAddr_;
+        std::string soPath_;
+    };
+
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
     std::mutex descMutex_;
 
-    std::unordered_multimap<std::string, sptr<DeathRecipient>> recipients_;
+    std::unordered_multimap<std::string, sptr<DeathRecipientAddrInfo>> recipients_;
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
