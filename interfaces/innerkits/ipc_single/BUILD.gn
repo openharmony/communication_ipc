@@ -18,13 +18,11 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 config("libipc_single_private_config") {
-  cflags_cc = [ "-O2" ]
+  cflags_cc = [
+    "-DCONFIG_IPC_SINGLE",
+    "-O2",
+  ]
 }
-
-config("ipc_all_deps_config") {
-  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
-}
-
 ohos_shared_library("ipc_single") {
   sanitize = {
     integer_overflow = true
@@ -33,19 +31,11 @@ ohos_shared_library("ipc_single") {
   branch_protector_ret = "pac_ret"
   include_dirs = [
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
     "$SUBSYSTEM_DIR/utils/include",
   ]
 
   sources = [
     "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
-    "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
-    "$IPC_CORE_ROOT/src/core/source/buffer_object.cpp",
-    "$IPC_CORE_ROOT/src/core/source/comm_auth_info.cpp",
-    "$IPC_CORE_ROOT/src/core/source/databus_socket_listener.cpp",
-    "$IPC_CORE_ROOT/src/core/source/dbinder_callback_stub.cpp",
-    "$IPC_CORE_ROOT/src/core/source/dbinder_session_object.cpp",
-    "$IPC_CORE_ROOT/src/core/source/dbinder_softbus_client.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_file_descriptor.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_proxy.cpp",
     "$IPC_CORE_ROOT/src/core/source/ipc_object_stub.cpp",
@@ -60,10 +50,8 @@ ohos_shared_library("ipc_single") {
     "$IPC_CORE_ROOT/src/core/source/message_option.cpp",
     "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
     "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
-    "$IPC_CORE_ROOT/src/core/source/stub_refcount_object.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
-    "$IPC_CORE_ROOT/src/mock/source/dbinder_databus_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/hitrace_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/invoker_factory.cpp",
     "$IPC_CORE_ROOT/src/mock/source/invoker_rawdata.cpp",
@@ -73,14 +61,10 @@ ohos_shared_library("ipc_single") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_single_private_config",
   ]
-  public_configs = [
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    ":ipc_all_deps_config",
-  ]
+  public_configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
 
-  all_dependent_configs = [ ":ipc_all_deps_config" ]
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
+
   external_deps = [
     "c_utils:utils",
     "faultloggerd:libbacktrace_local",
@@ -90,7 +74,10 @@ ohos_shared_library("ipc_single") {
     "hitrace:libhitracechain",
     "selinux:libselinux",
   ]
-  defines = [ "FFRT_IPC_ENABLE" ]
+  defines = [
+    "CONFIG_IPC_SINGLE",
+    "FFRT_IPC_ENABLE",
+  ]
   if (build_selinux) {
     defines += [ "WITH_SELINUX" ]
   }
@@ -103,7 +90,7 @@ ohos_shared_library("ipc_single") {
     system_base_dir,
     updater_base_dir,
   ]
-  install_enable = false
+
   subsystem_name = "communication"
   part_name = "ipc"
 }
