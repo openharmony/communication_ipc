@@ -81,6 +81,7 @@ void IPCThreadSkeleton::MakeTlsKey()
         ZLOGE(LOG_LABEL, "pthread_key_create fail, ret:%{public}d", ret);
         return;
     }
+    ZLOGD(LOG_LABEL, "key:%{public}d", TLSKey_);
 }
 
 void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
