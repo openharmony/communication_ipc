@@ -19,7 +19,6 @@
 #include <cstddef>
 #include <memory>
 #include <pthread.h>
-#include <process_skeleton.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -29,6 +28,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
+#include "process_skeleton.h"
 #include "string"
 #include "type_traits"
 #include "unistd.h"
