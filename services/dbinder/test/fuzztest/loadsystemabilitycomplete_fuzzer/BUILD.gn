@@ -45,7 +45,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    #":LoadSystemAbilityCompleteFuzzTest",
+    # ":LoadSystemAbilityCompleteFuzzTest",
   ]
 }
 ###############################################################################
