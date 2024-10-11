@@ -107,12 +107,9 @@ void *IPCWorkThread::ThreadHandler(void *args)
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d", threadName.c_str(), ret);
     } else {
-        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
-            param->proto, param->policy, threadName.c_str());
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(param->proto);
-        if (invoker != nullptr) {
-            ZLOGI(LOG_LABEL, "invoker:%{public}u ", ProcessSkeleton::ConvertAddr(invoker));
-        }
+        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u ",
+            param->proto, param->policy, threadName.c_str(), ProcessSkeleton::ConvertAddr(invoker));
     }
     IPCThreadSkeleton::SaveThreadName(threadName);
 
