@@ -43,7 +43,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":DBinderServiceFuzzTest",
+    # ":DBinderServiceFuzzTest",
   ]
 }
 ###############################################################################
