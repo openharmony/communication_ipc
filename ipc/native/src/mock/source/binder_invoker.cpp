@@ -98,6 +98,8 @@ BinderInvoker::~BinderInvoker()
     if (current != nullptr) {
         current->DetachInvokerProcInfo(true);
     }
+    ProcDeferredDecRefs();
+    FlushCommands(nullptr);
 }
 
 bool BinderInvoker::AcquireHandle(int32_t handle)
@@ -538,6 +540,7 @@ void BinderInvoker::StartWorkLoop()
             ZLOGW(LABEL, "exit, userError:%{public}d", userError);
             break;
         }
+        ProcDeferredDecRefs();
     } while (error != -ECONNREFUSED && error != -EBADF && !stopWorkThread);
 }
 
@@ -631,17 +634,11 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
         result = output_.WriteInt32(BC_INCREFS_DONE);
     }
 
-    if (!result || !output_.WritePointer(refsPointer)) {
+    if (!result || !output_.WritePointer(refsPointer) || !output_.WritePointer(objectPointer)) {
         if (!output_.RewindWrite(rewindPos)) {
             output_.FlushBuffer();
         }
         return;
-    }
-
-    if (!output_.WritePointer(objectPointer)) {
-        if (!output_.RewindWrite(rewindPos)) {
-            output_.FlushBuffer();
-        }
     }
 }
 
@@ -659,19 +656,13 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     ZLOGD(LABEL, "refcount:%{public}d refs:%{public}u obj:%{public}u", refs->GetStrongRefCount(),
         ProcessSkeleton::ConvertAddr(refs), ProcessSkeleton::ConvertAddr(obj));
     if (cmd == BR_RELEASE) {
-        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-        DeadObjectInfo deadInfo;
-        if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
-            ZLOGD(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-                ProcessSkeleton::ConvertAddr(obj),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
-            return;
-        }
         if (obj->GetSptrRefCount() > 0) {
-            obj->DecStrongRef(this);
+            std::lock_guard<std::mutex> lock(strongRefMutex_);
+            decStrongRefs_.push_back(obj);
         }
     } else {
-        refs->DecWeakRefCount(this);
+        std::lock_guard<std::mutex> lock(weakRefMutex_);
+        decWeakRefs_.push_back(refs);
     }
 }
 
@@ -1052,6 +1043,13 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             output_.FlushBuffer();
             output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
+            --sendNestCount_;
+            if (sendNestCount_ > 0) {
+                ZLOGW(LABEL, "unexpected sendNestCount:%{public}d", sendNestCount_.load());
+                PrintParcelData(input_, "input_");
+                PrintParcelData(output_, "output_");
+                sendNestCount_ = 0;
+            }
             output_.FlushBuffer();
         }
     }
@@ -1681,6 +1679,41 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
     ZLOGE(LABEL,
         "parcel name:%{public}s, size:%{public}zu, readpos:%{public}zu, writepos:%{public}zu, data:%{public}s",
         parcelName.c_str(), size, parcel.GetReadPosition(),  parcel.GetWritePosition(), formatStr.c_str());
+}
+
+void BinderInvoker::ProcDeferredDecRefs()
+{
+    if (input_.GetReadableBytes() > 0) {
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(weakRefMutex_);
+        for (size_t idx = 0; idx < decWeakRefs_.size(); ++idx) {
+            auto &ref = decWeakRefs_[idx];
+            ref->DecWeakRefCount(this);
+        }
+        decWeakRefs_.clear();
+    }
+    {
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        if (current == nullptr) {
+            ZLOGE(LABEL, "ProcessSkeleton is null");
+            return;
+        }
+        std::lock_guard<std::mutex> lock(strongRefMutex_);
+        for (size_t idx = 0; idx < decStrongRefs_.size(); ++idx) {
+            auto &obj = decStrongRefs_[idx];
+            DeadObjectInfo deadInfo;
+            if (current->IsDeadObject(obj, deadInfo)) {
+                ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
+                    ProcessSkeleton::ConvertAddr(obj), deadInfo.handle,
+                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+                continue;
+            }
+            obj->DecStrongRef(this);
+        }
+        decStrongRefs_.clear();
+    }
 }
 
 #ifdef CONFIG_ACTV_BINDER
