@@ -375,7 +375,13 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
+    napi_value res;
     CallbackParam *param = static_cast<CallbackParam *>(data);
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is null");
+        napi_get_undefined(env, &res);
+        return res;
+    }
     bool result = false;
     napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
     if (!result) {
@@ -391,7 +397,6 @@ napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
     param->lockInfo->condition.notify_all();
-    napi_value res;
     napi_get_undefined(env, &res);
     return res;
 }
