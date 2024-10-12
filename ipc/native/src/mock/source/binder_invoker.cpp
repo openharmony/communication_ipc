@@ -1704,8 +1704,11 @@ void BinderInvoker::ProcDeferredDecRefs()
         std::lock_guard<std::mutex> lock(strongRefMutex_);
         for (size_t idx = 0; idx < decStrongRefs_.size(); ++idx) {
             auto &obj = decStrongRefs_[idx];
-            if (!current->IsValidObject(obj)) {
-                ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
+            DeadObjectInfo deadInfo;
+            if (current->IsDeadObject(obj, deadInfo)) {
+                ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
+                    ProcessSkeleton::ConvertAddr(obj), deadInfo.handle,
+                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
                 continue;
             }
             obj->DecStrongRef(this);
