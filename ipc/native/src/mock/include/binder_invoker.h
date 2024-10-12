@@ -211,6 +211,8 @@ private:
 
     void PrintIdentity(bool isPrint, bool isBefore);
 
+    void ProcDeferredDecRefs();
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
 
@@ -253,7 +255,12 @@ private:
     InvokerProcInfo invokerInfo_;
     int lastErr_ = 0;
     int lastErrCnt_ = 0;
-    std::atomic<uint32_t> sendNestCount_ = 0;
+    std::atomic<int32_t> sendNestCount_ = 0;
+    std::atomic<int32_t> sendRequestCount_ = 0;
+    std::mutex strongRefMutex_;
+    std::vector<IRemoteObject *> decStrongRefs_;
+    std::mutex weakRefMutex_;
+    std::vector<RefCounter *> decWeakRefs_;
 #ifdef CONFIG_ACTV_BINDER
     bool useActvBinder_ = false;
 #endif
