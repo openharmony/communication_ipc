@@ -16,12 +16,14 @@
 #ifndef OHOS_IPC_IPC_OBJECT_PROXY_H
 #define OHOS_IPC_IPC_OBJECT_PROXY_H
 
+#include <dlfcn.h>
 #include <mutex>
-#include <vector>
+#include <unordered_map>
 
 #include "iremote_object.h"
 
 namespace OHOS {
+#define GET_FIRST_VIRTUAL_FUNC_ADDR(ptr) (*reinterpret_cast<uintptr_t *>(*reinterpret_cast<uintptr_t *>(ptr)))
 #ifndef CONFIG_IPC_SINGLE
 struct DBinderNegotiationData {
     pid_t peerPid;
@@ -347,12 +349,25 @@ private:
     bool MakeDBinderTransSession(const DBinderNegotiationData &data);
 #endif
 
+    struct DeathRecipientAddrInfo : public virtual RefBase {
+    public:
+        explicit DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient);
+        ~DeathRecipientAddrInfo();
+
+        std::string GetNewSoPath();
+        bool IsDlclosed();
+    public:
+        sptr<DeathRecipient> recipient_;
+        void *soFuncAddr_;
+        std::string soPath_;
+    };
+
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
     std::mutex descMutex_;
 
-    std::vector<sptr<DeathRecipient>> recipients_;
+    std::unordered_multimap<std::string, sptr<DeathRecipientAddrInfo>> recipients_;
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
