@@ -447,33 +447,25 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         ZLOGE(LABEL, "invalid object, info is nullptr:%{public}d", info == nullptr);
         return false;
     }
-    recipients_.insert(std::make_pair(info->soPath_, info));
-    if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-        ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
+    if (!recipients_.insert(std::make_pair(info->recipient_.GetRefPtr(), info)).second) {
+        ZLOGD(LABEL, "recipient has been added, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
         return true;
     }
-
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
-    if (invoker == nullptr) {
-        ZLOGE(LABEL, "invoker is null");
+    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        ZLOGE(LABEL, "invalid handle, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+        recipients_.erase(info->recipient_.GetRefPtr());
         return false;
     }
-    if (!invoker->AddDeathRecipient(handle_, this)) {
-        ZLOGE(LABEL, "fail to add binder death recipient, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
+    if (recipients_.size() == 1 && !RegisterBinderDeathRecipient()) {
+        ZLOGE(LABEL, "register failed, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+        recipients_.erase(info->recipient_.GetRefPtr());
         return false;
     }
-#ifndef CONFIG_IPC_SINGLE
-    if (proto_ == IRemoteObject::IF_PROT_DATABUS && !AddDbinderDeathRecipient()) {
-        ZLOGE(LABEL, "failed to add dbinder death recipient, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
-        return false;
-    }
-#endif
-    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}u", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(desc).c_str(),
-        ProcessSkeleton::ConvertAddr(this));
+    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
+        ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
     return true;
 }
 
@@ -494,39 +486,27 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
-    bool recipientErased = false;
-    for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
-        if (iter->second->recipient_ == recipient) {
-            recipients_.erase(iter);
-            recipientErased = true;
-            break;
-        }
-    }
-    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
-        ZLOGI(LABEL, "death recipient is already unregistered, handle:%{public}d desc:%{public}s",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
-        return true;
-    }
-    if (recipientErased && recipients_.empty()) {
-        IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
-        if (invoker == nullptr) {
-            ZLOGE(LABEL, "invoker is null");
-            return false;
-        }
 
-        bool dbinderStatus = true;
-        bool status = invoker->RemoveDeathRecipient(handle_, this);
-#ifndef CONFIG_IPC_SINGLE
-        if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
-            dbinderStatus = RemoveDbinderDeathRecipient();
-        }
-#endif
-        ZLOGD(LABEL, "result:%{public}d handle:%{public}d desc:%{public}s %{public}u", status && dbinderStatus,
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(),
-            ProcessSkeleton::ConvertAddr(this));
-        return status && dbinderStatus;
+    if (recipients_.erase(recipient.GetRefPtr()) == 0) {
+        ZLOGD(LABEL, "remove failed, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+        return false;
     }
-    return recipientErased;
+
+    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        ZLOGE(LABEL, "invalid handle, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+        return false;
+    }
+
+    if (recipients_.empty() && !UnRegisterBinderDeathRecipient()) {
+        ZLOGE(LABEL, "unregister failed, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+        return false;
+    }
+    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
+        ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+    return true;
 }
 
 void IPCObjectProxy::SendObituary()
@@ -546,17 +526,10 @@ void IPCObjectProxy::SendObituary()
     }
 #endif
     SetObjectDied(true);
-    std::unordered_multimap<std::string, sptr<DeathRecipientAddrInfo>> toBeReport;
+    std::unordered_map<DeathRecipient *, sptr<DeathRecipientAddrInfo>> toBeReport;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
-            if (iter->second->IsDlclosed()) {
-                ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", iter->first.c_str());
-                continue;
-            }
-            toBeReport.insert(std::make_pair(iter->first, iter->second));
-        }
-        recipients_.clear();
+        toBeReport.swap(recipients_);
     }
 
     if (toBeReport.size() > 0 && handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
@@ -569,7 +542,7 @@ void IPCObjectProxy::SendObituary()
     }
     for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
         if (iter->second->IsDlclosed()) {
-            ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", iter->first.c_str());
+            ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", iter->second->soPath_.c_str());
             continue;
         }
         ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
@@ -1031,10 +1004,52 @@ void IPCObjectProxy::ReleaseBinderProto()
 }
 #endif
 
+bool IPCObjectProxy::RegisterBinderDeathRecipient()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "invoker is null");
+        return false;
+    }
+    if (!invoker->AddDeathRecipient(handle_, this)) {
+        ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
+        return false;
+    }
+#ifndef CONFIG_IPC_SINGLE
+    if (proto_ == IRemoteObject::IF_PROT_DATABUS && !AddDbinderDeathRecipient()) {
+        ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
+        return false;
+    }
+#endif
+    ZLOGD(LABEL, "success, handle:%{public}d", handle_);
+    return true;
+}
+
+bool IPCObjectProxy::UnRegisterBinderDeathRecipient()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "invoker is null");
+        return false;
+    }
+
+    bool dbinderStatus = true;
+    bool status = invoker->RemoveDeathRecipient(handle_, this);
+#ifndef CONFIG_IPC_SINGLE
+    if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
+        dbinderStatus = RemoveDbinderDeathRecipient();
+    }
+#endif
+    ZLOGD(LABEL, "unregister result:%{public}d, handle:%{public}d",
+        status && dbinderStatus, handle_);
+    return status && dbinderStatus;
+}
+
 IPCObjectProxy::DeathRecipientAddrInfo::DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient)
     : recipient_(recipient), soFuncAddr_(nullptr), soPath_()
 {
     if (recipient_ == nullptr) {
+        ZLOGD(LABEL, "recipient is null");
         return;
     }
     soFuncAddr_ = reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient_.GetRefPtr()));
