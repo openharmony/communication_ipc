@@ -487,3 +487,57 @@ HWTEST_F(IPCSkeletonTest, SetCallingIdentityTest002, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+
+/**
+ * @tc.name: TriggerThreadReclaim001
+ * @tc.desc: Verify the TriggerSystemIPCThreadReclaim function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, TriggerThreadReclaim001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, TriggerSystemIPCThreadReclaim())
+        .WillRepeatedly(testing::Return(true));
+
+    auto result = skeleton.TriggerSystemIPCThreadReclaim();
+    ASSERT_TRUE(result);
+
+    ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
+}
+
+/**
+ * @tc.name: EnableIPCThreadReclaim001
+ * @tc.desc: Verify the EnableIPCThreadReclaim function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    EXPECT_CALL(*invoker, EnableIPCThreadReclaim(false))
+        .WillRepeatedly(testing::Return(true));
+
+    auto result = skeleton.EnableIPCThreadReclaim(false);
+    ASSERT_TRUE(result);
+
+    EXPECT_CALL(*invoker, EnableIPCThreadReclaim(true))
+        .WillRepeatedly(testing::Return(true));
+
+    result = skeleton.EnableIPCThreadReclaim(true);
+    ASSERT_TRUE(result);
+
+    ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
+}

@@ -258,6 +258,24 @@ bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)
     return true;
 }
 
+bool IPCSkeleton::TriggerSystemIPCThreadReclaim()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return invoker->TriggerSystemIPCThreadReclaim();
+    }
+    return false;
+}
+
+bool IPCSkeleton::EnableIPCThreadReclaim(bool enable)
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        return invoker->EnableIPCThreadReclaim(enable);
+    }
+    return false;
+}
+
 void IPCDfx::BlockUntilThreadAvailable()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();

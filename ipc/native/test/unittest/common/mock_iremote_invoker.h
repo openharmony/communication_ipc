@@ -68,6 +68,8 @@ public:
     MOCK_METHOD1(FlushCommands, int(IRemoteObject *object));
     MOCK_METHOD0(ResetCallingIdentity, std::string());
     MOCK_METHOD2(SetCallingIdentity, bool(std::string &identity, bool flag));
+    MOCK_METHOD0(TriggerSystemIPCThreadReclaim, bool());
+    MOCK_METHOD1(EnableIPCThreadReclaim, bool(bool enable));
 
 #ifndef CONFIG_IPC_SINGLE
     MOCK_METHOD0(GetSAMgrObject, sptr<IRemoteObject>());
