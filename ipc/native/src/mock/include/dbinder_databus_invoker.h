@@ -68,6 +68,8 @@ public:
     bool SetCallingIdentity(std::string &identity, bool flag) override;
     int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
     void OnMessageAvailable(int32_t socketId, const char *data, ssize_t len);
+    bool TriggerSystemIPCThreadReclaim() override;
+    bool EnableIPCThreadReclaim(bool enable) override;
 
 private:
     bool CreateProcessThread() override;

@@ -134,6 +134,10 @@ public:
 
     bool SetCallingIdentity(std::string &identity, bool flag) override;
 
+    bool TriggerSystemIPCThreadReclaim() override;
+
+    bool EnableIPCThreadReclaim(bool enable) override;
+
     void ExitCurrentThread();
 
     uint32_t GetStrongRefCountForStub(uint32_t handle);
