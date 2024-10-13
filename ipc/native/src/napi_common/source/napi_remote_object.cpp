@@ -52,7 +52,8 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
 
-static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_handle_scope &scope, const char *errDesc)
+static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_handle_scope &scope,
+    const char *errDesc)
 {
     if (value == nullptr) {
         ZLOGE(LOG_LABEL, "%{public}s", errDesc);
