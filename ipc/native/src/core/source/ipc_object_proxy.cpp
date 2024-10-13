@@ -447,24 +447,18 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         ZLOGE(LABEL, "invalid object, info is nullptr:%{public}d", info == nullptr);
         return false;
     }
-    if (!recipients_.insert(std::make_pair(info->recipient_.GetRefPtr(), info)).second) {
-        ZLOGD(LABEL, "recipient has been added, handle:%{public}d desc:%{public}s addr:%{public}u",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+    recipients_.push_back(info);
+    if (recipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        ZLOGD(LABEL, "death recipient is already registered, handle:%{public}d desc:%{public}s",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return true;
     }
-    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-        ZLOGE(LABEL, "invalid handle, handle:%{public}d desc:%{public}s addr:%{public}u",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-        recipients_.erase(info->recipient_.GetRefPtr());
-        return false;
+    if (!RegisterBinderDeathRecipient()) {
+        ZLOGE(LABEL, "register failed, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
+            ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
+        recipients_.pop_back();
     }
-    if (recipients_.size() == 1 && !RegisterBinderDeathRecipient()) {
-        ZLOGE(LABEL, "register failed, handle:%{public}d desc:%{public}s addr:%{public}u",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-        recipients_.erase(info->recipient_.GetRefPtr());
-        return false;
-    }
-    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
+    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}u", handle_,
         ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
     return true;
 }
@@ -486,27 +480,28 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
         return false;
     }
-
-    if (recipients_.erase(recipient.GetRefPtr()) == 0) {
-        ZLOGD(LABEL, "remove failed, handle:%{public}d desc:%{public}s addr:%{public}u",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-        return false;
+    bool recipientErased = false;
+    for (auto iter = recipients_.begin(); iter != recipients_.end(); iter++) {
+        if ((*iter)->recipient_ == recipient) {
+            recipients_.erase(iter);
+            recipientErased = true;
+            break;
+        }
+    }
+    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased == true) {
+        ZLOGI(LABEL, "death recipient is already unregistered, handle:%{public}d desc:%{public}s",
+            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str());
+        return true;
     }
 
-    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
-        ZLOGE(LABEL, "invalid handle, handle:%{public}d desc:%{public}s addr:%{public}u",
-            handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-        return false;
-    }
-
-    if (recipients_.empty() && !UnRegisterBinderDeathRecipient()) {
+    if (recipientErased && recipients_.empty() && !UnRegisterBinderDeathRecipient()) {
         ZLOGE(LABEL, "unregister failed, handle:%{public}d desc:%{public}s addr:%{public}u",
             handle_, ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-        return false;
     }
-    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
-        ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this));
-    return true;
+
+    ZLOGD(LABEL, "handle:%{public}d desc:%{public}s addr:%{public}u, result:%{public}d", handle_,
+        ProcessSkeleton::ConvertToSecureDesc(desc).c_str(), ProcessSkeleton::ConvertAddr(this), recipientErased);
+    return recipientErased;
 }
 
 void IPCObjectProxy::SendObituary()
@@ -526,7 +521,7 @@ void IPCObjectProxy::SendObituary()
     }
 #endif
     SetObjectDied(true);
-    std::unordered_map<DeathRecipient *, sptr<DeathRecipientAddrInfo>> toBeReport;
+    std::vector<sptr<DeathRecipientAddrInfo>> toBeReport;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         toBeReport.swap(recipients_);
@@ -541,13 +536,16 @@ void IPCObjectProxy::SendObituary()
         }
     }
     for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
-        if (iter->second->IsDlclosed()) {
-            ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", iter->second->soPath_.c_str());
+        if ((*iter)->IsDlclosed()) {
+            ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", (*iter)->soPath_.c_str());
             continue;
         }
-        ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
-        iter->second->recipient_->OnRemoteDied(this);
-        ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
+        sptr<DeathRecipient> recipient = (*iter)->recipient_;
+        if (recipient != nullptr) {
+            ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
+            recipient->OnRemoteDied(this);
+            ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
+        }
     }
 }
 
@@ -1054,13 +1052,6 @@ IPCObjectProxy::DeathRecipientAddrInfo::DeathRecipientAddrInfo(const sptr<DeathR
     }
     soFuncAddr_ = reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient_.GetRefPtr()));
     soPath_ = GetNewSoPath();
-}
-
-IPCObjectProxy::DeathRecipientAddrInfo::~DeathRecipientAddrInfo()
-{
-    recipient_ = nullptr;
-    soFuncAddr_ = nullptr;
-    soPath_.clear();
 }
 
 std::string IPCObjectProxy::DeathRecipientAddrInfo::GetNewSoPath()
