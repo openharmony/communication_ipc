@@ -69,8 +69,6 @@ public:
 private:
     napi_env env_ = nullptr;
     std::thread::id jsThreadId_;
-    static napi_value ThenCallback(napi_env env, napi_callback_info info);
-    static napi_value CatchCallback(napi_env env, napi_callback_info info);
     napi_ref thisVarRef_ = nullptr;
     int OnJsRemoteRequest(CallbackParam *jsParam);
 };
