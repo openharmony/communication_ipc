@@ -562,10 +562,12 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest003, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
-    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
-    sptr<IRemoteObject::DeathRecipient> death2(new MockDeathRecipient());
-    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", death));
-    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", death2));
+    sptr<IRemoteObject::DeathRecipient> death = new MockDeathRecipient();
+    sptr<IRemoteObject::DeathRecipient> death2 = new MockDeathRecipient();
+    sptr<IPCObjectProxy::DeathRecipientAddrInfo> deathInfo = new IPCObjectProxy::DeathRecipientAddrInfo(death);
+    sptr<IPCObjectProxy::DeathRecipientAddrInfo> deathInfo2 = new IPCObjectProxy::DeathRecipientAddrInfo(death2);
+    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", deathInfo));
+    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", deathInfo2));
     object->isRemoteDead_ = false;
     object->proto_ = IRemoteObject::IF_PROT_ERROR;
 
@@ -582,8 +584,9 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest004, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
-    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
-    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", death));
+    sptr<IRemoteObject::DeathRecipient> death = new MockDeathRecipient();
+    sptr<IPCObjectProxy::DeathRecipientAddrInfo> deathInfo = new IPCObjectProxy::DeathRecipientAddrInfo(death);
+    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", deathInfo));
     object->isRemoteDead_ = false;
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
@@ -601,7 +604,8 @@ HWTEST_F(IPCObjectProxyTest, SendObituaryTest001, TestSize.Level1)
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
     sptr<IRemoteObject::DeathRecipient> death = new MockDeathRecipient();
-    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", death));
+    sptr<IPCObjectProxy::DeathRecipientAddrInfo> deathInfo = new IPCObjectProxy::DeathRecipientAddrInfo(death);
+    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", deathInfo));
     object->isRemoteDead_ = false;
     object->proto_ = IRemoteObject::IF_PROT_DATABUS;
 
@@ -637,7 +641,8 @@ HWTEST_F(IPCObjectProxyTest, SendObituaryTest003, TestSize.Level1)
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
     sptr<IRemoteObject::DeathRecipient> death = nullptr;
-    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", death));
+    sptr<IPCObjectProxy::DeathRecipientAddrInfo> deathInfo = new IPCObjectProxy::DeathRecipientAddrInfo(death);
+    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", deathInfo));
     object->isRemoteDead_ = false;
     object->proto_ = IRemoteObject::IF_PROT_DATABUS;
 
@@ -656,7 +661,8 @@ HWTEST_F(IPCObjectProxyTest, SendObituaryTest004, TestSize.Level1)
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
     sptr<IRemoteObject::DeathRecipient> death = nullptr;
-    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", death));
+    sptr<IPCObjectProxy::DeathRecipientAddrInfo> deathInfo = new IPCObjectProxy::DeathRecipientAddrInfo(death);
+    object->recipients_.insert(std::make_pair("/bin/IPCNativeUnitTest", deathInfo));
     object->isRemoteDead_ = false;
     object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
 
