@@ -371,7 +371,7 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
     }
 
     napi_value argv[ARGV_LENGTH_4] = { jsCode, jsData, jsReply, jsOption };
-    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, ARGV_LENGTH_4, argv, scope);
+    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, argv, scope);
 }
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
