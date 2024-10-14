@@ -165,10 +165,16 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         data.WriteInt8(0);
     }
 #endif
+    MessageParcel &newData = const_cast<MessageParcel &>(data);
+    size_t oldWritePosition = newData.GetWritePosition();
+    HiTraceId traceId = HiTraceChain::GetId();
+    // set client send trace point if trace is enabled
+    HiTraceId childId = HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
 
     int cmd = (totalDBinderBufSize > 0) ? BC_TRANSACTION_SG : BC_TRANSACTION;
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
+        newData.RewindWrite(oldWritePosition);
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -184,6 +190,9 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
+    HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
+    // restore Parcel data
+    newData.RewindWrite(oldWritePosition);
     --sendRequestCount_;
     return error;
 }
@@ -799,6 +808,10 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
         data->InjectOffsets(tr.data.ptr.offsets, tr.offsets_size / sizeof(binder_size_t));
     }
 
+    uint32_t &newFlags = const_cast<uint32_t&>(tr.flags);
+    int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr.target.handle),
+        tr.code, *data, newFlags);
+
     InvokerProcInfo oldInvokerProcInfo = {
         callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_, 0 };
     uint32_t oldStatus = status_;
@@ -819,6 +832,7 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
 
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int32_t error = TargetStubSendRequest(tr, *data, reply, option, flagValue);
+    HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr.target.handle), tr.code, isServerTraced, newFlags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
