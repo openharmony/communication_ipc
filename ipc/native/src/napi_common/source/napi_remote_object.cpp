@@ -35,7 +35,6 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
-static constexpr uint32_t WAIT_TIME = 10;
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
@@ -203,8 +202,6 @@ static napi_value ThenCallback(napi_env env, napi_callback_info info)
     } else {
         param->result = ERR_NONE;
     }
-    // Reset old calling pid, uid, device id
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, param->oldCallingInfo);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
     param->lockInfo->condition.notify_all();
@@ -238,9 +235,8 @@ static napi_value CatchCallback(napi_env env, napi_callback_info info)
         napi_get_undefined(env, &res);
         return res;
     }
+
     param->result = ERR_UNKNOWN_TRANSACTION;
-    // Reset old calling pid, uid, device id
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, param->oldCallingInfo);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
     param->lockInfo->condition.notify_all();
@@ -279,12 +275,15 @@ static bool CallPromiseThen(CallbackParam *param, napi_value &thenValue, napi_va
 static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRemoteRequest, napi_value &thisVar,
     const napi_value *argv, napi_handle_scope &scope)
 {
-    NAPI_RemoteObject_saveOldCallingInfo(param->env,  param->oldCallingInfo);
+    NAPI_CallingInfo oldCallingInfo;
+    NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
     NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
 
     // start to call onRemoteRequest
     napi_value returnVal;
     napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, ARGV_LENGTH_4, argv, &returnVal);
+    // Reset old calling pid, uid, device id
+    NAPI_RemoteObject_resetOldCallingInfo(param->env, oldCallingInfo);
 
     do {
         if (ret != napi_ok) {
@@ -319,8 +318,7 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
         }
         return;
     } while (0);
-    // Reset old calling pid, uid, device id
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, param->oldCallingInfo);
+
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     napi_close_handle_scope(param->env, scope);
     param->lockInfo->ready = true;
@@ -579,11 +577,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
             ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
         } else {
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            if (!param->lockInfo->ready && !param->lockInfo->condition.wait_for(lock,
-                std::chrono::seconds(WAIT_TIME), [&param] { return param->lockInfo->ready; })) {
-                param->lockInfo->ready = true;
-                ZLOGE(LOG_LABEL, "wait uv_queue_work timeout");
-            }
+            param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
         }
         delete param;
         delete work;
@@ -782,14 +776,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         ret = -1;
     } else {
         std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
-        if (!jsParam->lockInfo->ready && !jsParam->lockInfo->condition.wait_for(lock,
-            std::chrono::seconds(WAIT_TIME), [&jsParam] { return jsParam->lockInfo->ready; })) {
-            jsParam->lockInfo->ready = true;
-            ZLOGE(LOG_LABEL, "wait for js callback timeout");
-            ret = -1;
-        } else {
-            ret = jsParam->result;
-        }
+        jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
+        ret = jsParam->result;
     }
     delete jsParam;
     delete work;
