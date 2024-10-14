@@ -87,7 +87,6 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, napi_value thisVa
     return true;
 }
 
-
 static bool CreateJsOption(CallbackParam *param, napi_value global, napi_value &jsOption, napi_handle_scope &scope)
 {
     napi_value jsOptionConstructor = nullptr;
@@ -144,7 +143,6 @@ static bool CreateJsParcel(CallbackParam *param, napi_value jsParcelConstructor,
     }
     return true;
 }
-
 
 static bool IsPromiseResult(CallbackParam *param, napi_value returnVal)
 {
