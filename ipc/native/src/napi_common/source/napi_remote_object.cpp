@@ -87,7 +87,8 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value 
     return true;
 }
 
-static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption, napi_handle_scope &scope)
+static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption,
+    napi_handle_scope &scope)
 {
     napi_value jsOptionConstructor = nullptr;
     napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
