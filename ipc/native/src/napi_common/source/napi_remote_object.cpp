@@ -66,7 +66,7 @@ static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_
     return true;
 }
 
-static bool GetJsOnRemoteRequestCallback(CallbackParam *param, napi_value thisVar, napi_value &onRemoteRequest,
+static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value thisVar, napi_value &onRemoteRequest,
     bool &isOnRemoteMessageRequest, napi_handle_scope &scope)
 {
     napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
@@ -87,7 +87,7 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, napi_value thisVa
     return true;
 }
 
-static bool CreateJsOption(CallbackParam *param, napi_value global, napi_value &jsOption, napi_handle_scope &scope)
+static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption, napi_handle_scope &scope)
 {
     napi_value jsOptionConstructor = nullptr;
     napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
@@ -108,7 +108,7 @@ static bool CreateJsOption(CallbackParam *param, napi_value global, napi_value &
     return true;
 }
 
-static bool GetJsParcelConstructor(CallbackParam *param, napi_value global, bool isOnRemoteMessageRequest,
+static bool GetJsParcelConstructor(CallbackParam *param, const napi_value global, bool isOnRemoteMessageRequest,
     napi_value &jsParcelConstructor, napi_handle_scope &scope)
 {
     if (isOnRemoteMessageRequest) {
@@ -122,7 +122,7 @@ static bool GetJsParcelConstructor(CallbackParam *param, napi_value global, bool
     return true;
 }
 
-static bool CreateJsParcel(CallbackParam *param, napi_value jsParcelConstructor, napi_value &jsParcel,
+static bool CreateJsParcel(CallbackParam *param, const napi_value jsParcelConstructor, napi_value &jsParcel,
     bool isJsDataParcel, napi_handle_scope &scope)
 {
     napi_value parcel;
@@ -144,7 +144,7 @@ static bool CreateJsParcel(CallbackParam *param, napi_value jsParcelConstructor,
     return true;
 }
 
-static bool IsPromiseResult(CallbackParam *param, napi_value returnVal)
+static bool IsPromiseResult(CallbackParam *param, const napi_value returnVal)
 {
     bool isPromise = false;
     napi_is_promise(param->env, returnVal, &isPromise);
@@ -165,7 +165,7 @@ static bool IsPromiseResult(CallbackParam *param, napi_value returnVal)
     return true;
 }
 
-static bool GetPromiseThen(CallbackParam *param, napi_value returnVal, napi_value &promiseThen)
+static bool GetPromiseThen(CallbackParam *param, const napi_value returnVal, napi_value &promiseThen)
 {
     napi_get_named_property(param->env, returnVal, "then", &promiseThen);
     if (promiseThen == nullptr) {
