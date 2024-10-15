@@ -179,7 +179,9 @@ static bool GetPromiseThen(CallbackParam *param, const napi_value returnVal, nap
 
 static napi_value ThenCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "call js onRemoteRequest done time:%{public}" PRIu64, curTime);
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
@@ -222,7 +224,7 @@ static bool CreateThenCallback(CallbackParam *param, napi_value &thenValue)
 
 static napi_value CatchCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "Async onReomteReuqest's returnVal is rejected");
+    ZLOGI(LOG_LABEL, "call js onRemoteRequest got exception");
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
@@ -290,7 +292,6 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
             param->result = ERR_UNKNOWN_TRANSACTION;
             break;
         }
-        ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
 
         if (!IsPromiseResult(param, returnVal)) {
             break;
@@ -329,7 +330,7 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
 
-    ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
+    ZLOGD(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
     CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
     napi_handle_scope scope = nullptr;
     napi_open_handle_scope(param->env, &scope);
