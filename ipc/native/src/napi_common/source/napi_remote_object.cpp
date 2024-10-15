@@ -155,7 +155,7 @@ static bool IsPromiseResult(CallbackParam *param, napi_value returnVal)
         if (!result) {
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            ZLOGE(LOG_LABEL, "OnRemoteRequest res:false, time:%{public}" PRIu64, curTime);
+            ZLOGE(LOG_LABEL, "OnRemoteRequest result:false, time:%{public}" PRIu64, curTime);
             param->result = ERR_UNKNOWN_TRANSACTION;
         } else {
             param->result = ERR_NONE;
@@ -195,7 +195,7 @@ static napi_value ThenCallback(napi_env env, napi_callback_info info)
     if (!result) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "OnRemoteRequest res:false time:%{public}" PRIu64, curTime);
+        ZLOGE(LOG_LABEL, "OnRemoteRequest result:false time:%{public}" PRIu64, curTime);
         param->result = ERR_UNKNOWN_TRANSACTION;
     } else {
         param->result = ERR_NONE;
@@ -351,7 +351,6 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
     napi_value global = nullptr;
     napi_get_global(param->env, &global);
     if (!IsValidParamWithNotify(global, param, scope, "get napi global failed")) {
-        napi_close_handle_scope(param->env, scope);
         return;
     }
 
