@@ -181,7 +181,7 @@ static napi_value ThenCallback(napi_env env, napi_callback_info info)
 {
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    ZLOGI(LOG_LABEL, "call js onRemoteRequest done time:%{public}" PRIu64, curTime);
+    ZLOGI(LOG_LABEL, "call js onRemoteRequest done, time:%{public}" PRIu64, curTime);
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
