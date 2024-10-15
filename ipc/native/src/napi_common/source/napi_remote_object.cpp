@@ -35,7 +35,6 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject" };
-static constexpr uint32_t WAIT_TIME = 10;
 
 static const size_t ARGV_INDEX_0 = 0;
 static const size_t ARGV_INDEX_1 = 1;
@@ -45,11 +44,332 @@ static const size_t ARGV_INDEX_4 = 4;
 
 static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
+static const size_t ARGV_LENGTH_4 = 4;
 static const size_t ARGV_LENGTH_5 = 5;
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
+
+static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_handle_scope &scope,
+    const char *errDesc)
+{
+    if (value == nullptr) {
+        ZLOGE(LOG_LABEL, "%{public}s", errDesc);
+        param->result = -1;
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        napi_close_handle_scope(param->env, scope);
+        param->lockInfo->ready = true;
+        param->lockInfo->condition.notify_all();
+        return false;
+    }
+    return true;
+}
+
+static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value thisVar, napi_value &onRemoteRequest,
+    bool &isOnRemoteMessageRequest, napi_handle_scope &scope)
+{
+    napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
+    if (!IsValidParamWithNotify(onRemoteRequest, param, scope, "get function onRemoteMessageRequest failed")) {
+        return false;
+    }
+    isOnRemoteMessageRequest = true;
+
+    napi_valuetype type = napi_undefined;
+    napi_typeof(param->env, onRemoteRequest, &type);
+    if (type != napi_function) {
+        napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
+        if (!IsValidParamWithNotify(onRemoteRequest, param, scope, "get function onRemoteRequest failed")) {
+            return false;
+        }
+        isOnRemoteMessageRequest = false;
+    }
+    return true;
+}
+
+static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption,
+    napi_handle_scope &scope)
+{
+    napi_value jsOptionConstructor = nullptr;
+    napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
+    if (!IsValidParamWithNotify(jsOptionConstructor, param, scope, "jsOption constructor is null")) {
+        return false;
+    }
+
+    size_t argc = ARGV_LENGTH_2;
+    napi_value flags = nullptr;
+    napi_create_int32(param->env, param->option->GetFlags(), &flags);
+    napi_value waittime = nullptr;
+    napi_create_int32(param->env, param->option->GetWaitTime(), &waittime);
+    napi_value argv[ARGV_LENGTH_2] = { flags, waittime };
+    napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
+    if (!IsValidParamWithNotify(jsOption, param, scope, "new jsOption failed")) {
+        return false;
+    }
+    return true;
+}
+
+static bool GetJsParcelConstructor(CallbackParam *param, const napi_value global, bool isOnRemoteMessageRequest,
+    napi_value &jsParcelConstructor, napi_handle_scope &scope)
+{
+    if (isOnRemoteMessageRequest) {
+        napi_get_named_property(param->env, global, "IPCSequenceConstructor_", &jsParcelConstructor);
+    } else {
+        napi_get_named_property(param->env, global, "IPCParcelConstructor_", &jsParcelConstructor);
+    }
+    if (!IsValidParamWithNotify(jsParcelConstructor, param, scope, "jsParcel constructor is null")) {
+        return false;
+    }
+    return true;
+}
+
+static bool CreateJsParcel(CallbackParam *param, const napi_value jsParcelConstructor, napi_value &jsParcel,
+    bool isJsDataParcel, napi_handle_scope &scope)
+{
+    napi_value parcel;
+    napi_create_object(param->env, &parcel);
+    napi_wrap(param->env, parcel, isJsDataParcel ? param->data : param->reply,
+        [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
+
+    if (!IsValidParamWithNotify(parcel, param, scope, "create js parcel object failed")) {
+        return false;
+    }
+
+    size_t argc = 1;
+    napi_value argv[1] = { parcel };
+    napi_new_instance(param->env, jsParcelConstructor, argc, argv, &jsParcel);
+    if (!IsValidParamWithNotify(parcel, param, scope,
+        isJsDataParcel ? "create js data parcel failed" : "create js reply parcel failed")) {
+        return false;
+    }
+    return true;
+}
+
+static bool IsPromiseResult(CallbackParam *param, const napi_value returnVal)
+{
+    bool isPromise = false;
+    napi_is_promise(param->env, returnVal, &isPromise);
+    if (!isPromise) {
+        ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
+        bool result = false;
+        napi_get_value_bool(param->env, returnVal, &result);
+        if (!result) {
+            uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            ZLOGE(LOG_LABEL, "OnRemoteRequest result:false, time:%{public}" PRIu64, curTime);
+            param->result = ERR_UNKNOWN_TRANSACTION;
+        } else {
+            param->result = ERR_NONE;
+        }
+        return false;
+    }
+    return true;
+}
+
+static bool GetPromiseThen(CallbackParam *param, const napi_value returnVal, napi_value &promiseThen)
+{
+    napi_get_named_property(param->env, returnVal, "then", &promiseThen);
+    if (promiseThen == nullptr) {
+        ZLOGE(LOG_LABEL, "get promiseThen failed");
+        param->result = -1;
+        return false;
+    }
+    return true;
+}
+
+static napi_value ThenCallback(napi_env env, napi_callback_info info)
+{
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "call js onRemoteRequest done, time:%{public}" PRIu64, curTime);
+    size_t argc = 1;
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
+    void* data = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
+    napi_value res;
+    CallbackParam *param = static_cast<CallbackParam *>(data);
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is null");
+        napi_get_undefined(env, &res);
+        return res;
+    }
+    bool result = false;
+    napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
+    if (!result) {
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "OnRemoteRequest result:false time:%{public}" PRIu64, curTime);
+        param->result = ERR_UNKNOWN_TRANSACTION;
+    } else {
+        param->result = ERR_NONE;
+    }
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->ready = true;
+    param->lockInfo->condition.notify_all();
+    napi_get_undefined(env, &res);
+    return res;
+}
+
+static bool CreateThenCallback(CallbackParam *param, napi_value &thenValue)
+{
+    napi_status ret = napi_create_function(param->env, "thenCallback",
+        NAPI_AUTO_LENGTH, ThenCallback, param, &thenValue);
+    if (ret != napi_ok) {
+        ZLOGE(LOG_LABEL, "thenCallback got exception");
+        param->result = ERR_UNKNOWN_TRANSACTION;
+        return false;
+    }
+    return true;
+}
+
+static napi_value CatchCallback(napi_env env, napi_callback_info info)
+{
+    ZLOGI(LOG_LABEL, "call js onRemoteRequest got exception");
+    size_t argc = 1;
+    napi_value argv[ARGV_LENGTH_1] = {nullptr};
+    void* data = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
+    napi_value res;
+    CallbackParam *param = static_cast<CallbackParam *>(data);
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is null");
+        napi_get_undefined(env, &res);
+        return res;
+    }
+
+    param->result = ERR_UNKNOWN_TRANSACTION;
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->ready = true;
+    param->lockInfo->condition.notify_all();
+    napi_get_undefined(env, &res);
+    return res;
+}
+
+static bool CreateCatchCallback(CallbackParam *param, napi_value &catchValue)
+{
+    napi_status ret = napi_create_function(param->env, "catchCallback",
+        NAPI_AUTO_LENGTH, CatchCallback, param, &catchValue);
+    if (ret != napi_ok) {
+        ZLOGE(LOG_LABEL, "catchCallback got exception");
+        param->result = ERR_UNKNOWN_TRANSACTION;
+        return false;
+    }
+    return true;
+}
+
+static bool CallPromiseThen(CallbackParam *param, napi_value &thenValue, napi_value &catchValue,
+    napi_value &returnVal, napi_value &promiseThen)
+{
+    napi_env env = param->env;
+    napi_value thenReturnValue;
+    constexpr uint32_t THEN_ARGC = 2;
+    napi_value thenArgv[THEN_ARGC] = { thenValue, catchValue };
+    napi_status ret = napi_call_function(env, returnVal, promiseThen, THEN_ARGC, thenArgv, &thenReturnValue);
+    if (ret != napi_ok) {
+        ZLOGE(LOG_LABEL, "PromiseThen got exception ret:%{public}d", ret);
+        param->result = ERR_UNKNOWN_TRANSACTION;
+        return false;
+    }
+    return true;
+}
+
+static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRemoteRequest, napi_value &thisVar,
+    const napi_value *argv, napi_handle_scope &scope)
+{
+    NAPI_CallingInfo oldCallingInfo;
+    NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
+    NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
+
+    // start to call onRemoteRequest
+    napi_value returnVal;
+    napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, ARGV_LENGTH_4, argv, &returnVal);
+    // Reset old calling pid, uid, device id
+    NAPI_RemoteObject_resetOldCallingInfo(param->env, oldCallingInfo);
+
+    do {
+        if (ret != napi_ok) {
+            ZLOGE(LOG_LABEL, "OnRemoteRequest got exception. ret:%{public}d", ret);
+            param->result = ERR_UNKNOWN_TRANSACTION;
+            break;
+        }
+
+        if (!IsPromiseResult(param, returnVal)) {
+            break;
+        }
+
+        napi_value promiseThen = nullptr;
+        if (!GetPromiseThen(param, returnVal, promiseThen)) {
+            break;
+        }
+
+        napi_value thenValue = nullptr;
+        if (!CreateThenCallback(param, thenValue)) {
+            break;
+        }
+
+        napi_value catchValue = nullptr;
+        if (!CreateCatchCallback(param, catchValue)) {
+            break;
+        }
+
+        // Start to call promiseThen
+        if (!CallPromiseThen(param, thenValue, catchValue, returnVal, promiseThen)) {
+            break;
+        }
+        return;
+    } while (0);
+
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    napi_close_handle_scope(param->env, scope);
+    param->lockInfo->ready = true;
+    param->lockInfo->condition.notify_all();
+}
+
+static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
+{
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+
+    ZLOGD(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
+    CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(param->env, &scope);
+
+    napi_value thisVar = nullptr;
+    napi_get_reference_value(param->env, param->thisVarRef, &thisVar);
+    if (!IsValidParamWithNotify(thisVar, param, scope, "thisVar is null")) {
+        return;
+    }
+
+    napi_value onRemoteRequest = nullptr;
+    bool isOnRemoteMessageRequest = true;
+    if (!GetJsOnRemoteRequestCallback(param, thisVar, onRemoteRequest, isOnRemoteMessageRequest, scope)) {
+        return;
+    }
+
+    napi_value jsCode;
+    napi_create_uint32(param->env, param->code, &jsCode);
+
+    napi_value global = nullptr;
+    napi_get_global(param->env, &global);
+    if (!IsValidParamWithNotify(global, param, scope, "get napi global failed")) {
+        return;
+    }
+
+    napi_value jsOption = nullptr;
+    napi_value jsParcelConstructor = nullptr;
+    napi_value jsData = nullptr;
+    napi_value jsReply = nullptr;
+    if (!CreateJsOption(param, global, jsOption, scope) ||
+        !GetJsParcelConstructor(param, global, isOnRemoteMessageRequest, jsParcelConstructor, scope) ||
+        !CreateJsParcel(param, jsParcelConstructor, jsData, true, scope) ||
+        !CreateJsParcel(param, jsParcelConstructor, jsReply, false, scope)) {
+        return;
+    }
+
+    napi_value argv[ARGV_LENGTH_4] = { jsCode, jsData, jsReply, jsOption };
+    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, argv, scope);
+}
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
 {
@@ -256,11 +576,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
             ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
         } else {
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            if (!param->lockInfo->ready && !param->lockInfo->condition.wait_for(lock,
-                std::chrono::seconds(WAIT_TIME), [&param] { return param->lockInfo->ready; })) {
-                param->lockInfo->ready = true;
-                ZLOGE(LOG_LABEL, "wait uv_queue_work timeout");
-            }
+            param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
         }
         delete param;
         delete work;
@@ -368,63 +684,6 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     return ret;
 }
 
-napi_value NAPIRemoteObject::ThenCallback(napi_env env, napi_callback_info info)
-{
-    ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
-    size_t argc = 1;
-    napi_value argv[ARGV_LENGTH_1] = {nullptr};
-    void* data = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
-    napi_value res;
-    CallbackParam *param = static_cast<CallbackParam *>(data);
-    if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "param is null");
-        napi_get_undefined(env, &res);
-        return res;
-    }
-    bool result = false;
-    napi_get_value_bool(param->env, argv[ARGV_INDEX_0], &result);
-    if (!result) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64, result ? "true" : "false", curTime);
-        param->result = ERR_UNKNOWN_TRANSACTION;
-    } else {
-        param->result = ERR_NONE;
-    }
-    // Reset old calling pid, uid, device id
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, param->oldCallingInfo);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->ready = true;
-    param->lockInfo->condition.notify_all();
-    napi_get_undefined(env, &res);
-    return res;
-}
-
-napi_value NAPIRemoteObject::CatchCallback(napi_env env, napi_callback_info info)
-{
-    ZLOGI(LOG_LABEL, "Async onReomteReuqest's returnVal is rejected");
-    size_t argc = 1;
-    napi_value argv[ARGV_LENGTH_1] = {nullptr};
-    void* data = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, nullptr, &data);
-    napi_value res;
-    CallbackParam *param = static_cast<CallbackParam *>(data);
-    if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "param is null");
-        napi_get_undefined(env, &res);
-        return res;
-    }
-    param->result = ERR_UNKNOWN_TRANSACTION;
-    // Reset old calling pid, uid, device id
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, param->oldCallingInfo);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->ready = true;
-    param->lockInfo->condition.notify_all();
-    napi_get_undefined(env, &res);
-    return res;
-}
-
 void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {
     napi_value global = nullptr;
@@ -509,255 +768,15 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
             std::chrono::steady_clock::now().time_since_epoch()).count());
         ZLOGI(LOG_LABEL, "enter work pool. code:%{public}u time:%{public}" PRIu64,
             (reinterpret_cast<CallbackParam *>(work->data))->code, curTime);
-    }, [](uv_work_t *work, int status) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
-        CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
-        napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
-        napi_value onRemoteRequest = nullptr;
-        napi_value thisVar = nullptr;
-        napi_get_reference_value(param->env, param->thisVarRef, &thisVar);
-        if (thisVar == nullptr) {
-            ZLOGE(LOG_LABEL, "thisVar is null");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
-        if (onRemoteRequest == nullptr) {
-            ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_valuetype type = napi_undefined;
-        napi_typeof(param->env, onRemoteRequest, &type);
-        bool isOnRemoteMessageRequest = true;
-        if (type != napi_function) {
-            napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
-            if (onRemoteRequest == nullptr) {
-                ZLOGE(LOG_LABEL, "get founction onRemoteRequest failed");
-                param->result = -1;
-                std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-                param->lockInfo->ready = true;
-                param->lockInfo->condition.notify_all();
-                napi_close_handle_scope(param->env, scope);
-                return;
-            }
-            isOnRemoteMessageRequest = false;
-        }
-        napi_value jsCode;
-        napi_create_uint32(param->env, param->code, &jsCode);
-
-        napi_value global = nullptr;
-        napi_get_global(param->env, &global);
-        if (global == nullptr) {
-            ZLOGE(LOG_LABEL, "get napi global failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_value jsOptionConstructor = nullptr;
-        napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
-        if (jsOptionConstructor == nullptr) {
-            ZLOGE(LOG_LABEL, "jsOption constructor is null");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_value jsOption;
-        size_t argc = 2;
-        napi_value flags = nullptr;
-        napi_create_int32(param->env, param->option->GetFlags(), &flags);
-        napi_value waittime = nullptr;
-        napi_create_int32(param->env, param->option->GetWaitTime(), &waittime);
-        napi_value argv[ARGV_LENGTH_2] = { flags, waittime };
-        napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
-        if (jsOption == nullptr) {
-            ZLOGE(LOG_LABEL, "new jsOption failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_value jsParcelConstructor = nullptr;
-        if (isOnRemoteMessageRequest) {
-            napi_get_named_property(param->env, global, "IPCSequenceConstructor_", &jsParcelConstructor);
-        } else {
-            napi_get_named_property(param->env, global, "IPCParcelConstructor_", &jsParcelConstructor);
-        }
-        if (jsParcelConstructor == nullptr) {
-            ZLOGE(LOG_LABEL, "jsParcel constructor is null");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_value jsData;
-        napi_value dataParcel;
-        napi_create_object(param->env, &dataParcel);
-        napi_wrap(param->env, dataParcel, param->data,
-            [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
-        if (dataParcel == nullptr) {
-            ZLOGE(LOG_LABEL, "create js object for data parcel address failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        size_t argc3 = 1;
-        napi_value argv3[1] = { dataParcel };
-        napi_new_instance(param->env, jsParcelConstructor, argc3, argv3, &jsData);
-        if (jsData == nullptr) {
-            ZLOGE(LOG_LABEL, "create js data parcel failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        napi_value jsReply;
-        napi_value replyParcel;
-        napi_create_object(param->env, &replyParcel);
-        napi_wrap(param->env, replyParcel, param->reply,
-            [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
-        if (replyParcel == nullptr) {
-            ZLOGE(LOG_LABEL, "create js object for reply parcel address failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-        size_t argc4 = 1;
-        napi_value argv4[1] = { replyParcel };
-        napi_new_instance(param->env, jsParcelConstructor, argc4, argv4, &jsReply);
-        if (jsReply == nullptr) {
-            ZLOGE(LOG_LABEL, "create js reply parcel failed");
-            param->result = -1;
-            std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-            param->lockInfo->ready = true;
-            param->lockInfo->condition.notify_all();
-            napi_close_handle_scope(param->env, scope);
-            return;
-        }
-
-        NAPI_RemoteObject_saveOldCallingInfo(param->env, param->oldCallingInfo);
-        NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
-        // start to call onRemoteRequest
-        size_t argc2 = 4;
-        napi_value argv2[] = { jsCode, jsData, jsReply, jsOption };
-        napi_value returnVal;
-        napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc2, argv2, &returnVal);
-
-        do {
-            if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "OnRemoteRequest got exception");
-                param->result = ERR_UNKNOWN_TRANSACTION;
-                break;
-            }
-
-            ZLOGD(LOG_LABEL, "call js onRemoteRequest done");
-            // Check whether return_val is Promise
-            bool returnIsPromise = false;
-            napi_is_promise(param->env, returnVal, &returnIsPromise);
-            if (!returnIsPromise) {
-                ZLOGD(LOG_LABEL, "onRemoteRequest is synchronous");
-                bool result = false;
-                napi_get_value_bool(param->env, returnVal, &result);
-                if (!result) {
-                    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                        std::chrono::steady_clock::now().time_since_epoch()).count());
-                    ZLOGE(LOG_LABEL, "OnRemoteRequest res:%{public}s time:%{public}" PRIu64,
-                        result ? "true" : "false", curTime);
-                    param->result = ERR_UNKNOWN_TRANSACTION;
-                } else {
-                    param->result = ERR_NONE;
-                }
-                break;
-            }
-
-            ZLOGD(LOG_LABEL, "onRemoteRequest is asynchronous");
-            // Create promiseThen
-            napi_value promiseThen = nullptr;
-            napi_get_named_property(param->env, returnVal, "then", &promiseThen);
-            if (promiseThen == nullptr) {
-                ZLOGE(LOG_LABEL, "get promiseThen failed");
-                param->result = -1;
-                break;
-            }
-            napi_value thenValue;
-            ret = napi_create_function(param->env, "thenCallback", NAPI_AUTO_LENGTH, ThenCallback, param, &thenValue);
-            if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "thenCallback got exception");
-                param->result = ERR_UNKNOWN_TRANSACTION;
-                break;
-            }
-            napi_value catchValue;
-            ret = napi_create_function(param->env, "catchCallback",
-                NAPI_AUTO_LENGTH, CatchCallback, param, &catchValue);
-            if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "catchCallback got exception");
-                param->result = ERR_UNKNOWN_TRANSACTION;
-                break;
-            }
-            // Start to call promiseThen
-            napi_env env = param->env;
-            napi_value thenReturnValue;
-            constexpr uint32_t THEN_ARGC = 2;
-            napi_value thenArgv[THEN_ARGC] = {thenValue, catchValue};
-            ret = napi_call_function(env, returnVal, promiseThen, THEN_ARGC, thenArgv, &thenReturnValue);
-            if (ret != napi_ok) {
-                ZLOGE(LOG_LABEL, "PromiseThen got exception");
-                param->result = ERR_UNKNOWN_TRANSACTION;
-                break;
-            }
-            napi_close_handle_scope(env, scope);
-            return;
-        } while (0);
-        // Reset old calling pid, uid, device id
-        NAPI_RemoteObject_resetOldCallingInfo(param->env, param->oldCallingInfo);
-        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-        param->lockInfo->ready = true;
-        param->lockInfo->condition.notify_all();
-        napi_close_handle_scope(param->env, scope);
-    }, uv_qos_user_initiated);
+    }, OnJsRemoteRequestCallBack, uv_qos_user_initiated);
     int ret = 0;
     if (uvRet != 0) {
         ZLOGE(LOG_LABEL, "uv_queue_work_with_qos failed, ret:%{public}d", uvRet);
         ret = -1;
     } else {
         std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
-        if (!jsParam->lockInfo->ready && !jsParam->lockInfo->condition.wait_for(lock,
-            std::chrono::seconds(WAIT_TIME), [&jsParam] { return jsParam->lockInfo->ready; })) {
-            jsParam->lockInfo->ready = true;
-            ZLOGE(LOG_LABEL, "wait for js callback timeout");
-            ret = -1;
-        } else {
-            ret = jsParam->result;
-        }
+        jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
+        ret = jsParam->result;
     }
     delete jsParam;
     delete work;

@@ -224,7 +224,6 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
             socketId, peerName.c_str());
         return false;
     }
-
     uint32_t peerTokenId = appAuthInfo.tokenId;
     uint32_t oldTokenId = 0;
     if (current->StubDetachDBinderSession(socketId, oldTokenId)) {
