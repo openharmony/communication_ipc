@@ -69,7 +69,6 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     auto start = std::chrono::steady_clock::now();
     lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         start.time_since_epoch()).count());
-    InitCodeMap();
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
         ZLOGE(LABEL, "ProcessSkeleton is null");
@@ -95,26 +94,6 @@ IPCObjectStub::~IPCObjectStub()
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     current->DetachValidObject(this);
-}
-
-void IPCObjectStub::InitCodeMap()
-{
-    funcMap_[PING_TRANSACTION] = &IPCObjectStub::DBinderPingTransaction;
-    funcMap_[INTERFACE_TRANSACTION] = &IPCObjectStub::DBinderInterfaceTransaction;
-    funcMap_[SYNCHRONIZE_REFERENCE] = &IPCObjectStub::DBinderSyncHronizeReference;
-    funcMap_[DUMP_TRANSACTION] = &IPCObjectStub::DBinderDumpTransaction;
-    funcMap_[GET_PROTO_INFO] = &IPCObjectStub::ProcessProto;
-#ifndef CONFIG_IPC_SINGLE
-    funcMap_[INVOKE_LISTEN_THREAD] = &IPCObjectStub::DBinderInvokeListenThread;
-    funcMap_[DBINDER_INCREFS_TRANSACTION] = &IPCObjectStub::DBinderIncRefsTransaction;
-    funcMap_[DBINDER_DECREFS_TRANSACTION] = &IPCObjectStub::DBinderDecRefsTransaction;
-    funcMap_[DBINDER_ADD_COMMAUTH] = &IPCObjectStub::DBinderAddCommAuth;
-    funcMap_[GET_SESSION_NAME] = &IPCObjectStub::DBinderGetSessionName;
-    funcMap_[GET_GRANTED_SESSION_NAME] = &IPCObjectStub::GetGrantedSessionName;
-    funcMap_[GET_SESSION_NAME_PID_UID] = &IPCObjectStub::GetSessionNameForPidUid;
-    funcMap_[GET_PID_UID] = &IPCObjectStub::DBinderGetPidUid;
-    funcMap_[REMOVE_SESSION_NAME] = &IPCObjectStub::RemoveSessionName;
-#endif
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
@@ -157,10 +136,8 @@ int IPCObjectStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
             result = IPC_STUB_UNKNOW_TRANS_ERR;
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            if (ProcessSkeleton::IsPrint(code, lastErrCode_, lastErrCnt_)) {
-                ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
-                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
-            }
+            ZLOGW(LABEL, "unknown code:%{public}u desc:%{public}s time:%{public}" PRIu64, code,
+                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor_)).c_str(), curTime);
             break;
     }
     return result;
@@ -191,7 +168,7 @@ int IPCObjectStub::DBinderPingTransaction(uint32_t code,
     return ERR_NONE;
 }
 
-int IPCObjectStub::DBinderInterfaceTransaction(uint32_t code,
+int IPCObjectStub::DBinderSearchDescriptor(uint32_t code,
     MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     std::u16string descriptor = GetObjectDescriptor();
@@ -202,7 +179,7 @@ int IPCObjectStub::DBinderInterfaceTransaction(uint32_t code,
     return ERR_NONE;
 }
 
-int IPCObjectStub::DBinderSyncHronizeReference(uint32_t code,
+int IPCObjectStub::DBinderSearchRefCount(uint32_t code,
     MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     int refCount = GetObjectRefCount();
@@ -327,17 +304,43 @@ int IPCObjectStub::DBinderGetSessionName(uint32_t code,
     return ERR_NONE;
 }
 
+int IPCObjectStub::DBinderGetGrantedSessionName(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "GRANT_DATABUS_NAME message is excluded in sa manager");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return GetGrantedSessionName(code, data, reply, option);
+}
+
+int IPCObjectStub::DBinderGetSessionNameForPidUid(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return GetSessionNameForPidUid(code, data, reply, option);
+}
+
 int IPCObjectStub::DBinderGetPidUid(uint32_t code,
     MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (!IPCSkeleton::IsLocalCalling()) {
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    if (!reply.WriteUint32(getpid()) || !reply.WriteUint32(getuid())) {
-        ZLOGE(LABEL, "write to parcel fail");
+    return GetPidUid(data, reply);
+}
+
+int IPCObjectStub::DBinderRemoveSessionName(uint32_t code,
+    MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "REMOVE_SESSION_NAME message is excluded in sa manager");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    return ERR_NONE;
+    return RemoveSessionName(data);
 }
 #endif
 
@@ -376,14 +379,41 @@ int IPCObjectStub::SendRequestInner(uint32_t code,
 
 int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    std::map<uint32_t, OHOS::IPCObjectStub::IPCObjectStubFunc>::iterator it = funcMap_.find(code);
-    if (it != funcMap_.end()) {
-        OHOS::IPCObjectStub::IPCObjectStubFunc itFunc = it->second;
-        if (itFunc != nullptr) {
-            return (this->*itFunc)(code, data, reply, option);
-        }
+    switch (code) {
+        case PING_TRANSACTION:
+            return DBinderPingTransaction(code, data, reply, option);
+        case INTERFACE_TRANSACTION:
+            return DBinderSearchDescriptor(code, data, reply, option);
+        case SYNCHRONIZE_REFERENCE:
+            return DBinderSearchRefCount(code, data, reply, option);
+        case DUMP_TRANSACTION:
+            return DBinderDumpTransaction(code, data, reply, option);
+        case GET_PROTO_INFO:
+            return ProcessProto(code, data, reply, option);
+#ifndef CONFIG_IPC_SINGLE
+        case INVOKE_LISTEN_THREAD:
+            return DBinderInvokeListenThread(code, data, reply, option);
+        case DBINDER_INCREFS_TRANSACTION:
+            return DBinderIncRefsTransaction(code, data, reply, option);
+        case DBINDER_DECREFS_TRANSACTION:
+            return DBinderDecRefsTransaction(code, data, reply, option);
+        case DBINDER_ADD_COMMAUTH:
+            return DBinderAddCommAuth(code, data, reply, option);
+        case GET_SESSION_NAME:
+            return DBinderGetSessionName(code, data, reply, option);
+        case GET_GRANTED_SESSION_NAME:
+            return DBinderGetGrantedSessionName(code, data, reply, option);
+        case GET_SESSION_NAME_PID_UID:
+            return DBinderGetSessionNameForPidUid(code, data, reply, option);
+        case GET_PID_UID:
+            return DBinderGetPidUid(code, data, reply, option);
+        case REMOVE_SESSION_NAME:
+            return DBinderRemoveSessionName(code, data, reply, option);
+#endif
+        default:
+            return SendRequestInner(code, data, reply, option);
     }
-    return IPCObjectStub::SendRequestInner(code, data, reply, option);
+    return ERR_NONE;
 }
 
 void IPCObjectStub::OnFirstStrongRef(const void *objectId)
@@ -544,7 +574,6 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     if (current->AttachOrUpdateAppAuthInfo(appAuthInfo)) {
         IncStrongRef(this);
     }
-
     return ERR_NONE;
 }
 
@@ -619,7 +648,6 @@ std::string IPCObjectStub::GetSessionName()
         ZLOGE(LABEL, "get object is null");
         return std::string("");
     }
-
     if (!object->IsProxyObject()) {
         ZLOGE(LABEL, "object is not a proxy pbject");
         return std::string("");
@@ -629,14 +657,10 @@ std::string IPCObjectStub::GetSessionName()
     return samgr->GetGrantedSessionName();
 }
 
-int IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int32_t IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
     ZLOGI(LABEL, "enter");
-    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
-        ZLOGE(LABEL, "GRANT_DATABUS_NAME message is excluded in sa manager");
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
     int pid = IPCSkeleton::GetCallingPid();
     int uid = IPCSkeleton::GetCallingUid();
     std::string sessionName = CreateSessionName(uid, pid);
@@ -652,13 +676,9 @@ int IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, Mes
     return ERR_NONE;
 }
 
-int IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int32_t IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
-        ZLOGE(LABEL, "TRANS_DATABUS_NAME message is excluded in sa manager");
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
     uint32_t remotePid = data.ReadUint32();
     uint32_t remoteUid = data.ReadUint32();
     if (remotePid == static_cast<uint32_t>(IPCSkeleton::GetCallingPid())) {
@@ -678,6 +698,15 @@ int IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &data, M
     return ERR_NONE;
 }
 
+int IPCObjectStub::GetPidUid(MessageParcel &data, MessageParcel &reply)
+{
+    if (!reply.WriteUint32(getpid()) || !reply.WriteUint32(getuid())) {
+        ZLOGE(LABEL, "write to parcel fail");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return ERR_NONE;
+}
+
 std::string IPCObjectStub::CreateSessionName(int uid, int pid)
 {
     std::string sessionName = DBINDER_SOCKET_NAME_PREFIX +
@@ -690,12 +719,8 @@ std::string IPCObjectStub::CreateSessionName(int uid, int pid)
     return sessionName;
 }
 
-int IPCObjectStub::RemoveSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int IPCObjectStub::RemoveSessionName(MessageParcel &data)
 {
-    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
-        ZLOGE(LABEL, "REMOVE_SESSION_NAME message is excluded in sa manager");
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
     std::string sessionName = data.ReadString();
     if (sessionName.empty()) {
         ZLOGE(LABEL, "read parcel fail");
