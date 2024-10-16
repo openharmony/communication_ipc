@@ -30,6 +30,10 @@ void DbinderDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 
     sptr<IRemoteObject> object = remote.promote();
+    if (object == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "Remote object is null");
+        return;
+    }
     IPCObjectProxy *callbackProxy = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
 
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();

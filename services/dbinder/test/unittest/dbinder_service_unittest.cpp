@@ -680,7 +680,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage002, TestSize.Level1)
     EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
-    memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     message->stubIndex = TEST_STUB_INDEX;
     dBinderService->dbinderCallback_ = std::make_shared<TestRpcSystemAbilityCallback>();
     EXPECT_TRUE(dBinderService->dbinderCallback_ != nullptr);
@@ -1024,7 +1024,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeSessionByReplyMessageTest001, TestSize.Leve
     EXPECT_TRUE(dBinderService != nullptr);
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(replyMessage != nullptr);
-    memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    (void)memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     dBinderService->MakeSessionByReplyMessage(replyMessage);
     EXPECT_EQ(dBinderService->HasDBinderStub(replyMessage->binderObject), false);
 
@@ -1148,7 +1148,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest001, TestSize.
     uint32_t tokenId = 1;
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(replyMessage != nullptr);
-    memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    (void)memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     EXPECT_EQ(dBinderService->OnRemoteInvokerDataBusMessage(
         proxy, replyMessage, remoteDeviceId, pid, uid, tokenId), DBinderErrorCode::DEVICEID_INVALID);
 }
@@ -1169,7 +1169,7 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerDataBusMessageTest002, TestSize.
     IPCObjectProxy objectProxy(0);
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(replyMessage != nullptr);
-    memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    (void)memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     EXPECT_EQ(dBinderService->OnRemoteInvokerDataBusMessage(
         &objectProxy, replyMessage, remoteDeviceId, pid, uid, tokenId), DBinderErrorCode::SESSION_NAME_NOT_FOUND);
 }
@@ -1306,7 +1306,7 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
     srcNetworkId = "t";
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
-    memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     message->stubIndex = systemAbilityId;
     message->deviceIdInfo.fromDeviceId[0] = 't';
     dBinderService->dbinderCallback_ = std::make_shared<TestRpcSystemAbilityCallback>();
