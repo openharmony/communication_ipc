@@ -165,6 +165,16 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
         delete invoker;
         invoker = nullptr;
     }
+
+    if (threadType_ == ThreadType::IPC_THREAD) {
+        // subtract thread count when thread exiting
+        auto process = ProcessSkeleton::GetInstance();
+        if (process != nullptr) {
+            process->DecreaseThreadCount();
+        }
+    }
+    ZLOGD(LOG_LABEL, "thread exit, threadName=%{public}s, tid=%{public}d, threadType=%{public}d",
+        threadName_.c_str(), tid_, threadType_);
 }
 
 bool IPCThreadSkeleton::IsInstanceException(std::atomic<uint32_t> &flag)
@@ -296,6 +306,17 @@ bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
 bool IPCThreadSkeleton::IsSendRequesting()
 {
     return sendRequestCount_ > 0;
+}
+
+bool IPCThreadSkeleton::SetThreadType(ThreadType type)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current != nullptr) {
+        return false;
+    }
+
+    current->threadType_ = type;
+    return true;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

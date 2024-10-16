@@ -20,7 +20,6 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-#include "binder_connector.h"
 #include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
@@ -1666,47 +1665,20 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteOb
 }
 #endif
 
-bool IPCProcessSkeleton::GetThreadStopFlag()
+IPCProcessSkeleton::DestroyInstance::~DestroyInstance()
 {
-    return stopThreadFlag_.load();
-}
-
-void IPCProcessSkeleton::IncreaseThreadCount()
-{
-    runningChildThreadNum_.fetch_add(1);
-}
-
-void IPCProcessSkeleton::DecreaseThreadCount()
-{
-    if (runningChildThreadNum_.load() > 0) {
-        runningChildThreadNum_.fetch_sub(1);
-    }
-
-    if (runningChildThreadNum_.load() == 0) {
-        threadCountCon_.notify_one();
-    }
-}
-
-void IPCProcessSkeleton::NotifyChildThreadStop()
-{
-    // set child thread exit flag
-    stopThreadFlag_.store(true);
-    // after closeing fd, child threads will be not block in the 'WriteBinder' function
-    BinderConnector *connector = BinderConnector::GetInstance();
-    if (connector != nullptr) {
-        connector->CloseDriverFd();
-    }
-    ZLOGI(LOG_LABEL, "start waiting for child thread to exit, child thread num:%{public}zu",
-        runningChildThreadNum_.load());
-    std::unique_lock<std::mutex> lockGuard(conMutex_);
-    threadCountCon_.wait_for(lockGuard,
-        std::chrono::seconds(MAIN_THREAD_MAX_WAIT_TIME),
-        [&threadNum = this->runningChildThreadNum_] { return threadNum.load() == 0; });
-    if (runningChildThreadNum_.load() != 0) {
-        ZLOGE(LOG_LABEL, "wait timeout, %{public}zu child threads not exiting", runningChildThreadNum_.load());
+    if (instance_ == nullptr) {
         return;
     }
-    ZLOGI(LOG_LABEL, "wait finished, all child thread have exited");
+
+    // notify other threads to stop running
+    auto process = ProcessSkeleton::GetInstance();
+    if (process != nullptr) {
+        process->NotifyChildThreadStop();
+    }
+
+    delete instance_;
+    instance_ = nullptr;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

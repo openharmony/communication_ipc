@@ -18,6 +18,7 @@
 #include <cinttypes>
 #include <unistd.h>
 
+#include "binder_connector.h"
 #include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
@@ -413,5 +414,50 @@ bool ProcessSkeleton::IsNumStr(const std::string &str)
         return false;
     }
     return std::all_of(str.begin(), str.end(), ::isdigit);
+}
+
+bool ProcessSkeleton::GetThreadStopFlag()
+{
+    return stopThreadFlag_.load();
+}
+
+void ProcessSkeleton::IncreaseThreadCount()
+{
+    std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
+    runningChildThreadNum_.fetch_add(1);
+}
+
+void ProcessSkeleton::DecreaseThreadCount()
+{
+    std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
+    if (runningChildThreadNum_.load() > 0) {
+        runningChildThreadNum_.fetch_sub(1);
+
+        if (runningChildThreadNum_.load() == 0) {
+            threadCountCon_.notify_one();
+        }
+    }
+}
+
+void ProcessSkeleton::NotifyChildThreadStop()
+{
+    // set child thread exit flag
+    stopThreadFlag_.store(true);
+    // after closeing fd, child threads will be not block in the 'WriteBinder' function
+    BinderConnector *connector = BinderConnector::GetInstance();
+    if (connector != nullptr) {
+        connector->CloseDriverFd();
+    }
+    ZLOGI(LOG_LABEL, "start waiting for child thread to exit, child thread num:%{public}zu",
+        runningChildThreadNum_.load());
+    std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
+    threadCountCon_.wait_for(lockGuard,
+        std::chrono::seconds(MAIN_THREAD_MAX_WAIT_TIME),
+        [&threadNum = this->runningChildThreadNum_] { return threadNum.load() == 0; });
+    if (runningChildThreadNum_.load() != 0) {
+        ZLOGI(LOG_LABEL, "wait timeout, %{public}zu child threads not exiting", runningChildThreadNum_.load());
+        return;
+    }
+    ZLOGI(LOG_LABEL, "wait finished, all child thread have exited");
 }
 } // namespace OHOS
