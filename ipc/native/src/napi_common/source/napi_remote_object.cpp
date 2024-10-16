@@ -380,6 +380,7 @@ static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
     }
     holder->Lock();
     int32_t curAttachCount = holder->DecAttachCount();
+    holder->Unlock();
     ZLOGD(LOG_LABEL, "NAPIRemoteObjectHolder destructed by js callback, curAttachCount:%{public}d", curAttachCount);
     if (curAttachCount == 0) {
         delete holder;
