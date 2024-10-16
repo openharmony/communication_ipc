@@ -46,6 +46,9 @@ static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
 static const size_t ARGV_LENGTH_4 = 4;
 static const size_t ARGV_LENGTH_5 = 5;
+
+static const size_t DEVICE_ID_LENGTH = 64;
+
 static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 
 static std::atomic<int32_t> bytraceId = 1000;
@@ -177,6 +180,36 @@ static bool GetPromiseThen(CallbackParam *param, const napi_value returnVal, nap
     return true;
 }
 
+static void NAPI_RemoteObject_saveOldCallingInfoInner(napi_env env, CallingInfo &oldCallingInfo)
+{
+    napi_value global = nullptr;
+    napi_get_global(env, &global);
+    napi_value value = nullptr;
+    napi_get_named_property(env, global, "callingPid_", &value);
+    napi_get_value_int32(env, value, &oldCallingInfo.callingPid);
+    napi_get_named_property(env, global, "callingUid_", &value);
+    napi_get_value_int32(env, value, &oldCallingInfo.callingUid);
+    napi_get_named_property(env, global, "callingTokenId_", &value);
+    napi_get_value_uint32(env, value, &oldCallingInfo.callingTokenId);
+    napi_get_named_property(env, global, "callingDeviceID_", &value);
+    char deviceID[DEVICE_ID_LENGTH + 1] = { 0 };
+    size_t deviceLength = 0;
+    napi_get_value_string_utf8(env, global, deviceID, DEVICE_ID_LENGTH + 1, &deviceLength);
+    oldCallingInfo.callingDeviceID = deviceID;
+    char localDeviceID[DEVICE_ID_LENGTH + 1] = { 0 };
+    napi_get_named_property(env, global, "localDeviceID_", &value);
+    napi_get_value_string_utf8(env, global, localDeviceID, DEVICE_ID_LENGTH + 1, &deviceLength);
+    oldCallingInfo.localDeviceID = localDeviceID;
+    napi_get_named_property(env, global, "isLocalCalling_", &value);
+    napi_get_value_bool(env, value, &oldCallingInfo.isLocalCalling);
+    napi_get_named_property(env, global, "activeStatus_", &value);
+    napi_get_value_int32(env, value, &oldCallingInfo.activeStatus);
+}
+
+static void NAPI_RemoteObject_resetOldCallingInfoInner(napi_env env, CallingInfo &oldCallingInfo)
+{
+    NAPI_RemoteObject_setNewCallingInfo(env, oldCallingInfo);
+}
 static napi_value ThenCallback(napi_env env, napi_callback_info info)
 {
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -203,6 +236,9 @@ static napi_value ThenCallback(napi_env env, napi_callback_info info)
     } else {
         param->result = ERR_NONE;
     }
+
+    // Reset old calling pid, uid, device id
+    NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
     param->lockInfo->condition.notify_all();
@@ -237,6 +273,8 @@ static napi_value CatchCallback(napi_env env, napi_callback_info info)
         return res;
     }
 
+    // Reset old calling pid, uid, device id
+    NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
     param->result = ERR_UNKNOWN_TRANSACTION;
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->ready = true;
@@ -276,15 +314,12 @@ static bool CallPromiseThen(CallbackParam *param, napi_value &thenValue, napi_va
 static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRemoteRequest, napi_value &thisVar,
     const napi_value *argv, napi_handle_scope &scope)
 {
-    NAPI_CallingInfo oldCallingInfo;
-    NAPI_RemoteObject_saveOldCallingInfo(param->env, oldCallingInfo);
+    NAPI_RemoteObject_saveOldCallingInfoInner(param->env, param->oldCallingInfo);
     NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
 
     // start to call onRemoteRequest
     napi_value returnVal;
     napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, ARGV_LENGTH_4, argv, &returnVal);
-    // Reset old calling pid, uid, device id
-    NAPI_RemoteObject_resetOldCallingInfo(param->env, oldCallingInfo);
 
     do {
         if (ret != napi_ok) {
@@ -319,6 +354,8 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
         return;
     } while (0);
 
+    // Reset old calling pid, uid, device id
+    NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     napi_close_handle_scope(param->env, scope);
     param->lockInfo->ready = true;
@@ -702,25 +739,25 @@ void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCal
 {
     napi_value global = nullptr;
     napi_get_global(env, &global);
-    napi_value newPid;
+    napi_value newPid = nullptr;
     napi_create_int32(env, static_cast<int32_t>(newCallingInfoParam.callingPid), &newPid);
     napi_set_named_property(env, global, "callingPid_", newPid);
-    napi_value newUid;
+    napi_value newUid = nullptr;
     napi_create_int32(env, static_cast<int32_t>(newCallingInfoParam.callingUid), &newUid);
     napi_set_named_property(env, global, "callingUid_", newUid);
-    napi_value newCallingTokenId;
+    napi_value newCallingTokenId = nullptr;
     napi_create_uint32(env, newCallingInfoParam.callingTokenId, &newCallingTokenId);
     napi_set_named_property(env, global, "callingTokenId_", newCallingTokenId);
-    napi_value newDeviceID;
+    napi_value newDeviceID = nullptr;
     napi_create_string_utf8(env, newCallingInfoParam.callingDeviceID.c_str(), NAPI_AUTO_LENGTH, &newDeviceID);
     napi_set_named_property(env, global, "callingDeviceID_", newDeviceID);
-    napi_value newLocalDeviceID;
+    napi_value newLocalDeviceID = nullptr;
     napi_create_string_utf8(env, newCallingInfoParam.localDeviceID.c_str(), NAPI_AUTO_LENGTH, &newLocalDeviceID);
     napi_set_named_property(env, global, "localDeviceID_", newLocalDeviceID);
-    napi_value newIsLocalCalling;
+    napi_value newIsLocalCalling = nullptr;
     napi_get_boolean(env, newCallingInfoParam.isLocalCalling, &newIsLocalCalling);
     napi_set_named_property(env, global, "isLocalCalling_", newIsLocalCalling);
-    napi_value newActiveStatus;
+    napi_value newActiveStatus = nullptr;
     napi_create_int32(env, newCallingInfoParam.activeStatus, &newActiveStatus);
     napi_set_named_property(env, global, "activeStatus_", newActiveStatus);
 }
