@@ -1064,6 +1064,7 @@ uint16_t *ReadString16(IpcIo *io, size_t *len)
         RPC_LOG_ERROR("IPC io == NULL || len == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *len = 0;
     bool ret = ReadUint32(io, (uint32_t *)len);
     if (!ret) {
         return NULL;
@@ -1084,6 +1085,7 @@ uint16_t *ReadInterfaceToken(IpcIo *io, size_t *len)
         RPC_LOG_ERROR("IPC io == NULL || len == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *len = 0;
     bool ret = ReadUint32(io, (uint32_t *)len);
     if (!ret) {
         return NULL;
@@ -1127,7 +1129,7 @@ bool *ReadBoolVector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
-
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1157,6 +1159,7 @@ int8_t *ReadInt8Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1177,6 +1180,7 @@ int16_t *ReadInt16Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1205,6 +1209,7 @@ int32_t *ReadInt32Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1225,6 +1230,7 @@ int64_t *ReadInt64Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1245,6 +1251,7 @@ uint8_t *ReadUInt8Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1265,6 +1272,7 @@ uint16_t *ReadUInt16Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1285,6 +1293,7 @@ uint32_t *ReadUInt32Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1305,6 +1314,7 @@ uint64_t *ReadUInt64Vector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1325,6 +1335,7 @@ float *ReadFloatVector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
@@ -1345,6 +1356,7 @@ double *ReadDoubleVector(IpcIo *io, size_t *size)
         RPC_LOG_ERROR("IPC io == NULL || size == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
+    *size = 0;
     bool ret = ReadUint32(io, (uint32_t *)size);
     if (!ret) {
         return NULL;
