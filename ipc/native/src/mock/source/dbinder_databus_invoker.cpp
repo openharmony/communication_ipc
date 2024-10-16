@@ -31,6 +31,9 @@
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
+
+static constexpr size_t INT_STRING_MAX_LEN = 10;
+
 DBinderDatabusInvoker::DBinderDatabusInvoker()
     : stopWorkThread_(false), callerPid_(getpid()), callerUid_(getuid()), callerDeviceID_(""),
     callerTokenID_(0), firstTokenID_(0), status_(0)
@@ -567,6 +570,11 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
     std::string::size_type pos = str.find("_");
     std::string peerUid = str.substr(0, pos);
     std::string peerPid = str.substr(pos + 1);
+    if (!IsValidIdentity(peerUid) && !IsValidIdentity(peerPid)) {
+        ZLOGE(LOG_LABEL, "peerUid or peerPid is invalid, peerUid:%{public}s ,peerPid:%{public}s ",
+            peerUid.c_str(), peerPid.c_str());
+        return false;
+    }
     sessionObject->SetSocketId(socketId);
     sessionObject->SetPeerPid(std::stoi(peerPid));
     sessionObject->SetPeerUid(std::stoi(peerUid));
@@ -1011,5 +1019,19 @@ uint32_t DBinderDatabusInvoker::HasCompletePackage(const char *data, uint32_t re
         return tr->sizeOfSelf;
     }
     return 0;
+}
+
+static bool IsValidIdentity(const std::string &identity)
+{
+    // 10 represents the maximum string length int can represent
+    if (identity.empty() || identity.length() > INT_STRING_MAX_LEN) {
+        return false;
+    }
+
+    auto predicate = [](char c) {
+        return isdigit(c) == 0;
+    };
+    auto it = std::find_if(identity.begin(), identity.end(), predicate);
+    return it == identity.end();
 }
 } // namespace OHOS

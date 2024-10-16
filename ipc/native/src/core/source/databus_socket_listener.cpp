@@ -25,6 +25,8 @@
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER, "DatabusSocketListener" };
 
+static constexpr size_t INT_STRING_MAX_LEN = 10;
+
 DBinderSocketInfo::DBinderSocketInfo(const std::string &ownName, const std::string &peerName,
     const std::string &networkId) : ownName_(ownName), peerName_(peerName), networkId_(networkId)
 {}
@@ -70,7 +72,11 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
     std::string::size_type pos = str.find("_");
     std::string peerUid = str.substr(0, pos);
     std::string peerPid = str.substr(pos + 1);
-
+    if (!IsValidIdentity(peerUid) && !IsValidIdentity(peerPid)) {
+        ZLOGE(LOG_LABEL, "peerUid or peerPid is invalid, peerUid:%{public}s ,peerPid:%{public}s ",
+            peerUid.c_str(), peerPid.c_str());
+        return;
+    }
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
@@ -274,5 +280,19 @@ void DatabusSocketListener::RemoveSessionName(void)
     const std::string sessionName = current->GetDatabusName();
     samgr->RemoveSessionName(sessionName);
     ZLOGI(LABEL, "%{public}s", sessionName.c_str());
+}
+
+static bool IsValidIdentity(const std::string &identity)
+{
+    // 10 represents the maximum string length int can represent
+    if (identity.empty() || identity.length() > INT_STRING_MAX_LEN) {
+        return false;
+    }
+
+    auto predicate = [](char c) {
+        return isdigit(c) == 0;
+    };
+    auto it = std::find_if(identity.begin(), identity.end(), predicate);
+    return it == identity.end();
 }
 } // namespace OHOS
