@@ -34,8 +34,6 @@ ohos_moduletest("RPCCLIENTTEST") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
-  deps = [ "//third_party/googletest:gtest_main" ]
-
   external_deps = [
     "c_utils:utils",
     "ipc:ipc_core",
@@ -54,7 +52,6 @@ ohos_moduletest("RPCSERVERTEST") {
     "src/rpc_test.cpp",
   ]
   configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
-  deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "c_utils:utils",
