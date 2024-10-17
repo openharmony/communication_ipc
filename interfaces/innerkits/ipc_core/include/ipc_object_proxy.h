@@ -238,6 +238,10 @@ public:
      */
     uint32_t GetStrongRefCountForStub();
 
+#ifndef EMULATOR_PLATFORM
+    bool CanPromote() override;
+#endif
+
 private:
     void MarkObjectDied();
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
