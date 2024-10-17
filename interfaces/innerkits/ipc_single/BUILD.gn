@@ -23,6 +23,13 @@ config("libipc_single_private_config") {
     "-O2",
   ]
 }
+
+config("ipc_all_deps_config") {
+  if (is_emulator) {
+    defines = [ "EMULATOR_PLATFORM" ]
+  }
+}
+
 ohos_shared_library("ipc_single") {
   sanitize = {
     integer_overflow = true
@@ -61,7 +68,10 @@ ohos_shared_library("ipc_single") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":libipc_single_private_config",
   ]
-  public_configs = [ "$SUBSYSTEM_DIR/config:ipc_util_config" ]
+  public_configs = [
+    "$SUBSYSTEM_DIR/config:ipc_util_config"
+      ":ipc_all_deps_config",
+  ]
 
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
 
