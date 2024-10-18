@@ -209,10 +209,6 @@ public:
     sptr<DBinderCallbackStub> QueryDBinderCallbackStub(sptr<IRemoteObject> rpcProxy);
     sptr<IRemoteObject> QueryDBinderCallbackProxy(sptr<IRemoteObject> stub);
 #endif
-    bool GetThreadStopFlag();
-    void IncreaseThreadCount();
-    void DecreaseThreadCount();
-    void NotifyChildThreadStop();
 
 public:
     static constexpr int DEFAULT_WORK_THREAD_NUM = 16;
@@ -236,14 +232,7 @@ private:
 
     class DestroyInstance {
     public:
-        ~DestroyInstance()
-        {
-            if (instance_ != nullptr) {
-                instance_->NotifyChildThreadStop();
-                delete instance_;
-                instance_ = nullptr;
-            }
-        }
+        ~DestroyInstance();
     };
 
     static IPCProcessSkeleton *instance_;
@@ -300,11 +289,6 @@ private:
     std::atomic<int32_t> listenSocketId_ = 0;
     uint64_t randNum_;
 #endif
-    static constexpr size_t MAIN_THREAD_MAX_WAIT_TIME = 3;
-    std::atomic_bool stopThreadFlag_ = false;
-    std::mutex conMutex_;
-    std::condition_variable threadCountCon_;
-    std::atomic_size_t runningChildThreadNum_ = 0;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

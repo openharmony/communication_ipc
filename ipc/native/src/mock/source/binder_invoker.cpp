@@ -533,8 +533,8 @@ void BinderInvoker::StartWorkLoop()
     }
     int error;
     do {
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr || current->GetThreadStopFlag()) {
+        ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+        if (process == nullptr || process->GetThreadStopFlag()) {
             break;
         }
         error = TransactWithDriver();
@@ -546,7 +546,7 @@ void BinderInvoker::StartWorkLoop()
             continue;
         }
         uint32_t cmd = input_.ReadUint32();
-        current = IPCProcessSkeleton::GetCurrent();
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
         if (current != nullptr) {
             current->LockForNumExecuting();
         }
