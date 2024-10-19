@@ -135,7 +135,7 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     }
 
     if (iterator->second.GetRefPtr() != object) {
-        ZLOGD(LOG_LABEL, "can not erase it because addr if different, "
+        ZLOGI(LOG_LABEL, "can not erase it because addr if different, "
             "desc:%{public}s, recorded object:%{public}u, detach object:%{public}u",
             ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), ConvertAddr(iterator->second.GetRefPtr()),
             ConvertAddr(object));
@@ -172,13 +172,8 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
         }
     }
     auto result = objects_.insert_or_assign(descriptor, wp);
-    if (result.second) {
-        ZLOGD(LOG_LABEL, "attach %{public}d desc:%{public}s inserted",
-            ConvertAddr(object), ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
-    } else {
-        ZLOGW(LOG_LABEL, "attach %{public}d desc:%{public}s assign",
-            ConvertAddr(object), ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
-    }
+    ZLOGD(LOG_LABEL, "attach %{public}u desc:%{public}s type:%{public}s",
+        ConvertAddr(object), ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), result.second ? "insert" : "assign");
     return true;
 }
 
@@ -211,12 +206,12 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
     }
     std::u16string desc;
     if (!IsValidObject(remoteObject, desc)) {
-        ZLOGD(LOG_LABEL, "object %{public}d is inValid", ConvertAddr(remoteObject));
+        ZLOGD(LOG_LABEL, "object %{public}u is inValid", ConvertAddr(remoteObject));
         return result;
     }
 
     if (!remoteObject->AttemptIncStrong(this)) {
-        ZLOGD(LOG_LABEL, "object %{public}d AttemptIncStrong failed", ConvertAddr(remoteObject));
+        ZLOGD(LOG_LABEL, "object %{public}u AttemptIncStrong failed", ConvertAddr(remoteObject));
         return result;
     }
 
