@@ -60,10 +60,10 @@ static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_
     if (value == nullptr) {
         ZLOGE(LOG_LABEL, "%{public}s", errDesc);
         param->result = -1;
-        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        std::unique_lock<std::mutex> lock(param->lockInfo.mutex);
         napi_close_handle_scope(param->env, scope);
-        param->lockInfo->ready = true;
-        param->lockInfo->condition.notify_all();
+        param->lockInfo.ready = true;
+        param->lockInfo.condition.notify_all();
         return false;
     }
     return true;
@@ -101,9 +101,9 @@ static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_v
 
     size_t argc = ARGV_LENGTH_2;
     napi_value flags = nullptr;
-    napi_create_int32(param->env, param->option->GetFlags(), &flags);
+    napi_create_int32(param->env, param->option.GetFlags(), &flags);
     napi_value waittime = nullptr;
-    napi_create_int32(param->env, param->option->GetWaitTime(), &waittime);
+    napi_create_int32(param->env, param->option.GetWaitTime(), &waittime);
     napi_value argv[ARGV_LENGTH_2] = { flags, waittime };
     napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
     if (!IsValidParamWithNotify(jsOption, param, scope, "new jsOption failed")) {
@@ -131,7 +131,7 @@ static bool CreateJsParcel(CallbackParam *param, const napi_value jsParcelConstr
 {
     napi_value parcel;
     napi_create_object(param->env, &parcel);
-    napi_wrap(param->env, parcel, isJsDataParcel ? param->data : param->reply,
+    napi_wrap(param->env, parcel, isJsDataParcel ? &param->data : &param->reply,
         [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
 
     if (!IsValidParamWithNotify(parcel, param, scope, "create js parcel object failed")) {
@@ -239,9 +239,9 @@ static napi_value ThenCallback(napi_env env, napi_callback_info info)
 
     // Reset old calling pid, uid, device id
     NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->ready = true;
-    param->lockInfo->condition.notify_all();
+    std::unique_lock<std::mutex> lock(param->lockInfo.mutex);
+    param->lockInfo.ready = true;
+    param->lockInfo.condition.notify_all();
     napi_get_undefined(env, &res);
     return res;
 }
@@ -276,9 +276,9 @@ static napi_value CatchCallback(napi_env env, napi_callback_info info)
     // Reset old calling pid, uid, device id
     NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
     param->result = ERR_UNKNOWN_TRANSACTION;
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->ready = true;
-    param->lockInfo->condition.notify_all();
+    std::unique_lock<std::mutex> lock(param->lockInfo.mutex);
+    param->lockInfo.ready = true;
+    param->lockInfo.condition.notify_all();
     napi_get_undefined(env, &res);
     return res;
 }
@@ -356,10 +356,10 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
 
     // Reset old calling pid, uid, device id
     NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    std::unique_lock<std::mutex> lock(param->lockInfo.mutex);
     napi_close_handle_scope(param->env, scope);
-    param->lockInfo->ready = true;
-    param->lockInfo->condition.notify_all();
+    param->lockInfo.ready = true;
+    param->lockInfo.condition.notify_all();
 }
 
 static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
@@ -694,18 +694,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     if (code == DUMP_TRANSACTION) {
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%{public}zu", data.GetReadableBytes());
     }
-    std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
-    CallbackParam *param = new CallbackParam {
-        .env = env_,
-        .thisVarRef = thisVarRef_,
-        .code = code,
-        .data = &data,
-        .reply = &reply,
-        .option = &option,
-        .lockInfo = lockInfo.get(),
-        .result = 0
-    };
-
+    sptr<CallbackParam> param = new CallbackParam {env_, thisVarRef_, code, data, reply, option};
     NAPI_RemoteObject_getCallingInfo(param->callingInfo);
     ZLOGD(LOG_LABEL, "callingPid:%{public}u callingUid:%{public}u "
         "callingDeviceID:%{public}s localDeviceId:%{public}s localCalling:%{public}d",
@@ -713,7 +702,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         IPCProcessSkeleton::ConvertToSecureString(param->callingInfo.callingDeviceID).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(param->callingInfo.localDeviceID).c_str(),
         param->callingInfo.isLocalCalling);
-    int ret = OnJsRemoteRequest(param);
+    int ret = OnJsRemoteRequest(param.GetRefPtr());
     if (ret != 0) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -776,6 +765,17 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
     napi_set_named_property(env, global, "activeStatus_", oldCallingInfo.activeStatus);
 }
 
+static void OnParamEnvCleanUp(void *data)
+{
+    if (data == nullptr) {
+        ZLOGE(LOG_LABEL, "data is null");
+        return;
+    }
+
+    CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
+    std::lock_guard<std::mutex> lock(param->paramMutex);
+}
+
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 {
     if (jsParam == nullptr) {
@@ -786,13 +786,15 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         ZLOGE(LOG_LABEL, "Js env has been destructed");
         return ERR_UNKNOWN_REASON;
     }
+    (void)napi_add_env_cleanup_hook(env_, OnParamEnvCleanUp, jsParam);
+    std::lock_guard<std::mutex> lock(jsParam->paramMutex);
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
         ZLOGE(LOG_LABEL, "failed to new uv_work_t");
-        delete jsParam;
+        (void)napi_remove_env_cleanup_hook(env_, OnParamEnvCleanUp, jsParam);
         return -1;
     }
     work->data = reinterpret_cast<void *>(jsParam);
@@ -812,11 +814,11 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
         ZLOGE(LOG_LABEL, "uv_queue_work_with_qos failed, ret:%{public}d", uvRet);
         ret = -1;
     } else {
-        std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
-        jsParam->lockInfo->condition.wait(lock, [&jsParam] { return jsParam->lockInfo->ready; });
+        std::unique_lock<std::mutex> lock(jsParam->lockInfo.mutex);
+        jsParam->lockInfo.condition.wait(lock, [&jsParam] { return jsParam->lockInfo.ready; });
         ret = jsParam->result;
     }
-    delete jsParam;
+    (void)napi_remove_env_cleanup_hook(env_, OnParamEnvCleanUp, jsParam);
     delete work;
     return ret;
 }
