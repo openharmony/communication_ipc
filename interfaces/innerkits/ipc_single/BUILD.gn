@@ -70,7 +70,7 @@ ohos_shared_library("ipc_single") {
   ]
   public_configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
-      ":ipc_all_deps_config",
+    ":ipc_all_deps_config",
   ]
 
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
