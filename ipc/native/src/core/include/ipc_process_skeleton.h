@@ -221,7 +221,6 @@ public:
 #endif
     static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
-    static constexpr int32_t FOUNDATION_UID = 5523;
     static constexpr int ENCRYPT_LENGTH = 4;
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);

@@ -429,9 +429,6 @@ void IPCProcessSkeleton::BlockUntilThreadAvailable()
 void IPCProcessSkeleton::LockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
-    if (getuid() != FOUNDATION_UID) {
-        return;
-    }
     std::lock_guard<std::mutex> lockGuard(mutex_);
     numExecuting_++;
 }
@@ -439,9 +436,6 @@ void IPCProcessSkeleton::LockForNumExecuting()
 void IPCProcessSkeleton::UnlockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
-    if (getuid() != FOUNDATION_UID) {
-        return;
-    }
     std::lock_guard<std::mutex> lockGuard(mutex_);
     numExecuting_--;
     if (numWaitingForThreads_ > 0) {
