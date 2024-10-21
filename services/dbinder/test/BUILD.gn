@@ -50,7 +50,6 @@ ohos_distributedtest("DbinderTest") {
     ":dbinder_send",
     ":dbinder_test",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
