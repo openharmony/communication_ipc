@@ -27,6 +27,8 @@
 
 namespace OHOS {
 
+static constexpr size_t INT_STRING_MAX_LEN = 10;
+
 struct InvokerProcInfo {
     pid_t pid;
     pid_t realPid;

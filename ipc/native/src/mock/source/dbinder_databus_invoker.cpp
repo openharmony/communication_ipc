@@ -31,6 +31,7 @@
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
+
 DBinderDatabusInvoker::DBinderDatabusInvoker()
     : stopWorkThread_(false), callerPid_(getpid()), callerUid_(getuid()), callerDeviceID_(""),
     callerTokenID_(0), firstTokenID_(0), status_(0)
@@ -566,6 +567,11 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
     std::string::size_type pos = str.find("_");
     std::string peerUid = str.substr(0, pos);
     std::string peerPid = str.substr(pos + 1);
+    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
+        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
+        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
+        return false;
+    }
     sessionObject->SetSocketId(socketId);
     sessionObject->SetPeerPid(std::stoi(peerPid));
     sessionObject->SetPeerUid(std::stoi(peerUid));
