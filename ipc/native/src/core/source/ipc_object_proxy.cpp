@@ -916,8 +916,15 @@ int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply,
         ZLOGE(LABEL, "ServiceName format error");
         return ERR_INVALID_DATA;
     }
-    dbinderData.peerUid = std::stoi(str.substr(0, pos));
-    dbinderData.peerPid = std::stoi(str.substr(pos + 1));
+    std::string peerUid = str.substr(0, pos);
+    std::string peerPid = str.substr(pos + 1);
+    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
+        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
+        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
+        return ERR_INVALID_DATA;
+    }
+    dbinderData.peerUid = std::stoi(peerUid);
+    dbinderData.peerPid = std::stoi(peerPid);
     return ERR_NONE;
 }
 
@@ -950,8 +957,15 @@ int IPCObjectProxy::GetDBinderNegotiationData(DBinderNegotiationData &dbinderDat
         ZLOGW(LABEL, "ServiceName format error");
         return ERR_INVALID_DATA;
     }
-    dbinderData.peerUid = std::stoi(str.substr(0, pos));
-    dbinderData.peerPid = std::stoi(str.substr(pos + 1));
+    std::string peerUid = str.substr(0, pos);
+    std::string peerPid = str.substr(pos + 1);
+    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
+        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
+        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
+        return ERR_INVALID_DATA;
+    }
+    dbinderData.peerUid = std::stoi(peerUid);
+    dbinderData.peerPid = std::stoi(peerPid);
     return ERR_NONE;
 }
 

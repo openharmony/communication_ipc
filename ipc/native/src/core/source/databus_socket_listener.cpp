@@ -70,7 +70,11 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
     std::string::size_type pos = str.find("_");
     std::string peerUid = str.substr(0, pos);
     std::string peerPid = str.substr(pos + 1);
-
+    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
+        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
+        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
+        return;
+    }
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
