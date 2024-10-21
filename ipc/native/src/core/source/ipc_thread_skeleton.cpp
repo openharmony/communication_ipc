@@ -311,7 +311,7 @@ bool IPCThreadSkeleton::IsSendRequesting()
 bool IPCThreadSkeleton::SetThreadType(ThreadType type)
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    if (current != nullptr) {
+    if (current == nullptr) {
         return false;
     }
 
