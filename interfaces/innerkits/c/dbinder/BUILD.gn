@@ -43,7 +43,6 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
       "$SUBSYSTEM_DIR/utils/include",
-      "//third_party/bounds_checking_function/include",
       "//commonlibrary/utils_lite/include",
     ]
     ldflags = [
@@ -54,6 +53,7 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:rpc_log",
       "//third_party/bounds_checking_function/:libsec_shared",
     ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
   }
 } else if (ohos_kernel_type == "liteos_m") {
   SYSTEM_LEVEL = "mini"

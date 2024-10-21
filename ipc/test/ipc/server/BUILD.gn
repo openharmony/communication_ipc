@@ -22,7 +22,6 @@ executable("ipc_test_server") {
   output_dir = "$root_out_dir/test/ipc"
   sources = [ "$IPC_TEST_CORE/ipc/server/ipc_test_server.c" ]
   include_dirs = [
-    "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
@@ -37,6 +36,7 @@ executable("ipc_test_server") {
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single",
     "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   configs -= [ "//build/lite/config:clang_opt" ]
 }

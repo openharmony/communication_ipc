@@ -19,7 +19,6 @@ IPC_CORE_ROOT = "${SUBSYSTEM_DIR}/ipc/native/c"
 executable("rpc_server") {
   sources = [ "$SUBSYSTEM_DIR/ipc/test/rpc/server/rpc_server.c" ]
   include_dirs = [
-    "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/ipc/include",
     "$IPC_CORE_ROOT/manager/include",
@@ -37,6 +36,6 @@ executable("rpc_server") {
     "${SUBSYSTEM_DIR}/interfaces/innerkits/c/dbinder:dbinder",
     "${SUBSYSTEM_DIR}/interfaces/innerkits/c/ipc:rpc_manager",
   ]
-
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
   configs -= [ "//build/lite/config:clang_opt" ]
 }

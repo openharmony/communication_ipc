@@ -28,7 +28,6 @@ unittest("ipc_server") {
 
   include_dirs = [
     "$IPC_TEST_CORE/include",
-    "//third_party/bounds_checking_function/include",
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
@@ -37,4 +36,5 @@ unittest("ipc_server") {
   sources = [ "IpcServerTest.cpp" ]
 
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
