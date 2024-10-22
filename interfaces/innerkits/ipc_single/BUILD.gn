@@ -23,9 +23,6 @@ config("libipc_single_private_config") {
 
 config("ipc_all_deps_config") {
   include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
-  if (is_emulator) {
-    defines = [ "EMULATOR_PLATFORM" ]
-  }
 }
 
 ohos_shared_library("ipc_single") {

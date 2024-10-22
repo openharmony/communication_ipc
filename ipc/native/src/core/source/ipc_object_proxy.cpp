@@ -615,13 +615,6 @@ uint32_t IPCObjectProxy::GetStrongRefCountForStub()
     return invoker->GetStrongRefCountForStub(handle_);
 }
 
-#ifndef EMULATOR_PLATFORM
-bool IPCObjectProxy::CanPromote()
-{
-    return (GetSptrRefCount() > 0);
-}
-#endif
-
 #ifndef CONFIG_IPC_SINGLE
 int IPCObjectProxy::UpdateProto()
 {
