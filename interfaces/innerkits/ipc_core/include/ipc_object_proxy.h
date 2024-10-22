@@ -242,10 +242,6 @@ public:
 
     void SetObjectDied(bool isDied);
 
-#ifndef EMULATOR_PLATFORM
-    bool CanPromote() override;
-#endif
-
 private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
