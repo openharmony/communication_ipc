@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,10 @@
 #ifndef OHOS_IPC_TEST_SERVICE_CLIENT_H
 #define OHOS_IPC_TEST_SERVICE_CLIENT_H
 
-#include <vector>
 #include <string>
-#include "test_service_skeleton.h"
+#include <vector>
 #include "log_tags.h"
+#include "test_service_proxy.h"
 #include "test_capi_skeleton.h"
 
 namespace OHOS {
@@ -31,22 +31,20 @@ struct TraceParam {
 
 class TestServiceClient {
 public:
-    int ConnectService();
-    void StartSyncTransaction();
-    void StartSyncDelayReply();
-    void StartAsyncTransaction();
-    void StartPingService();
-    void StartGetFooService();
-    int StartLoopTest(int maxCount);
-    void StartDumpService();
-    void StartTestFileDescriptor();
-    void StartAsyncDumpService();
-    void TestEnableSerialInvokeFlag();
-    void TestNativeIPCSendRequests(int subCmd);
-    void TestRegisterRemoteStub();
-    void TestUnRegisterRemoteStub();
-    void TestSendTooManyRequest();
-    void TestMultiThreadSendRequest();
+    bool ConnectService();
+    bool StartSyncTransaction();
+    bool StartPingService();
+    bool StartGetFooService();
+    bool StartLoopTest(int maxCount);
+    bool StartDumpService();
+    bool StartTestFileDescriptor();
+    bool StartAsyncDumpService();
+    bool TestEnableSerialInvokeFlag();
+    bool TestNativeIPCSendRequests(int subCmd);
+    bool TestRegisterRemoteStub();
+    bool TestUnRegisterRemoteStub();
+    bool TestSendTooManyRequest();
+    bool TestMultiThreadSendRequest();
 
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceClient" };

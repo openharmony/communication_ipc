@@ -17,7 +17,9 @@
 #define OHOS_TEST_CAPI_SKELETON_H
 
 #include "ipc_cremote_object.h"
-#include "test_service_skeleton.h"
+#include "test_service_death_recipient.h"
+#include "test_service_proxy.h"
+#include "test_service_stub.h"
 
 #include <random>
 
