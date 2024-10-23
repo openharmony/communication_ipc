@@ -25,18 +25,20 @@
 
 namespace OHOS {
 
-int TestServiceClient::ConnectService()
+constexpr int PARCEL_MAX_CAPACITY = 200 * 1024;
+
+bool TestServiceClient::ConnectService()
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (saMgr == nullptr) {
         ZLOGE(LABEL, "get registry fail");
-        return -1;
+        return false;
     }
 
     sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
 
     if (object != nullptr) {
-        ZLOGD(LABEL, "Got test Service object");
+        ZLOGI(LABEL, "Got test Service object");
         sptr<IRemoteObject::DeathRecipient> death(new TestDeathRecipient());
         object->AddDeathRecipient(death.GetRefPtr());
         testService_ = iface_cast<ITestService>(object);
@@ -44,202 +46,259 @@ int TestServiceClient::ConnectService()
 
     if (testService_ == nullptr) {
         ZLOGE(LABEL, "Could not find Test Service!");
-        return -1;
+        return false;
     }
-    return 0;
+    return true;
 }
 
-void TestServiceClient::StartSyncTransaction()
+bool TestServiceClient::StartSyncTransaction()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartSyncTransaction");
-        [[maybe_unused]] int result = 0;
-        testService_->TestSyncTransaction(2019, result);
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
+
+    ZLOGD(LABEL, "StartSyncTransaction");
+    int result = 0;
+    int originalValue = 2019;
+    int reversalValue = 9102;
+    int ret = testService_->TestSyncTransaction(originalValue, result);
+    if (ret != 0) {
+        ZLOGE(LABEL, "TestSyncTransaction function call failed");
+        return false;
+    }
+
+    if (result != reversalValue) {
+        return false;
+    }
+    return true;
 }
 
-void TestServiceClient::StartSyncDelayReply()
+bool TestServiceClient::StartPingService()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartSyncDelayReply");
-        [[maybe_unused]] int result = 0;
-        testService_->TestSyncTransaction(2019, result, 2);
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
+
+    ZLOGD(LABEL, "StartPingService");
+    const std::u16string descriptor = ITestService::GetDescriptor();
+    int ret = testService_->TestPingService(descriptor);
+    if (ret != 0) {
+        ZLOGE(LABEL, "TestPingService function call failed");
+        return false;
+    }
+    return true;
 }
 
-void TestServiceClient::StartAsyncTransaction()
+bool TestServiceClient::StartGetFooService()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartAsyncTransaction");
-        [[maybe_unused]] int result = 0;
-        testService_->TestAsyncTransaction(2019, result);
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
+
+    ZLOGD(LABEL, "StartGetFooService");
+    sptr<IFoo> foo = testService_->TestGetFooService();
+    if (foo == nullptr) {
+        ZLOGE(LABEL, "TestGetFooService function call failed");
+        return false;
+    }
+    return true;
 }
 
-void TestServiceClient::StartPingService()
+bool TestServiceClient::StartDumpService()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartPingService");
-        const std::u16string descriptor = ITestService::GetDescriptor();
-        testService_->TestPingService(descriptor);
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
+
+    ZLOGD(LABEL, "StartDumpService");
+    int ret = testService_->TestDumpService();
+    if (ret != 0) {
+        ZLOGE(LABEL, "TestDumpService function call failed");
+        return false;
+    }
+    return true;
 }
 
-void TestServiceClient::StartGetFooService()
+bool TestServiceClient::StartTestFileDescriptor()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartGetFooService");
-        sptr<IFoo> foo = testService_->TestGetFooService();
-        if (foo == nullptr) {
-            ZLOGD(LABEL, "Fail to get foo service");
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
+    ZLOGD(LABEL, "StartTestFileDescriptor");
+    int fd = testService_->TestGetFileDescriptor();
+    if (fd == INVALID_FD) {
+        ZLOGE(LABEL, "TestGetFileDescriptor function call failed");
+        return false;
+    }
+    if (write(fd, "client write!\n", strlen("client write!\n")) < 0) {
+        ZLOGE(LABEL, "write fd error");
+        return false;
+    }
+    close(fd);
+    return true;
+}
+
+bool TestServiceClient::StartLoopTest(int maxCount)
+{
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
+    ZLOGD(LABEL, "StartLoopTest");
+    int count = 0;
+    std::string testString;
+    // start loop test, test times is 10240
+    for (count = 0; count < maxCount; count++) {
+        testString += "0123456789!";
+        int ret = testService_->TestStringTransaction(testString);
+        if (ret > PARCEL_MAX_CAPACITY) {
+            return false;
         }
     }
+
+    return true;
 }
 
-void TestServiceClient::StartDumpService()
-{
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartDumpService");
-        testService_->TestDumpService();
-    }
-}
-
-void TestServiceClient::StartAsyncDumpService()
-{
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartAsyncDumpService");
-        testService_->TestAsyncDumpService();
-    }
-}
-
-void TestServiceClient::StartTestFileDescriptor()
-{
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartTestFileDescriptor");
-        int fd = testService_->TestGetFileDescriptor();
-        if (fd != INVALID_FD) {
-            if (write(fd, "client write!\n", strlen("client write!\n")) < 0) {
-                ZLOGE(LABEL, "write fd error");
-            }
-            close(fd);
-        }
-    }
-}
-
-int TestServiceClient::StartLoopTest(int maxCount)
-{
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "StartLoopTest");
-        int count = 0;
-        std::string testString;
-        // start loop test, test times is 1000
-        for (count = 0; count < maxCount; count++) {
-            testString += "0123456789abcdefghijklmnopqrstuvwxyz~!@#$%^&*()_+{}?/[]<>-='|~";
-            testService_->TestStringTransaction(testString);
-        }
-        return count;
-    }
-    return 0;
-}
-
-void TestServiceClient::TestEnableSerialInvokeFlag()
+bool TestServiceClient::TestEnableSerialInvokeFlag()
 {
     ZLOGD(LABEL, "TestEnableSerialInvokeFlag");
     if (testService_ == nullptr) {
-        ZLOGE(LABEL, "Member variable testService_ Is a null pointer");
-        return;
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
     int result = testService_->TestEnableSerialInvokeFlag();
     if (result != 0) {
-        std::cout << "TestServiceClient::TestEnableSerialInvokeFlag function call failed" << std::endl;
-        return;
+        ZLOGE(LABEL, "TestEnableSerialInvokeFlag function call failed");
+        return false;
     }
-    std::cout << "TestServiceClient::TestEnableSerialInvokeFlag function call successful" << std::endl;
+
+    return true;
 }
 
-void TestServiceClient::TestNativeIPCSendRequests(int subCmd)
+bool TestServiceClient::TestNativeIPCSendRequests(int subCmd)
 {
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
     auto remoteProxy = std::make_shared<NativeRemoteProxyTest>(testService_);
     if (remoteProxy == nullptr) {
         ZLOGE(LABEL, "create remote proxy test failed!");
-        return;
+        return false;
     }
+
     static std::map<int, std::function<int()>> commandMap = {
-        { NATIVE_TEST_CMD_SYNC_ADD, [&]() { return remoteProxy->SyncAdd(); }},
-        { NATIVE_TEST_CMD_ASYNC_ADD, [&]() { return remoteProxy->ASyncAdd(); }},
-        { NATIVE_TEST_CMD_SYNC_ADD_REPEAT, [&]() { return remoteProxy->AddParallel(true); }},
-        { NATIVE_TEST_CMD_ASYNC_ADD_REPEAT, [&]() { return remoteProxy->AddParallel(false); }},
-        { NATIVE_TEST_CMD_SEND_AND_ECHO_BASE, [&]() { return remoteProxy->SendAndEchoBase(); }},
-        { NATIVE_TEST_CMD_SEND_AND_ECHO_SRING, [&]() { return remoteProxy->SendAndEchoString(); }},
-        { NATIVE_TEST_CMD_SEND_AND_ECHO_BUFFER, [&]() { return remoteProxy->SendAndEchoBuffer(); }},
-        { NATIVE_TEST_CMD_SEND_FILE_DESCRIPTOR, [&]() { return remoteProxy->SendAndEchoFileDescriptor(); }},
-        { NATIVE_TEST_CMD_SEND_ERROR_CODE, [&]() { return remoteProxy->SendErrorCode(); }},
+        { NATIVE_TEST_CMD_SYNC_ADD,                 [&]() { return remoteProxy->SyncAdd(); }},
+        { NATIVE_TEST_CMD_ASYNC_ADD,                [&]() { return remoteProxy->ASyncAdd(); }},
+        { NATIVE_TEST_CMD_SYNC_ADD_REPEAT,          [&]() { return remoteProxy->AddParallel(true); }},
+        { NATIVE_TEST_CMD_ASYNC_ADD_REPEAT,         [&]() { return remoteProxy->AddParallel(false); }},
+        { NATIVE_TEST_CMD_SEND_AND_ECHO_BASE,       [&]() { return remoteProxy->SendAndEchoBase(); }},
+        { NATIVE_TEST_CMD_SEND_AND_ECHO_SRING,      [&]() { return remoteProxy->SendAndEchoString(); }},
+        { NATIVE_TEST_CMD_SEND_AND_ECHO_BUFFER,     [&]() { return remoteProxy->SendAndEchoBuffer(); }},
+        { NATIVE_TEST_CMD_SEND_FILE_DESCRIPTOR,     [&]() { return remoteProxy->SendAndEchoFileDescriptor(); }},
+        { NATIVE_TEST_CMD_SEND_ERROR_CODE,          [&]() { return remoteProxy->SendErrorCode(); }},
     };
     auto it = commandMap.find(subCmd);
-    if (it != commandMap.end()) {
-        if (it->second() != 0) {
-            ZLOGE(LABEL, "Test sub cmd:%{public}d failed!", subCmd);
-        } else {
-            ZLOGD(LABEL, "Test sub cmd:%{public}d success!", subCmd);
-        }
-    } else {
-        ZLOGD(LABEL, "error sub cmd:%{public}d", subCmd);
-        return;
+    if (it == commandMap.end()) {
+        ZLOGE(LABEL, "error sub cmd:%{public}d", subCmd);
+        return false;
     }
+    if (it->second() != 0) {
+        ZLOGE(LABEL, "Test sub cmd:%{public}d failed!", subCmd);
+        return false;
+    }
+
+    ZLOGI(LABEL, "Test sub cmd:%{public}d success!", subCmd);
+    return true;
 }
 
-void TestServiceClient::TestRegisterRemoteStub()
+bool TestServiceClient::TestRegisterRemoteStub()
 {
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
     if (remoteStub_ == nullptr) {
         remoteStub_ = std::make_shared<NativeRemoteStubTest>(testService_);
         if (remoteStub_ == nullptr) {
             ZLOGE(LABEL, "create remote stub test failed!");
-            return;
+            return false;
         }
     }
     int ret = remoteStub_->RegisterRemoteStub();
     if (ret != 0) {
-        ZLOGE(LABEL, "function call failed");
-        return;
+        ZLOGE(LABEL, "RegisterRemoteStub function call failed");
+        return false;
     }
-    ZLOGD(LABEL, "function call success");
+    ZLOGI(LABEL, "RegisterRemoteStub function success");
+    return true;
 }
 
-void TestServiceClient::TestUnRegisterRemoteStub()
+bool TestServiceClient::TestUnRegisterRemoteStub()
 {
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
     if (remoteStub_ == nullptr) {
         remoteStub_ = std::make_shared<NativeRemoteStubTest>(testService_);
         if (remoteStub_ == nullptr) {
             ZLOGE(LABEL, "create remote stub test failed!");
-            return;
+            return false;
         }
     }
     int ret = remoteStub_->UnRegisterRemoteStub();
     if (ret != 0) {
         ZLOGE(LABEL, "function call failed");
-        return;
+        return false;
     }
-    ZLOGD(LABEL, "function call success");
+    ZLOGI(LABEL, "function call success");
+    return true;
 }
 
-void TestServiceClient::TestSendTooManyRequest()
+bool TestServiceClient::TestSendTooManyRequest()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "TestSendTooManyRequest");
-        int ret = 0;
-        int data = 2024;
-        testService_->TestSendTooManyRequest(data, ret);
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
+
+    ZLOGD(LABEL, "TestSendTooManyRequest");
+    int res = 0;
+    int data = 2024;
+    int ret = testService_->TestSendTooManyRequest(data, res);
+    if (ret != 0) {
+        ZLOGE(LABEL, "function call failed");
+        return false;
+    }
+    return true;
 }
 
-void TestServiceClient::TestMultiThreadSendRequest()
+bool TestServiceClient::TestMultiThreadSendRequest()
 {
-    if (testService_ != nullptr) {
-        ZLOGD(LABEL, "TestMultiThreadSendRequest");
-        int ret = 0;
-        int value = 2024;
-        testService_->TestMultiThreadSendRequest(value, ret);
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
     }
+
+    int res = 0;
+    int value = 2024;
+    int ret = testService_->TestMultiThreadSendRequest(value, res);
+    if (ret != 0) {
+        ZLOGE(LABEL, "function call failed");
+        return false;
+    }
+    return true;
 }
 
 } // namespace OHOS

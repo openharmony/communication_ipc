@@ -26,7 +26,9 @@ ohos_shared_library("ipc_test_helper") {
     "./src/test_capi_skeleton.cpp",
     "./src/test_service.cpp",
     "./src/test_service_client.cpp",
-    "./src/test_service_skeleton.cpp",
+    "./src/test_service_death_recipient.cpp",
+    "./src/test_service_proxy.cpp",
+    "./src/test_service_stub.cpp",
   ]
 
   configs = [
@@ -109,7 +111,9 @@ ohos_shared_library("ipc_test_helper_extra") {
     "./src/test_capi_skeleton.cpp",
     "./src/test_service.cpp",
     "./src/test_service_client.cpp",
-    "./src/test_service_skeleton.cpp",
+    "./src/test_service_death_recipient.cpp",
+    "./src/test_service_proxy.cpp",
+    "./src/test_service_stub.cpp",
   ]
 
   cflags = [ "-DIPCSERVERTESTEXTRA" ]

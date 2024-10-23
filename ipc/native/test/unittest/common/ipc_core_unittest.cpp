@@ -28,7 +28,7 @@
 #include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
-#include "test_service_skeleton.h"
+#include "test_service_proxy.h"
 #include "test_service.h"
 #include "test_service_command.h"
 #include "test_service_client.h"
@@ -618,11 +618,11 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction004, TestSize.Level1)
     ASSERT_TRUE(res);
 
     std::unique_ptr<TestServiceClient> testClient = std::make_unique<TestServiceClient>();
-    int result = testClient->ConnectService();
-    ASSERT_EQ(result, 0);
+    bool result = testClient->ConnectService();
+    ASSERT_EQ(result, true);
 
-    int count = testClient->StartLoopTest(MAX_TEST_COUNT);
-    EXPECT_EQ(count, MAX_TEST_COUNT);
+    result = testClient->StartLoopTest(MAX_TEST_COUNT);
+    ASSERT_EQ(result, true);
 }
 
 /**

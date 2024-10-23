@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <iostream>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "test_service.h"
@@ -44,6 +45,7 @@ static void InitTokenId(void)
 
 int main(int argc, char *argv[])
 {
+    std::cout << "Start executing the server" <<std::endl;
     bool isEnableSerialInvokeFlag = false;
     if (argc > 1) {
         isEnableSerialInvokeFlag = true;
