@@ -86,6 +86,7 @@ IPCObjectProxy::~IPCObjectProxy()
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(remoteDescriptor_)).c_str(),
             ProcessSkeleton::ConvertAddr(this));
         desc = Str16ToStr8(remoteDescriptor_);
+        remoteDescriptor_.clear();
     }
     auto pos = desc.find("IVpnStateCallback");
     if (pos != std::string::npos) {

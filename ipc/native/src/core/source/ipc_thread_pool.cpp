@@ -91,12 +91,11 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
     ZLOGD(LOG_LABEL, "name:%{public}s", threadName.c_str());
 
     if (threads_.find(threadName) == threads_.end()) {
-        auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
-        if (ipcThread == nullptr) {
+        sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>::MakeSptr(threadName);
+        if (newThread == nullptr) {
             ZLOGE(LOG_LABEL, "create IPCWorkThread object failed");
             return false;
         }
-        sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>(ipcThread);
         threads_[threadName] = newThread;
         if (proto == IRemoteObject::IF_PROT_DEFAULT) {
             idleThreadNum_--;
