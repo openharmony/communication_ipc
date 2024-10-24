@@ -165,7 +165,7 @@ int OH_IPCRemoteProxy_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **des
         return OH_IPC_PARCEL_READ_ERROR;
     }
 
-    int memLength = value.length() + 1;
+    int memLength = static_cast<int>(value.length()) + 1;
     *descriptor = static_cast<char*>(allocator(memLength));
     if (*descriptor == nullptr) {
         ZLOGE(LOG_LABEL, "memory allocator failed!");

@@ -93,7 +93,7 @@ int OH_IPCSkeleton_ResetCallingIdentity(char **identity, int32_t *len, OH_IPC_Me
         return OH_IPC_CHECK_PARAM_ERROR;
     }
     std::string str(OHOS::IPCSkeleton::ResetCallingIdentity());
-    int length = str.length() + 1;
+    int length = static_cast<int>(str.length()) + 1;
     *identity = static_cast<char*>(allocator(length));
     if (*identity == nullptr) {
         ZLOGE(LOG_LABEL, "Memory allocator failed!");
