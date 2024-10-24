@@ -37,7 +37,7 @@ void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
         ZLOGE(LOG_LABEL, "work or work->data is nullptr");
         return;
     }
-    ZLOGI(LOG_LABEL, "start to call onRemoteDied");
+    ZLOGD(LOG_LABEL, "start to call onRemoteDied");
     OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
     napi_handle_scope scope = nullptr;
     napi_open_handle_scope(param->env, &scope);

@@ -113,13 +113,13 @@ void *IPCWorkThread::ThreadHandler(void *args)
         return nullptr;
     }
 
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(param->proto);
     std::string basicName = MakeBasicThreadName(param->proto, param->index);
     std::string threadName = basicName + "_" + std::to_string(syscall(SYS_gettid));
     int32_t ret = prctl(PR_SET_NAME, threadName.c_str());
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d", threadName.c_str(), ret);
     } else {
-        IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(param->proto);
         ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u",
             param->proto, param->policy, threadName.c_str(), ProcessSkeleton::ConvertAddr(invoker));
     }
@@ -131,8 +131,8 @@ void *IPCWorkThread::ThreadHandler(void *args)
     if (current != nullptr) {
         current->OnThreadTerminated(basicName);
     }
-    ZLOGW(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s",
-        param->proto, param->policy, threadName.c_str());
+    ZLOGI(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u",
+        param->proto, param->policy, threadName.c_str(), ProcessSkeleton::ConvertAddr(invoker));
     delete param;
     return nullptr;
 }
