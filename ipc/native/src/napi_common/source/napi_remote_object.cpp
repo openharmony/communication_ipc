@@ -367,7 +367,7 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
 
-    ZLOGD(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
+    ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
     CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
     napi_handle_scope scope = nullptr;
     napi_open_handle_scope(param->env, &scope);
