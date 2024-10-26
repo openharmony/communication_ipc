@@ -556,12 +556,6 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
         return false;
     }
 
-    int32_t socketId = listener->CreateClientSocket(ownName,
-        sessionObject->GetServiceName(), sessionObject->GetDeviceId());
-    if (socketId <= 0) {
-        ZLOGE(LOG_LABEL, "fail to creat client Socket");
-        return false;
-    }
     std::string serviceName = sessionObject->GetServiceName();
     std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
     std::string::size_type pos = str.find("_");
@@ -570,6 +564,11 @@ bool DBinderDatabusInvoker::UpdateClientSession(std::shared_ptr<DBinderSessionOb
     if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
         !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
         ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
+        return false;
+    }
+    int32_t socketId = listener->CreateClientSocket(ownName, serviceName, sessionObject->GetDeviceId());
+    if (socketId <= 0) {
+        ZLOGE(LOG_LABEL, "fail to creat client Socket");
         return false;
     }
     sessionObject->SetSocketId(socketId);
