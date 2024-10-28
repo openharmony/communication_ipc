@@ -32,27 +32,17 @@ struct ThreadLockInfo {
     bool ready = false;
 };
 
-struct CallbackParam : public virtual RefBase {
+struct CallbackParam {
     napi_env env;
     napi_ref thisVarRef;
     uint32_t code;
-    MessageParcel &data;
-    MessageParcel &reply;
-    MessageOption &option;
+    MessageParcel *data;
+    MessageParcel *reply;
+    MessageOption *option;
     CallingInfo callingInfo;
     CallingInfo oldCallingInfo;
-    ThreadLockInfo lockInfo;
+    ThreadLockInfo *lockInfo;
     int result;
-    std::mutex paramMutex;
-
-    CallbackParam(napi_env paramEnv, napi_ref paramThisVarRef, uint32_t paramCode,
-                  MessageParcel &paramData, MessageParcel &paramReply, MessageOption &paramOption)
-        : env(paramEnv), thisVarRef(paramThisVarRef), code(paramCode), data(paramData), reply(paramReply),
-        option(paramOption), callingInfo(), oldCallingInfo(), result(0), paramMutex()
-    {
-    }
-
-    ~CallbackParam() = default;
 };
 
 struct OperateJsRefParam {
