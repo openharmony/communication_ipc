@@ -157,6 +157,7 @@ struct binder_sender_info {
 #define BINDER_FEATURE_SET _IOWR('b', 30, struct binder_feature_set)
 #define BINDER_GET_ACCESS_TOKEN _IOWR('b', 31, struct access_token)
 #define BINDER_GET_SENDER_INFO _IOWR('b', 32, struct binder_sender_info)
+#define BINDER_THREAD_RECLAIM _IOW('b', 33, __s32)
 
 enum transaction_flags {
     TF_ONE_WAY = 0x01,

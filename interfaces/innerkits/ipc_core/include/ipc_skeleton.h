@@ -176,6 +176,22 @@ public:
      * @since 9
      */
     static bool SetCallingIdentity(std::string &identity, bool flag = false);
+
+    /**
+     * @brief Trigger system-level IPC thread recycling, which can only be called by the samgr service,
+     * other process have no permission to call this interface.
+     * @return Returns <b>true</b> if the operation succeeds; returns <b>false</b> otherwise.
+     * @since 9
+     */
+    static bool TriggerSystemIPCThreadReclaim();
+
+    /**
+     * @brief Enable or disable to recycle process-level IPC thread, thread recycling is enabled by default.
+     * @param enable If the value is true, thread recycling is enabled; otherwise, thread recycling is disabled.
+     * @return Returns <b>true</b> if the operation succeeds; returns <b>false</b> otherwise.
+     * @since 9
+     */
+    static bool EnableIPCThreadReclaim(bool enable);
 };
 
 class IPCDfx {

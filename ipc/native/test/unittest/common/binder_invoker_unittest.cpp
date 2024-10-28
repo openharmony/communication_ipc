@@ -139,6 +139,33 @@ HWTEST_F(BinderInvokerUnitTest, UnflattenObject002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TriggerThreadReclaim001
+ * @tc.desc: Verify the TriggerSystemIPCThreadReclaim function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, TriggerThreadReclaim001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    bool ret = binderInvoker.TriggerSystemIPCThreadReclaim();
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: EnableIPCThreadReclaim001
+ * @tc.desc: Verify the EnableIPCThreadReclaim function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, EnableIPCThreadReclaim001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    bool ret = binderInvoker.EnableIPCThreadReclaim(false);
+    EXPECT_TRUE(ret);
+
+    ret = binderInvoker.EnableIPCThreadReclaim(true);
+    EXPECT_TRUE(ret);
+}
+
+/**
  * @tc.name: SetRegistryObject001
  * @tc.desc: Verify the SetRegistryObject function
  * @tc.type: FUNC

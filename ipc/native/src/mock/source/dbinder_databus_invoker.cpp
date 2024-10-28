@@ -989,6 +989,19 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity, bool flag)
     return true;
 }
 
+bool DBinderDatabusInvoker::TriggerSystemIPCThreadReclaim()
+{
+    ZLOGD(LOG_LABEL, "do not support");
+    return false;
+}
+
+bool DBinderDatabusInvoker::EnableIPCThreadReclaim(bool enable)
+{
+    (void)enable;
+    ZLOGD(LOG_LABEL, "do not support");
+    return false;
+}
+
 int DBinderDatabusInvoker::TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj)
 {
     return -IPC_INVOKER_TRANSLATE_ERR;

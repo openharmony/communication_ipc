@@ -74,6 +74,7 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INV
 static constexpr pid_t INVALID_PID = -1;
 static constexpr int32_t BINDER_ALIGN_BYTES = 8;
 #endif
+static constexpr int THREAD_IDLE_PRIORITY = 7;
 
 enum {
     GET_SERVICE_TRANSACTION = 0x1,
@@ -1690,6 +1691,38 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
     callerUid_ = static_cast<int>(pidUid >> PID_LEN);
     callerPid_ = static_cast<int>(pidUid);
     PrintIdentity(flag, false);
+    return true;
+}
+
+bool BinderInvoker::TriggerSystemIPCThreadReclaim()
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        ZLOGE(LABEL, "driver died");
+        return false;
+    }
+
+    int defaultValue = 0;
+    int32_t result = binderConnector_->WriteBinder(BINDER_THREAD_RECLAIM, &defaultValue);
+    if (result != ERR_NONE) {
+        ZLOGE(LABEL, "fail, result:%{public}d", result);
+        return false;
+    }
+    return true;
+}
+
+bool BinderInvoker::EnableIPCThreadReclaim(bool enable)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        ZLOGE(LABEL, "driver died");
+        return false;
+    }
+
+    int idlePriority = enable ? 0 : THREAD_IDLE_PRIORITY;
+    int32_t result = binderConnector_->WriteBinder(BINDER_SET_IDLE_PRIORITY, &idlePriority);
+    if (result != ERR_NONE) {
+        ZLOGE(LABEL, "%{public}s fail, result:%{public}d", enable ? "enable" : "disable", result);
+        return false;
+    }
     return true;
 }
 
