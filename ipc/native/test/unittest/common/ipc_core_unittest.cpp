@@ -851,11 +851,11 @@ HWTEST_F(IPCNativeUnitTest, FlushCommandsTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CommAuthInfoGetStubObjectTest001
+ * @tc.name: CommAuthInfo_GetStubObjectTest001
  * @tc.desc: Verify the CommAuthInfo::GetStubObject function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetStubObjectTest001, TestSize.Level1)
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_GetStubObjectTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
@@ -866,11 +866,11 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetStubObjectTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CommAuthInfoGetRemotePidTest001
+ * @tc.name: CommAuthInfo_GetRemotePidTest001
  * @tc.desc: Verify the CommAuthInfo::GetRemotePid function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemotePidTest001, TestSize.Level1)
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_GetRemotePidTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
@@ -881,11 +881,11 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemotePidTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CommAuthInfoGetRemoteUidTest001
+ * @tc.name: CommAuthInfo_GetRemoteUidTest001
  * @tc.desc: Verify the CommAuthInfo::GetRemoteUid function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteUidTest001, TestSize.Level1)
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_GetRemoteUidTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
@@ -896,11 +896,11 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteUidTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CommAuthInfoGetRemoteDeviceIdTest001
+ * @tc.name: CommAuthInfo_GetRemoteDeviceIdTest001
  * @tc.desc: Verify the CommAuthInfo::GetRemoteDeviceId function
  * @tc.type: FUNC
  */
-HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteDeviceIdTest001, TestSize.Level1)
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_GetRemoteDeviceIdTest001, TestSize.Level1)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> object = saMgr->AsObject();
@@ -908,4 +908,70 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfoGetRemoteDeviceIdTest001, TestSize.Level
     std::string deviceId = "testdeviceId";
     CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId);
     EXPECT_STREQ(commAuthInfo.GetRemoteDeviceId().c_str(), deviceId.c_str());
+}
+
+/**
+ * @tc.name: CommAuthInfo_GetRemoteSocketIdTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteSocketId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_GetRemoteSocketIdTest001, TestSize.Level1)
+{
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId, 1);
+    EXPECT_EQ(commAuthInfo.GetRemoteSocketId(), 1);
+}
+
+/**
+ * @tc.name: CommAuthInfo_SetRemoteSocketIdTest001
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteSocketId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_SetRemoteSocketIdTest001, TestSize.Level1)
+{
+    int32_t expectedSocketId = 12345;
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId, 1);
+    commAuthInfo.SetRemoteSocketId(expectedSocketId);
+    ASSERT_EQ(commAuthInfo.socketId_, expectedSocketId);
+}
+
+/**
+ * @tc.name: CommAuthInfo_SetRemoteSocketIdTest002
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteSocketId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_SetRemoteSocketIdTest002, TestSize.Level1)
+{
+    int32_t expectedSocketId = -12345;
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId, 1);
+    commAuthInfo.SetRemoteSocketId(expectedSocketId);
+    ASSERT_EQ(commAuthInfo.socketId_, expectedSocketId);
+}
+
+/**
+ * @tc.name: CommAuthInfo_SetRemoteSocketIdTest003
+ * @tc.desc: Verify the CommAuthInfo::GetRemoteSocketId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfo_SetRemoteSocketIdTest003, TestSize.Level1)
+{
+    int32_t expectedSocketId = 0;
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> object = saMgr->AsObject();
+
+    std::string deviceId = "testdeviceId";
+    CommAuthInfo commAuthInfo(object, 1, 1, 1, deviceId, 1);
+    commAuthInfo.SetRemoteSocketId(expectedSocketId);
+    ASSERT_EQ(commAuthInfo.socketId_, expectedSocketId);
 }
