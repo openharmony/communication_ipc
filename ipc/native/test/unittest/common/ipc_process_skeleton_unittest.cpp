@@ -603,11 +603,14 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryThreadBySeqNumberTest001, TestSize.Lev
     ASSERT_TRUE(skeleton != nullptr);
 
     uint64_t seqNumber = 1;
-    std::shared_ptr<ThreadMessageInfo> messageInfo =
-        std::make_shared<ThreadMessageInfo>();
+    std::shared_ptr<ThreadMessageInfo> messageInfo = std::make_shared<ThreadMessageInfo>();
     skeleton->AddThreadBySeqNumber(seqNumber, messageInfo);
     auto ret = skeleton->QueryThreadBySeqNumber(seqNumber);
     ASSERT_TRUE(ret != nullptr);
+
+    skeleton->EraseThreadBySeqNumber(seqNumber);
+    ret = skeleton->QueryThreadBySeqNumber(seqNumber);
+    ASSERT_TRUE(ret == nullptr);
 }
 
 /**
@@ -1184,41 +1187,20 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachAppInfoToStubIndexTest001, TestSize.L
     int32_t listenFd = 1;
     std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
         skeleton->UIntToString(tokenId);
-    std::map<uint64_t, int32_t> indexMap = {
-        { stubIndex, listenFd }
-    };
+    std::map<uint64_t, int32_t> indexMap = {{ stubIndex, listenFd }};
     skeleton->appInfoToStubIndex_[appInfo] = indexMap;
-
     bool ret = skeleton->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, stubIndex, listenFd);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: AttachAppInfoToStubIndexTest002
- * @tc.desc: Verify the AttachAppInfoToStubIndex function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCProcessSkeletonUnitTest, AttachAppInfoToStubIndexTest002, TestSize.Level1)
-{
-    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
-    ASSERT_TRUE(skeleton != nullptr);
+    EXPECT_FALSE(ret);
 
     skeleton->appInfoToStubIndex_.clear();
-    uint32_t pid = 1;
-    uint32_t uid = 1;
-    uint32_t tokenId = 1;
-    std::string deviceId = "testDeviceId";
-    uint64_t stubIndex = 1;
-    int32_t listenFd = 1;
-    std::string appInfo = deviceId + skeleton->UIntToString(pid) + skeleton->UIntToString(uid) +
-        skeleton->UIntToString(tokenId);
-    std::map<uint64_t, int32_t> indexMap = {
-        { 0, listenFd }
-    };
-    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+    std::map<uint64_t, int32_t> indexNewMap = {{ 0, listenFd }};
+    skeleton->appInfoToStubIndex_[appInfo] = indexNewMap;
+    ret = skeleton->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, stubIndex, listenFd);
+    EXPECT_TRUE(ret);
 
-    bool ret = skeleton->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, stubIndex, listenFd);
-    EXPECT_EQ(ret, true);
+    ret = skeleton->AttachAppInfoToStubIndex(pid, uid, tokenId, deviceId, listenFd);
+    skeleton->DetachAppInfoToStubIndex(listenFd);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -1874,5 +1856,122 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryThreadBySeqNumberTest002, TestSize.Lev
     skeleton->seqNumberToThread_.clear();
     auto ret = skeleton->QueryThreadBySeqNumber(seqNumber);
     ASSERT_TRUE(ret == nullptr);
+}
+
+/**
+ * @tc.name: ConvertChannelID2IntTest
+ * @tc.desc: Verify convert channelId type: int64 to uint32
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ConvertChannelID2IntTest, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    int64_t channelId = -1;
+    uint32_t ret = skeleton->ConvertChannelID2Int(channelId);
+    ASSERT_EQ(ret, 0);
+
+    channelId = 1;
+    ret = skeleton->ConvertChannelID2Int(channelId);
+    ASSERT_EQ(ret, 1);
+}
+
+/**
+ * @tc.name: StubDBinderSessionTest
+ * @tc.desc: Verify attach and detach stub dbinder session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, StubDBinderSessionTest, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t testHandle = 1;
+    uint32_t testTokenId = 1;
+    bool ret = skeleton->StubDetachDBinderSession(testHandle, testTokenId);
+    EXPECT_EQ(ret, false);
+
+    std::string name("DbinderSessionName");
+    std::string deviceId("DbinderSessionDeviceId");
+    auto object = std::make_shared<DBinderSessionObject>(name, deviceId, 1, nullptr, testTokenId);
+    ret = skeleton->StubAttachDBinderSession(testHandle, object);
+    EXPECT_EQ(ret, true);
+
+    ret = skeleton->StubDetachDBinderSession(testHandle, testTokenId);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: ThreadLockInfoTest
+ * @tc.desc: Verify attach and detach thread lock.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ThreadLockInfoTest, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<SocketThreadLockInfo> object = std::make_shared<SocketThreadLockInfo>();
+    std::thread::id threadId = std::this_thread::get_id();
+    bool ret = skeleton->DetachThreadLockInfo(threadId);
+    EXPECT_FALSE(ret);
+
+    ret = skeleton->AttachThreadLockInfo(object, threadId);
+    EXPECT_TRUE(ret);
+
+    ret = skeleton->DetachThreadLockInfo(threadId);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: AttachRawDataTest
+ * @tc.desc: Verify attach and detach raw data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachRawDataTest, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    int32_t socketId = 1;
+    std::shared_ptr<InvokerRawData> data = std::make_shared<InvokerRawData>(1);
+    bool ret = skeleton->DetachRawData(socketId);
+    EXPECT_FALSE(ret);
+
+    ret = skeleton->AttachRawData(socketId, data);
+    EXPECT_TRUE(ret);
+    // test for the old key will be removed first
+    ret = skeleton->AttachRawData(socketId, data);
+    EXPECT_TRUE(ret);
+
+    ret = skeleton->DetachRawData(socketId);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: AttachDBinderCallbackStubTest
+ * @tc.desc: Verify attach and detach dbinder callback stub.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachDBinderCallbackStubTest, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> proxy = new IPCObjectProxy(1);
+    sptr<DBinderCallbackStub> stub = new DBinderCallbackStub(
+        "serviceName", "peerDeviceID", "localDeviceID", 1, 1, 1);
+    bool ret = skeleton->AttachDBinderCallbackStub(proxy, stub);
+    EXPECT_TRUE(ret);
+
+    ret = skeleton->AttachDBinderCallbackStub(proxy, stub);
+    EXPECT_FALSE(ret);
+
+    ret = skeleton->DetachDBinderCallbackStubByProxy(proxy);
+    EXPECT_TRUE(ret);
+
+    ret = skeleton->DetachDBinderCallbackStubByProxy(proxy);
+    EXPECT_FALSE(ret);
 }
 #endif
