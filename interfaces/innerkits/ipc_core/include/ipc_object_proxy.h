@@ -19,6 +19,7 @@
 #include <dlfcn.h>
 #include <mutex>
 #include <unordered_map>
+#include <shared_mutex>
 
 #include "iremote_object.h"
 
@@ -239,7 +240,7 @@ public:
     uint32_t GetStrongRefCountForStub();
 
 private:
-    void MarkObjectDied();
+    void SetObjectDied(bool isDied);
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
@@ -365,13 +366,13 @@ private:
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
-    std::mutex descMutex_;
+    std::shared_mutex descMutex_;
 
     std::unordered_multimap<std::string, sptr<DeathRecipientAddrInfo>> recipients_;
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
-    bool isRemoteDead_;
+    std::atomic<bool> isRemoteDead_;
     std::u16string remoteDescriptor_;
     std::u16string interfaceDesc_;
     int lastErr_ = 0;
