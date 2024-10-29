@@ -1142,10 +1142,11 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
 
     if (sendNestCount_ > 0) {
         ZLOGW(LABEL, "request nesting occurs, handle:%{public}d count:%{public}u", handle, sendNestCount_.load());
+        PrintParcelData(input_, "input_");
         PrintParcelData(output_, "output_");
         std::string backtrace;
-        if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
-            ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+        if (!GetBacktrace(backtrace, false)) {
+            ZLOGE(LABEL, "GetBacktrace fail");
         } else {
             ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
         }
