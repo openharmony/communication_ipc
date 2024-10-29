@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,7 +68,6 @@ namespace IPC_SINGLE {
 #endif
 
 #define PIDUID_OFFSET 2
-
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
 #ifndef CONFIG_IPC_SINGLE
@@ -494,11 +493,12 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
         error = TransactWithDriver(false);
     }
     if (error != ERR_NONE || output_.GetDataSize() > 0) {
-        ZLOGE(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
+        ZLOGW(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
+        PrintParcelData(input_, "input_");
         PrintParcelData(output_, "output_");
         std::string backtrace;
-        if (!GetBacktraceStringByTid(backtrace, gettid(), 0, false)) {
-            ZLOGE(LABEL, "GetBacktraceStringByTid fail");
+        if (!GetBacktrace(backtrace, false)) {
+            ZLOGE(LABEL, "GetBacktrace fail");
         } else {
             ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
         }
@@ -528,6 +528,9 @@ void BinderInvoker::StartWorkLoop()
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
             ZLOGE(LABEL, "returned unexpected error:%{public}d, aborting", error);
             break;
+        }
+        if (input_.GetReadableBytes() == 0) {
+            continue;
         }
         uint32_t cmd = input_.ReadUint32();
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -986,6 +989,14 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     if (error != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
             ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
+            PrintParcelData(input_, "input_");
+            PrintParcelData(output_, "output_");
+            std::string backtrace;
+            if (!GetBacktrace(backtrace, false)) {
+                ZLOGE(LABEL, "GetBacktrace fail");
+            } else {
+                ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+            }
         }
     }
     if (cmd != BR_TRANSACTION) {
