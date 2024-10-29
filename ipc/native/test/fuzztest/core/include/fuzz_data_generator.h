@@ -120,4 +120,19 @@ static inline bool GenerateString(std::string &value)
     return DataGenerator::GetInstance().ReadString(value);
 }
 
+static inline bool GenerateStringByLength(std::string &value, size_t length = 0)
+{
+    size_t readAbleSize = DataGenerator::GetInstance().GetReadableBytes();
+    if (length == 0 || length > readAbleSize) {
+        length = readAbleSize;
+    }
+
+    const char *bufData = reinterpret_cast<const char *>(DataGenerator::GetInstance().ReadBuffer(length));
+    if (bufData == nullptr) {
+        return false;
+    }
+
+    value = std::string(bufData, length);
+    return true;
+}
 #endif // FUZZ_DATA_GENERATOR_H

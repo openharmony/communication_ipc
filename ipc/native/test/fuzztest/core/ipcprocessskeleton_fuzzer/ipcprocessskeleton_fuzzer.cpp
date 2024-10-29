@@ -33,7 +33,7 @@ namespace OHOS {
         int32_t listenFd;
         std::string deviceId;
         if (!GenerateUint32(pid) || !GenerateUint32(uid) || !GenerateUint32(tokenId) || !GenerateInt32(listenFd) ||
-            !GenerateUint64(stubIndex) || !GenerateString(deviceId)) {
+            !GenerateUint64(stubIndex) || !GenerateStringByLength(deviceId)) {
             return false;
         }
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -56,7 +56,7 @@ namespace OHOS {
         int32_t listenFd;
         std::string deviceId;
         if (!GenerateUint32(pid) || !GenerateUint32(uid) || !GenerateUint32(tokenId) || !GenerateInt32(listenFd) ||
-            !GenerateString(deviceId)) {
+            !GenerateStringByLength(deviceId)) {
             return false;
         }
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -828,7 +828,7 @@ namespace OHOS {
         sptr<IRemoteObject> remoteObj = new IPCObjectProxy(0, u"proxyTest", 0);
         IRemoteObject *stub = remoteObj.GetRefPtr();
         if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) ||
-            !GenerateString(deviceId) || !GenerateInt32(socketId)) {
+            !GenerateInt32(socketId) || !GenerateStringByLength(deviceId)) {
             return false;
         }
         current->QueryCommAuthInfo(pid, uid, tokenId, deviceId);
@@ -853,7 +853,7 @@ namespace OHOS {
         sptr<IRemoteObject> remoteObj = new IPCObjectProxy(0, u"proxyTest", 0);
         IRemoteObject *stub = remoteObj.GetRefPtr();
         if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) ||
-            !GenerateString(deviceId) || !GenerateInt32(socketId)) {
+            !GenerateInt32(socketId) || !GenerateStringByLength(deviceId)) {
             return false;
         }
         current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
@@ -875,7 +875,7 @@ namespace OHOS {
         sptr<IRemoteObject> remoteObj = new IPCObjectProxy(0, u"proxyTest", 0);
         IRemoteObject *stub = remoteObj.GetRefPtr();
         if (!GenerateInt32(pid) || !GenerateInt32(uid) || !GenerateUint32(tokenId) ||
-            !GenerateString(deviceId) || !GenerateInt32(socketId)) {
+            !GenerateInt32(socketId) || !GenerateStringByLength(deviceId)) {
             return false;
         }
         current->AttachCommAuthInfo(stub, pid, uid, tokenId, deviceId);
