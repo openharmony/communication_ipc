@@ -583,9 +583,12 @@ void BinderInvoker::OnBinderDied()
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    if ((current != nullptr) && !current->IsValidObject(proxy)) {
+    std::u16string desc;
+    if ((current != nullptr) && !current->IsValidObject(proxy, desc)) {
         ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(proxy));
     } else {
+        std::string descTemp = Str16ToStr8(desc);
+        CrashObjDumper dumper(descTemp.c_str());
         if (proxy->AttemptIncStrongRef(this)) {
             proxy->SendObituary();
             proxy->DecStrongRef(this);
@@ -617,11 +620,13 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    if ((current != nullptr) && !current->IsValidObject(obj)) {
+    std::u16string desc;
+    if ((current != nullptr) && !current->IsValidObject(obj, desc)) {
         ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
         return;
     }
-
+    std::string descTemp = Str16ToStr8(desc);
+    CrashObjDumper dumper(descTemp.c_str());
     if (obj->GetSptrRefCount() <= 0) {
         ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(obj));
         return;
@@ -657,10 +662,8 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     ZLOGD(LABEL, "refcount:%{public}d refs:%{public}u obj:%{public}u", refs->GetStrongRefCount(),
         ProcessSkeleton::ConvertAddr(refs), ProcessSkeleton::ConvertAddr(obj));
     if (cmd == BR_RELEASE) {
-        if (obj->GetSptrRefCount() > 0) {
-            std::lock_guard<std::mutex> lock(strongRefMutex_);
-            decStrongRefs_.push_back(obj);
-        }
+        std::lock_guard<std::mutex> lock(strongRefMutex_);
+        decStrongRefs_.push_back(obj);
     } else {
         std::lock_guard<std::mutex> lock(weakRefMutex_);
         decWeakRefs_.push_back(refs);
@@ -740,9 +743,12 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
             return error;
         }
         auto current = ProcessSkeleton::GetInstance();
-        if ((current != nullptr) && !current->IsValidObject(targetObject)) {
+        std::u16string desc;
+        if ((current != nullptr) && !current->IsValidObject(targetObject, desc)) {
             ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(targetObject));
         } else {
+            std::string descTemp = Str16ToStr8(desc);
+            CrashObjDumper dumper(descTemp.c_str());
             if (targetObject->GetSptrRefCount() > 0) {
                 error = targetObject->SendRequest(tr.code, data, reply, option);
                 targetObject->DecStrongRef(this);
@@ -1724,13 +1730,13 @@ void BinderInvoker::ProcDeferredDecRefs()
         std::lock_guard<std::mutex> lock(strongRefMutex_);
         for (size_t idx = 0; idx < decStrongRefs_.size(); ++idx) {
             auto &obj = decStrongRefs_[idx];
-            DeadObjectInfo deadInfo;
-            if (current->IsDeadObject(obj, deadInfo)) {
-                ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-                    ProcessSkeleton::ConvertAddr(obj), deadInfo.handle,
-                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+            std::u16string desc;
+            if (!current->IsValidObject(obj, desc)) {
+                ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
                 continue;
             }
+            std::string descTemp = Str16ToStr8(desc);
+            CrashObjDumper dumper(descTemp.c_str());
             obj->DecStrongRef(this);
         }
         decStrongRefs_.clear();

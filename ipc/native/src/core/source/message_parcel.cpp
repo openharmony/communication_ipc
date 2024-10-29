@@ -188,7 +188,11 @@ bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
     }
     // Increase object's refcount temporarily in case of premature deallocation,
     // object's refcount will be decreased when this MessageParcel destroyed.
+    if (object->AttemptIncStrongRef(this) != true) {
+        return false;
+    }
     holders_.push_back(object);
+    object->DecStrongRef(this);
 #ifndef CONFIG_IPC_SINGLE
     if (object->IsProxyObject()) {
         const IPCObjectProxy *proxy = reinterpret_cast<const IPCObjectProxy *>(object.GetRefPtr());

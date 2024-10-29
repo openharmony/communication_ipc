@@ -77,7 +77,8 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     if (current->GetSamgrFlag()) {
         SetRequestSidFlag(true);
     }
-    current->AttachValidObject(this);
+    std::u16string str(descriptor_);
+    current->AttachValidObject(this, str);
 }
 
 IPCObjectStub::~IPCObjectStub()

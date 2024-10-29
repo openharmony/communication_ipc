@@ -107,9 +107,11 @@ HWTEST_F(ProcessSkeletonUnitTest, AttachValidObjectTest001, TestSize.Level1)
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
-    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    std::u16string str(u"testObject");
+    sptr<IRemoteObject> object = new IPCObjectStub(str);
     ASSERT_TRUE(object != nullptr);
-    bool ret = skeleton->AttachValidObject(object.GetRefPtr());
+
+    bool ret = skeleton->AttachValidObject(object.GetRefPtr(), str);
     EXPECT_EQ(ret, false);
 }
 
@@ -123,8 +125,9 @@ HWTEST_F(ProcessSkeletonUnitTest, DetachValidObjectTest001, TestSize.Level1)
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
-    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    skeleton->AttachValidObject(object.GetRefPtr());
+    std::u16string str(u"testObject");
+    sptr<IRemoteObject> object = new IPCObjectStub(str);
+    skeleton->AttachValidObject(object.GetRefPtr(), str);
     bool ret = skeleton->DetachValidObject(object.GetRefPtr());
     EXPECT_EQ(ret, true);
 }
@@ -139,9 +142,11 @@ HWTEST_F(ProcessSkeletonUnitTest, IsValidObjectTest001, TestSize.Level1)
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
-    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    skeleton->AttachValidObject(object.GetRefPtr());
-    bool ret = skeleton->IsValidObject(object.GetRefPtr());
+    std::u16string str(u"testObject");
+    sptr<IRemoteObject> object = new IPCObjectStub(str);
+    skeleton->AttachValidObject(object.GetRefPtr(), str);
+    std::u16string desc;
+    bool ret = skeleton->IsValidObject(object.GetRefPtr(), desc);
     EXPECT_EQ(ret, true);
 }
 
