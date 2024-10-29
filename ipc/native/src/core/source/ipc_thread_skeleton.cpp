@@ -17,10 +17,10 @@
 
 #include <cinttypes>
 #include <memory>
+#include <sys/prctl.h>
 #include <sys/syscall.h>
 
 #include "binder_invoker.h"
-#include "check_instance_exit.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
 #include "invoker_factory.h"
@@ -41,6 +41,7 @@ using namespace OHOS::HiviewDFX;
 pthread_key_t IPCThreadSkeleton::TLSKey_ = 0;
 pthread_once_t IPCThreadSkeleton::TLSKeyOnce_ = PTHREAD_ONCE_INIT;
 
+static constexpr uint32_t MAX_THREAD_NAME_LEN = 20;
 static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_THREAD_SKELETON, "IPCThreadSkeleton" };
 
 extern "C" __attribute__((destructor)) void DeleteTlsKey()
@@ -74,7 +75,44 @@ void IPCThreadSkeleton::TlsDestructor(void *args)
 
 void IPCThreadSkeleton::MakeTlsKey()
 {
-    pthread_key_create(&TLSKey_, IPCThreadSkeleton::TlsDestructor);
+    auto ret = pthread_key_create(&TLSKey_, IPCThreadSkeleton::TlsDestructor);
+    if (ret != 0) {
+        ZLOGE(LOG_LABEL, "pthread_key_create fail, ret:%{public}d", ret);
+        return;
+    }
+    ZLOGD(LOG_LABEL, "key:%{public}d", TLSKey_);
+}
+
+void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
+{
+    if (instance == nullptr) {
+        ZLOGE(LOG_LABEL, "instance is null");
+        return;
+    }
+
+    auto tid = gettid();
+    if (instance->tid_ != tid) {
+        if (instance->IsSendRequesting()) {
+            ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, "
+                "key:%{public}u instance:%{public}u threadName:%{public}s",
+                tid, instance->tid_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
+                instance->threadName_.c_str());
+        }
+        pthread_setspecific(TLSKey_, nullptr);
+        instance = new (std::nothrow) IPCThreadSkeleton();
+    }
+}
+
+void IPCThreadSkeleton::SaveThreadName(const std::string &name)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return;
+    }
+    if (CheckInstanceIsExiting(current->exitFlag_)) {
+        return;
+    }
+    current->threadName_ = name;
 }
 
 IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
@@ -85,17 +123,27 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     void *curTLS = pthread_getspecific(TLSKey_);
     if (curTLS != nullptr) {
         current = reinterpret_cast<IPCThreadSkeleton *>(curTLS);
-        CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
+        if (CheckInstanceIsExiting(current->exitFlag_)) {
+            return nullptr;
+        }
+        GetVaildInstance(current);
     } else {
         current = new (std::nothrow) IPCThreadSkeleton();
     }
     return current;
 }
 
-IPCThreadSkeleton::IPCThreadSkeleton()
+IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
 {
     ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
     pthread_setspecific(TLSKey_, this);
+    char name[MAX_THREAD_NAME_LEN] = {0};
+    auto ret = prctl(PR_GET_NAME, name);
+    if (ret != 0) {
+        ZLOGW(LOG_LABEL, "get thread name fail, tid:%{public}d ret:%{public}d", tid_, ret);
+        return;
+    }
+    threadName_ = name;
 }
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
@@ -119,6 +167,21 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
     }
 }
 
+bool IPCThreadSkeleton::CheckInstanceIsExiting(std::atomic<uint32_t> &flag)
+{
+    if (flag == INVOKER_USE_MAGIC) {
+        return false;
+    }
+
+    if (flag == INVOKER_IDLE_MAGIC) {
+        ZLOGE(LOG_LABEL, "Instance is exiting");
+        return true;
+    }
+
+    ZLOGE(LOG_LABEL, "Memory may be damaged, flag:%{public}u", flag.load());
+    return true;
+}
+
 IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
 {
     if (proto < 0 || static_cast<uint32_t>(proto) >= IPCThreadSkeleton::INVOKER_MAX_COUNT) {
@@ -130,8 +193,9 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     if (current == nullptr) {
         return nullptr;
     }
-    CHECK_INSTANCE_EXIT_WITH_RETVAL(current->exitFlag_, nullptr);
-
+    if (CheckInstanceIsExiting(current->exitFlag_)) {
+        return nullptr;
+    }
     if ((current->usingFlag_ != INVOKER_USE_MAGIC) && (current->usingFlag_ != INVOKER_IDLE_MAGIC)) {
         ZLOGF(LOG_LABEL, "memory may be damaged, flag:%{public}u", current->usingFlag_.load());
         return nullptr;
@@ -213,6 +277,24 @@ void IPCThreadSkeleton::StopWorkThread(int proto)
     if (invoker != nullptr) {
         invoker->StopWorkThread();
     }
+}
+
+bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return nullptr;
+    }
+    if (CheckInstanceIsExiting(current->exitFlag_)) {
+        return false;
+    }
+    current->sendRequestCount_ += delta;
+    return true;
+}
+
+bool IPCThreadSkeleton::IsSendRequesting()
+{
+    return sendRequestCount_ > 0;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
