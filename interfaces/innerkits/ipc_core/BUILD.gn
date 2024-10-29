@@ -36,7 +36,6 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/c/rpc/include",
     "$SUBSYSTEM_DIR/utils/include",
   ]
-
   sources = [
     "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
     "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
@@ -86,6 +85,7 @@ ohos_shared_library("ipc_core") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
