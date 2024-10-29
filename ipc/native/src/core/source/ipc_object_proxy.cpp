@@ -73,7 +73,8 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
         ZLOGE(LABEL, "ProcessSkeleton is null");
         return;
     }
-    current->AttachValidObject(this);
+    std::u16string str(descriptor_);
+    current->AttachValidObject(this, str);
 }
 
 IPCObjectProxy::~IPCObjectProxy()
