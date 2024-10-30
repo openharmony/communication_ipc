@@ -133,11 +133,8 @@ void IPCProcessSkeleton::ClearDataResource()
         dataInfoQueue_.clear();
     }
     {
-        std::unique_lock<std::shared_mutex> lockGuard(appInfoToIndexMutex_);
+        std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
         appInfoToStubIndex_.clear();
-    }
-    {
-        std::unique_lock<std::shared_mutex> lockGuard(commAuthMutex_);
         commAuth_.clear();
     }
     {

@@ -208,7 +208,6 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         ZLOGD(LOG_LABEL, "not found object, desc:%{public}s", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str());
         return result;
     }
-
     std::u16string desc;
     if (!IsValidObject(remoteObject, desc)) {
         ZLOGD(LOG_LABEL, "object %{public}d is inValid", ConvertAddr(remoteObject));

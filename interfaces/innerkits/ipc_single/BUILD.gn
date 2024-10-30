@@ -67,13 +67,15 @@ ohos_shared_library("ipc_single") {
 
   external_deps = [
     "c_utils:utils",
-    "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
     "selinux:libselinux",
   ]
+  if (!defined(ohos_lite)) {
+    external_deps += [ "faultloggerd:libbacktrace_local" ]
+  }
   defines = [
     "CONFIG_IPC_SINGLE",
     "FFRT_IPC_ENABLE",

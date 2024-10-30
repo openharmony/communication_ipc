@@ -80,7 +80,7 @@ void IPCThreadSkeleton::MakeTlsKey()
         ZLOGE(LOG_LABEL, "pthread_key_create fail, ret:%{public}d", ret);
         return;
     }
-    ZLOGD(LOG_LABEL, "key:%{public}d", TLSKey_);
+    ZLOGI(LOG_LABEL, "key:%{public}d", TLSKey_);
 }
 
 void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
@@ -148,7 +148,7 @@ IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
-    exitFlag_ = true;
+    exitFlag_ = INVOKER_IDLE_MAGIC;
     pthread_setspecific(TLSKey_, nullptr);
     uint32_t ret = usingFlag_.load();
     while (ret == INVOKER_USE_MAGIC) {
@@ -196,6 +196,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     if (CheckInstanceIsExiting(current->exitFlag_)) {
         return nullptr;
     }
+
     if ((current->usingFlag_ != INVOKER_USE_MAGIC) && (current->usingFlag_ != INVOKER_IDLE_MAGIC)) {
         ZLOGF(LOG_LABEL, "memory may be damaged, flag:%{public}u", current->usingFlag_.load());
         return nullptr;
@@ -283,7 +284,7 @@ bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     if (current == nullptr) {
-        return nullptr;
+        return false;
     }
     if (CheckInstanceIsExiting(current->exitFlag_)) {
         return false;
