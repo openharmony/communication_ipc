@@ -1063,7 +1063,6 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
                 sendNestCount_ = 0;
             }
             output_.FlushBuffer();
-            sendNestCount_ = 0;
         }
     }
     if (bwr.read_consumed > 0) {
@@ -1708,6 +1707,11 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
         parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
+bool BinderInvoker::IsSendRequesting()
+{
+    return sendRequestCount_ > 0;
+}
+
 void BinderInvoker::ProcDeferredDecRefs()
 {
     if (input_.GetReadableBytes() > 0) {
@@ -1741,11 +1745,6 @@ void BinderInvoker::ProcDeferredDecRefs()
         }
         decStrongRefs_.clear();
     }
-}
-
-bool BinderInvoker::IsSendRequesting()
-{
-    return sendRequestCount_ > 0;
 }
 
 #ifdef CONFIG_ACTV_BINDER
