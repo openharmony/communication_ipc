@@ -13,33 +13,29 @@
  * limitations under the License.
  */
 
+#include <iostream>
 #include <string>
 #include <cerrno>
+#include <csignal>
+#include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <thread>
-#include <csignal>
-#include "ipc_debug.h"
-#include "ipc_skeleton.h"
-#include "test_service_command.h"
-#include "test_service_client.h"
-#include "test_service_skeleton.h"
-#include "if_system_ability_manager.h"
-#include "log_tags.h"
 #include <nativetoken_kit.h>
 #include <token_setproc.h>
+
+#include "log_tags.h"
+#include "if_system_ability_manager.h"
+#include "ipc_debug.h"
+#include "ipc_skeleton.h"
+#include "test_service_client.h"
 
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCTestClient" };
-
-void ThreadFunc(std::shared_ptr<TestServiceClient> testClient)
-{
-    testClient->TestEnableSerialInvokeFlag();
-}
-
+static std::shared_ptr<TestServiceClient> gTestClient{ nullptr };
 static void InitTokenId(void)
 {
     uint64_t tokenId;
@@ -57,87 +53,9 @@ static void InitTokenId(void)
     SetSelfTokenID(tokenId);
 }
 
-std::vector<std::string> GetArgvOptions(int argc, char **argv)
+void ThreadFunc(std::shared_ptr<TestServiceClient> testClient)
 {
-    std::vector<std::string> argvOptions;
-    for (int i = 1; i < argc; i++) {
-        argvOptions.emplace_back(std::string(argv[i]));
-    }
-    return argvOptions;
-}
-
-static std::shared_ptr<TestServiceClient> gTestClient{ nullptr };
-void SignalHandler(int signum);
-
-int main(int argc, char *argv[])
-{
-    InitTokenId();
-    int result = 0;
-    TestCommand commandId = TestCommand::TEST_CMD_SYNC_TRANS;
-    if (argc > 1) {
-        commandId = TestCommand(std::stoi(argv[1]));
-    } else {
-        ZLOGE(LABEL, "unknown command");
-    }
-    std::vector<std::string> argvOptions;
-    argvOptions = GetArgvOptions(argc, argv);
-    std::shared_ptr<TestServiceClient> testClient = std::make_shared<TestServiceClient>();
-    if (testClient->ConnectService()) {
-        return -1;
-    }
-
-    ZLOGE(LABEL, "commandId= : %{public}d", commandId);
-    std::map<TestCommand, std::function<void()>> commandMap = {
-        {TestCommand::TEST_CMD_SYNC_TRANS, [&]() { testClient->StartSyncTransaction(); }},
-        {TestCommand::TEST_CMD_ASYNC_TRANS, [&]() { testClient->StartAsyncTransaction(); }},
-        {TestCommand::TEST_CMD_PING_SERVICE, [&]() { testClient->StartPingService(); }},
-        {TestCommand::TEST_CMD_GET_FOO_SERVICE, [&]() { testClient->StartGetFooService(); }},
-        {TestCommand::TEST_CMD_TRANS_FILE_DESC, [&]() { testClient->StartTestFileDescriptor(); }},
-        {TestCommand::TEST_CMD_LOOP_TRANSACTION, [&]() { constexpr int maxTestCount = 1000;
-            testClient->StartLoopTest(maxTestCount); }},
-        {TestCommand::TEST_CMD_DUMP_SERVICE, [&]() { testClient->StartDumpService(); }},
-        {TestCommand::TEST_CMD_ASYNC_DUMP_SERVICE, [&]() { testClient->StartAsyncDumpService(); }},
-        {TestCommand::TEST_CMD_ENABLE_SERIAL_INVOKE_FLAG, [&]() {
-            std::thread temp(ThreadFunc, testClient);
-            testClient->TestEnableSerialInvokeFlag();
-            temp.join();
-            }},
-        {TestCommand::TEST_CMD_NATIVE_IPC_REQUESTS, [&]() {
-            if (argc < 3) {
-                ZLOGE(LABEL, "sub cmd is needed!");
-                return;
-            }
-            int subCmd = std::stoi(argvOptions[1]);
-            testClient->TestNativeIPCSendRequests(subCmd);
-        }},
-        {TestCommand::TEST_CMD_NATIVE_IPC_REGISTER_REMOTE_STUB_OBJECT, [&]() {
-            testClient->TestRegisterRemoteStub();
-            gTestClient = testClient;
-            if (signal(SIGINT, SignalHandler) == SIG_ERR) {
-                ZLOGE(LABEL, "Failed to caught signal");
-            }
-        }},
-        {TestCommand::TEST_CMD_TOO_MANY_SENDREQUEST, [&]() {
-            testClient->TestSendTooManyRequest();
-            testClient->StartSyncTransaction();
-        }},
-        {TestCommand::TEST_CMD_MULTI_THREAD_SEND, [&]() {
-            testClient->TestMultiThreadSendRequest();
-        }},
-    };
-
-    auto it = commandMap.find(commandId);
-    if (it != commandMap.end()) {
-        it->second();
-    } else {
-        ZLOGD(LABEL, "main arg error");
-    }
-
-    // The non IPC context obtains one's own sid
-    std::string selfSid = IPCSkeleton::GetCallingSid();
-    ZLOGI(LABEL, "get from service: %{public}d, sid: %{public}s", result, selfSid.c_str());
-    IPCSkeleton::JoinWorkThread();
-    return 0;
+    testClient->TestEnableSerialInvokeFlag();
 }
 
 void SignalHandler(int signum)
@@ -152,4 +70,173 @@ void SignalHandler(int signum)
         ZLOGD(LABEL, "SIGINT");
         IPCSkeleton::StopWorkThread();
     }
+}
+
+void TestCaseSyncTrans(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->StartSyncTransaction();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseSyncTrans case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseSyncTrans case Successful" <<std::endl;
+    }
+}
+
+void TestCasePingService(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->StartPingService();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCasePingService case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCasePingService case Successful" <<std::endl;
+    }
+}
+
+void TestCaseGetFooService(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->StartGetFooService();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseGetFooService case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseGetFooService case Successful" <<std::endl;
+    }
+}
+
+void TestCaseGetFileDescriptor(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->StartTestFileDescriptor();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseGetFileDescriptor case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseGetFileDescriptor case Successful" <<std::endl;
+    }
+}
+
+void TestCaseLoopTest(std::shared_ptr<TestServiceClient> &testClient)
+{
+    constexpr int maxTestCount = 10240;
+    bool ret = testClient->StartLoopTest(maxTestCount);
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseLoopTest case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseLoopTest case Successful" <<std::endl;
+    }
+}
+
+void TestCaseDumpService(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->StartDumpService();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseDumpService case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseDumpService case Successful" <<std::endl;
+    }
+}
+void TestCaseEnableSerialInvokeFlag(std::shared_ptr<TestServiceClient> &testClient)
+{
+    std::thread temp(ThreadFunc, testClient);
+    bool ret = testClient->TestEnableSerialInvokeFlag();
+    temp.join();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseEnableSerialInvokeFlag case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseEnableSerialInvokeFlag case Successful" <<std::endl;
+    }
+}
+
+void TestCaseNativeIPCSendRequests(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->TestRegisterRemoteStub();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestRegisterRemoteStub case failed" <<std::endl;
+        return;
+    }
+    ret = testClient->TestNativeIPCSendRequests(1);
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseNativeIPCSendRequests case failed" <<std::endl;
+        return;
+    }
+    std::cout << "[PASS] Execution of TestCaseNativeIPCSendRequests case Successful" <<std::endl;
+}
+
+void TestCaseRegisterRemoteStub(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->TestRegisterRemoteStub();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestRegisterRemoteStub case failed" <<std::endl;
+        return;
+    }
+    gTestClient = testClient;
+    if (signal(SIGINT, SignalHandler) == SIG_ERR) {
+        ZLOGE(LABEL, "Failed to caught signal");
+        std::cout << "[FAILED] Execution of TestRegisterRemoteStub case failed" <<std::endl;
+        return;
+    }
+    std::cout << "[PASS] Execution of TestRegisterRemoteStub case Successful" <<std::endl;
+}
+
+void TestCaseTooManyRequests(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->TestSendTooManyRequest();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseTooManyRequests case failed" <<std::endl;
+    }
+    ret = testClient->StartSyncTransaction();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseTooManyRequests case failed" <<std::endl;
+        return;
+    }
+    std::cout << "[PASS] Execution of TestCaseTooManyRequests case Successful" <<std::endl;
+}
+
+void TestCaseMultiThreadSendRequest(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->TestMultiThreadSendRequest();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseMultiThreadSendRequest case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseMultiThreadSendRequest case Successful" <<std::endl;
+    }
+}
+
+void ExecuteAllTestCase()
+{
+    std::shared_ptr<TestServiceClient> testClient = std::make_shared<TestServiceClient>();
+    int ret = testClient->ConnectService();
+    if (!ret) {
+        ZLOGE(LABEL, "ConnectService failed");
+        return;
+    }
+    TestCaseSyncTrans(testClient);
+    TestCasePingService(testClient);
+    TestCaseGetFooService(testClient);
+    TestCaseGetFileDescriptor(testClient);
+    TestCaseLoopTest(testClient);
+    TestCaseDumpService(testClient);
+    TestCaseEnableSerialInvokeFlag(testClient);
+    TestCaseNativeIPCSendRequests(testClient);
+    TestCaseRegisterRemoteStub(testClient);
+    TestCaseTooManyRequests(testClient);
+    TestCaseMultiThreadSendRequest(testClient);
+    ZLOGI(LABEL, "All test cases have been executed");
+}
+
+int main(int argc, char *argv[])
+{
+    if (fork() == 0) {
+        system("/system/bin/ipc_server_test");
+        return 0;
+    }
+
+    sleep(1);
+    std::cout << "Start executing the client" <<std::endl;
+    InitTokenId();
+    ExecuteAllTestCase();
+
+    // The non IPC context obtains one's own sid
+    std::string selfSid = IPCSkeleton::GetCallingSid();
+    ZLOGI(LABEL, "get from service: sid: %{public}s", selfSid.c_str());
+    system("kill -9 $(pidof /system/bin/ipc_server_test)");
+
+    return 0;
 }

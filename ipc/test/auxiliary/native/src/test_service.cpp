@@ -93,17 +93,6 @@ int TestService::TestSyncTransaction(int data, int &rep, int delayTime)
     return ERR_NONE;
 }
 
-int TestService::TestAsyncTransaction(int data, int timeout)
-{
-    ZLOGE(LABEL, "TestServiceStub:read from client data = %{public}d", data);
-
-    if (timeout > 0) {
-        sleep((uint32_t)timeout);
-    }
-
-    return Reverse(data);
-}
-
 int TestService::TestAsyncCallbackTrans(int data, int &reply, int timeout)
 {
     if (timeout > 0) {
@@ -167,14 +156,10 @@ int TestService::TestStringTransaction(const std::string &data)
     return data.size();
 }
 
-void TestService::TestDumpService()
+int TestService::TestDumpService()
 {
     // use for proxy only.
-}
-
-void TestService::TestAsyncDumpService()
-{
-    // use for proxy only.
+    return 0;
 }
 
 int TestService::TestRawDataTransaction(int length, int &reply)
@@ -251,27 +236,27 @@ int TestService::Dump(int fd, const std::vector<std::u16string> &args)
     if (!IPCPayloadStatistics::GetStatisticsStatus()) {
         IPCPayloadStatistics::StartStatistics();
     }
-
-    std::cout << " ---------------------------------------- "<< std::endl;
-    std::cout << " TotalCount = " << IPCPayloadStatistics::GetTotalCount();
-    std::cout << " TotalCost = " << IPCPayloadStatistics::GetTotalCost() << std::endl;
+    ZLOGI(LABEL, " ---------------------------------------- ");
+    ZLOGI(LABEL, " TotalCount = %{public}d", (int)IPCPayloadStatistics::GetTotalCount());
+    ZLOGI(LABEL, " TotalCost =  %{public}d", (int)IPCPayloadStatistics::GetTotalCost());
     std::vector<int32_t> pidVec = IPCPayloadStatistics::GetPids();
     for (int32_t &val : pidVec) {
-        std::cout << " Pid = " << val << std::endl;
-        std::cout << " PidCount = " << IPCPayloadStatistics::GetCount(val)
-            << " PidCost = " << IPCPayloadStatistics::GetCost(val) << std::endl;
+        ZLOGI(LABEL, " Pid = %{public}d", val);
+        ZLOGI(LABEL, " PidCount = %{public}d", (int)IPCPayloadStatistics::GetCount(val));
+        ZLOGI(LABEL, " IdCost = %{public}d", (int)IPCPayloadStatistics::GetCount(val));
         std::vector<IPCInterfaceInfo> infoVec = IPCPayloadStatistics::GetDescriptorCodes(val);
         for (auto &info : infoVec) {
-            std::cout << " desc = " << Str16ToStr8(info.desc) << " code = " << info.code;
-            std::cout << " DescCount = " << IPCPayloadStatistics::GetDescriptorCodeCount(val, info.desc, info.code);
+            ZLOGI(LABEL, " desc = %{public}s, code = %{public}d", Str16ToStr8(info.desc).c_str(), info.code);
+            ZLOGI(LABEL, " DescCount = %{public}d",
+                (int)IPCPayloadStatistics::GetDescriptorCodeCount(val, info.desc, info.code));
             IPCPayloadCost payloadCost = IPCPayloadStatistics::GetDescriptorCodeCost(val, info.desc, info.code);
-            std::cout << " DescTotalCost = " << payloadCost.totalCost;
-            std::cout << " DescMaxCost = " << payloadCost.maxCost;
-            std::cout << " DescMinCost = " << payloadCost.minCost;
-            std::cout << " DescAverCost = " << payloadCost.averCost << std::endl;
+            ZLOGI(LABEL, " DescMaxCost =  %{public}d", (int)payloadCost.totalCost);
+            ZLOGI(LABEL, " DescTotalCost = %{public}d", (int)payloadCost.maxCost);
+            ZLOGI(LABEL, " DescMinCost = %{public}d", (int)payloadCost.minCost);
+            ZLOGI(LABEL, " DescAverCost = %{public}d", (int)payloadCost.averCost);
         }
     }
-    std::cout << " ---------------------------------------- "<< std::endl;
+    ZLOGI(LABEL, " ---------------------------------------- ");
 
     return writeCount > 0 ? ERR_NONE : ERR_TRANSACTION_FAILED;
 }
@@ -336,5 +321,16 @@ int TestService::TestMultiThreadSendRequest(int data, int &reply)
     (void)data;
     (void)reply;
     return 0;
+}
+
+int TestService::TestAsyncTransaction(int data, int timeout)
+{
+    ZLOGE(LABEL, "TestServiceStub:read from client data = %{public}d", data);
+
+    if (timeout > 0) {
+        sleep((uint32_t)timeout);
+    }
+
+    return Reverse(data);
 }
 } // namespace OHOS

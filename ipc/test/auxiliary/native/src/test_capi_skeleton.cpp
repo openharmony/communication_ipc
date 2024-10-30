@@ -30,7 +30,6 @@
 #include "test_capi_skeleton.h"
 #include "ipc_debug.h"
 #include "ipc_inner_object.h"
-#include "test_service_command.h"
 
 namespace OHOS {
 
@@ -96,15 +95,18 @@ NativeRemoteProxyTest::~NativeRemoteProxyTest()
 int NativeRemoteProxyTest::SyncAdd()
 {
     if (proxy_ == nullptr) {
+        ZLOGE(LABEL, "proxy_ is nullptr");
         return -1;
     }
     OHIPCParcel *data = OH_IPCParcel_Create();
     if (data == nullptr) {
+        ZLOGE(LABEL, "data is nullptr");
         return -1;
     }
     OHIPCParcel *reply = OH_IPCParcel_Create();
     if (reply == nullptr) {
         OH_IPCParcel_Destroy(data);
+        ZLOGE(LABEL, "reply is nullptr");
         return -1;
     }
     OH_IPC_MessageOption option{ OH_IPC_REQUEST_MODE_SYNC, 0 };
@@ -131,7 +133,7 @@ int NativeRemoteProxyTest::SyncAdd()
     OH_IPCParcel_Destroy(data);
     OH_IPCParcel_Destroy(reply);
     if ((a + b) == result) {
-        ZLOGD(LABEL, "SyncAdd success! %{public}d + %{public}d = %{public}d", a, b, result);
+        ZLOGI(LABEL, "SyncAdd success! %{public}d + %{public}d = %{public}d", a, b, result);
         return 0;
     }
     ZLOGE(LABEL, "SyncAdd failed! %{public}d + %{public}d = %{public}d", a, b, result);
