@@ -26,7 +26,7 @@
 #include "hitrace/trace.h"
 #include "ipc_skeleton.h"
 #include "ipc_object_proxy.h"
-#include "test_service_skeleton.h"
+#include "test_service_proxy.h"
 #include "test_service.h"
 #include "ipc_test_helper.h"
 #include "binder_connector.h"
