@@ -68,8 +68,10 @@
             "virtual thunk to OHOS::IRemoteObject::IsObjectDead() const";
             "OHOS::IRemoteObject::IsObjectDead() const";
             "OHOS::IPCObjectProxy::IsObjectDead()";
+            "OHOS::IPCObjectProxy::CanPromote()";
             "OHOS::IPCObjectStub::IsObjectDead()";
             "virtual thunk to OHOS::IRemoteObject::GetInterfaceDescriptor()";
+            "virtual thunk to OHOS::IPCObjectProxy::CanPromote()";
             "OHOS::IRemoteObject::GetInterfaceDescriptor()";
             "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
