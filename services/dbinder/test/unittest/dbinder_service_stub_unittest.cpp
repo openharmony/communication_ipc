@@ -18,6 +18,7 @@
 #include "message_parcel.h"
 #include "rpc_log.h"
 #include "gtest/gtest.h"
+#include "securec.h"
 #include <iostream>
 
 #define private public
@@ -753,4 +754,127 @@ HWTEST_F(DBinderServiceStubUnitTest, Marshalling003, TestSize.Level1)
     Parcel parcel;
     bool result = dBinderServiceStub1.Marshalling(parcel, stubObject);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SaveDBinderData001
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData001, TestSize.Level1)
+{
+    const std::string service1 = "serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    std::string localBusName = "localBusName";
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: SaveDBinderData002
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData002, TestSize.Level1)
+{
+    const std::string service1 = "serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    std::string localBusName = "localBusName";
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(DBinderNegotiationData));
+    ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: SaveDBinderData003
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData003, TestSize.Level1)
+{
+    const std::string service1 = "serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    binder_uintptr_t objectAddress = reinterpret_cast<binder_uintptr_t>(&dbinderServiceStub);
+    std::string localBusName = "localBusName";
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::shared_ptr<SessionInfo> sessionInfo = std::make_shared<SessionInfo>();
+    EXPECT_TRUE(sessionInfo != nullptr);
+    sessionInfo->type = SESSION_TYPE_UNKNOWN;
+    bool isInitialized = dBinderService->AttachSessionObject(sessionInfo, objectAddress);
+    ASSERT_TRUE(isInitialized);
+    dbinderServiceStub.dbinderData_ = nullptr;
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_MALLOC_ERR);
+    bool result = dBinderService->DetachSessionObject(objectAddress);
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: SaveDBinderData004
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData004, TestSize.Level1)
+{
+    const std::string service1 = "serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    std::string localBusName = "localBusName";
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(DBinderNegotiationData));
+    ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
+    DBinderNegotiationData data;
+    data.stubIndex = 1;
+    data.peerTokenId = 1;
+    data.peerServiceName = "target_name";
+    data.peerDeviceId = "target_device";
+    data.localDeviceId = "local_device";
+    data.localServiceName = "local_name";
+    memcpy_s(dbinderServiceStub.dbinderData_.get(), sizeof(DBinderNegotiationData),
+        &data, sizeof(DBinderNegotiationData));
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: SaveDBinderData005
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData005, TestSize.Level1)
+{
+    const std::string service1 = "serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    binder_uintptr_t objectAddress = reinterpret_cast<binder_uintptr_t>(&dbinderServiceStub);
+    std::string localBusName = "localBusName";
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(DBinderNegotiationData));
+    ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
+    DBinderNegotiationData data;
+    data.stubIndex = 1;
+    data.peerTokenId = 1;
+    data.peerServiceName = "target_name";
+    data.peerDeviceId = "target_device";
+    data.localDeviceId = "local_device";
+    data.localServiceName = "local_name";
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::shared_ptr<SessionInfo> sessionInfo = std::make_shared<SessionInfo>();
+    EXPECT_TRUE(sessionInfo != nullptr);
+    sessionInfo->type = SESSION_TYPE_UNKNOWN;
+    bool isInitialized = dBinderService->AttachSessionObject(sessionInfo, objectAddress);
+    ASSERT_TRUE(isInitialized);
+    memcpy_s(dbinderServiceStub.dbinderData_.get(), sizeof(DBinderNegotiationData),
+        &data, sizeof(DBinderNegotiationData));
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, ERR_NONE);
+    bool result = dBinderService->DetachSessionObject(objectAddress);
+    ASSERT_TRUE(result);
 }
