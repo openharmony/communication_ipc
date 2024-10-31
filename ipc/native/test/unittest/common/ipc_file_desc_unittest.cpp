@@ -25,6 +25,7 @@
 #include "ipc_file_descriptor.h"
 #include "log_tags.h"
 #include "ipc_thread_skeleton.h"
+#include "iremote_invoker.h"
 #undef private
 
 namespace OHOS {
@@ -108,6 +109,19 @@ HWTEST_F(IPCFileDescOpsTest, Marshalling001, TestSize.Level1)
 
     Parcel parcel;
     auto ret = fdesc.Marshalling(parcel);
+    ASSERT_TRUE(ret);
+}
+
+HWTEST_F(IPCFileDescOpsTest, Marshalling002, TestSize.Level1)
+{
+    IPCFileDescriptor fdesc;
+    BinderInvoker *invoker = nullptr;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    sptr<IPCFileDescriptor> object(new IPCFileDescriptor());
+
+    Parcel parcel;
+    auto ret = fdesc.Marshalling(parcel, object);
     ASSERT_TRUE(ret);
 }
 
