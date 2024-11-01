@@ -38,6 +38,9 @@ public:
     MockIPCObjectProxy() : IPCObjectProxy(1, u"mockProxyService") {};
     ~MockIPCObjectProxy() {};
 
+#ifndef EMULATOR_PLATFORM
+    MOCK_METHOD0(CanPromote, bool());
+#endif
     MOCK_METHOD0(GetObjectRefCount, int32_t());
     MOCK_METHOD0(GetSessionName, std::string());
     MOCK_METHOD0(GetInterfaceDescriptor, std::u16string());
