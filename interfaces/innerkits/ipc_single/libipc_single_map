@@ -70,6 +70,7 @@
             "OHOS::IPCObjectProxy::IsObjectDead()";
             "OHOS::IPCObjectStub::IsObjectDead()";
             "virtual thunk to OHOS::IRemoteObject::GetInterfaceDescriptor()";
+            "virtual thunk to OHOS::IPCObjectProxy::CanPromote()";
             "OHOS::IRemoteObject::GetInterfaceDescriptor()";
             "OHOS::IPCObjectProxy::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
