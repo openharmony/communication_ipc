@@ -77,7 +77,8 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     if (current->GetSamgrFlag()) {
         SetRequestSidFlag(true);
     }
-    current->DetachDeadObject(this);
+    std::u16string str(descriptor_);
+    current->AttachValidObject(this, str);
 }
 
 IPCObjectStub::~IPCObjectStub()
@@ -92,8 +93,7 @@ IPCObjectStub::~IPCObjectStub()
     }
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    DeadObjectInfo obj = { -1, curTime, curTime, descriptor_ };
-    current->AttachDeadObject(this, obj);
+    current->DetachValidObject(this);
 }
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
@@ -646,6 +646,10 @@ std::string IPCObjectStub::GetSessionName()
     sptr<IRemoteObject> object = current->GetSAMgrObject();
     if (object == nullptr) {
         ZLOGE(LABEL, "get object is null");
+        return std::string("");
+    }
+    if (!object->IsProxyObject()) {
+        ZLOGE(LABEL, "object is not a proxy pbject");
         return std::string("");
     }
 

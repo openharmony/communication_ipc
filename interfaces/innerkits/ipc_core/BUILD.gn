@@ -39,7 +39,6 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/c/rpc/include",
     "$SUBSYSTEM_DIR/utils/include",
   ]
-
   sources = [
     "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
     "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
@@ -95,6 +94,9 @@ ohos_shared_library("ipc_core") {
     "hitrace:libhitracechain",
     "selinux:libselinux",
   ]
+  if (!defined(ohos_lite)) {
+    external_deps += [ "faultloggerd:libbacktrace_local" ]
+  }
   defines = [ "FFRT_IPC_ENABLE" ]
   if (build_selinux) {
     defines += [ "WITH_SELINUX" ]

@@ -98,36 +98,54 @@ HWTEST_F(ProcessSkeletonUnitTest, QueryObjectTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AttachDeadObjectTest001
- * @tc.desc: Verify the AttachDeadObject function
+ * @tc.name: AttachValidObjectTest001
+ * @tc.desc: Verify the AttachValidObject function
  * @tc.type: FUNC
  */
-HWTEST_F(ProcessSkeletonUnitTest, AttachDeadObjectTest001, TestSize.Level1)
+HWTEST_F(ProcessSkeletonUnitTest, AttachValidObjectTest001, TestSize.Level1)
 {
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
-    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    std::u16string str(u"testObject");
+    sptr<IRemoteObject> object = new IPCObjectStub(str);
     ASSERT_TRUE(object != nullptr);
-    DeadObjectInfo info = {1, 0, 0, object->GetObjectDescriptor()};
-    bool ret = skeleton->AttachDeadObject(object.GetRefPtr(), info);
+    bool ret = skeleton->AttachValidObject(object.GetRefPtr(), str);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: DetachValidObjectTest001
+ * @tc.desc: Verify the DetachValidObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, DetachValidObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::u16string str(u"testObject");
+    sptr<IRemoteObject> object = new IPCObjectStub(str);
+    skeleton->AttachValidObject(object.GetRefPtr(), str);
+    bool ret = skeleton->DetachValidObject(object.GetRefPtr());
     EXPECT_EQ(ret, true);
 }
 
 /**
- * @tc.name: DetachDeadObjectTest001
- * @tc.desc: Verify the DetachDeadObject function
+ * @tc.name: IsValidObjectTest001
+ * @tc.desc: Verify the IsValidObject function
  * @tc.type: FUNC
  */
-HWTEST_F(ProcessSkeletonUnitTest, DetachDeadObjectTest001, TestSize.Level1)
+HWTEST_F(ProcessSkeletonUnitTest, IsValidObjectTest001, TestSize.Level1)
 {
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
 
-    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
-    DeadObjectInfo info = {1, 0, 0, object->GetObjectDescriptor()};
-    skeleton->AttachDeadObject(object.GetRefPtr(), info);
-    bool ret = skeleton->DetachDeadObject(object.GetRefPtr());
+    std::u16string str(u"testObject");
+    sptr<IRemoteObject> object = new IPCObjectStub(str);
+    skeleton->AttachValidObject(object.GetRefPtr(), str);
+    std::u16string desc;
+    bool ret = skeleton->IsValidObject(object.GetRefPtr(), desc);
     EXPECT_EQ(ret, true);
 }
 
@@ -198,8 +216,8 @@ HWTEST_F(ProcessSkeletonUnitTest, ConvertToSecureDescTest001, TestSize.Level1)
  */
 HWTEST_F(ProcessSkeletonUnitTest, IsPrintTest001, TestSize.Level1)
 {
-    int lastErr = 0;
-    int lastErrCnt = 0;
+    std::atomic<int> lastErr = 0;
+    std::atomic<int> lastErrCnt = 0;
     bool isPrint = ProcessSkeleton::IsPrint(1, lastErr, lastErrCnt);
     EXPECT_EQ(isPrint, true);
     EXPECT_EQ(lastErr, 1);

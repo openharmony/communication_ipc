@@ -48,6 +48,16 @@ public:
 
     static pthread_key_t GetTlsKey();
 
+    static void GetVaildInstance(IPCThreadSkeleton *&instance);
+
+    static void SaveThreadName(const std::string &name);
+
+    static bool UpdateSendRequestCount(int delta);
+
+    static bool CheckInstanceIsExiting(std::atomic<uint32_t> &flag);
+
+    bool IsSendRequesting();
+
     // Joint Current thread into IPC Work Group
     void JoinWorkThread(int proto);
     // Quit current thread from IPC work group.
@@ -59,10 +69,13 @@ public:
 private:
     static pthread_key_t TLSKey_;
     static pthread_once_t TLSKeyOnce_;
-    std::atomic<bool> exitFlag_ = false;
+    std::atomic<uint32_t> exitFlag_ = INVOKER_USE_MAGIC;
     std::atomic<uint32_t> usingFlag_ = INVOKER_IDLE_MAGIC;
     static constexpr uint32_t INVOKER_MAX_COUNT = 2;
     IRemoteInvoker *invokers_[INVOKER_MAX_COUNT] = {nullptr, nullptr};
+    const pid_t tid_;
+    std::atomic<int32_t> sendRequestCount_ = 0;
+    std::string threadName_;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

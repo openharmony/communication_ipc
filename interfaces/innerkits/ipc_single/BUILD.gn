@@ -83,6 +83,9 @@ ohos_shared_library("ipc_single") {
     "hitrace:libhitracechain",
     "selinux:libselinux",
   ]
+  if (!defined(ohos_lite)) {
+    external_deps += [ "faultloggerd:libbacktrace_local" ]
+  }
   defines = [
     "CONFIG_IPC_SINGLE",
     "FFRT_IPC_ENABLE",

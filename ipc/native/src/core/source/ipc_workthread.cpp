@@ -109,6 +109,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
         ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s",
             param->proto, param->policy, threadName.c_str());
     }
+    IPCThreadSkeleton::SaveThreadName(threadName);
 
     JoinThread(param->proto, param->policy);
 

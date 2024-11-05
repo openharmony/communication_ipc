@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_BINDER_INVOKER_H
 #define OHOS_IPC_BINDER_INVOKER_H
 
+#include <atomic>
 #include <unistd.h>
 #include <sys/types.h>
 #include <unordered_set>
@@ -23,11 +24,33 @@
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
 #include "process_skeleton.h"
+#include <securec.h>
 #ifdef CONFIG_ACTV_BINDER
 #include "actv_binder.h"
 #endif
 
 namespace OHOS {
+
+/* dfx interface,type is 0 for string */
+extern "C" uintptr_t DFX_SetCrashObj(uint8_t type, uintptr_t addr);
+extern "C" void DFX_ResetCrashObj(uintptr_t crashObj);
+
+struct CrashObjDumper {
+public:
+    explicit CrashObjDumper(const char *str)
+    {
+        if (str == nullptr) {
+            return;
+        }
+        ptr_ = DFX_SetCrashObj(0, reinterpret_cast<uintptr_t>(str));
+    }
+    ~CrashObjDumper()
+    {
+        DFX_ResetCrashObj(ptr_);
+    }
+private:
+    uintptr_t ptr_ = 0;
+};
 #ifdef CONFIG_IPC_SINGLE
 namespace IPC_SINGLE {
 #endif
@@ -114,6 +137,8 @@ public:
     void ExitCurrentThread();
 
     uint32_t GetStrongRefCountForStub(uint32_t handle);
+
+    bool IsSendRequesting();
 
 #ifndef CONFIG_IPC_SINGLE
     int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
@@ -253,8 +278,8 @@ private:
     uint32_t status_;
     static inline InvokerDelegator<BinderInvoker> delegator_ = { IRemoteObject::IF_PROT_BINDER };
     InvokerProcInfo invokerInfo_;
-    int lastErr_ = 0;
-    int lastErrCnt_ = 0;
+    std::atomic<int> lastErr_ = 0;
+    std::atomic<int> lastErrCnt_ = 0;
     std::atomic<int32_t> sendNestCount_ = 0;
     std::atomic<int32_t> sendRequestCount_ = 0;
     std::mutex strongRefMutex_;
