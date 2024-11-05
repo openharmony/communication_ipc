@@ -240,7 +240,7 @@ public:
      */
     uint32_t GetStrongRefCountForStub();
 
-#ifndef EMULATOR_PLATFORM
+#ifndef EMLULATOR_PLATFORM
     bool CanPromote() override;
 #endif
 
