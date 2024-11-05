@@ -43,7 +43,9 @@
           "bounds_checking_function",
           "hisysevent",
           "json",
-          "selinux"
+          "selinux",
+          "rust",
+          "faultloggerd"
         ],
         "third_party": [
         ]
@@ -150,7 +152,6 @@
         "test": [
           "//foundation/communication/ipc/ipc/test:moduletest",
           "//foundation/communication/ipc/ipc/native/test:unittest",
-          "//foundation/communication/ipc/interfaces/innerkits/rust/tests:unittest",
           "//foundation/communication/ipc/ipc/native/test/fuzztest:fuzztest",
           "//foundation/communication/ipc/services/dbinder/test/unittest:unittest",
           "//foundation/communication/ipc/services/dbinder/test/fuzztest:fuzztest"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <securec.h>
 
 #include "access_token_adapter.h"
+#include "backtrace_local.h"
 #include "binder_debug.h"
 #include "hilog/log.h"
 #include "hitrace_invoker.h"
@@ -67,7 +68,6 @@ namespace IPC_SINGLE {
 #endif
 
 #define PIDUID_OFFSET 2
-
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_INVOKER, "BinderInvoker" };
 #ifndef CONFIG_IPC_SINGLE
@@ -166,17 +166,13 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     }
 #endif
 
-    if (sendNestCount_ > 0) {
-        ZLOGW(LABEL, "request nesting occurs, count:%{public}u", sendNestCount_.load());
-    }
-    ++sendNestCount_;
     int cmd = (totalDBinderBufSize > 0) ? BC_TRANSACTION_SG : BC_TRANSACTION;
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
-        --sendNestCount_;
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
+    ++sendRequestCount_;
     if ((flags & TF_ONE_WAY) != 0) {
         error = WaitForCompletion(nullptr);
     } else {
@@ -188,7 +184,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
-    --sendNestCount_;
+    --sendRequestCount_;
     return error;
 }
 
@@ -492,16 +488,22 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
     if (error != ERR_NONE) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LABEL, "fail to flush commands with error:%{public}d time:%{public}" PRIu64, error, curTime);
+        ZLOGE(LABEL, "failed, error:%{public}d time:%{public}" PRIu64, error, curTime);
     }
 
     if (output_.GetDataSize() > 0) {
         error = TransactWithDriver(false);
-        ZLOGE(LABEL, "flush commands again with return value:%{public}d", error);
     }
     if (error != ERR_NONE || output_.GetDataSize() > 0) {
-        ZLOGE(LABEL, "flush commands with error:%{public}d, left data size:%{public}zu", error,
-            output_.GetDataSize());
+        ZLOGW(LABEL, "error:%{public}d, left data size:%{public}zu", error, output_.GetDataSize());
+        PrintParcelData(input_, "input_");
+        PrintParcelData(output_, "output_");
+        std::string backtrace;
+        if (!GetBacktrace(backtrace, false)) {
+            ZLOGE(LABEL, "GetBacktrace fail");
+        } else {
+            ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+        }
     }
 
     return error;
@@ -528,6 +530,9 @@ void BinderInvoker::StartWorkLoop()
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
             ZLOGE(LABEL, "returned unexpected error:%{public}d, aborting", error);
             break;
+        }
+        if (input_.GetReadableBytes() == 0) {
+            continue;
         }
         uint32_t cmd = input_.ReadUint32();
         IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -578,12 +583,12 @@ void BinderInvoker::OnBinderDied()
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    DeadObjectInfo deadInfo;
-    if ((current != nullptr) && current->IsDeadObject(proxy, deadInfo)) {
-        ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-                 ProcessSkeleton::ConvertAddr(proxy), deadInfo.handle,
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+    std::u16string desc;
+    if ((current != nullptr) && !current->IsValidObject(proxy, desc)) {
+        ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(proxy));
     } else {
+        std::string descTemp = Str16ToStr8(desc);
+        CrashObjDumper dumper(descTemp.c_str());
         if (proxy->AttemptIncStrongRef(this)) {
             proxy->SendObituary();
             proxy->DecStrongRef(this);
@@ -615,14 +620,13 @@ void BinderInvoker::OnAcquireObject(uint32_t cmd)
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
-    DeadObjectInfo deadInfo;
-    if ((current != nullptr) && current->IsDeadObject(obj, deadInfo)) {
-        ZLOGE(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-            ProcessSkeleton::ConvertAddr(obj),
-            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+    std::u16string desc;
+    if ((current != nullptr) && !current->IsValidObject(obj, desc)) {
+        ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
         return;
     }
-
+    std::string descTemp = Str16ToStr8(desc);
+    CrashObjDumper dumper(descTemp.c_str());
     if (obj->GetSptrRefCount() <= 0) {
         ZLOGE(LABEL, "Invalid stub object %{public}u.", ProcessSkeleton::ConvertAddr(obj));
         return;
@@ -658,10 +662,8 @@ void BinderInvoker::OnReleaseObject(uint32_t cmd)
     ZLOGD(LABEL, "refcount:%{public}d refs:%{public}u obj:%{public}u", refs->GetStrongRefCount(),
         ProcessSkeleton::ConvertAddr(refs), ProcessSkeleton::ConvertAddr(obj));
     if (cmd == BR_RELEASE) {
-        if (obj->GetSptrRefCount() > 0) {
-            std::lock_guard<std::mutex> lock(strongRefMutex_);
-            decStrongRefs_.push_back(obj);
-        }
+        std::lock_guard<std::mutex> lock(strongRefMutex_);
+        decStrongRefs_.push_back(obj);
     } else {
         std::lock_guard<std::mutex> lock(weakRefMutex_);
         decWeakRefs_.push_back(refs);
@@ -740,13 +742,13 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
             ZLOGE(LABEL, "Invalid stub object");
             return error;
         }
-        DeadObjectInfo deadInfo;
         auto current = ProcessSkeleton::GetInstance();
-        if ((current != nullptr) && current->IsDeadObject(targetObject, deadInfo)) {
-            ZLOGE(LABEL, "%{public}u desc:%{public}s is deaded at time:%{public}" PRIu64,
-                ProcessSkeleton::ConvertAddr(targetObject),
-                ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+        std::u16string desc;
+        if ((current != nullptr) && !current->IsValidObject(targetObject, desc)) {
+            ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(targetObject));
         } else {
+            std::string descTemp = Str16ToStr8(desc);
+            CrashObjDumper dumper(descTemp.c_str());
             if (targetObject->GetSptrRefCount() > 0) {
                 error = targetObject->SendRequest(tr.code, data, reply, option);
                 targetObject->DecStrongRef(this);
@@ -995,6 +997,14 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     if (error != ERR_NONE) {
         if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
             ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
+            PrintParcelData(input_, "input_");
+            PrintParcelData(output_, "output_");
+            std::string backtrace;
+            if (!GetBacktrace(backtrace, false)) {
+                ZLOGE(LABEL, "GetBacktrace fail");
+            } else {
+                ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+            }
         }
     }
     if (cmd != BR_TRANSACTION) {
@@ -1135,7 +1145,21 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
     }
     const void *buf = isContainPtrType ? static_cast<const void *>(&tr_sg) : static_cast<const void *>(&tr);
     size_t bufSize = isContainPtrType ? sizeof(tr_sg) : sizeof(tr);
-    return output_.WriteBuffer(buf, bufSize);
+    bool ret = output_.WriteBuffer(buf, bufSize);
+
+    if (sendNestCount_ > 0) {
+        ZLOGW(LABEL, "request nesting occurs, handle:%{public}d count:%{public}u", handle, sendNestCount_.load());
+        PrintParcelData(input_, "input_");
+        PrintParcelData(output_, "output_");
+        std::string backtrace;
+        if (!GetBacktrace(backtrace, false)) {
+            ZLOGE(LABEL, "GetBacktrace fail");
+        } else {
+            ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+        }
+    }
+    ++sendNestCount_;
+    return ret;
 }
 
 void BinderInvoker::OnTransactionComplete(
@@ -1683,6 +1707,11 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
         parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
+bool BinderInvoker::IsSendRequesting()
+{
+    return sendRequestCount_ > 0;
+}
+
 void BinderInvoker::ProcDeferredDecRefs()
 {
     if (input_.GetReadableBytes() > 0) {
@@ -1705,13 +1734,13 @@ void BinderInvoker::ProcDeferredDecRefs()
         std::lock_guard<std::mutex> lock(strongRefMutex_);
         for (size_t idx = 0; idx < decStrongRefs_.size(); ++idx) {
             auto &obj = decStrongRefs_[idx];
-            DeadObjectInfo deadInfo;
-            if (current->IsDeadObject(obj, deadInfo)) {
-                ZLOGE(LABEL, "%{public}u handle:%{public}d desc:%{public}s is deaded at time:%{public}" PRIu64,
-                    ProcessSkeleton::ConvertAddr(obj), deadInfo.handle,
-                    ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(deadInfo.desc)).c_str(), deadInfo.deadTime);
+            std::u16string desc;
+            if (!current->IsValidObject(obj, desc)) {
+                ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(obj));
                 continue;
             }
+            std::string descTemp = Str16ToStr8(desc);
+            CrashObjDumper dumper(descTemp.c_str());
             obj->DecStrongRef(this);
         }
         decStrongRefs_.clear();

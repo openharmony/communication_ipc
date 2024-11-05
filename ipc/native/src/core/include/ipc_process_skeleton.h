@@ -18,6 +18,7 @@
 
 #include <list>
 #include <map>
+#include <atomic>
 #include <shared_mutex>
 
 #include "invoker_rawdata.h"
@@ -244,8 +245,8 @@ private:
     static std::mutex procMutex_;
     static DestroyInstance destroyInstance_;
     static std::atomic<bool> exitFlag_;
-    int lastErrHandle_ = -1;
-    int lastErrCnt_ = 0;
+    std::atomic<int> lastErrHandle_ = -1;
+    std::atomic<int> lastErrCnt_ = 0;
 
     // for DFX
     std::mutex mutex_;
