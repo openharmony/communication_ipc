@@ -535,6 +535,10 @@ void BinderInvoker::StartWorkLoop()
     }
     int error;
     do {
+        ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+        if (process == nullptr || process->GetThreadStopFlag()) {
+            break;
+        }
         error = TransactWithDriver();
         if (error < ERR_NONE && error != -ECONNREFUSED && error != -EBADF) {
             ZLOGE(LABEL, "returned unexpected error:%{public}d, aborting", error);

@@ -95,6 +95,18 @@ void IPCWorkThread::JoinThread(int proto, int policy)
 
 void *IPCWorkThread::ThreadHandler(void *args)
 {
+    (void)IPCThreadSkeleton::SetThreadType(ThreadType::IPC_THREAD);
+    ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+    if (process == nullptr) {
+        ZLOGE(LOG_LABEL, "get ProcessSkeleton object failed");
+        return nullptr;
+    }
+
+    if (process->GetThreadStopFlag()) {
+        ZLOGW(LOG_LABEL, "the stop flag is true, thread start exit");
+        return nullptr;
+    }
+
     auto param = (IPCWorkThreadParam *)args;
     if (param == nullptr) {
         return nullptr;
@@ -133,6 +145,17 @@ void IPCWorkThread::StopWorkThread()
 
 void IPCWorkThread::Start(int policy, int proto, int threadIndex)
 {
+    ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+    if (process == nullptr) {
+        ZLOGE(LOG_LABEL, "get ProcessSkeleton object failed");
+        return;
+    }
+
+    if (process->GetThreadStopFlag()) {
+        ZLOGW(LOG_LABEL, "the stop flag is true, can not create other thread");
+        return;
+    }
+
     auto param = new (std::nothrow) IPCWorkThreadParam();
     if (param == nullptr) {
         ZLOGE(LOG_LABEL, "create IPCWorkThreadParam failed");
@@ -145,11 +168,13 @@ void IPCWorkThread::Start(int policy, int proto, int threadIndex)
     param->proto = proto;
     param->index = threadIndex;
     pthread_t threadId;
+
     int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, param);
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
         return;
     }
+    process->IncreaseThreadCount();
     ZLOGD(LOG_LABEL, "create thread, policy:%{public}d proto:%{public}d", policy, proto);
     if (pthread_detach(threadId) != 0) {
         ZLOGE(LOG_LABEL, "detach error");
