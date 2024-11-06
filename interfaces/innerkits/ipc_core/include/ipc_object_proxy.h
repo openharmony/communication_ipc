@@ -17,10 +17,10 @@
 #define OHOS_IPC_IPC_OBJECT_PROXY_H
 
 #include <dlfcn.h>
-#include <mutex>
-#include <unordered_map>
 #include <atomic>
+#include <mutex>
 #include <shared_mutex>
+#include <vector>
 
 #include "iremote_object.h"
 
@@ -355,10 +355,12 @@ private:
     bool MakeDBinderTransSession(const DBinderNegotiationData &data);
 #endif
 
+    bool RegisterBinderDeathRecipient();
+    bool UnRegisterBinderDeathRecipient();
+
     struct DeathRecipientAddrInfo : public virtual RefBase {
     public:
         explicit DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient);
-        ~DeathRecipientAddrInfo();
 
         std::string GetNewSoPath();
         bool IsDlclosed();
@@ -373,7 +375,7 @@ private:
     std::recursive_mutex mutex_;
     std::shared_mutex descMutex_;
 
-    std::unordered_multimap<std::string, sptr<DeathRecipientAddrInfo>> recipients_;
+    std::vector<sptr<DeathRecipientAddrInfo>> recipients_;
     const uint32_t handle_;
     int proto_;
     bool isFinishInit_;
