@@ -873,7 +873,15 @@ void BinderInvoker::OnRemoveRecipientDone()
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
     if (proxy != nullptr) {
-        proxy->DecStrongRef(this);
+        ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+        std::u16string desc;
+        if ((current != nullptr) && !current->IsValidObject(proxy, desc)) {
+            ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(proxy));
+        } else {
+            std::string descTemp = Str16ToStr8(desc);
+            CrashObjDumper dumper(descTemp.c_str());
+            proxy->DecStrongRef(this);
+        }
     }
 }
 
