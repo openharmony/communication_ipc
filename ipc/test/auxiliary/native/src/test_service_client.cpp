@@ -58,7 +58,7 @@ bool TestServiceClient::StartSyncTransaction()
         return false;
     }
 
-    ZLOGD(LABEL, "StartSyncTransaction");
+    ZLOGI(LABEL, "StartSyncTransaction");
     int result = 0;
     int originalValue = 2019;
     int reversalValue = 9102;
@@ -81,7 +81,7 @@ bool TestServiceClient::StartPingService()
         return false;
     }
 
-    ZLOGD(LABEL, "StartPingService");
+    ZLOGI(LABEL, "StartPingService");
     const std::u16string descriptor = ITestService::GetDescriptor();
     int ret = testService_->TestPingService(descriptor);
     if (ret != 0) {
@@ -98,7 +98,7 @@ bool TestServiceClient::StartGetFooService()
         return false;
     }
 
-    ZLOGD(LABEL, "StartGetFooService");
+    ZLOGI(LABEL, "StartGetFooService");
     sptr<IFoo> foo = testService_->TestGetFooService();
     if (foo == nullptr) {
         ZLOGE(LABEL, "TestGetFooService function call failed");
@@ -114,7 +114,7 @@ bool TestServiceClient::StartDumpService()
         return false;
     }
 
-    ZLOGD(LABEL, "StartDumpService");
+    ZLOGI(LABEL, "StartDumpService");
     int ret = testService_->TestDumpService();
     if (ret != 0) {
         ZLOGE(LABEL, "TestDumpService function call failed");
@@ -130,7 +130,7 @@ bool TestServiceClient::StartTestFileDescriptor()
         return false;
     }
 
-    ZLOGD(LABEL, "StartTestFileDescriptor");
+    ZLOGI(LABEL, "StartTestFileDescriptor");
     int fd = testService_->TestGetFileDescriptor();
     if (fd == INVALID_FD) {
         ZLOGE(LABEL, "TestGetFileDescriptor function call failed");
@@ -151,7 +151,7 @@ bool TestServiceClient::StartLoopTest(int maxCount)
         return false;
     }
 
-    ZLOGD(LABEL, "StartLoopTest");
+    ZLOGI(LABEL, "StartLoopTest");
     int count = 0;
     std::string testString;
     // start loop test, test times is 10240
@@ -168,7 +168,7 @@ bool TestServiceClient::StartLoopTest(int maxCount)
 
 bool TestServiceClient::TestEnableSerialInvokeFlag()
 {
-    ZLOGD(LABEL, "TestEnableSerialInvokeFlag");
+    ZLOGI(LABEL, "TestEnableSerialInvokeFlag");
     if (testService_ == nullptr) {
         ZLOGE(LABEL, "The testService_ object is an empty object");
         return false;
@@ -191,7 +191,7 @@ bool TestServiceClient::TestNativeIPCSendRequests(int subCmd)
 
     auto remoteProxy = std::make_shared<NativeRemoteProxyTest>(testService_);
     if (remoteProxy == nullptr) {
-        ZLOGE(LABEL, "create remote proxy test failed!");
+        ZLOGE(LABEL, "Create remote proxy test failed!");
         return false;
     }
 
@@ -208,7 +208,7 @@ bool TestServiceClient::TestNativeIPCSendRequests(int subCmd)
     };
     auto it = commandMap.find(subCmd);
     if (it == commandMap.end()) {
-        ZLOGE(LABEL, "error sub cmd:%{public}d", subCmd);
+        ZLOGE(LABEL, "Error sub cmd:%{public}d", subCmd);
         return false;
     }
     if (it->second() != 0) {
@@ -230,7 +230,7 @@ bool TestServiceClient::TestRegisterRemoteStub()
     if (remoteStub_ == nullptr) {
         remoteStub_ = std::make_shared<NativeRemoteStubTest>(testService_);
         if (remoteStub_ == nullptr) {
-            ZLOGE(LABEL, "create remote stub test failed!");
+            ZLOGE(LABEL, "Create remote stub test failed!");
             return false;
         }
     }
@@ -259,10 +259,10 @@ bool TestServiceClient::TestUnRegisterRemoteStub()
     }
     int ret = remoteStub_->UnRegisterRemoteStub();
     if (ret != 0) {
-        ZLOGE(LABEL, "function call failed");
+        ZLOGE(LABEL, "UnRegisterRemoteStub function call failed");
         return false;
     }
-    ZLOGI(LABEL, "function call success");
+    ZLOGI(LABEL, "TestUnRegisterRemoteStub function call success");
     return true;
 }
 
@@ -273,12 +273,12 @@ bool TestServiceClient::TestSendTooManyRequest()
         return false;
     }
 
-    ZLOGD(LABEL, "TestSendTooManyRequest");
+    ZLOGI(LABEL, "TestSendTooManyRequest");
     int res = 0;
     int data = 2024;
     int ret = testService_->TestSendTooManyRequest(data, res);
     if (ret != 0) {
-        ZLOGE(LABEL, "function call failed");
+        ZLOGE(LABEL, "TestSendTooManyRequest function call failed");
         return false;
     }
     return true;
@@ -295,7 +295,7 @@ bool TestServiceClient::TestMultiThreadSendRequest()
     int value = 2024;
     int ret = testService_->TestMultiThreadSendRequest(value, res);
     if (ret != 0) {
-        ZLOGE(LABEL, "function call failed");
+        ZLOGE(LABEL, "TestMultiThreadSendRequest function call failed");
         return false;
     }
     return true;
