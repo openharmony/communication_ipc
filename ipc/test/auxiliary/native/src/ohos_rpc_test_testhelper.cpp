@@ -142,7 +142,7 @@ JNIEXPORT jint JNICALL Java_ohos_rpc_test_TestHelper_nativeGetTestAppPid(
         pid = (jint)helper->GetTestAppPid(appId);
     }
 
-    ZLOGD(LABEL, "nativeGetTestAppPid:%d", pid);
+    ZLOGI(LABEL, "nativeGetTestAppPid:%{public}d", pid);
     return pid;
 }
 
@@ -201,7 +201,7 @@ JNIEXPORT jboolean JNICALL Java_ohos_rpc_test_TestHelper_nativeStartExecutable(
 
     if (utfString != nullptr) {
         std::string exectubeFile = std::string(utfString, length);
-        ZLOGD(LABEL, "StartExecutable:%s", exectubeFile.c_str());
+        ZLOGI(LABEL, "StartExecutable: %{public}s", exectubeFile.c_str());
         helper->StartExecutable(exectubeFile);
         env->ReleaseStringUTFChars(string, utfString);
         return JNI_TRUE;
@@ -225,7 +225,7 @@ JNIEXPORT jboolean JNICALL Java_ohos_rpc_test_TestHelper_nativeStopExecutable(
 
     if (utfString != nullptr) {
         std::string exectubeFile = std::string(utfString, length);
-        ZLOGD(LABEL, "StopExecutable:%s", exectubeFile.c_str());
+        ZLOGI(LABEL, "StopExecutable: %{public}s", exectubeFile.c_str());
         helper->StopExecutable(exectubeFile);
         env->ReleaseStringUTFChars(string, utfString);
         return JNI_TRUE;
@@ -246,7 +246,7 @@ JNIEXPORT jboolean JNICALL Java_ohos_rpc_test_TestHelper_nativeRunCommand(
 
     if (utfString != nullptr) {
         std::string shellCommand = std::string(utfString, length);
-        ZLOGD(LABEL, "StartExecutable:%s", shellCommand.c_str());
+        ZLOGI(LABEL, "StartExecutable: %{public}s", shellCommand.c_str());
         system(shellCommand.c_str());
         env->ReleaseStringUTFChars(string, utfString);
         return JNI_TRUE;
@@ -260,7 +260,7 @@ int JTestHelpertRegisterNativeMethods(JNIEnv *env)
     jclass clazz;
     clazz = env->FindClass("ohos/rpc/test/TestHelper");
     if (clazz == nullptr) {
-        ZLOGD(LABEL, "Could not find class:TestHelper");
+        ZLOGE(LABEL, "Could not find class:TestHelper");
         return -1;
     }
 
@@ -272,7 +272,7 @@ int JTestHelpertRegisterNativeMethods(JNIEnv *env)
         return -1;
     }
 
-    ZLOGD(LABEL, "TestHelper Register Native Methods success\n");
+    ZLOGI(LABEL, "TestHelper Register Native Methods success");
     return 0;
 }
 
@@ -295,7 +295,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved)
         return -1;
     }
 
-    ZLOGD(LABEL, "JNI_OnLoad success\n");
+    ZLOGI(LABEL, "JNI_OnLoad success");
     g_isTestHelperMethodRegistered = true;
     return JNI_VERSION_1_4;
 }
