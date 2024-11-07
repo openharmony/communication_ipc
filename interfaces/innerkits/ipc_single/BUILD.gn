@@ -25,8 +25,8 @@ config("libipc_single_private_config") {
 }
 
 config("ipc_all_deps_config") {
-  if (is_emulator == true) {
-    defines = [ "EMLULATOR_PLATFORM" ]
+  if (is_emulator) {
+    defines = [ "EMULATOR_PLATFORM" ]
   }
 }
 
