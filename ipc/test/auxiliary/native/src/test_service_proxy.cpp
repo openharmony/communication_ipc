@@ -52,17 +52,17 @@ int TestServiceProxy::TestEnableSerialInvokeFlag()
     MessageParcel dataParcel, replyParcel;
     std::string value = "testData";
 
-    ZLOGI(LABEL, "send to server data = %{public}s", value.c_str());
+    ZLOGI(LABEL, "Send to server data = %{public}s", value.c_str());
     dataParcel.WriteString(value);
     auto remote = Remote();
     if (remote == nullptr) {
-        ZLOGD(LABEL, "The obtained proxy is a null pointer");
+        ZLOGI(LABEL, "The obtained proxy is a null pointer");
         return -1;
     }
 
     int ret = remote->SendRequest(TRANS_ENABLE_SERIAL_INVOKE_FLAG, dataParcel, replyParcel, option);
     std::string reply = replyParcel.ReadString();
-    ZLOGI(LABEL, "get result from server data = %{public}s", reply.c_str());
+    ZLOGI(LABEL, "Get result from server data = %{public}s", reply.c_str());
     return ret;
 }
 
@@ -72,14 +72,14 @@ int TestServiceProxy::TestSyncTransaction(int value, int &reply, int delayTime)
     MessageParcel dataParcel, replyParcel;
     int ret = -1;
 
-    ZLOGD(LABEL, "send to server data = %{public}d", value);
+    ZLOGI(LABEL, "Send to server data = %{public}d", value);
     if (value > 0) {
         dataParcel.WriteInt32(value);
         dataParcel.WriteInt32(delayTime);
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        ZLOGD(LABEL, "The obtained proxy is a null pointer");
+        ZLOGI(LABEL, "The obtained proxy is a null pointer");
         return ret;
     }
 
@@ -89,7 +89,7 @@ int TestServiceProxy::TestSyncTransaction(int value, int &reply, int delayTime)
     }
 
     reply = replyParcel.ReadInt32();
-    ZLOGD(LABEL, "get result from server data = %{public}d", reply);
+    ZLOGI(LABEL, "Get result from server data = %{public}d", reply);
     return ret;
 }
 
@@ -101,7 +101,7 @@ int TestServiceProxy::TestSendTooManyRequest(int data, int &reply)
     MessageParcel dataParcel;
     MessageParcel replyParcel[SEDNREQUEST_TIMES];
 
-    ZLOGD(LABEL, "send to server data = %{public}d", data);
+    ZLOGI(LABEL, "Send to server data = %{public}d", data);
     if (data > 0) {
         dataParcel.WriteInt32(data);
         dataParcel.WriteInt32(delayTime);
@@ -110,7 +110,7 @@ int TestServiceProxy::TestSendTooManyRequest(int data, int &reply)
         ret = Remote()->SendRequest(TRANS_ID_SYNC_TRANSACTION, dataParcel, replyParcel[i], option);
     }
     reply = replyParcel[0].ReadInt32();
-    ZLOGD(LABEL, "get result from server data = %{public}d", reply);
+    ZLOGI(LABEL, "Get result from server data = %{public}d", reply);
     return ret;
 }
 
@@ -131,7 +131,7 @@ int TestServiceProxy::TestMultiThreadSendRequest(int data, int &reply)
             }
             int ret = proxyObject->SendRequest(TRANS_ID_SYNC_TRANSACTION, dataParcel, replyParcel, option);
             if (ret != 0) {
-                ZLOGD(LABEL, "SendRequest is failed: %{public}d", ret);
+                ZLOGI(LABEL, "SendRequest is failed: %{public}d", ret);
                 return;
             }
             reply = replyParcel.ReadInt32();
@@ -147,7 +147,7 @@ int TestServiceProxy::TestAsyncTransaction(int data, int timeout)
 {
     MessageOption option = { MessageOption::TF_ASYNC };
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "%{public}s:in, data = %{public}d", __func__, data);
+    ZLOGI(LABEL, "TestAsyncTransaction is called, data = %{public}d", data);
     dataParcel.WriteInt32(data);
     dataParcel.WriteInt32(timeout);
     dataParcel.WriteBool(false);
@@ -164,7 +164,7 @@ int TestServiceProxy::TestAsyncCallbackTrans(int data, int &reply, int timeout)
     int ret;
     MessageOption option = { MessageOption::TF_ASYNC };
     MessageParcel dataParcel, replyParcel;
-    ZLOGI(LABEL, "%{public}s:in, data = %{public}d", __func__, data);
+    ZLOGI(LABEL, "TestAsyncCallbackTrans is called, data = %{public}d", data);
     dataParcel.WriteInt32(data);
     dataParcel.WriteInt32(timeout);
     dataParcel.WriteBool(true);
@@ -205,11 +205,11 @@ int TestServiceProxy::TestPingService(const std::u16string &serviceName)
     int ret;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    ZLOGD(LABEL, "PingService");
+    ZLOGI(LABEL, "PingService");
     dataParcel.WriteString16(serviceName);
     ret = Remote()->SendRequest(TRANS_ID_PING_SERVICE, dataParcel, replyParcel, option);
     int result = (ret == ERR_NONE) ? replyParcel.ReadInt32() : -1;
-    ZLOGD(LABEL, "PingService result = %{public}d", result);
+    ZLOGI(LABEL, "PingService result = %{public}d", result);
     return result;
 }
 
@@ -249,13 +249,13 @@ int TestServiceProxy::TestStringTransaction(const std::string &data)
 
 int TestServiceProxy::TestDumpService()
 {
-    ZLOGD(LABEL, "call StartDumpService");
+    ZLOGI(LABEL, "call StartDumpService");
     int fd = open("/data/dump.txt", O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
     if (fd == INVALID_FD) {
         ZLOGE(LABEL, "Call to open system function failed.");
         return -1;
     }
-    ZLOGD(LABEL, "Start Dump Service");
+    ZLOGI(LABEL, "Start Dump Service");
     std::vector<std::u16string> args;
     args.push_back(u"DumpTest");
     int ret = Remote()->Dump(fd, args);
@@ -271,14 +271,14 @@ int TestServiceProxy::TestRawDataTransaction(int length, int &reply)
     int ret;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    ZLOGE(LABEL, "send to server data length = %{public}d", length);
+    ZLOGE(LABEL, "Send to server data length = %{public}d", length);
     if (length <= 1 || static_cast<unsigned>(length) > dataParcel.GetRawDataCapacity()) {
         ZLOGE(LABEL, "length should > 1, length is %{public}d", length);
         return -1;
     }
     unsigned char *buffer = new (std::nothrow) unsigned char[length];
     if (buffer == nullptr) {
-        ZLOGE(LABEL, "new buffer failed of length = %{public}d", length);
+        ZLOGE(LABEL, "New buffer failed of length = %{public}d", length);
         return -1;
     }
     buffer[0] = 'a';
@@ -289,7 +289,7 @@ int TestServiceProxy::TestRawDataTransaction(int length, int &reply)
     dataParcel.WriteInt32(length);
     ret = Remote()->SendRequest(TRANS_ID_RAWDATA_TRANSACTION, dataParcel, replyParcel, option);
     reply = replyParcel.ReadInt32();
-    ZLOGE(LABEL, "get result from server data = %{public}d", reply);
+    ZLOGE(LABEL, "Get result from server data = %{public}d", reply);
     delete [] buffer;
     return ret;
 }
@@ -299,7 +299,7 @@ int TestServiceProxy::TestRawDataReply(int length)
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     if (length <= 1 || static_cast<unsigned>(length) > dataParcel.GetRawDataCapacity()) {
-        ZLOGE(LABEL, "length should > 1, length is %{public}d", length);
+        ZLOGE(LABEL, "Length should > 1, length is %{public}d", length);
         return ERR_INVALID_STATE;
     }
 
@@ -329,12 +329,12 @@ int TestServiceProxy::TestRawDataReply(int length)
         return ERR_INVALID_DATA;
     }
     if (buffer[0] != 'a' || buffer[length - 1] != 'z') {
-        ZLOGE(LABEL, "buffer error, length = %{public}d", length);
+        ZLOGE(LABEL, "Buffer error, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
 
     if (replyParcel.ReadInt32() != length) {
-        ZLOGE(LABEL, "read raw data after failed, length = %{public}d", length);
+        ZLOGE(LABEL, "Read raw data after failed, length = %{public}d", length);
         return ERR_INVALID_DATA;
     }
 
@@ -357,7 +357,7 @@ int TestServiceProxy::TestCallingUidPid()
     IPCTestHelper helper;
     int actualUid = static_cast<int>(helper.GetUid());
     int actualPid = static_cast<int>(helper.GetPid());
-    ZLOGD(LABEL, "uid = %{public}d, pid = %{public}d, actualUid = %{public}d, actualPid = %{public}d",
+    ZLOGI(LABEL, "uid = %{public}d, pid = %{public}d, actualUid = %{public}d, actualPid = %{public}d",
         uid, pid, actualUid, actualPid);
 
     if (uid == actualUid && pid == actualPid) {
@@ -403,7 +403,7 @@ sptr<IRemoteObject> TestServiceProxy::TestQueryRemoteProxy(const char *descripto
     dataParcel.WriteString(descriptor);
     int ret = Remote()->SendRequest(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT, dataParcel, replyParcel, option);
     if (ret != ERR_NONE) {
-        ZLOGE(LABEL, "ret = %{public}d", ret);
+        ZLOGE(LABEL, "SendRequest failed ret = %{public}d", ret);
         return nullptr;
     }
     auto readRemoteObject = replyParcel.ReadRemoteObject();
@@ -536,12 +536,12 @@ int TestServiceProxy::TestAccessTokenID64(uint64_t token_expected, uint64_t ftok
     ftoken = replyParcel1.ReadUint64();
 
     if (token != token_expected) {
-        ZLOGE(LABEL, "token != token_expected, token:%{public}" PRIu64, token);
+        ZLOGE(LABEL, "token != token_expected, token = %{public}" PRIu64, token);
         ret = -1;
         goto ERR;
     }
     if (ftoken != ftoken_expected) {
-        ZLOGE(LABEL, "ftoken != ftoken_expected, ftoken:%{public}" PRIu64, ftoken);
+        ZLOGE(LABEL, "ftoken != ftoken_expected, ftoken = %{public}" PRIu64, ftoken);
         ret = -1;
         goto ERR;
     }
@@ -560,9 +560,9 @@ int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
     int32_t token  = (int32_t)IPCSkeleton::GetCallingTokenID();
     int32_t ftoken  = (int32_t)IPCSkeleton::GetFirstTokenID();
     int32_t tokenSelf = RpcGetSelfTokenID();
-    ZLOGE(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
-    ZLOGE(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
-    ZLOGE(LABEL, "TestServiceProxy ftoken_expected: %{public}d", ftoken_expected);
+    ZLOGI(LABEL, "TestServiceProxy tokenSelf: %{public}d", tokenSelf);
+    ZLOGI(LABEL, "TestServiceProxy ftoken: %{public}d", ftoken);
+    ZLOGI(LABEL, "TestServiceProxy ftoken_expected: %{public}d", ftoken_expected);
     if (!CheckTokenSelf(token, tokenSelf, ftoken, 0)) {
         ZLOGE(LABEL, "first");
         return -1;
@@ -607,7 +607,7 @@ int TestServiceProxy::TestMessageParcelAppend(MessageParcel &dst, MessageParcel 
 {
     bool res = dst.Append(src);
     if (!res) {
-        ZLOGE(LABEL, "message parcel append without ipc failed");
+        ZLOGE(LABEL, "Message parcel append without ipc failed");
         return -1;
     }
     return 0;
@@ -618,7 +618,7 @@ int TestServiceProxy::TestMessageParcelAppendWithIpc(MessageParcel &dst, Message
 {
     bool res = dst.Append(src);
     if (!res) {
-        ZLOGE(LABEL, "message parcel append with ipc failed");
+        ZLOGE(LABEL, "Message parcel append with ipc failed");
         return -1;
     }
     MessageOption option;
@@ -641,7 +641,7 @@ int TestServiceProxy::TestFlushAsyncCalls(int count, int length)
     for (int i = 0; i < count; i++) {
         ret = Remote()->SendRequest(TRANS_ID_FLUSH_ASYNC_CALLS, dataParcel, replyParcel, option);
         if (ret != ERR_NONE) {
-            ZLOGE(LABEL, "fail to send request when count = %{public}d, ret = %{public}d", count, ret);
+            ZLOGE(LABEL, "Fail to send request when count = %{public}d, ret = %{public}d", count, ret);
             return ret;
         }
     }
@@ -655,7 +655,7 @@ int TestServiceProxy::TestMultipleProcesses(int data, int &rep, int delayTime)
     int ret;
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
-    ZLOGD(LABEL, "send to server data = %{public}d", data);
+    ZLOGI(LABEL, "Send to server data = %{public}d", data);
     if (data > 0) {
         dataParcel.WriteInt32(data);
         dataParcel.WriteInt32(delayTime);
@@ -709,19 +709,19 @@ std::u16string TestServiceProxy::TestAshmem(sptr<Ashmem> ashmem, int32_t content
 
 int TestServiceProxy::TestNestingSend(int sendCode, int &replyCode)
 {
-    ZLOGW(LABEL, "%{public}s", __func__);
+    ZLOGW(LABEL, "Start");
     MessageOption option;
     MessageParcel dataParcel, replyParcel;
     sptr<IFoo> foo = new FooStub();
     sptr<IRemoteObject> sendFoo = foo->AsObject();
     sendFoo->SetBehavior(Parcelable::BehaviorFlag::HOLD_OBJECT);
     if (!dataParcel.WriteRemoteObject(sendFoo) || !dataParcel.WriteInt32(sendCode)) {
-        ZLOGE(LABEL, "%{public}s: fail to write data", __func__);
+        ZLOGE(LABEL, "Fail to write data.");
         return -1;
     }
     int ret = Remote()->SendRequest(TRANS_ID_NESTING_SEND, dataParcel, replyParcel, option);
     replyCode = replyParcel.ReadInt32();
-    ZLOGW(LABEL, "%{public}s: outer = %{public}d, inner = %{public}d", __func__, ret, replyCode);
+    ZLOGW(LABEL, "Outer = %{public}d, inner = %{public}d", ret, replyCode);
     return ret;
 }
 

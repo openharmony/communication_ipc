@@ -28,7 +28,6 @@ int FooStub::OnRemoteRequest(uint32_t code,
 
     switch (code) {
         case GET_FOO_NAME: {
-            ZLOGD(LABEL, "%{public}s:called\n", __func__);
             reply.WriteString(GetFooName());
             break;
         }
@@ -99,7 +98,7 @@ FooProxy::FooProxy(const sptr<IRemoteObject> &impl)
 
 std::string FooProxy::GetFooName()
 {
-    ZLOGD(LABEL, "%{public}s:called\n", __func__);
+    ZLOGI(LABEL, "Start");
     MessageParcel data, reply;
     MessageOption option;
     Remote()->SendRequest(GET_FOO_NAME, data, reply, option);
@@ -108,7 +107,7 @@ std::string FooProxy::GetFooName()
 
 void FooProxy::SendAsyncReply(int &replyValue)
 {
-    ZLOGD(LABEL, "%{public}s:called\n", __func__);
+    ZLOGI(LABEL, "Start");
     MessageParcel data, reply;
     MessageOption option = { MessageOption::TF_ASYNC };
     data.WriteInt32(replyValue);
@@ -123,7 +122,7 @@ int FooProxy::TestNestingSend(int sendCode)
         return -1;
     }
     int error = Remote()->SendRequest(SEND_WRONG_REPLY, dataParcel, replyParcel, option);
-    ZLOGE(LABEL, "send foo result = %{public}d", error);
+    ZLOGE(LABEL, "Send foo result = %{public}d", error);
     return error;
 }
 } // namespace OHOS
