@@ -281,6 +281,7 @@ enum {
     BINDER_TYPE_FDR = B_PACK_CHARS('f', 'd', 'r', B_TYPE_LARGE),
     BINDER_TYPE_INVALID_HANDLE = B_PACK_CHARS('r', 'h', 'e', B_TYPE_LARGE),
     BINDER_TYPE_INVALID_BINDER = B_PACK_CHARS('r', 'b', 'e', B_TYPE_LARGE),
+    BINDER_TYPE_INVALID_TYPE = B_PACK_CHARS('r', 't', 'e', B_TYPE_LARGE),
 };
 
 struct binder_ptr_count {
