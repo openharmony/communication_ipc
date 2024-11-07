@@ -616,7 +616,7 @@ uint32_t IPCObjectProxy::GetStrongRefCountForStub()
     return invoker->GetStrongRefCountForStub(handle_);
 }
 
-#ifndef EMULATOR_PLATFORM
+#if !defined EMULATOR_PLATFORM && !defined ARKUI_X_PLATFORM
 bool IPCObjectProxy::CanPromote()
 {
     return (GetSptrRefCount() > 0);

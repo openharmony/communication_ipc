@@ -23,8 +23,11 @@ config("libipc_single_private_config") {
 
 config("ipc_all_deps_config") {
   include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
-  if (is_emulator) {
+  if (is_emulator == true) {
     defines = [ "EMULATOR_PLATFORM" ]
+  }
+  if (is_arkui_x == true) {
+    defines += [ "ARKUI_X_PLATFORM" ]
   }
 }
 
