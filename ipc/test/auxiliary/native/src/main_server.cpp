@@ -52,6 +52,6 @@ int main(int argc, char *argv[])
     }
     InitTokenId();
     TestService::Instantiate(isEnableSerialInvokeFlag);
-    ZLOGD(LABEL, "call  StartThreadPool");
+    ZLOGI(LABEL, "Call  StartThreadPool");
     IPCSkeleton::JoinWorkThread();
 }
