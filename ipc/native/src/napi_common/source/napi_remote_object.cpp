@@ -465,10 +465,14 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     napi_get_uv_event_loop(workerEnv, &loop);
     uv_work_t *work = new(std::nothrow) uv_work_t;
     NAPI_ASSERT_RETURN_VOID(workerEnv, work != nullptr, "cb failed to new work");
-    OperateJsRefParam *param = new OperateJsRefParam {
+    OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
         .env = workerEnv,
         .thisVarRef = ref
     };
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "new OperateJsRefParam failed");
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGD(LOG_LABEL, "enter work pool.");
@@ -566,11 +570,19 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], stringValue, bufferSize + 1, &jsStringLength);
     NAPI_ASSERT(env, jsStringLength == bufferSize, "string length wrong");
     std::string descriptor = stringValue;
-    auto holder = new NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor), thisVar);
+    auto holder = new (std::nothrow) NAPIRemoteObjectHolder(env, Str8ToStr16(descriptor), thisVar);
+    if (holder == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIRemoteObjectHolder failed");
+        return nullptr;
+    }
     napi_coerce_to_native_binding_object(env, thisVar, RemoteObjectDetachCb, RemoteObjectAttachCb, holder, nullptr);
     // connect native object to js thisVar
     napi_status status = napi_wrap(env, thisVar, holder, RemoteObjectHolderFinalizeCb, nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteObject and native holder failed");
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "wrap js RemoteObject and native holder failed. status is %{public}d", status);
+        delete holder;
+        return nullptr;
+    }
     return thisVar;
 }
 
@@ -591,11 +603,14 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
         uv_work_t *work = new(std::nothrow) uv_work_t;
         NAPI_ASSERT_RETURN_VOID(env_, work != nullptr, "create NAPIRemoteObject, new work failed");
         std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
-        OperateJsRefParam *param = new OperateJsRefParam {
+        OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
             .env = env_,
             .thisVarRef = jsObjectRef,
             .lockInfo = lockInfo.get()
         };
+        if (param == nullptr) {
+            ZLOGE(LOG_LABEL, "new OperateJsRefParam failed");
+        }
 
         work->data = reinterpret_cast<void *>(param);
         int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
@@ -632,10 +647,13 @@ NAPIRemoteObject::~NAPIRemoteObject()
             napi_get_uv_event_loop(env_, &loop);
             uv_work_t *work = new(std::nothrow) uv_work_t;
             NAPI_ASSERT_RETURN_VOID(env_, work != nullptr, "release NAPIRemoteObject, new work failed");
-            OperateJsRefParam *param = new OperateJsRefParam {
+            OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
                 .env = env_,
                 .thisVarRef = thisVarRef_
             };
+            if (param == nullptr) {
+                ZLOGE(LOG_LABEL, "new OperateJsRefParam failed");
+            }
             work->data = reinterpret_cast<void *>(param);
             int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
                 ZLOGD(LOG_LABEL, "enter work pool.");
@@ -695,7 +713,7 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         ZLOGE(LOG_LABEL, "DUMP_TRANSACTION data size:%{public}zu", data.GetReadableBytes());
     }
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
-    CallbackParam *param = new CallbackParam {
+    CallbackParam *param = new (std::nothrow) CallbackParam {
         .env = env_,
         .thisVarRef = thisVarRef_,
         .code = code,
@@ -705,6 +723,10 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         .lockInfo = lockInfo.get(),
         .result = 0
     };
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "new CallbackParam failed");
+        return -1;
+    }
 
     NAPI_RemoteObject_getCallingInfo(param->callingInfo);
     ZLOGD(LOG_LABEL, "callingPid:%{public}u callingUid:%{public}u "
@@ -878,7 +900,11 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
         return nullptr;
     }
     proxyHolder->object_ = target;
-    proxyHolder->list_ = new NAPIDeathRecipientList();
+    proxyHolder->list_ = new (std::nothrow) NAPIDeathRecipientList();
+    if (proxyHolder->list_ == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIDeathRecipientList failed");
+        return nullptr;
+    }
 
     return jsRemoteProxy;
 }
@@ -1072,7 +1098,11 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
-    uv_work_t *work = new uv_work_t;
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        ZLOGE(LOG_LABEL, "new uv_work_t failed");
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     uv_after_work_cb afterWorkCb = nullptr;
     if (param->callback != nullptr) {
@@ -1130,7 +1160,9 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
     std::shared_ptr<MessageParcel> data, std::shared_ptr<MessageParcel> reply,
     MessageOption &option, napi_value *argv)
 {
-    SendRequestParam *sendRequestParam = new SendRequestParam {
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
         .data = data,
@@ -1147,6 +1179,10 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
         .env = env,
         .traceId = 0,
     };
+    if (sendRequestParam == nullptr) {
+        ZLOGE(LOG_LABEL, "new SendRequestParam failed");
+        return result;
+    }
     if (target != nullptr) {
         std::string remoteDescriptor = Str16ToStr8(target->GetObjectDescriptor());
         if (!remoteDescriptor.empty()) {
@@ -1162,8 +1198,7 @@ napi_value StubSendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32
     napi_create_reference(env, argv[ARGV_INDEX_4], 1, &sendRequestParam->callback);
     std::thread t(StubExecuteSendRequest, env, sendRequestParam);
     t.detach();
-    napi_value result = nullptr;
-    napi_get_undefined(env, &result);
+
     return result;
 }
 
@@ -1174,7 +1209,7 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
     NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
-    SendRequestParam *sendRequestParam = new SendRequestParam {
+    SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
         .data = data,
@@ -1191,6 +1226,10 @@ napi_value StubSendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint
         .env = env,
         .traceId = 0,
     };
+    if (sendRequestParam == nullptr) {
+        ZLOGE(LOG_LABEL, "new SendRequestParam failed");
+        return nullptr;
+    }
     if (target != nullptr) {
         std::string remoteDescriptor = Str16ToStr8(target->GetObjectDescriptor());
         if (!remoteDescriptor.empty()) {
