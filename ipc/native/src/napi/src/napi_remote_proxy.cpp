@@ -99,7 +99,8 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
     MessageOption &option, napi_value *argv)
 {
     napi_value result = nullptr;
-    SendRequestParam *sendRequestParam = new SendRequestParam {
+    napi_get_undefined(env, &result);
+    SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
         .data = data,
@@ -116,6 +117,10 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         .env = env,
         .traceId = 0,
     };
+    if (sendRequestParam == nullptr) {
+        ZLOGE(LOG_LABEL, "new sendRequestParam failed");
+        return result;
+    }
 
     std::string remoteDescriptor = Str16ToStr8(target->GetInterfaceDescriptor());
     if (!remoteDescriptor.empty()) {
@@ -134,7 +139,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, ExecuteSendRequest,
         SendRequestCbComplete, reinterpret_cast<void *>(sendRequestParam), &sendRequestParam->asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, sendRequestParam->asyncWork));
-    napi_get_undefined(env, &result);
+
     return result;
 }
 
@@ -145,7 +150,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
     napi_create_promise(env, &deferred, &promise);
-    SendRequestParam *sendRequestParam = new SendRequestParam {
+    SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
         .data = data,
@@ -162,6 +167,11 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .env = env,
         .traceId = 0,
     };
+    if (sendRequestParam == nullptr) {
+        ZLOGE(LOG_LABEL, "new sendRequestParam failed");
+        return nullptr;
+    }
+
     std::string remoteDescriptor = Str16ToStr8(target->GetInterfaceDescriptor());
     if (!remoteDescriptor.empty()) {
         sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
@@ -377,7 +387,12 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
         return result;
     }
 
-    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = new (std::nothrow) NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    if (nativeRecipient == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIDeathRecipient failed");
+        napi_get_boolean(env, false, &result);
+        return result;
+    }
     if (target->AddDeathRecipient(nativeRecipient)) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
         if (list->Add(nativeRecipient)) {
@@ -448,14 +463,19 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
     }
 
-    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    sptr<NAPIDeathRecipient> nativeRecipient = new (std::nothrow) NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    if (nativeRecipient == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIDeathRecipient failed");
+        return result;
+    }
     bool ret = target->AddDeathRecipient(nativeRecipient);
     if (ret) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
         list->Add(nativeRecipient);
     }
-    napi_value result = nullptr;
-    napi_get_undefined(env, &result);
+
     ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
     return result;
 }
@@ -692,7 +712,11 @@ napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     // new napi proxy holder instance
-    auto proxyHolder = new NAPIRemoteProxyHolder();
+    auto proxyHolder = new (std::nothrow) NAPIRemoteProxyHolder();
+    if (proxyHolder == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIRemoteProxyHolder failed");
+        return nullptr;
+    }
     // connect native object to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, proxyHolder,
@@ -701,7 +725,11 @@ napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
             delete (reinterpret_cast<NAPIRemoteProxyHolder *>(data));
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteProxy and native holder failed");
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "wrap js RemoteProxy and native holder failed. status is %{public}d", status);
+        delete proxyHolder;
+        return nullptr;
+    }
     return thisVar;
 }
 
