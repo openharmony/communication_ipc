@@ -103,10 +103,14 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         ZLOGE(LOG_LABEL, "failed to new uv_work_t");
         return;
     }
-    OnRemoteDiedParam *param = new OnRemoteDiedParam {
+    OnRemoteDiedParam *param = new (std::nothrow) OnRemoteDiedParam {
         .env = env_,
         .deathRecipient = this
     };
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "new OnRemoteDiedParam failed");
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     ZLOGI(LOG_LABEL, "start to queue");
     int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
