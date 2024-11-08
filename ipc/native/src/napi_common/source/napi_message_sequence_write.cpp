@@ -2098,7 +2098,11 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }
     // new native parcel object
-    auto messageSequence = new NAPI_MessageSequence(env, thisVar, parcel);
+    auto messageSequence = new (std::nothrow) NAPI_MessageSequence(env, thisVar, parcel);
+    if (messageSequence == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIAshmem failed");
+        return nullptr;
+    }
     // connect native object to js thisVar
     status = napi_wrap(
         env, thisVar, messageSequence,
@@ -2109,7 +2113,11 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
             }
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "napi wrap message parcel failed");
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi wrap message parcel failed. status is %{public}d", status);
+        delete messageSequence;
+        return nullptr;
+    }
     return thisVar;
 }
 } // namespace OHOS
