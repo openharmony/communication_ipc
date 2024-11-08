@@ -146,6 +146,7 @@ void IPCProcessSkeleton::ClearDataResource()
 
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
+    ZLOGI(LOG_LABEL, "enter");
     std::lock_guard<std::mutex> lockGuard(procMutex_);
     exitFlag_ = true;
     delete threadPool_;
@@ -1663,6 +1664,22 @@ sptr<IRemoteObject> IPCProcessSkeleton::QueryDBinderCallbackProxy(sptr<IRemoteOb
     return nullptr;
 }
 #endif
+
+IPCProcessSkeleton::DestroyInstance::~DestroyInstance()
+{
+    if (instance_ == nullptr) {
+        return;
+    }
+
+    // notify other threads to stop running
+    auto process = ProcessSkeleton::GetInstance();
+    if (process != nullptr) {
+        process->NotifyChildThreadStop();
+    }
+
+    delete instance_;
+    instance_ = nullptr;
+}
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif
