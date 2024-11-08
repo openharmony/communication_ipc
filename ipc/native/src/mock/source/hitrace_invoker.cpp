@@ -24,7 +24,8 @@
 #include "hitrace/trace.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
-#include "parcel.h"
+#include "message_parcel.h"
+#include "process_skeleton.h"
 #include "sys_binder.h"
 
 namespace OHOS {
@@ -38,7 +39,7 @@ bool HitraceInvoker::IsClientTraced(int32_t handle, uint32_t flags, const HiTrac
         ((flags & TF_ONE_WAY) ? traceId.IsFlagEnabled(HITRACE_FLAG_INCLUDE_ASYNC) : true));
 }
 
-HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel &data, uint32_t &flags,
+HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, MessageParcel &data, uint32_t &flags,
     const HiTraceId &traceId)
 {
     HiTraceId childId = traceId;
@@ -69,10 +70,16 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Parcel 
             return childId;
         }
         // tracepoint: CS(Client Send)
-        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%s handle=%d,code=%u",
-            (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC",
-            handle, code);
+        std::u16string desc = data.GetInterfaceToken();
+        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%{public}s handle=%{public}d,code=%{public}u,desc=%{public}s",
+            (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
         flags |= TF_HITRACE;
+    } else {
+        if (flags & TF_HITRACE) {
+            ZLOGW(TRACE_LABEL, "business set the error flags, traceid is invalid ");
+            flags &= ~(uint32_t)TF_HITRACE;
+        }
     }
     return childId;
 }
@@ -89,7 +96,8 @@ void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t
             // restore thread trace id
             HiTraceChain::SetId(traceId);
             // tracepoint: CR(Client Receive)
-            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "%s handle=%d,code=%u", "SYNC", handle, code);
+            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId,
+                "%{public}s handle=%{public}d,code=%{public}u", "SYNC", handle, code);
         }
     }
 }
@@ -106,7 +114,7 @@ void HitraceInvoker::RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t o
     flags &= ~(uint32_t)TF_HITRACE;
 }
 
-bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel &data, uint32_t &flags)
+bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, MessageParcel &data, uint32_t &flags)
 {
     bool isServerTraced = (flags & TF_HITRACE) != 0;
     if (!isServerTraced) {
@@ -134,8 +142,12 @@ bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Parcel 
         HiTraceId traceId(idBytes, sizeof(HiTraceIdStruct));
         HiTraceChain::SetId(traceId);
         // tracepoint: SR(Server Receive)
+        data.RewindRead(oldReadPosition);
+        std::u16string desc = data.ReadInterfaceToken();
         HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
-            "%s handle=%{public}" PRIu64 ",code=%u", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
+            "%{public}s handle=%{public}" PRIu64 ",code=%{public}u,desc=%{public}s",
+            (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code,
+            ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
     }
     RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
 
@@ -146,7 +158,8 @@ void HitraceInvoker::TraceServerSend(uint64_t handle, uint32_t code, bool isServ
 {
     if (isServerTraced) {
         // tracepoint: SS(Server Send)
-        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%{public}" PRIu64 ",code=%u",
+        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(),
+            "%{public}s handle=%{public}" PRIu64 ",code=%{public}u",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
     }
     HiTraceChain::ClearId();

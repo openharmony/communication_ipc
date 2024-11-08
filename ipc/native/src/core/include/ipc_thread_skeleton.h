@@ -27,6 +27,11 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
+enum class ThreadType {
+    NORMAL_THREAD = 0xB0B0B0B0,
+    IPC_THREAD = 0xB1B1B1B1,
+};
+
 class IPCThreadSkeleton {
 public:
     IPCThreadSkeleton();
@@ -56,6 +61,8 @@ public:
 
     static bool CheckInstanceIsExiting(std::atomic<uint32_t> &flag);
 
+    static bool SetThreadType(ThreadType type);
+
     bool IsSendRequesting();
 
     // Joint Current thread into IPC Work Group
@@ -76,6 +83,7 @@ private:
     const pid_t tid_;
     std::atomic<int32_t> sendRequestCount_ = 0;
     std::string threadName_;
+    ThreadType threadType_ = ThreadType::NORMAL_THREAD;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
