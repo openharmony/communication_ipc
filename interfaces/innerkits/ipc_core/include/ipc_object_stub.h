@@ -303,7 +303,7 @@ private:
 
     std::recursive_mutex serialRecursiveMutex_;
     bool serialInvokeFlag_;
-    uint64_t lastRequestTime_;
+    std::atomic<uint64_t> lastRequestTime_;
     std::atomic<bool> requestSidFlag_ = false;
 };
 } // namespace OHOS
