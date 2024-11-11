@@ -269,8 +269,6 @@ bool ProcessSkeleton::IsValidObject(IRemoteObject *object, std::u16string &desc)
     auto it = validObjectRecord_.find(object);
     if (it != validObjectRecord_.end()) {
         desc = it->second;
-        ZLOGD(LOG_LABEL, "%{public}u descriptor:%{public}s", ConvertAddr(object),
-            ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
         return true;
     }
     return false;
