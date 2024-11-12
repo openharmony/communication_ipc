@@ -952,10 +952,7 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
         NAPI_ASSERT(env, nativeAshmem != nullptr, "invalid parameters");
         napiAshmem = new (std::nothrow) NAPIAshmem(nativeAshmem);
     }
-    if (napiAshmem == nullptr) {
-        ZLOGE(LOG_LABEL, "new NAPIAshmem failed");
-        return nullptr;
-    }
+    NAPI_ASSERT(env, napiAshmem != nullptr, "new NAPIAshmem failed");
     // connect native object to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, napiAshmem,
@@ -965,9 +962,8 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
         },
         nullptr, nullptr);
     if (status != napi_ok) {
-        ZLOGE(LOG_LABEL, "wrap js Ashmem and native holder failed. status is %{public}d", status);
         delete napiAshmem;
-        return nullptr;
+        NAPI_ASSERT(env, false, "wrap js Ashmem and native holder failed");
     }
     return thisVar;
 }
