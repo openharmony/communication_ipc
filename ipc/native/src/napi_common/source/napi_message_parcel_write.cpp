@@ -1451,10 +1451,7 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
     }
     // new native parcel object
     auto messageParcel = new (std::nothrow) NAPI_MessageParcel(env, thisVar, parcel);
-    if (messageParcel == nullptr) {
-        ZLOGE(LOG_LABEL, "new NAPIAshmem failed");
-        return nullptr;
-    }
+    NAPI_ASSERT(env, messageParcel != nullptr, "new messageParcel failed");
     // connect native object to js thisVar
     status = napi_wrap(
         env, thisVar, messageParcel,
@@ -1466,9 +1463,8 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
         },
         nullptr, nullptr);
     if (status != napi_ok) {
-        ZLOGE(LOG_LABEL, "napi wrap message parcel failed. status is %{public}d", status);
         delete messageParcel;
-        return nullptr;
+        NAPI_ASSERT(env, false, "napi wrap message parcel failed");
     }
     return thisVar;
 }
