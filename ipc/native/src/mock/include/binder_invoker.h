@@ -271,6 +271,10 @@ private:
     }
 #endif // CONFIG_ACTV_BINDER
 
+    bool GetUint64ValueByStrSlice(const std::string &str, size_t offset, size_t length, uint64_t &value);
+    bool GetCallerRealPidByStr(const std::string &str, size_t offset, size_t length, pid_t &callerRealPid);
+    bool GetCallerPidAndUidByStr(const std::string &str, size_t offset, pid_t &pid, pid_t &uid);
+
 private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;

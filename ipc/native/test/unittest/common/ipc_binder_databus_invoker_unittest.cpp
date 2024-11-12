@@ -41,6 +41,7 @@ const std::string DEVICE_ID_TEST = "deviceidTest";
 const std::string SESSION_NAME_TEST = "sessionNameTest";
 const std::string PEER_SESSION_NAME_TEST = "peerSessionNameTest";
 const std::string SERVICE_NAME_TEST = "serviceNameTest";
+const uint32_t DEVICEID_LENGTH_TEST = 64;
 }
 
 class IPCDbinderDataBusInvokerTest : public testing::Test {
@@ -774,7 +775,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, ResetCallingIdentityTest001, TestSize.Lev
  */
 HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest001, TestSize.Level1)
 {
-    #define DEVICEID_LENGTH_TEST 64
     uint64_t tokenId = 1;
     uint64_t pid = 1;
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
@@ -792,6 +792,35 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest001, TestSize.Level
     DBinderDatabusInvoker testInvoker;
     bool result = testInvoker.SetCallingIdentity(identity, false);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest002
+ * @tc.desc: SetCallingIdentity
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest002, TestSize.Level1)
+{
+    uint64_t testCallerTokenID = 1;
+    std::string testCallerDeviceID(DEVICEID_LENGTH_TEST, 'a');
+    pid_t testCallerPid = getpid();
+    pid_t testCallerUid = getuid();
+
+    std::stringstream ss;
+    ss << std::setw(DBinderDatabusInvoker::ACCESS_TOKEN_MAX_LEN) << std::setfill('0') << testCallerTokenID;
+    ss << testCallerDeviceID;
+    ss << std::to_string((static_cast<uint64_t>(testCallerUid) << PID_LEN) | static_cast<uint64_t>(testCallerPid));
+    std::string identity = ss.str();
+    std::cout << "identity=" << identity << std::endl;
+
+    DBinderDatabusInvoker testInvoker;
+    bool result = testInvoker.SetCallingIdentity(identity, false);
+    EXPECT_TRUE(result);
+
+    EXPECT_EQ(testInvoker.callerTokenID_, testCallerTokenID);
+    EXPECT_EQ(testInvoker.callerDeviceID_, testCallerDeviceID);
+    EXPECT_EQ(testInvoker.callerPid_, testCallerPid);
+    EXPECT_EQ(testInvoker.callerUid_, testCallerUid);
 }
 
 /**

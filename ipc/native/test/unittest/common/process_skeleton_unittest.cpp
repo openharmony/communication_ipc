@@ -223,3 +223,120 @@ HWTEST_F(ProcessSkeletonUnitTest, IsPrintTest001, TestSize.Level1)
     EXPECT_EQ(lastErr, 1);
     EXPECT_EQ(lastErrCnt, 0);
 }
+
+/**
+ * @tc.name: StrToUint64001
+ * @tc.desc: Verify the IsPrint function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, StrToUint64001, TestSize.Level1)
+{
+    uint64_t value = 0;
+    bool ret = false;
+
+    ret = ProcessSkeleton::StrToUint64("", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToUint64("1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 1);
+
+    std::string uint64MaxVal = std::to_string(UINT64_MAX);
+    ret = ProcessSkeleton::StrToUint64(uint64MaxVal, value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, UINT64_MAX);
+
+    // UINT64_MAX + 1
+    ret = ProcessSkeleton::StrToUint64("18446744073709551616", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("-0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToUint64("-1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, UINT64_MAX);
+
+    ret = ProcessSkeleton::StrToUint64("- 1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("a1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("1a", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("99999999999999999999", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("3.14", value);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: StrToInt32001
+ * @tc.desc: Verify the IsPrint function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, StrToInt32001, TestSize.Level1)
+{
+    int32_t value = 0;
+    bool ret = false;
+
+    ret = ProcessSkeleton::StrToInt32("", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToInt32("1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 1);
+
+    std::string int32MaxVal = std::to_string(INT32_MAX);
+    ret = ProcessSkeleton::StrToInt32(int32MaxVal, value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, INT32_MAX);
+
+    // INT32_MAX + 1
+    ret = ProcessSkeleton::StrToInt32("2147483648", value);
+    EXPECT_FALSE(ret);
+
+    std::string int32MinVal = std::to_string(INT32_MIN);
+    ret = ProcessSkeleton::StrToInt32(int32MinVal, value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, INT32_MIN);
+
+    // INT32_MIN - 1
+    ret = ProcessSkeleton::StrToInt32("-2147483649", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("-0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToInt32("-1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, -1);
+
+    ret = ProcessSkeleton::StrToInt32("- 1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("a1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("1a", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("99999999999999999999", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("3.14", value);
+    EXPECT_FALSE(ret);
+}
