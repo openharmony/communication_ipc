@@ -1651,45 +1651,39 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
     if (identity.empty() || identity.length() <= ACCESS_TOKEN_MAX_LEN) {
         return false;
     }
+    PrintIdentity(flag, true);
     auto pos = identity.find('<');
     if (pos == std::string::npos) {
+        ZLOGE(LABEL, "invliad identity");
         return false;
     }
-    PrintIdentity(flag, true);
-    std::string callerSid;
-    if (!ProcessSkeleton::GetSubStr(identity, callerSid, 0, pos)) {
-        ZLOGE(LABEL, "Identity param callerSid is invalid");
+    std::string callerSidStr;
+    if (!ProcessSkeleton::GetSubStr(identity, callerSidStr, 0, pos)) {
+        ZLOGE(LABEL, "get caller sid fail");
         return false;
     }
-    std::string tokenIdStr;
-    if (!ProcessSkeleton::GetSubStr(identity, tokenIdStr, pos + 1, ACCESS_TOKEN_MAX_LEN) ||
-        !ProcessSkeleton::IsNumStr(tokenIdStr)) {
-        ZLOGE(LABEL, "Identity param tokenId is invalid");
+    uint64_t callerTokenIdTmp = 0;
+    if (!GetUint64ValueByStrSlice(identity, pos + 1, ACCESS_TOKEN_MAX_LEN, callerTokenIdTmp)) {
+        ZLOGE(LABEL, "convert callerTokenId fail");
         return false;
     }
-    std::string realPidStr;
-    if (!ProcessSkeleton::GetSubStr(identity, realPidStr, pos + 1 + ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN) ||
-        !ProcessSkeleton::IsNumStr(realPidStr)) {
-        ZLOGE(LABEL, "Identity param realPid is invalid");
+    pid_t callerRealPidTmp = 0;
+    if (!GetCallerRealPidByStr(identity, pos + 1 + ACCESS_TOKEN_MAX_LEN, ACCESS_TOKEN_MAX_LEN, callerRealPidTmp)) {
+        ZLOGE(LABEL, "convert callerRealPid fail");
         return false;
     }
-    std::string pidUidStr;
+    pid_t callerPidTmp = 0;
+    pid_t callerUidTmp = 0;
     size_t offset = pos + 1 + ACCESS_TOKEN_MAX_LEN * PIDUID_OFFSET;
-    if (identity.length() <= offset) {
-        ZLOGE(LABEL, "Identity param no pidUid, len:%{public}zu, offset:%{public}zu", identity.length(), offset);
+    if (!GetCallerPidAndUidByStr(identity, offset, callerPidTmp, callerUidTmp)) {
+        ZLOGE(LABEL, "convert callerPid and callerUid fail");
         return false;
     }
-    size_t subLen = identity.length() - offset;
-    if (!ProcessSkeleton::GetSubStr(identity, pidUidStr, offset, subLen) || !ProcessSkeleton::IsNumStr(pidUidStr)) {
-        ZLOGE(LABEL, "Identity param pidUid is invalid");
-        return false;
-    }
-    callerSid_ = callerSid;
-    callerTokenID_ = std::stoull(tokenIdStr.c_str());
-    callerRealPid_ = static_cast<int>(std::stoull(realPidStr.c_str()));
-    uint64_t pidUid = std::stoull(pidUidStr.c_str());
-    callerUid_ = static_cast<int>(pidUid >> PID_LEN);
-    callerPid_ = static_cast<int>(pidUid);
+    callerSid_ = callerSidStr;
+    callerTokenID_ = callerTokenIdTmp;
+    callerRealPid_ = callerRealPidTmp;
+    callerPid_ = callerPidTmp;
+    callerUid_ = callerUidTmp;
     PrintIdentity(flag, false);
     return true;
 }
@@ -1825,6 +1819,82 @@ bool BinderInvoker::IsActvBinderService()
 }
 #endif // CONFIG_ACTV_BINDER
 
+bool BinderInvoker::GetUint64ValueByStrSlice(const std::string &str, size_t offset, size_t length, uint64_t &value)
+{
+    if (str.length() < offset + length) {
+        ZLOGE(LABEL, "illegal param, len:%{public}zu, offset:%{public}zu, length:%{public}zu", str.length(), offset,
+            length);
+        return false;
+    }
+
+    std::string subStr;
+    if (!ProcessSkeleton::GetSubStr(str, subStr, offset, length)) {
+        ZLOGE(LABEL, "get subStr fail");
+        return false;
+    }
+
+    uint64_t valueTmp = 0;
+    if (!ProcessSkeleton::StrToUint64(subStr, valueTmp)) {
+        ZLOGE(LABEL, "convert integer fail, substr:%{public}s", subStr.c_str());
+        return false;
+    }
+    value = valueTmp;
+    return true;
+}
+
+bool BinderInvoker::GetCallerRealPidByStr(const std::string &str, size_t offset, size_t length, pid_t &callerRealPid)
+{
+    if (str.length() < offset + length) {
+        ZLOGE(LABEL, "illegal param, len:%{public}zu, offset:%{public}zu, length:%{public}zu", str.length(), offset,
+            length);
+        return false;
+    }
+
+    std::string realPidStr;
+    if (!ProcessSkeleton::GetSubStr(str, realPidStr, offset, length)) {
+        ZLOGE(LABEL, "get realPidStr fail");
+        return false;
+    }
+
+    int32_t callerRealPidTmp = 0;
+    if (!ProcessSkeleton::StrToInt32(realPidStr, callerRealPidTmp)) {
+        ZLOGE(LABEL, "get callerRealPid fail, realPidStr:%{public}s", realPidStr.c_str());
+        return false;
+    }
+
+    if (callerRealPidTmp < 0) {
+        ZLOGE(LABEL, "illegal callerRealPid:%{public}d", callerRealPidTmp);
+        return false;
+    }
+
+    callerRealPid = static_cast<pid_t>(callerRealPidTmp);
+    return true;
+}
+
+bool BinderInvoker::GetCallerPidAndUidByStr(const std::string &str, size_t offset, pid_t &pid, pid_t &uid)
+{
+    if (str.length() <= offset) {
+        ZLOGE(LABEL, "illegal offset, len:%{public}zu, offset:%{public}zu", str.length(), offset);
+        return false;
+    }
+
+    uint64_t pidUid = 0;
+    if (!GetUint64ValueByStrSlice(str, offset, str.length() - offset, pidUid)) {
+        ZLOGE(LABEL, "get pidUid fail");
+        return false;
+    }
+
+    pid_t pidTmp = static_cast<pid_t>(pidUid);
+    pid_t uidTmp = static_cast<pid_t>(pidUid >> PID_LEN);
+    if (pidTmp < 0 || uidTmp < 0) {
+        ZLOGE(LABEL, "illegal pid and uid, pid:%{public}d, tid:%{public}d", pidTmp, uidTmp);
+        return false;
+    }
+
+    pid = pidTmp;
+    uid = uidTmp;
+    return true;
+}
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif

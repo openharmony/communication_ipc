@@ -79,6 +79,37 @@ HWTEST_F(BinderInvokerUnitTest, SetCallingIdentityTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetCallingIdentityTest003
+ * @tc.desc: Override SetCallingIdentity branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, SetCallingIdentityTest003, TestSize.Level1)
+{
+    std::string testCallerSid = "test";
+    uint64_t testCallerTokenID = 1;
+    pid_t testCallerRealPid = 1;
+    pid_t testCallerPid = getpid();
+    pid_t testCallerUid = getuid();
+
+    std::stringstream ss;
+    ss << testCallerSid << "<";
+    ss << std::setw(BinderInvoker::ACCESS_TOKEN_MAX_LEN) << std::setfill('0') << testCallerTokenID;
+    ss << std::setw(BinderInvoker::ACCESS_TOKEN_MAX_LEN) << std::setfill('0') << testCallerRealPid;
+    ss << std::to_string((static_cast<uint64_t>(testCallerUid) << PID_LEN) | static_cast<uint64_t>(testCallerPid));
+    std::string identity = ss.str();
+    std::cout << "identity=" << identity << std::endl;
+
+    BinderInvoker binderInvoker;
+    bool ret = binderInvoker.SetCallingIdentity(identity, false);
+    EXPECT_TRUE(ret);
+
+    EXPECT_EQ(binderInvoker.callerSid_, testCallerSid);
+    EXPECT_EQ(binderInvoker.callerTokenID_, testCallerTokenID);
+    EXPECT_EQ(binderInvoker.callerPid_, testCallerPid);
+    EXPECT_EQ(binderInvoker.callerUid_, testCallerUid);
+}
+
+/**
  * @tc.name: ReadFileDescriptor001
  * @tc.desc: Verify the ReadFileDescriptor function
  * @tc.type: FUNC
