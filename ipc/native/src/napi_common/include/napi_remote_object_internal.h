@@ -51,6 +51,18 @@ struct OperateJsRefParam {
     ThreadLockInfo *lockInfo;
 };
 
+class NapiScopeHandler {
+public:
+    NapiScopeHandler(napi_env env);
+    ~NapiScopeHandler();
+
+    bool IsValid();
+private:
+    napi_env env_;
+    napi_handle_scope scope_;
+    bool isValid_ = false;
+};
+
 class NAPIRemoteObject : public IPCObjectStub {
 public:
     NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor);
