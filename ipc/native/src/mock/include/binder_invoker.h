@@ -156,7 +156,7 @@ public:
 #endif // CONFIG_ACTV_BINDER
 
 protected:
-    bool isMainWorkThread;
+    std::atomic<bool> isMainWorkThread;
     bool stopWorkThread;
     pid_t callerPid_;
     pid_t callerRealPid_;
