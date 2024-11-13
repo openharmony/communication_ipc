@@ -589,7 +589,7 @@ NapiScopeHandler::NapiScopeHandler(napi_env env) : env_(env)
 {
     napi_status status = napi_open_handle_scope(env_, &scope_);
     if (status != napi_ok) {
-        ZLOGE(LOG_LABEL, "napi_open_handle_scope failed, status:%{public}d", status);
+        ZLOGE(LOG_LABEL, "open handle scope failed, status:%{public}d", status);
         isValid_ = false;
     } else {
         isValid_ = true;
@@ -601,7 +601,7 @@ NapiScopeHandler::~NapiScopeHandler()
     if (isValid_) {
         napi_status status = napi_close_handle_scope(env_, scope_);
         if (status != napi_ok) {
-            ZLOGE(LOG_LABEL, "napi_close_handle_scope failed, status:%{public}d", status);
+            ZLOGE(LOG_LABEL, "close handle scope failed, status:%{public}d", status);
         }
     }
 }
