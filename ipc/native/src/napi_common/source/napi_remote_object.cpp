@@ -367,7 +367,7 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
     CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
 
     NapiScopeHandler scopeHandler(param->env);
-    if (!scopeHandler.IsValid()){
+    if (!scopeHandler.IsValid()) {
         return;
     }
 
