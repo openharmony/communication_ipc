@@ -956,7 +956,7 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
     napi_status status = napi_wrap(
         env, thisVar, napiAshmem,
         [](napi_env env, void *data, void *hint) {
-            ZLOGI(LOG_LABEL, "Ashmem destructed by js callback");
+            ZLOGD(LOG_LABEL, "Ashmem destructed by js callback");
             delete (reinterpret_cast<NAPIAshmem *>(data));
         },
         nullptr, nullptr);
