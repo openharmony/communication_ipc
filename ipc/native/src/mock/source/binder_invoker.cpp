@@ -90,12 +90,12 @@ BinderInvoker::BinderInvoker()
         reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
-    ZLOGI(LABEL, "created invoker %{public}u", ProcessSkeleton::ConvertAddr(this));
+    ZLOGD(LABEL, ":%{public}u", ProcessSkeleton::ConvertAddr(this));
 }
 
 BinderInvoker::~BinderInvoker()
 {
-    ZLOGI(LABEL, "destroyed invoker %{public}u", ProcessSkeleton::ConvertAddr(this));
+    ZLOGD(LABEL, ":%{public}u", ProcessSkeleton::ConvertAddr(this));
     auto current = ProcessSkeleton::GetInstance();
     if (current != nullptr) {
         current->DetachInvokerProcInfo(true);
@@ -1012,7 +1012,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
 {
     auto start = std::chrono::steady_clock::now();
     int error = HandleCommandsInner(cmd);
-    if (error != ERR_NONE) {
+    if (error != ERR_NONE && error != -ERR_TIMED_OUT) {
         if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
             ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
             PrintParcelData(input_, "input_");

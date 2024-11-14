@@ -418,7 +418,6 @@ napi_value NAPI_RemoteProxy_checkRegisterDeathRecipientArgs(napi_env env, size_t
 
 napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "register death recipient");
     size_t argc = 2;
     napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
@@ -453,20 +452,19 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
     }
 
     sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
-    if (target->AddDeathRecipient(nativeRecipient)) {
+    bool ret = target->AddDeathRecipient(nativeRecipient);
+    if (ret) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
-        if (list->Add(nativeRecipient)) {
-            ZLOGD(LOG_LABEL, "register recipient success");
-        }
+        list->Add(nativeRecipient);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
+    ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
     return result;
 }
 
 napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "remove death recipient");
     size_t argc = 2;
     napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
@@ -507,14 +505,14 @@ napi_value NAPI_RemoteProxy_removeDeathRecipient(napi_env env, napi_callback_inf
         napi_get_boolean(env, false, &result);
         return result;
     }
-    target->RemoveDeathRecipient(nativeRecipient);
+    bool ret = target->RemoveDeathRecipient(nativeRecipient);
     if (list->Remove(nativeRecipient)) {
         napi_get_boolean(env, true, &result);
-        return result;
     } else {
         napi_get_boolean(env, false, &result);
-        return result;
     }
+    ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
+    return result;
 }
 
 napi_value NAPI_RemoteProxy_checkUnregisterDeathRecipientArgs(napi_env env, size_t argc, napi_value* argv)
@@ -646,7 +644,7 @@ napi_value NAPI_RemoteProxy_getDescriptor(napi_env env, napi_callback_info info)
 
 napi_value NAPI_RemoteProxy_isObjectDead(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "call isObjectDead");
+    ZLOGD(LOG_LABEL, "call isObjectDead");
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     NAPIRemoteProxyHolder *holder = nullptr;
