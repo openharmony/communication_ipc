@@ -32,168 +32,96 @@ namespace OHOS {
         IPCSkeleton::SetMaxWorkThreadNum(maxThreadNum);
     }
 
-    void StopWorkThreadTest(const uint8_t* data, size_t size)
+    void StopWorkThreadTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::StopWorkThread();
     }
 
-    void GetCallingSidTest(const uint8_t* data, size_t size)
+    void GetCallingSidTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetCallingSid();
     }
 
-    void GetCallingPidTest(const uint8_t* data, size_t size)
+    void GetCallingPidTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetCallingPid();
     }
 
-    void GetCallingRealPidTest(const uint8_t* data, size_t size)
+    void GetCallingRealPidTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetCallingRealPid();
     }
 
-    void GetCallingUidTest(const uint8_t* data, size_t size)
+    void GetCallingUidTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetCallingUid();
     }
 
-    void GetCallingTokenIDTest(const uint8_t* data, size_t size)
+    void GetCallingTokenIDTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton skeleton = IPCSkeleton::GetInstance();
         skeleton.GetCallingTokenID();
     }
 
-    void GetFirstTokenIDTest(const uint8_t* data, size_t size)
+    void GetFirstTokenIDTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton skeleton = IPCSkeleton::GetInstance();
         skeleton.GetFirstTokenID();
     }
 
-    void GetFirstFullTokenIDTest(const uint8_t* data, size_t size)
+    void GetFirstFullTokenIDTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetFirstFullTokenID();
     }
 
-    void GetSelfTokenIDTest(const uint8_t* data, size_t size)
+    void GetSelfTokenIDTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetSelfTokenID();
     }
 
-    void GetLocalDeviceIDTest(const uint8_t* data, size_t size)
+    void GetLocalDeviceIDTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetLocalDeviceID();
     }
 
-    void GetCallingDeviceIDTest(const uint8_t* data, size_t size)
+    void GetCallingDeviceIDTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetCallingDeviceID();
     }
 
-    void IsLocalCallingTest(const uint8_t* data, size_t size)
+    void IsLocalCallingTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::IsLocalCalling();
     }
 
-    void GetInstanceTest(const uint8_t* data, size_t size)
+    void GetInstanceTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetInstance();
     }
 
-    void GetContextObjectTest(const uint8_t* data, size_t size)
+    void GetContextObjectTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::GetContextObject();
     }
 
-    void SetContextObjectTest(const uint8_t* data, size_t size)
+    void SetContextObjectTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         sptr<IRemoteObject> object;
         IPCSkeleton::SetContextObject(object);
     }
 
-    void FlushCommandsTest(const uint8_t* data, size_t size)
+    void FlushCommandsTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::FlushCommands(nullptr);
     }
 
-    void ResetCallingIdentityTest(const uint8_t* data, size_t size)
+    void ResetCallingIdentityTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         IPCSkeleton::ResetCallingIdentity();
     }
 
-    void SetCallingIdentityTest(const uint8_t* data, size_t size)
+    void SetCallingIdentityTest()
     {
-        if (data == nullptr || size < sizeof(uint32_t)) {
-            return;
-        }
-
         std::string identity = "identity";
         IPCSkeleton::SetCallingIdentity(identity);
     }
@@ -204,24 +132,24 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::SetMaxWorkThreadNumTest(data, size);
-    OHOS::StopWorkThreadTest(data, size);
-    OHOS::GetCallingSidTest(data, size);
-    OHOS::GetCallingPidTest(data, size);
-    OHOS::GetCallingRealPidTest(data, size);
-    OHOS::GetCallingUidTest(data, size);
-    OHOS::GetCallingTokenIDTest(data, size);
-    OHOS::GetFirstTokenIDTest(data, size);
-    OHOS::GetFirstFullTokenIDTest(data, size);
-    OHOS::GetSelfTokenIDTest(data, size);
-    OHOS::GetLocalDeviceIDTest(data, size);
-    OHOS::GetCallingDeviceIDTest(data, size);
-    OHOS::IsLocalCallingTest(data, size);
-    OHOS::GetInstanceTest(data, size);
-    OHOS::GetContextObjectTest(data, size);
-    OHOS::SetContextObjectTest(data, size);
-    OHOS::FlushCommandsTest(data, size);
-    OHOS::ResetCallingIdentityTest(data, size);
-    OHOS::SetCallingIdentityTest(data, size);
+    OHOS::StopWorkThreadTest();
+    OHOS::GetCallingSidTest();
+    OHOS::GetCallingPidTest();
+    OHOS::GetCallingRealPidTest();
+    OHOS::GetCallingUidTest();
+    OHOS::GetCallingTokenIDTest();
+    OHOS::GetFirstTokenIDTest();
+    OHOS::GetFirstFullTokenIDTest();
+    OHOS::GetSelfTokenIDTest();
+    OHOS::GetLocalDeviceIDTest();
+    OHOS::GetCallingDeviceIDTest();
+    OHOS::IsLocalCallingTest();
+    OHOS::GetInstanceTest();
+    OHOS::GetContextObjectTest();
+    OHOS::SetContextObjectTest();
+    OHOS::FlushCommandsTest();
+    OHOS::ResetCallingIdentityTest();
+    OHOS::SetCallingIdentityTest();
 
     return 0;
 }
