@@ -54,14 +54,12 @@ static const uint64_t HITRACE_TAG_RPC = (1ULL << 46); // RPC and IPC tag.
 static std::atomic<int32_t> bytraceId = 1000;
 static NapiError napiErr;
 
-static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_handle_scope &scope,
-    const char *errDesc)
+static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, const char *errDesc)
 {
     if (value == nullptr) {
         ZLOGE(LOG_LABEL, "%{public}s", errDesc);
         param->result = -1;
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-        napi_close_handle_scope(param->env, scope);
         param->lockInfo->ready = true;
         param->lockInfo->condition.notify_all();
         return false;
@@ -70,10 +68,10 @@ static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_
 }
 
 static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value thisVar, napi_value &onRemoteRequest,
-    bool &isOnRemoteMessageRequest, napi_handle_scope &scope)
+    bool &isOnRemoteMessageRequest)
 {
     napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
-    if (!IsValidParamWithNotify(onRemoteRequest, param, scope, "get function onRemoteMessageRequest failed")) {
+    if (!IsValidParamWithNotify(onRemoteRequest, param, "get function onRemoteMessageRequest failed")) {
         return false;
     }
     isOnRemoteMessageRequest = true;
@@ -82,7 +80,7 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value 
     napi_typeof(param->env, onRemoteRequest, &type);
     if (type != napi_function) {
         napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
-        if (!IsValidParamWithNotify(onRemoteRequest, param, scope, "get function onRemoteRequest failed")) {
+        if (!IsValidParamWithNotify(onRemoteRequest, param, "get function onRemoteRequest failed")) {
             return false;
         }
         isOnRemoteMessageRequest = false;
@@ -90,12 +88,11 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value 
     return true;
 }
 
-static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption,
-    napi_handle_scope &scope)
+static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption)
 {
     napi_value jsOptionConstructor = nullptr;
     napi_get_named_property(param->env, global, "IPCOptionConstructor_", &jsOptionConstructor);
-    if (!IsValidParamWithNotify(jsOptionConstructor, param, scope, "jsOption constructor is null")) {
+    if (!IsValidParamWithNotify(jsOptionConstructor, param, "jsOption constructor is null")) {
         return false;
     }
 
@@ -106,42 +103,42 @@ static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_v
     napi_create_int32(param->env, param->option->GetWaitTime(), &waittime);
     napi_value argv[ARGV_LENGTH_2] = { flags, waittime };
     napi_new_instance(param->env, jsOptionConstructor, argc, argv, &jsOption);
-    if (!IsValidParamWithNotify(jsOption, param, scope, "new jsOption failed")) {
+    if (!IsValidParamWithNotify(jsOption, param, "new jsOption failed")) {
         return false;
     }
     return true;
 }
 
 static bool GetJsParcelConstructor(CallbackParam *param, const napi_value global, bool isOnRemoteMessageRequest,
-    napi_value &jsParcelConstructor, napi_handle_scope &scope)
+    napi_value &jsParcelConstructor)
 {
     if (isOnRemoteMessageRequest) {
         napi_get_named_property(param->env, global, "IPCSequenceConstructor_", &jsParcelConstructor);
     } else {
         napi_get_named_property(param->env, global, "IPCParcelConstructor_", &jsParcelConstructor);
     }
-    if (!IsValidParamWithNotify(jsParcelConstructor, param, scope, "jsParcel constructor is null")) {
+    if (!IsValidParamWithNotify(jsParcelConstructor, param, "jsParcel constructor is null")) {
         return false;
     }
     return true;
 }
 
 static bool CreateJsParcel(CallbackParam *param, const napi_value jsParcelConstructor, napi_value &jsParcel,
-    bool isJsDataParcel, napi_handle_scope &scope)
+    bool isJsDataParcel)
 {
     napi_value parcel;
     napi_create_object(param->env, &parcel);
     napi_wrap(param->env, parcel, isJsDataParcel ? param->data : param->reply,
         [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
 
-    if (!IsValidParamWithNotify(parcel, param, scope, "create js parcel object failed")) {
+    if (!IsValidParamWithNotify(parcel, param, "create js parcel object failed")) {
         return false;
     }
 
     size_t argc = 1;
     napi_value argv[1] = { parcel };
     napi_new_instance(param->env, jsParcelConstructor, argc, argv, &jsParcel);
-    if (!IsValidParamWithNotify(parcel, param, scope,
+    if (!IsValidParamWithNotify(parcel, param,
         isJsDataParcel ? "create js data parcel failed" : "create js reply parcel failed")) {
         return false;
     }
@@ -312,7 +309,7 @@ static bool CallPromiseThen(CallbackParam *param, napi_value &thenValue, napi_va
 }
 
 static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRemoteRequest, napi_value &thisVar,
-    const napi_value *argv, napi_handle_scope &scope)
+    const napi_value *argv)
 {
     NAPI_RemoteObject_saveOldCallingInfoInner(param->env, param->oldCallingInfo);
     NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
@@ -357,7 +354,6 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
     // Reset old calling pid, uid, device id
     NAPI_RemoteObject_resetOldCallingInfoInner(param->env, param->oldCallingInfo);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    napi_close_handle_scope(param->env, scope);
     param->lockInfo->ready = true;
     param->lockInfo->condition.notify_all();
 }
@@ -369,18 +365,21 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
 
     ZLOGI(LOG_LABEL, "enter thread pool time:%{public}" PRIu64, curTime);
     CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
+
+    NapiScopeHandler scopeHandler(param->env);
+    if (!scopeHandler.IsValid()) {
+        return;
+    }
 
     napi_value thisVar = nullptr;
     napi_get_reference_value(param->env, param->thisVarRef, &thisVar);
-    if (!IsValidParamWithNotify(thisVar, param, scope, "thisVar is null")) {
+    if (!IsValidParamWithNotify(thisVar, param, "thisVar is null")) {
         return;
     }
 
     napi_value onRemoteRequest = nullptr;
     bool isOnRemoteMessageRequest = true;
-    if (!GetJsOnRemoteRequestCallback(param, thisVar, onRemoteRequest, isOnRemoteMessageRequest, scope)) {
+    if (!GetJsOnRemoteRequestCallback(param, thisVar, onRemoteRequest, isOnRemoteMessageRequest)) {
         return;
     }
 
@@ -389,7 +388,7 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
 
     napi_value global = nullptr;
     napi_get_global(param->env, &global);
-    if (!IsValidParamWithNotify(global, param, scope, "get napi global failed")) {
+    if (!IsValidParamWithNotify(global, param, "get napi global failed")) {
         return;
     }
 
@@ -397,15 +396,15 @@ static void OnJsRemoteRequestCallBack(uv_work_t *work, int status)
     napi_value jsParcelConstructor = nullptr;
     napi_value jsData = nullptr;
     napi_value jsReply = nullptr;
-    if (!CreateJsOption(param, global, jsOption, scope) ||
-        !GetJsParcelConstructor(param, global, isOnRemoteMessageRequest, jsParcelConstructor, scope) ||
-        !CreateJsParcel(param, jsParcelConstructor, jsData, true, scope) ||
-        !CreateJsParcel(param, jsParcelConstructor, jsReply, false, scope)) {
+    if (!CreateJsOption(param, global, jsOption) ||
+        !GetJsParcelConstructor(param, global, isOnRemoteMessageRequest, jsParcelConstructor) ||
+        !CreateJsParcel(param, jsParcelConstructor, jsData, true) ||
+        !CreateJsParcel(param, jsParcelConstructor, jsReply, false)) {
         return;
     }
 
     napi_value argv[ARGV_LENGTH_4] = { jsCode, jsData, jsReply, jsOption };
-    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, argv, scope);
+    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, argv);
 }
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
@@ -584,6 +583,32 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     return thisVar;
+}
+
+NapiScopeHandler::NapiScopeHandler(napi_env env) : env_(env)
+{
+    napi_status status = napi_open_handle_scope(env_, &scope_);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "open handle scope failed, status:%{public}d", status);
+        isValid_ = false;
+    } else {
+        isValid_ = true;
+    }
+}
+
+NapiScopeHandler::~NapiScopeHandler()
+{
+    if (isValid_) {
+        napi_status status = napi_close_handle_scope(env_, scope_);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "close handle scope failed, status:%{public}d", status);
+        }
+    }
+}
+
+bool NapiScopeHandler::IsValid()
+{
+    return isValid_;
 }
 
 NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef,
