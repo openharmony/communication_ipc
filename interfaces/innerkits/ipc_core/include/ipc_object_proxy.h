@@ -242,7 +242,7 @@ public:
 
     void SetObjectDied(bool isDied);
 
-#if !defined EMULATOR_PLATFORM && !defined ARKUI_X_PLATFORM
+#ifdef OHOS_PLATFORM
     bool CanPromote() override;
 #endif
 

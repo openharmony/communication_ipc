@@ -26,8 +26,8 @@ config("ipc_all_deps_config") {
   if (is_emulator == true) {
     defines = [ "EMULATOR_PLATFORM" ]
   }
-  if (is_arkui_x == true) {
-    defines += [ "ARKUI_X_PLATFORM" ]
+  if (current_os == "ohos") {
+    defines += [ "OHOS_PLATFORM" ]
   }
 }
 
