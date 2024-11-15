@@ -18,11 +18,8 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 config("ipc_all_deps_config") {
   include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
-  if (is_emulator) {
-    defines = [ "EMULATOR_PLATFORM" ]
-  }
   if (current_os == "ohos") {
-    defines += [ "OHOS_PLATFORM" ]
+    defines = [ "OHOS_PLATFORM" ]
   }
 }
 
