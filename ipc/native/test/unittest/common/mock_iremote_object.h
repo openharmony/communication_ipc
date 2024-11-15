@@ -38,7 +38,7 @@ public:
     MockIPCObjectProxy() : IPCObjectProxy(1, u"mockProxyService") {};
     ~MockIPCObjectProxy() {};
 
-#if !defined EMULATOR_PLATFORM && !defined ARKUI_X_PLATFORM
+#ifdef OHOS_PLATFORM
     MOCK_METHOD0(CanPromote, bool());
 #endif
     MOCK_METHOD0(GetObjectRefCount, int32_t());
