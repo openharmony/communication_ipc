@@ -59,7 +59,7 @@ static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, napi_
 {
     if (value == nullptr) {
         ZLOGE(LOG_LABEL, "%{public}s", errDesc);
-        param->result = ERR_INVALID_PARAM;
+        param->result = IPC_INVALID_PARAM_ERR;
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         napi_close_handle_scope(param->env, scope);
         param->lockInfo->ready = true;
@@ -174,7 +174,7 @@ static bool GetPromiseThen(CallbackParam *param, const napi_value returnVal, nap
     napi_get_named_property(param->env, returnVal, "then", &promiseThen);
     if (promiseThen == nullptr) {
         ZLOGE(LOG_LABEL, "get promiseThen failed");
-        param->result = ERR_INVALID_PARAM;
+        param->result = IPC_INVALID_PARAM_ERR;
         return false;
     }
     return true;
@@ -611,7 +611,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
         if (param == nullptr) {
             delete work;
             NAPI_ASSERT_RETURN_VOID(env_, false, "new OperateJsRefParam failed");
-        } 
+        }
 
         work->data = reinterpret_cast<void *>(param);
         int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
@@ -836,7 +836,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     }, OnJsRemoteRequestCallBack, uv_qos_user_initiated);
     int ret = 0;
     if (uvRet != 0) {
-        ZLOGE(LOG_LABEL, "uv_queue_work_with_qos failed, ret:%{public}d", uvRet); 
+        ZLOGE(LOG_LABEL, "uv_queue_work_with_qos failed, ret:%{public}d", uvRet);
         ret = ERR_START_UV_WORK;
     } else {
         std::unique_lock<std::mutex> lock(jsParam->lockInfo->mutex);
