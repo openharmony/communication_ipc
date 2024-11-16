@@ -54,7 +54,7 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    uv_work_t *work = new(std::nothrow) uv_work_t;
+    uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         ZLOGE(LOG_LABEL, "failed to new work");
         return;
@@ -65,6 +65,7 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
     };
     if (param == nullptr) {
         ZLOGE(LOG_LABEL, "new OperateJsRefParam failed");
+        delete work;
         return;
     }
     work->data = reinterpret_cast<void *>(param);
@@ -83,6 +84,8 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
         delete work;
     });
     if (uvRet != 0) {
+        delete param;
+        delete work;
         ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
     }
 }

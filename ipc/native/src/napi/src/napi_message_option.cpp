@@ -198,10 +198,7 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
     }
 
     auto messageOption = new (std::nothrow) MessageOption(flags, waitTime);
-    if (messageOption == nullptr) {
-        ZLOGE(LOG_LABEL, "new MessageOption failed");
-        return nullptr;
-    }
+    NAPI_ASSERT(env, messageOption != nullptr, "new MessageOption failed");
     // connect native message option to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, messageOption,
@@ -211,9 +208,8 @@ static napi_value NAPIMessageOption_JS_Constructor(napi_env env, napi_callback_i
         },
         nullptr, nullptr);
     if (status != napi_ok) {
-        ZLOGE(LOG_LABEL, "wrap js MessageOption and native option failed. status is %{public}d", status);
         delete messageOption;
-        return nullptr;
+        NAPI_ASSERT(env, false, "wrap js MessageOption and native option failed");
     }
     return thisVar;
 }
