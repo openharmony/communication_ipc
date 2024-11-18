@@ -1210,7 +1210,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession001, TestSize.Level1)
     std::shared_ptr<DBinderSessionObject> session =
         std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, serverDeviceId, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
     uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
     EXPECT_EQ(ret, 0);
@@ -1231,7 +1231,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession002, TestSize.Level1)
     std::shared_ptr<DBinderSessionObject> session =
         std::make_shared<DBinderSessionObject>(serviceName, DEVICE_ID_TEST, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
     uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
     EXPECT_EQ(ret, 0);
@@ -1251,7 +1251,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession003, TestSize.Level1)
     std::shared_ptr<DBinderSessionObject> session =
         std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
     uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
     EXPECT_EQ(ret, 280);
@@ -1269,7 +1269,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession001, TestSize.Level1)
     uint64_t stubIndex = 0;
     FlatDBinderSession flatDBinderSession;
     flatDBinderSession.stubIndex = 0;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.UnFlattenSession(sessionOffset, stubIndex);
     EXPECT_EQ(ret, nullptr);
 }
@@ -1287,7 +1287,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession002, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.UnFlattenSession(sessionOffset, stubIndex);
     EXPECT_EQ(ret, nullptr);
 }
@@ -1629,7 +1629,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession003, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1651,7 +1651,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession004, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1673,7 +1673,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession005, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1695,7 +1695,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession006, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM - 1;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
