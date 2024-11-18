@@ -33,6 +33,12 @@ public:
         IDLE_INVOKER,
         ACTIVE_INVOKER,
     };
+
+    struct RemoteObjectSerializedInfo {
+        uint32_t type;
+        size_t size;
+    };
+
     virtual ~IRemoteInvoker() = default;
     virtual bool AcquireHandle(int32_t handle) = 0;
 
@@ -103,12 +109,32 @@ public:
 
     virtual bool EnableIPCThreadReclaim(bool enable) = 0;
 
+    static inline size_t GetRemoteObjectSize(uint32_t objType)
+    {
+        size_t count = sizeof(remoteObjectInfo_) / sizeof(remoteObjectInfo_[0]);
+        for (size_t idx = 0; idx < count; ++idx) {
+            if (objType == remoteObjectInfo_[idx].type) {
+                return remoteObjectInfo_[idx].size;
+            }
+        }
+        return 0;
+    };
+
 #ifndef CONFIG_IPC_SINGLE
     virtual sptr<IRemoteObject> GetSAMgrObject() = 0;
 
     virtual int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) = 0;
-
 #endif
+
+private:
+    static constexpr RemoteObjectSerializedInfo remoteObjectInfo_[] = {
+        { BINDER_TYPE_BINDER, sizeof(flat_binder_object) },
+        { BINDER_TYPE_HANDLE, sizeof(flat_binder_object) },
+        { BINDER_TYPE_FD, sizeof(binder_fd_object) },
+        { BINDER_TYPE_PTR, sizeof(binder_buffer_object) },
+        { BINDER_TYPE_REMOTE_HANDLE, sizeof(flat_binder_object) },
+        { BINDER_TYPE_FDR, sizeof(binder_fd_object) },
+    };
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

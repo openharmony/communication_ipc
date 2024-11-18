@@ -269,25 +269,29 @@ bool DBinderDatabusInvoker::CreateProcessThread()
 
 void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize)
 {
-    ZLOGI(LOG_LABEL, "socketId:%{public}d, size:%{public}u", socketId, dataSize);
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return;
     }
 
+    bool isSucc = false;
     uint32_t rawDataSize = dataSize - sizeof(dbinder_transaction_data);
     if (rawDataSize > 0 && rawDataSize <= MAX_RAWDATA_SIZE - sizeof(dbinder_transaction_data)) {
         std::shared_ptr<InvokerRawData> invokerRawData = std::make_shared<InvokerRawData>(rawDataSize);
         if (memcpy_s(invokerRawData->GetData().get(), rawDataSize, data + sizeof(dbinder_transaction_data),
             rawDataSize) != EOK) {
-            ZLOGE(LOG_LABEL, "memcpy_s failed , size:%{public}u", rawDataSize);
+            ZLOGE(LOG_LABEL, "memcpy_s failed, socketId:%{public}d size:%{public}u", socketId, rawDataSize);
             return;
         }
         if (!current->AttachRawData(socketId, invokerRawData)) {
+            ZLOGE(LOG_LABEL, "AttachRawData failed, socketId:%{public}d size:%{public}u", socketId, rawDataSize);
             return;
         }
+        isSucc = true;
     }
+    ZLOGI(LOG_LABEL, "%{public}s, socketId:%{public}d size:%{public}u", isSucc ? "succ" : "fail",
+        socketId, rawDataSize);
     return;
 }
 
@@ -448,7 +452,7 @@ void DBinderDatabusInvoker::StopWorkThread()
     stopWorkThread_ = true;
 }
 
-uint32_t DBinderDatabusInvoker::FlattenSession(char *sessionOffset,
+uint32_t DBinderDatabusInvoker::FlattenSession(unsigned char *sessionOffset,
     const std::shared_ptr<DBinderSessionObject> connectSession, uint32_t binderVersion)
 {
     FlatDBinderSession *flatSession = reinterpret_cast<FlatDBinderSession *>(sessionOffset);
@@ -490,7 +494,7 @@ uint32_t DBinderDatabusInvoker::FlattenSession(char *sessionOffset,
     return sizeof(struct FlatDBinderSession);
 }
 
-std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::UnFlattenSession(char *sessionOffset,
+std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::UnFlattenSession(unsigned char *sessionOffset,
     uint32_t binderVersion)
 {
     FlatDBinderSession *flatSession = reinterpret_cast<FlatDBinderSession *>(sessionOffset);
@@ -790,13 +794,29 @@ int DBinderDatabusInvoker::CheckAndSetCallerInfo(int32_t socketId, uint64_t stub
             IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(), socketId, callerTokenId);
         return RPC_DATABUS_INVOKER_INVALID_STUB_INDEX;
     }
-    callerPid_ = pid;
-    callerUid_ = uid;
-    callerDeviceID_ = deviceId;
-    clientFd_ = socketId;
-    callerTokenID_ = callerTokenId;
-    firstTokenID_ = callerTokenId;
+    DBinderCallerInfo callerInfo = { pid, uid, socketId, callerTokenId, callerTokenId, deviceId };
+    SetCallerInfo(callerInfo);
     return ERR_NONE;
+}
+
+void DBinderDatabusInvoker::SetCallerInfo(DBinderCallerInfo &callerInfo)
+{
+    callerPid_ = callerInfo.callerPid;
+    callerUid_ = callerInfo.callerUid;
+    callerDeviceID_ = callerInfo.callerDeviceID;
+    clientFd_ = callerInfo.clientFd;
+    callerTokenID_ = callerInfo.callerTokenID;
+    firstTokenID_ = callerInfo.firstTokenID;
+}
+
+void DBinderDatabusInvoker::GetCallerInfo(DBinderCallerInfo &callerInfo)
+{
+    callerInfo.callerPid = callerPid_;
+    callerInfo.callerUid = callerUid_;
+    callerInfo.callerDeviceID = callerDeviceID_;
+    callerInfo.clientFd = clientFd_;
+    callerInfo.callerTokenID = callerTokenID_;
+    callerInfo.firstTokenID = firstTokenID_;
 }
 
 std::string DBinderDatabusInvoker::GetLocalDeviceID()

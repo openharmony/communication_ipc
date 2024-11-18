@@ -84,6 +84,23 @@ IPCProcessSkeleton::IPCProcessSkeleton()
 #endif
 }
 
+IPCProcessSkeleton::~IPCProcessSkeleton()
+{
+    ZLOGI(LOG_LABEL, "enter");
+    std::lock_guard<std::mutex> lockGuard(procMutex_);
+    exitFlag_ = true;
+    delete threadPool_;
+    threadPool_ = nullptr;
+
+#ifndef CONFIG_IPC_SINGLE
+    ClearDataResource();
+    if (listenSocketId_ > 0) {
+        DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+        listenSocketId_ = 0;
+    }
+#endif
+}
+
 std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
 {
     size_t len = str.size();
@@ -143,23 +160,6 @@ void IPCProcessSkeleton::ClearDataResource()
     }
 }
 #endif
-
-IPCProcessSkeleton::~IPCProcessSkeleton()
-{
-    ZLOGI(LOG_LABEL, "enter");
-    std::lock_guard<std::mutex> lockGuard(procMutex_);
-    exitFlag_ = true;
-    delete threadPool_;
-    threadPool_ = nullptr;
-
-#ifndef CONFIG_IPC_SINGLE
-    ClearDataResource();
-    if (listenSocketId_ > 0) {
-        DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
-        listenSocketId_ = 0;
-    }
-#endif
-}
 
 sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
 {

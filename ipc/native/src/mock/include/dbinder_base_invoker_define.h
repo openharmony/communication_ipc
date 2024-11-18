@@ -43,6 +43,15 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_
 
 template <class T> class DBinderBaseInvoker : public IRemoteInvoker {
 public:
+    struct DBinderCallerInfo {
+        pid_t callerPid;
+        pid_t callerUid;
+        int32_t clientFd;
+        uint64_t callerTokenID;
+        uint64_t firstTokenID;
+        std::string callerDeviceID;
+    };
+
     class DBinderSendAllocator : public DefaultAllocator {
         void Dealloc(void *data) override;
 
@@ -80,9 +89,9 @@ public:
     virtual std::shared_ptr<T> NewSessionOfBinderProxy(uint32_t handle, std::shared_ptr<T> session) = 0;
     virtual std::shared_ptr<T> QuerySessionOfBinderProxy(uint32_t handle, std::shared_ptr<T> session) = 0;
     virtual std::shared_ptr<T> CreateServerSessionObject(binder_uintptr_t binder, std::shared_ptr<T> sessionObject) = 0;
-    virtual uint32_t FlattenSession(char *sessionOffset, const std::shared_ptr<T> connectSession,
+    virtual uint32_t FlattenSession(unsigned char *sessionOffset, const std::shared_ptr<T> connectSession,
         uint32_t binderVersion) = 0;
-    virtual std::shared_ptr<T> UnFlattenSession(char *sessionOffset, uint32_t binderVersion) = 0;
+    virtual std::shared_ptr<T> UnFlattenSession(unsigned char *sessionOffset, uint32_t binderVersion) = 0;
     virtual int OnSendMessage(std::shared_ptr<T> sessionOfPeer) = 0;
     virtual bool CreateProcessThread() = 0;
     virtual uint64_t GetSeqNum() const = 0;
@@ -95,6 +104,8 @@ public:
     virtual void SetCallerDeviceID(const std::string &deviceId) = 0;
     virtual void SetCallerTokenID(const uint32_t tokenId) = 0;
     virtual int CheckAndSetCallerInfo(int32_t socketId, uint64_t stubIndex) = 0;
+    virtual void SetCallerInfo(DBinderCallerInfo &callerInfo) = 0;
+    virtual void GetCallerInfo(DBinderCallerInfo &callerInfo) = 0;
     virtual int OnSendRawData(std::shared_ptr<T> session, const void *data, size_t size) = 0;
     bool CheckTransactionData(const dbinder_transaction_data *tr) const;
     std::mutex &GetObjectMutex();
@@ -102,20 +113,29 @@ public:
     void PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data, size_t length);
 
 private:
-    uint32_t TranslateBinderType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
-    uint32_t TranslateHandleType(flat_binder_object *binderObject, char *sessionOffset, std::shared_ptr<T> session);
+    uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,
+        std::shared_ptr<T> session);
+    uint32_t TranslateHandleType(flat_binder_object *binderObject, unsigned char *sessionOffset,
+        std::shared_ptr<T> session);
     void ClearBinderType(flat_binder_object *binderObject);
     void ClearHandleType(flat_binder_object *binderObject);
-    bool TranslateRemoteHandleType(flat_binder_object *binderObject, char *sessionOffset, uint32_t binderVersion);
+    bool TranslateRemoteHandleType(flat_binder_object *binderObject, unsigned char *sessionOffset,
+        uint32_t binderVersion);
     int HandleReply(uint64_t seqNumber, MessageParcel *reply, std::shared_ptr<ThreadMessageInfo> messageInfo);
     int WaitForReply(uint64_t seqNumber, MessageParcel *reply, uint32_t handle, int userWaitTime);
+    int TargetStubSendRequest(dbinder_transaction_data *tr, int32_t listenFd, uint64_t seqNum, MessageParcel &data,
+        MessageParcel &reply);
     void ProcessTransaction(dbinder_transaction_data *tr, int32_t listenFd);
     void ProcessReply(dbinder_transaction_data *tr, int32_t listenFd);
-    bool IRemoteObjectTranslateWhenSend(char *dataBuffer, binder_size_t bufferSize, MessageParcel &data,
-        uint32_t socketId, std::shared_ptr<T> sessionObject);
-    bool IRemoteObjectTranslateWhenRcv(char *dataBuffer, binder_size_t bufferSize, MessageParcel &data,
-        uint32_t socketId, std::shared_ptr<T> sessionObject);
-    bool TranslateRawData(char *dataBuffer, MessageParcel &data, uint32_t socketId);
+    void SendReplyWithSeqNum(uint64_t seqNum, MessageParcel &reply, uint32_t flags, int32_t result);
+    bool IsValidRemoteObjectOffset(unsigned char *dataBuffer, binder_size_t bufferSize, binder_size_t offset,
+        size_t offsetIdx, binder_size_t &preOffset, binder_size_t &preObjectSize);
+    bool IRemoteObjectTranslateWhenSend(std::shared_ptr<dbinder_transaction_data> transData, uint32_t socketId,
+        std::shared_ptr<T> sessionObject);
+    bool IRemoteObjectTranslateWhenRcv(dbinder_transaction_data *transData, MessageParcel &data, uint32_t socketId);
+    bool IRemoteObjectTranslateWhenRcv(unsigned char *dataBuffer, binder_size_t bufferSize, binder_uintptr_t offsets,
+        binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId);
+    bool TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId);
     std::shared_ptr<T> GetSessionObject(uint32_t handle, uint32_t socketId);
     uint64_t GetUniqueSeqNumber(int cmd);
     void ConstructTransData(MessageParcel &data, dbinder_transaction_data &transData, size_t totalSize,
@@ -131,6 +151,7 @@ private:
     std::shared_ptr<ThreadProcessInfo> MakeThreadProcessInfo(int32_t socketId, const char *buffer, uint32_t size);
     std::shared_ptr<ThreadMessageInfo> MakeThreadMessageInfo(int32_t socketId);
     uint32_t MakeRemoteHandle(std::shared_ptr<T> session);
+    void PrintDBinderTransData(dbinder_transaction_data *transData);
 
 private:
     std::mutex objectMutex_;
