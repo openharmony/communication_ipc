@@ -114,78 +114,50 @@ namespace OHOS {
         return true;
     }
 
-    bool StopWorkThreadTest(const uint8_t* data, size_t size)
+    bool StopWorkThreadTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         invoker.StopWorkThread();
         return true;
     }
 
-    bool GetCallerPidTest(const uint8_t* data, size_t size)
+    bool GetCallerPidTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         invoker.GetCallerPid();
         return true;
     }
 
-    bool GetStatusTest(const uint8_t* data, size_t size)
+    bool GetStatusTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         invoker.GetStatus();
         return true;
     }
 
-    bool GetCallerUidTest(const uint8_t* data, size_t size)
+    bool GetCallerUidTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         invoker.GetCallerUid();
         return true;
     }
 
-    bool GetCallerTokenIDTest(const uint8_t* data, size_t size)
+    bool GetCallerTokenIDTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         invoker.GetCallerTokenID();
         return true;
     }
 
-    bool GetFirstTokenIDTest(const uint8_t* data, size_t size)
+    bool GetFirstTokenIDTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         invoker.GetFirstCallerTokenID();
         return true;
     }
 
-    bool IsLocalCallingTest(const uint8_t* data, size_t size)
+    bool IsLocalCallingTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         if (invoker.IsLocalCalling() != false) {
             return false;
@@ -193,12 +165,8 @@ namespace OHOS {
         return true;
     }
 
-    bool FlushCommandsTest(const uint8_t* data, size_t size)
+    bool FlushCommandsTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         IRemoteObject *object = nullptr;
         if (invoker.FlushCommands(object) == 0) {
@@ -207,12 +175,8 @@ namespace OHOS {
         return true;
     }
 
-    bool ResetCallingIdentityTest(const uint8_t* data, size_t size)
+    bool ResetCallingIdentityTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         DBinderDatabusInvoker invoker;
         std::string identity = invoker.ResetCallingIdentity();
         if (identity.empty()) {
@@ -251,12 +215,8 @@ namespace OHOS {
         return;
     }
 
-    bool CheckTransactionDataTest(const uint8_t* data, size_t size)
+    bool CheckTransactionDataTest()
     {
-        if (data == nullptr || size == 0) {
-            return false;
-        }
-
         dbinder_transaction_data *tr = new dbinder_transaction_data();
         DBinderDatabusInvoker invoker;
         bool ret = invoker.CheckTransactionData(tr);
@@ -271,6 +231,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::MakeThreadProcessInfoTest(data, size);
     OHOS::ProcessTransactionTest(data, size);
-    OHOS::CheckTransactionDataTest(data, size);
+    OHOS::CheckTransactionDataTest();
+    OHOS::GetCallerUidTest();
+    OHOS::GetStatusTest();
+    OHOS::GetCallerPidTest();
+    OHOS::GetCallerTokenIDTest();
+    OHOS::GetFirstTokenIDTest();
+    OHOS::IsLocalCallingTest();
+    OHOS::FlushCommandsTest();
+    OHOS::ResetCallingIdentityTest();
+    OHOS::StopWorkThreadTest();
     return 0;
 }
