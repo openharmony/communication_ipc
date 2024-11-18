@@ -234,6 +234,7 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, SendRequestAsync_001, TestSize.Level1)
     bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
     std::unique_ptr<TestServiceClient> testClient = std::make_unique<TestServiceClient>();
+    ASSERT_NE(testClient, nullptr);
     res = testClient->ConnectService();
     ASSERT_TRUE(res);
 
