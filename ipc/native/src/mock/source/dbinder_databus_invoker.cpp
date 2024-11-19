@@ -957,8 +957,9 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity, bool flag)
         return false;
     }
     std::string tokenIdStr;
+    uint64_t tokenId = 0;
     if (!ProcessSkeleton::GetSubStr(identity, tokenIdStr, 0, ACCESS_TOKEN_MAX_LEN) ||
-        !ProcessSkeleton::IsNumStr(tokenIdStr)) {
+        !ProcessSkeleton::StrToUint64(tokenIdStr, tokenId)) {
         ZLOGE(LOG_LABEL, "Identity param tokenId is invalid");
         return false;
     }
@@ -974,17 +975,16 @@ bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity, bool flag)
         return false;
     }
     size_t subLen = identity.length() - offset;
-    if (!ProcessSkeleton::GetSubStr(identity, tokenStr, offset, subLen) || !ProcessSkeleton::IsNumStr(tokenStr)) {
+    uint64_t token = 0;
+    if (!ProcessSkeleton::GetSubStr(identity, tokenStr, offset, subLen) ||
+        !ProcessSkeleton::StrToUint64(tokenStr, token)) {
         ZLOGE(LOG_LABEL, "Identity param token is invalid");
         return false;
     }
-    uint64_t tokenId = std::stoull(tokenIdStr.c_str());
-    uint64_t token = std::stoull(tokenStr.c_str());
-    callerUid_ = static_cast<int>(token >> PID_LEN);
-    callerPid_ = static_cast<int>(token);
+    callerUid_ = static_cast<pid_t>(token >> PID_LEN);
+    callerPid_ = static_cast<pid_t>(token);
     callerDeviceID_ = deviceId;
     callerTokenID_ = tokenId;
-
     return true;
 }
 
