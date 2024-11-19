@@ -52,7 +52,7 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
     int protocol = 1;
 
     IRemoteInvoker* invoker = nullptr;
-    auto invokerObject = [&invoker]() -> IRemoteInvoker* {
+    auto creator = [&invoker]() -> IRemoteInvoker* {
         invoker = new (std::nothrow) BinderInvoker();
         if (invoker == nullptr) {
             return nullptr;
@@ -60,7 +60,7 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
         return invoker;
     };
 
-    bool ret = invokerFactory.Register(protocol, invokerObject);
+    bool ret = invokerFactory.Register(protocol, creator);
     EXPECT_EQ(ret, false);
     if (invoker != nullptr) {
         delete invoker;
@@ -68,7 +68,7 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
     }
     invokerFactory.isAvailable_ = true;
 
-    ret = invokerFactory.Register(protocol, invokerObject);
+    ret = invokerFactory.Register(protocol, creator);
     EXPECT_EQ(ret, false);
     IRemoteInvoker* iRemoteInvoker = invokerFactory.newInstance(protocol);
     EXPECT_NE(iRemoteInvoker, nullptr);
@@ -76,6 +76,9 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
         delete invoker;
         invoker = nullptr;
     }
+    // after leaving the scope, the captured 'invoker' object will be invalid in 'creator' lambda expression
+    // so we need to delete 'creator' lambda expression
+    invokerFactory.Unregister(protocol);
 }
 
 /**

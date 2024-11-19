@@ -109,7 +109,8 @@ void DbinderTest::SetUp()
 bool DbinderTest::GetRemoteDeviceId()
 {
     std::string msg = "Ask Device ID";
-    int ret = SendMessage(AGENT_NO::ONE, msg, strlen(msg.c_str()), [&](const std::string &retId, int retLen) -> bool {
+    int ret = SendMessage(AGENT_NO::ONE, msg,
+        strlen(msg.c_str()), [serverId_](const std::string &retId, int retLen) -> bool {
         if (memcpy_s(serverId_, DEVICEID_LENGTH, retId.c_str(), DEVICEID_LENGTH) != 0 || retLen != DEVICEID_LENGTH) {
             DBINDER_LOGE(LOG_LABEL, "fail to copy string");
             return false;

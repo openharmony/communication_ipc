@@ -857,7 +857,14 @@ bool DBinderService::RegisterRemoteProxyInner(std::u16string serviceName, binder
 
 void DBinderService::AddAsynMessageTask(std::shared_ptr<struct DHandleEntryTxRx> message)
 {
-    auto task = [this, message] { this->OnRemoteMessageTask(message); };
+    sptr<DBinderService> servicePtr = this;
+    auto task = [servicePtr, message] {
+        if (servicePtr == nullptr) {
+            DBINDER_LOGE(LOG_LABEL, "invalid dbinder service object");
+            return;
+        }
+        servicePtr->OnRemoteMessageTask(message);
+    };
     ffrt::submit(task);
 }
 

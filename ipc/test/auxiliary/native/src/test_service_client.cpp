@@ -196,15 +196,15 @@ bool TestServiceClient::TestNativeIPCSendRequests(int subCmd)
     }
 
     static std::map<int, std::function<int()>> commandMap = {
-        { NATIVE_TEST_CMD_SYNC_ADD,                 [&]() { return remoteProxy->SyncAdd(); }},
-        { NATIVE_TEST_CMD_ASYNC_ADD,                [&]() { return remoteProxy->ASyncAdd(); }},
-        { NATIVE_TEST_CMD_SYNC_ADD_REPEAT,          [&]() { return remoteProxy->AddParallel(true); }},
-        { NATIVE_TEST_CMD_ASYNC_ADD_REPEAT,         [&]() { return remoteProxy->AddParallel(false); }},
-        { NATIVE_TEST_CMD_SEND_AND_ECHO_BASE,       [&]() { return remoteProxy->SendAndEchoBase(); }},
-        { NATIVE_TEST_CMD_SEND_AND_ECHO_SRING,      [&]() { return remoteProxy->SendAndEchoString(); }},
-        { NATIVE_TEST_CMD_SEND_AND_ECHO_BUFFER,     [&]() { return remoteProxy->SendAndEchoBuffer(); }},
-        { NATIVE_TEST_CMD_SEND_FILE_DESCRIPTOR,     [&]() { return remoteProxy->SendAndEchoFileDescriptor(); }},
-        { NATIVE_TEST_CMD_SEND_ERROR_CODE,          [&]() { return remoteProxy->SendErrorCode(); }},
+        { NATIVE_TEST_CMD_SYNC_ADD,               [remoteProxy]() { return remoteProxy->SyncAdd(); }},
+        { NATIVE_TEST_CMD_ASYNC_ADD,              [remoteProxy]() { return remoteProxy->ASyncAdd(); }},
+        { NATIVE_TEST_CMD_SYNC_ADD_REPEAT,        [remoteProxy]() { return remoteProxy->AddParallel(true); }},
+        { NATIVE_TEST_CMD_ASYNC_ADD_REPEAT,       [remoteProxy]() { return remoteProxy->AddParallel(false); }},
+        { NATIVE_TEST_CMD_SEND_AND_ECHO_BASE,     [remoteProxy]() { return remoteProxy->SendAndEchoBase(); }},
+        { NATIVE_TEST_CMD_SEND_AND_ECHO_SRING,    [remoteProxy]() { return remoteProxy->SendAndEchoString(); }},
+        { NATIVE_TEST_CMD_SEND_AND_ECHO_BUFFER,   [remoteProxy]() { return remoteProxy->SendAndEchoBuffer(); }},
+        { NATIVE_TEST_CMD_SEND_FILE_DESCRIPTOR,   [remoteProxy]() { return remoteProxy->SendAndEchoFileDescriptor(); }},
+        { NATIVE_TEST_CMD_SEND_ERROR_CODE,        [remoteProxy]() { return remoteProxy->SendErrorCode(); }},
     };
     auto it = commandMap.find(subCmd);
     if (it == commandMap.end()) {
