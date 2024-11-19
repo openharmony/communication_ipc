@@ -172,17 +172,6 @@ public:
     int32_t NoticeServiceDie();
 
     /**
-     * @brief Obtains the corresponding PID and UID;
-     * This interface is only provided for internal use by IPC/RPC and is not open to the public,
-     * It may be taken down at any time.
-     * @param reply Indicates the object returned by the peer process.
-     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
-     * defined in {@link ipc_types.h} otherwise.
-     * @since 9
-     */
-    int GetPidUid(MessageParcel &reply);
-
-    /**
      * @brief Obtains the session name.
      * @return Returns the session name of type string.
      * @since 9

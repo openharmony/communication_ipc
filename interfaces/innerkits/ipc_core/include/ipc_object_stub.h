@@ -276,7 +276,6 @@ public:
 
 private:
 #ifndef CONFIG_IPC_SINGLE
-    int GetPidUid(MessageParcel &data, MessageParcel &reply);
     std::string GetSessionName();
     int32_t GetSessionNameForPidUid(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
