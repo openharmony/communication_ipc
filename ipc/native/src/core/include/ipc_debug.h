@@ -23,20 +23,34 @@
 
 namespace OHOS {
 #define ZLOGF(LOG_LABEL, fmt, args...) \
-    HILOG_IMPL(LOG_CORE, LOG_FATAL, LOG_LABEL.domain, LOG_LABEL.tag, \
-        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    if (HiLogIsLoggable(LOG_LABEL.domain, LOG_LABEL.tag, LOG_FATAL)) {      \
+        HILOG_IMPL(LOG_CORE, LOG_FATAL, LOG_LABEL.domain, LOG_LABEL.tag,    \
+            "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args); \
+    }
+
 #define ZLOGE(LOG_LABEL, fmt, args...) \
-    HILOG_IMPL(LOG_CORE, LOG_ERROR, LOG_LABEL.domain, LOG_LABEL.tag, \
-        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    if (HiLogIsLoggable(LOG_LABEL.domain, LOG_LABEL.tag, LOG_ERROR)) {      \
+        HILOG_IMPL(LOG_CORE, LOG_ERROR, LOG_LABEL.domain, LOG_LABEL.tag,    \
+            "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args); \
+    }
+
 #define ZLOGW(LOG_LABEL, fmt, args...) \
-    HILOG_IMPL(LOG_CORE, LOG_WARN, LOG_LABEL.domain, LOG_LABEL.tag, \
-        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    if (HiLogIsLoggable(LOG_LABEL.domain, LOG_LABEL.tag, LOG_WARN)) {       \
+        HILOG_IMPL(LOG_CORE, LOG_WARN, LOG_LABEL.domain, LOG_LABEL.tag,     \
+            "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args); \
+    }
+
 #define ZLOGI(LOG_LABEL, fmt, args...) \
-    HILOG_IMPL(LOG_CORE, LOG_INFO, LOG_LABEL.domain, LOG_LABEL.tag, \
-        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    if (HiLogIsLoggable(LOG_LABEL.domain, LOG_LABEL.tag, LOG_INFO)) {       \
+        HILOG_IMPL(LOG_CORE, LOG_INFO, LOG_LABEL.domain, LOG_LABEL.tag,     \
+            "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args); \
+    }
+
 #define ZLOGD(LOG_LABEL, fmt, args...) \
-    HILOG_IMPL(LOG_CORE, LOG_DEBUG, LOG_LABEL.domain, LOG_LABEL.tag, \
-        "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args)
+    if (HiLogIsLoggable(LOG_LABEL.domain, LOG_LABEL.tag, LOG_DEBUG)) {      \
+        HILOG_IMPL(LOG_CORE, LOG_DEBUG, LOG_LABEL.domain, LOG_LABEL.tag,    \
+            "%{public}s %{public}d: " fmt, __FUNCTION__, __LINE__, ##args); \
+    }
 
 using ErrorMap = std::map<uint32_t, std::string>;
 class ErrorBase {

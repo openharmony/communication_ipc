@@ -209,7 +209,7 @@ napi_value NAPI_MessageParcel::JS_readString(napi_env env, napi_callback_info in
     NAPI_ASSERT_BASE(env, napiParcel != nullptr, "napiParcel is null", nullptr);
 
     std::u16string parcelString = napiParcel->nativeParcel_->ReadString16();
-    std::string outString = Str16ToStr8(parcelString.c_str());
+    std::string outString = Str16ToStr8(parcelString);
     napi_value napiValue = nullptr;
     napi_create_string_utf8(env, outString.c_str(), outString.length(), &napiValue);
     return napiValue;
@@ -687,7 +687,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
                 break;
             }
             std::u16string parcelString = napiParcel->nativeParcel_->ReadString16();
-            std::string outString = Str16ToStr8(parcelString.c_str());
+            std::string outString = Str16ToStr8(parcelString);
             napi_value val = nullptr;
             napi_create_string_utf8(env, outString.c_str(), outString.length(), &val);
             napi_set_element(env, argv[ARGV_INDEX_0], i, val);
@@ -705,7 +705,7 @@ napi_value NAPI_MessageParcel::JS_readStringArray(napi_env env, napi_callback_in
             break;
         }
         std::u16string parcelString = napiParcel->nativeParcel_->ReadString16();
-        std::string outString = Str16ToStr8(parcelString.c_str());
+        std::string outString = Str16ToStr8(parcelString);
         napi_value val = nullptr;
         napi_create_string_utf8(env, outString.c_str(), outString.length(), &val);
         napi_set_element(env, result, i, val);

@@ -25,7 +25,7 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER,
-    "DbinderRemoteListener" };
+    "DBinderRemoteListener" };
 
 DBinderRemoteListener::DBinderRemoteListener()
 {
