@@ -383,7 +383,8 @@ private:
     int proto_;
     bool isFinishInit_;
     std::atomic<bool> isRemoteDead_;
-    std::u16string remoteDescriptor_;
+    // anonymized descriptor, only for log
+    std::string remoteDescriptor_;
     std::u16string interfaceDesc_;
     std::atomic<int> lastErr_ = 0;
     std::atomic<int> lastErrCnt_ = 0;

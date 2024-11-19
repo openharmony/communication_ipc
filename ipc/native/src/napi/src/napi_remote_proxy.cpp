@@ -117,7 +117,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         .traceId = 0,
     };
     NAPI_ASSERT(env, sendRequestParam != nullptr, "new sendRequestParam failed");
-    std::string remoteDescriptor = Str16ToStr8(target->GetInterfaceDescriptor());
+    std::string remoteDescriptor = Str16ToStr8(target->GetObjectDescriptor());
     if (!remoteDescriptor.empty()) {
         sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
         sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
@@ -163,7 +163,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .traceId = 0,
     };
     NAPI_ASSERT(env, sendRequestParam != nullptr, "new sendRequestParam failed");
-    std::string remoteDescriptor = Str16ToStr8(target->GetInterfaceDescriptor());
+    std::string remoteDescriptor = Str16ToStr8(target->GetObjectDescriptor());
     if (!remoteDescriptor.empty()) {
         sendRequestParam->traceValue = remoteDescriptor + std::to_string(code);
         sendRequestParam->traceId = bytraceId.fetch_add(1, std::memory_order_seq_cst);
