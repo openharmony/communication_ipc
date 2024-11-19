@@ -327,10 +327,16 @@ int IPCObjectStub::DBinderGetSessionNameForPidUid(uint32_t code,
 int IPCObjectStub::DBinderGetPidUid(uint32_t code,
     MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    if (!IPCSkeleton::IsLocalCalling()) {
+    if (!IPCSkeleton::IsLocalCalling() || !IsSamgrCall()) {
+        ZLOGE(LABEL, "GET_PID_UID message is not from sa manager");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    return GetPidUid(data, reply);
+
+    if (!reply.WriteUint32(getpid()) || !reply.WriteUint32(getuid())) {
+        ZLOGE(LABEL, "write to parcel fail");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    return ERR_NONE;
 }
 
 int IPCObjectStub::DBinderRemoveSessionName(uint32_t code,
@@ -695,15 +701,6 @@ int32_t IPCObjectStub::GetSessionNameForPidUid(uint32_t code, MessageParcel &dat
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
-    return ERR_NONE;
-}
-
-int IPCObjectStub::GetPidUid(MessageParcel &data, MessageParcel &reply)
-{
-    if (!reply.WriteUint32(getpid()) || !reply.WriteUint32(getuid())) {
-        ZLOGE(LABEL, "write to parcel fail");
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
     return ERR_NONE;
 }
 

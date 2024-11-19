@@ -321,14 +321,6 @@ int IPCObjectProxy::RemoveSessionName(const std::string &sessionName)
     return err;
 }
 
-int IPCObjectProxy::GetPidUid(MessageParcel &reply)
-{
-    MessageParcel data;
-    MessageOption option;
-
-    return SendRequestInner(true, GET_PID_UID, data, reply, option);
-}
-
 void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
 {
     // IPC proxy: AcquireHandle->AttachObject
