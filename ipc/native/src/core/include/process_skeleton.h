@@ -49,6 +49,8 @@ public:
     static bool UnFlattenDBinderData(Parcel &parcel, dbinder_negotiation_data *&dbinderData);
     static bool GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length);
     static bool IsNumStr(const std::string &str);
+    static bool StrToUint64(const std::string &str, uint64_t &value);
+    static bool StrToInt32(const std::string &str, int32_t &value);
 
     bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
     sptr<IRemoteObject> GetRegistryObject();

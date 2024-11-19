@@ -28,7 +28,7 @@
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "ProcessSkeleton" };
 static constexpr int PRINT_ERR_CNT = 100;
-
+static constexpr int DEC_BASE = 10;
 #ifdef __aarch64__
 static constexpr uint32_t IPC_OBJECT_MASK = 0xffffffff;
 #else
@@ -135,7 +135,7 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     }
 
     if (iterator->second.GetRefPtr() != object) {
-        ZLOGI(LOG_LABEL, "can not erase it because addr if different, "
+        ZLOGI(LOG_LABEL, "can not erase it because addr is different, "
             "desc:%{public}s, recorded object:%{public}u, detach object:%{public}u",
             ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), ConvertAddr(iterator->second.GetRefPtr()),
             ConvertAddr(object));
@@ -407,6 +407,55 @@ bool ProcessSkeleton::IsNumStr(const std::string &str)
         return false;
     }
     return std::all_of(str.begin(), str.end(), ::isdigit);
+}
+
+template<typename V, typename F>
+static bool StrToInteger(const std::string &str, V &value, F func)
+{
+    if (str.empty()) {
+        ZLOGE(LOG_LABEL, "empty input");
+        return false;
+    }
+
+    const char *begin = str.c_str();
+    char *end = nullptr;
+    errno = 0;
+    V valueTmp = func(begin, &end, DEC_BASE);
+    if (errno == ERANGE) {
+        ZLOGE(LOG_LABEL, "out of range");
+        return false;
+    }
+
+    if (end == begin || end[0] != '\0') {
+        ZLOGE(LOG_LABEL, "illegal input");
+        return false;
+    }
+    value = valueTmp;
+    return true;
+}
+
+bool ProcessSkeleton::StrToUint64(const std::string &str, uint64_t &value)
+{
+    uint64_t valueTmp = 0;
+    if (!StrToInteger(str, valueTmp, strtoull)) {
+        return false;
+    }
+    value = valueTmp;
+    return true;
+}
+
+bool ProcessSkeleton::StrToInt32(const std::string &str, int32_t &value)
+{
+    int64_t valueTmp = 0;
+    if (!StrToInteger(str, valueTmp, strtoll)) {
+        return false;
+    }
+    if ((valueTmp < INT32_MIN || valueTmp > INT32_MAX)) {
+        ZLOGE(LOG_LABEL, "out of range, str:%{public}s", str.c_str());
+        return false;
+    }
+    value = static_cast<int32_t>(valueTmp);
+    return true;
 }
 
 bool ProcessSkeleton::GetThreadStopFlag()
