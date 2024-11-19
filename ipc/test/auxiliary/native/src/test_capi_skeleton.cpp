@@ -211,8 +211,8 @@ int NativeRemoteProxyTest::WaitForAsyncReply(int timeout)
 {
     asyncReply_ = 0;
     std::unique_lock<std::mutex> lck(mutex_);
-    cv_.wait_for(lck, std::chrono::seconds(timeout), [&]() {
-        return asyncReply_ != 0;
+    cv_.wait_for(lck, std::chrono::seconds(timeout), [this]() {
+        return this->asyncReply_ != 0;
     });
     return asyncReply_;
 }
@@ -478,7 +478,7 @@ int NativeRemoteProxyTest::SendErrorCode()
     if (proxy_ == nullptr) {
         return -1;
     }
-    auto func = [&, this](int val, int expect) -> int {
+    auto func = [proxy = this->proxy_](int val, int expect) -> int {
         OHIPCParcel *data = OH_IPCParcel_Create();
         if (data == nullptr) {
             return -1;
@@ -495,7 +495,7 @@ int NativeRemoteProxyTest::SendErrorCode()
             return -1;
         }
         OH_IPCParcel_WriteInt32(data, val);
-        int ret = OH_IPCRemoteProxy_SendRequest(this->proxy_, NATIVE_TEST_CMD_SEND_ERROR_CODE, data, reply, &option);
+        int ret = OH_IPCRemoteProxy_SendRequest(proxy, NATIVE_TEST_CMD_SEND_ERROR_CODE, data, reply, &option);
         OH_IPCParcel_Destroy(data);
         OH_IPCParcel_Destroy(reply);
         return (ret == expect) ? 0 : -1;

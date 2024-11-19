@@ -42,7 +42,7 @@ void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
     napi_handle_scope scope = nullptr;
     napi_open_handle_scope(param->env, &scope);
 
-    auto CleanUp = [&]() {
+    auto CleanUp = [&param, &scope, &work]() {
         napi_close_handle_scope(param->env, scope);
         delete param;
         delete work;
