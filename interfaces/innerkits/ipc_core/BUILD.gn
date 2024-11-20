@@ -60,7 +60,6 @@ ohos_shared_library("ipc_core") {
     "$IPC_CORE_ROOT/src/core/source/message_parcel.cpp",
     "$IPC_CORE_ROOT/src/core/source/peer_holder.cpp",
     "$IPC_CORE_ROOT/src/core/source/stub_refcount_object.cpp",
-    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/mock/source/binder_invoker.cpp",
     "$IPC_CORE_ROOT/src/mock/source/dbinder_databus_invoker.cpp",

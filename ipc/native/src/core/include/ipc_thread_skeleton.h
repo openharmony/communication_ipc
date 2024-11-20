@@ -27,6 +27,11 @@ namespace OHOS {
 namespace IPC_SINGLE {
 #endif
 
+enum class ThreadType {
+    NORMAL_THREAD = 0xB0B0B0B0,
+    IPC_THREAD = 0xB1B1B1B1,
+};
+
 class IPCThreadSkeleton {
 public:
     IPCThreadSkeleton();
@@ -46,6 +51,8 @@ public:
 
     static IRemoteInvoker *GetProxyInvoker(IRemoteObject *object);
 
+    static bool SetThreadType(ThreadType type);
+
     // Joint Current thread into IPC Work Group
     void JoinWorkThread(int proto);
     // Quit current thread from IPC work group.
@@ -57,6 +64,7 @@ private:
     std::atomic<bool> exitFlag_ = false;
     std::atomic<bool> usingFlag_ = false;
     std::unordered_map<int, IRemoteInvoker *> invokers_;
+    ThreadType threadType_ = ThreadType::NORMAL_THREAD;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
