@@ -92,6 +92,14 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
         delete it->second;
         it = invokers_.erase(it);
     }
+
+    if (threadType_ == ThreadType::IPC_THREAD) {
+        // subtract thread count when thread exiting
+        auto process = ProcessSkeleton::GetInstance();
+        if (process != nullptr) {
+            process->DecreaseThreadCount();
+        }
+    }
 }
 
 IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
@@ -174,6 +182,17 @@ void IPCThreadSkeleton::StopWorkThread(int proto)
     if (invoker != nullptr) {
         invoker->StopWorkThread();
     }
+}
+
+bool IPCThreadSkeleton::SetThreadType(ThreadType type)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+
+    current->threadType_ = type;
+    return true;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

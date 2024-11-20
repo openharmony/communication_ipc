@@ -28,6 +28,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
+#include "process_skeleton.h"
 #include "string"
 #include "type_traits"
 #include "unistd.h"
@@ -48,6 +49,18 @@ IPCWorkThread::~IPCWorkThread()
 
 void *IPCWorkThread::ThreadHandler(void *args)
 {
+    (void)IPCThreadSkeleton::SetThreadType(ThreadType::IPC_THREAD);
+    ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+    if (process == nullptr) {
+        ZLOGE(LOG_LABEL, "get ProcessSkeleton object failed");
+        return nullptr;
+    }
+
+    if (process->GetThreadStopFlag()) {
+        ZLOGW(LOG_LABEL, "the stop flag is true, thread start exit");
+        return nullptr;
+    }
+
     IPCWorkThread *threadObj = (IPCWorkThread *)args;
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(threadObj->proto_);
     threadObj->threadName_ += "_" + std::to_string(syscall(SYS_gettid));
@@ -98,6 +111,17 @@ void IPCWorkThread::StopWorkThread()
 
 void IPCWorkThread::Start(int policy, int proto, std::string threadName)
 {
+    ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+    if (process == nullptr) {
+        ZLOGE(LOG_LABEL, "get ProcessSkeleton object failed");
+        return;
+    }
+
+    if (process->GetThreadStopFlag()) {
+        ZLOGW(LOG_LABEL, "the stop flag is true, can not create other thread");
+        return;
+    }
+
     policy_ = policy;
     proto_ = proto;
     threadName_ = threadName;
@@ -107,6 +131,7 @@ void IPCWorkThread::Start(int policy, int proto, std::string threadName)
         ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
         return;
     }
+    process->IncreaseThreadCount();
     ZLOGD(LOG_LABEL, "create thread, policy:%{public}d proto:%{public}d", policy, proto);
     if (pthread_detach(threadId) != 0) {
         ZLOGE(LOG_LABEL, "detach error");
