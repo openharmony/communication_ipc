@@ -978,30 +978,41 @@ napi_value NAPI_MessageSequence::JS_ReadAshmem(napi_env env, napi_callback_info 
     return jsAshmem;
 }
 
-napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info info)
+static int32_t GetArraySize(napi_env env, napi_callback_info info, napi_value &thisVar, napi_value& result)
 {
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {0};
-    napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        result = napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return 0;
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
-        return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        result = napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
+        return 0;
     }
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
-    napi_value result = nullptr;
     if (arraySize <= 0) {
         ZLOGE(LOG_LABEL, "arraySize is %{public}d, error", arraySize);
         napi_create_array(env, &result);
+    }
+    return arraySize;
+}
+
+napi_value NAPI_MessageSequence::JS_ReadRawData(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_value result = nullptr;
+    int32_t arraySize = GetArraySize(env, info, thisVar, result);
+    if (arraySize <= 0) {
         return result;
     }
+
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
