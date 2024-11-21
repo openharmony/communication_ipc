@@ -14,9 +14,10 @@
  */
 
 #include "ipc_internal_utils.h"
+
+#include "ipc_debug.h"
 #include "ipc_inner_object.h"
 #include "log_tags.h"
-#include "ipc_debug.h"
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "IPCInternalUtils" };
 
