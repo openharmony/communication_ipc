@@ -14,12 +14,13 @@
  */
 
 #include "ipc_inner_object.h"
-#include "log_tags.h"
+
 #include "ipc_debug.h"
+#include "log_tags.h"
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "IPCInternalObject" };
 
-OHIPCRemoteProxy* CreateIPCRemoteProxy(OHOS::sptr<OHOS::IRemoteObject>& remote)
+OHIPCRemoteProxy *CreateIPCRemoteProxy(OHOS::sptr<OHOS::IRemoteObject> &remote)
 {
     if (remote == nullptr) {
         ZLOGE(LOG_LABEL, "remote object is nullptr!");
