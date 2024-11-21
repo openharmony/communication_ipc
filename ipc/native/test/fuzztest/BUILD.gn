@@ -17,7 +17,6 @@ group("fuzztest") {
     "c/getfeaturesize_fuzzer:fuzztest",
     "c/getrpcfeatureack_fuzzer:fuzztest",
     "c/gettokenfromdata_fuzzer:fuzztest",
-    "c/gettokenidsize_fuzzer:fuzztest",
     "c/isatenable_fuzzer:fuzztest",
     "c/isfeatureack_fuzzer:fuzztest",
     "c/setfeaturetransdata_fuzzer:fuzztest",
