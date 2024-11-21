@@ -52,9 +52,12 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_
 
 void AcquireObject(flat_binder_object *flat, const void *cookie)
 {
+    if (flat == nullptr) {
+        return;
+    }
     switch (flat->hdr.type) {
         case BINDER_TYPE_BINDER:
-            if (flat->binder) {
+            if (flat->binder && reinterpret_cast<IRemoteObject *>(flat->cookie) != nullptr) {
                 reinterpret_cast<IRemoteObject *>(flat->cookie)->IncStrongRef(cookie);
             }
             break;

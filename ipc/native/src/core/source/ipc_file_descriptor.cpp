@@ -72,6 +72,10 @@ bool IPCFileDescriptor::Marshalling(Parcel &parcel) const
 
 bool IPCFileDescriptor::Marshalling(Parcel &parcel, const sptr<IPCFileDescriptor> &object)
 {
+    if (object == nullptr) {
+        ZLOGE(LABEL, "object is nullptr");
+        return false;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
     if (invoker != nullptr) {
         return invoker->WriteFileDescriptor(parcel, object->GetFd(), false);

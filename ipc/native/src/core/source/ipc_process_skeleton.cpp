@@ -113,7 +113,7 @@ void IPCProcessSkeleton::ClearDataResource()
         stubObjects_.clear();
     }
     {
-        std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+        std::unique_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
         proxyToSession_.clear();
     }
     {
@@ -510,7 +510,7 @@ bool IPCProcessSkeleton::IsHandleMadeByUser(uint32_t handle)
 uint32_t IPCProcessSkeleton::GetDBinderIdleHandle(std::shared_ptr<DBinderSessionObject> session)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::unique_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
     uint32_t tempHandle = dBinderHandle_;
     int count = DBINDER_HANDLE_COUNT;
     bool insertResult = false;
@@ -535,7 +535,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
     IPCObjectProxy *proxy)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::unique_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
     std::shared_ptr<DBinderSessionObject> tmp = nullptr;
     auto it = proxyToSession_.find(handle);
     if (it != proxyToSession_.end() && it->second != nullptr && it->second->GetProxy() == proxy) {
@@ -557,7 +557,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyDetachDBinderSess
 bool IPCProcessSkeleton::ProxyAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::unique_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
     auto result = proxyToSession_.insert(std::pair<uint32_t, std::shared_ptr<DBinderSessionObject>>(handle, object));
     ZLOGI(LOG_LABEL, "attach handle:%{public}u to socketId:%{public}d"
         " service:%{public}s stubIndex:%{public}" PRIu64 " result:%{public}d",
@@ -569,7 +569,7 @@ bool IPCProcessSkeleton::ProxyAttachDBinderSession(uint32_t handle, std::shared_
 std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyQueryDBinderSession(uint32_t handle)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
     auto it = proxyToSession_.find(handle);
     if (it != proxyToSession_.end()) {
         return it->second;
@@ -580,7 +580,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyQueryDBinderSessi
 bool IPCProcessSkeleton::ProxyMoveDBinderSession(uint32_t handle, IPCObjectProxy *proxy)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
     auto it = proxyToSession_.find(handle);
     if (it != proxyToSession_.end()) {
         if (it->second == nullptr) {
@@ -600,7 +600,7 @@ bool IPCProcessSkeleton::ProxyMoveDBinderSession(uint32_t handle, IPCObjectProxy
 bool IPCProcessSkeleton::QueryProxyBySocketId(int32_t socketId, std::vector<uint32_t> &proxyHandle)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
         if (it->second == nullptr) {
             ZLOGE(LOG_LABEL, "find object is null");
@@ -618,7 +618,7 @@ uint32_t IPCProcessSkeleton::QueryHandleByDatabusSession(const std::string &name
     uint64_t stubIndex)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
 
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
         if (it->second == nullptr) {
@@ -643,7 +643,7 @@ std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::QuerySessionByInfo(con
     const std::string &deviceId)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
-    std::lock_guard<std::recursive_mutex> lockGuard(proxyToSessionMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(proxyToSessionMutex_);
 
     for (auto it = proxyToSession_.begin(); it != proxyToSession_.end(); it++) {
         if (it->second == nullptr) {
@@ -978,7 +978,7 @@ uint64_t IPCProcessSkeleton::AddStubByIndex(IRemoteObject *stubObject)
 uint64_t IPCProcessSkeleton::QueryStubIndex(IRemoteObject *stubObject)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
-    std::unique_lock<std::shared_mutex> lockGuard(stubObjectsMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(stubObjectsMutex_);
 
     for (auto it = stubObjects_.begin(); it != stubObjects_.end(); it++) {
         if (it->second == stubObject) {
@@ -1235,7 +1235,7 @@ sptr<IPCObjectProxy> IPCProcessSkeleton::QueryCallbackProxy(IPCObjectStub *callb
 std::string IPCProcessSkeleton::GetDatabusName()
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, "");
-    std::lock_guard<std::mutex> lockGuard(sessionNameMutex_);
+    std::shared_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
 
     return sessionName_;
 }
@@ -1260,6 +1260,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         return false;
     }
     listenSocketId_ = socketId;
+    std::shared_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
     if (name != sessionName_) {
         SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
     }
@@ -1298,23 +1299,15 @@ std::shared_ptr<InvokerRawData> IPCProcessSkeleton::QueryRawData(int32_t socketI
 bool IPCProcessSkeleton::IsSameRemoteObject(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
     const std::string &deviceId, const std::shared_ptr<CommAuthInfo> &auth)
 {
-    if ((auth->GetStubObject() == stub) && (auth->GetRemotePid() == pid) && (auth->GetRemoteUid() == uid) &&
-        (auth->GetRemoteTokenId() == tokenId) && (auth->GetRemoteDeviceId().compare(deviceId) == 0)) {
-        return true;
-    } else {
-        return false;
-    }
+    return (auth->GetStubObject() == stub) && (auth->GetRemotePid() == pid) && (auth->GetRemoteUid() == uid) &&
+        (auth->GetRemoteTokenId() == tokenId) && (auth->GetRemoteDeviceId().compare(deviceId) == 0);
 }
 
 bool IPCProcessSkeleton::IsSameRemoteObject(int pid, int uid, const std::string &deviceId,
     const std::shared_ptr<CommAuthInfo> &auth)
 {
-    if ((auth->GetRemotePid() == pid) && (auth->GetRemoteUid() == uid) &&
-        (auth->GetRemoteDeviceId().compare(deviceId) == 0)) {
-        return true;
-    } else {
-        return false;
-    }
+    return (auth->GetRemotePid() == pid) && (auth->GetRemoteUid() == uid) &&
+        (auth->GetRemoteDeviceId().compare(deviceId) == 0);
 }
 
 bool IPCProcessSkeleton::AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
@@ -1412,9 +1405,9 @@ bool IPCProcessSkeleton::AttachOrUpdateAppAuthInfo(const AppAuthInfo &appAuthInf
         " socketId:%{public}d", appAuthInfo.pid, appAuthInfo.uid, appAuthInfo.tokenId,
         ConvertToSecureString(appAuthInfo.deviceId).c_str(), appAuthInfo.stubIndex, appAuthInfo.socketId);
 
-    std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
     std::string appInfo = appAuthInfo.deviceId + UIntToString(appAuthInfo.pid) +
         UIntToString(appAuthInfo.uid) + UIntToString(appAuthInfo.tokenId);
+    std::unique_lock<std::shared_mutex> lockGuard(appAuthMutex_);
     auto it = appInfoToStubIndex_.find(appInfo);
     if (it != appInfoToStubIndex_.end()) {
         if (appAuthInfo.stubIndex != 0) {
