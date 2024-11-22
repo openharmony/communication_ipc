@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,6 @@
 #endif
 
 namespace OHOS {
-#ifdef CONFIG_IPC_SINGLE
-namespace IPC_SINGLE {
-#endif
-
 #ifdef CONFIG_ACTV_BINDER
 typedef void (*ActvBinderJoinThreadFunc)(bool initiative);
 typedef void (*ActvBinderSetHandlerInfoFunc)(uint32_t id);
@@ -89,6 +85,7 @@ public:
     bool IsRealPidSupported();
     uint64_t GetSelfTokenID();
     uint64_t GetSelfFirstCallerTokenID();
+    void CloseDriverFd();
 #ifdef CONFIG_ACTV_BINDER
     bool IsActvBinderSupported();
     ActvHandlerInfo *GetActvHandlerInfo(uint32_t id);
@@ -109,8 +106,5 @@ private:
     ActvBinderConnector actvBinder_;
 #endif
 };
-#ifdef CONFIG_IPC_SINGLE
-} // namespace IPC_SINGLE
-#endif
 } // namespace OHOS
 #endif // OHOS_IPC_BINDER_CONNECTOR_H
