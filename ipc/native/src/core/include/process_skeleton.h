@@ -62,6 +62,11 @@ public:
     bool DetachDeadObject(IRemoteObject *object);
     bool IsDeadObject(IRemoteObject *object);
 
+    bool GetThreadStopFlag();
+    void IncreaseThreadCount();
+    void DecreaseThreadCount();
+    void NotifyChildThreadStop();
+
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
     ProcessSkeleton() = default;
@@ -94,6 +99,12 @@ private:
     std::shared_mutex deadObjectMutex_;
     std::map<IRemoteObject *, DeadObjectInfo> deadObjectRecord_;
     uint64_t deadObjectClearTime_;
+
+    static constexpr size_t MAIN_THREAD_MAX_WAIT_TIME = 3;
+    std::atomic_bool stopThreadFlag_ = false;
+    std::mutex threadCountMutex_;
+    std::condition_variable threadCountCon_;
+    std::atomic_size_t runningChildThreadNum_ = 0;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_PROCESS_SKELETON_H

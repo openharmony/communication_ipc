@@ -26,8 +26,12 @@ ohos_shared_library("ipc_common") {
   include_dirs = [
     "$SUBSYSTEM_DIR/utils/include",
     "include",
+    "//third_party/json/single_include/",
   ]
-  sources = [ "source/process_skeleton.cpp" ]
+  sources = [
+    "../mock/source/binder_connector.cpp",
+    "source/process_skeleton.cpp",
+  ]
 
   configs = [
     "$SUBSYSTEM_DIR/config:ipc_util_config",
