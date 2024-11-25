@@ -82,9 +82,10 @@ private:
         std::shared_ptr<DBinderSessionObject> session, const std::string &localDeviceID);
     std::shared_ptr<DBinderSessionObject> QuerySessionOfBinderProxy(uint32_t handle,
         std::shared_ptr<DBinderSessionObject> session) override;
-    uint32_t FlattenSession(char *sessionOffset, const std::shared_ptr<DBinderSessionObject> connectSession,
+    uint32_t FlattenSession(unsigned char *sessionOffset, const std::shared_ptr<DBinderSessionObject> connectSession,
         uint32_t binderVersion) override;
-    std::shared_ptr<DBinderSessionObject> UnFlattenSession(char *sessionOffset, uint32_t binderVersion) override;
+    std::shared_ptr<DBinderSessionObject> UnFlattenSession(unsigned char *sessionOffset,
+        uint32_t binderVersion) override;
     uint32_t QueryHandleBySession(std::shared_ptr<DBinderSessionObject> session) override;
     virtual uint64_t GetSeqNum() const override;
     virtual void SetSeqNum(uint64_t seq) override;
@@ -95,6 +96,8 @@ private:
     virtual void SetCallerDeviceID(const std::string &deviceId) override;
     virtual void SetCallerTokenID(const uint32_t tokenId) override;
     virtual int CheckAndSetCallerInfo(int32_t socketId, uint64_t stubIndex) override;
+    virtual void SetCallerInfo(DBinderCallerInfo &callerInfo) override;
+    virtual void GetCallerInfo(DBinderCallerInfo &callerInfo) override;
     uint32_t HasRawDataPackage(const char *data, ssize_t len);
     uint32_t HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len);
     void OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize);
