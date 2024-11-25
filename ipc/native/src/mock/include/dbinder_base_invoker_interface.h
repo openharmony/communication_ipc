@@ -41,7 +41,7 @@ std::shared_ptr<T> DBinderBaseInvoker<T>::WriteTransaction(int cmd, uint32_t fla
     /* save seqNum for wait thread */
     seqNumber = seqNum;
     /* if MessageParcel has raw data, send raw data first, then send MessageParcel to peer */
-    if (ProcessRawData(sessionObject, data, seqNum) != true) {
+    if (!ProcessRawData(sessionObject, data, seqNum)) {
         ZLOGE(LOG_LABEL, "send rawdata failed, listenFd:%{public}d handle:%{public}d", socketId, handle);
         DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, socketId, RADAR_SEND_RAW_DATA_FAIL, __FUNCTION__);
         return nullptr;
@@ -130,8 +130,8 @@ template <class T> int DBinderBaseInvoker<T>::SendReply(MessageParcel &reply, ui
     uint64_t seqNumber = 0;
     std::shared_ptr<T> sessionObject = WriteTransaction(BC_REPLY, flags, 0,
         GetClientFd(), 0, reply, seqNumber, result);
-    if (seqNumber == 0) {
-        ZLOGE(LOG_LABEL, "WriteTransaction fail, seqNumber can not be zero");
+    if (sessionObject == nullptr) {
+        ZLOGE(LOG_LABEL, "WriteTransaction fail");
         return RPC_BASE_INVOKER_SEND_REPLY_ERR;
     }
     SendOrWaitForCompletion(0, seqNumber, sessionObject, nullptr);
