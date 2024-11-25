@@ -14,13 +14,14 @@
  */
 
 #include "ipc_cskeleton.h"
-#include "ipc_error_code.h"
-#include "log_tags.h"
-#include "ipc_debug.h"
-#include "ipc_skeleton.h"
-#include "ipc_thread_skeleton.h"
 
 #include <securec.h>
+
+#include "ipc_debug.h"
+#include "ipc_error_code.h"
+#include "ipc_skeleton.h"
+#include "ipc_thread_skeleton.h"
+#include "log_tags.h"
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "IPCSkeleton" };
 
@@ -94,7 +95,7 @@ int OH_IPCSkeleton_ResetCallingIdentity(char **identity, int32_t *len, OH_IPC_Me
     }
     std::string str(OHOS::IPCSkeleton::ResetCallingIdentity());
     int length = static_cast<int>(str.length()) + 1;
-    *identity = static_cast<char*>(allocator(length));
+    *identity = static_cast<char *>(allocator(length));
     if (*identity == nullptr) {
         ZLOGE(LOG_LABEL, "Memory allocator failed!");
         return OH_IPC_MEM_ALLOCATOR_ERROR;

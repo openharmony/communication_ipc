@@ -14,16 +14,17 @@
  */
 
 #include "ipc_cremote_object.h"
+
+#include <securec.h>
+
+#include "ipc_debug.h"
+#include "ipc_error_code.h"
 #include "ipc_inner_object.h"
 #include "ipc_internal_utils.h"
 #include "ipc_remote_object_internal.h"
-#include "log_tags.h"
-#include "ipc_debug.h"
-#include "ipc_error_code.h"
 #include "ipc_types.h"
+#include "log_tags.h"
 #include "sys_binder.h"
-
-#include <securec.h>
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "IPCRemoteObject" };
 
@@ -47,8 +48,8 @@ OHIPCRemoteStub* OH_IPCRemoteStub_Create(const char *descriptor, OH_OnRemoteRequ
         ZLOGE(LOG_LABEL, "convert descriptor to u16string failed: %{public}d", len);
         return nullptr;
     }
-    OHOS::sptr<OHIPCRemoteServiceStub> serviceStub(new (std::nothrow) OHIPCRemoteServiceStub(desc,
-        requestCallback, destroyCallback, userData));
+    OHOS::sptr<OHIPCRemoteServiceStub> serviceStub(
+        new (std::nothrow) OHIPCRemoteServiceStub(desc, requestCallback, destroyCallback, userData));
     if (serviceStub == nullptr) {
         ZLOGE(LOG_LABEL, "new OHIPCRemoteServiceStub failed");
         return nullptr;
@@ -80,21 +81,20 @@ void OH_IPCRemoteProxy_Destroy(OHIPCRemoteProxy *proxy)
 
 static int GetMessageFlag(OH_IPC_RequestMode mode)
 {
-    return (mode == OH_IPC_REQUEST_MODE_ASYNC) ?
-        OHOS::MessageOption::TF_ASYNC : OHOS::MessageOption::TF_SYNC;
+    return (mode == OH_IPC_REQUEST_MODE_ASYNC) ? OHOS::MessageOption::TF_ASYNC : OHOS::MessageOption::TF_SYNC;
 }
 
 static constexpr struct {
     int innerErrorCode;
     int error;
 } ERROR_MAP[] = {
-    {OHOS::IPC_PROXY_DEAD_OBJECT_ERR, OH_IPC_DEAD_REMOTE_OBJECT},
-    {OHOS::IPC_INVOKER_CONNECT_ERR, OH_IPC_INNER_ERROR},
-    {OHOS::IPC_PROXY_INVALID_CODE_ERR, OH_IPC_CODE_OUT_OF_RANGE},
-    {OHOS::IPC_STUB_WRITE_PARCEL_ERR, OH_IPC_PARCEL_WRITE_ERROR},
-    {OH_IPC_INVALID_USER_ERROR_CODE, OH_IPC_INVALID_USER_ERROR_CODE},
-    {BR_DEAD_REPLY, OH_IPC_DEAD_REMOTE_OBJECT},
-    {BR_FAILED_REPLY, OH_IPC_INNER_ERROR},
+    { OHOS::IPC_PROXY_DEAD_OBJECT_ERR, OH_IPC_DEAD_REMOTE_OBJECT },
+    { OHOS::IPC_INVOKER_CONNECT_ERR, OH_IPC_INNER_ERROR },
+    { OHOS::IPC_PROXY_INVALID_CODE_ERR, OH_IPC_CODE_OUT_OF_RANGE },
+    { OHOS::IPC_STUB_WRITE_PARCEL_ERR, OH_IPC_PARCEL_WRITE_ERROR },
+    { OH_IPC_INVALID_USER_ERROR_CODE, OH_IPC_INVALID_USER_ERROR_CODE },
+    { BR_DEAD_REPLY, OH_IPC_DEAD_REMOTE_OBJECT },
+    { BR_FAILED_REPLY, OH_IPC_INNER_ERROR },
 };
 
 static int ConvertSendRequestError(int error)
@@ -124,14 +124,13 @@ static bool IsCodeValid(uint32_t code)
 int OH_IPCRemoteProxy_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, const OHIPCParcel *data,
     OHIPCParcel *reply, const OH_IPC_MessageOption *option)
 {
-    if (!IsIPCRemoteProxyValid(proxy, __func__)
-        || !IsIPCParcelValid(data, __func__)
-        || (option != nullptr && option->reserved != nullptr)) {
+    if (!IsIPCRemoteProxyValid(proxy, __func__) || !IsIPCParcelValid(data, __func__) ||
+        (option != nullptr && option->reserved != nullptr)) {
         return OH_IPC_CHECK_PARAM_ERROR;
     }
     if (!IsCodeValid(code)) {
-        ZLOGE(LOG_LABEL, "send request code:%{public}d out of range[%{public}d, %{public}d]",
-            code, MIN_SEND_REQUEST_CODE, MAX_SEND_REQUEST_CODE);
+        ZLOGE(LOG_LABEL, "send request code:%{public}d out of range[%{public}d, %{public}d]", code,
+            MIN_SEND_REQUEST_CODE, MAX_SEND_REQUEST_CODE);
         return OH_IPC_CODE_OUT_OF_RANGE;
     }
 
@@ -152,8 +151,7 @@ int OH_IPCRemoteProxy_SendRequest(const OHIPCRemoteProxy *proxy, uint32_t code, 
 int OH_IPCRemoteProxy_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **descriptor, int32_t *len,
     OH_IPC_MemAllocator allocator)
 {
-    if (!IsIPCRemoteProxyValid(proxy, __func__)
-        || !IsMemoryParamsValid(descriptor, len, allocator, __func__)) {
+    if (!IsIPCRemoteProxyValid(proxy, __func__) || !IsMemoryParamsValid(descriptor, len, allocator, __func__)) {
         return OH_IPC_CHECK_PARAM_ERROR;
     }
 
@@ -166,7 +164,7 @@ int OH_IPCRemoteProxy_GetInterfaceDescriptor(OHIPCRemoteProxy *proxy, char **des
     }
 
     int memLength = static_cast<int>(value.length()) + 1;
-    *descriptor = static_cast<char*>(allocator(memLength));
+    *descriptor = static_cast<char *>(allocator(memLength));
     if (*descriptor == nullptr) {
         ZLOGE(LOG_LABEL, "memory allocator failed!");
         return OH_IPC_MEM_ALLOCATOR_ERROR;
@@ -186,8 +184,8 @@ OHIPCDeathRecipient* OH_IPCDeathRecipient_Create(OH_OnDeathRecipientCallback dea
         ZLOGE(LOG_LABEL, "args must not be null");
         return nullptr;
     }
-    OHOS::sptr<IPCDeathRecipient> recipient(new (std::nothrow) IPCDeathRecipient(
-        deathRecipientCallback, destroyCallback, userData));
+    OHOS::sptr<IPCDeathRecipient> recipient(
+        new (std::nothrow) IPCDeathRecipient(deathRecipientCallback, destroyCallback, userData));
     if (recipient == nullptr) {
         ZLOGE(LOG_LABEL, "create IPCDeathRecipient object failed");
         return nullptr;
@@ -211,9 +209,7 @@ void OH_IPCDeathRecipient_Destroy(OHIPCDeathRecipient *recipient)
 
 int OH_IPCRemoteProxy_AddDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRecipient *recipient)
 {
-    if (!IsIPCRemoteProxyValid(proxy, __func__)
-        || recipient == nullptr
-        || recipient->recipient == nullptr) {
+    if (!IsIPCRemoteProxyValid(proxy, __func__) || recipient == nullptr || recipient->recipient == nullptr) {
         return OH_IPC_CHECK_PARAM_ERROR;
     }
 
@@ -222,9 +218,7 @@ int OH_IPCRemoteProxy_AddDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRecip
 
 int OH_IPCRemoteProxy_RemoveDeathRecipient(OHIPCRemoteProxy *proxy, OHIPCDeathRecipient *recipient)
 {
-    if (!IsIPCRemoteProxyValid(proxy, __func__)
-        || recipient == nullptr
-        || recipient->recipient == nullptr) {
+    if (!IsIPCRemoteProxyValid(proxy, __func__) || recipient == nullptr || recipient->recipient == nullptr) {
         return OH_IPC_CHECK_PARAM_ERROR;
     }
 
