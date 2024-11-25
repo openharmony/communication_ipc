@@ -14,14 +14,15 @@
  */
 
 #include "ipc_cparcel.h"
-#include "ipc_error_code.h"
-#include "message_parcel.h"
-#include "log_tags.h"
-#include "ipc_debug.h"
-#include "ipc_internal_utils.h"
-#include "ipc_inner_object.h"
 
 #include <securec.h>
+
+#include "ipc_debug.h"
+#include "ipc_error_code.h"
+#include "ipc_inner_object.h"
+#include "ipc_internal_utils.h"
+#include "log_tags.h"
+#include "message_parcel.h"
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "OHIPCParcel" };
 
@@ -59,8 +60,7 @@ static int SetParcelProperty(OHIPCParcel *parcel, T value, bool (OHOS::MessagePa
     if (!IsIPCParcelValid(parcel, __func__)) {
         return OH_IPC_CHECK_PARAM_ERROR;
     }
-    return (parcel->msgParcel->*SetProperty)(static_cast<U>(value)) ? OH_IPC_SUCCESS
-        : OH_IPC_INNER_ERROR;
+    return (parcel->msgParcel->*SetProperty)(static_cast<U>(value)) ? OH_IPC_SUCCESS : OH_IPC_INNER_ERROR;
 }
 
 template <typename T, typename U>
@@ -126,7 +126,7 @@ static int WriteValue(OHIPCParcel *parcel, T value, bool (OHOS::MessageParcel::*
 }
 
 template <typename T>
-static int ReadValue(const OHIPCParcel *parcel, T* value, bool (OHOS::MessageParcel::*Read)(T& value))
+static int ReadValue(const OHIPCParcel *parcel, T *value, bool (OHOS::MessageParcel::*Read)(T &value))
 {
     if (!IsIPCParcelValid(parcel, __func__) || value == nullptr) {
         return OH_IPC_CHECK_PARAM_ERROR;
@@ -317,8 +317,7 @@ int OH_IPCParcel_ReadFileDescriptor(const OHIPCParcel *parcel, int32_t *fd)
 
 int OH_IPCParcel_Append(OHIPCParcel *parcel, const OHIPCParcel *data)
 {
-    if (!IsIPCParcelValid(parcel, __func__)
-        || !IsIPCParcelValid(data, __func__)) {
+    if (!IsIPCParcelValid(parcel, __func__) || !IsIPCParcelValid(data, __func__)) {
         return OH_IPC_CHECK_PARAM_ERROR;
     }
     return parcel->msgParcel->Append(*(data->msgParcel)) ? OH_IPC_SUCCESS : OH_IPC_PARCEL_WRITE_ERROR;
@@ -365,7 +364,7 @@ int OH_IPCParcel_ReadInterfaceToken(const OHIPCParcel *parcel, char **token, int
     }
 
     int memLength = static_cast<int>(strToken.length()) + 1;
-    *token = static_cast<char*>(allocator(memLength));
+    *token = static_cast<char *>(allocator(memLength));
     if (*token == nullptr) {
         parcel->msgParcel->RewindRead(readPosition);
         ZLOGE(LOG_LABEL, "memory allocator failed!");
