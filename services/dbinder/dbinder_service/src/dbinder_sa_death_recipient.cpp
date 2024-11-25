@@ -20,7 +20,7 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER,
-    "DbinderSaDeathRecipient" };
+    "DBinderSaDeathRecipient" };
 
 DbinderSaDeathRecipient::DbinderSaDeathRecipient(binder_uintptr_t binderObject) : binderObject_(binderObject)
 {
@@ -28,7 +28,7 @@ DbinderSaDeathRecipient::DbinderSaDeathRecipient(binder_uintptr_t binderObject) 
 
 void DbinderSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    DBINDER_LOGE(LOG_LABEL, "DbinderSaDeathRecipient OnRemoteDied");
+    DBINDER_LOGW(LOG_LABEL, "enter");
     if (remote == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "remote object is null");
         return;

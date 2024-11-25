@@ -304,6 +304,8 @@ private:
     bool serialInvokeFlag_;
     std::atomic<uint64_t> lastRequestTime_;
     std::atomic<bool> requestSidFlag_ = false;
+    // anonymized descriptor, only for log
+    std::string remoteDescriptor_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H
