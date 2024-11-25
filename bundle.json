@@ -154,7 +154,8 @@
           "//foundation/communication/ipc/ipc/native/test:unittest",
           "//foundation/communication/ipc/ipc/native/test/fuzztest:fuzztest",
           "//foundation/communication/ipc/services/dbinder/test/unittest:unittest",
-          "//foundation/communication/ipc/services/dbinder/test/fuzztest:fuzztest"
+          "//foundation/communication/ipc/services/dbinder/test/fuzztest:fuzztest",
+          "//foundation/communication/ipc/test/fuzztest:fuzztest"
         ]
       }
     }
