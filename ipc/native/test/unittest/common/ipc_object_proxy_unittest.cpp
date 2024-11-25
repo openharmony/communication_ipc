@@ -177,7 +177,7 @@ HWTEST_F(IPCObjectProxyTest, GetObjectRefCountTest001, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest002, TestSize.Level1)
 {
     IPCObjectProxy object(0);
-    object.remoteDescriptor_ = u"";
+    object.interfaceDesc_ = u"";
     auto ret = object.GetInterfaceDescriptor();
     ASSERT_TRUE(ret.size() == 0);
 }
@@ -217,7 +217,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest005, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
+    object.interfaceDesc_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -245,7 +245,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
+    object.interfaceDesc_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -335,7 +335,6 @@ HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -363,7 +362,6 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest004, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -391,7 +389,6 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest005, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -419,7 +416,6 @@ HWTEST_F(IPCObjectProxyTest, OnFirstStrongRefTest005, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = nullptr;
@@ -778,7 +774,6 @@ HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"test";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
