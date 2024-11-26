@@ -54,17 +54,17 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    uv_work_t *work = new(std::nothrow) uv_work_t;
+    uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         ZLOGE(LOG_LABEL, "failed to new work");
         return;
     }
-    OperateJsRefParam *param = new OperateJsRefParam {
+    OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
         .env = env_,
         .thisVarRef = jsObjectRef_
     };
     if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "failed to new param");
+        ZLOGE(LOG_LABEL, "new OperateJsRefParam failed");
         delete work;
         return;
     }
@@ -84,6 +84,8 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
         delete work;
     });
     if (uvRet != 0) {
+        delete param;
+        delete work;
         ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
     }
 }
@@ -130,7 +132,11 @@ sptr<IRemoteObject> NAPIRemoteObjectHolder::Get()
 
     sptr<IRemoteObject> tmp = wptrCachedObject_.promote();
     if (tmp == nullptr && env_ != nullptr) {
-        tmp = new NAPIRemoteObject(jsThreadId_, env_, jsObjectRef_, descriptor_);
+        tmp = new (std::nothrow) NAPIRemoteObject(jsThreadId_, env_, jsObjectRef_, descriptor_);
+        if (tmp == nullptr) {
+            ZLOGE(LOG_LABEL, "new NAPIRemoteObject failed");
+            return nullptr;
+        }
         wptrCachedObject_ = tmp;
     }
     return tmp;

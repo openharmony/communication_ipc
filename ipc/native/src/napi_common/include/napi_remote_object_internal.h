@@ -40,6 +40,7 @@ struct CallbackParam {
     MessageParcel *reply;
     MessageOption *option;
     CallingInfo callingInfo;
+    CallingInfo oldCallingInfo;
     ThreadLockInfo *lockInfo;
     int result;
 };

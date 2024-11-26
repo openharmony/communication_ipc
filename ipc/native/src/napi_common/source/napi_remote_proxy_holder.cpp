@@ -28,7 +28,7 @@ NAPIDeathRecipient::NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient
 {
     env_ = env;
     napi_status status = napi_create_reference(env_, jsDeathRecipient, 1, &deathRecipientRef_);
-    NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, "failed to create ref to js death recipient");
+    NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to create ref to js death recipient");
 }
 
 void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
@@ -97,15 +97,20 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         return;
     }
 
-    uv_work_t *work = new(std::nothrow) uv_work_t;
+    uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         ZLOGE(LOG_LABEL, "failed to new uv_work_t");
         return;
     }
-    OnRemoteDiedParam *param = new OnRemoteDiedParam {
+    OnRemoteDiedParam *param = new (std::nothrow) OnRemoteDiedParam {
         .env = env_,
         .deathRecipientRef = deathRecipientRef_
     };
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "new OnRemoteDiedParam failed");
+        delete work;
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     ZLOGI(LOG_LABEL, "start to queue");
     int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
@@ -113,6 +118,8 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     }, AfterWorkCallback);
     if (uvRet != 0) {
         ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+        delete param;
+        delete work;
     }
 }
 

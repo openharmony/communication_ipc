@@ -928,7 +928,7 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPIAshmem *napiAshmem = nullptr;
     if (argc == 0) {
-        napiAshmem = new NAPIAshmem();
+        napiAshmem = new (std::nothrow) NAPIAshmem();
     } else {
         NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
         napi_valuetype valueType = napi_null;
@@ -950,8 +950,9 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
         // new napi Ashmem
         sptr<Ashmem> nativeAshmem = Ashmem::CreateAshmem(ashmemName.c_str(), ashmemSize);
         NAPI_ASSERT(env, nativeAshmem != nullptr, "invalid parameters");
-        napiAshmem = new NAPIAshmem(nativeAshmem);
+        napiAshmem = new (std::nothrow) NAPIAshmem(nativeAshmem);
     }
+    NAPI_ASSERT(env, napiAshmem != nullptr, "new NAPIAshmem failed");
     // connect native object to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, napiAshmem,
@@ -960,7 +961,10 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
             delete (reinterpret_cast<NAPIAshmem *>(data));
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js Ashmem and native holder failed");
+    if (status != napi_ok) {
+        delete napiAshmem;
+        NAPI_ASSERT(env, false, "wrap js Ashmem and native holder failed");
+    }
     return thisVar;
 }
 } // namespace OHOS
