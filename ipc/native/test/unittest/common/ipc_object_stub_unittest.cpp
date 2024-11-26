@@ -442,7 +442,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest011, TestSize.Level1)
         .WillRepeatedly(testing::Return(true));
 
     int result = testStub->SendRequest(code, data, reply, option);
-    EXPECT_EQ(result, ERR_NONE);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
     delete invoker;
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
@@ -598,14 +598,46 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest017, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
-#endif
 
 /**
  * @tc.name: SendRequestTest018
- * @tc.desc: Sending requests in serial mode enabled
+ * @tc.desc: Verify the SendRequest function
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectStubTest, SendRequestTest018, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = GET_PID_UID;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
+    ProcessSkeleton::GetInstance()->SetSamgrFlag(true);
+
+    int result = testStub->SendRequest(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+    delete invoker;
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    ProcessSkeleton::GetInstance()->SetSamgrFlag(false);
+}
+
+#endif
+
+/**
+ * @tc.name: SendRequestTest019
+ * @tc.desc: Sending requests in serial mode enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, SendRequestTest019, TestSize.Level1)
 {
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub", true);
     uint32_t code = LAST_CALL_TRANSACTION;
