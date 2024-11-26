@@ -99,7 +99,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
     MessageOption &option, napi_value *argv)
 {
     napi_value result = nullptr;
-    SendRequestParam *sendRequestParam = new SendRequestParam {
+    SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
         .data = data,
@@ -116,6 +116,7 @@ napi_value SendRequestAsync(napi_env env, sptr<IRemoteObject> target, uint32_t c
         .env = env,
         .traceId = 0,
     };
+    NAPI_ASSERT(env, sendRequestParam != nullptr, "new sendRequestParam failed");
     IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
     if (targetProxy != nullptr) {
         std::string remoteDescriptor = Str16ToStr8(targetProxy->GetInterfaceDescriptor());
@@ -146,7 +147,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
     napi_create_promise(env, &deferred, &promise);
-    SendRequestParam *sendRequestParam = new SendRequestParam {
+    SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
         .data = data,
@@ -163,6 +164,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
         .env = env,
         .traceId = 0,
     };
+    NAPI_ASSERT(env, sendRequestParam != nullptr, "new sendRequestParam failed");
     IPCObjectProxy *targetProxy = reinterpret_cast<IPCObjectProxy *>(target.GetRefPtr());
     if (targetProxy != nullptr) {
         std::string remoteDescriptor = Str16ToStr8(targetProxy->GetInterfaceDescriptor());
@@ -380,7 +382,8 @@ napi_value NAPI_RemoteProxy_addDeathRecipient(napi_env env, napi_callback_info i
         return result;
     }
 
-    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = new (std::nothrow) NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    NAPI_ASSERT(env, nativeRecipient != nullptr, "new NAPIDeathRecipient failed");
     if (target->AddDeathRecipient(nativeRecipient)) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
         if (list->Add(nativeRecipient)) {
@@ -451,7 +454,8 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
         return napiErr.ThrowError(env, errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
     }
 
-    sptr<NAPIDeathRecipient> nativeRecipient = new NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    sptr<NAPIDeathRecipient> nativeRecipient = new (std::nothrow) NAPIDeathRecipient(env, argv[ARGV_INDEX_0]);
+    NAPI_ASSERT(env, nativeRecipient != nullptr, "new NAPIDeathRecipient failed");
     bool ret = target->AddDeathRecipient(nativeRecipient);
     if (ret) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
@@ -676,7 +680,8 @@ napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     // new napi proxy holder instance
-    auto proxyHolder = new NAPIRemoteProxyHolder();
+    auto proxyHolder = new (std::nothrow) NAPIRemoteProxyHolder();
+    NAPI_ASSERT(env, proxyHolder != nullptr, "new NAPIRemoteProxyHolder failed");
     // connect native object to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, proxyHolder,
@@ -685,7 +690,10 @@ napi_value RemoteProxy_JS_Constructor(napi_env env, napi_callback_info info)
             delete (reinterpret_cast<NAPIRemoteProxyHolder *>(data));
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js RemoteProxy and native holder failed");
+    if (status != napi_ok) {
+        delete proxyHolder;
+        NAPI_ASSERT(env, false, "wrap js RemoteProxy and native holder failed");
+    }
     return thisVar;
 }
 
