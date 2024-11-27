@@ -16,13 +16,14 @@
 #ifndef OHOS_IPC_IPC_WORK_THREAD_POOL_H
 #define OHOS_IPC_IPC_WORK_THREAD_POOL_H
 
+#include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <mutex>
 #include <thread>
 #include <unordered_map>
-#include <atomic>
-#include <mutex>
 #include <ipc_workthread.h>
+
 #include "hilog/log.h"
 #include "log_tags.h"
 
@@ -39,9 +40,9 @@ public:
 
     ~IPCWorkThreadPool();
 
-    IPCWorkThreadPool &operator = (const IPCWorkThreadPool &) = delete;
+    IPCWorkThreadPool &operator=(const IPCWorkThreadPool &) = delete;
 
-    IPCWorkThreadPool &operator = (IPCWorkThreadPool &&) = delete;
+    IPCWorkThreadPool &operator=(IPCWorkThreadPool &&) = delete;
 
     bool SpawnThread(int policy = IPCWorkThread::SPAWN_PASSIVE, int proto = IRemoteObject::IF_PROT_DEFAULT);
 

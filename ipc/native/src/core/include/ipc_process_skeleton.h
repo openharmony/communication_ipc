@@ -16,9 +16,9 @@
 #ifndef OHOS_IPC_IPC_PROCESS_SKELETON_H
 #define OHOS_IPC_IPC_PROCESS_SKELETON_H
 
+#include <atomic>
 #include <list>
 #include <map>
-#include <atomic>
 #include <shared_mutex>
 
 #include "invoker_rawdata.h"
@@ -102,7 +102,7 @@ public:
     static uint32_t ConvertChannelID2Int(int64_t databusChannelId);
     static bool IsHandleMadeByUser(uint32_t handle);
 #endif
-    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
+    bool SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback);
     bool SetMaxWorkThread(int maxThreadNum);
     std::u16string MakeHandleDescriptor(int handle);
 
@@ -222,6 +222,7 @@ public:
     static constexpr uint32_t DBINDER_HANDLE_COUNT = 100000;
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
     static constexpr int ENCRYPT_LENGTH = 4;
+
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
     IPCProcessSkeleton();

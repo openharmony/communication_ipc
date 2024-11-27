@@ -19,10 +19,9 @@
 #include <list>
 #include <unordered_map>
 
-#include "singleton.h"
-
 #include "dbinder_softbus_client.h"
 #include "ipc_types.h"
+#include "singleton.h"
 
 namespace OHOS {
 static constexpr QosTV QOS_TV[] = {
@@ -46,9 +45,8 @@ public:
 
     bool operator==(const DBinderSocketInfo &info) const
     {
-        return (info.GetOwnName().compare(ownName_) == 0 &&
-            info.GetPeerName().compare(peerName_) == 0 &&
-            info.GetNetworkId().compare(networkId_) == 0);
+        return (info.GetOwnName().compare(ownName_) == 0 && info.GetPeerName().compare(peerName_) == 0 &&
+                info.GetNetworkId().compare(networkId_) == 0);
     }
 
 private:
@@ -60,9 +58,8 @@ private:
 struct SocketInfoHash {
     size_t operator()(const DBinderSocketInfo &info) const
     {
-        return std::hash<std::string>()(info.GetOwnName()) ^
-            std::hash<std::string>()(info.GetPeerName()) ^
-            std::hash<std::string>()(info.GetNetworkId());
+        return std::hash<std::string>()(info.GetOwnName()) ^ std::hash<std::string>()(info.GetPeerName()) ^
+               std::hash<std::string>()(info.GetNetworkId());
     }
 };
 
@@ -70,8 +67,7 @@ class DatabusSocketListener {
     DECLARE_DELAYED_SINGLETON(DatabusSocketListener)
 public:
     int32_t StartServerListener(const std::string &ownName);
-    int32_t CreateClientSocket(const std::string &ownName, const std::string &peerName,
-        const std::string &networkId);
+    int32_t CreateClientSocket(const std::string &ownName, const std::string &peerName, const std::string &networkId);
     void ShutdownSocket(int32_t socket);
 
     static void ServerOnBind(int32_t socket, PeerSocketInfo info);
@@ -85,13 +81,13 @@ public:
 private:
     std::shared_ptr<std::mutex> QueryOrNewInfoMutex(DBinderSocketInfo socketInfo);
 
-    ISocketListener clientListener_ {};
-    ISocketListener serverListener_ {};
+    ISocketListener clientListener_{};
+    ISocketListener serverListener_{};
 
     static inline std::mutex socketInfoMutex_;
     static inline std::mutex deviceMutex_;
-    static inline std::unordered_map<DBinderSocketInfo, std::shared_ptr<std::mutex>, SocketInfoHash> infoMutexMap_ {};
-    static inline std::unordered_map<DBinderSocketInfo, int32_t, SocketInfoHash> socketInfoMap_ {};
+    static inline std::unordered_map<DBinderSocketInfo, std::shared_ptr<std::mutex>, SocketInfoHash> infoMutexMap_{};
+    static inline std::unordered_map<DBinderSocketInfo, int32_t, SocketInfoHash> socketInfoMap_{};
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_DATABUS_SOCKET_LISTENER_H

@@ -16,14 +16,14 @@
 #ifndef OHOS_IPC_COMMAUTHINFO_H
 #define OHOS_IPC_COMMAUTHINFO_H
 
-#include "iremote_object.h"
 #include "ipc_object_stub.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 class CommAuthInfo {
 public:
-    CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
-        const std::string &deviceId, int32_t socketId = 0);
+    CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId,
+        int32_t socketId = 0);
     virtual ~CommAuthInfo();
     IRemoteObject *GetStubObject() const;
     int GetRemotePid() const;
