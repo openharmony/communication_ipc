@@ -894,6 +894,35 @@ napi_value CreateJsRemoteProxy(napi_env env, const sptr<IRemoteObject> target)
     return jsRemoteProxy;
 }
 
+napi_value CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+{
+    // retrieve js remote object constructor
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
+    NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
+    // retrieve descriptor and it's length
+    std::u16string descriptor = target->GetObjectDescriptor();
+    std::string desc = Str16ToStr8(descriptor);
+    napi_value jsDesc = nullptr;
+    napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
+    // create a new js remote object
+    size_t argc = 1;
+    napi_value argv[ARGV_LENGTH_1] = { jsDesc };
+    napi_value jsRemoteObject = nullptr;
+    status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
+    NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
+    // retrieve holder and set object
+    NAPIRemoteObjectHolder *holder = nullptr;
+    napi_unwrap(env, jsRemoteObject, (void **)&holder);
+    NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
+    holder->Set(target);
+    return jsRemoteObject;
+}
+
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
@@ -908,31 +937,7 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
         uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
         ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
         if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
-            // retrieve js remote object constructor
-            napi_value global = nullptr;
-            napi_status status = napi_get_global(env, &global);
-            NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
-            napi_value constructor = nullptr;
-            status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
-            NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
-            NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
-            // retrieve descriptor and it's length
-            std::u16string descriptor = target->GetObjectDescriptor();
-            std::string desc = Str16ToStr8(descriptor);
-            napi_value jsDesc = nullptr;
-            napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
-            // create a new js remote object
-            size_t argc = 1;
-            napi_value argv[ARGV_LENGTH_1] = { jsDesc };
-            napi_value jsRemoteObject = nullptr;
-            status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
-            NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
-            // retrieve holder and set object
-            NAPIRemoteObjectHolder *holder = nullptr;
-            napi_unwrap(env, jsRemoteObject, (void **)&holder);
-            NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
-            holder->Set(target);
-            return jsRemoteObject;
+            return CreateJsRemoteObject(env, target);
         }
     }
 
