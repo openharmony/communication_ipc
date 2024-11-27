@@ -128,6 +128,23 @@ ohos_unittest("BinderConnectorTest") {
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
+ohos_unittest("BinderDebugUnitTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  sources = [
+    "$SUBSYSTEM_DIR/ipc/native/src/mock/source/binder_debug.cpp",
+    "binder_debug_unittest.cpp",
+  ]
+
+  configs = [
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  external_deps = [ "hilog:libhilog" ]
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+}
+
 ohos_unittest("BinderInvokerUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
@@ -367,6 +384,7 @@ group("unittest") {
   testonly = true
   deps = [
     ":BinderConnectorTest",
+    ":BinderDebugUnitTest",
     ":BinderInvokerUnitTest",
     ":IPCBlockThreadTest",
     ":IPCFileDescOpsTest",
