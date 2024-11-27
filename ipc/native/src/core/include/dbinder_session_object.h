@@ -16,12 +16,13 @@
 #ifndef OHOS_IPC_DBINDER_SESSION_OBJECT_H
 #define OHOS_IPC_DBINDER_SESSION_OBJECT_H
 
-#include <string>
 #include <mutex>
-#include "nocopyable.h"
+#include <string>
+
 #include "buffer_object.h"
 #include "databus_socket_listener.h"
 #include "ipc_object_proxy.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 constexpr int DEVICEID_LENGTH = 64;
