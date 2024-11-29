@@ -149,10 +149,6 @@ bool BinderConnector::MapMemory(uint64_t featureSet)
     actvBinder_.InitActvBinderConfig(featureSet);
 #endif
 
-    if (IPC_MMAP_SIZE < 0) {
-        ZLOGE(LABEL, "IPC_MMAP_SIZE is negative");
-        return false;
-    }
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
     if (vmAddr_ == MAP_FAILED) {
         ZLOGE(LABEL, "fail to mmap");
