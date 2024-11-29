@@ -233,7 +233,7 @@ public:
 
     void SetObjectDied(bool isDied);
 
-#ifndef EMULATOR_PLATFORM
+#ifdef OHOS_PLATFORM
     bool CanPromote() override;
 #endif
 
