@@ -1260,7 +1260,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         return false;
     }
     listenSocketId_ = socketId;
-    std::shared_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
+    std::unique_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
     if (name != sessionName_) {
         SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
     }

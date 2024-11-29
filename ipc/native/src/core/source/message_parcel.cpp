@@ -57,7 +57,7 @@ void AcquireObject(flat_binder_object *flat, const void *cookie)
     }
     switch (flat->hdr.type) {
         case BINDER_TYPE_BINDER:
-            if (flat->binder && reinterpret_cast<IRemoteObject *>(flat->cookie) != nullptr) {
+            if (flat->binder && flat->cookie != 0) {
                 reinterpret_cast<IRemoteObject *>(flat->cookie)->IncStrongRef(cookie);
             }
             break;
