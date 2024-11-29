@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../../../config.gni")
 
 ohos_rust_unittest("rust_ipc_ut_test") {
   module_out_path = "ipc/ipc_rust"
@@ -56,8 +57,10 @@ ohos_rust_unittest("rust_ipc_sdv_test") {
 
 group("unittest") {
   testonly = true
-  deps = [
-    ":rust_ipc_sdv_test",
-    ":rust_ipc_ut_test",
-  ]
+  if (ipc_feature_test_enabled) {
+    deps = [
+      ":rust_ipc_sdv_test",
+      ":rust_ipc_ut_test",
+    ]
+  }
 }

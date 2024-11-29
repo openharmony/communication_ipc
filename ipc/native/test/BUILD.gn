@@ -12,11 +12,14 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../../config.gni")
 
 #################################group#########################################
 
 group("unittest") {
   testonly = true
-  deps = [ "unittest/common:unittest" ]
+  if (ipc_feature_test_enabled) {
+    deps = [ "unittest/common:unittest" ]
+  }
 }
 ###############################################################################
