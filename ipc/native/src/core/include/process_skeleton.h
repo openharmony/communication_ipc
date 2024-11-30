@@ -113,7 +113,7 @@ private:
     std::shared_mutex invokerProcMutex_;
     std::unordered_map<std::string, InvokerProcInfo> invokerProcInfo_;
 
-    static constexpr size_t MAIN_THREAD_MAX_WAIT_TIME = 3;
+    static constexpr size_t MAIN_THREAD_MAX_WAIT_TIME = 1;
     std::atomic_bool stopThreadFlag_ = false;
     std::mutex threadCountMutex_;
     std::condition_variable threadCountCon_;
