@@ -11,19 +11,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../../../config.gni")
+
 group("fuzztest") {
   testonly = true
-  deps = [
-    "c/getfeaturesize_fuzzer:fuzztest",
-    "c/getrpcfeatureack_fuzzer:fuzztest",
-    "c/gettokenfromdata_fuzzer:fuzztest",
-    "c/isatenable_fuzzer:fuzztest",
-    "c/isfeatureack_fuzzer:fuzztest",
-    "c/setfeaturetransdata_fuzzer:fuzztest",
-    "core/bufferobject_fuzzer:fuzztest",
-    "core/ipcprocessskeleton_fuzzer:fuzztest",
-    "core/ipcskeleton_fuzzer:fuzztest",
-    "mock/binderinvoker_fuzzer:fuzztest",
-    "mock/dbinderdatabusinvoker_fuzzer:fuzztest",
-  ]
+  if (ipc_feature_test_enabled) {
+    deps = [
+      "c/getfeaturesize_fuzzer:fuzztest",
+      "c/getrpcfeatureack_fuzzer:fuzztest",
+      "c/gettokenfromdata_fuzzer:fuzztest",
+      "c/isatenable_fuzzer:fuzztest",
+      "c/isfeatureack_fuzzer:fuzztest",
+      "c/setfeaturetransdata_fuzzer:fuzztest",
+      "core/bufferobject_fuzzer:fuzztest",
+      "core/ipcprocessskeleton_fuzzer:fuzztest",
+      "core/ipcskeleton_fuzzer:fuzztest",
+      "mock/binderinvoker_fuzzer:fuzztest",
+      "mock/dbinderdatabusinvoker_fuzzer:fuzztest",
+    ]
+  }
 }
