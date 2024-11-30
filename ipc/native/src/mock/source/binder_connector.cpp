@@ -17,6 +17,7 @@
 
 #include <cinttypes>
 #include <cstdint>
+#include <thread>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -262,6 +263,8 @@ void BinderConnector::CloseDriverFd()
     if (driverFD_ >= 0) {
         int tmpFd = driverFD_;
         driverFD_ = -1;
+        // avoid call 'close' and 'ioctl' concurrently
+        std::this_thread::sleep_for(std::chrono::milliseconds(CLOSE_WAIT_TIME_MS));
         close(tmpFd);
     }
 }
