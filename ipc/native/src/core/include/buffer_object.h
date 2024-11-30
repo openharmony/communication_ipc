@@ -16,10 +16,10 @@
 #ifndef OHOS_IPC_BUFFER_OBJECT_H
 #define OHOS_IPC_BUFFER_OBJECT_H
 
-#include <pthread.h>
-#include <mutex>
-#include <string>
 #include <cstdint>
+#include <mutex>
+#include <pthread.h>
+#include <string>
 #include <sys/types.h>
 
 #include "nocopyable.h"

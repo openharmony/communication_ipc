@@ -16,9 +16,9 @@
 #ifndef OHOS_IPC_PROCESS_SKELETON_H
 #define OHOS_IPC_PROCESS_SKELETON_H
 
+#include <atomic>
 #include <map>
 #include <mutex>
-#include <atomic>
 #include <shared_mutex>
 #include <unordered_map>
 
@@ -52,7 +52,7 @@ public:
     static bool StrToUint64(const std::string &str, uint64_t &value);
     static bool StrToInt32(const std::string &str, int32_t &value);
 
-    bool SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback);
+    bool SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback);
     sptr<IRemoteObject> GetRegistryObject();
     void SetRegistryObject(sptr<IRemoteObject> &object);
     void SetSamgrFlag(bool flag);
@@ -108,7 +108,7 @@ private:
     std::unordered_map<IRemoteObject *, std::u16string> validObjectRecord_;
     uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
     std::atomic<uint64_t> proxyObjectCountNum_ = 0;
-    std::function<void (uint64_t num)> ipcProxyCallback_ {nullptr};
+    std::function<void(uint64_t num)> ipcProxyCallback_{ nullptr };
 
     std::shared_mutex invokerProcMutex_;
     std::unordered_map<std::string, InvokerProcInfo> invokerProcInfo_;

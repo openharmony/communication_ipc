@@ -16,11 +16,11 @@
 #ifndef OHOS_IPC_PAYLOAD_STATISTICS_IMPL_H
 #define OHOS_IPC_PAYLOAD_STATISTICS_IMPL_H
 
+#include <atomic>
 #include <map>
 #include <shared_mutex>
 #include <string>
 #include <vector>
-#include <atomic>
 
 namespace OHOS {
 
@@ -64,11 +64,11 @@ public:
     bool GetStatisticsStatus();
     bool ClearStatisticsData();
 
-    bool UpdatePayloadInfo(
-        const int32_t pid, const std::u16string &desc, const int32_t code, const uint32_t currentCost);
+    bool UpdatePayloadInfo(const int32_t pid, const std::u16string &desc, const int32_t code,
+        const uint32_t currentCost);
+
 private:
-    bool GetPayloadInfo(
-        const int32_t pid, const std::u16string &desc, const int32_t code, IPCPayloadInfo &payloadInfo);
+    bool GetPayloadInfo(const int32_t pid, const std::u16string &desc, const int32_t code, IPCPayloadInfo &payloadInfo);
     std::shared_mutex dataMutex_;
     std::map<int32_t, std::map<std::u16string, IPCPayloadInfo>> payloadStat_;
     std::atomic<bool> isStatisticsFlag_;

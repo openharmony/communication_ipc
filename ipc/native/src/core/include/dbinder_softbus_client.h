@@ -16,12 +16,12 @@
 #ifndef OHOS_IPC_DBINDER_SOFTBUS_CLIENT_H
 #define OHOS_IPC_DBINDER_SOFTBUS_CLIENT_H
 
+#include <atomic>
 #include <mutex>
 #include <string>
-#include <atomic>
 
-#include "nocopyable.h"
 #include "dsoftbus_interface.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 enum {

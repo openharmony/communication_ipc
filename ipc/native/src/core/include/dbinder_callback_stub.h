@@ -17,6 +17,7 @@
 #define OHOS_IPC_DBINDER_CALLBACK_STUB_H
 
 #include <string>
+
 #include "ipc_object_stub.h"
 
 namespace OHOS {
@@ -46,7 +47,7 @@ private:
     uint64_t stubIndex_;
     uint32_t handle_;
     uint32_t tokenId_;
-    std::unique_ptr<uint8_t[]> dbinderData_ {nullptr};
+    std::unique_ptr<uint8_t[]> dbinderData_{ nullptr };
 };
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_CALLBACK_STUB_H
