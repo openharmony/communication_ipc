@@ -18,10 +18,11 @@
 
 #include <string>
 #include <thread>
-#include "refbase.h"
+
 #include "hilog/log.h"
 #include "iremote_invoker.h"
 #include "log_tags.h"
+#include "refbase.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE

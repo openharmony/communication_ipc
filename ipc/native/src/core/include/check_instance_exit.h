@@ -16,16 +16,16 @@
 #ifndef OHOS_IPC_CHECK_INSTANCE_EXIT_H
 #define OHOS_IPC_CHECK_INSTANCE_EXIT_H
 
-#define CHECK_INSTANCE_EXIT(flag) \
-    if (flag) { \
+#define CHECK_INSTANCE_EXIT(flag)                \
+    if (flag) {                                  \
         ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return; \
+        return;                                  \
     }
 
 #define CHECK_INSTANCE_EXIT_WITH_RETVAL(flag, retVal) \
-    if (flag) { \
-        ZLOGW(LOG_LABEL, "instance is exiting"); \
-        return retVal; \
+    if (flag) {                                       \
+        ZLOGW(LOG_LABEL, "instance is exiting");      \
+        return retVal;                                \
     }
 
 #endif // OHOS_IPC_CHECK_INSTANCE_EXIT_H

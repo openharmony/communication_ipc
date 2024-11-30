@@ -19,8 +19,9 @@
 #include <mutex>
 #include <pthread.h>
 #include <unordered_map>
-#include "iremote_invoker.h"
+
 #include "binder_invoker.h"
+#include "iremote_invoker.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -79,7 +80,7 @@ private:
     std::atomic<uint32_t> exitFlag_ = INVOKER_USE_MAGIC;
     std::atomic<uint32_t> usingFlag_ = INVOKER_IDLE_MAGIC;
     static constexpr uint32_t INVOKER_MAX_COUNT = 2;
-    IRemoteInvoker *invokers_[INVOKER_MAX_COUNT] = {nullptr, nullptr};
+    IRemoteInvoker *invokers_[INVOKER_MAX_COUNT] = { nullptr, nullptr };
     const pid_t tid_;
     std::atomic<int32_t> sendRequestCount_ = 0;
     std::string threadName_;
