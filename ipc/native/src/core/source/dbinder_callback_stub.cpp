@@ -18,12 +18,12 @@
 #include <cinttypes>
 
 #include "dbinder_error_code.h"
-#include "log_tags.h"
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
+#include "log_tags.h"
 #include "securec.h"
 #include "string_ex.h"
 #include "sys_binder.h"
@@ -35,11 +35,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_
 DBinderCallbackStub::DBinderCallbackStub(const std::string &service, const std::string &device,
     const std::string &localDevice, uint64_t stubIndex, uint32_t handle, uint32_t tokenId)
     : IPCObjectStub(Str8ToStr16("DBinderCallback" + IPCProcessSkeleton::ConvertToSecureString(device) + service)),
-      serviceName_(service),
-      deviceID_(device),
-      localDeviceID_(localDevice),
-      stubIndex_(stubIndex),
-      handle_(handle),
+      serviceName_(service), deviceID_(device), localDeviceID_(localDevice), stubIndex_(stubIndex), handle_(handle),
       tokenId_(tokenId)
 {
     ZLOGD(LOG_LABEL, "created, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex:%{public}" PRIu64,
@@ -130,9 +126,8 @@ int32_t DBinderCallbackStub::ProcessData(int uid, int pid, const std::string &se
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_BINDER_CALLBACK_AUTHCOMM_ERR, __FUNCTION__);
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
-    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s "
-         "localDeviceID:%{public}s serviceName:%{public}s uid:%{public}d pid:%{public}d "
-         "tokenId:%{public}u sessionName:%{public}s",
+    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s localDeviceID:%{public}s "
+        "serviceName:%{public}s uid:%{public}d pid:%{public}d tokenId:%{public}u sessionName:%{public}s",
         stubIndex_, IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(localDeviceID_).c_str(), serviceName_.c_str(), uid, pid, tokenId_,
         sessionName.c_str());
@@ -227,9 +222,8 @@ int DBinderCallbackStub::AddDBinderCommAuth(pid_t pid, uid_t uid, const std::str
         return BINDER_CALLBACK_AUTHCOMM_ERR;
     }
 
-    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s "
-         "localDeviceID:%{public}s serviceName:%{public}s uid:%{public}d pid:%{public}d "
-         "tokenId:%{public}u sessionName:%{public}s",
+    ZLOGI(LOG_LABEL, "send to stub ok! stubIndex:%{public}" PRIu64 " peerDevice:%{public}s localDeviceID:%{public}s "
+        "serviceName:%{public}s uid:%{public}d pid:%{public}d tokenId:%{public}u sessionName:%{public}s",
         stubIndex_, IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(localDeviceID_).c_str(), serviceName_.c_str(), uid, pid, tokenId_,
         sessionName.c_str());
@@ -249,12 +243,9 @@ int DBinderCallbackStub::SaveDBinderData(const std::string &sessionName)
     dbinderData->proto = IRemoteObject::IF_PROT_DATABUS;
     dbinderData->stub_index = stubIndex_;
     dbinderData->tokenid = tokenId_;
-    auto ret = memcpy_s(dbinderData->target_name, SESSION_NAME_LENGTH, serviceName_.c_str(),
-        serviceName_.length());
-    ret += memcpy_s(dbinderData->target_device, DEVICEID_LENGTH, deviceID_.c_str(),
-        deviceID_.length());
-    ret += memcpy_s(dbinderData->local_device, DEVICEID_LENGTH, localDeviceID_.c_str(),
-        localDeviceID_.length());
+    auto ret = memcpy_s(dbinderData->target_name, SESSION_NAME_LENGTH, serviceName_.c_str(), serviceName_.length());
+    ret += memcpy_s(dbinderData->target_device, DEVICEID_LENGTH, deviceID_.c_str(), deviceID_.length());
+    ret += memcpy_s(dbinderData->local_device, DEVICEID_LENGTH, localDeviceID_.c_str(), localDeviceID_.length());
     ret += memcpy_s(dbinderData->local_name, SESSION_NAME_LENGTH, sessionName.c_str(), sessionName.length());
     ret += memcpy_s(dbinderData->desc, DBINDER_DESC_LENGTH, descriptor_.c_str(), descriptor_.length());
     if (ret != EOK) {
