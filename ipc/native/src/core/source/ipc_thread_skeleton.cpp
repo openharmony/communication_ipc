@@ -30,8 +30,8 @@
 #include "iremote_object.h"
 #include "log_tags.h"
 #include "new"
-#include "pthread.h"
 #include "process_skeleton.h"
+#include "pthread.h"
 
 namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
@@ -59,7 +59,7 @@ void IPCThreadSkeleton::TlsDestructor(void *args)
     }
 
     uint32_t ret = current->usingFlag_.load();
-    if ((ret != INVOKER_USE_MAGIC) && (ret != INVOKER_IDLE_MAGIC))  {
+    if ((ret != INVOKER_USE_MAGIC) && (ret != INVOKER_IDLE_MAGIC)) {
         ZLOGF(LOG_LABEL, "memory may be damaged, ret:%{public}u", ret);
         return;
     }
@@ -93,9 +93,8 @@ void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
     auto tid = gettid();
     if (instance->tid_ != tid) {
         if (instance->IsSendRequesting()) {
-            ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, "
-                "key:%{public}u instance:%{public}u threadName:%{public}s",
-                tid, instance->tid_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
+            ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, key:%{public}u instance:%{public}u"
+                " threadName:%{public}s", tid, instance->tid_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
                 instance->threadName_.c_str());
         }
         pthread_setspecific(TLSKey_, nullptr);
@@ -137,7 +136,7 @@ IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
 {
     ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
     pthread_setspecific(TLSKey_, this);
-    char name[MAX_THREAD_NAME_LEN] = {0};
+    char name[MAX_THREAD_NAME_LEN] = { 0 };
     auto ret = prctl(PR_GET_NAME, name);
     if (ret != 0) {
         ZLOGW(LOG_LABEL, "get thread name fail, tid:%{public}d ret:%{public}d", tid_, ret);
@@ -156,7 +155,7 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
         usleep(1);
         ret = usingFlag_.load();
     }
-    if ((ret != INVOKER_USE_MAGIC) && (ret != INVOKER_IDLE_MAGIC))  {
+    if ((ret != INVOKER_USE_MAGIC) && (ret != INVOKER_IDLE_MAGIC)) {
         ZLOGF(LOG_LABEL, "memory may be damaged, ret:%{public}u", ret);
         return;
     }
@@ -173,8 +172,8 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
             process->DecreaseThreadCount();
         }
     }
-    ZLOGD(LOG_LABEL, "thread exit, threadName=%{public}s, tid=%{public}d, threadType=%{public}d",
-        threadName_.c_str(), tid_, threadType_);
+    ZLOGD(LOG_LABEL, "thread exit, threadName=%{public}s, tid=%{public}d, threadType=%{public}d", threadName_.c_str(),
+        tid_, threadType_);
 }
 
 bool IPCThreadSkeleton::IsInstanceException(std::atomic<uint32_t> &flag)

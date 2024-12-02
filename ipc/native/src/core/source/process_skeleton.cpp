@@ -135,10 +135,9 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     }
 
     if (iterator->second.GetRefPtr() != object) {
-        ZLOGI(LOG_LABEL, "can not erase it because addr is different, "
-            "desc:%{public}s, recorded object:%{public}u, detach object:%{public}u",
-            ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), ConvertAddr(iterator->second.GetRefPtr()),
-            ConvertAddr(object));
+        ZLOGI(LOG_LABEL, "can not erase it because addr is different, desc:%{public}s, recorded object:%{public}u,"
+            " detach object:%{public}u", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(),
+            ConvertAddr(iterator->second.GetRefPtr()), ConvertAddr(object));
         return true;
     }
 
@@ -166,14 +165,14 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     if (object->IsProxyObject()) {
         uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
         if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
-                ZLOGW(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64,
-                      proxyObjectCountNum, ipcProxyLimitNum_);
-                ipcProxyCallback_(proxyObjectCountNum);
+            ZLOGW(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64, proxyObjectCountNum,
+                ipcProxyLimitNum_);
+            ipcProxyCallback_(proxyObjectCountNum);
         }
     }
     auto result = objects_.insert_or_assign(descriptor, wp);
-    ZLOGD(LOG_LABEL, "attach %{public}u desc:%{public}s type:%{public}s",
-        ConvertAddr(object), ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), result.second ? "insert" : "assign");
+    ZLOGD(LOG_LABEL, "attach %{public}u desc:%{public}s type:%{public}s", ConvertAddr(object),
+        ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(), result.second ? "insert" : "assign");
     return true;
 }
 
@@ -281,8 +280,8 @@ bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invok
     std::string key = std::to_string(gettid()) + "_" + std::to_string(isLocal);
     auto result = invokerProcInfo_.insert_or_assign(key, invokeInfo);
     auto &info = result.first->second;
-    ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64,
-        info.invoker, info.pid, info.realPid, info.uid, info.tokenId, info.firstTokenId);
+    ZLOGD(LOG_LABEL, "%{public}u, %{public}u %{public}u %{public}u %{public}" PRIu64 " %{public}" PRIu64, info.invoker,
+        info.pid, info.realPid, info.uid, info.tokenId, info.firstTokenId);
     return result.second;
 }
 
@@ -346,7 +345,7 @@ std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)
     return str;
 }
 
-bool ProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void (uint64_t num)> callback)
+bool ProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback)
 {
     ipcProxyLimitNum_ = num;
     ipcProxyCallback_ = callback;
@@ -386,8 +385,8 @@ bool ProcessSkeleton::UnFlattenDBinderData(Parcel &parcel, dbinder_negotiation_d
         return false;
     }
     auto obj = reinterpret_cast<const binder_buffer_object *>(buf);
-    auto ret = memcpy_s(dbinderData, sizeof(dbinder_negotiation_data),
-        reinterpret_cast<const void *>(obj->buffer), obj->length);
+    auto ret = memcpy_s(dbinderData, sizeof(dbinder_negotiation_data), reinterpret_cast<const void *>(obj->buffer),
+        obj->length);
     return (ret == EOK);
 }
 
@@ -409,7 +408,7 @@ bool ProcessSkeleton::IsNumStr(const std::string &str)
     return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-template<typename V, typename F>
+template <typename V, typename F>
 static bool StrToInteger(const std::string &str, V &value, F func)
 {
     if (str.empty()) {
@@ -493,9 +492,10 @@ void ProcessSkeleton::NotifyChildThreadStop()
     ZLOGI(LOG_LABEL, "start waiting for child thread to exit, child thread num:%{public}zu",
         runningChildThreadNum_.load());
     std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
-    threadCountCon_.wait_for(lockGuard,
-        std::chrono::seconds(MAIN_THREAD_MAX_WAIT_TIME),
-        [&threadNum = this->runningChildThreadNum_] { return threadNum.load() == 0; });
+    threadCountCon_.wait_for(lockGuard, std::chrono::seconds(MAIN_THREAD_MAX_WAIT_TIME),
+        [&threadNum = this->runningChildThreadNum_] {
+            return threadNum.load() == 0;
+        });
     if (runningChildThreadNum_.load() != 0) {
         ZLOGI(LOG_LABEL, "wait timeout, %{public}zu child threads not exiting", runningChildThreadNum_.load());
         return;
