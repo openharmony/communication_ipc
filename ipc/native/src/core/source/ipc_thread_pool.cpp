@@ -16,8 +16,8 @@
 #include "ipc_thread_pool.h"
 
 #include <dlfcn.h>
-#include <unistd.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #ifdef CONFIG_ACTV_BINDER
 #include "binder_invoker.h"
@@ -57,11 +57,10 @@ extern "C" __attribute__((constructor)) void InitIpcSo()
 }
 
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
-    : threadSequence_(0),
-      maxThreadNum_(maxThreadNum + maxThreadNum),
-      idleThreadNum_(maxThreadNum),
+    : threadSequence_(0), maxThreadNum_(maxThreadNum + maxThreadNum), idleThreadNum_(maxThreadNum),
       idleSocketThreadNum_(maxThreadNum)
-{}
+{
+}
 
 IPCWorkThreadPool::~IPCWorkThreadPool()
 {
@@ -176,5 +175,4 @@ void IPCWorkThreadPool::UpdateMaxThreadNum(int maxThreadNum)
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif
-} // namesapce OHOS
-
+} // namespace OHOS

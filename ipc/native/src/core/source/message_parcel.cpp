@@ -83,24 +83,16 @@ void AcquireObject(flat_binder_object *flat, const void *cookie)
 }
 
 MessageParcel::MessageParcel()
-    : Parcel(),
-      writeRawDataFd_(-1),
-      readRawDataFd_(-1),
-      kernelMappedWrite_(nullptr),
-      kernelMappedRead_(nullptr),
-      rawData_(nullptr),
-      rawDataSize_(0)
-{}
+    : Parcel(), writeRawDataFd_(-1), readRawDataFd_(-1), kernelMappedWrite_(nullptr), kernelMappedRead_(nullptr),
+      rawData_(nullptr), rawDataSize_(0)
+{
+}
 
 MessageParcel::MessageParcel(Allocator *allocator)
-    : Parcel(allocator),
-      writeRawDataFd_(-1),
-      readRawDataFd_(-1),
-      kernelMappedWrite_(nullptr),
-      kernelMappedRead_(nullptr),
-      rawData_(nullptr),
-      rawDataSize_(0)
-{}
+    : Parcel(allocator), writeRawDataFd_(-1), readRawDataFd_(-1), kernelMappedWrite_(nullptr),
+      kernelMappedRead_(nullptr), rawData_(nullptr), rawDataSize_(0)
+{
+}
 
 MessageParcel::~MessageParcel()
 {
@@ -126,7 +118,6 @@ MessageParcel::~MessageParcel()
     rawData_ = nullptr;
     rawDataSize_ = 0;
 }
-
 
 #ifndef CONFIG_IPC_SINGLE
 bool MessageParcel::WriteDBinderProxy(const sptr<IRemoteObject> &object, uint32_t handle, uint64_t stubIndex)
@@ -294,8 +285,8 @@ void MessageParcel::ClearFileDescriptor()
         // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
-            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu dataSize:%{public}zu",
-                dataOffset, GetDataSize());
+            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu dataSize:%{public}zu", dataOffset,
+                GetDataSize());
             break;
         }
         uintptr_t data = GetData();
@@ -324,8 +315,8 @@ bool MessageParcel::ContainFileDescriptors() const
         // offset + size
         dataOffset = object[i] + sizeof(flat_binder_object);
         if (dataOffset > GetDataSize()) {
-            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu dataSize:%{public}zu",
-                dataOffset, GetDataSize());
+            ZLOGE(LOG_LABEL, "object offset is overflow, dataOffset:%{public}zu dataSize:%{public}zu", dataOffset,
+                GetDataSize());
             break;
         }
         uintptr_t data = GetData();
@@ -444,7 +435,7 @@ const void *MessageParcel::ReadRawData(size_t size)
         ZLOGE(LOG_LABEL, "the parameter size is 0, time:%{public}" PRIu64, curTime);
         return nullptr;
     }
-    size_t bufferSize =  static_cast<size_t>(ReadInt32());
+    size_t bufferSize = static_cast<size_t>(ReadInt32());
     if (bufferSize != size) {
         ZLOGE(LOG_LABEL, "ReadRawData: the buffersize:%{public}zu not equal the parameter size:%{public}zu",
             bufferSize, size);
@@ -462,8 +453,8 @@ const void *MessageParcel::ReadRawData(size_t size)
             // do nothing
         }
         if (rawDataSize_ != size) {
-            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize:%{public}zu"
-                " not equal size:%{public}zu", rawDataSize_, size);
+            ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize:%{public}zu not equal size:%{public}zu",
+                rawDataSize_, size);
             return nullptr;
         }
         return rawData_.get();
@@ -477,8 +468,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     int ashmemSize = AshmemGetSize(fd);
     if (ashmemSize < 0 || size_t(ashmemSize) < size) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
-        ZLOGE(LOG_LABEL, "ashmemSize:%{public}d less than size:%{public}zu",
-            ashmemSize, size);
+        ZLOGE(LOG_LABEL, "ashmemSize:%{public}d less than size:%{public}zu", ashmemSize, size);
         return nullptr;
     }
     void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
@@ -613,8 +603,8 @@ void MessageParcel::PrintBuffer(const char *funcName, const size_t lineNum)
         format += std::to_string(objOffsets[idx]) + ',';
         ++idx;
     }
-    ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: ObjSize:%{public}zu, ObjOffsets:%{public}s",
-        funcName, lineNum, ProcessSkeleton::ConvertAddr(this), size, format.c_str());
+    ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: ObjSize:%{public}zu, ObjOffsets:%{public}s", funcName,
+        lineNum, ProcessSkeleton::ConvertAddr(this), size, format.c_str());
 
     format.clear();
     idx = 0;
