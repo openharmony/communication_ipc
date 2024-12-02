@@ -49,6 +49,10 @@ extern "C" __attribute__((constructor)) void InitIpcSo()
             return;
         }
         g_selfSoHandler = dlopen(info.dli_fname, RTLD_LAZY);
+        if (g_selfSoHandler == nullptr) {
+            const char *error = dlerror();
+            ZLOGE(LOG_LABEL, "dlopen failed, dlerror:%{public}s", error != nullptr ? error : "unknown");
+        }
     }
 }
 
