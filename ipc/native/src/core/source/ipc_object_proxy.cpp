@@ -123,7 +123,7 @@ int32_t IPCObjectProxy::GetObjectRefCount()
 int IPCObjectProxy::Dump(int fd, const std::vector<std::u16string> &args)
 {
     MessageParcel data, reply;
-    MessageOption option { MessageOption::TF_SYNC };
+    MessageOption option{ MessageOption::TF_SYNC };
     data.WriteFileDescriptor(fd);
     data.WriteString16Vector(args);
     return SendRequestInner(false, DUMP_TRANSACTION, data, reply, option);
@@ -292,7 +292,7 @@ std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
 int IPCObjectProxy::RemoveSessionName(const std::string &sessionName)
 {
     MessageParcel data, reply;
-    MessageOption option { MessageOption::TF_ASYNC };
+    MessageOption option{ MessageOption::TF_ASYNC };
     if (!data.WriteString(sessionName)) {
         ZLOGE(LABEL, "write parcel fail, sessionName:%{public}s", sessionName.c_str());
         return IPC_PROXY_WRITE_PARCEL_ERR;
@@ -576,7 +576,7 @@ uint32_t IPCObjectProxy::GetStrongRefCountForStub()
     BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(IPCThreadSkeleton::GetDefaultInvoker());
     if (invoker == nullptr) {
         ZLOGE(LABEL, "get default invoker failed");
-        return 0;  // 0 means get failed
+        return 0; // 0 means get failed
     }
     return invoker->GetStrongRefCountForStub(handle_);
 }
@@ -641,7 +641,6 @@ int32_t IPCObjectProxy::IncRefToRemote()
     return err;
 }
 
-
 void IPCObjectProxy::ReleaseProto()
 {
     switch (GetProto()) {
@@ -682,8 +681,8 @@ int IPCObjectProxy::GetProtoInfo()
     if (err != ERR_NONE && err != -EBADMSG) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGW(LABEL, "GET_PROTO_INFO transact return error:%{public}d handle:%{public}u time:%{public}" PRIu64,
-            err, handle_, curTime);
+        ZLOGW(LABEL, "GET_PROTO_INFO transact return error:%{public}d handle:%{public}u time:%{public}" PRIu64, err,
+            handle_, curTime);
         return IRemoteObject::IF_PROT_ERROR;
     }
 
@@ -824,8 +823,8 @@ bool IPCObjectProxy::MakeDBinderTransSession(const DBinderNegotiationData &data)
         return false;
     }
 
-    auto dbinderSession = std::make_shared<DBinderSessionObject>(
-        data.peerServiceName, data.peerDeviceId, data.stubIndex, this, data.peerTokenId);
+    auto dbinderSession = std::make_shared<DBinderSessionObject>(data.peerServiceName, data.peerDeviceId,
+        data.stubIndex, this, data.peerTokenId);
     if (dbinderSession == nullptr) {
         ZLOGE(LABEL, "make DBinderSessionObject fail!");
         return false;
@@ -847,8 +846,8 @@ bool IPCObjectProxy::MakeDBinderTransSession(const DBinderNegotiationData &data)
         // should not get here
         ZLOGW(LABEL, "ProxyAttachDBinderSession fail for handle:%{public}d, maybe a concurrent scenarios", handle_);
         if (current->QuerySessionByInfo(data.peerServiceName, data.peerDeviceId) == nullptr) {
-            ZLOGE(LABEL, "session is not exist, service:%{public}s devId:%{public}s",
-                data.peerServiceName.c_str(), IPCProcessSkeleton::ConvertToSecureString(data.peerDeviceId).c_str());
+            ZLOGE(LABEL, "session is not exist, service:%{public}s devId:%{public}s", data.peerServiceName.c_str(),
+                IPCProcessSkeleton::ConvertToSecureString(data.peerDeviceId).c_str());
             dbinderSession->CloseDatabusSession();
             return false;
         }
@@ -857,8 +856,7 @@ bool IPCObjectProxy::MakeDBinderTransSession(const DBinderNegotiationData &data)
     return true;
 }
 
-int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply,
-    DBinderNegotiationData &dbinderData)
+int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply, DBinderNegotiationData &dbinderData)
 {
     dbinderData.stubIndex = reply.ReadUint64();
     dbinderData.peerServiceName = reply.ReadString();
@@ -866,8 +864,8 @@ int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply,
     dbinderData.localDeviceId = reply.ReadString();
     dbinderData.localServiceName = reply.ReadString();
     dbinderData.peerTokenId = reply.ReadUint32();
-    if (dbinderData.peerServiceName.empty() || dbinderData.peerDeviceId.empty() ||
-        dbinderData.localDeviceId.empty() || dbinderData.localServiceName.empty()) {
+    if (dbinderData.peerServiceName.empty() || dbinderData.peerDeviceId.empty() || dbinderData.localDeviceId.empty() ||
+        dbinderData.localServiceName.empty()) {
         ZLOGE(LABEL, "invalid param");
         return ERR_INVALID_DATA;
     }
@@ -1012,8 +1010,7 @@ bool IPCObjectProxy::UnRegisterBinderDeathRecipient()
         dbinderStatus = RemoveDbinderDeathRecipient();
     }
 #endif
-    ZLOGD(LABEL, "unregister result:%{public}d, handle:%{public}d",
-        status && dbinderStatus, handle_);
+    ZLOGD(LABEL, "unregister result:%{public}d, handle:%{public}d", status && dbinderStatus, handle_);
     return status && dbinderStatus;
 }
 

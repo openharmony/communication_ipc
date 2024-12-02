@@ -15,18 +15,19 @@
 
 #include "dbinder_session_object.h"
 
-#include "ipc_process_skeleton.h"
 #include "ipc_debug.h"
+#include "ipc_process_skeleton.h"
 #include "log_tags.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_SESSION_OBJ, "dbinder_session_object" };
 
-DBinderSessionObject::DBinderSessionObject(const std::string &serviceName,
-    const std::string &serverDeviceId, uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId)
-    :serviceName_(serviceName), serverDeviceId_(serverDeviceId),
-    stubIndex_(stubIndex), proxy_(proxy), tokenId_(tokenId), pid_(0), uid_(0)
-{}
+DBinderSessionObject::DBinderSessionObject(const std::string &serviceName, const std::string &serverDeviceId,
+    uint64_t stubIndex, IPCObjectProxy *proxy, uint32_t tokenId)
+    : serviceName_(serviceName), serverDeviceId_(serverDeviceId), stubIndex_(stubIndex), proxy_(proxy),
+      tokenId_(tokenId), pid_(0), uid_(0)
+{
+}
 
 DBinderSessionObject::~DBinderSessionObject()
 {
@@ -35,8 +36,7 @@ DBinderSessionObject::~DBinderSessionObject()
 
 void DBinderSessionObject::CloseDatabusSession()
 {
-    std::shared_ptr<DatabusSocketListener> listener =
-        DelayedSingleton<DatabusSocketListener>::GetInstance();
+    std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
         ZLOGE(LOG_LABEL, "fail to get socket listener");
         return;
