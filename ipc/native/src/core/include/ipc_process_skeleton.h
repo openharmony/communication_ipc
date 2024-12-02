@@ -252,40 +252,51 @@ private:
 
 #ifndef CONFIG_IPC_SINGLE
     std::mutex databusProcMutex_;
-    std::mutex sessionNameMutex_;
-    std::mutex seqNumberMutex_;
+
     std::mutex idleDataMutex_;
-    std::mutex dataQueueMutex_;
-    std::mutex findThreadMutex_;
-
-    std::recursive_mutex proxyToSessionMutex_;
-    std::shared_mutex rawDataMutex_;
-    std::shared_mutex databusSessionMutex_;
-    std::shared_mutex threadLockMutex_;
-    std::shared_mutex callbackStubMutex_;
-    std::shared_mutex stubObjectsMutex_;
-    std::shared_mutex appInfoToIndexMutex_;
-    std::shared_mutex commAuthMutex_;
-    std::shared_mutex dbinderSentMutex_;
-    std::shared_mutex appAuthMutex_;
-
-    std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
-    std::map<uint64_t, std::shared_ptr<ThreadMessageInfo>> seqNumberToThread_;
-    std::unordered_map<uint64_t, IRemoteObject *> stubObjects_;
-    std::map<std::thread::id, std::shared_ptr<SocketThreadLockInfo>> threadLockInfo_;
-    std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> proxyToSession_;
-    std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> dbinderSessionObjects_;
-    std::map<IPCObjectProxy *, sptr<IPCObjectStub>> noticeStub_;
-    std::map<std::thread::id, std::vector<std::shared_ptr<ThreadProcessInfo>>> dataInfoQueue_; // key is threadId
-    std::map<std::string, std::map<uint64_t, int32_t>> appInfoToStubIndex_;
-    std::map<sptr<IRemoteObject>, wptr<DBinderCallbackStub>> dbinderSentCallback_;
-
     std::list<std::thread::id> idleDataThreads_;
+
+    std::mutex dataQueueMutex_;
+    std::map<std::thread::id, std::vector<std::shared_ptr<ThreadProcessInfo>>> dataInfoQueue_; // key is threadId
+
+    std::mutex findThreadMutex_;
+    std::map<uint64_t, std::shared_ptr<ThreadMessageInfo>> seqNumberToThread_;
+
+    std::shared_mutex proxyToSessionMutex_;
+    std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> proxyToSession_;
+
+    std::shared_mutex rawDataMutex_;
+    std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
+
+    std::shared_mutex databusSessionMutex_;
+    std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> dbinderSessionObjects_;
+
+    std::shared_mutex threadLockMutex_;
+    std::map<std::thread::id, std::shared_ptr<SocketThreadLockInfo>> threadLockInfo_;
+
+    std::shared_mutex callbackStubMutex_;
+    std::map<IPCObjectProxy *, sptr<IPCObjectStub>> noticeStub_;
+
+    std::shared_mutex stubObjectsMutex_;
+    std::unordered_map<uint64_t, IRemoteObject *> stubObjects_;
+
+    std::shared_mutex appAuthMutex_;
+    std::shared_mutex appInfoToIndexMutex_;
+    std::map<std::string, std::map<uint64_t, int32_t>> appInfoToStubIndex_;
+
+    std::shared_mutex commAuthMutex_;
     std::list<std::shared_ptr<CommAuthInfo>> commAuth_;
 
-    uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
+    std::shared_mutex dbinderSentMutex_;
+    std::map<sptr<IRemoteObject>, wptr<DBinderCallbackStub>> dbinderSentCallback_;
+
+    std::mutex seqNumberMutex_;
     uint64_t seqNumber_ = 0;
-    std::string sessionName_ = std::string("");
+
+    std::shared_mutex sessionNameMutex_;
+    std::string sessionName_;
+
+    uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
     std::atomic<int32_t> listenSocketId_ = 0;
     uint64_t randNum_;
 #endif
