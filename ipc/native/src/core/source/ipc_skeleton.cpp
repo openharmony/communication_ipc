@@ -292,4 +292,4 @@ bool IPCDfx::SetIPCProxyLimit(uint64_t num, IPCProxyLimitCallback callback)
     }
     return false;
 }
-}  // namespace OHOS
+} // namespace OHOS

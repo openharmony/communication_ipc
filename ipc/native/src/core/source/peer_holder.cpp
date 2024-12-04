@@ -28,8 +28,8 @@ PeerHolder::PeerHolder(const sptr<IRemoteObject> &object) : remoteObject_(object
 sptr<IRemoteObject> PeerHolder::Remote()
 {
     if (GetBeforeMagic() != BEFORE_MAGIC || GetAfterMagic() != AFTER_MAGIC) {
-        ZLOGE(LOG_LABEL, "remoteObject invalid, beforeMagic:%{public}x afterMagic:%{public}x",
-            beforeMagic_, afterMagic_);
+        ZLOGE(LOG_LABEL, "remoteObject invalid, beforeMagic:%{public}x afterMagic:%{public}x", beforeMagic_,
+            afterMagic_);
         return nullptr;
     }
     return remoteObject_;
