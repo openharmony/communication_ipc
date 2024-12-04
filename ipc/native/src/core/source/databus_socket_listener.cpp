@@ -16,18 +16,20 @@
 #include "databus_socket_listener.h"
 
 #include "dbinder_databus_invoker.h"
+#include "dsoftbus_interface.h"
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "log_tags.h"
-#include "dsoftbus_interface.h"
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_RPC_REMOTE_LISTENER, "DatabusSocketListener" };
 
 DBinderSocketInfo::DBinderSocketInfo(const std::string &ownName, const std::string &peerName,
-    const std::string &networkId) : ownName_(ownName), peerName_(peerName), networkId_(networkId)
-{}
+    const std::string &networkId)
+    : ownName_(ownName), peerName_(peerName), networkId_(networkId)
+{
+}
 
 std::string DBinderSocketInfo::GetOwnName() const
 {
@@ -61,8 +63,8 @@ DatabusSocketListener::~DatabusSocketListener() {}
 
 void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 {
-    ZLOGI(LABEL, "socketId:%{public}d, deviceId:%{public}s, peerName:%{public}s",
-        socket, IPCProcessSkeleton::ConvertToSecureString(info.networkId).c_str(), info.name);
+    ZLOGI(LABEL, "socketId:%{public}d, deviceId:%{public}s, peerName:%{public}s", socket,
+        IPCProcessSkeleton::ConvertToSecureString(info.networkId).c_str(), info.name);
 
     std::string networkId = info.networkId;
     std::string peerName = info.name;
@@ -203,7 +205,7 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName, co
 
     std::string pkgName = std::string(DBINDER_PKG_NAME) + "_" + std::to_string(getpid());
     SocketInfo socketInfo = {
-        .name =  const_cast<char*>(ownName.c_str()),
+        .name = const_cast<char*>(ownName.c_str()),
         .peerName = const_cast<char*>(peerName.c_str()),
         .peerNetworkId = const_cast<char*>(networkId.c_str()),
         .pkgName = const_cast<char*>(pkgName.c_str()),
@@ -224,9 +226,8 @@ int32_t DatabusSocketListener::CreateClientSocket(const std::string &ownName, co
         EraseDeviceLock(info);
         return SOCKET_ID_INVALID;
     }
-    ZLOGI(LABEL, "Bind succ, ownName:%{public}s peer:%{public}s deviceId:%{public}s "
-        "socketId:%{public}d", ownName.c_str(), peerName.c_str(),
-        IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(), socketId);
+    ZLOGI(LABEL, "Bind succ, ownName:%{public}s peer:%{public}s deviceId:%{public}s socketId:%{public}d",
+        ownName.c_str(), peerName.c_str(), IPCProcessSkeleton::ConvertToSecureString(networkId).c_str(), socketId);
     {
         std::lock_guard<std::mutex> lockGuard(socketInfoMutex_);
         socketInfoMap_[info] = socketId;

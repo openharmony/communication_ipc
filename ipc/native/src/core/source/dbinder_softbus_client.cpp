@@ -16,6 +16,7 @@
 #include "dbinder_softbus_client.h"
 
 #include <dlfcn.h>
+
 #include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
@@ -23,7 +24,7 @@
 namespace OHOS {
 
 using namespace OHOS::HiviewDFX;
-static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_DBINDER_SOFTBUS_CLIENT, "DBinderSoftbusClient"};
+static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_DBINDER_SOFTBUS_CLIENT, "DBinderSoftbusClient" };
 
 #ifdef __aarch64__
 static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib64/platformsdk/libsoftbus_client.z.so";
@@ -159,8 +160,8 @@ int32_t DBinderSoftbusClient::Socket(SocketInfo info)
     return socketFunc_(info);
 }
 
-int32_t DBinderSoftbusClient::Listen(
-    int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener)
+int32_t DBinderSoftbusClient::Listen(int32_t socket, const QosTV qos[], uint32_t qosCount,
+    const ISocketListener *listener)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
     if (listenFunc_ != nullptr) {
@@ -180,8 +181,8 @@ int32_t DBinderSoftbusClient::Listen(
     return listenFunc_(socket, qos, qosCount, listener);
 }
 
-int32_t DBinderSoftbusClient::Bind(
-    int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener)
+int32_t DBinderSoftbusClient::Bind(int32_t socket, const QosTV qos[], uint32_t qosCount,
+    const ISocketListener *listener)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
     if (bindFunc_ != nullptr) {
