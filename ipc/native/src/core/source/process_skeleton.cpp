@@ -57,7 +57,7 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
 
 ProcessSkeleton::~ProcessSkeleton()
 {
-    ZLOGI(LOG_LABEL, "enter");
+    ZLOGD(LOG_LABEL, "enter");
     std::lock_guard<std::mutex> lockGuard(mutex_);
     exitFlag_ = true;
     {
