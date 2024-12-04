@@ -22,11 +22,9 @@
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
-static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PAYLOAD_STATISTICS_IMPL, "IPCPayloadStatisticsImpl"};
+static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_PAYLOAD_STATISTICS_IMPL, "IPCPayloadStatisticsImpl" };
 
-IPCPayloadStatisticsImpl::IPCPayloadStatisticsImpl() : isStatisticsFlag_(false)
-{
-}
+IPCPayloadStatisticsImpl::IPCPayloadStatisticsImpl() : isStatisticsFlag_(false) {}
 
 IPCPayloadStatisticsImpl::~IPCPayloadStatisticsImpl()
 {
@@ -146,10 +144,10 @@ std::vector<IPCInterfaceInfo> IPCPayloadStatisticsImpl::GetDescriptorCodes(const
     return vec;
 }
 
-uint64_t IPCPayloadStatisticsImpl::GetDescriptorCodeCount(
-    const int32_t pid, const std::u16string &desc, const int32_t code)
+uint64_t IPCPayloadStatisticsImpl::GetDescriptorCodeCount(const int32_t pid, const std::u16string &desc,
+    const int32_t code)
 {
-    IPCPayloadInfo payloadInfo = {{u"", 0}, {0, 0, 0, 0}, 0};
+    IPCPayloadInfo payloadInfo = { { u"", 0 }, { 0, 0, 0, 0 }, 0 };
 
     bool ret = GetPayloadInfo(pid, desc, code, payloadInfo);
     if (!ret) {
@@ -158,10 +156,10 @@ uint64_t IPCPayloadStatisticsImpl::GetDescriptorCodeCount(
     return payloadInfo.count;
 }
 
-IPCPayloadCost IPCPayloadStatisticsImpl::GetDescriptorCodeCost(
-    const int32_t pid, const std::u16string &desc, const int32_t code)
+IPCPayloadCost IPCPayloadStatisticsImpl::GetDescriptorCodeCost(const int32_t pid, const std::u16string &desc,
+    const int32_t code)
 {
-    IPCPayloadInfo payloadInfo = {{u"", 0}, {0, 0, 0, 0}, 0};
+    IPCPayloadInfo payloadInfo = { { u"", 0 }, { 0, 0, 0, 0 }, 0 };
     IPCPayloadCost cost = { 0, 0, 0, 0 };
 
     bool ret = GetPayloadInfo(pid, desc, code, payloadInfo);
@@ -178,8 +176,8 @@ IPCPayloadCost IPCPayloadStatisticsImpl::GetDescriptorCodeCost(
     return payloadInfo.cost;
 }
 
-bool IPCPayloadStatisticsImpl::GetPayloadInfo(
-    const int32_t pid, const std::u16string &desc, const int32_t code, IPCPayloadInfo &payloadInfo)
+bool IPCPayloadStatisticsImpl::GetPayloadInfo(const int32_t pid, const std::u16string &desc, const int32_t code,
+    IPCPayloadInfo &payloadInfo)
 {
     bool ret = false;
 
@@ -241,8 +239,8 @@ bool IPCPayloadStatisticsImpl::ClearStatisticsData()
     return true;
 }
 
-bool IPCPayloadStatisticsImpl::UpdatePayloadInfo(
-    const int32_t pid, const std::u16string &desc, const int32_t code, const uint32_t currentCost)
+bool IPCPayloadStatisticsImpl::UpdatePayloadInfo(const int32_t pid, const std::u16string &desc, const int32_t code,
+    const uint32_t currentCost)
 {
     if (currentCost == 0 || !isStatisticsFlag_) {
         return false;
@@ -286,4 +284,4 @@ bool IPCPayloadStatisticsImpl::UpdatePayloadInfo(
 
     return true;
 }
-}  // namespace OHOS
+} // namespace OHOS

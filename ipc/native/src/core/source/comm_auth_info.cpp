@@ -16,11 +16,11 @@
 #include "comm_auth_info.h"
 
 namespace OHOS {
-CommAuthInfo::CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId,
-    const std::string &deviceId, int32_t socketId)
-    : stub_(stub), remotePid_(pid), remoteUid_(uid),
-      tokenId_(tokenId), deviceId_(deviceId), socketId_(socketId)
-{}
+CommAuthInfo::CommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId,
+    int32_t socketId)
+    : stub_(stub), remotePid_(pid), remoteUid_(uid), tokenId_(tokenId), deviceId_(deviceId), socketId_(socketId)
+{
+}
 
 CommAuthInfo::~CommAuthInfo()
 {

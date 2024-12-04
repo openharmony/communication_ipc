@@ -47,14 +47,13 @@ std::vector<IPCInterfaceInfo> IPCPayloadStatistics::GetDescriptorCodes(const int
     return IPCPayloadStatisticsImpl::GetInstance().GetDescriptorCodes(pid);
 }
 
-uint64_t IPCPayloadStatistics::GetDescriptorCodeCount(
-    const int32_t pid, const std::u16string &desc, const int32_t code)
+uint64_t IPCPayloadStatistics::GetDescriptorCodeCount(const int32_t pid, const std::u16string &desc, const int32_t code)
 {
     return IPCPayloadStatisticsImpl::GetInstance().GetDescriptorCodeCount(pid, desc, code);
 }
 
-IPCPayloadCost IPCPayloadStatistics::GetDescriptorCodeCost(
-    const int32_t pid, const std::u16string &desc, const int32_t code)
+IPCPayloadCost IPCPayloadStatistics::GetDescriptorCodeCost(const int32_t pid, const std::u16string &desc,
+    const int32_t code)
 {
     return IPCPayloadStatisticsImpl::GetInstance().GetDescriptorCodeCost(pid, desc, code);
 }
@@ -78,4 +77,4 @@ bool IPCPayloadStatistics::ClearStatisticsData()
 {
     return IPCPayloadStatisticsImpl::GetInstance().ClearStatisticsData();
 }
-}  // namespace OHOS
+} // namespace OHOS
