@@ -274,14 +274,22 @@ static uint32_t SetDeathHandlerPair(DeathCallback *node, uint32_t index, OnRemot
     return index;
 }
 
-int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *args, uint32_t *cbId)
+static int32_t CheckParam(OnRemoteDead deathFunc, uint32_t *cbId)
 {
-    int32_t ret = ERR_INVALID_PARAM;
     if (g_ipcSkeleton == NULL) {
         return ERR_IPC_SKELETON_NOT_INIT;
     }
     if (deathFunc == NULL || cbId == NULL) {
         return ERR_INVALID_PARAM;
+    }
+    return ERR_NONE;
+}
+
+int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *args, uint32_t *cbId)
+{
+    int32_t ret = ERR_INVALID_PARAM;
+    if ((ret = CheckParam(deathFunc, cbId)) != ERR_NONE) {
+        return ret;
     }
     if (pthread_mutex_lock(&g_ipcSkeleton->lock) != 0) {
         return ERR_FAILED;
