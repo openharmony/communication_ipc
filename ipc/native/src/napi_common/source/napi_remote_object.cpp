@@ -872,7 +872,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     return ret;
 }
 
-napi_value CreateJsRemoteProxy(napi_env env, const sptr<IRemoteObject> target)
+napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
@@ -889,12 +889,13 @@ napi_value CreateJsRemoteProxy(napi_env env, const sptr<IRemoteObject> target)
         return nullptr;
     }
     proxyHolder->object_ = target;
-    proxyHolder->list_ = new NAPIDeathRecipientList();
+    proxyHolder->list_ = new (std::nothrow) NAPIDeathRecipientList();
+    NAPI_ASSERT(env, proxyHolder->list_ != nullptr, "new NAPIDeathRecipientList failed");
 
     return jsRemoteProxy;
 }
 
-napi_value CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+napi_value CreateJsStubRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     // retrieve js remote object constructor
     napi_value global = nullptr;
@@ -937,11 +938,11 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
         uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
         ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
         if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
-            return CreateJsRemoteObject(env, target);
+            return CreateJsStubRemoteObject(env, target);
         }
     }
 
-    return CreateJsRemoteProxy(env, target);
+    return CreateJsProxyRemoteObject(env, target);
 }
 
 bool NAPI_ohos_rpc_ClearNativeRemoteProxy(napi_env env, napi_value jsRemoteProxy)
@@ -1175,13 +1176,17 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
         *(param->data.get()), *(param->reply.get()), param->option);
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d time：%{public}" PRIu64, param->errCode, curTime);
+    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d time:%{public}" PRIu64, param->errCode, curTime);
     if (param->traceId != 0) {
         FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
-    uv_work_t *work = new uv_work_t;
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        ZLOGE(LOG_LABEL, "new uv_work_t failed");
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     uv_after_work_cb afterWorkCb = GetAfterWorkCallback(param->callback);
     int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
