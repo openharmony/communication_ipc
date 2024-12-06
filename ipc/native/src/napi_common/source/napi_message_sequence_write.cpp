@@ -1071,7 +1071,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelableArray(napi_env env, napi_call
     }
 
     size_t pos = napiSequence->nativeParcel_->GetWritePosition();
-    if (!napiSequence->nativeParcel_->WriteUint32(arrayLength);) {
+    if (!(napiSequence->nativeParcel_->WriteUint32(arrayLength))) {
         ZLOGE(LOG_LABEL, "write uint32 failed");
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
@@ -2098,10 +2098,7 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
     }
     // new native parcel object
     auto messageSequence = new (std::nothrow) NAPI_MessageSequence(env, thisVar, parcel);
-    if (messageSequence == nullptr) {
-        ZLOGE(LOG_LABEL, "new NAPIAshmem failed");
-        return nullptr;
-    }
+    NAPI_ASSERT(env, messageSequence != nullptr, "new messageSequence failed");
     // connect native object to js thisVar
     status = napi_wrap(
         env, thisVar, messageSequence,
@@ -2113,9 +2110,8 @@ napi_value NAPI_MessageSequence::JS_constructor(napi_env env, napi_callback_info
         },
         nullptr, nullptr);
     if (status != napi_ok) {
-        ZLOGE(LOG_LABEL, "napi wrap message parcel failed. status is %{public}d", status);
         delete messageSequence;
-        return nullptr;
+        NAPI_ASSERT(env, false, "napi wrap message parcel failed");
     }
     return thisVar;
 }
