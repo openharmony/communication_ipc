@@ -872,48 +872,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     return ret;
 }
 
-napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
-    if (target == nullptr) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "RemoteObject is null time:%{public}" PRIu64, curTime);
-        return nullptr;
-    }
-
-    if (!target->IsProxyObject()) {
-        IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
-        uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
-        ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
-        if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
-            // retrieve js remote object constructor
-            napi_value global = nullptr;
-            napi_status status = napi_get_global(env, &global);
-            NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
-            napi_value constructor = nullptr;
-            status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
-            NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
-            NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
-            // retrieve descriptor and it's length
-            std::u16string descriptor = target->GetObjectDescriptor();
-            std::string desc = Str16ToStr8(descriptor);
-            napi_value jsDesc = nullptr;
-            napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
-            // create a new js remote object
-            size_t argc = 1;
-            napi_value argv[ARGV_LENGTH_1] = { jsDesc };
-            napi_value jsRemoteObject = nullptr;
-            status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
-            NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
-            // retrieve holder and set object
-            NAPIRemoteObjectHolder *holder = nullptr;
-            napi_unwrap(env, jsRemoteObject, (void **)&holder);
-            NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
-            holder->Set(target);
-            return jsRemoteObject;
-        }
-    }
-
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
@@ -933,6 +893,56 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
     NAPI_ASSERT(env, proxyHolder->list_ != nullptr, "new NAPIDeathRecipientList failed");
 
     return jsRemoteProxy;
+}
+
+napi_value CreateJsStubRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+{
+    // retrieve js remote object constructor
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
+    NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
+    // retrieve descriptor and it's length
+    std::u16string descriptor = target->GetObjectDescriptor();
+    std::string desc = Str16ToStr8(descriptor);
+    napi_value jsDesc = nullptr;
+    napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
+    // create a new js remote object
+    size_t argc = 1;
+    napi_value argv[ARGV_LENGTH_1] = { jsDesc };
+    napi_value jsRemoteObject = nullptr;
+    status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
+    NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
+    // retrieve holder and set object
+    NAPIRemoteObjectHolder *holder = nullptr;
+    napi_unwrap(env, jsRemoteObject, (void **)&holder);
+    NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
+    holder->Set(target);
+    return jsRemoteObject;
+}
+
+napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+{
+    if (target == nullptr) {
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "RemoteObject is null time:%{public}" PRIu64, curTime);
+        return nullptr;
+    }
+
+    if (!target->IsProxyObject()) {
+        IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
+        uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
+        ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
+        if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
+            return CreateJsStubRemoteObject(env, target);
+        }
+    }
+
+    return CreateJsProxyRemoteObject(env, target);
 }
 
 bool NAPI_ohos_rpc_ClearNativeRemoteProxy(napi_env env, napi_value jsRemoteProxy)
@@ -1108,40 +1118,20 @@ napi_value MakeSendRequestResult(SendRequestParam *param)
     return result;
 }
 
-void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
+
+uv_after_work_cb GetAfterWorkCallback(napi_ref callback)
 {
-    if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "param is null");
-        return;
-    }
-    param->errCode = param->target->SendRequest(param->code,
-        *(param->data.get()), *(param->reply.get()), param->option);
-    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d time：%{public}" PRIu64, param->errCode, curTime);
-    if (param->traceId != 0) {
-        FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
-    }
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env, &loop);
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ZLOGE(LOG_LABEL, "new uv_work_t failed");
-        return;
-    }
-    work->data = reinterpret_cast<void *>(param);
-    uv_after_work_cb afterWorkCb = nullptr;
-    if (param->callback != nullptr) {
-        afterWorkCb = [](uv_work_t *work, int status) {
+    if (callback != nullptr) {
+        return [](uv_work_t *work, int status) {
             ZLOGI(LOG_LABEL, "callback started");
             SendRequestParam *param = reinterpret_cast<SendRequestParam *>(work->data);
             napi_handle_scope scope = nullptr;
             napi_open_handle_scope(param->env, &scope);
             napi_value result = MakeSendRequestResult(param);
-            napi_value callback = nullptr;
-            napi_get_reference_value(param->env, param->callback, &callback);
+            napi_value callbackValue = nullptr;
+            napi_get_reference_value(param->env, param->callback, &callbackValue);
             napi_value cbResult = nullptr;
-            napi_call_function(param->env, nullptr, callback, 1, &result, &cbResult);
+            napi_call_function(param->env, nullptr, callbackValue, 1, &result, &cbResult);
             napi_delete_reference(param->env, param->jsCodeRef);
             napi_delete_reference(param->env, param->jsDataRef);
             napi_delete_reference(param->env, param->jsReplyRef);
@@ -1152,7 +1142,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             delete work;
         };
     } else {
-        afterWorkCb = [](uv_work_t *work, int status) {
+        return [](uv_work_t *work, int status) {
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
             ZLOGI(LOG_LABEL, "promise fullfilled time:%{public}" PRIu64, curTime);
@@ -1174,6 +1164,31 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
             delete work;
         };
     }
+}
+
+void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
+{
+    if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is null");
+        return;
+    }
+    param->errCode = param->target->SendRequest(param->code,
+        *(param->data.get()), *(param->reply.get()), param->option);
+    uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    ZLOGI(LOG_LABEL, "sendRequest done, errCode:%{public}d time:%{public}" PRIu64, param->errCode, curTime);
+    if (param->traceId != 0) {
+        FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
+    }
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env, &loop);
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        ZLOGE(LOG_LABEL, "new uv_work_t failed");
+        return;
+    }
+    work->data = reinterpret_cast<void *>(param);
+    uv_after_work_cb afterWorkCb = GetAfterWorkCallback(param->callback);
     int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
         ZLOGD(LOG_LABEL, "enter work pool.");
     }, afterWorkCb);
