@@ -251,6 +251,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
             return result;
         }
         if (!invoker->PingService(REGISTRY_HANDLE)) {
+            ZLOGW(LOG_LABEL, "samgr is not exist now");
             current->UnlockObjectMutex();
             return result;
         }
