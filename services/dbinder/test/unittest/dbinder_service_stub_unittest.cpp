@@ -25,6 +25,7 @@
 #define protected public
 #include "dbinder_service.h"
 #include "dbinder_service_stub.h"
+#include "sys_binder.h"
 #undef protected
 #undef private
 
@@ -856,24 +857,24 @@ HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData005, TestSize.Level1)
     DBinderServiceStub dbinderServiceStub(service1, device1, object);
     binder_uintptr_t objectAddress = reinterpret_cast<binder_uintptr_t>(&dbinderServiceStub);
     std::string localBusName = "localBusName";
-    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(DBinderNegotiationData));
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
     ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
-    DBinderNegotiationData data;
-    data.stubIndex = 1;
-    data.peerTokenId = 1;
-    data.peerServiceName = "target_name";
-    data.peerDeviceId = "target_device";
-    data.localDeviceId = "local_device";
-    data.localServiceName = "local_name";
+    dbinder_negotiation_data *dbinderData = reinterpret_cast<dbinder_negotiation_data *>(
+        dbinderServiceStub.dbinderData_.get());
+    dbinderData->stub_index = 1;
+    dbinderData->tokenid = 1;
+    auto ret = strcpy_s(dbinderData->target_name, SESSION_NAME_LENGTH, "target_name");
+    ret += strcpy_s(dbinderData->target_device, OHOS::DEVICEID_LENGTH, "target_device");
+    ret += strcpy_s(dbinderData->local_device, OHOS::DEVICEID_LENGTH, "local_device");
+    ret += strcpy_s(dbinderData->local_name, SESSION_NAME_LENGTH, "local_name");
+    ASSERT_EQ(ret, EOK);
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     std::shared_ptr<SessionInfo> sessionInfo = std::make_shared<SessionInfo>();
     EXPECT_TRUE(sessionInfo != nullptr);
     sessionInfo->type = SESSION_TYPE_UNKNOWN;
     bool isInitialized = dBinderService->AttachSessionObject(sessionInfo, objectAddress);
     ASSERT_TRUE(isInitialized);
-    memcpy_s(dbinderServiceStub.dbinderData_.get(), sizeof(DBinderNegotiationData),
-        &data, sizeof(DBinderNegotiationData));
-    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ret = dbinderServiceStub.SaveDBinderData(localBusName);
     ASSERT_EQ(ret, ERR_NONE);
     bool result = dBinderService->DetachSessionObject(objectAddress);
     ASSERT_TRUE(result);
