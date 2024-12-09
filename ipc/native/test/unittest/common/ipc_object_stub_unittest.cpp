@@ -99,6 +99,111 @@ HWTEST_F(IPCObjectStubTest, OnRemoteDumpTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DBinderPingTransactionTest001
+ * @tc.desc: Verify the DBinderPingTransaction function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderPingTransactionTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = testStub->DBinderPingTransaction(code, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+/**
+ * @tc.name: DBinderIncRefsTransactionTest001
+ * @tc.desc: Verify the DBinderIncRefsTransaction function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_DECREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    DBinderDatabusInvoker *dbinderInvoker = new DBinderDatabusInvoker();
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+    int result = testStub->DBinderIncRefsTransaction(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    delete invoker;
+    delete dbinderInvoker;
+}
+
+/**
+ * @tc.name: DBinderRemoveSessionNameTest001
+ * @tc.desc: Verify the DBinderRemoveSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    uint32_t code = DBINDER_DECREFS_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    DBinderDatabusInvoker *dbinderInvoker = new DBinderDatabusInvoker();
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*invoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+    int result = testStub->DBinderRemoveSessionName(code, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    delete invoker;
+    delete dbinderInvoker;
+}
+
+/**
+ * @tc.name: RemoveSessionNameTest001
+ * @tc.desc: Verify the RemoveSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, RemoveSessionNameTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    int result = testStub->RemoveSessionName(data);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: RemoveSessionNameTest002
+ * @tc.desc: Verify the RemoveSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, RemoveSessionNameTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> testStub = new IPCObjectStub(u"testStub");
+    MessageParcel data;
+    data.WriteString("ServerBinder");
+    int result = testStub->RemoveSessionName(data);
+    EXPECT_EQ(result, IPC_STUB_REMOVE_SESSION_NAME_ERR);
+}
+
+/**
  * @tc.name: SendRequestTest001
  * @tc.desc: Verify the SendRequest function
  * @tc.type: FUNC
@@ -569,6 +674,7 @@ HWTEST_F(IPCObjectStubTest, SendRequestTest016, TestSize.Level1)
     EXPECT_NE(result, IPC_STUB_INVALID_DATA_ERR);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
+    delete dbinderInvoker;
 }
 
 /**
