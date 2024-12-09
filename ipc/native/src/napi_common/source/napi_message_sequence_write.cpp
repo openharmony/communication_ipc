@@ -1071,8 +1071,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelableArray(napi_env env, napi_call
     }
 
     size_t pos = napiSequence->nativeParcel_->GetWritePosition();
-    bool result = napiSequence->nativeParcel_->WriteUint32(arrayLength);
-    if (!result) {
+    if (!(napiSequence->nativeParcel_->WriteUint32(arrayLength))) {
         ZLOGE(LOG_LABEL, "write uint32 failed");
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
