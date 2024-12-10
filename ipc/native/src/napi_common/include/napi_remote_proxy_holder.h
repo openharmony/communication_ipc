@@ -36,7 +36,7 @@ public:
 
     napi_ref GetDeathRecipientRef() const;
 
-    void CleanDeatRecipientRef();
+    void CleanDeathRecipientRef();
 
 protected:
     virtual ~NAPIDeathRecipient() = default;

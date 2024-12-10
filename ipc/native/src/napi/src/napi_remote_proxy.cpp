@@ -545,7 +545,6 @@ napi_value NAPI_RemoteProxy_checkUnregisterDeathRecipientArgs(napi_env env, size
 
 napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "unregister death recipient");
     size_t argc = 2;
     napi_value argv[ARGV_LENGTH_2] = { 0 };
     napi_value thisVar = nullptr;
@@ -582,13 +581,9 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
         return result;
     }
     target->RemoveDeathRecipient(nativeRecipient);
-    if (list->Remove(nativeRecipient)) {
-        ZLOGD(LOG_LABEL, "remove recipient from list success");
-        return result;
-    } else {
-        ZLOGE(LOG_LABEL, "remove recipient from list failed");
-        return result;
-    }
+    bool ret = list->Remove(nativeRecipient);
+    ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
+    return result;
 }
 
 napi_value NAPI_RemoteProxy_getInterfaceDescriptor(napi_env env, napi_callback_info info)
