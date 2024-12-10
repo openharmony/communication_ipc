@@ -31,8 +31,32 @@ ohos_unittest("RPCDbinderTest") {
     "dbinder_death_recipient_unittest.cpp",
     "dbinder_remote_listener_unittest.cpp",
     "dbinder_service_stub_unittest.cpp",
-    "dbinder_service_unittest.cpp",
   ]
+
+  configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
+
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:libdbinder",
+  ]
+
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+}
+
+ohos_unittest("RPCDbinderServiceTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [
+    "$IPC_CORE_ROOT/c/manager/include",
+    "$SUBSYSTEM_DIR/utils/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+  ]
+
+  sources = [ "dbinder_service_unittest.cpp" ]
 
   configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
 
@@ -51,6 +75,7 @@ ohos_unittest("RPCDbinderTest") {
 group("unittest") {
   testonly = true
   deps = [
+    ":RPCDbinderServiceTest",
     ":RPCDbinderTest",
     "../auxiliary:Dynamic_loading_softbus_client_test",
   ]

@@ -74,7 +74,7 @@ void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
     if (napiStatus != napi_ok) {
         ZLOGE(LOG_LABEL, "failed to delete ref to js death recipient");
     }
-    param->deathRecipient->CleanDeatRecipientRef();
+    param->deathRecipient->CleanDeathRecipientRef();
 
     CleanUp();
 }
@@ -143,7 +143,7 @@ napi_ref NAPIDeathRecipient::GetDeathRecipientRef() const
     return deathRecipientRef_;
 }
 
-void NAPIDeathRecipient::CleanDeatRecipientRef()
+void NAPIDeathRecipient::CleanDeathRecipientRef()
 {
     deathRecipientRef_ = nullptr;
 }
