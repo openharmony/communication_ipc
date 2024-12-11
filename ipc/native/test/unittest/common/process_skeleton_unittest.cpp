@@ -166,6 +166,20 @@ HWTEST_F(ProcessSkeletonUnitTest, SetRegistryObjectTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSamgrFlagTest001
+ * @tc.desc: Verify the SetSamgrFlag functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, SetSamgrFlagTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->SetSamgrFlag(true);
+    ASSERT_TRUE(skeleton->GetSamgrFlag());
+}
+
+/**
  * @tc.name: LockObjectMutexTest001
  * @tc.desc: Verify the LockObjectMutex and UnlockObjectMutex functions
  * @tc.type: FUNC
@@ -224,6 +238,41 @@ HWTEST_F(ProcessSkeletonUnitTest, IsPrintTest001, TestSize.Level1)
     EXPECT_EQ(lastErrCnt, 0);
 }
 
+/**
+ * @tc.name: UnFlattenDBinderDataTest001
+ * @tc.desc: Verify the UnFlattenDBinderData functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, UnFlattenDBinderData001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+    Parcel data;
+    dbinder_negotiation_data *bindingData;
+    bool ret = skeleton->UnFlattenDBinderData(data, bindingData);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnFlattenDBinderDataTest002
+ * @tc.desc: Verify the UnFlattenDBinderData functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, UnFlattenDBinderDataTest002, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+    Parcel data;
+    dbinder_negotiation_data *dbinderData = nullptr;
+    binder_buffer_object bufferObject;
+    bufferObject.hdr.type = BINDER_TYPE_PTR;
+    bufferObject.flags = BINDER_BUFFER_FLAG_HAS_DBINDER;
+    bufferObject.buffer = reinterpret_cast<binder_uintptr_t>(dbinderData);
+    bufferObject.length = sizeof(dbinder_negotiation_data);
+    data.WriteBuffer(&bufferObject, sizeof(binder_buffer_object));
+    bool ret = skeleton->UnFlattenDBinderData(data, dbinderData);
+    ASSERT_FALSE(ret);
+}
 /**
  * @tc.name: StrToUint64001
  * @tc.desc: Verify the IsPrint function
