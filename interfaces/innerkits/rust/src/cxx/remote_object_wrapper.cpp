@@ -162,7 +162,7 @@ std::unique_ptr<IRemoteObjectWrapper> FromSptrRemote(std::unique_ptr<sptr<IRemot
     auto wrapper = std::make_unique<IRemoteObjectWrapper>();
 
     wrapper->is_raw_ = false;
-    wrapper->sptr_ = std::move(*remote.release());
+    wrapper->sptr_ = std::move(*remote.get());
 
     return wrapper;
 }
