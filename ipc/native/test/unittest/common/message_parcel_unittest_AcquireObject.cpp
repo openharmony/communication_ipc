@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 
 #define private public
-#include "sys_binder.h"
 #include "ipc_skeleton.h"
 #include "message_parcel.h"
 #include "message_parcel.cpp"
@@ -27,8 +26,7 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
-class MockIPCProcessSkeleton : public IPCProcessSkeleton
-{
+class MockIPCProcessSkeleton : public IPCProcessSkeleton {
 public:
     MockIPCProcessSkeleton();
     ~MockIPCProcessSkeleton();
