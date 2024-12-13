@@ -203,9 +203,10 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest003, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest004, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-    object.interfaceDesc_ = u"test";
+    object.remoteDescriptor_ = u"test";
+    object.isRemoteDead_ = true;
     auto ret = object.GetInterfaceDescriptor();
-    ASSERT_TRUE(ret.size() != 0);
+    ASSERT_TRUE(ret.size() == 0);
 }
 
 /**
@@ -214,34 +215,6 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest004, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest005, TestSize.Level1)
-{
-    IPCObjectProxy object(1);
-    object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
-
-    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
-    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
-    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
-
-    EXPECT_CALL(*invoker, GetStatus())
-        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
-
-    EXPECT_CALL(*invoker, SendRequest(testing::_, testing::_, testing::_, testing::_, testing::_))
-        .WillRepeatedly(testing::Return(ERR_DEAD_OBJECT));
-
-    auto ret = object.GetInterfaceDescriptor();
-    ASSERT_TRUE(ret.size() == 0);
-    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
-    delete invoker;
-}
-
-/**
- * @tc.name: GetInterfaceDescriptorTest006
- * @tc.desc: Verify the IPCObjectProxy::GetInterfaceDescriptor function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
