@@ -141,6 +141,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest001, TestSize.Level1)
         .WillRepeatedly(testing::Return(true));
     int result = testStub->DBinderIncRefsTransaction(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
     delete dbinderInvoker;
 }
@@ -172,6 +173,7 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest001, TestSize.Level1)
         .WillRepeatedly(testing::Return(true));
     int result = testStub->DBinderRemoveSessionName(code, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
     delete dbinderInvoker;
 }
