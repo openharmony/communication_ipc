@@ -72,8 +72,7 @@
                   "ipc_object_proxy.h",
                   "ipc_object_stub.h",
                   "peer_holder.h",
-                  "ipc_file_descriptor.h",
-                  "jni_help.h"
+                  "ipc_file_descriptor.h"
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
               }
@@ -94,8 +93,7 @@
                   "ipc_object_proxy.h",
                   "ipc_object_stub.h",
                   "peer_holder.h",
-                  "ipc_file_descriptor.h",
-                  "jni_help.h"
+                  "ipc_file_descriptor.h"
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
               }
