@@ -242,6 +242,44 @@ HWTEST_F(BinderInvokerUnitTest, GetSAMgrObjectTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDBinderCallingPidUidTest001
+ * @tc.desc: Verify the GetDBinderCallingPidUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetDBinderCallingPidUidTest001, TestSize.Level1)
+{
+#ifndef CONFIG_IPC_SINGLE
+    BinderInvoker binderInvoker;
+    pid_t pid = -1;
+    uid_t uid = 0;
+    int handle = 1;
+    bool isReply = false;
+
+    bool ret = binderInvoker.GetDBinderCallingPidUid(handle, isReply, pid, uid);
+    EXPECT_FALSE(ret);
+#endif
+}
+
+/**
+ * @tc.name: GetDBinderCallingPidUidTest002
+ * @tc.desc: Verify the GetDBinderCallingPidUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetDBinderCallingPidUidTest002, TestSize.Level1)
+{
+#ifndef CONFIG_IPC_SINGLE
+    BinderInvoker binderInvoker;
+    pid_t pid = -1;
+    uid_t uid = 0;
+    int handle = 1;
+    bool isReply = true;
+
+    bool ret = binderInvoker.GetDBinderCallingPidUid(handle, isReply, pid, uid);
+    EXPECT_TRUE(ret);
+#endif
+}
+
+/**
  * @tc.name: SetMaxWorkThreadTest001
  * @tc.desc: Verify the SetMaxWorkThread function
  * @tc.type: FUNC
@@ -276,6 +314,45 @@ HWTEST_F(BinderInvokerUnitTest, ExitCurrentThreadTest001, TestSize.Level1)
     binderInvoker.binderConnector_ = nullptr;
     binderInvoker.ExitCurrentThread();
     EXPECT_EQ(binderInvoker.binderConnector_, nullptr);
+}
+
+
+/**
+ * @tc.name: GetAccessTokenTest001
+ * @tc.desc: Verify the GetAccessToken function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetAccessTokenTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint64_t callerTokenID = 0;
+    uint64_t firstTokenID = 0;
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderInvoker.binderConnector_ = binderConnector;
+
+    binderInvoker.GetAccessToken(callerTokenID, firstTokenID);
+    EXPECT_EQ(callerTokenID, 0);
+    EXPECT_EQ(firstTokenID, 0);
+}
+
+/**
+ * @tc.name: GetSenderInfoTest001
+ * @tc.desc: Verify the GetSenderInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetSenderInfoTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint64_t callerTokenID = 0;
+    uint64_t firstTokenID = 0;
+    pid_t realPid = 0;
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderInvoker.binderConnector_ = binderConnector;
+
+    binderInvoker.GetSenderInfo(callerTokenID, firstTokenID, realPid);
+    EXPECT_EQ(callerTokenID, 0);
+    EXPECT_EQ(firstTokenID, 0);
+    EXPECT_EQ(realPid, 0);
 }
 
 /**
@@ -721,4 +798,100 @@ HWTEST_F(BinderInvokerUnitTest, GetStrongRefCountForStubTest002, TestSize.Level1
     binderInvoker.binderConnector_ = binderConnector;
     uint32_t count = binderInvoker.GetStrongRefCountForStub(0);
     EXPECT_EQ(count, 0);
+}
+
+/**
+ * @tc.name: GetUint64ValueByStrSliceTest001
+ * @tc.desc: cover GetUint64ValueByStrSlice branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetUint64ValueByStrSliceTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = "<0671418004000000000023721104375808";
+    size_t offset = str.length();
+    size_t length = 1;
+    uint64_t value = 0;
+    bool ret = binderInvoker.GetUint64ValueByStrSlice(str, offset, length, value);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetUint64ValueByStrSliceTest002
+ * @tc.desc: cover GetUint64ValueByStrSlice branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetUint64ValueByStrSliceTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = "";
+    size_t offset = 0;
+    size_t length = 0;
+    uint64_t value = 0;
+    bool ret = binderInvoker.GetUint64ValueByStrSlice(str, offset, length, value);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetCallerRealPidByStrTest001
+ * @tc.desc: cover GetCallerRealPidByStr branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerRealPidByStrTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = "<0671418004000000000023721104375808";
+    size_t offset = str.length();
+    size_t length = 1;
+    pid_t callerRealPid = 0;
+    bool ret = binderInvoker.GetCallerRealPidByStr(str, offset, length, callerRealPid);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetCallerRealPidByStrTest002
+ * @tc.desc: cover GetCallerRealPidByStr branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerRealPidByStrTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = "";
+    size_t offset = 0;
+    size_t length = 0;
+    pid_t callerRealPid = 0;
+    bool ret = binderInvoker.GetCallerRealPidByStr(str, offset, length, callerRealPid);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetCallerPidAndUidByStrTest001
+ * @tc.desc: cover GetCallerPidAndUidByStr branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerPidAndUidByStrTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = "<0671418004000000000023721104375808";
+    size_t offset = str.length();
+    pid_t pid = 0;
+    pid_t uid = 0;
+    bool ret = binderInvoker.GetCallerPidAndUidByStr(str, offset, pid, uid);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetCallerPidAndUidByStrTest002
+ * @tc.desc: cover GetCallerPidAndUidByStr branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetCallerPidAndUidByStrTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = "<0671418004000000000023721104375808";
+    size_t offset = 21;
+    pid_t pid = 0;
+    pid_t uid = 0;
+    bool ret = binderInvoker.GetCallerPidAndUidByStr(str, offset, pid, uid);
+    EXPECT_TRUE(ret);
 }
