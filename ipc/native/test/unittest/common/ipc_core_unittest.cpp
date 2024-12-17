@@ -43,9 +43,6 @@
 #include "log_tags.h"
 #undef protected
 #undef private
-#ifndef CONFIG_STANDARD_SYSTEM
-#include "jni_help.h"
-#endif
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -651,23 +648,6 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction006, TestSize.Level1)
     bool ret = IPCSkeleton::SetContextObject(remoteObj);
     ASSERT_FALSE(ret);
 }
-
-#ifndef CONFIG_STANDARD_SYSTEM
-/**
- * @tc.name: SyncTransaction007
- * @tc.desc: Test get context object through jni.
- * @tc.type: FUNC
- * @tc.require: SR000DFJQF AR000DFJQG
- */
-HWTEST_F(IPCNativeUnitTest, SyncTransaction007, TestSize.Level1)
-{
-    JNIEnv *env = nullptr;
-    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
-    ASSERT_TRUE(remoteObj != nullptr);
-    jobject testObj = JNIHelperGetJavaRemoteObject(env, remoteObj);
-    ASSERT_TRUE(testObj == nullptr);
-}
-#endif
 
 /**
  * @tc.name: SyncTransaction008
