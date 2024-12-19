@@ -13,6 +13,12 @@
      limitations under the License.
 -->
 <configuration ver="2.0">
+    <target name="BinderInvokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
     <target name="IPCNativeFrameworksTest">
         <preparer>
             <option name="push" value="communication/ipc/ipc_server_test -> /system/bin" src="out"/>
@@ -37,6 +43,8 @@
             <option name="push" value="communication/ipc/ipc_client_test -> /system/bin" src="out"/>
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
     <target name="IPCHiTraceUnitTest">
@@ -51,12 +59,16 @@
         <preparer>
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
     <target name="IPCMockUnitTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
             <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
 </configuration>

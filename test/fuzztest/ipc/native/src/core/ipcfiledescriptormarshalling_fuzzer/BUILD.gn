@@ -27,7 +27,8 @@ ohos_fuzztest("IPCFileDescriptorMarshallingFuzzTest") {
   ]
   sources = [ "ipcfiledescriptormarshalling_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../interfaces/innerkits/ipc_single:ipc_single" ]
+  deps =
+      [ "../../../../../../../interfaces/innerkits/ipc_single:ipc_single_test" ]
 
   external_deps = [
     "c_utils:utils",

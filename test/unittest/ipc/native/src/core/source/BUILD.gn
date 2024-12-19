@@ -38,7 +38,7 @@ ohos_unittest("IPCObjectProxyTest") {
 
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",
-    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
+    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
   ]
 
   external_deps = [
