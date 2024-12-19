@@ -448,6 +448,25 @@ ohos_unittest("MessageParcelTest") {
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
+ohos_unittest("InvokerRawDataTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  sources = [ "invoker_rawdata_unittest.cpp" ]
+
+  configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
+
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
+    "samgr:samgr_proxy",
+  ]
+
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -464,6 +483,7 @@ group("unittest") {
     ":IPCNativeUnitTest",
     ":IPCSoDlcloseTest",
     ":InvokerFactoryTest",
+    ":InvokerRawDataTest",
     ":IpcCApiUnitTest",
     ":MessageParcelTest",
     ":RPCFeatureUnitTest",
