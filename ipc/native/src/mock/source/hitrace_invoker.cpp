@@ -71,7 +71,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Message
         }
         // tracepoint: CS(Client Send)
         std::u16string desc = data.GetInterfaceToken();
-        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%{public}s handle=%{public}d,code=%{public}u,desc=%{public}s",
+        HiTraceChain::Tracepoint(HITRACE_TP_CS, childId, "%s handle=%d,code=%u,desc=%s",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
         flags |= TF_HITRACE;
@@ -96,8 +96,7 @@ void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t
             // restore thread trace id
             HiTraceChain::SetId(traceId);
             // tracepoint: CR(Client Receive)
-            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId,
-                "%{public}s handle=%{public}d,code=%{public}u", "SYNC", handle, code);
+            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "SYNC handle=%d,code=%u", handle, code);
         }
     }
 }
@@ -145,8 +144,7 @@ bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, Message
         data.RewindRead(oldReadPosition);
         std::u16string desc = data.ReadInterfaceToken();
         HiTraceChain::Tracepoint(HITRACE_TP_SR, traceId,
-            "%{public}s handle=%{public}" PRIu64 ",code=%{public}u,desc=%{public}s",
-            (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code,
+            "%s handle=%" PRIu64 ",code=%u,desc=%s", (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code,
             ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(desc)).c_str());
     }
     RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
@@ -158,8 +156,7 @@ void HitraceInvoker::TraceServerSend(uint64_t handle, uint32_t code, bool isServ
 {
     if (isServerTraced) {
         // tracepoint: SS(Server Send)
-        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(),
-            "%{public}s handle=%{public}" PRIu64 ",code=%{public}u",
+        HiTraceChain::Tracepoint(HITRACE_TP_SS, HiTraceChain::GetId(), "%s handle=%" PRIu64 ",code=%u",
             (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
     }
     HiTraceChain::ClearId();
