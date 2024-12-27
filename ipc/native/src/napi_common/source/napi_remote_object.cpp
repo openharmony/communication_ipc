@@ -459,6 +459,8 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
  
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(workerEnv, &loop);
+    NAPI_ASSERT_RETURN_VOID(workerEnv, loop != nullptr, "loop is nullptr");
+
     uv_work_t *work = new (std::nothrow) uv_work_t;
     NAPI_ASSERT_RETURN_VOID(workerEnv, work != nullptr, "cb failed to new work");
     OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
@@ -621,10 +623,11 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     thisVarRef_ = jsObjectRef;
 
     if (jsThreadId_ == std::this_thread::get_id()) {
-        IncreaseJsObjectRef(env, jsObjectRef);
+        IncreaseJsObjectRef(env_, jsObjectRef);
     } else {
         uv_loop_s *loop = nullptr;
         napi_get_uv_event_loop(env_, &loop);
+        NAPI_ASSERT_RETURN_VOID(env_, loop != nullptr, "loop is nullptr");
         uv_work_t *work = new (std::nothrow) uv_work_t;
         NAPI_ASSERT_RETURN_VOID(env_, work != nullptr, "create NAPIRemoteObject, new work failed");
         std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
@@ -671,6 +674,7 @@ NAPIRemoteObject::~NAPIRemoteObject()
         } else {
             uv_loop_s *loop = nullptr;
             napi_get_uv_event_loop(env_, &loop);
+            NAPI_ASSERT_RETURN_VOID(env_, loop != nullptr, "loop is nullptr");
             uv_work_t *work = new (std::nothrow) uv_work_t;
             NAPI_ASSERT_RETURN_VOID(env_, work != nullptr, "release NAPIRemoteObject, new work failed");
             OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
@@ -841,6 +845,10 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        ZLOGE(LOG_LABEL, "loop is nullptr");
+        return ERR_UNKNOWN_REASON;
+    }
 
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
@@ -1182,6 +1190,10 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
+    if (loop == nullptr) {
+        ZLOGE(LOG_LABEL, "loop is nullptr");
+        return;
+    }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         ZLOGE(LOG_LABEL, "new uv_work_t failed");
