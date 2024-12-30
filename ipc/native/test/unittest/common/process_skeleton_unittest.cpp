@@ -389,3 +389,48 @@ HWTEST_F(ProcessSkeletonUnitTest, StrToInt32001, TestSize.Level1)
     ret = ProcessSkeleton::StrToInt32("3.14", value);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: NotifyChildThreadStop001
+ * @tc.desc: Verify the NotifyChildThreadStop function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop001, TestSize.Level1)
+{
+    ProcessSkeleton *processSkeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(processSkeleton != nullptr);
+
+    processSkeleton->NotifyChildThreadStop();
+    EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+}
+
+/**
+ * @tc.name: NotifyChildThreadStop002
+ * @tc.desc: Verify the NotifyChildThreadStop function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop002, TestSize.Level1)
+{
+    ProcessSkeleton *processSkeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(processSkeleton != nullptr);
+
+    processSkeleton->IncreaseThreadCount();
+    processSkeleton->NotifyChildThreadStop();
+    EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+}
+
+/**
+ * @tc.name: NotifyChildThreadStop003
+ * @tc.desc: Verify the NotifyChildThreadStop function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop003, TestSize.Level1)
+{
+    ProcessSkeleton *processSkeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(processSkeleton != nullptr);
+
+    processSkeleton->IncreaseThreadCount();
+    processSkeleton->DecreaseThreadCount();
+    processSkeleton->NotifyChildThreadStop();
+    EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+}
