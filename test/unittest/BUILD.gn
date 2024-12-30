@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (C) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,16 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-IPC_ROOT_PATH = "//foundation/communication/ipc"
-IPC_UNITTEST_ROOT_PATH = "$IPC_ROOT_PATH/test/unittest"
+import("//build/test.gni")
+import("../../config.gni")
 
-declare_args() {
-  ipc_feature_rpc_enabled = false
-  ipc_feature_actv_binder_enabled = true
-  ipc_feature_test_enabled = false
-}
+#################################group#########################################
 
-if (defined(global_parts_info) &&
-    defined(global_parts_info.security_access_token)) {
-  ipc_feature_test_enabled = true
+group("unittest") {
+  testonly = true
+  if (ipc_feature_test_enabled) {
+    deps = [ "ipc/native/src/core/source:unittest" ]
+  }
 }
+###############################################################################
