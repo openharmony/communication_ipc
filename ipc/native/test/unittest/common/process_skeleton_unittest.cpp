@@ -417,6 +417,7 @@ HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop002, TestSize.Level1)
     processSkeleton->IncreaseThreadCount();
     processSkeleton->NotifyChildThreadStop();
     EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+    processSkeleton->DecreaseThreadCount();
 }
 
 /**
