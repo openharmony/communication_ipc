@@ -17,6 +17,7 @@
 #include "securec.h"
 #define private public
 #include "dbinder_service.h"
+#include "mock_dbinder_remote_listener.h"
 #undef private
 #include "dbinder_remote_listener.h"
 #include "gtest/gtest.h"
@@ -72,13 +73,14 @@ public:
 
     bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, int32_t systemAbilityId) override
     {
-        return true;
+        return isLoad_;
     }
     bool IsDistributedSystemAbility(int32_t systemAbilityId) override
     {
         return isSystemAbility_;
     }
     bool isSystemAbility_ = true;
+    bool isLoad_ = true;
 };
 
 /*
@@ -1063,15 +1065,28 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
+    std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
+    dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
 
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
     (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     message->stubIndex = DBinderService::FIRST_SYS_ABILITY_ID - 1;
     message->binderObject = DBinderService::FIRST_SYS_ABILITY_ID - 1;
+    message->deviceIdInfo.fromDeviceId[0] = 't';
+
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = MockDBinderRemoteListener::SendBytes;
+    PeerSocketInfo info;
+    info.networkId = message->deviceIdInfo.fromDeviceId;
+    int32_t socket = 1001;
+    DBinderRemoteListener::ServerOnBind(socket, info);
 
     bool ret = dBinderService->OnRemoteInvokerMessage(message);
     EXPECT_FALSE(ret);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SAID_INVALID_ERR);
+    dBinderService->remoteListener_ = nullptr;
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = nullptr;
 }
 
 /**
@@ -1102,21 +1117,73 @@ HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage003, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
+    std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
+    dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
 
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
     (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     message->stubIndex = DBinderService::FIRST_SYS_ABILITY_ID;
     message->binderObject = DBinderService::FIRST_SYS_ABILITY_ID;
+    message->deviceIdInfo.fromDeviceId[0] = 't';
 
     std::shared_ptr<TestRpcSystemAbilityCallback> cb = std::make_shared<TestRpcSystemAbilityCallback>();
     cb->isSystemAbility_ = false;
     dBinderService->dbinderCallback_ = cb;
 
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = MockDBinderRemoteListener::SendBytes;
+    PeerSocketInfo info;
+    info.networkId = message->deviceIdInfo.fromDeviceId;
+    int32_t socket = 1001;
+    DBinderRemoteListener::ServerOnBind(socket, info);
+
     bool ret = dBinderService->OnRemoteInvokerMessage(message);
     EXPECT_FALSE(ret);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SA_NOT_DISTRUBUTED_ERR);
+    dBinderService->remoteListener_ = nullptr;
     cb->isSystemAbility_ = true;
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = nullptr;
 }
+
+/**
+ * @tc.name: OnRemoteInvokerMessage004
+ * @tc.desc: Verify the OnRemoteInvokerMessage function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, OnRemoteInvokerMessage004, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
+    dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
+
+    std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
+    EXPECT_TRUE(message != nullptr);
+    (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+    message->stubIndex = DBinderService::FIRST_SYS_ABILITY_ID;
+    message->binderObject = DBinderService::FIRST_SYS_ABILITY_ID;
+    message->deviceIdInfo.fromDeviceId[0] = 't';
+
+    std::shared_ptr<TestRpcSystemAbilityCallback> cb = std::make_shared<TestRpcSystemAbilityCallback>();
+    cb->isLoad_ = false;
+    dBinderService->dbinderCallback_ = cb;
+
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = MockDBinderRemoteListener::SendBytes;
+    PeerSocketInfo info;
+    info.networkId = message->deviceIdInfo.fromDeviceId;
+    int32_t socket = 1001;
+    DBinderRemoteListener::ServerOnBind(socket, info);
+
+    bool ret = dBinderService->OnRemoteInvokerMessage(message);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SA_NOT_AVAILABLE);
+    dBinderService->remoteListener_ = nullptr;
+    cb->isLoad_ = true;
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = nullptr;
+}
+
 
 /**
  * @tc.name: GetDatabusNameByProxyTest001
@@ -1746,10 +1813,29 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest001, TestSize.Level1)
     EXPECT_TRUE(dHandleEntryTxRx != nullptr);
     sptr<IRemoteObject> remoteObject = nullptr;
     dBinderService->LoadSystemAbilityComplete("test", 2, remoteObject);
+
+    /* verify running into the remoteObject is null branch */
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = MockDBinderRemoteListener::SendBytes;
+    PeerSocketInfo info;
+    info.networkId = message->deviceIdInfo.fromDeviceId;
+    int32_t socket = 1001;
+    DBinderRemoteListener::ServerOnBind(socket, info);
+
+    std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
+    dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject);
-    sptr<IRemoteObject> remoteObject1 = new IPCObjectProxy(1);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SA_NOT_FOUND);
+
+    /* verify running into the add death recipient fail branch */
+    dBinderService->loadSaReply_.push_back(message);
+    sptr<MockIPCObjectProxy> remoteObject1 = sptr<MockIPCObjectProxy>::MakeSptr();
     EXPECT_TRUE(remoteObject1 != nullptr);
+    EXPECT_CALL(*remoteObject1, AddDeathRecipient(testing::_)).WillRepeatedly(testing::Return(false));
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject1);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SA_NOT_FOUND);
+    dBinderService->remoteListener_ = nullptr;
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = nullptr;
 }
 
 /**
@@ -1762,7 +1848,7 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest002, TestSize.Level1)
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
 
-    std::string srcNetworkId;
+    std::string srcNetworkId = "t";
     int32_t systemAbilityId = 1;
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
@@ -1787,14 +1873,13 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest003, TestSize.Level1)
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
 
-    std::string srcNetworkId;
+    std::string srcNetworkId = "t";
     int32_t systemAbilityId = 1;
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
     (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     message->stubIndex = systemAbilityId;
     message->deviceIdInfo.fromDeviceId[0] = 't';
-    message->binderObject = 0;
     message->transType = IRemoteObject::DATABUS_TYPE + 1;
     dBinderService->loadSaReply_.push_back(message);
 
@@ -1804,7 +1889,21 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest003, TestSize.Level1)
     bool ret = dBinderService->AttachProxyObject(remoteObject1, binderObjectPtr);
     EXPECT_TRUE(ret);
 
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = MockDBinderRemoteListener::SendBytes;
+    PeerSocketInfo info;
+    info.networkId = message->deviceIdInfo.fromDeviceId;
+    int32_t socket = 1001;
+    DBinderRemoteListener::ServerOnBind(socket, info);
+
+    message->binderObject = binderObjectPtr;
+    /* verify running into the transType invalid branch */
+    std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
+    dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject1);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SA_INVOKE_FAILED);
+    dBinderService->remoteListener_ = nullptr;
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = nullptr;
 }
 
 /**
@@ -1817,24 +1916,40 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest004, TestSize.Level1)
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
 
-    std::string srcNetworkId;
+    std::string srcNetworkId = "t";
     int32_t systemAbilityId = 1;
     std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<DHandleEntryTxRx>();
     EXPECT_TRUE(message != nullptr);
     (void)memset_s(message.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
     message->stubIndex = systemAbilityId;
     message->deviceIdInfo.fromDeviceId[0] = 't';
-    message->binderObject = 0;
     message->transType = IRemoteObject::DATABUS_TYPE;
     dBinderService->loadSaReply_.push_back(message);
 
-    sptr<IRemoteObject> remoteObject1 = new IPCObjectProxy(1);
+    /* verify running into the OnRemoteInvokerDataBusMessage fail branch */
+    sptr<MockIPCObjectProxy> remoteObject1 = sptr<MockIPCObjectProxy>::MakeSptr();
     EXPECT_TRUE(remoteObject1 != nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(remoteObject1.GetRefPtr());
     bool ret = dBinderService->AttachProxyObject(remoteObject1, binderObjectPtr);
     EXPECT_TRUE(ret);
 
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = MockDBinderRemoteListener::SendBytes;
+    PeerSocketInfo info;
+    info.networkId = message->deviceIdInfo.fromDeviceId;;
+    int32_t socket = 1001;
+    DBinderRemoteListener::ServerOnBind(socket, info);
+
+    message->binderObject = binderObjectPtr;
+    std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
+    dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
+    EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
+    EXPECT_CALL(*remoteObject1, IsObjectDead()).WillOnce(testing::Return(true)).WillRepeatedly(testing::Return(false));
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject1);
+    EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SESSION_NAME_NOT_FOUND);
+    dBinderService->remoteListener_ = nullptr;
+    DBinderSoftbusClient::GetInstance().sendBytesFunc_ = nullptr;
+    ret = dBinderService->DetachProxyObject(binderObjectPtr);
+    EXPECT_TRUE(ret);
 }
 
 /**
