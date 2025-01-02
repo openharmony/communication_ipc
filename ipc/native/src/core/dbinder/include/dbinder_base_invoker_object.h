@@ -503,11 +503,13 @@ template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(int32_t socketId
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
+        StartLoopFailSendReply(buffer, size, RPC_BASE_INVOKER_CURRENT_NULL_ERR);
         return;
     }
     std::shared_ptr<ThreadProcessInfo> processInfo = MakeThreadProcessInfo(socketId, buffer, size);
     if (processInfo == nullptr) {
         ZLOGE(LOG_LABEL, "processInfo is nullptr");
+        StartLoopFailSendReply(buffer, size, RPC_BASE_INVOKER_MALLOC_ERR);
         return;
     }
     std::thread::id threadId = current->GetIdleDataThread();
