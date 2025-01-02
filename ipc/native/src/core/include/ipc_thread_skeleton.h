@@ -85,6 +85,7 @@ private:
     std::atomic<int32_t> sendRequestCount_ = 0;
     std::string threadName_;
     ThreadType threadType_ = ThreadType::NORMAL_THREAD;
+    uint64_t ffrtTaskId_ = 0;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
