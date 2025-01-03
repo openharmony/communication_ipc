@@ -21,6 +21,7 @@
 #include <sys/syscall.h>
 
 #include "binder_invoker.h"
+#include "ffrt.h"
 #include "hilog/log_c.h"
 #include "hilog/log_cpp.h"
 #include "invoker_factory.h"
@@ -90,13 +91,15 @@ void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
         return;
     }
 
+    // 1. a FFRT task may be executed on multiple threads in different time periods.
+    // 2. a thread can executed multiple FFRT tasks in different time periods.
     auto tid = gettid();
-    if (instance->tid_ != tid) {
-        if (instance->IsSendRequesting()) {
-            ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, key:%{public}u instance:%{public}u"
-                " threadName:%{public}s", tid, instance->tid_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
-                instance->threadName_.c_str());
-        }
+    auto taskId = ffrt_this_task_get_id();
+    if (tid != instance->tid_ && taskId != instance->ffrtTaskId_) {
+        ZLOGE(LOG_LABEL, "TLS mismatch, curTid:%{public}d tlsTid:%{public}d, curTaskId:%{public}" PRIu64
+            " tlsTaskId:%{public}" PRIu64 ", key:%{public}u instance:%{public}u threadName:%{public}s",
+            tid, instance->tid_, taskId, instance->ffrtTaskId_, TLSKey_, ProcessSkeleton::ConvertAddr(instance),
+            instance->threadName_.c_str());
         pthread_setspecific(TLSKey_, nullptr);
         instance = new (std::nothrow) IPCThreadSkeleton();
     }
@@ -132,9 +135,8 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     return current;
 }
 
-IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
+IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid()), ffrtTaskId_(ffrt_this_task_get_id())
 {
-    ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
     pthread_setspecific(TLSKey_, this);
     char name[MAX_THREAD_NAME_LEN] = { 0 };
     auto ret = prctl(PR_GET_NAME, name);
@@ -143,6 +145,7 @@ IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid())
         return;
     }
     threadName_ = name;
+    ZLOGD(LOG_LABEL, "instance:%{public}u name:%{public}s", ProcessSkeleton::ConvertAddr(this), threadName_.c_str());
 }
 
 IPCThreadSkeleton::~IPCThreadSkeleton()
@@ -159,12 +162,11 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
         ZLOGF(LOG_LABEL, "memory may be damaged, ret:%{public}u", ret);
         return;
     }
-    ZLOGD(LOG_LABEL, "%{public}u", ProcessSkeleton::ConvertAddr(this));
+
     for (auto &invoker : invokers_) {
         delete invoker;
         invoker = nullptr;
     }
-
     if (threadType_ == ThreadType::IPC_THREAD) {
         // subtract thread count when thread exiting
         auto process = ProcessSkeleton::GetInstance();
@@ -172,8 +174,8 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
             process->DecreaseThreadCount();
         }
     }
-    ZLOGD(LOG_LABEL, "thread exit, threadName=%{public}s, tid=%{public}d, threadType=%{public}d", threadName_.c_str(),
-        tid_, threadType_);
+    ZLOGD(LOG_LABEL, "thread exit, instance:%{public}u name:%{public}s threadType:%{public}d",
+        ProcessSkeleton::ConvertAddr(this), threadName_.c_str(), threadType_);
 }
 
 bool IPCThreadSkeleton::IsInstanceException(std::atomic<uint32_t> &flag)
