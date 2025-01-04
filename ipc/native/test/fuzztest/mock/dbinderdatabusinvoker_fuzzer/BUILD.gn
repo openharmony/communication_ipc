@@ -25,8 +25,9 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
   include_dirs = [
     "$SUBSYSTEM_DIR/utils/include",
     "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/src/core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
   ]
   cflags = [
     "-g",
@@ -36,7 +37,7 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
     "-fstack-protector-strong",
   ]
   sources = [
-    "//foundation/communication/ipc/ipc/native/src/mock/source/hitrace_invoker.cpp",
+    "//foundation/communication/ipc/ipc/native/src/core/invoker/source/hitrace_invoker.cpp",
     "dbinderdatabusinvoker_fuzzer.cpp",
   ]
 

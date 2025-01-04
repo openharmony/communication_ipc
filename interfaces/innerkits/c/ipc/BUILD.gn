@@ -71,7 +71,7 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/include",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
-      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/dbinder/c/include",
       "$SUBSYSTEM_DIR/utils/include",
     ]
     deps = [
@@ -117,7 +117,7 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/include",
       "$IPC_CORE_ROOT/ipc/src/liteos_a/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
-      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/dbinder/c/include",
       "$SUBSYSTEM_DIR/utils/include",
     ]
     ldflags = [
@@ -162,7 +162,7 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/include",
       "$IPC_CORE_ROOT/ipc/src/linux/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
-      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/dbinder/c/include",
       "$SUBSYSTEM_DIR/utils/include",
     ]
     ldflags = [
@@ -204,7 +204,7 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/ipc/src/linux/include",
       "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
-      "$SUBSYSTEM_DIR/services/dbinder/c/include",
+      "$SUBSYSTEM_DIR/dbinder/c/include",
       "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
     ]

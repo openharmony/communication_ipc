@@ -17,11 +17,14 @@ import("//build/test.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DBinderServiceFuzzTest") {
+ohos_fuzztest("DetachProxyObjectFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file =
-      "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/dbinderservice_fuzzer"
-  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include" ]
+      "$SUBSYSTEM_DIR/dbinder/test/fuzztest/detachproxyobject_fuzzer"
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -29,7 +32,7 @@ ohos_fuzztest("DBinderServiceFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "dbinderservice_fuzzer.cpp" ]
+  sources = [ "detachproxyobject_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -43,7 +46,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    # ":DBinderServiceFuzzTest",
+    # ":DetachProxyObjectFuzzTest",
   ]
 }
 ###############################################################################

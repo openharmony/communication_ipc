@@ -14,14 +14,19 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+SUBSYSTEM_DIR = "../../../../"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NoticeServiceDieFuzzTest") {
+ohos_fuzztest("SendDataToRemoteFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file =
-      "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/noticeservicedie_fuzzer"
-  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include" ]
+      "$SUBSYSTEM_DIR/dbinder/test/fuzztest/senddatatoremote_fuzzer"
+  include_dirs = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/dbinder/include/",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/include/",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/invoker/include/",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -29,7 +34,7 @@ ohos_fuzztest("NoticeServiceDieFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "noticeservicedie_fuzzer.cpp" ]
+  sources = [ "senddatatoremote_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -43,7 +48,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    # ":NoticeServiceDieFuzzTest",
+    # ":SendDataToRemoteFuzzTest",
   ]
 }
 ###############################################################################
