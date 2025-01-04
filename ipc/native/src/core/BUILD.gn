@@ -27,15 +27,17 @@ ohos_shared_library("ipc_common") {
   }
   branch_protector_ret = "pac_ret"
   include_dirs = [
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
     "$SUBSYSTEM_DIR/utils/include",
     "include",
   ]
 
   sources = [
-    "$IPC_CORE_ROOT/src/mock/source/binder_connector.cpp",
-    "source/ipc_payload_statistics_impl.cpp",
-    "source/process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/binder_connector.cpp",
+    "framework/source/ipc_payload_statistics_impl.cpp",
+    "framework/source/process_skeleton.cpp",
   ]
 
   configs = [

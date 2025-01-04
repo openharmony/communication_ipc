@@ -15,8 +15,8 @@ import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
-# DBINDER_TEST_ROOT = "//foundation/communication/ipc/services/dbinder/test"
-MODULE_OUTPUT_PATH = "ipc/services/dbinder"
+# DBINDER_TEST_ROOT = "//foundation/communication/ipc/dbinder/test"
+MODULE_OUTPUT_PATH = "ipc/dbinder"
 
 ohos_moduletest("RPCCLIENTTEST") {
   module_out_path = MODULE_OUTPUT_PATH

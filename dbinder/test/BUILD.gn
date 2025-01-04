@@ -14,8 +14,8 @@
 import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-DBINDER_TEST_ROOT = "$SUBSYSTEM_DIR/services/dbinder/test"
-MODULE_OUTPUT_PATH = "ipc/services/dbinder"
+DBINDER_TEST_ROOT = "$SUBSYSTEM_DIR/dbinder/test"
+MODULE_OUTPUT_PATH = "ipc/dbinder"
 
 ###############################################################################
 config("libtestdbinder_config") {
@@ -28,7 +28,7 @@ config("libtestdbinder_config") {
     "//utils/system/safwk/native/include",
     "//test/testfwk/developer_test/aw/distributed",
     "$SUBSYSTEM_DIR/utils/include",
-    "$SUBSYSTEM_DIR/services/dbinder/dbinder_service/include",
+    "$SUBSYSTEM_DIR/dbinder/dbinder_service/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$DBINDER_TEST_ROOT/distributedtest/include",
   ]
