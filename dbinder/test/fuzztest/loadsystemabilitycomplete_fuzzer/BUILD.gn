@@ -17,10 +17,9 @@ import("//build/test.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DetachProxyObjectFuzzTest") {
+ohos_fuzztest("LoadSystemAbilityCompleteFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file =
-      "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/detachproxyobject_fuzzer"
+  fuzz_config_file = "$SUBSYSTEM_DIR/dbinder/test/fuzztest/loadsystemabilitycomplete_fuzzer"
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
@@ -32,7 +31,7 @@ ohos_fuzztest("DetachProxyObjectFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "detachproxyobject_fuzzer.cpp" ]
+  sources = [ "loadsystemabilitycomplete_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -46,7 +45,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    # ":DetachProxyObjectFuzzTest",
+    # ":LoadSystemAbilityCompleteFuzzTest",
   ]
 }
 ###############################################################################

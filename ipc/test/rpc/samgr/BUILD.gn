@@ -22,11 +22,10 @@ executable("rpc_samgr") {
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
-    "//foundation/communication/ipc/services/dbinder/c/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
-    "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    "$SUBSYSTEM_DIR/dbinder/c/include",
     "$SUBSYSTEM_DIR/utils/include",
   ]
   ldflags = [

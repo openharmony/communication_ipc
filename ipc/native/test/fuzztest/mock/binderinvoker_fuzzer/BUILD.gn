@@ -23,8 +23,9 @@ ohos_fuzztest("BinderInvokerFuzzTest") {
     "../../core/include",
     "../../../../../../utils/include",
     "../../../../c/rpc/include",
-    "../../../../src/core/include",
-    "../../../../src/mock/include",
+    "../../../../src/core/dbinder/include",
+    "../../../../src/core/framework/include",
+    "../../../../src/core/invoker/include",
   ]
   cflags = [
     "-g",

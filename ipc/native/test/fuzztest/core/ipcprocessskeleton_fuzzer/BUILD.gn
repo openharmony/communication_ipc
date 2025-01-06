@@ -20,7 +20,9 @@ ohos_fuzztest("IPCProcessSkeletonFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file = "../ipcprocessskeleton_fuzzer"
   include_dirs = [
-    "../../../../src/core/include",
+    "../../../../src/core/dbinder/include",
+    "../../../../src/core/framework/include",
+    "../../../../src/core/invoker/include",
     "../../../../c/rpc/include",
     "../../../../../../utils/include",
     "../include",

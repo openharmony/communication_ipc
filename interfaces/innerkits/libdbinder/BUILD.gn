@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
-DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder"
+DBINDER_ROOT = "$SUBSYSTEM_DIR/dbinder"
 
 config("libdbinder_config") {
   visibility = [ ":*" ]

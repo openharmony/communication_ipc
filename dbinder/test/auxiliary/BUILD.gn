@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-SUBSYSTEM_DIR = "../../../../"
+SUBSYSTEM_DIR = "../../../"
 
 ohos_executable("Dynamic_loading_softbus_client_test") {
   sources = [ "./src/main.cpp" ]

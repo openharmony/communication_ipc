@@ -24,8 +24,9 @@ config("ipc_util_config") {
 
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
   ]
 
   cflags = []
