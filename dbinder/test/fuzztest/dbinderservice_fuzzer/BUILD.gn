@@ -19,8 +19,7 @@ SUBSYSTEM_DIR = "//foundation/communication/ipc"
 ##############################fuzztest##########################################
 ohos_fuzztest("DBinderServiceFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file =
-      "$SUBSYSTEM_DIR/dbinder/test/fuzztest/dbinderservice_fuzzer"
+  fuzz_config_file = "$SUBSYSTEM_DIR/dbinder/test/fuzztest/dbinderservice_fuzzer"
   include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include" ]
   cflags = [
     "-g",

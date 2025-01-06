@@ -35,9 +35,9 @@ ohos_shared_library("ipc_common") {
   ]
 
   sources = [
-    "$IPC_CORE_ROOT/src/core/invoker/source/binder_connector.cpp",
     "framework/source/ipc_payload_statistics_impl.cpp",
     "framework/source/process_skeleton.cpp",
+    "invoker/source/binder_connector.cpp",
   ]
 
   configs = [
