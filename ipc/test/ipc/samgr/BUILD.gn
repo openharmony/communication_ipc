@@ -25,7 +25,7 @@ executable("samgr") {
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
-    "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    "$SUBSYSTEM_DIR/dbinder/c/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
     "$IPC_TEST_CORE/ipc/include",
   ]

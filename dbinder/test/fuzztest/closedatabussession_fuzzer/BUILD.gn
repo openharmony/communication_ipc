@@ -14,16 +14,18 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-SUBSYSTEM_DIR = "../../../../../"
+SUBSYSTEM_DIR = "../../../../"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SendDataToRemoteFuzzTest") {
+ohos_fuzztest("CloseDatabusSessionFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file =
-      "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/senddatatoremote_fuzzer"
+      "$SUBSYSTEM_DIR/dbinder/test/fuzztest/closedatabussession_fuzzer"
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/core/include/",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/dbinder/include/",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/include/",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/invoker/include/",
   ]
   cflags = [
     "-g",
@@ -32,7 +34,10 @@ ohos_fuzztest("SendDataToRemoteFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "senddatatoremote_fuzzer.cpp" ]
+
+  configs = [ "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config" ]
+
+  sources = [ "closedatabussession_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -46,7 +51,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    # ":SendDataToRemoteFuzzTest",
+    # ":CloseDatabusSessionFuzzTest",
   ]
 }
 ###############################################################################

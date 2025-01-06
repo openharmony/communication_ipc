@@ -24,11 +24,11 @@ ohos_unittest("IPCNativeUnitTest") {
   include_dirs = [
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/c/ipc_adapter/include",
-    "$IPC_CORE_ROOT/src/core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-    "$SUBSYSTEM_DIR/native/src/core/include",
   ]
 
   sources = [
@@ -81,7 +81,9 @@ ohos_unittest("IPCFileDescOpsTest") {
     "$IPC_CORE_ROOT/c/ipc_adapter/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/core/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/dbinder/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/invoker/include",
   ]
 
   sources = [ "ipc_file_desc_unittest.cpp" ]
@@ -132,7 +134,7 @@ ohos_unittest("BinderDebugUnitTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   sources = [
-    "$SUBSYSTEM_DIR/ipc/native/src/mock/source/binder_debug.cpp",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/source/binder_debug.cpp",
     "binder_debug_unittest.cpp",
   ]
 
@@ -207,7 +209,9 @@ if (support_jsapi) {
     module_out_path = MODULE_OUTPUT_PATH
 
     include_dirs = [
-      "$IPC_CORE_ROOT/src/mock/include",
+      "$IPC_CORE_ROOT/src/core/dbinder/include",
+      "$IPC_CORE_ROOT/src/core/framework/include",
+      "$IPC_CORE_ROOT/src/core/invoker/include",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     ]
 
@@ -231,7 +235,9 @@ ohos_unittest("IPCMockUnitTest") {
 
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
   ]
@@ -262,7 +268,9 @@ ohos_unittest("InvokerFactoryTest") {
 
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
   ]
@@ -293,7 +301,9 @@ ohos_unittest("RPCFeatureUnitTest") {
 
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/mock/include",
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
     "$IPC_CORE_ROOT/c/rpc/include",
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
     "$IPC_CORE_ROOT/c/rpc/src/",
@@ -383,7 +393,7 @@ ohos_unittest("HitraceInvokerTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   sources = [
-    "$IPC_CORE_ROOT/src/mock/source/hitrace_invoker.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
     "hitrace_invoker_unittest.cpp",
   ]
 
@@ -406,8 +416,8 @@ ohos_unittest("DatabusSocketListenerTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
   sources = [
-    "$IPC_CORE_ROOT/src/core/source/databus_socket_listener.cpp",
-    "$IPC_CORE_ROOT/src/core/source/process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/databus_socket_listener.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/process_skeleton.cpp",
     "databus_socket_listener_unittest.cpp",
   ]
 
@@ -429,7 +439,11 @@ ohos_unittest("DatabusSocketListenerTest") {
 ohos_unittest("MessageParcelTest") {
   module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [ "$IPC_CORE_ROOT/src/core/source" ]
+  include_dirs = [
+    "$IPC_CORE_ROOT/src/core/dbinder/source",
+    "$IPC_CORE_ROOT/src/core/framework/source",
+    "$IPC_CORE_ROOT/src/core/invoker/source",
+  ]
 
   sources = [ "message_parcel_unittest_AcquireObject.cpp" ]
 

@@ -17,13 +17,10 @@ import("//build/test.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("LoadSystemAbilityCompleteFuzzTest") {
+ohos_fuzztest("DBinderServiceFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "$SUBSYSTEM_DIR/services/dbinder/test/fuzztest/loadsystemabilitycomplete_fuzzer"
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-  ]
+  fuzz_config_file = "$SUBSYSTEM_DIR/dbinder/test/fuzztest/dbinderservice_fuzzer"
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include" ]
   cflags = [
     "-g",
     "-O0",
@@ -31,7 +28,7 @@ ohos_fuzztest("LoadSystemAbilityCompleteFuzzTest") {
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "loadsystemabilitycomplete_fuzzer.cpp" ]
+  sources = [ "dbinderservice_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -45,7 +42,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    # ":LoadSystemAbilityCompleteFuzzTest",
+    # ":DBinderServiceFuzzTest",
   ]
 }
 ###############################################################################
