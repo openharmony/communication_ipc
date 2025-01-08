@@ -120,7 +120,9 @@ napi_value NAPIAshmem::CreateAshmemFromExisting(napi_env env, napi_callback_info
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
     NAPI_ASSERT(env,  (fd > 0) && (size > 0), "fd <= 0 or  size <= 0");
-    sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
+    int dupFd = dup(fd);
+    NAPI_ASSERT(env, dupFd >= 0, "failed to dup fd");
+    sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     NAPI_ASSERT(env, newAshmem != nullptr, "napiAshmem is null");
     napi_value jsAshmem = nullptr;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsAshmem);
@@ -242,7 +244,12 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
 
 napi_value NAPIAshmem::getNewAshmemConstructor(napi_env env, napi_value& constructor, int32_t fd, uint32_t size)
 {
-    sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
+    int dupFd = dup(fd);
+    if (dupFd < 0) {
+        ZLOGE(LOG_LABEL, "fail to dup fd:%{public}d", dupFd);
+        return napiErr.ThrowError(env, OHOS::errorDesc::OS_DUP_ERROR);
+    }
+    sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "newAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
