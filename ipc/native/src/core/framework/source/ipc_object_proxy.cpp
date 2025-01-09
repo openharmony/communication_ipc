@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,9 @@
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
+#ifdef ENABLE_IPC_TRACE
+#include "ipc_trace.h"
+#endif
 #include "ipc_types.h"
 #include "iremote_invoker.h"
 #include "iremote_object.h"
@@ -78,6 +81,11 @@ IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
 
 IPCObjectProxy::~IPCObjectProxy()
 {
+#ifdef ENABLE_IPC_TRACE
+    if (isTraceEnabled_) {
+        IPCTrace::FinishAsync(GenLifeCycleTraceInfo(), static_cast<int32_t>(ProcessSkeleton::ConvertAddr(this)));
+    }
+#endif
     std::string desc;
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
@@ -129,23 +137,41 @@ int IPCObjectProxy::Dump(int fd, const std::vector<std::u16string> &args)
     return SendRequestInner(false, DUMP_TRANSACTION, data, reply, option);
 }
 
+std::string IPCObjectProxy::GetDescriptor(MessageParcel &data)
+{
+    std::unique_lock<std::shared_mutex> lockGuard(descMutex_);
+    if (remoteDescriptor_.empty()) {
+#ifdef ENABLE_IPC_TRACE
+        fullRemoteDescriptor_ = Str16ToStr8(data.GetInterfaceToken());
+        remoteDescriptor_ = ProcessSkeleton::ConvertToSecureDesc(fullRemoteDescriptor_);
+        StartLifeCycleTrace();
+#else
+        remoteDescriptor_ = ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(data.GetInterfaceToken()));
+#endif
+    }
+    return remoteDescriptor_;
+}
+
 int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (code != DUMP_TRANSACTION && code > MAX_TRANSACTION_ID) {
         return IPC_PROXY_INVALID_CODE_ERR;
     }
-    std::string desc;
-    {
-        std::unique_lock<std::shared_mutex> lockGuard(descMutex_);
-        if (remoteDescriptor_.empty()) {
-            remoteDescriptor_ = ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(data.GetInterfaceToken()));
-        }
-        desc = remoteDescriptor_;
+    std::string desc = GetDescriptor(data);
+#ifdef ENABLE_IPC_TRACE
+    bool isTraceEnable = IPCTrace::IsEnabled();
+    if (isTraceEnable) {
+        IPCTrace::Start(GenSendRequestTraceInfo(code));
     }
-
+#endif
     auto beginTime = std::chrono::steady_clock::now();
     int err = SendRequestInner(false, code, data, reply, option);
     auto endTime = std::chrono::steady_clock::now();
+#ifdef ENABLE_IPC_TRACE
+    if (isTraceEnable) {
+        IPCTrace::Finish();
+    }
+#endif
     auto timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime).count();
     if (timeInterval > SEND_REQUEST_TIMEOUT) {
         ZLOGW(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
@@ -1049,4 +1075,31 @@ bool IPCObjectProxy::DeathRecipientAddrInfo::IsDlclosed()
     }
     return false;
 }
+
+#ifdef ENABLE_IPC_TRACE
+void IPCObjectProxy::StartLifeCycleTrace()
+{
+    isTraceEnabled_ = IPCTrace::IsEnabled();
+    if (isTraceEnabled_) {
+        IPCTrace::StartAsync(GenLifeCycleTraceInfo(), static_cast<int32_t>(ProcessSkeleton::ConvertAddr(this)));
+    }
+}
+
+std::string IPCObjectProxy::GenLifeCycleTraceInfo() const
+{
+    return "Proxy:" +
+        fullRemoteDescriptor_ + "_" +
+        std::to_string(handle_) + "_" +
+        std::to_string(ProcessSkeleton::ConvertAddr(this));
+}
+
+std::string IPCObjectProxy::GenSendRequestTraceInfo(uint32_t code) const
+{
+    return "SendRequest:" +
+        fullRemoteDescriptor_ + "_" +
+        std::to_string(handle_) + "_" +
+        std::to_string(ProcessSkeleton::ConvertAddr(this)) + "_" +
+        std::to_string(code);
+}
+#endif
 } // namespace OHOS
