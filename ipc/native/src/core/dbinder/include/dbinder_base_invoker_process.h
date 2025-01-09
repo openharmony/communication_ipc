@@ -17,6 +17,7 @@
 #define OHOS_IPC_DBINDER_BASE_INVOKER_PROCESS_H
 
 #include "dbinder_base_invoker_define.h"
+#include "hitrace_invoker.h"
 
 namespace OHOS {
 
@@ -28,6 +29,13 @@ void DBinderBaseInvoker<T>::SendReplyWithSeqNum(uint64_t seqNum, MessageParcel &
         SendReply(reply, 0, result);
         SetSeqNum(0);
     }
+}
+
+template <class T> void DBinderBaseInvoker<T>::StartLoopFailSendReply(const char *buffer, uint32_t size, int32_t result)
+{
+    MessageParcel reply;
+    const dbinder_transaction_data *tr = reinterpret_cast<const dbinder_transaction_data *>(buffer);
+    SendReplyWithSeqNum(tr->seqNumber, reply, tr->flags, result);
 }
 
 template <class T>
