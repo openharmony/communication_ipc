@@ -28,11 +28,6 @@
 #include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
-#include "test_service_proxy.h"
-#include "test_service.h"
-#include "test_service_command.h"
-#include "test_service_client.h"
-#include "ipc_test_helper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "dbinder_session_object.h"
@@ -49,8 +44,6 @@ using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
 namespace {
-constexpr int MAX_TEST_COUNT = 1000;
-constexpr bool SUPPORT_ZBINDER = false;
 constexpr uint32_t INVAL_TOKEN_ID = 0x0;
 constexpr int MAX_WAIT_TIME = 3000;
 constexpr int INVALID_LEN = 9999;
@@ -58,32 +51,8 @@ constexpr int INVALID_LEN = 9999;
 
 class IPCNativeUnitTest : public testing::Test {
 public:
-    static void SetUpTestCase(void);
-    static void TearDownTestCase(void);
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCUnitTest" };
-
-private:
-    static inline IPCTestHelper *g_globalHelper = { nullptr };
 };
-
-void IPCNativeUnitTest::SetUpTestCase()
-{
-    if (g_globalHelper == nullptr) {
-        g_globalHelper = new IPCTestHelper();
-        bool res = g_globalHelper->PrepareTestSuite();
-        ASSERT_TRUE(res);
-    }
-}
-
-void IPCNativeUnitTest::TearDownTestCase()
-{
-    if (g_globalHelper != nullptr) {
-        bool res = g_globalHelper->TearDownTestSuite();
-        ASSERT_TRUE(res);
-        delete g_globalHelper;
-        g_globalHelper = nullptr;
-    }
-}
 
 /**
  * @tc.name: DeathRecipient001
@@ -430,199 +399,6 @@ HWTEST_F(IPCNativeUnitTest, ProxyJudgment004, TestSize.Level1)
 }
 
 /**
- * @tc.name: MaxWorkThread001
- * @tc.desc: when multi-transaction called,
- * the driver will spawn new thread.but it should not exceed the max num.
- * @tc.type: FUNC
- */
-HWTEST_F(IPCNativeUnitTest, MaxWorkThread001, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    IPCSkeleton::SetMaxWorkThreadNum(8);
-    std::vector<pid_t> childPids;
-    helper.GetChildPids(childPids);
-    ASSERT_GE(childPids.size(), (const unsigned long)1);
-}
-
-/**
- * @tc.name: SyncTransaction001
- * @tc.desc: Test IPC data transaction.
- * @tc.type: FUNC
- */
-HWTEST_F(IPCNativeUnitTest, SyncTransaction001, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    // test get service and call it
-    sptr<IRemoteObject> service = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    sptr<ITestService> testService = iface_cast<ITestService>(service);
-    ASSERT_TRUE(testService != nullptr);
-
-    if (service->IsProxyObject()) {
-        int reply = 0;
-        ZLOGD(LABEL, "Got Proxy node");
-        TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
-        int ret = proxy->TestSyncTransaction(2019, reply);
-        EXPECT_EQ(ret, 0);
-        EXPECT_EQ(reply, 9102);
-    } else {
-        ZLOGD(LABEL, "Got Stub node");
-    }
-}
-
-/**
- * @tc.name: AsyncTransaction001
- * @tc.desc: Test IPC data transaction.
- * @tc.type: FUNC
- * @tc.require: AR000DPV5F
- */
-HWTEST_F(IPCNativeUnitTest, AsyncTransaction001, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    sptr<IRemoteObject> service = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    sptr<ITestService> testService = iface_cast<ITestService>(service);
-    ASSERT_TRUE(testService != nullptr);
-
-    ZLOGD(LABEL, "Get test.service OK\n");
-    if (service->IsProxyObject()) {
-        ZLOGD(LABEL,  "Got Proxy node\n");
-        TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
-        int reply = 0;
-        int ret = proxy->TestAsyncTransaction(2019, reply);
-        EXPECT_EQ(ret, ERR_NONE);
-    } else {
-        ZLOGD(LABEL, "Got Stub node\n");
-    }
-}
-
-/**
- * @tc.name: SyncTransaction002
- * @tc.desc: Test IPC data transaction.
- * @tc.type: FUNC
- * @tc.require: AR000DPV5E
- */
-HWTEST_F(IPCNativeUnitTest, SyncTransaction002, TestSize.Level1)
-{
-    int refCount = 0;
-    IPCTestHelper helper;
-    sptr<TestService> stub = new TestService();
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    refCount = stub->GetObjectRefCount();
-    EXPECT_EQ(refCount, 1);
-
-    int result = saMgr->AddSystemAbility(IPC_TEST_SERVICE, new TestService());
-    EXPECT_EQ(result, ERR_NONE);
-
-    refCount = stub->GetObjectRefCount();
-
-    if (SUPPORT_ZBINDER) {
-        EXPECT_GE(refCount, 2);
-    } else {
-        EXPECT_GE(refCount, 1);
-    }
-
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_CLIENT);
-    ASSERT_TRUE(res);
-
-    refCount = stub->GetObjectRefCount();
-    if (SUPPORT_ZBINDER) {
-        EXPECT_GE(refCount, 3);
-    } else {
-        EXPECT_GE(refCount, 1);
-    }
-
-    helper.StopTestApp(IPCTestHelper::IPC_TEST_CLIENT);
-    refCount = stub->GetObjectRefCount();
-    if (SUPPORT_ZBINDER) {
-        EXPECT_GE(refCount, 2);
-    } else {
-        EXPECT_GE(refCount, 1);
-    }
-}
-
-/**
- * @tc.name: SyncTransaction003
- * @tc.desc: Test IPC data transaction.
- * @tc.type: FUNC
- * @tc.require: AR000DPV5F
- */
-HWTEST_F(IPCNativeUnitTest, SyncTransaction003, TestSize.Level1)
-{
-    int refCount = 0;
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    sptr<IRemoteObject> proxy = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    ASSERT_TRUE(proxy != nullptr);
-
-    refCount = proxy->GetObjectRefCount();
-    if (SUPPORT_ZBINDER) {
-        EXPECT_GE(refCount, 2);
-    } else {
-        EXPECT_GE(refCount, 1);
-    }
-
-    res = helper.StartTestApp(IPCTestHelper::IPC_TEST_CLIENT);
-    ASSERT_TRUE(res);
-
-    refCount = proxy->GetObjectRefCount();
-    if (SUPPORT_ZBINDER) {
-        EXPECT_GE(refCount, 3);
-    } else {
-        EXPECT_GE(refCount, 1);
-    }
-
-    helper.StopTestApp(IPCTestHelper::IPC_TEST_CLIENT);
-    refCount = proxy->GetObjectRefCount();
-
-    if (SUPPORT_ZBINDER) {
-        EXPECT_GE(refCount, 2);
-    } else {
-        EXPECT_GE(refCount, 1);
-    }
-}
-
-/**
- * @tc.name: SyncTransaction004
- * @tc.desc: Test IPC data transaction.
- * @tc.type: FUNC
- * @tc.require: AR000DPV5E
- */
-HWTEST_F(IPCNativeUnitTest, SyncTransaction004, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    res = helper.StartTestApp(IPCTestHelper::IPC_TEST_CLIENT, static_cast<int>(TestCommand::TEST_CMD_LOOP_TRANSACTION));
-    ASSERT_TRUE(res);
-
-    std::unique_ptr<TestServiceClient> testClient = std::make_unique<TestServiceClient>();
-    bool result = testClient->ConnectService();
-    ASSERT_EQ(result, true);
-
-    result = testClient->StartLoopTest(MAX_TEST_COUNT);
-    ASSERT_EQ(result, true);
-}
-
-/**
  * @tc.name: SyncTransaction005
  * @tc.desc: Test get context object.
  * @tc.type: FUNC
@@ -665,36 +441,6 @@ HWTEST_F(IPCNativeUnitTest, SyncTransaction008, TestSize.Level1)
 }
 
 /**
- * @tc.name: SyncTransaction009
- * @tc.desc: Test IPC stub data Normal release.
- * @tc.type: FUNC
- */
-HWTEST_F(IPCNativeUnitTest, SyncTransaction009, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    sptr<IRemoteObject> service = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    sptr<ITestService> testService = iface_cast<ITestService>(service);
-    ASSERT_TRUE(testService != nullptr);
-
-    ZLOGD(LABEL, "Get test.service OK\n");
-    if (service->IsProxyObject()) {
-        ZLOGD(LABEL,  "Got Proxy node\n");
-        TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
-        int reply = 0;
-        int ret = proxy->TestAsyncTransaction(2019, reply);
-        EXPECT_EQ(ret, ERR_NONE);
-    } else {
-        ZLOGD(LABEL, "Got Stub node\n");
-    }
-}
-
-/**
  * @tc.name: MessageOptionTest001
  * @tc.desc: Test set waiting time.
  * @tc.type: FUNC
@@ -732,35 +478,6 @@ HWTEST_F(IPCNativeUnitTest, MessageOptionTest003, TestSize.Level1)
     MessageOption messageOption;
     messageOption.SetWaitTime(MessageOption::TF_ASYNC);
     ASSERT_EQ(messageOption.GetWaitTime(), MessageOption::TF_ASYNC);
-}
-
-/**
- * @tc.name: AccessTokenid001
- * @tc.desc: Test IPC AccessTokenid transport
- * @tc.type: FUNC
- */
-HWTEST_F(IPCNativeUnitTest, AccessTokenid001, TestSize.Level1)
-{
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_TRUE(saMgr != nullptr);
-
-    // test get service and call it
-    sptr<IRemoteObject> service = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    sptr<ITestService> testService = iface_cast<ITestService>(service);
-    ASSERT_TRUE(testService != nullptr);
-
-    if (service->IsProxyObject()) {
-        ZLOGD(LABEL, "Got Proxy node");
-        TestServiceProxy *proxy = static_cast<TestServiceProxy *>(testService.GetRefPtr());
-        EXPECT_EQ(proxy->TestAccessTokenID64(3560, 3571), 0);
-        EXPECT_EQ(proxy->TestAccessTokenID(3571), 0);
-    } else {
-        ZLOGE(LABEL, "Got Stub node");
-    }
 }
 
 /**

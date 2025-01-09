@@ -18,20 +18,65 @@ IPC_TEST_ROOT = "$SUBSYSTEM_DIR/ipc/test"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
 
-ohos_unittest("IPCNativeUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
+template("ipc_unittest") {
+  ohos_unittest(target_name) {
+    module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/c/ipc_adapter/include",
-    "$IPC_CORE_ROOT/src/core/dbinder/include",
-    "$IPC_CORE_ROOT/src/core/framework/include",
-    "$IPC_CORE_ROOT/src/core/invoker/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-  ]
+    configs = [
+      "$SUBSYSTEM_DIR/config:ipc_util_config",
+      "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+    ]
+    include_dirs = [
+      "$IPC_CORE_ROOT/c/rpc/include",
+      "$IPC_CORE_ROOT/c/ipc_adapter/include",
+      "$IPC_CORE_ROOT/c/adapter/access_token/include",
+      "$IPC_CORE_ROOT/src/core/dbinder/include",
+      "$IPC_CORE_ROOT/src/core/framework/include",
+      "$IPC_CORE_ROOT/src/core/invoker/include",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
+      "$SUBSYSTEM_DIR/utils/include",
+      "$SUBSYSTEM_DIR/native/src/core/include",
+    ]
 
+    if (defined(invoker.include_dirs)) {
+      include_dirs += invoker.include_dirs
+    }
+
+    deps = [
+      "$IPC_CORE_ROOT/src/core:ipc_common",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+    ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    external_deps = [
+      "c_utils:utils",
+      "googletest:gmock",
+      "hilog:libhilog",
+      "hitrace:libhitracechain",
+      "samgr:samgr_proxy",
+    ]
+    if (defined(invoker.external_deps)) {
+      external_deps += invoker.external_deps
+    }
+
+    sources = invoker.sources
+    ldflags = [ "-lpthread" ]
+
+    resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+  }
+}
+
+ipc_unittest("IPCNativeUnitTest") {
   sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics_impl.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/stub_refcount_object.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/binder_connector.cpp",
     "buffer_object_unittest.cpp",
     "dbinder_callback_stub_unittest.cpp",
     "dbinder_session_object_unittest.cpp",
@@ -48,437 +93,90 @@ ohos_unittest("IPCNativeUnitTest") {
     "message_parcel_unittest.cpp",
     "process_skeleton_unittest.cpp",
   ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [
-    "$IPC_CORE_ROOT/src/core:ipc_common",
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  ldflags = [ "-lpthread" ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("IPCFileDescOpsTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/c/ipc_adapter/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/core/dbinder/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/core/invoker/include",
-  ]
-
+ipc_unittest("IPCFileDescOpsTest") {
   sources = [ "ipc_file_desc_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("BinderConnectorTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
+ipc_unittest("BinderConnectorTest") {
   sources = [ "ipc_connector_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [
-    "$IPC_CORE_ROOT/src/core:ipc_common",
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("BinderDebugUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
+ipc_unittest("BinderDebugUnitTest") {
   sources = [
-    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/source/binder_debug.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/binder_debug.cpp",
     "binder_debug_unittest.cpp",
   ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  external_deps = [ "hilog:libhilog" ]
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("BinderInvokerUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-  ]
-
+ipc_unittest("BinderInvokerUnitTest") {
   sources = [ "binder_invoker_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [
-    "$IPC_CORE_ROOT/src/core:ipc_common",
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("IPCHiTraceUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
+ipc_unittest("InvokerFactoryTest") {
+  sources = [ "invoker_factory_unittest.cpp" ]
+}
 
-  include_dirs = []
+ipc_unittest("RPCFeatureUnitTest") {
+  sources = [ "rpc_feature_set_unittest.cpp" ]
+}
 
-  sources = [ "ipc_hitrace_unittest.cpp" ]
+ipc_unittest("IPCSoDlcloseTest") {
+  sources = [ "ipc_so_dlclose_unittest.cpp" ]
+}
 
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
+ipc_unittest("IPCBlockThreadTest") {
+  sources = [ "ipc_block_thread_unittest.cpp" ]
+}
+
+ipc_unittest("HitraceInvokerTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
+    "hitrace_invoker_unittest.cpp",
   ]
+}
 
-  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
+ipc_unittest("DatabusSocketListenerTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/dbinder/source/databus_socket_listener.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/binder_connector.cpp",
+    "databus_socket_listener_unittest.cpp",
   ]
+}
 
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+ipc_unittest("MessageParcelTest") {
+  include_dirs = [ "$IPC_CORE_ROOT/src/core/framework/source" ]
+  sources = [ "message_parcel_unittest_AcquireObject.cpp" ]
+}
+
+ipc_unittest("InvokerRawDataTest") {
+  sources = [ "invoker_rawdata_unittest.cpp" ]
 }
 
 if (support_jsapi) {
-  ohos_unittest("IPCNapiUnitTest") {
-    module_out_path = MODULE_OUTPUT_PATH
-
-    include_dirs = [
-      "$IPC_CORE_ROOT/src/core/dbinder/include",
-      "$IPC_CORE_ROOT/src/core/framework/include",
-      "$IPC_CORE_ROOT/src/core/invoker/include",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    ]
-
+  ipc_unittest("IPCNapiUnitTest") {
     sources = [ "ipc_napi_unittest.cpp" ]
-    configs = []
-
     external_deps = [
       "bounds_checking_function:libsec_shared",
-      "googletest:gmock",
-      "hilog:libhilog",
       "ipc:ipc_napi",
       "napi:ace_napi",
     ]
-
-    resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
   }
 }
 
-ohos_unittest("IPCMockUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/core/dbinder/include",
-    "$IPC_CORE_ROOT/src/core/framework/include",
-    "$IPC_CORE_ROOT/src/core/invoker/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-  ]
-
+ipc_unittest("IPCMockUnitTest") {
   sources = [ "ipc_binder_databus_invoker_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
-ohos_unittest("InvokerFactoryTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/core/dbinder/include",
-    "$IPC_CORE_ROOT/src/core/framework/include",
-    "$IPC_CORE_ROOT/src/core/invoker/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-  ]
-
-  sources = [ "invoker_factory_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("RPCFeatureUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$IPC_CORE_ROOT/src/core/dbinder/include",
-    "$IPC_CORE_ROOT/src/core/framework/include",
-    "$IPC_CORE_ROOT/src/core/invoker/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-    "$IPC_CORE_ROOT/c/rpc/src/",
-  ]
-
-  sources = [ "rpc_feature_set_unittest.cpp" ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [ "$IPC_TEST_ROOT/auxiliary/native:TestAssistance" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("IPCSoDlcloseTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  sources = [ "ipc_so_dlclose_unittest.cpp" ]
-
-  external_deps = [ "googletest:gmock" ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("IPCBlockThreadTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [ "$SUBSYSTEM_DIR/utils/include" ]
-
-  sources = [ "ipc_block_thread_unittest.cpp" ]
-
-  external_deps = [
-    "googletest:gmock",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("IpcCApiUnitTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
-
+ipc_unittest("IpcCApiUnitTest") {
   sources = [
     "ipc_capi_parcel_unittest.cpp",
     "ipc_capi_remote_object_unittest.cpp",
     "ipc_capi_skeleton_unittest.cpp",
   ]
-
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    "$IPC_TEST_ROOT:ipc_test_config",
-  ]
-
-  deps = [
-    "$IPC_TEST_ROOT/auxiliary/native:TestAssistance",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("HitraceInvokerTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  sources = [
-    "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
-    "hitrace_invoker_unittest.cpp",
-  ]
-
-  configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
-
-  deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_single",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("DatabusSocketListenerTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  sources = [
-    "$IPC_CORE_ROOT/src/core/dbinder/source/databus_socket_listener.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/process_skeleton.cpp",
-    "databus_socket_listener_unittest.cpp",
-  ]
-
-  configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
-
-  deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_single",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("MessageParcelTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  include_dirs = [
-    "$IPC_CORE_ROOT/src/core/dbinder/source",
-    "$IPC_CORE_ROOT/src/core/framework/source",
-    "$IPC_CORE_ROOT/src/core/invoker/source",
-  ]
-
-  sources = [ "message_parcel_unittest_AcquireObject.cpp" ]
-
-  configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
-
-  deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "ipc:ipc_single",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
-}
-
-ohos_unittest("InvokerRawDataTest") {
-  module_out_path = MODULE_OUTPUT_PATH
-
-  sources = [ "invoker_rawdata_unittest.cpp" ]
-
-  configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
-
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "samgr:samgr_proxy",
-  ]
-
-  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ###############################################################################
@@ -492,7 +190,6 @@ group("unittest") {
     ":HitraceInvokerTest",
     ":IPCBlockThreadTest",
     ":IPCFileDescOpsTest",
-    ":IPCHiTraceUnitTest",
     ":IPCMockUnitTest",
     ":IPCNativeUnitTest",
     ":IPCSoDlcloseTest",
@@ -506,6 +203,4 @@ group("unittest") {
     deps += [ ":IPCNapiUnitTest" ]
   }
 }
-
 ###############################################################################
-

@@ -21,8 +21,6 @@
 #include "ipc_cparcel.h"
 #include "ipc_cremote_object.h"
 #include "ipc_cskeleton.h"
-#include "ipc_test_helper.h"
-#include "test_service_command.h"
 
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
