@@ -31,7 +31,6 @@
 #include "ipc_thread_skeleton.h"
 #include "ipc_skeleton.h"
 #include "ipc_debug.h"
-#include "hitrace_invoker.h"
 #include "dbinder_error_code.h"
 #include "log_tags.h"
 
@@ -152,6 +151,7 @@ private:
     std::shared_ptr<ThreadMessageInfo> MakeThreadMessageInfo(int32_t socketId);
     uint32_t MakeRemoteHandle(std::shared_ptr<T> session);
     void PrintDBinderTransData(dbinder_transaction_data *transData);
+    void StartLoopFailSendReply(const char *buffer, uint32_t size, int32_t result);
 
 private:
     std::mutex objectMutex_;
