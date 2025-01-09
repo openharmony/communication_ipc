@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -300,12 +300,20 @@ private:
     int DBinderDumpTransaction(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int SendRequestInner(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
+#ifdef ENABLE_IPC_TRACE
+    std::string GenLifeCycleTraceInfo() const;
+    std::string GenOnRemoteRequestTraceInfo(uint32_t code) const;
+#endif
+
     std::recursive_mutex serialRecursiveMutex_;
     bool serialInvokeFlag_;
     std::atomic<uint64_t> lastRequestTime_;
     std::atomic<bool> requestSidFlag_ = false;
     // anonymized descriptor, only for log
     std::string remoteDescriptor_;
+#ifdef ENABLE_IPC_TRACE
+    bool isTraceEnabled_ = false;
+#endif
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_STUB_H

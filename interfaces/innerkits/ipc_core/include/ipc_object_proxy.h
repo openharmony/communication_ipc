@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -350,6 +350,13 @@ private:
     bool RegisterBinderDeathRecipient();
     bool UnRegisterBinderDeathRecipient();
 
+    std::string GetDescriptor(MessageParcel &data);
+
+#ifdef ENABLE_IPC_TRACE
+    void StartLifeCycleTrace();
+    std::string GenLifeCycleTraceInfo() const;
+    std::string GenSendRequestTraceInfo(uint32_t code) const;
+#endif
     struct DeathRecipientAddrInfo : public virtual RefBase {
     public:
         explicit DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient);
@@ -378,6 +385,10 @@ private:
     std::atomic<int> lastErr_ = 0;
     std::atomic<int> lastErrCnt_ = 0;
     std::unique_ptr<uint8_t[]> dbinderData_{nullptr};
+#ifdef ENABLE_IPC_TRACE
+    std::string fullRemoteDescriptor_;
+    bool isTraceEnabled_ = false;
+#endif
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_PROXY_H
