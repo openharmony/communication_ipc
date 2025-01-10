@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (C) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -179,6 +179,23 @@ ipc_unittest("IpcCApiUnitTest") {
   ]
 }
 
+ohos_unittest("IPCTraceUnitTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [ "$SUBSYSTEM_DIR/ipc/native/src/core/include" ]
+
+  sources = [
+    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/source/ipc_trace.cpp",
+    "ipc_trace_unittest.cpp",
+  ]
+
+  configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
+
+  external_deps = [ "hilog:libhilog" ]
+
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -193,6 +210,7 @@ group("unittest") {
     ":IPCMockUnitTest",
     ":IPCNativeUnitTest",
     ":IPCSoDlcloseTest",
+    ":IPCTraceUnitTest",
     ":InvokerFactoryTest",
     ":InvokerRawDataTest",
     ":IpcCApiUnitTest",

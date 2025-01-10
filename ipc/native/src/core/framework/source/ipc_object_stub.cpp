@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,9 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_skeleton.h"
+#ifdef ENABLE_IPC_TRACE
+#include "ipc_trace.h"
+#endif
 #include "ipc_types.h"
 #include "iremote_invoker.h"
 #include "iremote_object.h"
@@ -64,6 +67,12 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0),
       remoteDescriptor_(ProcessSkeleton::ConvertToSecureDesc(Str16ToStr8(descriptor)))
 {
+#ifdef ENABLE_IPC_TRACE
+    isTraceEnabled_ = IPCTrace::IsEnabled();
+    if (isTraceEnabled_) {
+        IPCTrace::StartAsync(GenLifeCycleTraceInfo(), static_cast<int32_t>(ProcessSkeleton::ConvertAddr(this)));
+    }
+#endif
     ZLOGD(LABEL, "desc:%{public}s, %{public}u", remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this));
     auto start = std::chrono::steady_clock::now();
     lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -81,6 +90,11 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
 
 IPCObjectStub::~IPCObjectStub()
 {
+#ifdef ENABLE_IPC_TRACE
+    if (isTraceEnabled_) {
+        IPCTrace::FinishAsync(GenLifeCycleTraceInfo(), static_cast<int32_t>(ProcessSkeleton::ConvertAddr(this)));
+    }
+#endif
     ZLOGD(LABEL, "desc:%{public}s, %{public}u", remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this));
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
@@ -350,11 +364,22 @@ int IPCObjectStub::SendRequestInner(uint32_t code, MessageParcel &data, MessageP
     if (serialInvokeFlag_) {
         lockGuard.lock();
     }
+#ifdef ENABLE_IPC_TRACE
+    bool isTraceEnable = IPCTrace::IsEnabled();
+    if (isTraceEnable) {
+        IPCTrace::Start(GenOnRemoteRequestTraceInfo(code));
+    }
+#endif
     auto start = std::chrono::steady_clock::now();
     lastRequestTime_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         start.time_since_epoch()).count());
     result = OnRemoteRequest(code, data, reply, option);
     auto finish = std::chrono::steady_clock::now();
+#ifdef ENABLE_IPC_TRACE
+    if (isTraceEnable) {
+        IPCTrace::Finish();
+    }
+#endif
     uint32_t duration = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(
         finish - start).count());
     if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
@@ -742,4 +767,17 @@ int IPCObjectStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
     ZLOGW(LABEL, "unexpected call");
     return ERR_INVALID_STATE;
 }
+
+#ifdef ENABLE_IPC_TRACE
+std::string IPCObjectStub::GenLifeCycleTraceInfo() const
+{
+    return "Stub:" + Str16ToStr8(descriptor_) + "_" + std::to_string(ProcessSkeleton::ConvertAddr(this));
+}
+
+std::string IPCObjectStub::GenOnRemoteRequestTraceInfo(uint32_t code) const
+{
+    return "OnRemoteRequest:" + Str16ToStr8(descriptor_) + "_" +
+        std::to_string(ProcessSkeleton::ConvertAddr(this)) + "_" + std::to_string(code);
+}
+#endif
 } // namespace OHOS
