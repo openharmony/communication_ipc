@@ -18,7 +18,6 @@
 #include "mock_iremote_object.h"
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
-#include "ipc_test_helper.h"
 #include "log_tags.h"
 #include "access_token_adapter.h"
 #include "sys_binder.h"
@@ -46,32 +45,8 @@ const uint32_t DEVICEID_LENGTH_TEST = 64;
 
 class IPCDbinderDataBusInvokerTest : public testing::Test {
 public:
-    static void SetUpTestCase(void);
-    static void TearDownTestCase(void);
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCUnitTest" };
-
-private:
-    static inline IPCTestHelper *g_globalHelper = { nullptr };
 };
-
-void IPCDbinderDataBusInvokerTest::SetUpTestCase()
-{
-    if (g_globalHelper == nullptr) {
-        g_globalHelper = new IPCTestHelper();
-        bool res = g_globalHelper->PrepareTestSuite();
-        ASSERT_TRUE(res);
-    }
-}
-
-void IPCDbinderDataBusInvokerTest::TearDownTestCase()
-{
-    if (g_globalHelper != nullptr) {
-        bool res = g_globalHelper->TearDownTestSuite();
-        ASSERT_TRUE(res);
-        delete g_globalHelper;
-        g_globalHelper = nullptr;
-    }
-}
 
 /**
  * @tc.name: AcquireHandle001

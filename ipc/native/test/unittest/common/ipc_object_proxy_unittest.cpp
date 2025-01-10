@@ -20,7 +20,6 @@
 #define private public
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
-#include "ipc_test_helper.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
@@ -138,8 +137,7 @@ HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest001, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-    IPCTestHelper helper;
-    std::string ret = object.GetSessionNameForPidUid(helper.GetPid(), helper.GetUid());
+    std::string ret = object.GetSessionNameForPidUid(getuid(), getpid());
     ASSERT_TRUE(ret.size() == 0);
 }
 
