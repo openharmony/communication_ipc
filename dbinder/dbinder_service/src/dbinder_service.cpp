@@ -40,7 +40,7 @@ std::shared_ptr<DBinderRemoteListener> DBinderService::remoteListener_ = nullptr
 constexpr unsigned int BINDER_MASK = 0xffff;
 // DBinderServiceStub's reference count in a MakeRemoteBinder call.
 constexpr int DBINDER_STUB_REF_COUNT = 2;
-
+constexpr int INVOKER_NUMBER = 2;
 DBinderService::DBinderService()
 {
     DBINDER_LOGI(LOG_LABEL, "create dbinder service");
@@ -316,6 +316,79 @@ sptr<DBinderServiceStub> DBinderService::FindOrNewDBinderStub(const std::u16stri
     return dBinderServiceStub;
 }
 
+std::shared_ptr<struct ThreadLockInfo> DBinderService::FindOrNewConcurrentLockInfo(
+    const sptr<DBinderServiceStub> &dBinderServiceStub, bool &isNew)
+{
+    std::unique_lock<std::mutex> lockGuard(concurrentLockInfoMutex_);
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr());
+    auto it = concurrentLockInfo_.find(stub);
+    if (it != concurrentLockInfo_.end()) {
+        return it->second;
+    }
+
+    std::shared_ptr<struct ThreadLockInfo> info = std::make_shared<struct ThreadLockInfo>();
+    if (info == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "make_shared failed");
+        return info;
+    }
+    isNew = true;
+    concurrentLockInfo_.insert(std::make_pair(stub, info));
+    return info;
+}
+
+sptr<DBinderServiceStub> DBinderService::MakeRemoteBinderInner(const sptr<DBinderServiceStub> &dBinderServiceStub,
+    const std::u16string &serviceName, const std::string &deviceID, const uint32_t pid, const uint32_t uid)
+{
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr());
+    bool isNew = false;
+    auto threadLockInfo = FindOrNewConcurrentLockInfo(dBinderServiceStub, isNew);
+    if (threadLockInfo == nullptr) {
+        DBINDER_LOGE(LOG_LABEL, "FindOrNewConcurrentLockInfo is failed service:%{public}s device:%{public}s "
+            "refcount:%{public}d", Str16ToStr8(serviceName).c_str(),
+            DBinderService::ConvertToSecureDeviceID(deviceID).c_str(), dBinderServiceStub->GetSptrRefCount());
+        if (dBinderServiceStub->GetSptrRefCount() <= DBINDER_STUB_REF_COUNT) {
+            (void)DeleteDBinderStub(serviceName, deviceID);
+            (void)DetachSessionObject(stub);
+        }
+        return nullptr;
+    }
+    // Concurrent requests to the same SA of the same device.
+    if (!isNew) {
+        DBINDER_LOGI(LOG_LABEL, "Waiting for the same stub to complete chain building");
+        std::unique_lock<std::mutex> lock(threadLockInfo->mutex);
+        if (threadLockInfo->condition.wait_for(lock, std::chrono::seconds(INVOKER_NUMBER * WAIT_FOR_REPLY_MAX_SEC),
+            [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
+            DBINDER_LOGE(LOG_LABEL, "Concurrent retrieval of remote data timeout or session closed.");
+            DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_WAIT_REPLY_TIMEOUT, __FUNCTION__);
+            threadLockInfo->ready = false;
+            return nullptr;
+        }
+        return dBinderServiceStub;
+    }
+
+    int32_t retryTimes = 0;
+    int32_t ret = -1;
+    do {
+        ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber(), pid, uid);
+        retryTimes++;
+    } while ((ret == WAIT_REPLY_TIMEOUT) && (retryTimes < RETRY_TIMES));
+
+    if (ret != DBINDER_OK) {
+        DBINDER_LOGE(LOG_LABEL, "Failed to invoke service, service:%{public}s device:%{public}s "
+            "refcount:%{public}d", Str16ToStr8(serviceName).c_str(),
+            DBinderService::ConvertToSecureDeviceID(deviceID).c_str(), dBinderServiceStub->GetSptrRefCount());
+        WakeupConcurrentWaitingThread(stub, threadLockInfo, false);
+        if (dBinderServiceStub->GetSptrRefCount() <= DBINDER_STUB_REF_COUNT) {
+            /* invoke fail, delete dbinder stub info */
+            (void)DeleteDBinderStub(serviceName, deviceID);
+            (void)DetachSessionObject(stub);
+        }
+        return nullptr;
+    }
+    WakeupConcurrentWaitingThread(stub, threadLockInfo, true);
+    return dBinderServiceStub;
+}
+
 sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &serviceName,
     const std::string &deviceID, int32_t binderObject, uint32_t pid, uint32_t uid)
 {
@@ -338,30 +411,7 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
         return nullptr;
     }
 
-    /* if not found dBinderServiceStub, should send msg to toDeviceID
-     * to invoker socket thread and add authentication info for create softbus session
-     */
-    int retryTimes = 0;
-    int32_t ret = -1;
-    do {
-        ret = InvokerRemoteDBinder(dBinderServiceStub, GetSeqNumber(), pid, uid);
-        retryTimes++;
-    } while (ret == WAIT_REPLY_TIMEOUT && (retryTimes < RETRY_TIMES));
-
-    if (ret != DBINDER_OK) {
-        DBINDER_LOGE(LOG_LABEL, "fail to invoke service, service:%{public}s device:%{public}s "
-            "DBinderServiceStub refcount:%{public}d",
-            serviceNameStr8.c_str(), DBinderService::ConvertToSecureDeviceID(deviceID).c_str(),
-            dBinderServiceStub->GetSptrRefCount());
-        if (dBinderServiceStub->GetSptrRefCount() <= DBINDER_STUB_REF_COUNT) {
-            /* invoke fail, delete dbinder stub info */
-            (void)DeleteDBinderStub(serviceName, deviceID);
-            (void)DetachSessionObject(reinterpret_cast<binder_uintptr_t>(dBinderServiceStub.GetRefPtr()));
-        }
-        return nullptr;
-    }
-
-    return dBinderServiceStub;
+    return MakeRemoteBinderInner(dBinderServiceStub, serviceName, deviceID, pid, uid);
 }
 
 bool DBinderService::CheckDeviceIDsInvalid(const std::string &deviceID, const std::string &localDevID)
@@ -478,7 +528,6 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ATTACH_THREADLOCK_FAIL, __FUNCTION__);
         return MAKE_THREADLOCK_FAILED;
     }
-
     std::unique_lock<std::mutex> lock(threadLockInfo->mutex);
     if (threadLockInfo->condition.wait_for(lock, std::chrono::seconds(WAIT_FOR_REPLY_MAX_SEC),
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
@@ -1055,6 +1104,18 @@ void DBinderService::WakeupThreadByStub(uint32_t seqNumber)
     threadLockInfo->condition.notify_all();
 }
 
+void DBinderService::WakeupConcurrentWaitingThread(
+    const binder_uintptr_t stub, std::shared_ptr<struct ThreadLockInfo> &lockInfo, bool isNegotiationSuccessful)
+{
+    std::unique_lock<std::mutex> lockGuard(concurrentLockInfoMutex_);
+    {
+        std::unique_lock<std::mutex> lock(lockInfo->mutex);
+        lockInfo->ready = isNegotiationSuccessful;
+        lockInfo->condition.notify_all();
+    }
+    concurrentLockInfo_.erase(stub);
+}
+
 void DBinderService::DetachThreadLockInfo(uint32_t seqNumber)
 {
     std::lock_guard<std::mutex> lock(threadLockMutex_);
@@ -1162,7 +1223,6 @@ sptr<IRemoteObject::DeathRecipient> DBinderService::QueryDeathRecipient(sptr<IRe
 
     return nullptr;
 }
-
 
 bool DBinderService::DetachCallbackProxy(sptr<IRemoteObject> object)
 {
