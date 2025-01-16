@@ -1083,6 +1083,9 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             output_.FlushBuffer();
             output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
+            if (sendNestCount_ == INT_MIN) {
+                sendNestCount_ = 0;
+            }
             --sendNestCount_;
             if (sendNestCount_ > 0) {
                 ZLOGW(LABEL, "unexpected sendNestCount:%{public}d", sendNestCount_.load());
