@@ -370,10 +370,15 @@ private:
     bool ReStartRemoteListener();
     bool IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
         std::shared_ptr<DHandleEntryTxRx> loadSaItem);
-    std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId);
+    std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string &srcNetworkId, int32_t systemAbilityId);
     void SendReplyMessageToRemote(uint32_t dBinderCode, uint32_t reason,
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
-
+    sptr<DBinderServiceStub> MakeRemoteBinderInner(const sptr<DBinderServiceStub> &dBinderServiceStub,
+        const std::u16string &serviceName, const std::string &deviceID, const uint32_t pid, const uint32_t uid);
+    std::shared_ptr<struct ThreadLockInfo> FindOrNewConcurrentLockInfo(
+        const sptr<DBinderServiceStub> &dBinderServiceStub, bool &isNew);
+    void WakeupConcurrentWaitingThread(const binder_uintptr_t stub,
+        std::shared_ptr<struct ThreadLockInfo> &lockInfo, bool isNegotiationSuccessful);
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
     static std::mutex instanceMutex_;
@@ -411,6 +416,8 @@ private:
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
 
     std::shared_ptr<RpcSystemAbilityCallback> dbinderCallback_;
+    std::map<binder_uintptr_t, std::shared_ptr<struct ThreadLockInfo>> concurrentLockInfo_;
+    std::mutex concurrentLockInfoMutex_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
