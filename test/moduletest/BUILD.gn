@@ -75,7 +75,7 @@ template("ipc_moduletest") {
 ###############################################################################
 
 ipc_moduletest("IPCCpiModuleTest") {
-  sources = [ "c/ipc_capi_remote_object_module_test.cpp" ]
+  sources = [ "ipc/c/ipc_capi_remote_object_module_test.cpp" ]
 }
 
 ###############################################################################
