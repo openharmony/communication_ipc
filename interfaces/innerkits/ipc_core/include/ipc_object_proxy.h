@@ -375,7 +375,7 @@ private:
     std::shared_mutex descMutex_;
 
     std::vector<sptr<DeathRecipientAddrInfo>> recipients_;
-    const uint32_t handle_;
+    uint32_t handle_;
     int proto_;
     bool isFinishInit_;
     std::atomic<bool> isRemoteDead_;
