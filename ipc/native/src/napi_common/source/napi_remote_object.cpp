@@ -932,6 +932,15 @@ napi_value CreateJsStubRemoteObject(napi_env env, const sptr<IRemoteObject> targ
     return jsRemoteObject;
 }
 
+napi_value GetJsStubRemoteObjectByRef(napi_env env, const sptr<IRemoteObject> target)
+{
+    NAPIRemoteObject *object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
+    NAPI_ASSERT(env, object != nullptr, "get NAPIRemoteObject failed");
+    napi_value jsRemoteObject = nullptr;
+    napi_get_reference_value(env, object->GetJsObjectRef(), &jsRemoteObject);
+    return jsRemoteObject;
+}
+
 napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
@@ -945,8 +954,13 @@ napi_value NAPI_ohos_rpc_CreateJsRemoteObject(napi_env env, const sptr<IRemoteOb
         IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
         uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
         ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
-        if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
+        if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
+            return GetJsStubRemoteObjectByRef(env, target);
+        } else if (objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
             return CreateJsStubRemoteObject(env, target);
+        } else {
+            ZLOGE(LOG_LABEL, "invalid type:%{public}d", objectType);
+            return nullptr;
         }
     }
 
