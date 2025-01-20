@@ -19,7 +19,7 @@
 #include <string_ex.h>
 #include "ipc_debug.h"
 #include "log_tags.h"
-
+#include "native_engine/native_value.h"
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject_holder" };
 
@@ -56,45 +56,26 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
         ZLOGE(LOG_LABEL, "js env has been destructed");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        ZLOGE(LOG_LABEL, "loop is nullptr");
-        return;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ZLOGE(LOG_LABEL, "failed to new work");
-        return;
-    }
     OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
         .env = env_,
         .thisVarRef = jsObjectRef_
     };
-    if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "new OperateJsRefParam failed");
-        delete work;
-        return;
-    }
-    work->data = reinterpret_cast<void *>(param);
-    int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
-        ZLOGD(LOG_LABEL, "enter work pool.");
-    }, [](uv_work_t *work, int status) {
-        OperateJsRefParam *param = reinterpret_cast<OperateJsRefParam *>(work->data);
+    NAPI_ASSERT_RETURN_VOID(env_, param != nullptr, "new OperateJsRefParam failed");
+
+    auto task = [param]() {
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
         napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
         if (napiStatus != napi_ok) {
-            ZLOGE(LOG_LABEL, "failed to delete ref on uv work");
+            ZLOGE(LOG_LABEL, "failed to delete ref");
         }
         napi_close_handle_scope(param->env, scope);
         delete param;
-        delete work;
-    });
-    if (uvRet != 0) {
+    };
+    napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
+    if (sendRet != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         delete param;
-        delete work;
-        ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
     }
 }
 
