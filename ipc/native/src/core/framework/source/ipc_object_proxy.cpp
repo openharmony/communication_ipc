@@ -407,7 +407,13 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
     // It may has been replace with a new proxy, thus we have no need to check result.
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
     if (invoker != nullptr) {
-        invoker->ReleaseHandle(handle_);
+        if (handle_ == IPCProcessSkeleton::INVALID_HANDLE_VALUE) {
+            ZLOGW(LABEL, "handle has been released, desc:%{public}s %{public}u",
+                remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this));
+        } else {
+            invoker->ReleaseHandle(handle_);
+            handle_ = IPCProcessSkeleton::INVALID_HANDLE_VALUE;
+        }
     }
     current->DetachObject(this);
 }
