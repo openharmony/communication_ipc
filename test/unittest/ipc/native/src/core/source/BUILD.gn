@@ -17,7 +17,8 @@ import("../../../../../../../config.gni")
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
 
-ohos_unittest("IPCObjectProxyTest") {
+template("ipc_unittest") {
+  ohos_unittest(target_name) {
   module_out_path = MODULE_OUTPUT_PATH
 
   include_dirs = [
@@ -32,7 +33,9 @@ ohos_unittest("IPCObjectProxyTest") {
     "$IPC_UNITTEST_ROOT_PATH/mock",
   ]
 
-  sources = [ "ipc_object_proxy_unittest.cpp" ]
+  if (defined(invoker.include_dirs)) {
+    include_dirs += invoker.include_dirs
+  }
 
   configs = [ "$IPC_ROOT_PATH/config:ipc_util_config" ]
 
@@ -40,6 +43,10 @@ ohos_unittest("IPCObjectProxyTest") {
     "$IPC_CORE_ROOT/src/core:ipc_common",
     "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
   ]
+
+  if (defined(invoker.deps)) {
+    deps += invoker.deps
+  }
 
   external_deps = [
     "c_utils:utils",
@@ -49,13 +56,35 @@ ohos_unittest("IPCObjectProxyTest") {
     "samgr:samgr_proxy",
   ]
 
+  if (defined(invoker.external_deps)) {
+    external_deps += invoker.external_deps
+  }
+
+  sources = invoker.sources
   ldflags = [ "-lpthread" ]
   resource_config_file = "$IPC_ROOT_PATH/test/resource/ipc/ohos_test.xml"
+}
+}
+
+ipc_unittest("IPCObjectProxyTest") {
+  sources = [ "ipc_object_proxy_unittest.cpp" ]
+}
+
+ipc_unittest("IPCProcessSkeletonUnitTest") {
+  sources = [ "ipc_process_skeleton_unittest.cpp" ]
+}
+
+ipc_unittest("DBinderCallbackStubTest") {
+  sources = [ "dbinder_callback_stub_unittest.cpp" ]
 }
 
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [ ":IPCObjectProxyTest" ]
+  deps = [ 
+    ":IPCObjectProxyTest",
+    ":IPCProcessSkeletonUnitTest",
+    ":DBinderCallbackStubTest",
+  ]
 }
 ###############################################################################
