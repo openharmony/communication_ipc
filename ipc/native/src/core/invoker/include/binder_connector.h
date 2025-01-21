@@ -20,18 +20,6 @@
 #include <mutex>
 
 namespace OHOS {
-#ifdef CONFIG_ACTV_BINDER
-class ActvBinderConnector {
-public:
-    ActvBinderConnector();
-
-    int InitActvBinder(int fd);
-    void InitActvBinderConfig(uint64_t featureSet);
-
-    bool isActvMgr_;
-};
-#endif
-
 class BinderConnector {
 public:
     static BinderConnector *GetInstance();
@@ -46,10 +34,6 @@ public:
     uint64_t GetSelfTokenID();
     uint64_t GetSelfFirstCallerTokenID();
     void CloseDriverFd();
-#ifdef CONFIG_ACTV_BINDER
-    bool IsActvBinderSupported();
-    bool IsActvBinderService();
-#endif
 private:
     static BinderConnector *instance_;
     static std::mutex skeletonMutex;
@@ -62,9 +46,6 @@ private:
     int32_t version_;
     uint64_t featureSet_;
     uint64_t selfTokenID_;
-#ifdef CONFIG_ACTV_BINDER
-    ActvBinderConnector actvBinder_;
-#endif
 };
 } // namespace OHOS
 #endif // OHOS_IPC_BINDER_CONNECTOR_H
