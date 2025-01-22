@@ -31,21 +31,15 @@ NAPIDeathRecipient::NAPIDeathRecipient(napi_env env, napi_value jsDeathRecipient
     NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to create ref to js death recipient");
 }
 
-void NAPIDeathRecipient::AfterWorkCallback(uv_work_t *work, int status)
+void NAPIDeathRecipient::AfterWorkCallback(OnRemoteDiedParam *param)
 {
-    if (work == nullptr || work->data == nullptr) {
-        ZLOGE(LOG_LABEL, "work or work->data is nullptr");
-        return;
-    }
     ZLOGD(LOG_LABEL, "start to call onRemoteDied");
-    OnRemoteDiedParam *param = reinterpret_cast<OnRemoteDiedParam *>(work->data);
     napi_handle_scope scope = nullptr;
     napi_open_handle_scope(param->env, &scope);
 
-    auto CleanUp = [&param, &scope, &work]() {
+    auto CleanUp = [&param, &scope]() {
         napi_close_handle_scope(param->env, scope);
         delete param;
-        delete work;
     };
 
     napi_value jsDeathRecipient = nullptr;
@@ -91,36 +85,19 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
         return;
     }
 
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        ZLOGE(LOG_LABEL, "loop is nullptr");
-        return;
-    }
-
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ZLOGE(LOG_LABEL, "failed to new uv_work_t");
-        return;
-    }
     OnRemoteDiedParam *param = new (std::nothrow) OnRemoteDiedParam {
         .env = env_,
         .deathRecipient = this
     };
-    if (param == nullptr) {
-        ZLOGE(LOG_LABEL, "new OnRemoteDiedParam failed");
-        delete work;
-        return;
-    }
-    work->data = reinterpret_cast<void *>(param);
-    ZLOGI(LOG_LABEL, "start to queue");
-    int uvRet = uv_queue_work(loop, work, [](uv_work_t *work) {
-        ZLOGD(LOG_LABEL, "enter work pool.");
-    }, AfterWorkCallback);
-    if (uvRet != 0) {
-        ZLOGE(LOG_LABEL, "uv_queue_work failed, ret %{public}d", uvRet);
+    NAPI_ASSERT_RETURN_VOID(env_, param != nullptr, "new OperateJsRefParam failed");
+
+    auto task = [param]() {
+        AfterWorkCallback(param);
+    };
+    napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
+    if (sendRet != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         delete param;
-        delete work;
     }
 }
 
