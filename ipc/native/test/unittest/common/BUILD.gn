@@ -47,7 +47,7 @@ template("ipc_unittest") {
     deps = [
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
@@ -171,12 +171,34 @@ ipc_unittest("IPCMockUnitTest") {
   sources = [ "ipc_binder_databus_invoker_unittest.cpp" ]
 }
 
-ipc_unittest("IpcCApiUnitTest") {
+ohos_unittest("IpcCApiUnitTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
   sources = [
     "ipc_capi_parcel_unittest.cpp",
     "ipc_capi_remote_object_unittest.cpp",
     "ipc_capi_skeleton_unittest.cpp",
   ]
+
+  configs = [
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    "$IPC_TEST_ROOT:ipc_test_config",
+  ]
+
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
+    "samgr:samgr_proxy",
+  ]
+
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
 
 ohos_unittest("IPCTraceUnitTest") {
