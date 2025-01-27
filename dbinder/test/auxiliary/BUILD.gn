@@ -17,7 +17,7 @@ SUBSYSTEM_DIR = "../../../"
 ohos_executable("Dynamic_loading_softbus_client_test") {
   sources = [ "./src/main.cpp" ]
 
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single_test" ]
 
   part_name = "ipc"
   subsystem_name = "communication"

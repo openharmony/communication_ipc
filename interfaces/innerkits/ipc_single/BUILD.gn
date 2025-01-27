@@ -28,71 +28,114 @@ config("ipc_all_deps_config") {
   }
 }
 
+common_include = [
+  "$IPC_CORE_ROOT/c/adapter/access_token/include",
+  "$IPC_CORE_ROOT/c/rpc/include",
+  "$SUBSYSTEM_DIR/utils/include",
+]
+
+common_source = [
+  "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
+  "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
+  "$IPC_CORE_ROOT/src/core/dbinder/source/databus_socket_listener.cpp",
+  "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_callback_stub.cpp",
+  "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_databus_invoker.cpp",
+  "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_session_object.cpp",
+  "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_softbus_client.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/binder_debug.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/buffer_object.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/comm_auth_info.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_file_descriptor.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_object_proxy.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_object_stub.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_process_skeleton.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_skeleton.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_thread_pool.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_thread_skeleton.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/ipc_workthread.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/iremote_broker.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/iremote_object.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/message_option.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/message_parcel.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/peer_holder.cpp",
+  "$IPC_CORE_ROOT/src/core/framework/source/stub_refcount_object.cpp",
+  "$IPC_CORE_ROOT/src/core/invoker/source/binder_invoker.cpp",
+  "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
+  "$IPC_CORE_ROOT/src/core/invoker/source/invoker_factory.cpp",
+  "$IPC_CORE_ROOT/src/core/invoker/source/invoker_rawdata.cpp",
+]
+
+common_configs = [
+  "$SUBSYSTEM_DIR/config:ipc_util_config",
+  ":libipc_single_private_config",
+]
+
+common_public_configs = [
+  "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+  "$SUBSYSTEM_DIR/config:ipc_util_config",
+  ":ipc_all_deps_config",
+]
+
+common_external_deps = [
+  "c_utils:utils",
+  "faultloggerd:libbacktrace_local",
+  "ffrt:libffrt",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "hitrace:libhitracechain",
+  "selinux:libselinux",
+]
+
 ohos_shared_library("ipc_single") {
   sanitize = {
     integer_overflow = true
   }
   version_script = "libipc_single_map"
   branch_protector_ret = "pac_ret"
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/adapter/access_token/include",
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$SUBSYSTEM_DIR/utils/include",
-  ]
+  include_dirs = common_include
 
-  sources = [
-    "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
-    "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
-    "$IPC_CORE_ROOT/src/core/dbinder/source/databus_socket_listener.cpp",
-    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_callback_stub.cpp",
-    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_databus_invoker.cpp",
-    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_session_object.cpp",
-    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_softbus_client.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/binder_debug.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/buffer_object.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/comm_auth_info.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_file_descriptor.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_object_proxy.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_object_stub.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_process_skeleton.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_skeleton.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_thread_pool.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_thread_skeleton.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/ipc_workthread.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/iremote_broker.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/iremote_object.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/message_option.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/message_parcel.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/peer_holder.cpp",
-    "$IPC_CORE_ROOT/src/core/framework/source/stub_refcount_object.cpp",
-    "$IPC_CORE_ROOT/src/core/invoker/source/binder_invoker.cpp",
-    "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
-    "$IPC_CORE_ROOT/src/core/invoker/source/invoker_factory.cpp",
-    "$IPC_CORE_ROOT/src/core/invoker/source/invoker_rawdata.cpp",
-  ]
+  sources = common_source
 
-  configs = [
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    ":libipc_single_private_config",
-  ]
-  public_configs = [
-    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
-    "$SUBSYSTEM_DIR/config:ipc_util_config",
-    ":ipc_all_deps_config",
-  ]
+  configs = common_configs
+  public_configs = common_public_configs
 
   all_dependent_configs = [ ":ipc_all_deps_config" ]
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "faultloggerd:libbacktrace_local",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "hitrace:libhitracechain",
-    "selinux:libselinux",
+  external_deps = common_external_deps
+  defines = [ "FFRT_IPC_ENABLE" ]
+  if (build_selinux) {
+    defines += [ "WITH_SELINUX" ]
+  }
+  innerapi_tags = [
+    "chipsetsdk",
+    "platformsdk",
+    "sasdk",
   ]
+  install_images = [
+    system_base_dir,
+    updater_base_dir,
+  ]
+  install_enable = false
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
+
+ohos_shared_library("ipc_single_test") {
+  sanitize = {
+    integer_overflow = true
+  }
+
+  branch_protector_ret = "pac_ret"
+  include_dirs = common_include
+
+  sources = common_source
+
+  configs = common_configs
+  public_configs = common_public_configs
+
+  deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
+  external_deps = common_external_deps
   defines = [ "FFRT_IPC_ENABLE" ]
   if (build_selinux) {
     defines += [ "WITH_SELINUX" ]
