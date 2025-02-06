@@ -19,51 +19,55 @@ MODULE_OUTPUT_PATH = "ipc"
 
 template("ipc_unittest") {
   ohos_unittest(target_name) {
-  module_out_path = MODULE_OUTPUT_PATH
+    module_out_path = MODULE_OUTPUT_PATH
 
-  include_dirs = [
-    "$IPC_CORE_ROOT/c/rpc/include",
-    "$IPC_CORE_ROOT/c/ipc_adapter/include",
-    "$IPC_CORE_ROOT/src/core/dbinder/include",
-    "$IPC_CORE_ROOT/src/core/framework/include",
-    "$IPC_CORE_ROOT/src/core/invoker/include",
-    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
-    "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder/include",
-    "$IPC_ROOT_PATH/utils/include",
-    "$IPC_UNITTEST_ROOT_PATH/mock",
-  ]
+    include_dirs = [
+      "$IPC_CORE_ROOT/c/rpc/include",
+      "$IPC_CORE_ROOT/c/ipc_adapter/include",
+      "$IPC_CORE_ROOT/src/core/dbinder/include",
+      "$IPC_CORE_ROOT/src/core/framework/include",
+      "$IPC_CORE_ROOT/src/core/invoker/include",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
+      "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder/include",
+      "$IPC_ROOT_PATH/utils/include",
+      "$IPC_UNITTEST_ROOT_PATH/mock",
+    ]
 
-  if (defined(invoker.include_dirs)) {
-    include_dirs += invoker.include_dirs
+    if (defined(invoker.include_dirs)) {
+      include_dirs += invoker.include_dirs
+    }
+
+    configs = [ "$IPC_ROOT_PATH/config:ipc_util_config" ]
+
+    deps = [
+      "$IPC_CORE_ROOT/src/core:ipc_common",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
+    ]
+
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    external_deps = [
+      "c_utils:utils",
+      "ffrt:libffrt",
+      "googletest:gmock",
+      "hilog:libhilog",
+      "hisysevent:libhisysevent",
+      "hitrace:libhitracechain",
+      "samgr:samgr_proxy",
+    ]
+
+    if (defined(invoker.external_deps)) {
+      external_deps += invoker.external_deps
+    }
+
+    sources = invoker.sources
+    ldflags = [ "-lpthread" ]
+    resource_config_file = "$IPC_ROOT_PATH/test/resource/ipc/ohos_test.xml"
   }
-
-  configs = [ "$IPC_ROOT_PATH/config:ipc_util_config" ]
-
-  deps = [
-    "$IPC_CORE_ROOT/src/core:ipc_common",
-    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
-  ]
-
-  if (defined(invoker.deps)) {
-    deps += invoker.deps
-  }
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock",
-    "hilog:libhilog",
-    "hitrace:libhitracechain",
-    "samgr:samgr_proxy",
-  ]
-
-  if (defined(invoker.external_deps)) {
-    external_deps += invoker.external_deps
-  }
-
-  sources = invoker.sources
-  ldflags = [ "-lpthread" ]
-  resource_config_file = "$IPC_ROOT_PATH/test/resource/ipc/ohos_test.xml"
-}
 }
 
 ipc_unittest("IPCObjectProxyTest") {
@@ -81,10 +85,10 @@ ipc_unittest("DBinderCallbackStubTest") {
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [ 
+  deps = [
+    ":DBinderCallbackStubTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
-    ":DBinderCallbackStubTest",
   ]
 }
 ###############################################################################
