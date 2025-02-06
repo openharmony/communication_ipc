@@ -21,8 +21,8 @@
 #include <securec.h>
 
 #define private public
-#include "ipc_internal_utils.h"
 #include "ipc_inner_object.h"
+#include "ipc_internal_utils.h"
 #undef private
 
 static constexpr int MAX_MEMORY_SIZE = 204800;
@@ -57,12 +57,13 @@ void IPCInternalUtilsTest::TearDown()
 
 static void* TestMemAllocator(int32_t len)
 {
-    if (len < 0 || len > MAX_MEMORY_SIZE) {
+    if (len <= 0 || len > MAX_MEMORY_SIZE) {
         return nullptr;
     }
     void *buffer = malloc(len);
     if (buffer != nullptr) {
         if (memset_s(buffer, len, 0, len) != EOK) {
+            free(buffer);
             return nullptr;
         }
     }
@@ -71,7 +72,7 @@ static void* TestMemAllocator(int32_t len)
 
 /**
  * @tc.name:IsIPCParcelValidTest001
- * @tc.desc: Verify the IsIPCParcelValid function
+ * @tc.desc: Verify the IsIPCParcelValid function when parcel nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCInternalUtilsTest, IsIPCParcelValidTest001, TestSize.Level1)
@@ -79,12 +80,11 @@ HWTEST_F(IPCInternalUtilsTest, IsIPCParcelValidTest001, TestSize.Level1)
     OHIPCParcel* parcel = nullptr;
     bool result = IsIPCParcelValid(parcel, "NullParcelTest");
     EXPECT_FALSE(result);
-    
 }
 
 /**
  * @tc.name:IsIPCParcelValidTest002
- * @tc.desc: Verify the IsIPCParcelValid function
+ * @tc.desc: Verify the IsIPCParcelValid function when parcel valid
  * @tc.type: FUNC
  */
 HWTEST_F(IPCInternalUtilsTest, IsIPCParcelValidTest002, TestSize.Level1)
@@ -97,7 +97,7 @@ HWTEST_F(IPCInternalUtilsTest, IsIPCParcelValidTest002, TestSize.Level1)
 
 /**
  * @tc.name: IsIPCRemoteProxyValidTest001
- * @tc.desc: Verify the IsIPCRemoteProxyValid function
+ * @tc.desc: Verify the IsIPCRemoteProxyValid function when proxy nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCInternalUtilsTest, IsIPCRemoteProxyValidTest001, TestSize.Level1)
@@ -109,7 +109,7 @@ HWTEST_F(IPCInternalUtilsTest, IsIPCRemoteProxyValidTest001, TestSize.Level1)
 
 /**
  * @tc.name: IsIPCRemoteProxyValidTest002
- * @tc.desc: Verify the IsIPCRemoteProxyValid function
+ * @tc.desc: Verify the IsIPCRemoteProxyValid function when proxy valid
  * @tc.type: FUNC
  */
 HWTEST_F(IPCInternalUtilsTest, IsIPCRemoteProxyValidTest002, TestSize.Level1)
@@ -122,7 +122,7 @@ HWTEST_F(IPCInternalUtilsTest, IsIPCRemoteProxyValidTest002, TestSize.Level1)
 
 /**
  * @tc.name: IsMemoryParamsValidTest001
- * @tc.desc: Verify the IsMemoryParamsValid function
+ * @tc.desc: Verify the IsMemoryParamsValid function Str pointer address is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCInternalUtilsTest, IsMemoryParamsValidTest001, TestSize.Level1)
@@ -135,7 +135,7 @@ HWTEST_F(IPCInternalUtilsTest, IsMemoryParamsValidTest001, TestSize.Level1)
 
 /**
  * @tc.name: IsMemoryParamsValidTest002
- * @tc.desc: Verify the IsMemoryParamsValid function
+ * @tc.desc: Verify the IsMemoryParamsValid function Str pointer address is valid
  * @tc.type: FUNC
  */
 HWTEST_F(IPCInternalUtilsTest, IsMemoryParamsValidTest002, TestSize.Level1)
