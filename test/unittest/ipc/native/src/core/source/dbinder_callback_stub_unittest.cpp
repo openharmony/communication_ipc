@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,22 +14,22 @@
  */
 
 #include <algorithm>
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #define private public
 #define protected public
 #include "dbinder_callback_stub.h"
-#include "ipc_types.h"
-#include "ipc_thread_skeleton.h"
-#include "ipc_skeleton.h"
-#include "iremote_object.h"
-#include "ipc_object_stub.h"
-#include "ipc_thread_pool.h"
-#include "ipc_process_skeleton.h"
 #include "dbinder_session_object.h"
-#include "stub_refcount_object.h"
+#include "ipc_object_stub.h"
+#include "ipc_process_skeleton.h"
+#include "ipc_skeleton.h"
+#include "ipc_thread_pool.h"
+#include "ipc_thread_skeleton.h"
+#include "ipc_types.h"
+#include "iremote_object.h"
 #include "mock_iremote_invoker.h"
+#include "stub_refcount_object.h"
 #undef protected
 #undef private
 
