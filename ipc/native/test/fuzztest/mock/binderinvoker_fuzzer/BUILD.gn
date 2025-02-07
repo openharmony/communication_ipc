@@ -37,8 +37,7 @@ ohos_fuzztest("BinderInvokerFuzzTest") {
   sources = [ "binderinvoker_fuzzer.cpp" ]
 
   deps = [
-    "../../../../../../interfaces/innerkits/ipc_core:ipc_core",
-    "../../../../../../interfaces/innerkits/ipc_single:ipc_single",
+    "../../../../../../interfaces/innerkits/ipc_single:ipc_single_test",
     "../../../../../../interfaces/innerkits/libdbinder:libdbinder",
   ]
 
@@ -46,7 +45,6 @@ ohos_fuzztest("BinderInvokerFuzzTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:libhitracechain",
-    "ipc:ipc_core",
   ]
 }
 
