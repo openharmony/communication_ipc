@@ -107,6 +107,9 @@ HWTEST_F(InvokerFactoryTest, Register002, TestSize.Level1)
         invoker = nullptr;
     }
     EXPECT_EQ(ret, false);
+    // after leaving the scope, the captured 'invoker' object will be invalid in 'creator' lambda expression
+    // so we need to delete 'creator' lambda expression
+    invokerFactory.Unregister(protocol);
 }
 
 /**

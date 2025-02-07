@@ -775,11 +775,6 @@ int32_t BinderInvoker::GeneralServiceSendRequest(
 int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data &tr,
     MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue)
 {
-#ifdef CONFIG_ACTV_BINDER
-    bool oldActvBinder = GetUseActvBinder();
-    SetUseActvBinder(false);
-#endif
-
     int32_t error = ERR_DEAD_OBJECT;
     flagValue = static_cast<uint32_t>(tr.flags) & ~static_cast<uint32_t>(MessageOption::TF_ACCEPT_FDS);
     option.SetFlags(static_cast<int>(flagValue));
@@ -789,9 +784,6 @@ int32_t BinderInvoker::TargetStubSendRequest(const binder_transaction_data &tr,
         error = SamgrServiceSendRequest(tr, data, reply, option);
     }
 
-#ifdef CONFIG_ACTV_BINDER
-    SetUseActvBinder(oldActvBinder);
-#endif
     return error;
 }
 
@@ -889,15 +881,7 @@ void BinderInvoker::OnSpawnThread()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
-#ifdef CONFIG_ACTV_BINDER
-        if (GetUseActvBinder()) {
-            current->SpawnThread(IPCWorkThread::ACTV_PASSIVE);
-        } else {
-            current->SpawnThread();
-        }
-#else
         current->SpawnThread();
-#endif
     }
 }
 
@@ -1083,7 +1067,7 @@ void BinderInvoker::UpdateConsumedData(const binder_write_read &bwr, const size_
             output_.FlushBuffer();
             output_.WriteBuffer(reinterpret_cast<void *>(temp.GetData()), temp.GetDataSize());
         } else {
-            --sendNestCount_;
+            sendNestCount_ = (sendNestCount_ > 0) ? (--sendNestCount_) : 0;
             if (sendNestCount_ > 0) {
                 ZLOGW(LABEL, "unexpected sendNestCount:%{public}d", sendNestCount_.load());
                 PrintParcelData(input_, "input_");
@@ -1125,11 +1109,7 @@ int BinderInvoker::TransactWithDriver(bool doRead)
 
     bwr.write_consumed = 0;
     bwr.read_consumed = 0;
-#ifdef CONFIG_ACTV_BINDER
-    int error = binderConnector_->WriteBinder(GetBWRCommand(), &bwr);
-#else
     int error = binderConnector_->WriteBinder(BINDER_WRITE_READ, &bwr);
-#endif
     UpdateConsumedData(bwr, outAvail);
     if (error != ERR_NONE) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -1800,32 +1780,6 @@ void BinderInvoker::ProcDeferredDecRefs()
         decStrongRefs_.clear();
     }
 }
-
-#ifdef CONFIG_ACTV_BINDER
-void BinderInvoker::JoinActvThread(bool initiative)
-{
-    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
-    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
-
-    if (invoker != nullptr) {
-        invoker->SetUseActvBinder(true);
-        invoker->JoinThread(initiative);
-    }
-}
-
-bool BinderInvoker::IsActvBinderService()
-{
-    bool check = false;
-    IRemoteInvoker *remoteInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
-    BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(remoteInvoker);
-
-    if ((invoker != nullptr) && (invoker->binderConnector_ != nullptr)) {
-        check = invoker->binderConnector_->IsActvBinderService();
-    }
-
-    return check;
-}
-#endif // CONFIG_ACTV_BINDER
 
 bool BinderInvoker::GetUint64ValueByStrSlice(const std::string &str, size_t offset, size_t length, uint64_t &value)
 {

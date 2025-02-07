@@ -21,10 +21,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#ifdef CONFIG_ACTV_BINDER
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
 #include <unistd.h>
 
 #include "__mutex_base"
@@ -38,9 +34,6 @@
 #include "new"
 #include "string"
 #include "sys_binder.h"
-#ifdef CONFIG_ACTV_BINDER
-#include "actv_binder.h"
-#endif
 
 namespace OHOS {
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_CONNECT, "BinderConnector" };
@@ -70,44 +63,6 @@ bool BinderConnector::IsDriverAlive()
 {
     return driverFD_ >= 0;
 }
-
-#ifdef CONFIG_ACTV_BINDER
-ActvBinderConnector::ActvBinderConnector()
-    : isActvMgr_(false)
-{
-}
-
-int ActvBinderConnector::InitActvBinder(int fd)
-{
-    if (!isActvMgr_) {
-        return 0;
-    }
-
-    int ret;
-    uint64_t poolCref;
-
-    ret = ioctl(fd, BINDER_SET_ACTVMGR, &poolCref);
-    if (ret != 0) {
-        ZLOGE(LABEL, "ActvBinder: set actv binder service failed, errno: %{public}d", errno);
-        return ret;
-    }
-
-    return 0;
-}
-
-void ActvBinderConnector::InitActvBinderConfig(uint64_t featureSet)
-{
-    if ((featureSet & ACTV_BINDER_FEATURE_MASK) == 0) {
-        return;
-    }
-
-    struct stat stat_unused;
-    /* If there is ACTV_BINDER_SERVICES_CONFIG, set actvmgr for actv binder */
-    if (stat(ACTV_BINDER_SERVICES_CONFIG, &stat_unused) == 0) {
-        isActvMgr_ = true;
-    }
-}
-#endif // CONFIG_ACTV_BINDER
 
 bool BinderConnector::OpenDriver()
 {
@@ -146,23 +101,11 @@ bool BinderConnector::OpenDriver()
 
 bool BinderConnector::MapMemory(uint64_t featureSet)
 {
-#ifdef CONFIG_ACTV_BINDER
-    actvBinder_.InitActvBinderConfig(featureSet);
-#endif
-
     vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
     if (vmAddr_ == MAP_FAILED) {
         ZLOGE(LABEL, "fail to mmap");
         return false;
     }
-#ifdef CONFIG_ACTV_BINDER
-    int ret = actvBinder_.InitActvBinder(driverFD_);
-    if (ret != 0) {
-        munmap(vmAddr_, IPC_MMAP_SIZE);
-        vmAddr_ = MAP_FAILED;
-        return false;
-    }
-#endif
     return true;
 }
 
@@ -178,17 +121,6 @@ bool BinderConnector::IsRealPidSupported()
 {
     return (featureSet_ & SENDER_INFO_FAETURE_MASK) != 0;
 }
-#ifdef CONFIG_ACTV_BINDER
-bool BinderConnector::IsActvBinderSupported()
-{
-    return (IsDriverAlive() && ((featureSet_ & ACTV_BINDER_FEATURE_MASK) != 0));
-}
-
-bool BinderConnector::IsActvBinderService()
-{
-    return (IsDriverAlive() && actvBinder_.isActvMgr_);
-}
-#endif
 
 int BinderConnector::WriteBinder(unsigned long request, void *value)
 {
@@ -207,7 +139,7 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
         if (err == -EINTR) {
             uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            ZLOGW(LABEL, "ioctl_binder returned EINTR time:%{public}" PRIu64, curTime);
+            ZLOGD(LABEL, "ioctl_binder returned EINTR time:%{public}" PRIu64, curTime);
         }
     }
 

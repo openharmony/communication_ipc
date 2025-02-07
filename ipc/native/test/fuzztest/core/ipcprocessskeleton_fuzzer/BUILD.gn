@@ -37,8 +37,7 @@ ohos_fuzztest("IPCProcessSkeletonFuzzTest") {
   sources = [ "ipcprocessskeleton_fuzzer.cpp" ]
 
   deps = [
-    "../../../../../../interfaces/innerkits/ipc_core:ipc_core",
-    "../../../../../../interfaces/innerkits/ipc_single:ipc_single",
+    "../../../../../../interfaces/innerkits/ipc_single:ipc_single_test",
     "../../../../../../interfaces/innerkits/libdbinder:libdbinder",
   ]
 

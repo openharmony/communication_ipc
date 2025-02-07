@@ -25,9 +25,6 @@
 #include "invoker_factory.h"
 #include "process_skeleton.h"
 #include <securec.h>
-#ifdef CONFIG_ACTV_BINDER
-#include "actv_binder.h"
-#endif
 
 namespace OHOS {
 
@@ -150,11 +147,6 @@ public:
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif
 
-#ifdef CONFIG_ACTV_BINDER
-    static void JoinActvThread(bool initiative);
-    static bool IsActvBinderService();
-#endif // CONFIG_ACTV_BINDER
-
 protected:
     std::atomic<bool> isMainWorkThread;
     bool stopWorkThread;
@@ -252,25 +244,6 @@ private:
     bool UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_data &dbinderData);
 #endif
 
-#ifdef CONFIG_ACTV_BINDER
-    inline void SetUseActvBinder(bool useActvBinder)
-    {
-        if ((binderConnector_ != nullptr) && binderConnector_->IsActvBinderSupported()) {
-            useActvBinder_ = useActvBinder;
-        }
-    }
-
-    inline bool GetUseActvBinder()
-    {
-        return useActvBinder_;
-    }
-
-    inline uint32_t GetBWRCommand()
-    {
-        return useActvBinder_ ? ACTV_BINDER_WRITE_READ : BINDER_WRITE_READ;
-    }
-#endif // CONFIG_ACTV_BINDER
-
     bool GetUint64ValueByStrSlice(const std::string &str, size_t offset, size_t length, uint64_t &value);
     bool GetCallerRealPidByStr(const std::string &str, size_t offset, size_t length, pid_t &callerRealPid);
     bool GetCallerPidAndUidByStr(const std::string &str, size_t offset, pid_t &pid, pid_t &uid);
@@ -294,9 +267,6 @@ private:
     std::vector<IRemoteObject *> decStrongRefs_;
     std::mutex weakRefMutex_;
     std::vector<RefCounter *> decWeakRefs_;
-#ifdef CONFIG_ACTV_BINDER
-    bool useActvBinder_ = false;
-#endif
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
