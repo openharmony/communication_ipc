@@ -29,10 +29,11 @@ void AddDeathRecipientFuzzTest(const uint8_t *data, size_t size)
     if (data == nullptr || size == 0) {
         return;
     }
+    DataGenerator::Write(data, size);
 
     std::string descriptor;
     bool serialInvokeFlag;
-    if (!GenerateString(descriptor) || !GenerateBool(serialInvokeFlag)) {
+    if (!GenerateBool(serialInvokeFlag) || !GenerateStringByLength(descriptor)) {
         return;
     }
 
