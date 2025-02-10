@@ -51,6 +51,8 @@ if (support_jsapi) {
 
     external_deps = [
       "c_utils:utils",
+      "faultloggerd:libbacktrace_local",
+      "ffrt:libffrt",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
       "libuv:uv",

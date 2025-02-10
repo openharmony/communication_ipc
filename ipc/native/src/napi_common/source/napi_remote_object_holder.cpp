@@ -16,9 +16,14 @@
 #include "napi_remote_object_holder.h"
 
 #include <uv.h>
+#include <sstream>
 #include <string_ex.h>
+#include "backtrace_local.h"
+#include "ffrt.h"
 #include "ipc_debug.h"
+#include "ipc_thread_skeleton.h"
 #include "log_tags.h"
+#include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "napi_remoteObject_holder" };
@@ -39,6 +44,7 @@ NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16strin
       localInterfaceRef_(nullptr), attachCount_(1), jsObjectRef_(nullptr)
 {
     jsThreadId_ = std::this_thread::get_id();
+    DetectCreatedInIPCThread();
     // create weak ref, need call napi_delete_reference to release memory,
     // increase ref count when the JS object will transfer to another thread or process.
     napi_create_reference(env, thisVar, 0, &jsObjectRef_);
@@ -191,5 +197,27 @@ napi_value NAPIRemoteObjectHolder::queryLocalInterface(std::string &descriptor)
     napi_value result = nullptr;
     napi_get_null(env_, &result);
     return result;
+}
+
+void NAPIRemoteObjectHolder::DetectCreatedInIPCThread()
+{
+    if (IPCThreadSkeleton::GetThreadType() == ThreadType::IPC_THREAD && descriptor_.length() > 0 &&
+        descriptor_.find(u"ServiceCallbackStubImpl") != std::string::npos) {
+        std::string backtrace;
+        if (!HiviewDFX::GetBacktrace(backtrace, false)) {
+            ZLOGW(LOG_LABEL, "GetBacktrace failed");
+        } else {
+            ZLOGW(LOG_LABEL, "GetBacktrace info:\n%{public}s", backtrace.c_str());
+        }
+        uint64_t curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        std::ostringstream stream;
+        stream << jsThreadId_;
+        ZLOGW(LOG_LABEL, "jsThreadId_:%{public}s, NativeEngine GetSysTid: %{public}u, "
+            "ffrt id:%{public}" PRIu64 ", GetCurSysTid:%{public}u, time:%{public}" PRIu64,
+            stream.str().c_str(), (reinterpret_cast<NativeEngine *>(env_))->GetSysTid(),
+            ffrt_this_task_get_id(), NativeEngine::GetCurSysTid(), curTime);
+    }
 }
 } // namespace OHOS
