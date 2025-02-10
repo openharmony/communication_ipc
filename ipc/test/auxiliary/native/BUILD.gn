@@ -36,7 +36,10 @@ ohos_shared_library("ipc_test_helper") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single_test",
+  ]
 
   external_deps = [
     "access_token:libnativetoken_shared",
@@ -44,7 +47,6 @@ ohos_shared_library("ipc_test_helper") {
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
 
@@ -123,7 +125,10 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
 
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi" ]
+  deps = [
+    "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single_test",
+  ]
 
   external_deps = [
     "access_token:libnativetoken_shared",
@@ -131,7 +136,6 @@ ohos_shared_library("ipc_test_helper_extra") {
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
 

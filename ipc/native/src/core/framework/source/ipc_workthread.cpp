@@ -80,14 +80,6 @@ void IPCWorkThread::JoinThread(int proto, int policy)
             case PROCESS_ACTIVE:
                 invoker->JoinProcessThread(true);
                 break;
-#ifdef CONFIG_ACTV_BINDER
-            case ACTV_PASSIVE:
-                BinderInvoker::JoinActvThread(false);
-                break;
-            case ACTV_ACTIVE:
-                BinderInvoker::JoinActvThread(true);
-                break;
-#endif
             default:
                 ZLOGE(LOG_LABEL, "invalid policy:%{public}d", policy);
                 break;

@@ -16,46 +16,157 @@
 1.0 {
     global:
         extern "C++" {
-            RpcGetSelfTokenID;
-            GetRpcFeatureAck;
-            GetFeatureSize;
-            SetFeatureTransData;
-            IsFeatureAck;
-            GetTokenFromData;
-            GetTokenIdSize;
-            IsATEnable;
-            RpcGetFirstCallerTokenID;
-            OHOS::DBinderSoftbusClient*;
-            OHOS::MessageParcel*;
-            OHOS::IPCObjectStub*;
-            OHOS::IPCObjectProxy*;
-            OHOS::IPCFileDescriptor*;
-            OHOS::MessageOption*;
-            OHOS::InvokerFactory*;
-            OHOS::IPCDfx*;
-            OHOS::IPCSkeleton*;
-            OHOS::IPCPayloadStatistics*;
-            OHOS::IPCProcessSkeleton::LockForNumExecuting;
-            OHOS::IPCProcessSkeleton::UnlockForNumExecuting;
-            OHOS::IRemoteObject*;
-            OHOS::BinderInvoker*;
-            OHOS::BrokerRegistration*;
-            OHOS::IPCThreadSkeleton*;
-            OHOS::IPCWorkThreadPool*;
-            OHOS::PeerHolder::PeerHolder*;
-            OHOS::PeerHolder::Remote*;
-            OHOS::IPCProcessSkeleton*;
-            OHOS::DBinderDatabusInvoker*;
-            OHOS::BufferObject*;
-            OHOS::DatabusSessionCallback*;
-            OHOS::DBinderCallbackStub*;
-            OHOS::StubRefCountObject*;
-            OHOS::InvokerRawData*;
-            OHOS::IPCWorkThread*;
-            OHOS::DBinderSessionObject*;
-            OHOS::CommAuthInfo*;
-            "vtable for OHOS::BinderInvoker";
-            "vtable for OHOS::DatabusSessionCallback";
+            "OHOS::DBinderSoftbusClient::GetInstance()";
+            "OHOS::DBinderSoftbusClient::GetLocalNodeDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+            "OHOS::DBinderSoftbusClient::DBinderGrantPermission(int, int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+            "OHOS::DBinderSoftbusClient::Socket(SocketInfo)";
+            "OHOS::DBinderSoftbusClient::Bind(int, QosTV const*, unsigned int, ISocketListener const*)";
+            "OHOS::DBinderSoftbusClient::Shutdown(int)";
+            "OHOS::DBinderSoftbusClient::Listen(int, QosTV const*, unsigned int, ISocketListener const*)";
+            "OHOS::DBinderSoftbusClient::SendBytes(int, void const*, unsigned int)";
+
+            "OHOS::MessageParcel::MessageParcel()";
+            "OHOS::MessageParcel::~MessageParcel()";
+            "OHOS::MessageParcel::MessageParcel(OHOS::Allocator*)";
+            "OHOS::MessageParcel::WriteInterfaceToken(std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>)";
+            "OHOS::MessageParcel::WriteRemoteObject(OHOS::sptr<OHOS::IRemoteObject> const&)";
+            "OHOS::MessageParcel::WriteAshmem(OHOS::sptr<OHOS::Ashmem>)";
+            "OHOS::MessageParcel::WriteFileDescriptor(int)";
+            "OHOS::MessageParcel::WriteRawData(void const*, unsigned long)";
+            "OHOS::MessageParcel::WriteNoException()";
+            "OHOS::MessageParcel::WriteRawData(void const*, unsigned int)";
+            "OHOS::MessageParcel::ReadInterfaceToken()";
+            "OHOS::MessageParcel::ReadRemoteObject()";
+            "OHOS::MessageParcel::ReadAshmem()";
+            "OHOS::MessageParcel::ReadFileDescriptor()";
+            "OHOS::MessageParcel::ReadRawData(unsigned long)";
+            "OHOS::MessageParcel::ReadRawData(unsigned int)";
+            "OHOS::MessageParcel::ReadException()";
+            "OHOS::MessageParcel::Append(OHOS::MessageParcel&)";
+            "OHOS::MessageParcel::ContainFileDescriptors() const";
+            "OHOS::MessageParcel::GetRawDataCapacity() const";
+            "OHOS::MessageParcel::GetRawDataSize() const";
+            "OHOS::MessageParcel::PrintBuffer(char const*, unsigned long)";
+            "OHOS::MessageParcel::ClearFileDescriptor()";
+            "OHOS::MessageParcel::GetInterfaceToken() const";
+
+            "OHOS::IPCObjectStub::IPCObjectStub(std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>, bool)";
+            "OHOS::IPCObjectStub::~IPCObjectStub()";
+            "OHOS::IPCObjectStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::GetObjectRefCount()";
+            "OHOS::IPCObjectStub::SendRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::AddDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
+            "OHOS::IPCObjectStub::RemoveDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
+            "OHOS::IPCObjectStub::Dump(int, std::__h::vector<std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>, std::__h::allocator<std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>>> const&)";
+            "OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
+            "OHOS::IPCObjectStub::OnLastStrongRef(void const*)";
+            "OHOS::IPCObjectStub::OnRemoteDump(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::ProcessProto(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::GetObjectType() const";
+            "OHOS::IPCObjectStub::SetRequestSidFlag(bool)";
+            "OHOS::IPCObjectStub::GetCallingPid()";
+            "OHOS::IPCObjectStub::GetCallingUid()";
+            "OHOS::IPCObjectStub::GetCallingTokenID()";
+            "OHOS::IPCObjectStub::GetLastRequestTime()";
+            "OHOS::IPCObjectStub::GetFirstTokenID()";
+            /* below 4 interfaces used by camera_listener_stub_fuzzer.cpp */
+            "OHOS::IPCObjectStub::AddAuthInfo(OHOS::MessageParcel&, OHOS::MessageParcel&, unsigned int)";
+            "OHOS::IPCObjectStub::InvokerDataBusThread(OHOS::MessageParcel&, OHOS::MessageParcel&)";
+            "OHOS::IPCObjectStub::InvokerThread(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "OHOS::IPCObjectStub::NoticeServiceDie(OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+
+            "OHOS::IPCObjectProxy::IPCObjectProxy(int, std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>, int)";
+            "OHOS::IPCObjectProxy::GetSessionName()";
+            "OHOS::IPCObjectProxy::NoticeServiceDie()";
+            "OHOS::IPCObjectProxy::InvokeListenThread(OHOS::MessageParcel&, OHOS::MessageParcel&)";
+            "OHOS::IPCObjectProxy::GetStrongRefCountForStub()";
+            /* used by accessible_ability_connection_test.cpp */
+            "OHOS::IPCObjectProxy::SendObituary()";
+
+            "OHOS::IPCFileDescriptor::IPCFileDescriptor()";
+            "OHOS::IPCFileDescriptor::IPCFileDescriptor(int)";
+            "OHOS::IPCFileDescriptor::Marshalling(OHOS::Parcel&, OHOS::sptr<OHOS::IPCFileDescriptor> const&)";
+            "OHOS::IPCFileDescriptor::Unmarshalling(OHOS::Parcel&)";
+            "OHOS::IPCFileDescriptor::GetFd() const";
+
+            "OHOS::MessageOption::MessageOption(int, int)";
+            "OHOS::MessageOption::~MessageOption()";
+            "OHOS::MessageOption::SetFlags(int)";
+            "OHOS::MessageOption::GetFlags() const";
+            "OHOS::MessageOption::SetWaitTime(int)";
+            "OHOS::MessageOption::GetWaitTime() const";
+
+            "OHOS::InvokerFactory::Get()";
+            "OHOS::InvokerFactory::Register(int, std::__h::function<OHOS::IRemoteInvoker* ()>)";
+
+            "OHOS::IPCDfx::BlockUntilThreadAvailable()";
+            "OHOS::IPCDfx::SetIPCProxyLimit(unsigned long, std::__h::function<void (unsigned long)>)";
+            "OHOS::IPCDfx::SetIPCProxyLimit(unsigned long long, std::__h::function<void (unsigned long long)>)";
+
+            "OHOS::IPCSkeleton::SetMaxWorkThreadNum(int)";
+            "OHOS::IPCSkeleton::JoinWorkThread()";
+            "OHOS::IPCSkeleton::StopWorkThread()";
+            "OHOS::IPCSkeleton::GetCallingSid()";
+            "OHOS::IPCSkeleton::GetCallingPid()";
+            "OHOS::IPCSkeleton::GetCallingRealPid()";
+            "OHOS::IPCSkeleton::GetCallingUid()";
+            "OHOS::IPCSkeleton::GetCallingTokenID()";
+            "OHOS::IPCSkeleton::GetCallingFullTokenID()";
+            "OHOS::IPCSkeleton::GetFirstTokenID()";
+            "OHOS::IPCSkeleton::GetFirstFullTokenID()";
+            "OHOS::IPCSkeleton::GetSelfTokenID()";
+            "OHOS::IPCSkeleton::GetLocalDeviceID()";
+            "OHOS::IPCSkeleton::GetCallingDeviceID()";
+            "OHOS::IPCSkeleton::IsLocalCalling()";
+            "OHOS::IPCSkeleton::GetInstance()";
+            "OHOS::IPCSkeleton::GetContextObject()";
+            "OHOS::IPCSkeleton::SetContextObject(OHOS::sptr<OHOS::IRemoteObject>&)";
+            "OHOS::IPCSkeleton::FlushCommands(OHOS::IRemoteObject*)";
+            "OHOS::IPCSkeleton::ResetCallingIdentity()";
+            "OHOS::IPCSkeleton::SetCallingIdentity(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, bool)";
+            "OHOS::IPCSkeleton::TriggerSystemIPCThreadReclaim()";
+            
+            "OHOS::IPCPayloadStatistics::StartStatistics()";
+            "OHOS::IPCPayloadStatistics::StopStatistics()";
+            "OHOS::IPCPayloadStatistics::GetTotalCount()";
+            "OHOS::IPCPayloadStatistics::GetTotalCost()";
+            "OHOS::IPCPayloadStatistics::GetPids()";
+            "OHOS::IPCPayloadStatistics::GetCount(int)";
+            "OHOS::IPCPayloadStatistics::GetCost(int)";
+            "OHOS::IPCPayloadStatistics::GetDescriptorCodes(int)";
+            "OHOS::IPCPayloadStatistics::GetDescriptorCodeCount(int, std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>> const&, int)";
+            "OHOS::IPCPayloadStatistics::GetDescriptorCodeCost(int, std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>> const&, int)";
+
+            "OHOS::IRemoteObject::IRemoteObject(std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>)";
+            "OHOS::IRemoteObject::CheckObjectLegality() const";
+            "OHOS::IRemoteObject::AsInterface()";
+            "OHOS::IRemoteObject::IsProxyObject() const";
+            "OHOS::IRemoteObject::Marshalling(OHOS::Parcel&, OHOS::sptr<OHOS::IRemoteObject> const&)";
+            "OHOS::IRemoteObject::Marshalling(OHOS::Parcel&) const";
+            "OHOS::IRemoteObject::Unmarshalling(OHOS::Parcel&)";
+            "OHOS::IRemoteObject::GetObjectDescriptor() const";
+
+            "OHOS::BinderInvoker::BinderInvoker()";
+            "OHOS::DBinderDatabusInvoker::DBinderDatabusInvoker()";
+            
+            "OHOS::BrokerRegistration::Get()";
+            "OHOS::BrokerRegistration::Register(std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>> const&, std::__h::function<OHOS::sptr<OHOS::IRemoteBroker> (OHOS::sptr<OHOS::IRemoteObject> const&)> const&, OHOS::BrokerDelegatorBase const*)";
+            "OHOS::BrokerRegistration::Unregister(std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>> const&)";
+            "OHOS::BrokerRegistration::NewInstance(std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>> const&, OHOS::sptr<OHOS::IRemoteObject> const&)";
+            
+            /* used by ipc_capi_skeleton_unittest.cpp */
+            "OHOS::IPCThreadSkeleton::GetCurrent()";
+            /* below 2 interfaces used by foundation/filemanagement/dfs_service/test/unittests/cloudsync_sa/system/reimplement/ipc_skeleton.cpp */
+            "OHOS::IPCThreadSkeleton::GetDefaultInvoker()";
+            "OHOS::IPCThreadSkeleton::GetActiveInvoker()";
+            /* used by audio_interrupt_unit_test.cpp */
+            "OHOS::IPCThreadSkeleton::GetRemoteInvoker(int)";
+
+            "OHOS::PeerHolder::PeerHolder(OHOS::sptr<OHOS::IRemoteObject> const&)";
+            "OHOS::PeerHolder::Remote()";
+
+            "OHOS::IPCProcessSkeleton::ConvertToSecureString(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+
             "virtual thunk to OHOS::IPCObjectStub::~IPCObjectStub()";
             "virtual thunk to OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
             "virtual thunk to OHOS::IPCObjectStub::OnLastStrongRef(void const*)";

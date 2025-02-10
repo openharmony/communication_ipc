@@ -43,8 +43,7 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
 
   deps = [
     "$IPC_CORE_ROOT/src/core:ipc_common",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single_test",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
   ]
 
