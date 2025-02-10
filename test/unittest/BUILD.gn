@@ -15,11 +15,13 @@ import("//build/test.gni")
 import("../../config.gni")
 
 #################################group#########################################
-
 group("unittest") {
   testonly = true
   if (ipc_feature_test_enabled) {
-    deps = [ "ipc/native/src/core/source:unittest" ]
+    deps = [
+      "ipc/native/src/c_api/source:unittest",
+      "ipc/native/src/core/source:unittest",
+    ]
   }
 }
 ###############################################################################
