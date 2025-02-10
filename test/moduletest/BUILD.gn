@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../config.gni")
 
 SUBSYSTEM_DIR = "../../"
 IPC_TEST_ROOT = "$SUBSYSTEM_DIR/ipc/test"
@@ -73,14 +74,17 @@ template("ipc_moduletest") {
 }
 
 ###############################################################################
-
-ipc_moduletest("IPCCpiModuleTest") {
-  sources = [ "ipc/c/ipc_capi_remote_object_module_test.cpp" ]
+if (ipc_feature_test_enabled) {
+  ipc_moduletest("IPCCpiModuleTest") {
+    sources = [ "ipc/c/ipc_capi_remote_object_module_test.cpp" ]
+  }
 }
 
 ###############################################################################
 
 group("moduletest") {
   testonly = true
-  deps = [ ":IPCCpiModuleTest" ]
+  if (ipc_feature_test_enabled) {
+    deps = [ ":IPCCpiModuleTest" ]
+  }
 }

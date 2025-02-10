@@ -14,32 +14,29 @@
  */
 
 [Arch]
-BUILD.gn     luodonghui@huawei.com fengxu12@huawei.com
-bundle.json  luodonghui@huawei.com fengxu12@huawei.com
-Cargo.toml   luodonghui@huawei.com fengxu12@huawei.com
-config.gni   luodonghui@huawei.com fengxu12@huawei.com
+BUILD.gn     fengxu12@huawei.com
+bundle.json  fengxu12@huawei.com
+Cargo.toml   fengxu12@huawei.com
+config.gni   fengxu12@huawei.com
 
 [Misc]
-figures/        luodonghui@huawei.com fengxu12@huawei.com
-.gitignore      luodonghui@huawei.com fengxu12@huawei.com
-CODEOWNERS      luodonghui@huawei.com fengxu12@huawei.com
-README.md       luodonghui@huawei.com fengxu12@huawei.com
-README_zh.md    luodonghui@huawei.com fengxu12@huawei.com
+figures/        fengxu12@huawei.com
+.gitignore      fengxu12@huawei.com
+CODEOWNERS      fengxu12@huawei.com
+README.md       fengxu12@huawei.com
+README_zh.md    fengxu12@huawei.com
 
 [All]
-*   luodonghui@huawei.com fengxu12@huawei.com
+*   fengxu12@huawei.com
 
 [JsApi]
-interfaces/kits/js/         luodonghui@huawei.com fengxu12@huawei.com
-ipc/native/src/napi/        luodonghui@huawei.com fengxu12@huawei.com
-ipc/native/src/napi_common/ luodonghui@huawei.com fengxu12@huawei.com
+interfaces/kits/js/         fengxu12@huawei.com
+ipc/native/src/napi/        fengxu12@huawei.com
+ipc/native/src/napi_common/ fengxu12@huawei.com
 
 [InnerApi]
-interfaces/innerkits/   luodonghui@huawei.com fengxu12@huawei.com
+interfaces/innerkits/   fengxu12@huawei.com
 
 [DBinder]
-dbinder/                    luodonghui@huawei.com fengxu12@huawei.com
-ipc/native/src/core/dbinder luodonghui@huawei.com fengxu12@huawei.com
-
-
-
+dbinder/                    fengxu12@huawei.com
+ipc/native/src/core/dbinder fengxu12@huawei.com

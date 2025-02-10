@@ -21,7 +21,6 @@
         "mini"
       ],
       "features": [
-        "ipc_feature_actv_binder_enabled",
         "ipc_feature_rpc_enabled",
         "ipc_feature_test_enabled",
         "ipc_feature_trace_enabled"
@@ -156,8 +155,7 @@
           "//foundation/communication/ipc/dbinder/test/unittest:unittest",
           "//foundation/communication/ipc/dbinder/test/fuzztest:fuzztest",
           "//foundation/communication/ipc/test/fuzztest:fuzztest",
-          "//foundation/communication/ipc/test/unittest:unittest",
-          "//foundation/communication/ipc/test/moduletest:moduletest"
+          "//foundation/communication/ipc/test/unittest:unittest"
         ]
       }
     }
