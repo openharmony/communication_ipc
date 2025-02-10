@@ -67,7 +67,7 @@ HWTEST_F(IpcSoDlcloseTest, SingleSoDlcloseTest001, TestSize.Level1)
  */
 HWTEST_F(IpcSoDlcloseTest, CoreSoDlcloseTest001, TestSize.Level1)
 {
-    std::string path = std::string("libipc_core.z.so");
+    std::string path = std::string("libipc_single.z.so");
     for (int i = 0; i < 100; i++) {
         void *handle = dlopen(path.c_str(), RTLD_NOW);
         EXPECT_NE(handle, nullptr);
