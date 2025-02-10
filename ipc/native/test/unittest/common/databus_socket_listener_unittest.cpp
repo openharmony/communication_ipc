@@ -38,7 +38,6 @@ public:
     virtual ~DatabusSocketListenerInterface() {};
 
     virtual IRemoteInvoker *GetRemoteInvoker(int proto) = 0;
-    virtual pid_t getpid(void) = 0;
     virtual int32_t Socket(SocketInfo info) = 0;
     virtual int32_t Listen(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener) = 0;
     virtual int32_t Bind(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener) = 0;
@@ -58,7 +57,6 @@ public:
     ~DatabusSocketListenerInterfaceMock() override;
 
     MOCK_METHOD1(GetRemoteInvoker, IRemoteInvoker *(int));
-    MOCK_METHOD0(getpid, pid_t(void));
     MOCK_METHOD1(Socket, int32_t(SocketInfo));
     MOCK_METHOD4(Listen, int32_t(int32_t, const QosTV*, uint32_t, const ISocketListener *));
     MOCK_METHOD4(Bind, int32_t(int32_t, const QosTV*, uint32_t, const ISocketListener *));
@@ -91,10 +89,6 @@ extern "C" {
     IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     {
         return GetDatabusSocketListenerInterface()->GetRemoteInvoker(proto);
-    }
-    pid_t getpid(void)
-    {
-        return GetDatabusSocketListenerInterface()->getpid();
     }
     int32_t DBinderSoftbusClient::Socket(SocketInfo info)
     {
@@ -194,24 +188,6 @@ HWTEST_F(DatabusSocketListenerTest, ServerOnBindTest001, TestSize.Level1)  // li
     if (invoker != nullptr) {
         delete invoker;
     }
-}
-
-/**
- * @tc.name: ServerOnBindTest002
- * @tc.desc: Verify the ServerOnBind function
- * @tc.type: FUNC
- */
-HWTEST_F(DatabusSocketListenerTest, ServerOnBindTest002, TestSize.Level1)  // line 75
-{
-    PeerSocketInfo info;
-    std::string name = "abcdefg123456789012_654321";
-    info.name = const_cast<char *>(name.c_str());
-    char networkId[] = "255255255211";
-    info.networkId = networkId;
-    int32_t socket = 1001;
-
-    DatabusSocketListener::ServerOnBind(socket, info);
-    EXPECT_EQ(socket, 1001);
 }
 
 /**
@@ -373,7 +349,6 @@ HWTEST_F(DatabusSocketListenerTest, StartServerListenerTest001, TestSize.Level1)
     const std::string ownName = "ownName";
     NiceMock<DatabusSocketListenerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, getpid).WillOnce(Return(123456));
     EXPECT_CALL(mock, Socket).WillOnce(Return(-1));
 
     int32_t ret = listener.StartServerListener(ownName);
@@ -391,7 +366,6 @@ HWTEST_F(DatabusSocketListenerTest, StartServerListenerTest002, TestSize.Level1)
     const std::string ownName = "ownName";
     NiceMock<DatabusSocketListenerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, getpid).WillOnce(Return(123456));
     EXPECT_CALL(mock, Socket).WillOnce(Return(1001));
     EXPECT_CALL(mock, Listen).WillOnce(Return(SOFTBUS_TRANS_CREATE_SOCKET_SERVER_FAILED));
 
@@ -410,7 +384,6 @@ HWTEST_F(DatabusSocketListenerTest, StartServerListenerTest003, TestSize.Level1)
     const std::string ownName = "ownName";
     NiceMock<DatabusSocketListenerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, getpid).WillOnce(Return(123456));
     EXPECT_CALL(mock, Socket).WillOnce(Return(1001));
     EXPECT_CALL(mock, Listen).WillOnce(Return(SOFTBUS_OK));
 
