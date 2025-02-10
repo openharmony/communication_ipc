@@ -36,10 +36,6 @@ public:
         SPAWN_ACTIVE,
         PROCESS_PASSIVE,
         PROCESS_ACTIVE,
-#ifdef CONFIG_ACTV_BINDER
-        ACTV_PASSIVE,
-        ACTV_ACTIVE,
-#endif
     };
 
     static std::string MakeBasicThreadName(int proto, int threadIndex);
