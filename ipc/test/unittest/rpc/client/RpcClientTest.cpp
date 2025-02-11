@@ -144,9 +144,6 @@ HWTEST_F(RpcClientTest, RpcClientTest003, TestSize.Level1)
     EXPECT_EQ(ret, ERR_FAILED);
     RPC_LOG_ERROR("SendRequest OP_ADD failed, error = %d", ret);
     FreeBuffer((void *)ptr2);
-
-    sid.handle = oldHandle;
-    EXPECT_EQ(sid.handle, oldHandle);
 }
 
 /**
