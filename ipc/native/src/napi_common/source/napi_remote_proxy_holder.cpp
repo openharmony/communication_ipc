@@ -172,4 +172,4 @@ NAPIRemoteProxyHolder *NAPI_ohos_rpc_getRemoteProxyHolder(napi_env env, napi_val
     NAPI_ASSERT(env, proxyHolder != nullptr, "failed to get napi remote proxy holder");
     return proxyHolder;
 }
-} // namesapce OHOS
+} // namespace OHOS

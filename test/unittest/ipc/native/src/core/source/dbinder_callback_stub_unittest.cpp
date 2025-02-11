@@ -135,7 +135,6 @@ HWTEST_F(DBinderCallbackStubTest, OnRemoteRequestTest001, TestSize.Level1)
     EXPECT_EQ(ret, DBINDER_SERVICE_WRONG_SESSION);
 }
 
-
 /**
  * @tc.name: ProcessProtoTest001
  * @tc.desc: Verify the ProcessProto function

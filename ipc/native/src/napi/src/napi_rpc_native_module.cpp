@@ -44,4 +44,4 @@ EXTERN_C_END
  * Module register function
  */
 NAPI_MODULE(rpc, RpcExport)
-} // namesapce OHOS
+} // namespace OHOS
