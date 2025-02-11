@@ -1717,7 +1717,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable001, TestSize.Level1)
     int32_t socketId = 0;
     const char *data = nullptr;
     ssize_t len = 0;
-    testInvoker.OnMessageAvailable(socketId, data, len);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, data, len));
 }
 
 /**
@@ -1731,5 +1731,5 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable002, TestSize.Level1)
     int32_t socketId = 1;
     const char *data = new char();
     ssize_t len = 200;
-    testInvoker.OnMessageAvailable(socketId, data, len);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, data, len));
 }
