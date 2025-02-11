@@ -45,6 +45,7 @@ template("c_api_unittest") {
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$IPC_ROOT_PATH/interfaces/innerkits/c_api:ipc_capi",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
     if (defined(invoker.deps)) {
@@ -72,11 +73,17 @@ template("c_api_unittest") {
 }
 
 c_api_unittest("IPCInternalUtilsTest") {
-  sources = [ "ipc_internal_utils_unittest.cpp" ]
+  sources = [
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_internal_utils.cpp",
+    "ipc_internal_utils_unittest.cpp",
+  ]
 }
 
 c_api_unittest("IPCCskeletonTest") {
-  sources = [ "ipc_cskeleton_unittest.cpp" ]
+  sources = [
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_cskeleton.cpp",
+    "ipc_cskeleton_unittest.cpp",
+  ]
 }
 
 ###############################################################################

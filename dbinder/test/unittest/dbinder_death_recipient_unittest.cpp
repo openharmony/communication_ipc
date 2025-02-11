@@ -51,7 +51,7 @@ HWTEST_F(DbinderDeathRecipientUnitTest, OnRemoteDied001, TestSize.Level1)
 {
     DbinderDeathRecipient dbinderDeathRecipient;
     wptr<IRemoteObject> remote = nullptr;
-    dbinderDeathRecipient.OnRemoteDied(remote);
+    ASSERT_NO_FATAL_FAILURE(dbinderDeathRecipient.OnRemoteDied(remote));
 }
 
 /**
