@@ -246,7 +246,8 @@ HWTEST_F(IpcClientTest, IpcClientTest007, TestSize.Level2)
 
     clock_gettime(CLOCK_REALTIME, &start);
     for (int i = 0; i < PERFORMANCE_TEST_TIMES; i++) {
-        SendRequest(sidServer, SERVER_OP_ADD, &data2, &reply2, g_option, &ptr2);
+        int ret = SendRequest(sidServer, SERVER_OP_ADD, &data2, &reply2, g_option, &ptr2);
+        EXPECT_EQ(ret, ERR_NONE);
         ReadInt32(&reply2, &res);
         FreeBuffer((void *)ptr2);
     }
@@ -273,7 +274,8 @@ HWTEST_F(IpcClientTest, IpcClientTest008, TestSize.Level2)
 
     clock_gettime(CLOCK_REALTIME, &start);
     for (int i = 0; i < PERFORMANCE_TEST_TIMES; i++) {
-        SendRequest(sidServer, SERVER_OP_ADD, &data2, nullptr, option, nullptr);
+        int ret = SendRequest(sidServer, SERVER_OP_ADD, &data2, nullptr, option, nullptr);
+        EXPECT_EQ(ret, ERR_NONE);
     }
     clock_gettime(CLOCK_REALTIME, &end);
 

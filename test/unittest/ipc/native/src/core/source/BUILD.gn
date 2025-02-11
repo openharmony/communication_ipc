@@ -42,6 +42,8 @@ template("ipc_unittest") {
     deps = [
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
     defines = [
@@ -55,8 +57,10 @@ template("ipc_unittest") {
 
     external_deps = [
       "c_utils:utils",
+      "ffrt:libffrt",
       "googletest:gmock",
       "hilog:libhilog",
+      "hisysevent:libhisysevent",
       "hitrace:libhitracechain",
       "samgr:samgr_proxy",
     ]
