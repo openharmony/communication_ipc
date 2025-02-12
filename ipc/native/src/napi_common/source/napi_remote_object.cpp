@@ -1109,7 +1109,7 @@ static void AfterWorkCallback(SendRequestParam *param)
     } else {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGI(LOG_LABEL, "promise fullfilled time:%{public}" PRIu64, curTime);
+        ZLOGI(LOG_LABEL, "promise fulfilled time:%{public}" PRIu64, curTime);
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
         napi_value result = MakeSendRequestResult(param);
