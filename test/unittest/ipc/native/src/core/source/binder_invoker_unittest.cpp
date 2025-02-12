@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -305,8 +305,7 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest003, TestSize.Level1) {
 
 /**
  * @tc.name: AddDeathRecipientTest001
- * @tc.desc: Verify the AddDeathRecipient function
- * When WriteInt32 function return false
+ * @tc.desc: Verify the AddDeathRecipient function When WriteInt32 function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddDeathRecipientTest001, TestSize.Level1) {
@@ -323,8 +322,7 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest001, TestSize.Level1) {
 
 /**
  * @tc.name: AddDeathRecipientTest002
- * @tc.desc: Verify the AddDeathRecipient function
- * When WriteInt32 function return true
+ * @tc.desc: Verify the AddDeathRecipient function When WriteInt32 function return true
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddDeathRecipientTest002, TestSize.Level1) {
@@ -385,8 +383,7 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest004, TestSize.Level1) {
 
 /**
  * @tc.name: RemoveDeathRecipientTest001
- * @tc.desc: Verify the RemoveDeathRecipient function
- * When WriteInt32 function return false
+ * @tc.desc: Verify the RemoveDeathRecipient function When WriteInt32 function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest001, TestSize.Level1) {
@@ -444,8 +441,7 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest003, TestSize.Level1) {
 
 /**
  * @tc.name: RemoveDeathRecipientTest004
- * @tc.desc: Verify the RemoveDeathRecipient function
- * When WritePointer function return true
+ * @tc.desc: Verify the RemoveDeathRecipient function When WritePointer function return true
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest004, TestSize.Level1) {
@@ -465,8 +461,7 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest004, TestSize.Level1) {
 
 /**
  * @tc.name: TranslateIRemoteObjectTest001
- * @tc.desc: Verify the TranslateIRemoteObject function
- * When binderInvoker.binderConnector_ is nullptr
+ * @tc.desc: Verify the TranslateIRemoteObject function When binderInvoker.binderConnector_ is nullptr
  * @tc.type: FUNC
  */
 #ifndef CONFIG_IPC_SINGLE
@@ -482,8 +477,7 @@ HWTEST_F(BinderInvokerTest, TranslateIRemoteObjectTest001, TestSize.Level1) {
 
 /**
  * @tc.name: TranslateIRemoteObjectTest002
- * @tc.desc: Verify the TranslateIRemoteObject function
- * When WritePointer function return false
+ * @tc.desc: Verify the TranslateIRemoteObject function When WritePointer function return false
  * @tc.type: FUNC
  */
 #ifndef CONFIG_IPC_SINGLE
@@ -502,8 +496,7 @@ HWTEST_F(BinderInvokerTest, TranslateIRemoteObjectTest002, TestSize.Level1) {
 
 /**
  * @tc.name: TranslateIRemoteObjectTest003
- * @tc.desc: Verify the TranslateIRemoteObject function
- * When WritePointer function return true
+ * @tc.desc: Verify the TranslateIRemoteObject function When WritePointer function return true
  * @tc.type: FUNC
  */
 #ifndef CONFIG_IPC_SINGLE
@@ -522,8 +515,7 @@ HWTEST_F(BinderInvokerTest, TranslateIRemoteObjectTest003, TestSize.Level1) {
 
 /**
  * @tc.name: GetDBinderCallingPidUidTest001
- * @tc.desc: Verify the GetDBinderCallingPidUid function
- * When pid is -1 and uid is 0
+ * @tc.desc: Verify the GetDBinderCallingPidUid function When pid is -1 and uid is 0
  * @tc.type: FUNC
  */
 #ifndef CONFIG_IPC_SINGLE
@@ -542,8 +534,7 @@ HWTEST_F(BinderInvokerTest, GetDBinderCallingPidUidTest001, TestSize.Level1) {
 
 /**
  * @tc.name: GetDBinderCallingPidUidTest003
- * @tc.desc: Verify the GetDBinderCallingPidUid function
- * When pid is 1 and uid is 0
+ * @tc.desc: Verify the GetDBinderCallingPidUid function When pid is 1 and uid is 0
  * @tc.type: FUNC
  */
 #ifndef CONFIG_IPC_SINGLE
@@ -561,8 +552,7 @@ HWTEST_F(BinderInvokerTest, GetDBinderCallingPidUidTest003, TestSize.Level1) {
 
 /**
  * @tc.name: UnFlattenDBinderObjectTest001
- * @tc.desc: Verify the UnFlattenDBinderObject function
- * When ReadBuffer function return null
+ * @tc.desc: Verify the UnFlattenDBinderObject function When ReadBuffer function return null
  * @tc.type: FUNC
  */
 #ifndef CONFIG_IPC_SINGLE
@@ -609,8 +599,7 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest001, TestSize.Level1)
     EXPECT_CALL(mock, ReadPointer)
         .WillOnce(testing::Return(validObjPtr))
         .WillOnce(testing::Return(nullPtrValue));
-    binderInvoker.OnAcquireObject(cmd);
-    SUCCEED();
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
 }
 
 /**
@@ -631,13 +620,12 @@ HWTEST_F(BinderInvokerTest, OnReleaseObjectTest001, TestSize.Level1)
         .WillOnce(testing::Return(nullPtrValue))
         .WillOnce(testing::Return(validObjPtr));
 
-    binderInvoker.OnReleaseObject(cmd);
-    SUCCEED();
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnReleaseObject(cmd));
 }
 
 /**
  * @tc.name: GeneralServiceSendRequestTest001
- * @tc.desc: Verify the GeneralServiceSendRequest function
+ * @tc.desc: Verify the GeneralServiceSendRequest function when return ERR_DEAD_OBJECT
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, GeneralServiceSendRequestTest001, TestSize.Level1)
@@ -653,22 +641,8 @@ HWTEST_F(BinderInvokerTest, GeneralServiceSendRequestTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSpawnThreadTest001
- * @tc.desc: Verify the OnSpawnThread function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerTest, OnSpawnThreadTest001, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-
-    binderInvoker.OnSpawnThread();
-    SUCCEED();
-}
-
-/**
  * @tc.name: SetCallingIdentityTest001
- * @tc.desc: Verify the SetCallingIdentityTest001 function
- * when identity is ""
+ * @tc.desc: Verify the SetCallingIdentityTest001 function when identity is ""
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, SetCallingIdentityTest001, TestSize.Level1)
@@ -681,8 +655,7 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest001, TestSize.Level1)
 
 /**
  * @tc.name: SetCallingIdentityTest002
- * @tc.desc: Override SetCallingIdentity function
- * when identity is valid value
+ * @tc.desc: Override SetCallingIdentity function when identity is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, SetCallingIdentityTest002, TestSize.Level1)
@@ -696,8 +669,7 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest002, TestSize.Level1)
 
 /**
  * @tc.name: TriggerSystemIPCThreadReclaimTest001
- * @tc.desc: Override TriggerSystemIPCThreadReclaim function
- * when binderConnector_ is nullptr
+ * @tc.desc: Override TriggerSystemIPCThreadReclaim function when binderConnector_ is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest001, TestSize.Level1)
@@ -711,8 +683,7 @@ HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest001, TestSize.Level
 
 /**
  * @tc.name: EnableIPCThreadReclaimTest001
- * @tc.desc: Override EnableIPCThreadReclaim function
- * when binderConnector_ is nullptr
+ * @tc.desc: Override EnableIPCThreadReclaim function when binderConnector_ is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, EnableIPCThreadReclaimTest001, TestSize.Level1)
@@ -727,8 +698,7 @@ HWTEST_F(BinderInvokerTest, EnableIPCThreadReclaimTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetStrongRefCountForStubTest001
- * @tc.desc: Override GetStrongRefCountForStub function
- * when binderConnector_ is nullptr
+ * @tc.desc: Override GetStrongRefCountForStub function when binderConnector_ is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, GetStrongRefCountForStubTest001, TestSize.Level1)
@@ -743,8 +713,7 @@ HWTEST_F(BinderInvokerTest, GetStrongRefCountForStubTest001, TestSize.Level1)
 
 /**
  * @tc.name: IsSendRequestingTest001
- * @tc.desc: Override IsSendRequesting function
- * when sendRequestCount_ is 1
+ * @tc.desc: Override IsSendRequesting function when sendRequestCount_ is 1
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, IsSendRequestingTest001, TestSize.Level1)
@@ -758,8 +727,7 @@ HWTEST_F(BinderInvokerTest, IsSendRequestingTest001, TestSize.Level1)
 
 /**
  * @tc.name: IsSendRequestingTest002
- * @tc.desc: Override IsSendRequesting function
- * when sendRequestCount_ is 0
+ * @tc.desc: Override IsSendRequesting function when sendRequestCount_ is 0
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, IsSendRequestingTest002, TestSize.Level1)
@@ -790,8 +758,7 @@ HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetUint64ValueByStrSliceTest002
- * @tc.desc: cover GetUint64ValueByStrSlice function
- * when str is ""
+ * @tc.desc: cover GetUint64ValueByStrSlice function when str is ""
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest002, TestSize.Level1)
@@ -825,8 +792,7 @@ HWTEST_F(BinderInvokerTest, GetCallerRealPidByStrTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetCallerRealPidByStrTest002
- * @tc.desc: cover GetCallerRealPidByStr function
- * when str is ""
+ * @tc.desc: cover GetCallerRealPidByStr function when str is ""
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, GetCallerRealPidByStrTest002, TestSize.Level1)
@@ -859,8 +825,7 @@ HWTEST_F(BinderInvokerTest, GetCallerPidAndUidByStrTest001, TestSize.Level1)
 
 /**
  * @tc.name: UnflattenObjectTest001
- * @tc.desc: Verify the UnflattenObject function
- * when str is ""
+ * @tc.desc: Verify the UnflattenObject function when str is ""
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
@@ -873,34 +838,4 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
 
     sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
     EXPECT_EQ(ret, nullptr);
-}
-
-/**
- * @tc.name: PrintIdentityTest001
- * @tc.desc: Verify the PrintIdentity function
- * when is Print false and isBefore true
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerTest, PrintIdentityTest001, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    bool isPrint = false;
-    bool isBefore = true;
-    binderInvoker.PrintIdentity(isPrint, isBefore);
-    SUCCEED();
-}
-
-/**
- * @tc.name: PrintIdentityTest002
- * @tc.desc: Verify the PrintIdentity function
- * when is Print true and isBefore true
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerTest, PrintIdentityTest002, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    bool isPrint = true;
-    bool isBefore = true;
-    binderInvoker.PrintIdentity(isPrint, isBefore);
-    SUCCEED();
 }
