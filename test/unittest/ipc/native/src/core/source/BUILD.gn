@@ -82,11 +82,16 @@ ipc_unittest("DBinderCallbackStubTest") {
   sources = [ "dbinder_callback_stub_unittest.cpp" ]
 }
 
+ipc_unittest("DBinderSoftbusClientTest") {
+  sources = [ "dbinder_softbus_client_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
     ":DBinderCallbackStubTest",
+    ":DBinderSoftbusClientTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
   ]
