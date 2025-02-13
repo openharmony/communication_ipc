@@ -65,7 +65,7 @@ if (support_jsapi) {
     }
 
     if (resourceschedule_ffrt_support) {
-      external_deps += [ "faultloggerd::libbacktrace_local" ]
+      external_deps += [ "faultloggerd:libbacktrace_local" ]
       defines += [ "HIVIEWDFX_BACKTRACE_SUPPORT" ]
     }
 
