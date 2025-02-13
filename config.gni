@@ -18,9 +18,21 @@ declare_args() {
   ipc_feature_rpc_enabled = false
   ipc_feature_test_enabled = false
   ipc_feature_trace_enabled = false
+  resourceschedule_ffrt_support = false
+  hiviewdfx_backtrace_support  = false
 }
 
 if (defined(global_parts_info) &&
     defined(global_parts_info.security_access_token)) {
   ipc_feature_test_enabled = true
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_ffrt)) {
+  resourceschedule_ffrt_support = true
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.hiviewdfx_faultloggerd)) {
+  hiviewdfx_backtrace_support = true
 }
