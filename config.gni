@@ -19,7 +19,7 @@ declare_args() {
   ipc_feature_test_enabled = false
   ipc_feature_trace_enabled = false
   resourceschedule_ffrt_support = false
-  hiviewdfx_backtrace_support  = false
+  hiviewdfx_backtrace_support = false
 }
 
 if (defined(global_parts_info) &&
