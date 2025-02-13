@@ -18,8 +18,12 @@
 #include <uv.h>
 #include <sstream>
 #include <string_ex.h>
+#ifdef HIVIEWDFX_BACKTRACE_SUPPORT
 #include "backtrace_local.h"
+#endif
+#ifdef FFRT_SUPPORT
 #include "ffrt.h"
+#endif
 #include "ipc_debug.h"
 #include "ipc_thread_skeleton.h"
 #include "log_tags.h"
@@ -203,21 +207,33 @@ void NAPIRemoteObjectHolder::DetectCreatedInIPCThread()
 {
     if (IPCThreadSkeleton::GetThreadType() == ThreadType::IPC_THREAD && descriptor_.length() > 0 &&
         descriptor_.find(u"ServiceCallbackStubImpl") != std::string::npos) {
+#ifdef HIVIEWDFX_BACKTRACE_SUPPORT
         std::string backtrace;
         if (!HiviewDFX::GetBacktrace(backtrace, false)) {
             ZLOGW(LOG_LABEL, "GetBacktrace failed");
         } else {
             ZLOGW(LOG_LABEL, "GetBacktrace info:\n%{public}s", backtrace.c_str());
         }
+#else
+        ZLOGW(LOG_LABEL, "GetBacktrace not support");
+#endif
         uint64_t curTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
         std::ostringstream stream;
         stream << jsThreadId_;
         ZLOGW(LOG_LABEL, "jsThreadId_:%{public}s, NativeEngine GetSysTid: %{public}u, "
-            "ffrt id:%{public}" PRIu64 ", GetCurSysTid:%{public}u, time:%{public}" PRIu64,
+#ifdef FFRT_SUPPORT
+            "ffrt id:%{public}" PRIu64
+#else
+            "ffrt not support"
+#endif
+            ", GetCurSysTid:%{public}u, time:%{public}" PRIu64,
             stream.str().c_str(), (reinterpret_cast<NativeEngine *>(env_))->GetSysTid(),
-            ffrt_this_task_get_id(), NativeEngine::GetCurSysTid(), curTime);
+#ifdef FFRT_SUPPORT
+            ffrt_this_task_get_id(),
+#endif
+            NativeEngine::GetCurSysTid(), curTime);
     }
 }
 } // namespace OHOS
