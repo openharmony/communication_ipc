@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,27 +13,38 @@
  * limitations under the License.
  */
 
-#include "setipcproxylimit_fuzzer.h"
-#include "ipc_skeleton.h"
+#include "socket_fuzzer.h"
+#include "dbinder_softbus_client.h"
 #include "message_parcel.h"
-#include "securec.h"
 
 namespace OHOS {
-void SetIPCProxyLimitFuzzTest(const uint8_t *data, size_t size)
+void SocketFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return;
     }
 
-    OHOS::MessageParcel parcel;
+    MessageParcel parcel;
     parcel.WriteBuffer(data, size);
-    int ipcProxyLimitNum = parcel.ReadInt32();
 
-    IPCDfx::IPCProxyLimitCallback callback = [] (uint64_t num) {
-        (void)num;
+    size_t length = parcel.GetReadableBytes();
+    if (length == 0) {
+        return;
+    }
+
+    const char *bufData = reinterpret_cast<const char *>(parcel.ReadBuffer(length));
+    if (bufData == nullptr) {
+        return;
+    }
+    std::string ownName(bufData, length);
+    std::string pkgName(bufData, length);
+
+    SocketInfo serverSocketInfo = {
+        .name = const_cast<char*>(ownName.c_str()),
+        .pkgName = const_cast<char*>(pkgName.c_str()),
+        .dataType = TransDataType::DATA_TYPE_BYTES,
     };
-
-    IPCDfx::SetIPCProxyLimit(ipcProxyLimitNum, callback);
+    DBinderSoftbusClient::GetInstance().Socket(serverSocketInfo);
 }
 } // namespace OHOS
 
@@ -41,6 +52,6 @@ void SetIPCProxyLimitFuzzTest(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::SetIPCProxyLimitFuzzTest(data, size);
+    OHOS::SocketFuzzTest(data, size);
     return 0;
 }
