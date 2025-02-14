@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,27 +13,25 @@
  * limitations under the License.
  */
 
-#include "setipcproxylimit_fuzzer.h"
-#include "ipc_skeleton.h"
+#include "listen_fuzzer.h"
+#include "databus_socket_listener.h"
+#include "dbinder_softbus_client.h"
 #include "message_parcel.h"
-#include "securec.h"
 
 namespace OHOS {
-void SetIPCProxyLimitFuzzTest(const uint8_t *data, size_t size)
+void ListenFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return;
     }
 
-    OHOS::MessageParcel parcel;
+    MessageParcel parcel;
     parcel.WriteBuffer(data, size);
-    int ipcProxyLimitNum = parcel.ReadInt32();
 
-    IPCDfx::IPCProxyLimitCallback callback = [] (uint64_t num) {
-        (void)num;
-    };
+    int32_t socketId = parcel.ReadInt32();
+    ISocketListener serverListener{};
 
-    IPCDfx::SetIPCProxyLimit(ipcProxyLimitNum, callback);
+    DBinderSoftbusClient::GetInstance().Listen(socketId, QOS_TV, QOS_COUNT, &serverListener);
 }
 } // namespace OHOS
 
@@ -41,6 +39,6 @@ void SetIPCProxyLimitFuzzTest(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::SetIPCProxyLimitFuzzTest(data, size);
+    OHOS::ListenFuzzTest(data, size);
     return 0;
 }
