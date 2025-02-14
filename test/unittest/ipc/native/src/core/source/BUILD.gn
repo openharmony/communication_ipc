@@ -46,6 +46,11 @@ template("ipc_unittest") {
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
+    defines = [
+      "private = public",
+      "protected = public",
+    ]
+
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
@@ -94,6 +99,7 @@ ipc_unittest("DbinderDataBusInvokerTest") {
 group("unittest") {
   testonly = true
   deps = [
+    ":BinderInvokerTest",
     ":DBinderCallbackStubTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
