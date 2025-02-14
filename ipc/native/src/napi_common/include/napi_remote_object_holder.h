@@ -35,6 +35,7 @@ public:
     napi_ref GetJsObjectRef() const;
     napi_env GetJsObjectEnv() const;
     void CleanJsEnv();
+    void DetectCreatedInIPCThread();
     void Lock()
     {
         mutex_.lock();

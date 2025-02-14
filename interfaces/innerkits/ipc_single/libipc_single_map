@@ -161,6 +161,8 @@
             "OHOS::IPCThreadSkeleton::GetActiveInvoker()";
             /* used by audio_interrupt_unit_test.cpp */
             "OHOS::IPCThreadSkeleton::GetRemoteInvoker(int)";
+            /* used by foundation/communication/ipc/ipc/native/src/napi_common/source/napi_remote_object_holder.cpp */
+            "OHOS::IPCThreadSkeleton::GetThreadType()";
 
             "OHOS::PeerHolder::PeerHolder(OHOS::sptr<OHOS::IRemoteObject> const&)";
             "OHOS::PeerHolder::Remote()";
