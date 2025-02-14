@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../config.gni")
 
 if (support_jsapi) {
   config("napi_common_deps_config") {
@@ -56,6 +57,17 @@ if (support_jsapi) {
       "libuv:uv",
       "napi:ace_napi",
     ]
+
+    defines = []
+    if (resourceschedule_ffrt_support) {
+      external_deps += [ "ffrt:libffrt" ]
+      defines += [ "FFRT_SUPPORT" ]
+    }
+
+    if (resourceschedule_ffrt_support) {
+      external_deps += [ "faultloggerd:libbacktrace_local" ]
+      defines += [ "HIVIEWDFX_BACKTRACE_SUPPORT" ]
+    }
 
     install_images = [ system_base_dir ]
     subsystem_name = "communication"
