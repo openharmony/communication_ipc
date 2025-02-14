@@ -20,9 +20,12 @@ group("fuzztest") {
     "ipc/native/src/core/getlocalnodedeviceid_fuzzer:GetLocalNodeDeviceIdFuzzTest",
     "ipc/native/src/core/ipcfiledescriptormarshalling_fuzzer:IPCFileDescriptorMarshallingFuzzTest",
     "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
+    "ipc/native/src/core/listen_fuzzer:ListenFuzzTest",
     "ipc/native/src/core/removedeathrecipient_fuzzer:RemoveDeathRecipientFuzzTest",
     "ipc/native/src/core/sendrequest_fuzzer:SendRequestFuzzTest",
     "ipc/native/src/core/setcallingidentity_fuzzer:SetCallingIdentityFuzzTest",
+    "ipc/native/src/core/setipcproxylimit_fuzzer:SetIPCProxyLimitFuzzTest",
+    "ipc/native/src/core/socket_fuzzer:SocketFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
   ]
 }
