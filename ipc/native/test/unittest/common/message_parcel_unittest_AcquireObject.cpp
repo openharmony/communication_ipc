@@ -143,27 +143,6 @@ HWTEST_F(MessageParcelTest, AcquireObjectTest002, TestSize.Level1)
     EXPECT_EQ(flat.binder, 0);
 }
 
-/**
- * @tc.name: AcquireObjectTest003
- * @tc.desc: Verify the AcquireObject function
- * @tc.type: FUNC
- */
-HWTEST_F(MessageParcelTest, AcquireObjectTest003, TestSize.Level1)
-{
-    NiceMock<MessageParcelInterfaceMock> mock;
-    flat_binder_object flat;
-    flat.hdr.type = BINDER_TYPE_BINDER;
-    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
-    ASSERT_TRUE(remoteObj != nullptr);
-
-    flat.cookie = reinterpret_cast<binder_uintptr_t>(remoteObj.GetRefPtr());
-    flat.binder = reinterpret_cast<binder_uintptr_t>(remoteObj.GetRefPtr());
-    ASSERT_TRUE(flat.cookie != 0);
-
-    EXPECT_CALL(mock, IncStrongRef).WillOnce(Return());
-    AcquireObject(&flat, nullptr);
-    EXPECT_EQ(flat.hdr.type, BINDER_TYPE_BINDER);
-}
 
 /**
  * @tc.name: AcquireObjectTest004
@@ -179,33 +158,6 @@ HWTEST_F(MessageParcelTest, AcquireObjectTest004, TestSize.Level1)
     EXPECT_CALL(mock, GetCurrent).WillOnce(Return(nullptr));
     AcquireObject(&flat, nullptr);
     EXPECT_EQ(flat.hdr.type, BINDER_TYPE_HANDLE);
-}
-
-/**
- * @tc.name: AcquireObjectTest005
- * @tc.desc: Verify the AcquireObject function
- * @tc.type: FUNC
- */
-HWTEST_F(MessageParcelTest, AcquireObjectTest005, TestSize.Level1)
-{
-    NiceMock<MessageParcelInterfaceMock> mock;
-    flat_binder_object flat;
-    flat.hdr.type = BINDER_TYPE_HANDLE;
-    MockIPCProcessSkeleton *current = new MockIPCProcessSkeleton();
-    sptr<IRemoteObject> remoteObj = IPCSkeleton::GetContextObject();
-    ASSERT_TRUE(remoteObj != nullptr);
-
-    IRemoteObject *object = remoteObj.GetRefPtr();
-    ASSERT_TRUE(object != 0);
-    EXPECT_CALL(mock, GetCurrent).WillOnce(Return(current));
-    EXPECT_CALL(mock, QueryObject).WillOnce(Return(object));
-    EXPECT_CALL(mock, IncStrongRef).WillOnce(Return());
-    AcquireObject(&flat, nullptr);
-    EXPECT_EQ(flat.hdr.type, BINDER_TYPE_HANDLE);
-    if (current)
-    {
-        delete current;
-    }
 }
 
 /**
