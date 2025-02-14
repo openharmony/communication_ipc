@@ -22,7 +22,6 @@
 #include <securec.h>
 
 #define private public
-#include "log_tags.h"
 #include "ipc_cskeleton.h"
 #include "ipc_cparcel.h"
 #include "ipc_debug.h"

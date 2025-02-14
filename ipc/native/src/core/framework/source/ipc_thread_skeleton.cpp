@@ -313,11 +313,22 @@ bool IPCThreadSkeleton::SetThreadType(ThreadType type)
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "IPCThreadSkeleton current get failed");
         return false;
     }
 
     current->threadType_ = type;
     return true;
+}
+
+ThreadType IPCThreadSkeleton::GetThreadType()
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "IPCThreadSkeleton current get failed");
+        return ThreadType::NORMAL_THREAD;
+    }
+    return current->threadType_;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
