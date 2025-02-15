@@ -14,10 +14,7 @@
 import("//build/ohos.gni")
 
 config("libipc_c_private_config") {
-  cflags_cc = [
-    "-DCONFIG_IPC_SINGLE",
-    "-O2",
-  ]
+  cflags_cc = [ "-O2" ]
 }
 
 ohos_static_library("ipc_rust_test_c") {

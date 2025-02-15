@@ -773,7 +773,7 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     size_t byteLength = 0;
     napi_status isGet = napi_get_arraybuffer_info(env, argv[ARGV_INDEX_0], (void **)&data, &byteLength);
     if (isGet != napi_ok) {
-        ZLOGE(LOG_LABEL, "arraybuffery get info failed");
+        ZLOGE(LOG_LABEL, "arraybuffer get info failed");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 

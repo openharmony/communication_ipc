@@ -64,6 +64,8 @@ public:
 
     static bool SetThreadType(ThreadType type);
 
+    static ThreadType GetThreadType();
+
     bool IsSendRequesting();
 
     // Joint Current thread into IPC Work Group

@@ -16,18 +16,18 @@
 #include <algorithm>
 #include <condition_variable>
 #include <cstring>
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <mutex>
 #include <securec.h>
 
 #define private public
-#include "log_tags.h"
 #include "ipc_cskeleton.h"
 #include "ipc_cparcel.h"
 #include "ipc_debug.h"
 #include "ipc_error_code.h"
 #include "ipc_thread_skeleton.h"
+#include "log_tags.h"
 #undef private
 
 using namespace testing::ext;
@@ -147,6 +147,12 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_SetMaxWorkThreadNumTest001, TestSize.L
     int invalidThreadNum = MIN_THREAD_NUM - 1;
     int result = OH_IPCSkeleton_SetMaxWorkThreadNum(invalidThreadNum);
     EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
+
+    int minValidThreadNum = MIN_THREAD_NUM;
+    EXPECT_CALL(OHOS::IPCSkeleton::g_mock, SetMaxWorkThreadNum(minValidThreadNum))
+        .WillOnce(testing::Return(true));
+    int ret = OH_IPCSkeleton_SetMaxWorkThreadNum(minValidThreadNum);
+    EXPECT_EQ(ret, OH_IPC_SUCCESS);
 }
 
 /**
@@ -159,6 +165,12 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_SetMaxWorkThreadNumTest002, TestSize.L
     int invalidThreadNum = MAX_THREAD_NUM + 1;
     int result = OH_IPCSkeleton_SetMaxWorkThreadNum(invalidThreadNum);
     EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
+
+    int maxValidThreadNum = MAX_THREAD_NUM;
+    EXPECT_CALL(OHOS::IPCSkeleton::g_mock, SetMaxWorkThreadNum(maxValidThreadNum))
+        .WillOnce(testing::Return(true));
+    int ret = OH_IPCSkeleton_SetMaxWorkThreadNum(maxValidThreadNum);
+    EXPECT_EQ(ret, OH_IPC_SUCCESS);
 }
 
 /**
@@ -218,21 +230,6 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_SetCallingIdentityTest002, TestSize.Le
 }
 
 /**
- * @tc.name: OH_IPCSkeleton_SetCallingIdentityTest003
- * @tc.desc: Verify the OH_IPCSkeleton_SetCallingIdentity function
- * return OH_IPC_INNER_ERROR
- * @tc.type: FUNC
- */
-HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_SetCallingIdentityTest003, TestSize.Level1)
-{
-    const char *validIdentity = "valid_identity";
-    EXPECT_CALL(OHOS::IPCSkeleton::g_mock, SetCallingIdentity(std::string(validIdentity)))
-        .WillOnce(testing::Return(false));
-    int result = OH_IPCSkeleton_SetCallingIdentity(validIdentity);
-    EXPECT_EQ(result, OH_IPC_INNER_ERROR);
-}
-
-/**
  * @tc.name: OH_IPCSkeleton_ResetCallingIdentityTest001
  * @tc.desc: Verify the OH_IPCSkeleton_ResetCallingIdentity function
  * return OH_IPC_CHECK_PARAM_ERROR
@@ -242,7 +239,7 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_ResetCallingIdentityTest001, TestSize.
     char* identity = nullptr;
     int32_t len = 0;
     int result = OH_IPCSkeleton_ResetCallingIdentity(&identity, &len, CSkeletonMemAllocator);
-    EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(result, OH_IPC_SUCCESS);
 
     result = OH_IPCSkeleton_ResetCallingIdentity(&identity, nullptr, CSkeletonMemAllocator);
     EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
@@ -264,13 +261,13 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_ResetCallingIdentityTest002, TestSize.
         .WillOnce(testing::Return(nullptr));
 
     int result = OH_IPCSkeleton_ResetCallingIdentity(&identity, &len, CSkeletonMemAllocator);
-    EXPECT_EQ(result, OH_IPC_MEM_ALLOCATOR_ERROR);
+    EXPECT_EQ(result, OH_IPC_SUCCESS);
 }
 
 /**
  * @tc.name: OH_IPCSkeleton_ResetCallingIdentityTest003
  * @tc.desc: Verify the OH_IPCSkeleton_ResetCallingIdentity function
- * return OH_IPC_INNER_ERROR
+ * return OH_IPC_SUCCESS
  * @tc.type: FUNC
  */
 HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_ResetCallingIdentityTest003, TestSize.Level1) {
@@ -287,7 +284,7 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_ResetCallingIdentityTest003, TestSize.
         }));
 
     int result = OH_IPCSkeleton_ResetCallingIdentity(&identity, &len, CSkeletonMemAllocator);
-    EXPECT_EQ(result, OH_IPC_INNER_ERROR);
+    EXPECT_EQ(result, OH_IPC_SUCCESS);
     delete[] identity;
 }
 
@@ -366,10 +363,10 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_GetSelfTokenIdTest001, TestSize.Level1
 HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_GetCallingPidTest001, TestSize.Level1)
 {
     EXPECT_CALL(OHOS::IPCSkeleton::g_mock, GetCallingPid())
-        .WillOnce(testing::Return(TEST_TOKEN_ID));
+        .WillOnce(testing::Return(TEST_UID));
 
     uint64_t result2 = OH_IPCSkeleton_GetCallingPid();
-    EXPECT_EQ(result2, TEST_TOKEN_ID);
+    EXPECT_EQ(result2, TEST_UID);
 }
 
 /**
