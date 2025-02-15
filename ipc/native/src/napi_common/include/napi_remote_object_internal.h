@@ -51,10 +51,10 @@ struct OperateJsRefParam {
     ThreadLockInfo *lockInfo;
 };
 
-class NapiScopeHandler {
+class NapiScope {
 public:
-    NapiScopeHandler(napi_env env);
-    ~NapiScopeHandler();
+    NapiScope(napi_env env);
+    ~NapiScope();
 
     bool IsValid();
 private:

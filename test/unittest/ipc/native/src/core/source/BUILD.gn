@@ -46,6 +46,11 @@ template("ipc_unittest") {
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
+    defines = [
+      "private = public",
+      "protected = public",
+    ]
+
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
@@ -86,10 +91,15 @@ ipc_unittest("DBinderSoftbusClientTest") {
   sources = [ "dbinder_softbus_client_unittest.cpp" ]
 }
 
+ipc_unittest("BinderInvokerTest") {
+  sources = [ "binder_invoker_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
+    ":BinderInvokerTest",
     ":DBinderCallbackStubTest",
     ":DBinderSoftbusClientTest",
     ":IPCObjectProxyTest",

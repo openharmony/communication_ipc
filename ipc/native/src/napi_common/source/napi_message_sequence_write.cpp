@@ -1013,7 +1013,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelable(napi_env env, napi_callback_
     napi_is_exception_pending(env, &isPendingException);
     if (isPendingException) {
         napi_value lastException = nullptr;
-        ZLOGE(LOG_LABEL, "call mashalling failed");
+        ZLOGE(LOG_LABEL, "call marshalling failed");
         napi_get_and_clear_last_exception(env, &lastException);
         napiSequence->nativeParcel_->RewindWrite(pos);
         return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
@@ -1022,7 +1022,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelable(napi_env env, napi_callback_
     if (callResult != nullptr && valueType != napi_undefined) {
         return callResult;
     }
-    ZLOGE(LOG_LABEL, "call mashalling failed");
+    ZLOGE(LOG_LABEL, "call marshalling failed");
     napiSequence->nativeParcel_->RewindWrite(pos);
     return napiErr.ThrowError(env, errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
 }
@@ -1095,7 +1095,7 @@ napi_value NAPI_MessageSequence::JS_writeParcelableArray(napi_env env, napi_call
         }
         napi_value callResult = JS_writeParcelableArrayCallJsFunc(env, element, thisVar);
         if (callResult == nullptr) {
-            ZLOGE(LOG_LABEL, "call mashalling failed, element index:%{public}zu", i);
+            ZLOGE(LOG_LABEL, "call marshalling failed, element index:%{public}zu", i);
             napiSequence->nativeParcel_->RewindWrite(pos);
             return callResult;
         }
@@ -1807,7 +1807,7 @@ napi_value NAPI_MessageSequence::JS_WriteRawDataBuffer(napi_env env, napi_callba
     size_t byteLength = 0;
     napi_status isGet = napi_get_arraybuffer_info(env, argv[ARGV_INDEX_0], (void **)&data, &byteLength);
     if (isGet != napi_ok) {
-        ZLOGE(LOG_LABEL, "arraybuffery get info failed");
+        ZLOGE(LOG_LABEL, "arraybuffer get info failed");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
