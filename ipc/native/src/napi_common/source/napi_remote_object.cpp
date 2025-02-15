@@ -365,8 +365,8 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
 
     ZLOGI(LOG_LABEL, "enter thread pool desc:%{public}s, time:%{public}" PRIu64, desc.c_str(), curTime);
 
-    NapiScopeHandler scopeHandler(param->env);
-    if (!scopeHandler.IsValid()) {
+    NapiScope napiScope(param->env);
+    if (!napiScope.IsValid()) {
         return;
     }
 
@@ -573,7 +573,7 @@ napi_value RemoteObject_JS_Constructor(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-NapiScopeHandler::NapiScopeHandler(napi_env env) : env_(env)
+NapiScope::NapiScope(napi_env env) : env_(env)
 {
     napi_status status = napi_open_handle_scope(env_, &scope_);
     if (status != napi_ok) {
@@ -584,7 +584,7 @@ NapiScopeHandler::NapiScopeHandler(napi_env env) : env_(env)
     }
 }
 
-NapiScopeHandler::~NapiScopeHandler()
+NapiScope::~NapiScope()
 {
     if (isValid_) {
         napi_status status = napi_close_handle_scope(env_, scope_);
@@ -594,7 +594,7 @@ NapiScopeHandler::~NapiScopeHandler()
     }
 }
 
-bool NapiScopeHandler::IsValid()
+bool NapiScope::IsValid()
 {
     return isValid_;
 }
@@ -1109,7 +1109,7 @@ static void AfterWorkCallback(SendRequestParam *param)
     } else {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGI(LOG_LABEL, "promise fullfilled time:%{public}" PRIu64, curTime);
+        ZLOGI(LOG_LABEL, "promise fulfilled time:%{public}" PRIu64, curTime);
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
         napi_value result = MakeSendRequestResult(param);
