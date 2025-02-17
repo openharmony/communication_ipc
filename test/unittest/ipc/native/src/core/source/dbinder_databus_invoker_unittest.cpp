@@ -57,7 +57,7 @@ public:
     MOCK_CONST_METHOD0(GetSendBufferWriteCursor, ssize_t());
     MOCK_CONST_METHOD0(GetSendBufferReadCursor, ssize_t());
 };
-} // namespace OHOS
+} //namespace OHOS
 
 class DbinderDataBusInvokerTest : public testing::Test {
 public:
@@ -91,7 +91,7 @@ void DbinderDataBusInvokerTest::TearDown()
 HWTEST_F(DbinderDataBusInvokerTest, AcquireHandle001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
-    int32_t handle = 0;
+    int32_t handle = TEST_HANDLE_INVALID;
     bool res = testInvoker.AcquireHandle(handle);
     EXPECT_TRUE(res);
 }
@@ -251,8 +251,8 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy001, TestSize.Level1)
 
 /**
  * @tc.name: GetSessionForProxy002
- * @tc.desc: Verify the GetSessionForProxy function when InvokeListenThread function
- * when InvokeListenThread function return 1
+ * @tc.desc: Verify the GetSessionForProxy function
+ * when InvokeListenThread function return 0
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy002, TestSize.Level1)
