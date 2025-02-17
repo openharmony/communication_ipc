@@ -37,11 +37,11 @@ if (ohos_kernel_type == "linux") {
     include_dirs = [
       "$DBINDER_ROOT/include",
       "$DBINDER_ROOT/ipc_adapter/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/ipc/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/rpc/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/rpc/ipc_adapter/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
+      "$IPC_CORE_ROOT/c/ipc/include",
+      "$IPC_CORE_ROOT/c/rpc/include",
+      "$IPC_CORE_ROOT/c/rpc/ipc_adapter/include",
+      "$IPC_CORE_ROOT/c/rpc/trans_adapter/include",
+      "$IPC_CORE_ROOT/c/manager/include",
       "$SUBSYSTEM_DIR/utils/include",
       "//commonlibrary/utils_lite/include",
     ]
