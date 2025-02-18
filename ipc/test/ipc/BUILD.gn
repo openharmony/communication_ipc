@@ -18,5 +18,6 @@ lite_component("ipc_test") {
   features = [
     "client:ipc_test_client",
     "server:ipc_test_server",
+    "samgr:samgr",
   ]
 }
