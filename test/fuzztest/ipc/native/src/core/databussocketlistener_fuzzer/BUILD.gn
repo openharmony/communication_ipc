@@ -16,46 +16,23 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IPCProcessSkeletonFuzzTest") {
+ohos_fuzztest("DataBusSocketListenerFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../ipcprocessskeleton_fuzzer"
-  include_dirs = [
-    "../../../../src/core/dbinder/include",
-    "../../../../src/core/framework/include",
-    "../../../../src/core/invoker/include",
-    "../../../../c/rpc/include",
-    "../../../../../../utils/include",
-    "../include",
-  ]
+  fuzz_config_file = "../databussocketlistener_fuzzer"
+
+  include_dirs = [ "../../../../../../../utils/include" ]
   cflags = [
-    "-g",
-    "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "ipcprocessskeleton_fuzzer.cpp" ]
+  sources = [ "databussocketlistener_fuzzer.cpp" ]
 
-  deps = [
-    "../../../../../../interfaces/innerkits/libdbinder:libdbinder",
-    "../../../../../../test:ipc_single_test_static",
-  ]
+  deps = [ "../../../../../../../test:ipc_single_test_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
   ]
 }
-
-###############################################################################
-group("fuzztest") {
-  testonly = true
-  deps = []
-  deps += [
-    # deps file
-    ":IPCProcessSkeletonFuzzTest",
-  ]
-}
-
-###############################################################################
-
