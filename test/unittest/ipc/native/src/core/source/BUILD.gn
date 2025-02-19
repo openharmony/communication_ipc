@@ -95,6 +95,10 @@ ipc_unittest("DbinderDataBusInvokerTest") {
   sources = [ "dbinder_databus_invoker_unittest.cpp" ]
 }
 
+ipc_unittest("IPCSkeletonTest") {
+  sources = [ "ipc_skeleton_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -104,6 +108,7 @@ group("unittest") {
     ":DbinderDataBusInvokerTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
+    ":IPCSkeletonTest",
   ]
 }
 ###############################################################################
