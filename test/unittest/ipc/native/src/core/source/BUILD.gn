@@ -99,6 +99,10 @@ ipc_unittest("IPCSkeletonTest") {
   sources = [ "ipc_skeleton_unittest.cpp" ]
 }
 
+ipc_unittest("ProcessSkeletonTest") {
+  sources = [ "process_skeleton_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -109,6 +113,7 @@ group("unittest") {
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IPCSkeletonTest",
+    ":ProcessSkeletonTest",
   ]
 }
 ###############################################################################
