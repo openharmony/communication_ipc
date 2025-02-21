@@ -37,8 +37,7 @@ const std::string TEST_DEVICE_ID = "test_deviceID";
 static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib/platformsdk/libsoftbus_client.z.so";
 }
 
-class DBinderSoftbusClientTest : public ::testing::Test
-{
+class DBinderSoftbusClientTest : public ::testing::Test {
     public:
         DBinderSoftbusClient* client = nullptr;
         static void SetUpTestCase(void);
@@ -65,7 +64,7 @@ void DBinderSoftbusClientTest::TearDown()
 
 /**
  * @tc.name: OpenSoftbusClientSoTest001
- * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is true
+ * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is true and soHandle_ is not nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest001, TestSize.Level1) {
@@ -78,7 +77,7 @@ HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest001, TestSize.Level1) 
 
 /**
  * @tc.name: OpenSoftbusClientSoTest002
- * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is false
+ * @tc.desc: Verify the OpenSoftbusClientSo function when exitFlag_ is false
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest002, TestSize.Level1) {
@@ -86,6 +85,18 @@ HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest002, TestSize.Level1) 
     client.exitFlag_ = true;
 
     EXPECT_FALSE(client.OpenSoftbusClientSo());
+}
+
+/**
+ * @tc.name: OpenSoftbusClientSoTest003
+ * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is true and soHandle_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest003, TestSize.Level1) {
+    DBinderSoftbusClient client;
+    client.isLoaded_ = true;
+
+    EXPECT_TRUE(client.OpenSoftbusClientSo());
 }
 
 /**

@@ -1,0 +1,147 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../config.gni")
+
+SUBSYSTEM_DIR = "../"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
+
+config("libipc_common_static_private_config") {
+  cflags_cc = [ "-O2" ]
+}
+
+config("libipc_single_static_private_config") {
+  cflags_cc = [ "-O2" ]
+}
+
+config("ipc_single_static_config") {
+  include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
+  if (current_os == "ohos") {
+    defines = [ "OHOS_PLATFORM" ]
+  }
+}
+
+ohos_static_library("ipc_common_test_static") {
+  sanitize = {
+    integer_overflow = true
+  }
+  branch_protector_ret = "pac_ret"
+  include_dirs = [
+    "$IPC_CORE_ROOT/src/core/dbinder/include",
+    "$IPC_CORE_ROOT/src/core/framework/include",
+    "$IPC_CORE_ROOT/src/core/invoker/include",
+    "$SUBSYSTEM_DIR/utils/include",
+    "include",
+  ]
+
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics_impl.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/binder_connector.cpp",
+  ]
+
+  configs = [
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    ":libipc_common_static_private_config",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+  ]
+
+  defines = [ "FFRT_IPC_ENABLE" ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
+
+ohos_static_library("ipc_single_test_static") {
+  sanitize = {
+    integer_overflow = true
+  }
+
+  branch_protector_ret = "pac_ret"
+  include_dirs = [
+    "$IPC_CORE_ROOT/c/adapter/access_token/include",
+    "$IPC_CORE_ROOT/c/rpc/include",
+    "$SUBSYSTEM_DIR/utils/include",
+  ]
+
+  sources = [
+    "$IPC_CORE_ROOT/c/adapter/access_token/src/access_token_adapter.c",
+    "$IPC_CORE_ROOT/c/rpc/src/rpc_feature_set.c",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/databus_socket_listener.cpp",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_callback_stub.cpp",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_databus_invoker.cpp",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_session_object.cpp",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_softbus_client.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/binder_debug.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/buffer_object.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/comm_auth_info.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_file_descriptor.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_object_proxy.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_object_stub.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_process_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_thread_pool.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_thread_skeleton.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_workthread.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/iremote_broker.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/iremote_object.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/message_option.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/message_parcel.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/peer_holder.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/stub_refcount_object.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/binder_invoker.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/invoker_factory.cpp",
+    "$IPC_CORE_ROOT/src/core/invoker/source/invoker_rawdata.cpp",
+  ]
+
+  configs = [
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    ":libipc_single_static_private_config",
+  ]
+  public_configs = [
+    "$SUBSYSTEM_DIR/config:dsoftbus_header_deps_config",
+    "$SUBSYSTEM_DIR/config:ipc_util_config",
+    ":ipc_single_static_config",
+  ]
+
+  deps = [ ":ipc_common_test_static" ]
+  external_deps = [
+    "c_utils:utils",
+    "faultloggerd:libbacktrace_local",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:libhitracechain",
+    "selinux:libselinux",
+  ]
+  defines = [ "FFRT_IPC_ENABLE" ]
+  if (build_selinux) {
+    defines += [ "WITH_SELINUX" ]
+  }
+  if (ipc_feature_trace_enabled) {
+    defines += [ "ENABLE_IPC_TRACE" ]
+    sources += [ "$IPC_CORE_ROOT/src/core/framework/source/ipc_trace.cpp" ]
+  }
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
