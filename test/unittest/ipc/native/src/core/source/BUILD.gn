@@ -89,7 +89,6 @@ ipc_unittest("DBinderCallbackStubTest") {
 
 ipc_unittest("DBinderSoftbusClientTest") {
   sources = [ "dbinder_softbus_client_unittest.cpp" ]
-  
 }
 
 ipc_unittest("BinderInvokerTest") {

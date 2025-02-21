@@ -12,9 +12,8 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../../../../config.gni")
 
-IPC_ROOT_PATH = "//foundation/communication/ipc"
-IPC_UNITTEST_ROOT_PATH = "$IPC_ROOT_PATH/test/unittest"
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
 
