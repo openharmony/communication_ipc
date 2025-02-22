@@ -21,8 +21,6 @@
 
 #include "dbinder_softbus_client.h"
 
-static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib/platformsdk/libsoftbus_client.z.so";
-
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
@@ -33,13 +31,13 @@ constexpr int32_t TEST_UID = 1000;
 constexpr int32_t TEST_SOCKET_ID = 1;
 constexpr uint32_t TEST_LEN = 10;
 constexpr uint32_t TEST_QOS_COUNT = 1;
-constexpr std::string TEST_SOCKET_NAME = "test_socket";
-constexpr std::string TEST_PKG_NAME = "test_package";
-constexpr std::string TEST_DEVICE_ID = "test_deviceID";
+const std::string TEST_SOCKET_NAME = "test_socket";
+const std::string TEST_PKG_NAME = "test_package";
+const std::string TEST_DEVICE_ID = "test_deviceID";
+static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib/platformsdk/libsoftbus_client.z.so";
 }
 
-class DBinderSoftbusClientTest : public ::testing::Test
-{
+class DBinderSoftbusClientTest : public ::testing::Test {
     public:
         DBinderSoftbusClient* client = nullptr;
         static void SetUpTestCase(void);
@@ -66,7 +64,7 @@ void DBinderSoftbusClientTest::TearDown()
 
 /**
  * @tc.name: OpenSoftbusClientSoTest001
- * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is true
+ * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is true and soHandle_ is not nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest001, TestSize.Level1) {
@@ -79,7 +77,7 @@ HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest001, TestSize.Level1) 
 
 /**
  * @tc.name: OpenSoftbusClientSoTest002
- * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is false
+ * @tc.desc: Verify the OpenSoftbusClientSo function when exitFlag_ is false
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest002, TestSize.Level1) {
@@ -90,9 +88,20 @@ HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest002, TestSize.Level1) 
 }
 
 /**
+ * @tc.name: OpenSoftbusClientSoTest003
+ * @tc.desc: Verify the OpenSoftbusClientSo function when isLoaded_ is true and soHandle_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSoftbusClientTest, OpenSoftbusClientSoTest003, TestSize.Level1) {
+    DBinderSoftbusClient client;
+    client.isLoaded_ = true;
+
+    EXPECT_TRUE(client.OpenSoftbusClientSo());
+}
+
+/**
  * @tc.name: DBinderGrantPermissionTest001
- * @tc.desc: Verify the DBinderGrantPermission function
- * when grantPermissionFunc_ is nullptr
+ * @tc.desc: Verify the DBinderGrantPermission function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, DBinderGrantPermissionTest001, TestSize.Level1) {
@@ -107,8 +116,7 @@ HWTEST_F(DBinderSoftbusClientTest, DBinderGrantPermissionTest001, TestSize.Level
 
 /**
  * @tc.name: DBinderGrantPermissionTest002
- * @tc.desc: Verify the DBinderGrantPermission function
- * when grantPermissionFunc_ is valid value
+ * @tc.desc: Verify the DBinderGrantPermission function when grantPermissionFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, DBinderGrantPermissionTest002, TestSize.Level1) {
@@ -119,12 +127,14 @@ HWTEST_F(DBinderSoftbusClientTest, DBinderGrantPermissionTest002, TestSize.Level
     client.grantPermissionFunc_ = [](int32_t, int32_t, const char*) { return 0; };
     int32_t result = client.DBinderGrantPermission(uid, pid, socketName);
     EXPECT_TRUE(result == SOFTBUS_CLIENT_SUCCESS);
+    client.removePermissionFunc_ = [](const char*) { return 0; };
+    result = client.DBinderRemovePermission(socketName);
+    EXPECT_TRUE(result == SOFTBUS_CLIENT_SUCCESS);
 }
 
 /**
  * @tc.name: DBinderRemovePermissionTest001
- * @tc.desc: Verify the DBinderRemovePermission function
- * when removePermissionFunc_ is nullptr
+ * @tc.desc: Verify the DBinderRemovePermission function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, DBinderRemovePermissionTest001, TestSize.Level1) {
@@ -137,8 +147,7 @@ HWTEST_F(DBinderSoftbusClientTest, DBinderRemovePermissionTest001, TestSize.Leve
 
 /**
  * @tc.name: DBinderRemovePermissionTest002
- * @tc.desc: Verify the DBinderRemovePermission function
- * when removePermissionFunc_ is valid value
+ * @tc.desc: Verify the DBinderRemovePermission function when removePermissionFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, DBinderRemovePermissionTest002, TestSize.Level1) {
@@ -151,8 +160,7 @@ HWTEST_F(DBinderSoftbusClientTest, DBinderRemovePermissionTest002, TestSize.Leve
 
 /**
  * @tc.name: GetLocalNodeDeviceIdTest001
- * @tc.desc: Verify the GetLocalNodeDeviceId function
- * when getLocalNodeDeviceInfoFunc_ is nullptr
+ * @tc.desc: Verify the GetLocalNodeDeviceId function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, GetLocalNodeDeviceIdTest001, TestSize.Level1) {
@@ -166,8 +174,7 @@ HWTEST_F(DBinderSoftbusClientTest, GetLocalNodeDeviceIdTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetLocalNodeDeviceIdTest002
- * @tc.desc: Verify the GetLocalNodeDeviceId function
- * when getLocalNodeDeviceInfoFunc_ is valid value
+ * @tc.desc: Verify the GetLocalNodeDeviceId function when getLocalNodeDeviceInfoFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, GetLocalNodeDeviceIdTest002, TestSize.Level1) {
@@ -181,8 +188,7 @@ HWTEST_F(DBinderSoftbusClientTest, GetLocalNodeDeviceIdTest002, TestSize.Level1)
 
 /**
  * @tc.name: SocketTest001
- * @tc.desc: Verify the Socket function
- * when SocketFunc is nullptr
+ * @tc.desc: Verify the Socket function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, SocketTest001, TestSize.Level1) {
@@ -195,8 +201,7 @@ HWTEST_F(DBinderSoftbusClientTest, SocketTest001, TestSize.Level1) {
 
 /**
  * @tc.name: SocketTest002
- * @tc.desc: Verify the Socket function
- * when SocketFunc is valid value
+ * @tc.desc: Verify the Socket function when SocketFunc is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, SocketTest002, TestSize.Level1) {
@@ -209,8 +214,7 @@ HWTEST_F(DBinderSoftbusClientTest, SocketTest002, TestSize.Level1) {
 
 /**
  * @tc.name: ListenTest001
- * @tc.desc: Verify the Listen function
- * when listenFunc_ is nullptr
+ * @tc.desc: Verify the Listen function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, ListenTest001, TestSize.Level1) {
@@ -226,8 +230,7 @@ HWTEST_F(DBinderSoftbusClientTest, ListenTest001, TestSize.Level1) {
 
 /**
  * @tc.name: ListenTest002
- * @tc.desc: Verify the Listen function
- * when listenFunc_ is valid value
+ * @tc.desc: Verify the Listen function when listenFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, ListenTest002, TestSize.Level1) {
@@ -243,8 +246,7 @@ HWTEST_F(DBinderSoftbusClientTest, ListenTest002, TestSize.Level1) {
 
 /**
  * @tc.name: BindTest001
- * @tc.desc: Verify the Bind function
- * when bindFunc_ is nullptr
+ * @tc.desc: Verify the Bind function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, BindTest001, TestSize.Level1) {
@@ -260,8 +262,7 @@ HWTEST_F(DBinderSoftbusClientTest, BindTest001, TestSize.Level1) {
 
 /**
  * @tc.name: BindTest002
- * @tc.desc: Verify the Bind function
- * when bindFunc_ is valid value
+ * @tc.desc: Verify the Bind function when bindFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, BindTest002, TestSize.Level1) {
@@ -277,8 +278,7 @@ HWTEST_F(DBinderSoftbusClientTest, BindTest002, TestSize.Level1) {
 
 /**
  * @tc.name: SendBytesTest001
- * @tc.desc: Verify the SendBytes function
- * when sendBytesFunc_ is nullptr
+ * @tc.desc: Verify the SendBytes function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, SendBytesTest001, TestSize.Level1) {
@@ -293,8 +293,7 @@ HWTEST_F(DBinderSoftbusClientTest, SendBytesTest001, TestSize.Level1) {
 
 /**
  * @tc.name: SendBytesTest002
- * @tc.desc: Verify the SendBytes function
- * when sendBytesFunc_ is valid value
+ * @tc.desc: Verify the SendBytes function when sendBytesFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, SendBytesTest002, TestSize.Level1) {
@@ -309,8 +308,7 @@ HWTEST_F(DBinderSoftbusClientTest, SendBytesTest002, TestSize.Level1) {
 
 /**
  * @tc.name: SendMessageTest001
- * @tc.desc: Verify the SendMessage function
- * when sendMessageFunc_ is nullptr
+ * @tc.desc: Verify the SendMessage function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, SendMessageTest001, TestSize.Level1) {
@@ -325,8 +323,7 @@ HWTEST_F(DBinderSoftbusClientTest, SendMessageTest001, TestSize.Level1) {
 
 /**
  * @tc.name: SendMessageTest002
- * @tc.desc: Verify the SendMessage function
- * when sendMessageFunc_ is valid value
+ * @tc.desc: Verify the SendMessage function when sendMessageFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, SendMessageTest002, TestSize.Level1) {
@@ -341,22 +338,19 @@ HWTEST_F(DBinderSoftbusClientTest, SendMessageTest002, TestSize.Level1) {
 
 /**
  * @tc.name: ShutdownTest001
- * @tc.desc: Verify the Shutdown function
- * when shutdownFunc_ is nullptr
+ * @tc.desc: Verify the Shutdown function when exitFlag_ is true
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, ShutdownTest001, TestSize.Level1) {
     DBinderSoftbusClient client;
     client.exitFlag_ = true;
     int32_t socket = TEST_SOCKET_ID;
-    client.Shutdown(socket);
-    SUCCEED();
+    ASSERT_NO_FATAL_FAILURE(client.Shutdown(socket));
 }
 
 /**
  * @tc.name: ShutdownTest002
- * @tc.desc: Verify the Shutdown function
- * when shutdownFunc_ is valid value
+ * @tc.desc: Verify the Shutdown function when shutdownFunc_ is valid value
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderSoftbusClientTest, ShutdownTest002, TestSize.Level1) {
@@ -364,6 +358,5 @@ HWTEST_F(DBinderSoftbusClientTest, ShutdownTest002, TestSize.Level1) {
     int32_t socket = TEST_SOCKET_ID;
     client.soHandle_ = dlopen(SOFTBUS_PATH_NAME, RTLD_NOW | RTLD_NODELETE);
     client.shutdownFunc_ = (DBinderSoftbusClient::ShutdownFunc)dlsym(client.soHandle_, "Shutdown");
-    client.Shutdown(socket);
-    SUCCEED();
+    ASSERT_NO_FATAL_FAILURE(client.Shutdown(socket));
 }
