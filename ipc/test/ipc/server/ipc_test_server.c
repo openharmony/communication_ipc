@@ -152,7 +152,7 @@ static IPCSaService g_ipcSaService = {
     IPROXY_END,
 };
 
-static void __attribute__((weak)) HOS_SystemInit(void)
+void __attribute__((weak)) HOS_SystemInit(void)
 {
     SAMGR_Bootstrap();
     return;

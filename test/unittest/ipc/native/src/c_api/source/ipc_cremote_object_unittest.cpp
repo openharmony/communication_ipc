@@ -30,17 +30,15 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
-namespace {
-const uint32_t MIN_SEND_REQUEST_CODE = 0x01;
-const uint32_t MAX_SEND_REQUEST_CODE = 0x00ffffff;
-const uint32_t TEST_CODE = 50;
-const uint32_t TEST_TIMEOUT = 60;
-const int32_t TEST_LEN = 0;;
+namespace OHOS {
+constexpr uint32_t MIN_SEND_REQUEST_CODE = 0x01;
+constexpr uint32_t MAX_SEND_REQUEST_CODE = 0x00ffffff;
+constexpr uint32_t TEST_CODE = 50;
+constexpr uint32_t TEST_TIMEOUT = 60;
+constexpr int32_t TEST_LEN = 0;
 const char* TEST_DESCRIPTOR = "test_descriptor";
 const std::u16string TEST_MOCK_DESCRIPTOR = u"mockProxyService";
-}
 
-namespace OHOS {
 class MockDeathRecipient : public IPCDeathRecipient {
 public:
     MockDeathRecipient() : IPCDeathRecipient([](void*) {}, [](void*) {}, nullptr){};
@@ -58,10 +56,8 @@ public:
     MOCK_METHOD4(SendRequest, int(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option));
     MOCK_CONST_METHOD0(IsObjectDead, bool());
 };
-}// namespace OHOS
 
-class IPCCremoteObjectTest: public testing::Test
-{
+class IPCCremoteObjectTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -92,11 +88,12 @@ void IPCCremoteObjectTest::TearDown()
  */
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest001, TestSize.Level1)
 {
-    OH_OnRemoteRequestCallback requestCallback = [](uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
+    OH_OnRemoteRequestCallback requestCallback = [](
+        uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
     OH_OnRemoteDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
-    OHIPCRemoteStub* result = OH_IPCRemoteStub_Create(nullptr, requestCallback, destroyCallback, userData);
+    OHIPCRemoteStub *result = OH_IPCRemoteStub_Create(nullptr, requestCallback, destroyCallback, userData);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -107,11 +104,11 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest001, TestSize.Level1)
  */
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest002, TestSize.Level1)
 {
-    const char* descriptor = TEST_DESCRIPTOR;
+    const char *descriptor = TEST_DESCRIPTOR;
     OH_OnRemoteDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
-    OHIPCRemoteStub* result = OH_IPCRemoteStub_Create(descriptor, nullptr, destroyCallback, userData);
+    OHIPCRemoteStub *result = OH_IPCRemoteStub_Create(descriptor, nullptr, destroyCallback, userData);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -122,12 +119,13 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest002, TestSize.Level1)
  */
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest003, TestSize.Level1)
 {
-    const char* descriptor = "";
-    OH_OnRemoteRequestCallback requestCallback = [](uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
+    const char *descriptor = "";
+    OH_OnRemoteRequestCallback requestCallback = [](
+        uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
     OH_OnRemoteDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
-    OHIPCRemoteStub* result = OH_IPCRemoteStub_Create(descriptor, requestCallback, destroyCallback, userData);
+    OHIPCRemoteStub *result = OH_IPCRemoteStub_Create(descriptor, requestCallback, destroyCallback, userData);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -139,11 +137,13 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest003, TestSize.Level1)
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest004, TestSize.Level1)
 {
     std::string longDescriptor(MAX_PARCEL_LEN + 1, 'a');
-    OH_OnRemoteRequestCallback requestCallback = [](uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
+    OH_OnRemoteRequestCallback requestCallback = [](
+        uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
     OH_OnRemoteDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
-    OHIPCRemoteStub* result = OH_IPCRemoteStub_Create(longDescriptor.c_str(), requestCallback, destroyCallback, userData);
+    OHIPCRemoteStub *result = OH_IPCRemoteStub_Create(
+        longDescriptor.c_str(), requestCallback, destroyCallback, userData);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -154,12 +154,13 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest004, TestSize.Level1)
  */
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteStub_CreateTest008, TestSize.Level1)
 {
-    const char* descriptor = TEST_DESCRIPTOR;
-    OH_OnRemoteRequestCallback requestCallback = [](uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
+    const char *descriptor = TEST_DESCRIPTOR;
+    OH_OnRemoteRequestCallback requestCallback = [](
+        uint32_t, const OHIPCParcel *, OHIPCParcel *, void *) { return 0; };
     OH_OnRemoteDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
-    OHIPCRemoteStub* result = OH_IPCRemoteStub_Create(descriptor, requestCallback, destroyCallback, userData);
+    OHIPCRemoteStub *result = OH_IPCRemoteStub_Create(descriptor, requestCallback, destroyCallback, userData);
     EXPECT_NE(result, nullptr);
     delete result;
 }
@@ -192,10 +193,10 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest001, TestSize.Le
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest002, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     uint32_t code = TEST_CODE;
     uint32_t timeout = TEST_TIMEOUT;
-    OHIPCParcel* data = nullptr;
+    OHIPCParcel *data = nullptr;
     OHIPCParcel reply = {new MessageParcel()};
     OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_SYNC, timeout, nullptr};
 
@@ -213,7 +214,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest002, TestSize.Le
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest003, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     uint32_t code = TEST_CODE;
     uint32_t timeout = TEST_TIMEOUT;
     OHIPCParcel data = {new MessageParcel()};
@@ -235,7 +236,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest003, TestSize.Le
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest004, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     uint32_t code = MAX_SEND_REQUEST_CODE + 1;
     uint32_t timeout = TEST_TIMEOUT;
     OHIPCParcel data = {new MessageParcel()};
@@ -261,7 +262,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest004, TestSize.Le
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest005, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     uint32_t code = MIN_SEND_REQUEST_CODE;
     uint32_t timeout = TEST_TIMEOUT;
     OHIPCParcel data = {new MessageParcel()};
@@ -286,11 +287,11 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest005, TestSize.Le
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest006, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     uint32_t code = TEST_CODE;
     uint32_t timeout = TEST_TIMEOUT;
     OHIPCParcel data = {new MessageParcel()};
-    OHIPCParcel* reply = nullptr;
+    OHIPCParcel *reply = nullptr;
     OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_SYNC, timeout, nullptr};
 
     int result = OH_IPCRemoteProxy_SendRequest(&proxy, code, &data, reply, &option);
@@ -307,11 +308,11 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest006, TestSize.Le
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest007, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     uint32_t code = TEST_CODE;
     uint32_t timeout = TEST_TIMEOUT;
     OHIPCParcel data = {new MessageParcel()};
-    OHIPCParcel* reply = nullptr;
+    OHIPCParcel *reply = nullptr;
     OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_ASYNC, timeout, nullptr};
 
     EXPECT_CALL(*mock, SendRequest(code, testing::_, testing::_, testing::_))
@@ -330,7 +331,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest007, TestSize.Le
  */
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest001, TestSize.Level1)
 {
-    char* descriptor = nullptr;
+    char *descriptor = nullptr;
     int32_t len = TEST_LEN;
     OH_IPC_MemAllocator allocator = [](int32_t len) { return std::malloc(len); };
 
@@ -346,8 +347,8 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest001, 
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest002, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
-    char** descriptor = nullptr;
+    OHIPCRemoteProxy proxy = {mock};
+    char **descriptor = nullptr;
     int32_t len = TEST_LEN;
     OH_IPC_MemAllocator allocator = [](int32_t len) { return std::malloc(len); };
 
@@ -363,9 +364,9 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest002, 
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest003, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
-    char* descriptor = nullptr;
-    int32_t* len = nullptr;
+    OHIPCRemoteProxy proxy = {mock};
+    char *descriptor = nullptr;
+    int32_t *len = nullptr;
     OH_IPC_MemAllocator allocator = [](int32_t len) { return std::malloc(len); };
 
     int result = OH_IPCRemoteProxy_GetInterfaceDescriptor(&proxy, &descriptor, len, allocator);
@@ -380,8 +381,8 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest003, 
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest004, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
-    char* descriptor = nullptr;
+    OHIPCRemoteProxy proxy = {mock};
+    char *descriptor = nullptr;
     int32_t len = TEST_LEN;
     OH_IPC_MemAllocator allocator = nullptr;
 
@@ -397,12 +398,11 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest004, 
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest005, TestSize.Level1)
 {
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
-    OHIPCRemoteProxy proxy = {mock}; 
+    OHIPCRemoteProxy proxy = {mock};
     std::u16string testDesc = u"test";
-    EXPECT_CALL(*mock, GetInterfaceDescriptor())
-        .WillOnce(testing::Return(testDesc));
+    EXPECT_CALL(*mock, GetInterfaceDescriptor()).WillOnce(testing::Return(testDesc));
 
-    char* descriptor = nullptr;
+    char *descriptor = nullptr;
     int32_t len = TEST_LEN;
     OH_IPC_MemAllocator allocator = [](int32_t size) { return std::malloc(size); };
 
@@ -424,7 +424,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_GetInterfaceDescriptorTest005, 
 HWTEST_F(IPCCremoteObjectTest, OH_IPCDeathRecipient_CreateTest001, TestSize.Level1)
 {
     OH_OnDeathRecipientDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
     OHIPCDeathRecipient* result = OH_IPCDeathRecipient_Create(nullptr, destroyCallback, userData);
     EXPECT_EQ(result, nullptr);
@@ -439,7 +439,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCDeathRecipient_CreateTest002, TestSize.Leve
 {
     OH_OnDeathRecipientCallback deathRecipientCallback = [](void*) {};
     OH_OnDeathRecipientDestroyCallback destroyCallback = [](void*) {};
-    void* userData = nullptr;
+    void *userData = nullptr;
 
     OHIPCDeathRecipient* result = OH_IPCDeathRecipient_Create(deathRecipientCallback, destroyCallback, userData);
     EXPECT_NE(result, nullptr);
@@ -505,8 +505,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_AddDeathRecipientTest004, TestS
     sptr<MockDeathRecipient> mockRecipient = sptr<MockDeathRecipient>::MakeSptr();
     OHIPCDeathRecipient recipient = {mockRecipient};
 
-    EXPECT_CALL(*mock, AddDeathRecipient(testing::_))
-        .WillOnce(testing::Return(true));
+    EXPECT_CALL(*mock, AddDeathRecipient(testing::_)).WillOnce(testing::Return(true));
 
     int result = OH_IPCRemoteProxy_AddDeathRecipient(&proxy, &recipient);
     EXPECT_EQ(result, OH_IPC_SUCCESS);
@@ -524,8 +523,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_AddDeathRecipientTest005, TestS
     sptr<MockDeathRecipient> mockRecipient = sptr<MockDeathRecipient>::MakeSptr();
     OHIPCDeathRecipient recipient = {mockRecipient};
 
-    EXPECT_CALL(*mock, AddDeathRecipient(testing::_))
-        .WillOnce(testing::Return(false));
+    EXPECT_CALL(*mock, AddDeathRecipient(testing::_)).WillOnce(testing::Return(false));
 
     int result = OH_IPCRemoteProxy_AddDeathRecipient(&proxy, &recipient);
     EXPECT_EQ(result, OH_IPC_INNER_ERROR);
@@ -608,8 +606,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_RemoveDeathRecipientTest005, Te
     sptr<MockDeathRecipient> mockRecipient = sptr<MockDeathRecipient>::MakeSptr();
     OHIPCDeathRecipient recipient = {mockRecipient};
 
-    EXPECT_CALL(*mock, RemoveDeathRecipient(testing::_))
-        .WillOnce(testing::Return(false));
+    EXPECT_CALL(*mock, RemoveDeathRecipient(testing::_)).WillOnce(testing::Return(false));
 
     int result = OH_IPCRemoteProxy_RemoveDeathRecipient(&proxy, &recipient);
     EXPECT_EQ(result, OH_IPC_INNER_ERROR);
@@ -622,7 +619,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_RemoveDeathRecipientTest005, Te
  */
 HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_IsRemoteDeadTest001, TestSize.Level1)
 {
-    const OHIPCRemoteProxy* proxy = nullptr;
+    const OHIPCRemoteProxy *proxy = nullptr;
     int result = OH_IPCRemoteProxy_IsRemoteDead(proxy);
     EXPECT_EQ(result, 1);
 }
@@ -650,8 +647,7 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_IsRemoteDeadTest003, TestSize.L
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
     OHIPCRemoteProxy proxy = {mock};
 
-    EXPECT_CALL(*mock, IsObjectDead())
-        .WillOnce(testing::Return(true));
+    EXPECT_CALL(*mock, IsObjectDead()).WillOnce(testing::Return(true));
 
     int result = OH_IPCRemoteProxy_IsRemoteDead(&proxy);
     EXPECT_EQ(result, 1);
@@ -667,9 +663,9 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_IsRemoteDeadTest004, TestSize.L
     sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
     OHIPCRemoteProxy proxy = {mock};
 
-    EXPECT_CALL(*mock, IsObjectDead())
-        .WillOnce(testing::Return(false));
+    EXPECT_CALL(*mock, IsObjectDead()).WillOnce(testing::Return(false));
 
     int result = OH_IPCRemoteProxy_IsRemoteDead(&proxy);
     EXPECT_EQ(result, 0);
 }
+} // namespace OHOS

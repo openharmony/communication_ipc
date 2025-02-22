@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef DBINDERDATABUSINVOKER_FUZZER_H
 #define DBINDERDATABUSINVOKER_FUZZER_H
 
-#include <cstdint>
-#include <unistd.h>
 #include <climits>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <unistd.h>
 
 #define FUZZ_PROJECT_NAME "dbinderdatabusinvoker_fuzzer"
-#define BUFFER_SIZE_MAX 256
 
-#endif
+#endif // DBINDERDATABUSINVOKER_FUZZER_H

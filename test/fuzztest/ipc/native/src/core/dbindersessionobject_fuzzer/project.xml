@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+<!-- Copyright (c) 2025 Huawei Device Co., Ltd.
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 <fuzz_config>
   <fuzztest>
     <!-- maximum length of a test input -->
-    <max_len>1000</max_len>
+    <max_len>10000</max_len>
     <!-- maximum total time in seconds to run the fuzzer -->
     <max_total_time>300</max_total_time>
     <!-- memory usage limit in Mb -->
