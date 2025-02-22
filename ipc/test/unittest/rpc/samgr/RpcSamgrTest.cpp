@@ -227,7 +227,7 @@ HWTEST_F(RpcSamgrTest, RpcSamgrTest001, TestSize.Level1)
 
     SvcIdentity target = {
         .handle = 0,
-        .cookie = NULL
+        .cookie = 0
     };
 
     int32_t ret = SetContextObject(target);

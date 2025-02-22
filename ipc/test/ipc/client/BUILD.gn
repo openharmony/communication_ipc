@@ -13,18 +13,19 @@
 
 import("//build/lite/config/component/lite_component.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test"
-IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
+IPC_TEST_CORE = "$SUBSYSTEM_DIR/ipc/test"
 
 executable("ipc_test_client") {
   output_extension = "bin"
   output_dir = "$root_out_dir/test/ipc"
-  sources = [ "$SUBSYSTEM_DIR/ipc/client/ipc_test_client.c" ]
+  sources = [ "$IPC_TEST_CORE/ipc/client/ipc_test_client.c" ]
   include_dirs = [
     "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
-    "$SUBSYSTEM_DIR/ipc/include",
+    "$IPC_TEST_CORE/ipc/include",
   ]
   ldflags = [
     "-lstdc++",
