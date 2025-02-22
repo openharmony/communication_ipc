@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,10 +14,11 @@
  */
 
 #include "sendrequest_fuzzer.h"
-#include "message_parcel.h"
-#include "message_option.h"
-#include "ipc_object_stub.h"
+
 #include "fuzz_data_generator.h"
+#include "ipc_object_stub.h"
+#include "message_option.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 void SendRequestFuzzTest(const uint8_t *data, size_t size)

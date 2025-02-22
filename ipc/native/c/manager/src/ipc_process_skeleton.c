@@ -381,7 +381,7 @@ int32_t OnRemoteRequestInner(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
     int32_t result = RpcOnRemoteRequestInner(code, data, reply, option, objectStub);
     if (result == ERR_NOT_RPC) {
         if (objectStub != NULL && objectStub->func != NULL) {
-            result = (OnRemoteRequest)(objectStub->func)(code, data, reply, option);
+            result = (objectStub->func)(code, data, reply, option);
         }
     }
     return result;
