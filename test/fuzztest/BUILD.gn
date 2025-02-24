@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,14 +15,23 @@ group("fuzztest") {
   testonly = true
   deps = [
     "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
+    "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
+    "ipc/native/src/core/databussocketlistener_fuzzer:DataBusSocketListenerFuzzTest",
+    "ipc/native/src/core/dbinderdatabusinvoker_fuzzer:DBinderDatabusInvokerFuzzTest",
     "ipc/native/src/core/dbindergrantpermission_fuzzer:DBinderGrantPermissionFuzzTest",
     "ipc/native/src/core/dbinderremovepermission_fuzzer:DBinderRemovePermissionFuzzTest",
+    "ipc/native/src/core/dbindersessionobject_fuzzer:DBinderSessionObjectFuzzTest",
+    "ipc/native/src/core/dbindersoftbusclient_fuzzer:DBinderSoftbusClientFuzzTest",
     "ipc/native/src/core/getlocalnodedeviceid_fuzzer:GetLocalNodeDeviceIdFuzzTest",
     "ipc/native/src/core/ipcfiledescriptormarshalling_fuzzer:IPCFileDescriptorMarshallingFuzzTest",
     "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
+    "ipc/native/src/core/listen_fuzzer:ListenFuzzTest",
     "ipc/native/src/core/removedeathrecipient_fuzzer:RemoveDeathRecipientFuzzTest",
+    "ipc/native/src/core/sendbytes_fuzzer:SendBytesFuzzTest",
     "ipc/native/src/core/sendrequest_fuzzer:SendRequestFuzzTest",
     "ipc/native/src/core/setcallingidentity_fuzzer:SetCallingIdentityFuzzTest",
+    "ipc/native/src/core/setipcproxylimit_fuzzer:SetIPCProxyLimitFuzzTest",
+    "ipc/native/src/core/socket_fuzzer:SocketFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
   ]
 }

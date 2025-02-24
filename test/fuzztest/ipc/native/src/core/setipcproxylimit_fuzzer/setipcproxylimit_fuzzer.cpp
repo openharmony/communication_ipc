@@ -31,7 +31,7 @@ void SetIPCProxyLimitFuzzTest(const uint8_t *data, size_t size)
 
     IPCDfx::IPCProxyLimitCallback callback = [] (uint64_t num) {
         (void)num;
-    }
+    };
 
     IPCDfx::SetIPCProxyLimit(ipcProxyLimitNum, callback);
 }
