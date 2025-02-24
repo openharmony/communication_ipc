@@ -16,7 +16,9 @@ group("fuzztest") {
   deps = [
     "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
     "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
+    "ipc/native/src/core/bufferobjecttwo_fuzzer:BufferObjectTwoFuzzTest",
     "ipc/native/src/core/databussocketlistener_fuzzer:DataBusSocketListenerFuzzTest",
+    "ipc/native/src/core/dbindercallbackstub_fuzzer:DBinderCallBackStubFuzzTest",
     "ipc/native/src/core/dbinderdatabusinvoker_fuzzer:DBinderDatabusInvokerFuzzTest",
     "ipc/native/src/core/dbindergrantpermission_fuzzer:DBinderGrantPermissionFuzzTest",
     "ipc/native/src/core/dbinderremovepermission_fuzzer:DBinderRemovePermissionFuzzTest",
