@@ -122,7 +122,7 @@ static int32_t AcquireHandle(int32_t handle)
 {
     uint32_t cmd[2];
     cmd[0] = BC_ACQUIRE;
-    cmd[1] = handle;
+    cmd[1] = (uint32_t)handle;
     int32_t ret = BinderWrite(&cmd, sizeof(cmd));
     return ret;
 }
@@ -132,7 +132,7 @@ static int32_t ReleaseHandle(int32_t handle)
     RPC_LOG_ERROR("SA dead delete it, handle = %d.", handle);
     uint32_t cmd[2];
     cmd[0] = BC_RELEASE;
-    cmd[1] = handle;
+    cmd[1] = (uint32_t)handle;
     int32_t ret = BinderWrite(&cmd, sizeof(cmd));
     return ret;
 }
@@ -145,7 +145,7 @@ static void ToTransData(uint32_t handle, uint32_t code, uint32_t option,
     buf->btd.flags = option;
     buf->btd.cookie = 0;
     buf->btd.sender_pid = RpcGetPid();
-    buf->btd.sender_euid = RpcGetUid();
+    buf->btd.sender_euid = (uid_t)RpcGetUid();
     buf->btd.data_size = (data == NULL) ? 0 : (data->bufferCur - data->bufferBase);
     buf->btd.data.ptr.buffer = (data == NULL) ? 0 : (binder_uintptr_t)data->bufferBase;
     buf->btd.offsets_size = (data == NULL) ? 0 : ((char*)data->offsetsCur - (char*)data->offsetsBase);
@@ -502,7 +502,7 @@ static int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
         struct binder_handle_cookie payload;
     } __attribute__((packed)) data;
     data.cmd = BC_REQUEST_DEATH_NOTIFICATION;
-    data.payload.handle = handle;
+    data.payload.handle = (unsigned int)handle;
     data.payload.cookie = (binder_uintptr_t)cookie;
     return BinderWrite(&data, sizeof(data));
 }
@@ -515,7 +515,7 @@ static int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie)
     } __attribute__((packed)) data;
 
     data.cmd = BC_CLEAR_DEATH_NOTIFICATION;
-    data.payload.handle = handle;
+    data.payload.handle = (unsigned int)handle;
     data.payload.cookie = (binder_uintptr_t)cookie;
     return BinderWrite(&data, sizeof(data));
 }
