@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include "ohos_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "lite_ipc.h"
@@ -53,7 +54,7 @@ IpcCallback g_ipcCallback = {
 
 static inline void InitIpcCallback(void)
 {
-    UtilsListInit(&g_ipcCallback.apis);
+    DLListInit(&g_ipcCallback.apis);
 }
 
 static IpcConnector *OpenDriver(void)
@@ -271,7 +272,7 @@ static void CallDeathCallback(IpcMsg *ipcMsg)
     }
     DeathCallback *node = NULL;
     RPC_LOG_INFO("<thread>for each list");
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &ipcSkeleton->objects, DeathCallback, list)
     {
         RPC_LOG_INFO("SendObituary node->handle: %d, ipcMsg->target.token: %d", node->handle, ipcMsg->target.token);
         if (node->handle == ipcMsg->target.token) {
@@ -353,7 +354,7 @@ static void GetIpcCallback(IpcMsg* msg, HdlerArg* arg)
     arg->msg = msg;
 
     AnonymousApi* node = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_ipcCallback.apis, AnonymousApi, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_ipcCallback.apis, AnonymousApi, list)
     {
         if (node->token == msg->target.token) {
             arg->num = 1;

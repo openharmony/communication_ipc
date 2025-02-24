@@ -18,8 +18,8 @@
 #include <stdint.h>
 #include <sys/ioctl.h>
 #include "serializer.h"
+#include "doubly_linked_list.h"
 #include "ipc_types.h"
-#include "utils_list.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -106,7 +106,7 @@ typedef struct {
     pthread_mutex_t mutex;
     int32_t handleId;
     bool threadWorking;
-    UTILS_DL_LIST apis;
+    DL_LIST apis;
 } IpcCallback;
 
 typedef struct {
@@ -118,7 +118,7 @@ typedef struct {
 } HdlerArg;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     uint32_t token;
     IpcObjectStub hdlerPair;
 } AnonymousApi;

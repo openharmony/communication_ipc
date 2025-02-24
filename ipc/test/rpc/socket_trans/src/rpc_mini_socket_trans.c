@@ -25,10 +25,10 @@
 #include "lwip/netif.h"
 #include "lwip/netifapi.h"
 
+#include "doubly_linked_list.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "securec.h"
-#include "utils_list.h"
 
 #define DEVICEID_LENGTH 64
 #define SERVICENAME_LENGTH 200
@@ -36,14 +36,14 @@
 #define DEFAULT_THREAD_STACK_SIZE 8192
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     char *saSessionName;
     char *deviceId;
     TransCallback cb;
 } SocketNode;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_mutex_t mutex;
 } SocketNodeList;
 
@@ -397,7 +397,7 @@ TransInterface *GetSocketTrans(void)
 {
     if (g_init == -1) {
         pthread_mutex_lock(&g_socketNodeList.mutex);
-        UtilsListInit(&g_socketNodeList.list);
+        DLListInit(&g_socketNodeList.list);
         g_init = 0;
         printf("g_socketTrans %x\n", g_socketTrans.StartListen);
         pthread_mutex_unlock(&g_socketNodeList.mutex);
