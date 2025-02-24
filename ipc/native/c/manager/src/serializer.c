@@ -135,7 +135,7 @@ bool IpcIoAppend(IpcIo *dst, IpcIo *src)
         return false;
     }
     if (srcUsedBufferSize > 0) {
-        char *ptr = (uint8_t *)IoPush(dst, srcUsedBufferSize);
+        char *ptr = (char *)IoPush(dst, srcUsedBufferSize);
         if (ptr == NULL) {
             return false;
         }
