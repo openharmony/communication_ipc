@@ -15,7 +15,7 @@ import("//build/lite/config/component/lite_component.gni")
 import("../../../config.gni")
 
 declare_args() {
-  enable_ipc_test = false
+  enable_ipc_test = true
 }
 
 lite_component("rpc") {
@@ -31,11 +31,13 @@ lite_component("rpc") {
   }
 
   if (enable_ipc_test == true) {
-    SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc"
-    features += [
-      "$SUBSYSTEM_DIR/test/ipc:ipc_test",
-      "$SUBSYSTEM_DIR/test/unittest/ipc:ipc_test_gtest",
-      "$SUBSYSTEM_DIR/test/unittest/rpc:rpc_test_gtest",
-    ]
+    if (os_level == "small") {
+      SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc"
+      features += [
+        "$SUBSYSTEM_DIR/test/ipc:ipc_test",
+        "$SUBSYSTEM_DIR/test/unittest/ipc:ipc_test_gtest",
+        "$SUBSYSTEM_DIR/test/unittest/rpc:rpc_test_gtest",
+      ]
+    }
   }
 }
