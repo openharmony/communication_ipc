@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include "utils_list.h"
+#include "doubly_linked_list.h"
 
 #include "serializer.h"
 
@@ -65,7 +65,7 @@ struct DHandleEntryHead {
 };
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     uint32_t type;
     uint16_t toPort;
     uint16_t fromPort;
@@ -77,7 +77,7 @@ typedef struct {
 } SessionInfo;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     uintptr_t binderObject;
     SvcIdentity *proxy;
     char *sessionName;

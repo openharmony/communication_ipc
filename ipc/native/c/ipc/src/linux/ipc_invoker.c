@@ -27,6 +27,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_pool.h"
 #include "ipc_types.h"
+#include "ohos_types.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "rpc_os_adapter.h"

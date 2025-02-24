@@ -18,10 +18,11 @@
 #include <inttypes.h>
 #include <unistd.h>
 
+#include "ohos_types.h"
 #include "securec.h"
-#include "utils_list.h"
 
 #include "dbinder_types.h"
+#include "doubly_linked_list.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_pool.h"
@@ -582,7 +583,7 @@ void OnDatabusSessionClosed(int sessionId)
     }
 
     DeathCallback *node = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &ipcSkeleton->objects, DeathCallback, list)
     {
         if (node->handle == handleSession->handle) {
             RPC_LOG_INFO("OnDatabusSessionClosed SendObituary handle %d", node->handle);
