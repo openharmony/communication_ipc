@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Huawei Device Co., Ltd.
+# Copyright (C) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,23 +12,23 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("../../../../../../../config.gni")
+import("../../../../../config.gni")
 
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
 MODULE_OUTPUT_PATH = "ipc"
 
-template("ipc_unittest") {
+template("ipc_dbinder_unittest") {
   ohos_unittest(target_name) {
     module_out_path = MODULE_OUTPUT_PATH
 
     include_dirs = [
-      "$IPC_CORE_ROOT/c/rpc/include",
-      "$IPC_CORE_ROOT/c/ipc_adapter/include",
-      "$IPC_CORE_ROOT/src/core/dbinder/include",
-      "$IPC_CORE_ROOT/src/core/framework/include",
-      "$IPC_CORE_ROOT/src/core/invoker/include",
+      "$IPC_ROOT_PATH/ipc/native/src/core/invoker/include",
+      "$IPC_ROOT_PATH/ipc/native/src/core/dbinder/include",
+      "$IPC_ROOT_PATH/ipc/native/src/core/framework/include",
+      "$IPC_ROOT_PATH/ipc/native/c/manager/include",
+      "$IPC_ROOT_PATH/utils/include",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
-      "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder/include",
+      "$IPC_ROOT_PATH/ipc/native/c/rpc/include",
       "$IPC_ROOT_PATH/utils/include",
       "$IPC_UNITTEST_ROOT_PATH/mock",
     ]
@@ -41,8 +41,6 @@ template("ipc_unittest") {
 
     deps = [
       "$IPC_CORE_ROOT/src/core:ipc_common",
-      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
-      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
@@ -57,11 +55,11 @@ template("ipc_unittest") {
 
     external_deps = [
       "c_utils:utils",
-      "ffrt:libffrt",
       "googletest:gmock",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "hitrace:libhitracechain",
+      "ipc:libdbinder",
       "samgr:samgr_proxy",
     ]
 
@@ -75,45 +73,13 @@ template("ipc_unittest") {
   }
 }
 
-ipc_unittest("IPCObjectProxyTest") {
-  sources = [ "ipc_object_proxy_unittest.cpp" ]
-}
-
-ipc_unittest("IPCProcessSkeletonUnitTest") {
-  sources = [ "ipc_process_skeleton_unittest.cpp" ]
-}
-
-ipc_unittest("DBinderCallbackStubTest") {
-  sources = [ "dbinder_callback_stub_unittest.cpp" ]
-}
-
-ipc_unittest("DBinderSoftbusClientTest") {
-  sources = [ "dbinder_softbus_client_unittest.cpp" ]
-}
-
-ipc_unittest("BinderInvokerTest") {
-  sources = [ "binder_invoker_unittest.cpp" ]
-}
-
-ipc_unittest("IremoteBrokerTest") {
-  sources = [ "iremote_broker_unittest.cpp" ]
-}
-
-ipc_unittest("DbinderDataBusInvokerTest") {
-  sources = [ "dbinder_databus_invoker_unittest.cpp" ]
+ipc_dbinder_unittest("DBinderRemoteListenerTest") {
+  sources = [ "dbinder_remote_listener_unittest.cpp" ]
 }
 
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [
-    ":BinderInvokerTest",
-    ":DBinderCallbackStubTest",
-    ":DBinderSoftbusClientTest",
-    ":DbinderDataBusInvokerTest",
-    ":IPCObjectProxyTest",
-    ":IPCProcessSkeletonUnitTest",
-    ":IremoteBrokerTest",
-  ]
+  deps = [ ":DBinderRemoteListenerTest" ]
 }
 ###############################################################################
