@@ -83,7 +83,6 @@ IPCProcessSkeleton::IPCProcessSkeleton()
 
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
-    ZLOGI(LOG_LABEL, "enter");
     std::lock_guard<std::mutex> lockGuard(procMutex_);
     exitFlag_ = true;
     delete threadPool_;
