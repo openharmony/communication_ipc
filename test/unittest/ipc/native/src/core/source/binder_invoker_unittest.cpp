@@ -132,7 +132,6 @@ extern "C" {
         return GetBinderInvokerInterface()->CheckOffsets();
     }
 }
-} // namespace OHOS
 
 class BinderInvokerTest : public ::testing::Test {
     public:
@@ -839,3 +838,4 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
     sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
     EXPECT_EQ(ret, nullptr);
 }
+} // namespace OHOS
