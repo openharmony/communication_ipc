@@ -31,6 +31,7 @@ using namespace std;
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
+namespace OHOS {
 
 namespace {
 const std::string DEVICE_ID_TEST = "deviceidTest";
@@ -39,7 +40,6 @@ const std::string SERVICE_NAME_TEST = "serviceNameTest";
 const int32_t TEST_HANDLE_INVALID = 0;
 }
 
-namespace OHOS {
 class MockIPCProcessSkeleton : public IPCProcessSkeleton {
 public:
     MockIPCProcessSkeleton() {}
@@ -57,7 +57,6 @@ public:
     MOCK_CONST_METHOD0(GetSendBufferWriteCursor, ssize_t());
     MOCK_CONST_METHOD0(GetSendBufferReadCursor, ssize_t());
 };
-} //namespace OHOS
 
 class DbinderDataBusInvokerTest : public testing::Test {
 public:
@@ -542,3 +541,4 @@ HWTEST_F(DbinderDataBusInvokerTest, OnReceiveNewConnectionTest004, TestSize.Leve
     current->instance_ = nullptr;
     current->exitFlag_ = false;
 }
+} //namespace OHOS
