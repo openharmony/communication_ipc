@@ -36,7 +36,7 @@ constexpr uint32_t MAX_SEND_REQUEST_CODE = 0x00ffffff;
 constexpr uint32_t TEST_CODE = 50;
 constexpr uint32_t TEST_TIMEOUT = 60;
 constexpr int32_t TEST_LEN = 0;
-const char* TEST_DESCRIPTOR = "test_descriptor";
+const char *TEST_DESCRIPTOR = "test_descriptor";
 const std::u16string TEST_MOCK_DESCRIPTOR = u"mockProxyService";
 
 class MockDeathRecipient : public IPCDeathRecipient {
