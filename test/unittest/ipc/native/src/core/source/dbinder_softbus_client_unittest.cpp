@@ -24,6 +24,7 @@
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
+namespace OHOS {
 
 namespace {
 constexpr int32_t TEST_PID = 2000;
@@ -360,3 +361,4 @@ HWTEST_F(DBinderSoftbusClientTest, ShutdownTest002, TestSize.Level1) {
     client.shutdownFunc_ = (DBinderSoftbusClient::ShutdownFunc)dlsym(client.soHandle_, "Shutdown");
     ASSERT_NO_FATAL_FAILURE(client.Shutdown(socket));
 }
+} // namespace OHOS

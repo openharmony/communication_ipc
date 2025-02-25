@@ -30,7 +30,8 @@ static constexpr int MAX_MEMORY_SIZE = 204800;
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
-
+namespace OHOS {
+    
 class IPCInternalUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -145,3 +146,4 @@ HWTEST_F(IPCInternalUtilsTest, IsMemoryParamsValidTest002, TestSize.Level1)
     const char *promot = "NullStrTest";
     EXPECT_TRUE(IsMemoryParamsValid(&str, &len, TestMemAllocator, promot));
 }
+} // namespace OHOS
