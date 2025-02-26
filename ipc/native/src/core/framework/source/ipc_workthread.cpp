@@ -89,20 +89,22 @@ void IPCWorkThread::JoinThread(int proto, int policy)
 
 void *IPCWorkThread::ThreadHandler(void *args)
 {
+    auto param = (IPCWorkThreadParam *)args;
+    if (param == nullptr) {
+        return nullptr;
+    }
+
     (void)IPCThreadSkeleton::SetThreadType(ThreadType::IPC_THREAD);
     ProcessSkeleton *process = ProcessSkeleton::GetInstance();
     if (process == nullptr) {
         ZLOGE(LOG_LABEL, "get ProcessSkeleton object failed");
+        delete param;
         return nullptr;
     }
 
     if (process->GetThreadStopFlag()) {
         ZLOGW(LOG_LABEL, "the stop flag is true, thread start exit");
-        return nullptr;
-    }
-
-    auto param = (IPCWorkThreadParam *)args;
-    if (param == nullptr) {
+        delete param;
         return nullptr;
     }
 
@@ -167,6 +169,7 @@ void IPCWorkThread::Start(int policy, int proto, int threadIndex)
     int ret = pthread_create(&threadId, NULL, &IPCWorkThread::ThreadHandler, param);
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
+        delete param;
         return;
     }
     process->IncreaseThreadCount();
