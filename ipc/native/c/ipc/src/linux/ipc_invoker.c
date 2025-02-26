@@ -213,6 +213,10 @@ static int32_t SendReply(IpcIo *reply, const int32_t *status)
 static void HandleTransaction(const struct binder_transaction_data *tr)
 {
     ThreadContext *threadContext = GetCurrentThreadContext();
+    if (threadContext == NULL) {
+        RPC_LOG_ERROR("threadContext is NULL.");
+        return;
+    }
     const pid_t oldPid = threadContext->callerPid;
     const pid_t oldUid = threadContext->callerUid;
     threadContext->callerPid = tr->sender_pid;
