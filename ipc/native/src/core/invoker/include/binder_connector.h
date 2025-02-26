@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@ private:
     static constexpr size_t CLOSE_WAIT_TIME_MS = 10;
     bool OpenDriver();
     bool MapMemory(uint64_t featureSet);
-    int driverFD_;
+    std::atomic_int driverFD_;
     void *vmAddr_;
     const std::string deviceName_;
     int32_t version_;
