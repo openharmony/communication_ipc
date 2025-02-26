@@ -47,7 +47,7 @@ static int32_t OnRecieved(int32_t sessionId, const void *data, uint32_t len)
         return ERR_FAILED;
     }
     if (len != sizeof(DHandleEntryTxRx)) {
-        RPC_LOG_ERROR("OnRecieved received data length %d, excepted length %d", len, sizeof(DHandleEntryTxRx));
+        RPC_LOG_ERROR("OnRecieved received data length %d, excepted length %zu", len, sizeof(DHandleEntryTxRx));
         return ERR_FAILED;
     }
 
