@@ -62,7 +62,11 @@ static void TlsDestructor(void *args)
 
 static void ThreadContextDestructor(int32_t proto)
 {
-    ThreadPool *threadPool = GetCurrentSkeleton()->threadPool;
+    IpcSkeleton *ipcSkeleton = GetCurrentSkeleton();
+    if (ipcSkeleton == NULL || ipcSkeleton->threadPool == NULL) {
+        return;
+    }
+    ThreadPool *threadPool = ipcSkeleton->threadPool;
     pthread_mutex_lock(&threadPool->lock);
     if (proto == IF_PROT_BINDER) {
         ++threadPool->idleThreadNum;

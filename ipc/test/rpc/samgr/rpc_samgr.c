@@ -99,6 +99,9 @@ static int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
 
     const char *name = "16";
     uint32_t nameLen = 2;
+    if (deviceId == NULL) {
+        return ERR_FAILED;
+    }
     uint32_t idLen = (uint32_t)strlen(deviceId);
     RPC_LOG_INFO("GetRemoteSystemAbility start");
 
@@ -155,7 +158,7 @@ static int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
             break;
         }
         default:
-            RPC_LOG_ERROR("unknown code %d", code);
+            RPC_LOG_ERROR("unknown code %u", code);
             break;
     }
     return result;
