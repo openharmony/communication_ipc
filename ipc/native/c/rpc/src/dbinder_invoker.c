@@ -334,6 +334,10 @@ static int32_t SendOrWaitForCompletion(uint32_t userWaitTime, uint64_t seqNumber
 static int32_t GetCallerSessionId(void)
 {
     ThreadContext *threadContext = GetCurrentThreadContext();
+    if (threadContext == NULL) {
+        RPC_LOG_ERROR("threadContext is NULL");
+        return ERR_FAILED;
+    }
     return threadContext->sessionId;
 }
 
@@ -372,6 +376,10 @@ static void ProcessTransaction(const dbinder_transaction_data *tr, uint32_t sess
     ToIpcData(tr, &data);
 
     ThreadContext *threadContext = GetCurrentThreadContext();
+    if (threadContext == NULL) {
+        RPC_LOG_ERROR("threadContext is NULL");
+        return;
+    }
     const pid_t oldPid = threadContext->callerPid;
     const pid_t oldUid = threadContext->callerUid;
     char oldDeviceId[DEVICEID_LENGTH];
@@ -524,7 +532,7 @@ static void StartProcessLoop(uint32_t handle, const void *buffer, uint32_t size)
 
 int32_t OnReceiveNewConnection(int sessionId)
 {
-    uint32_t handle = sessionId;
+    uint32_t handle = (uint32_t)sessionId;
     IpcSkeleton *current = GetCurrentSkeleton();
     if (current == NULL) {
         RPC_LOG_ERROR("current ipcskeleton is nullptr");
@@ -552,7 +560,7 @@ void OnDatabusSessionClosed(int sessionId)
         return;
     }
 
-    uint32_t handle = sessionId;
+    uint32_t handle = (uint32_t)sessionId;
     HandleSessionList *handleSession = QueryStubSession(handle);
     if (handleSession != NULL) {
         DetachStubSession(handleSession);
@@ -611,7 +619,7 @@ void OnMessageAvailable(int sessionId, const void *data, uint32_t len)
         return;
     }
 
-    uint32_t handle = sessionId;
+    uint32_t handle = (uint32_t)sessionId;
     uint32_t readSize = 0;
     while (readSize + sizeof(dbinder_transaction_data) < len) {
         uint32_t packageSize = HasCompletePackage(data, readSize, len);
