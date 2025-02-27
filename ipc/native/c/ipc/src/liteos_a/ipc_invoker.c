@@ -288,6 +288,10 @@ static void CallIpcCallback(IpcMsg *ipcMsg, HdlerArg *hdlerArg)
             continue;
         }
         ThreadContext *threadContext = GetCurrentThreadContext();
+        if (threadContext == NULL) {
+            RPC_LOG_ERROR("threadContext is NULL.");
+            continue;
+        }
         const pid_t oldPid = threadContext->callerPid;
         const pid_t oldUid = threadContext->callerUid;
         threadContext->callerPid = ipcMsg->processID;
@@ -490,6 +494,10 @@ static void IpcJoinThreadLoop(void)
         }
         IpcMsg *ipcMsg = content.inMsg;
         ThreadContext *threadContext = GetCurrentThreadContext();
+        if (threadContext == NULL) {
+            RPC_LOG_ERROR("threadContext is NULL.");
+            continue;
+        }
         const pid_t oldPid = threadContext->callerPid;
         const pid_t oldUid = threadContext->callerUid;
         threadContext->callerPid = ipcMsg->processID;
