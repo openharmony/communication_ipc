@@ -64,29 +64,12 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
     bool ret = false;
     if (it == creators_.end()) {
         ret = creators_.insert({ descriptor, creator }).second;
-    }
-
-    auto iter = objects_.begin();
-    for (; iter != objects_.end();) {
-        std::string soPath = GetObjectSoPath(iter->first);
-        if (soPath.empty() || (soPath != iter->second)) {
-            ZLOGW(LABEL, "path:%{public}s is dlclosed", iter->second.c_str());
-            iter = objects_.erase(iter);
-            continue;
-        }
-        const BrokerDelegatorBase *object = reinterpret_cast<BrokerDelegatorBase *>(iter->first);
-        if (object->descriptor_ == descriptor) {
-            break;
-        }
-        iter++;
-    }
-
-    if (iter == objects_.end()) {
         std::string soPath = GetObjectSoPath(reinterpret_cast<uintptr_t>(object));
-        if (soPath.empty()) {
-            return false;
+        if (!soPath.empty()) {
+            objects_.insert(std::make_pair(reinterpret_cast<uintptr_t>(object), soPath));
         }
-        objects_.insert(std::make_pair(reinterpret_cast<uintptr_t>(object), soPath));
+    } else {
+        ZLOGW(LABEL, "path:%{public}s is already Register", Str16ToStr8(descriptor).c_str());
     }
     return ret;
 }
