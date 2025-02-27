@@ -77,9 +77,16 @@ ipc_dbinder_unittest("DBinderRemoteListenerTest") {
   sources = [ "dbinder_remote_listener_unittest.cpp" ]
 }
 
+ipc_dbinder_unittest("DBinderServiceStubTest") {
+  sources = [ "dbinder_service_stub_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
-  deps = [ ":DBinderRemoteListenerTest" ]
+  deps = [
+    ":DBinderRemoteListenerTest",
+    ":DBinderServiceStubTest",
+  ]
 }
 ###############################################################################
