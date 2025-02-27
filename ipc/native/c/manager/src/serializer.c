@@ -137,7 +137,7 @@ bool IpcIoAppend(IpcIo *dst, IpcIo *src)
     if (srcUsedBufferSize > 0) {
         char *ptr = (char *)IoPush(dst, srcUsedBufferSize);
         if (ptr == NULL) {
-            return false; 
+            return false;
         }
         size_t offsetAdjust = ptr - dst->bufferBase;
         if (memset_s(ptr, IPC_IO_ALIGN(srcUsedBufferSize), 0, IPC_IO_ALIGN(srcUsedBufferSize)) != EOK) {
