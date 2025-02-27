@@ -28,6 +28,8 @@ group("fuzztest") {
     "ipc/native/src/core/ipcfiledescriptormarshalling_fuzzer:IPCFileDescriptorMarshallingFuzzTest",
     "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
     "ipc/native/src/core/ipcprocessskeleton_fuzzer:IPCProcessSkeletonTwoFuzzTest",
+    "ipc/native/src/core/ipcthreadpool_fuzzer:IPCThreadPoolFuzzTest",
+    "ipc/native/src/core/ipcthreadskeleton_fuzzer:IPCThreadSkeletonFuzzTest",
     "ipc/native/src/core/listen_fuzzer:ListenFuzzTest",
     "ipc/native/src/core/removedeathrecipient_fuzzer:RemoveDeathRecipientFuzzTest",
     "ipc/native/src/core/sendbytes_fuzzer:SendBytesFuzzTest",
