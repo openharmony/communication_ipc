@@ -24,7 +24,7 @@
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
-
+namespace OHOS {
 namespace {
     const std::string PEER_NETWORK_ID_TEST = "test_network_id";
     const std::string OWN_SESSION_NAME = "own_session";
@@ -32,7 +32,6 @@ namespace {
     const int32_t EXPRCTED_SOCKET_ID_TEST = 123;
 }
 
-namespace OHOS {
 class DBinderRemoteListenerInterface {
 public:
     DBinderRemoteListenerInterface() {};
@@ -124,7 +123,6 @@ extern "C" {
         }
         return GetDBinderRemoteListenerInterface()->Bind(socket, qos, qosCount, listener);
     }
-}
 }
 
 class DBinderRemoteListenerTest : public testing::Test {
@@ -451,3 +449,4 @@ HWTEST_F(DBinderRemoteListenerTest, CreateClientSocketTest004, TestSize.Level1)
     EXPECT_EQ(ret, EXPRCTED_SOCKET_ID_TEST);
     DBinderRemoteListener::clientSocketInfos_.clear();
 }
+} // namespace OHOS
