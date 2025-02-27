@@ -22,7 +22,7 @@
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
-
+namespace OHOS {
 namespace {
     const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
     const std::string SO_PATH_TEST = "test_so_path";
@@ -151,3 +151,4 @@ HWTEST_F(IremoteBrokerTest, GetObjectSoPathTest001, TestSize.Level1)
     std::string result = registration.GetObjectSoPath(invalidPtr);
     EXPECT_TRUE(result.empty());
 }
+} // namespace OHOS
