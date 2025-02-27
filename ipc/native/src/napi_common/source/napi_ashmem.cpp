@@ -234,8 +234,8 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
     }
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
-    if (fd <= 0 || size <= 0) {
-        ZLOGE(LOG_LABEL, "fd <= 0 or  size <= 0");
+    if (fd <= 0 || size == 0) {
+        ZLOGE(LOG_LABEL, "fd <= 0 or  size == 0");
         return nullptr;
     }
 
