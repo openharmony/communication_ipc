@@ -103,6 +103,10 @@ ipc_unittest("DbinderDataBusInvokerTest") {
   sources = [ "dbinder_databus_invoker_unittest.cpp" ]
 }
 
+ipc_unittest("MessageParcelAddTest") {
+  sources = [ "message_parcel_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -114,6 +118,7 @@ group("unittest") {
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IremoteBrokerTest",
+    ":MessageParcelAddTest",
   ]
 }
 ###############################################################################
