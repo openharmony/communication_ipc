@@ -42,7 +42,6 @@ template("ipc_unittest") {
     deps = [
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
-      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
@@ -103,6 +102,10 @@ ipc_unittest("DbinderDataBusInvokerTest") {
   sources = [ "dbinder_databus_invoker_unittest.cpp" ]
 }
 
+ipc_unittest("IremoteObjectTest") {
+  sources = [ "iremote_object_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -114,6 +117,7 @@ group("unittest") {
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IremoteBrokerTest",
+    ":IremoteObjectTest",
   ]
 }
 ###############################################################################
