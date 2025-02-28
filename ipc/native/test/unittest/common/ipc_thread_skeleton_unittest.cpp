@@ -30,8 +30,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
-namespace {
-}
+namespace OHOS {
 class IPCThreadSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -97,3 +96,4 @@ HWTEST_F(IPCThreadSkeletonUnitTest, GetRegistryObjectTest003, TestSize.Level1)
     IRemoteInvoker *object = skeleton->GetProxyInvoker(objectStub.GetRefPtr());
     EXPECT_EQ(object, nullptr);
 }
+} // namespace OHOS

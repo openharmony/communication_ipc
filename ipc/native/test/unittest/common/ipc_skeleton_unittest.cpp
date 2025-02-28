@@ -38,6 +38,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IPCSkeletonTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -541,3 +542,4 @@ HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim001, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+} // namespace OHOS
