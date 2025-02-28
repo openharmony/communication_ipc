@@ -39,6 +39,7 @@ using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 using namespace std;
 
+namespace OHOS {
 static constexpr int NUMBER_CONSTANT = 100;
 static constexpr float FLOAT_CONSTANT = 1.1;
 static const char *STRING_CONSTANT = "HELLO";
@@ -863,3 +864,4 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteInterfaceTokenPerforma
     readCppAvg /= TEST_PERFORMANCE_OPERATOR_GROUP;
     PerformanceStatistic(writeAvg, readAvg, writeCppAvg, readCppAvg);
 }
+} // namespace OHOS

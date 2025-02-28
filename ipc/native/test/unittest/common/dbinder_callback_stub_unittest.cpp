@@ -36,6 +36,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 const std::string SERVICE_TEST = "serviceTest";
 const std::string DEVICE_TEST = "deviceTest";
@@ -272,3 +273,4 @@ HWTEST_F(DBinderCallbackStubTest, ProcessProtoTest003, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+} // namespace OHOS

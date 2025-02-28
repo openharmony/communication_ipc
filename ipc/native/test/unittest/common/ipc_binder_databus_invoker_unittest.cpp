@@ -35,6 +35,7 @@ using namespace std;
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 const std::string DEVICE_ID_TEST = "deviceidTest";
 const std::string SESSION_NAME_TEST = "sessionNameTest";
@@ -1733,3 +1734,4 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable002, TestSize.Level1)
     ssize_t len = 200;
     ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, data, len));
 }
+} // namespace OHOS

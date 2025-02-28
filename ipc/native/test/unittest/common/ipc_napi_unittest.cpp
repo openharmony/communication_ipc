@@ -20,6 +20,7 @@
 
 using namespace testing::ext;
 
+namespace OHOS {
 class IPCNapiTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -69,3 +70,4 @@ HWTEST_F(IPCNapiTest, IPC_NAPI_TEST_001, TestSize.Level1)
     EXPECT_EQ(callingInfo.callingPid, getpid());
     EXPECT_EQ(callingInfo.callingUid, 0);
 }
+} // namespace OHOS
