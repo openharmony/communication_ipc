@@ -459,8 +459,6 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_AddDeathRecipientTest001, TestS
 
     int result = OH_IPCRemoteProxy_AddDeathRecipient(nullptr, &recipient);
     EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
-
-    delete recipient.recipient;
 }
 
 /**
@@ -541,8 +539,6 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_RemoveDeathRecipientTest001, Te
 
     int result = OH_IPCRemoteProxy_RemoveDeathRecipient(nullptr, &recipient);
     EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
-
-    delete recipient.recipient;
 }
 
 /**
