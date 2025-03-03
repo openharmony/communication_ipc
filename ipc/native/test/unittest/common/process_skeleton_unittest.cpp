@@ -26,6 +26,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class ProcessSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -435,3 +436,4 @@ HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop003, TestSize.Level1)
     processSkeleton->NotifyChildThreadStop();
     EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
 }
+} // namespace OHOS

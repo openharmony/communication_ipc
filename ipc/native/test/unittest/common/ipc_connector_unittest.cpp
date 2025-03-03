@@ -22,6 +22,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class BinderConnectorTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -151,3 +152,4 @@ HWTEST_F(BinderConnectorTest, IsRealPidSupported002, TestSize.Level1)
     bool res = binderConnector->IsRealPidSupported();
     EXPECT_EQ(res, false);
 }
+} // namespace OHOS
