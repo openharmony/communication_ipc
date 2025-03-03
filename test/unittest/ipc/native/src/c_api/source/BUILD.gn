@@ -86,10 +86,15 @@ c_api_unittest("IPCCskeletonTest") {
   ]
 }
 
+c_api_unittest("IPCCremoteObjectTest") {
+  sources = [ "ipc_cremote_object_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
+    ":IPCCremoteObjectTest",
     ":IPCCskeletonTest",
     ":IPCInternalUtilsTest",
   ]
