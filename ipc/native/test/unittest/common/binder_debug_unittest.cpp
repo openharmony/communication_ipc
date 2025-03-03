@@ -18,6 +18,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class BinderDebugUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -61,3 +62,4 @@ HWTEST_F(BinderDebugUnitTest, ToStringTest002, TestSize.Level1)
     std::string ret = debug.ToString(BC_DEAD_BINDER_DONE + 1);
     EXPECT_EQ(ret, "UNKNOWN COMMAND");
 }
+} // namespace OHOS

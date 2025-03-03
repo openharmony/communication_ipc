@@ -39,6 +39,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
+namespace OHOS {
 static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_TEST, "BinderTraceUnitTest" };
 
 class BinderTraceTest : public testing::Test {
@@ -412,3 +413,4 @@ HWTEST_F(BinderTraceTest, Async003, TestSize.Level1)
     getId = HiTraceChain::GetId();
     EXPECT_EQ(0, getId.IsValid());
 }
+} // namespace OHOS

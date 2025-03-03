@@ -28,6 +28,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class BinderInvokerUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -895,3 +896,4 @@ HWTEST_F(BinderInvokerUnitTest, GetCallerPidAndUidByStrTest002, TestSize.Level1)
     bool ret = binderInvoker.GetCallerPidAndUidByStr(str, offset, pid, uid);
     EXPECT_TRUE(ret);
 }
+} // namespace OHOS
