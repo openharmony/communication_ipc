@@ -175,7 +175,7 @@ static IClientProxy *GetServerProxy(void)
     return clientProxy;
 }
 
-static void __attribute__((weak)) HOS_SystemInit(void)
+void __attribute__((weak)) HOS_SystemInit(void)
 {
     SAMGR_Bootstrap();
     return;

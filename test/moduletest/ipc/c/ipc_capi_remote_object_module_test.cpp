@@ -36,6 +36,7 @@ using namespace OHOS::HiviewDFX;
 
 static constexpr uint32_t ON_CALLBACK_REPLIED_INT = 1598311760;
 
+namespace OHOS {
 class IpcCApiRemoteObjectModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -362,3 +363,4 @@ HWTEST_F(IpcCApiRemoteObjectModuleTest, OH_IPCParcel_TestReadWriteRemoteProxy_00
     bool res = helper.StopTestApp(IPCTestHelper::IPC_TEST_SERVER);
     ASSERT_TRUE(res);
 }
+} // namespace OHOS
