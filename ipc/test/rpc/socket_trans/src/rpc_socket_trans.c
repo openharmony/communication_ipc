@@ -290,7 +290,7 @@ static int32_t Disconnect(int32_t sessionId)
 
 static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
 {
-    if (sessionId < 0 || data == NULL || len <= 0) {
+    if (sessionId < 0 || data == NULL || len == 0) {
         RPC_LOG_ERROR("send invail params");
         return ERR_FAILED;
     }

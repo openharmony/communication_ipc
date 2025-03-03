@@ -38,6 +38,7 @@ static constexpr int MAX_MEMORY_SIZE = 204800;
 static constexpr uint64_t TEST_TOKEN_ID = 9876543210;
 static constexpr int TEST_UID = 1234;
 
+namespace OHOS {
 using TEST_OH_IPC_MemAllocator = void* (*)(int);
 testing::MockFunction<void*(int)> mockAllocator;
 
@@ -54,7 +55,6 @@ public:
     MOCK_METHOD0(IsLocalCalling, bool());
 };
 
-namespace OHOS {
 namespace IPCSkeleton {
     MockIPCSkeleton g_mock;
 
@@ -95,8 +95,6 @@ namespace IPCSkeleton {
         return g_mock.IsLocalCalling();
     }
 }
-}
-
 
 class IPCCskeletonTest : public testing::Test {
 public:
@@ -409,3 +407,4 @@ HWTEST_F(IPCCskeletonTest, OH_IPCSkeleton_IsLocalCallingTest002, TestSize.Level1
     int result = OH_IPCSkeleton_IsLocalCalling();
     EXPECT_EQ(result, 0);
 }
+} // namespace OHOS

@@ -24,6 +24,7 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
     const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
     const std::string DIGIT_STR_TEST = "12345";
@@ -31,7 +32,6 @@ namespace {
     const std::string PUNCTUATION_STR_TEST = "123,45";
 }
 
-namespace OHOS {
 class ProcessSkeletonInterface {
 public:
     ProcessSkeletonInterface() {};
@@ -69,7 +69,6 @@ extern "C" {
         return GetProcessSkeletonInterface()->WriteBuffer(data, size);
     }
 }
-} // namespace OHOS
 
 class ProcessSkeletonTest : public testing::Test {
 public:
@@ -136,6 +135,7 @@ HWTEST_F(ProcessSkeletonTest, IsContainsObjectTest003, TestSize.Level1)
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
     sptr<IRemoteObject> object = new IPCObjectStub(DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
     skeleton->isContainStub_[object] = false;
     bool ret = skeleton->IsContainsObject(object.GetRefPtr());
     EXPECT_FALSE(ret);
@@ -152,6 +152,7 @@ HWTEST_F(ProcessSkeletonTest, IsContainsObjectTest004, TestSize.Level1)
     ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(skeleton != nullptr);
     sptr<IRemoteObject> object = new IPCObjectStub(DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
     skeleton->isContainStub_[object] = true;
     bool ret = skeleton->IsContainsObject(object.GetRefPtr());
     EXPECT_TRUE(ret);
@@ -400,3 +401,4 @@ HWTEST_F(ProcessSkeletonTest, IsNumStrTest004, TestSize.Level1)
     bool ret = skeleton->IsNumStr(punctuationStr);
     EXPECT_FALSE(ret);
 }
+} // namespace OHOS

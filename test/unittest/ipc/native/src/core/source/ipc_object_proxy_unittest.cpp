@@ -29,7 +29,7 @@
 
 using namespace testing::ext;
 using namespace OHOS;
-
+namespace OHOS {
 class IPCObjectProxyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -106,3 +106,4 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest002, TestSize.Level1)
     ASSERT_EQ(ret.size(), 0);
     delete invoker;
 }
+} // namespace OHOS
