@@ -19,6 +19,7 @@ group("unittest") {
   testonly = true
   if (ipc_feature_test_enabled) {
     deps = [
+      "dbinder/dbinder_service/src:unittest",
       "ipc/native/src/c_api/source:unittest",
       "ipc/native/src/core/source:unittest",
     ]

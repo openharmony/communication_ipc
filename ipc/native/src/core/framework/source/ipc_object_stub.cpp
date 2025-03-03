@@ -236,6 +236,9 @@ int IPCObjectStub::DBinderIncRefsTransaction(uint32_t code, MessageParcel &data,
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
     uint64_t stubIndex = current->QueryStubIndex(this);
     DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
         IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
@@ -265,6 +268,9 @@ int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code, MessageParcel &data,
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
     uint64_t stubIndex = current->QueryStubIndex(this);
     DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
         IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));

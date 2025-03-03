@@ -1036,6 +1036,7 @@ static napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_ca
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     sptr<IRemoteObject> nativeObject = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    NAPI_ASSERT(env, nativeObject != nullptr, "nativeObject is NULL.");
     std::u16string descriptor = nativeObject->GetObjectDescriptor();
     napi_create_string_utf8(env, Str16ToStr8(descriptor).c_str(), NAPI_AUTO_LENGTH, &result);
     return result;

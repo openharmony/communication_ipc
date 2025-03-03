@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,7 +61,7 @@ BinderConnector::~BinderConnector()
 
 bool BinderConnector::IsDriverAlive()
 {
-    return driverFD_ >= 0;
+    return driverFD_.load() >= 0;
 }
 
 bool BinderConnector::OpenDriver()
@@ -87,11 +87,11 @@ bool BinderConnector::OpenDriver()
         featureSet = 0;
     }
     ZLOGD(LABEL, "success to open fd:%{public}d", fd);
-    driverFD_ = fd;
+    driverFD_.store(fd);
 
     if (!MapMemory(featureSet)) {
-        close(driverFD_);
-        driverFD_ = -1;
+        close(driverFD_.load());
+        driverFD_.store(-1);
         return false;
     }
     version_ = version;
@@ -101,7 +101,7 @@ bool BinderConnector::OpenDriver()
 
 bool BinderConnector::MapMemory(uint64_t featureSet)
 {
-    vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_, 0);
+    vmAddr_ = mmap(0, IPC_MMAP_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, driverFD_.load(), 0);
     if (vmAddr_ == MAP_FAILED) {
         ZLOGE(LABEL, "fail to mmap");
         return false;
@@ -127,10 +127,10 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
     int err = -EINTR;
 
     while (err == -EINTR) {
-        if (driverFD_ < 0) {
+        if (driverFD_.load() < 0) {
             return -EBADF;
         }
-        if (ioctl(driverFD_, request, value) >= 0) {
+        if (ioctl(driverFD_.load(), request, value) >= 0) {
             err = ERR_NONE;
         } else {
             err = -errno;
@@ -148,8 +148,8 @@ int BinderConnector::WriteBinder(unsigned long request, void *value)
 
 void BinderConnector::ExitCurrentThread(unsigned long request)
 {
-    if (driverFD_ > 0) {
-        ioctl(driverFD_, request, 0);
+    if (driverFD_.load() > 0) {
+        ioctl(driverFD_.load(), request, 0);
     }
 }
 
@@ -192,9 +192,8 @@ uint64_t BinderConnector::GetSelfFirstCallerTokenID()
 
 void BinderConnector::CloseDriverFd()
 {
-    if (driverFD_ >= 0) {
-        int tmpFd = driverFD_;
-        driverFD_ = -1;
+    if (driverFD_.load() >= 0) {
+        int tmpFd = driverFD_.exchange(-1);
         // avoid call 'close' and 'ioctl' concurrently
         std::this_thread::sleep_for(std::chrono::milliseconds(CLOSE_WAIT_TIME_MS));
         close(tmpFd);
