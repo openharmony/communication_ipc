@@ -28,9 +28,9 @@ unittest("samgr") {
 
   include_dirs = [
     "$SUBSYSTEM_DIR/include",
-    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
+    "$IPC_ROOT_DIR/utils/include",
   ]
 
   sources = [ "IpcSamgrTest.cpp" ]
