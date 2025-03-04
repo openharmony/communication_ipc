@@ -1,0 +1,68 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("ffi_common_deps_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("cj_ipc_ffi") {
+  sanitize = {
+    integer_overflow = true
+  }
+
+  if (!defined(defines)) {
+    defines = []
+  }
+  include_dirs = [
+    "include",
+    "../../../utils/include",
+  ]
+  public_configs = [ ":ffi_common_deps_config" ]
+
+  deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "libuv:uv",
+    "napi:ace_napi",
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
+  ]
+  sources = [
+    "src/ashmem_impl.cpp",
+    "src/ipc_ffi.cpp",
+    "src/ipc_skeleton_imp.cpp",
+    "src/ipc_utils_ffi.cpp",
+    "src/message_sequence_impl.cpp",
+    "src/process_skeleton_impl.cpp",
+    "src/remote_object_holder_impl.cpp",
+    "src/remote_object_impl.cpp",
+    "src/remote_proxy_impl.cpp",
+  ]
+
+  if (is_ohos) {
+    defines += [ "OHOS_PLATFORM" ]
+  }
+
+  if (is_mingw) {
+    defines += [ "WINDOWS_PLATFORM" ]
+  }
+
+  innerapi_tags = [ "platformsdk" ]
+
+  subsystem_name = "communication"
+  part_name = "ipc"
+}
