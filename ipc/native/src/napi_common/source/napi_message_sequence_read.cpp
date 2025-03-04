@@ -986,14 +986,14 @@ static int32_t GetArraySize(napi_env env, napi_callback_info info, napi_value &t
     if (argc != 1) {
         ZLOGE(LOG_LABEL, "requires 1 parameters");
         result = napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-        return 0;
+        return -1;
     }
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
         ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
         result = napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
-        return 0;
+        return -1;
     }
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
