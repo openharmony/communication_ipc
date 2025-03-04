@@ -17,52 +17,48 @@ config("ffi_common_deps_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("cj_ipc_ffi") {
-  sanitize = {
-    integer_overflow = true
+if (support_jsapi) {
+  ohos_shared_library("cj_ipc_ffi") {
+    sanitize = {
+      integer_overflow = true
+    }
+
+    if (!defined(defines)) {
+      defines = []
+    }
+    include_dirs = [
+      "include",
+      "../../../utils/include",
+    ]
+    public_configs = [ ":ffi_common_deps_config" ]
+
+    deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
+      "libuv:uv",
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+    sources = [
+      "src/ashmem_impl.cpp",
+      "src/ipc_ffi.cpp",
+      "src/ipc_skeleton_imp.cpp",
+      "src/ipc_utils_ffi.cpp",
+      "src/message_sequence_impl.cpp",
+      "src/process_skeleton_impl.cpp",
+      "src/remote_object_holder_impl.cpp",
+      "src/remote_object_impl.cpp",
+      "src/remote_proxy_impl.cpp",
+    ]
+
+    innerapi_tags = [ "platformsdk" ]
+
+    subsystem_name = "communication"
+    part_name = "ipc"
   }
-
-  if (!defined(defines)) {
-    defines = []
+} else {
+  ohos_shared_library("cj_ipc_ffi") {
   }
-  include_dirs = [
-    "include",
-    "../../../utils/include",
-  ]
-  public_configs = [ ":ffi_common_deps_config" ]
-
-  deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "libuv:uv",
-    "napi:ace_napi",
-    "napi:cj_bind_ffi",
-    "napi:cj_bind_native",
-  ]
-  sources = [
-    "src/ashmem_impl.cpp",
-    "src/ipc_ffi.cpp",
-    "src/ipc_skeleton_imp.cpp",
-    "src/ipc_utils_ffi.cpp",
-    "src/message_sequence_impl.cpp",
-    "src/process_skeleton_impl.cpp",
-    "src/remote_object_holder_impl.cpp",
-    "src/remote_object_impl.cpp",
-    "src/remote_proxy_impl.cpp",
-  ]
-
-  if (is_ohos) {
-    defines += [ "OHOS_PLATFORM" ]
-  }
-
-  if (is_mingw) {
-    defines += [ "WINDOWS_PLATFORM" ]
-  }
-
-  innerapi_tags = [ "platformsdk" ]
-
-  subsystem_name = "communication"
-  part_name = "ipc"
 }
