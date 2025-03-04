@@ -16,7 +16,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#define private public
 #include "dbinder_session_object.h"
 #include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
@@ -24,12 +23,107 @@
 #include "ipc_types.h"
 #include "iremote_object.h"
 #include "stub_refcount_object.h"
-#undef private
 
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 namespace OHOS {
+namespace {
+    const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
+    constexpr int HANDLE_TEST = 1;
+    constexpr int HANDLE_INVALID_TEST = 0;
+    constexpr int POLICY_TEST = 1;
+    constexpr int PROTO_TEST = 1;
+    constexpr int MAX_THREAD_NUM_TEST = 1;
+}
+
+class IPCProcessSkeletonInterface {
+public:
+    IPCProcessSkeletonInterface() {};
+    virtual ~IPCProcessSkeletonInterface() {};
+
+    virtual bool LockObjectMutex() = 0;
+    virtual bool UnlockObjectMutex() = 0;
+    virtual sptr<IRemoteObject> QueryObject(const std::u16string &descriptor, bool lockFlag) = 0;
+    virtual IRemoteInvoker *GetRemoteInvoker(int proto) = 0;
+    virtual sptr<IRemoteObject> GetRegistryObject() = 0;
+    virtual bool PingService(int32_t handle) = 0;
+};
+
+class IPCProcessSkeletonInterfaceMock : public IPCProcessSkeletonInterface {
+public:
+    IPCProcessSkeletonInterfaceMock();
+    ~IPCProcessSkeletonInterfaceMock() override;
+
+    MOCK_METHOD0(LockObjectMutex, bool());
+    MOCK_METHOD0(UnlockObjectMutex, bool());
+    MOCK_METHOD2(QueryObject, sptr<IRemoteObject>(const std::u16string &descriptor, bool lockFlag));
+    MOCK_METHOD1(GetRemoteInvoker, IRemoteInvoker *(int));
+    MOCK_METHOD0(GetRegistryObject, sptr<IRemoteObject>());
+    MOCK_METHOD1(PingService, bool(int32_t));
+};
+
+static void *g_interface = nullptr;
+
+IPCProcessSkeletonInterfaceMock::IPCProcessSkeletonInterfaceMock()
+{
+    g_interface = reinterpret_cast<void *>(this);
+}
+
+IPCProcessSkeletonInterfaceMock::~IPCProcessSkeletonInterfaceMock()
+{
+    g_interface = nullptr;
+}
+
+static IPCProcessSkeletonInterface *GetIPCProcessSkeletonInterface()
+{
+    return reinterpret_cast<IPCProcessSkeletonInterface *>(g_interface);
+}
+
+extern "C" {
+    bool ProcessSkeleton::LockObjectMutex()
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return true;
+        }
+        return GetIPCProcessSkeletonInterface()->LockObjectMutex();
+    }
+    bool ProcessSkeleton::UnlockObjectMutex()
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return true;
+        }
+        return GetIPCProcessSkeletonInterface()->UnlockObjectMutex();
+    }
+    sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descriptor, bool lockFlag)
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetIPCProcessSkeletonInterface()->QueryObject(descriptor, lockFlag);
+    }
+    IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetIPCProcessSkeletonInterface()->GetRemoteInvoker(proto);
+    }
+    sptr<IRemoteObject> ProcessSkeleton::GetRegistryObject()
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetIPCProcessSkeletonInterface()->GetRegistryObject();
+    }
+    bool BinderInvoker::PingService(int32_t handle)
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return false;
+        }
+        return GetIPCProcessSkeletonInterface()->PingService(handle);
+    }
+}
 
 class IPCProcessSkeletonUnitTest : public testing::Test {
 public:
@@ -64,6 +158,28 @@ HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest001, TestSize.Level1)
     EXPECT_FALSE(skeleton->IsContainsObject(nullptr));
     skeleton->instance_ = nullptr;
     skeleton->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: IsContainsObjectTest002
+ * @tc.desc: Verify the IsContainsObject function when ProcessSkeleton::GetInstance() return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    sptr<IRemoteObject> obj = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(obj != nullptr);
+    bool ret = skeleton->IsContainsObject(obj);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -129,6 +245,45 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachObjectTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DetachObjectTest003
+ * @tc.desc: Verify the DetachObject function when ProcessSkeleton::GetInstance() is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+    EXPECT_FALSE(skeleton->DetachObject(object));
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: DetachObjectTest004
+ * @tc.desc: Verify the DetachObject function when ProcessSkeleton::GetInstance() is valid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachObjectTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+    bool ret = skeleton->DetachObject(object);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
  * @tc.name: QueryAppInfoToStubIndexTest001
  * @tc.desc: Verify the QueryAppInfoToStubIndex function
  * @tc.type: FUNC
@@ -177,4 +332,208 @@ HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest001, TestSize.Level1
     skeleton->instance_ = nullptr;
     skeleton->exitFlag_ = false;
 }
+
+/**
+ * @tc.name: GetRegistryObjectTest001
+ * @tc.desc: Verify the GetRegistryObject function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetRegistryObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+    sptr<IRemoteObject> obj = new (std::nothrow) IPCObjectProxy(1, DESCRIPTOR_TEST);
+    ASSERT_TRUE(obj != nullptr);
+    EXPECT_CALL(mock, GetRegistryObject()).WillOnce(Return(obj));
+
+    sptr<IRemoteObject> object = skeleton->GetRegistryObject();
+    EXPECT_NE(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
 }
+
+/**
+ * @tc.name: GetRegistryObjectTest002
+ * @tc.desc: Verify the GetRegistryObject function when ProcessSkeleton::GetInstance() return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetRegistryObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    sptr<IRemoteObject> object = skeleton->GetRegistryObject();
+    EXPECT_EQ(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: GetRegistryObjectTest003
+ * @tc.desc: Verify the GetRegistryObject function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetRegistryObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetRegistryObject()).WillOnce(Return(nullptr));
+
+    sptr<IRemoteObject> object = skeleton->GetRegistryObject();
+    EXPECT_EQ(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: GetProxyObjectTest001
+ * @tc.desc: Verify the GetProxyObject function when ProcessSkeleton::GetInstance() return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    bool newFlag = false;
+    int handle = HANDLE_TEST;
+
+    sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
+    EXPECT_EQ(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: GetProxyObjectTest002
+ * @tc.desc: Verify the GetProxyObject function when LockObjectMutex function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    bool newFlag = false;
+    int handle = HANDLE_TEST;
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(false));
+
+    sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
+    EXPECT_EQ(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: GetProxyObjectTest003
+ * @tc.desc: Verify the GetProxyObject function when QueryObject function return a valid value obj
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool newFlag = false;
+    int handle = HANDLE_TEST;
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+    sptr<IRemoteObject> obj = new (std::nothrow) IPCObjectProxy(handle, DESCRIPTOR_TEST);
+    ASSERT_TRUE(obj != nullptr);
+    EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
+    EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(obj));
+
+    sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
+    EXPECT_CALL(mock, UnlockObjectMutex()).WillRepeatedly(Return(true));
+    EXPECT_EQ(object, obj);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: GetProxyObjectTest004
+ * @tc.desc: Verify the GetProxyObject function when GetRemoteInvoker function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool newFlag = false;
+    int handle = HANDLE_INVALID_TEST;
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
+    EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(nullptr));
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(nullptr));
+    EXPECT_CALL(mock, UnlockObjectMutex()).WillRepeatedly(Return(true));
+
+    sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
+    EXPECT_EQ(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: GetProxyObjectTest005
+ * @tc.desc: Verify the GetProxyObject function when PingService function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest005, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool newFlag = false;
+    int handle = HANDLE_INVALID_TEST;
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+
+    EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
+    EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(nullptr));
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(invoker));
+    EXPECT_CALL(mock, PingService(testing::_)).WillRepeatedly(Return(false));
+    EXPECT_CALL(mock, UnlockObjectMutex()).WillRepeatedly(Return(true));
+
+    sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
+    EXPECT_EQ(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: GetProxyObjectTest006
+ * @tc.desc: Verify the GetProxyObject function when PingService function return true and handle is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest006, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool newFlag = false;
+    int handle = HANDLE_TEST;
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
+    EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(nullptr));
+    EXPECT_CALL(mock, UnlockObjectMutex()).WillRepeatedly(Return(true));
+
+    sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
+    EXPECT_NE(object, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+} // namespace OHOS
