@@ -106,6 +106,10 @@ ipc_unittest("IremoteObjectTest") {
   sources = [ "iremote_object_unittest.cpp" ]
 }
 
+ipc_unittest("IpcObjectStubTest") {
+  sources = [ "ipc_object_stub_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -116,6 +120,7 @@ group("unittest") {
     ":DbinderDataBusInvokerTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
+    ":IpcObjectStubTest",
     ":IremoteBrokerTest",
     ":IremoteObjectTest",
   ]
