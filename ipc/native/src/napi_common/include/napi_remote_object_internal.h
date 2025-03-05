@@ -78,6 +78,11 @@ public:
     napi_ref GetJsObjectRef() const;
 
     void ResetJsEnv();
+
+    std::thread::id GetJSThreadId() const
+    {
+        return jsThreadId_;
+    }
 private:
     napi_env env_ = nullptr;
     std::thread::id jsThreadId_;
