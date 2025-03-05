@@ -50,7 +50,6 @@ if (support_jsapi) {
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
-      "libuv:uv",
       "napi:ace_napi",
     ]
 
