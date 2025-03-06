@@ -108,7 +108,7 @@ void StubExecuteSendRequest(CJSendRequestParam* param)
         FinishAsyncTrace(HITRACE_TAG_RPC, (param->traceValue).c_str(), param->traceId);
     }
     auto callback = CJLambda::Create(reinterpret_cast<void (*)(RequestResult)>(param->callback));
-    if (!callback) {
+    if (callback) {
         ZLOGI(LOG_LABEL, "callback started");
         RequestResult result = RequestResult {
             .errCode = param->errCode, .code = param->code, .data = param->cjDataRef, .reply = param->cjReplyRef
@@ -152,6 +152,10 @@ int32_t CjRemoteObjectImpl::SendMessageRequest(
         .callback = funcId,
         .traceId = 0,
     };
+    if (sendRequestParam == nullptr) {
+        ZLOGE(LOG_LABEL, "new SendRequestParam failed");
+        return errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR;
+    }
     std::string remoteDescriptor = Str16ToStr8(target->GetObjectDescriptor());
     if (!remoteDescriptor.empty()) {
         std::string traceValue = remoteDescriptor + std::to_string(code);
@@ -168,46 +172,69 @@ RemoteObjectHolderImpl* CjRemoteObjectImpl::GetHolder()
     return holder_;
 }
 
-RetDataI64 CreateStubRemoteObject(const sptr<IRemoteObject> target)
+bool CjRemoteObjectImpl::IsProxyObject()
+{
+    if (holder_ == nullptr) {
+        ZLOGE(LOG_LABEL, "failed to get napi remote object holder");
+        return false;
+    }
+    sptr<IRemoteObject> target = holder_->Get();
+    if (target == nullptr) {
+        ZLOGE(LOG_LABEL, "native stub object is nullptr");
+        return false;
+    }
+    return target->IsProxyObject();
+}
+
+sptr<IRemoteObject> CjRemoteObjectImpl::GetRemoteObject()
+{
+    if (holder_ == nullptr) {
+        ZLOGE(LOG_LABEL, "failed to get napi remote object holder");
+        return nullptr;
+    }
+    return holder_->Get();
+}
+
+int64_t CreateStubRemoteObject(const sptr<IRemoteObject> target)
 {
     std::u16string descriptor = target->GetObjectDescriptor();
     RemoteObjectHolderImpl* holder = new (std::nothrow) RemoteObjectHolderImpl(descriptor);
     if (holder == nullptr) {
-        return RetDataI64 { 0, 0 };
+        return 0;
     }
     holder->Set(target);
     auto remotrObject = FFIData::Create<CjRemoteObjectImpl>(holder);
     if (!remotrObject) {
         delete holder;
-        return RetDataI64 { 0, 0 };
+        return 0;
     }
-    return RetDataI64 { 0, remotrObject->GetID() };
+    return remotrObject->GetID();
 }
 
-RetDataI64 CreateProxyRemoteObject(const sptr<IRemoteObject> target)
+int64_t CreateProxyRemoteObject(const sptr<IRemoteObject> target)
 {
     auto proxyHolder = FFIData::Create<RemoteProxyHolderImpl>();
     if (proxyHolder == nullptr) {
-        return RetDataI64 { 0, 0 };
+        return 0;
     }
     proxyHolder->object_ = target;
     proxyHolder->list_ = new (std::nothrow) CJDeathRecipientList();
     if (proxyHolder->list_ == nullptr) {
         ZLOGE(LOG_LABEL, "new NAPIDeathRecipientList failed");
         FFIData::Release(proxyHolder->GetID());
-        return RetDataI64 { 0, 0 };
+        return 0;
     }
-    return RetDataI64 { 1, proxyHolder->GetID() };
+    return proxyHolder->GetID();
 }
 
-RetDataI64 CJ_rpc_CreateRemoteObject(const sptr<IRemoteObject> target)
+int64_t CJ_rpc_CreateRemoteObject(const sptr<IRemoteObject> target)
 {
     if (target == nullptr) {
         uint64_t curTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
                 .count());
         ZLOGE(LOG_LABEL, "RemoteObject is null time:%{public}" PRIu64, curTime);
-        return RetDataI64 { 0, 0 };
+        return 0;
     }
     if (!target->IsProxyObject()) {
         IPCObjectStub* tmp = static_cast<IPCObjectStub*>(target.GetRefPtr());
@@ -221,40 +248,27 @@ RetDataI64 CJ_rpc_CreateRemoteObject(const sptr<IRemoteObject> target)
     return CreateProxyRemoteObject(target);
 }
 
-sptr<IRemoteObject> CJ_rpc_getNativeRemoteObject(RetDataI64 object)
+sptr<IRemoteObject> CJ_rpc_getNativeRemoteObject(int64_t object)
 {
-    if (object.code == 0) {
-        auto remoteObject = FFIData::GetData<CjRemoteObjectImpl>(object.data);
-        if (!remoteObject) {
-            ZLOGE(LOG_LABEL, "get stub constructor failed");
-            return nullptr;
-        }
-        RemoteObjectHolderImpl* holder = remoteObject->GetHolder();
-        return holder != nullptr ? holder->Get() : nullptr;
-    } else if (object.code == 1) {
-        auto remoteProxy = FFIData::GetData<RemoteProxyHolderImpl>(object.data);
-        if (!remoteProxy) {
-            ZLOGE(LOG_LABEL, "get proxy constructor failed");
-            return nullptr;
-        }
-        return remoteProxy->object_ != nullptr ? remoteProxy->object_ : nullptr;
-    } else {
+    auto remoteObject = FFIData::GetData<CjIRemoteObjectImpl>(object);
+    if (!remoteObject) {
+        ZLOGE(LOG_LABEL, "get stub constructor failed");
         return nullptr;
     }
+    return remoteObject->GetRemoteObject();
 }
 
 extern "C" {
-FFI_EXPORT RetDataI64 OHOS_CallCreateRemoteObject(void* param)
+FFI_EXPORT int64_t OHOS_CallCreateRemoteObject(void* param)
 {
-    RetDataI64 ret;
     auto remoteObject = reinterpret_cast<sptr<IRemoteObject>*>(param);
     if (remoteObject == nullptr) {
-        return ret;
+        return 0;
     }
     return CJ_rpc_CreateRemoteObject(*remoteObject);
 }
 
-FFI_EXPORT void OHOS_CallGetNativeRemoteObject(RetDataI64 object, void* param)
+FFI_EXPORT void OHOS_CallGetNativeRemoteObject(int64_t object, void* param)
 {
     if (param == nullptr) {
         return;

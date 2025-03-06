@@ -28,7 +28,8 @@ RetDataI64 GetContextObject()
         ZLOGE(LOG_LABEL, "fatal error, could not get registry object");
         return RetDataI64 { 0, 0 };
     }
-    return CJ_rpc_CreateRemoteObject(object);
+    int32_t type = object->IsProxyObject() ? 1 : 0;
+    return RetDataI64{type, CJ_rpc_CreateRemoteObject(object)};
 }
 
 uint32_t GetCallingTokenId()
@@ -52,7 +53,7 @@ bool IsLocalCalling()
     return true;
 }
 
-void FlushCmdBuffer(RetDataI64 object)
+void FlushCmdBuffer(int64_t object)
 {
     sptr<IRemoteObject> target = CJ_rpc_getNativeRemoteObject(object);
     IPCSkeleton::FlushCommands(target);
