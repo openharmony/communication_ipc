@@ -27,10 +27,10 @@ void AddDeathRecipientFuzzTest(const uint8_t *data, size_t size)
     MessageParcel parcel;
     parcel.WriteBuffer(data, size);
     int32_t handle = parcel.ReadInt32();
-    uintptr_t point = parcel.ReadPointer();
+    sptr<IRemoteObject> point = parcel.ReadRemoteObject();
     BinderInvoker invoker;
     
-    invoker.AddDeathRecipient(handle, reinterpret_cast<void*>(point));
+    invoker.AddDeathRecipient(handle, reinterpret_cast<void*>(point.GetRefPtr()));
 }
 
 void FlattenObjectFuzzTest(const uint8_t *data, size_t size)
@@ -95,18 +95,6 @@ void JoinProcessThreadFuzzTest(const uint8_t *data, size_t size)
     bool result = parcel.ReadBool();
     BinderInvoker invoker;
     invoker.JoinProcessThread(result);
-}
-
-void JoinThreadFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
-    bool result = parcel.ReadBool();
-    BinderInvoker invoker;
-    invoker.JoinThread(result);
 }
 
 void PingServiceFuzzTest(const uint8_t *data, size_t size)
@@ -256,15 +244,12 @@ void TranslateIRemoteObjectFuzzTest(const uint8_t *data, size_t size)
     if (length == 0) {
         return;
     }
-    const uint8_t *bufData = parcel.ReadBuffer(length);
+    const char *bufData = reinterpret_cast<const char *>(parcel.ReadBuffer(length));
     if (bufData == nullptr) {
         return;
     }
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    const std::u16string testStubName = converter.from_bytes(
-        reinterpret_cast<const char*>(bufData),
-        reinterpret_cast<const char*>(bufData + length)
-    );
+    std::string testStubName_str(bufData, length);
+    std::u16string testStubName(testStubName_str.begin(), testStubName_str.end());
     BinderInvoker binderInvoker;
     sptr<IRemoteObject> testStub = new IPCObjectStub(testStubName);
     binderInvoker.TranslateIRemoteObject(cmd, testStub);
@@ -305,7 +290,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::FreeBufferFuzzTest(data, size);
     OHOS::GetStrongRefCountForStubFuzzTest(data, size);
     OHOS::JoinProcessThreadFuzzTest(data, size);
-    OHOS::JoinThreadFuzzTest(data, size);
     OHOS::PingServiceFuzzTest(data, size);
     OHOS::ReadFileDescriptorFuzzTest(data, size);
     OHOS::RegisteriiFuzzTest(data, size);
