@@ -20,6 +20,7 @@ declare_args() {
   ipc_feature_trace_enabled = false
   resourceschedule_ffrt_support = false
   hiviewdfx_backtrace_support = false
+  hiviewdfx_hisysevent_support = false
 }
 
 if (defined(global_parts_info) &&
@@ -35,4 +36,9 @@ if (defined(global_parts_info) &&
 if (defined(global_parts_info) &&
     defined(global_parts_info.hiviewdfx_faultloggerd)) {
   hiviewdfx_backtrace_support = true
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.hiviewdfx_hisysevent)) {
+  hiviewdfx_hisysevent_support = true
 }
