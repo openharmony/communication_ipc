@@ -125,10 +125,10 @@
               }
             },
             {
-              "name": "//foundation/communication/ipc/interfaces/kits/cj:cj_ipc_ffi",
+              "name": "//foundation/communication/ipc/interfaces/innerkits/cj:cj_ipc_ffi",
               "header": {
                 "header_files": [],
-                "header_base": "//foundation/communication/ipc/interfaces/kits/cj/include"
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/cj/include"
               }
             },
             {
