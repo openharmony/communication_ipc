@@ -16,7 +16,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "binder_invoker.h"
 #include "dbinder_session_object.h"
+#include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
@@ -30,11 +32,15 @@ using namespace OHOS;
 namespace OHOS {
 namespace {
     const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
+    const std::u16string DESCRIPTOR_INVALID_TEST = u"";
+    const std::string SERVICE_NAME_TEST = "serviceNameTest";
+    const std::string DEVICE_ID_TEST = "deviceidTest";
     constexpr int HANDLE_TEST = 1;
     constexpr int HANDLE_INVALID_TEST = 0;
     constexpr int POLICY_TEST = 1;
     constexpr int PROTO_TEST = 1;
     constexpr int MAX_THREAD_NUM_TEST = 1;
+    constexpr uint64_t NUM_TEST = 10;
 }
 
 class IPCProcessSkeletonInterface {
@@ -48,6 +54,7 @@ public:
     virtual IRemoteInvoker *GetRemoteInvoker(int proto) = 0;
     virtual sptr<IRemoteObject> GetRegistryObject() = 0;
     virtual bool PingService(int32_t handle) = 0;
+    virtual bool SetRegistryObject(sptr<IRemoteObject> &object) = 0;
 };
 
 class IPCProcessSkeletonInterfaceMock : public IPCProcessSkeletonInterface {
@@ -61,6 +68,7 @@ public:
     MOCK_METHOD1(GetRemoteInvoker, IRemoteInvoker *(int));
     MOCK_METHOD0(GetRegistryObject, sptr<IRemoteObject>());
     MOCK_METHOD1(PingService, bool(int32_t));
+    MOCK_METHOD1(SetRegistryObject, bool(sptr<IRemoteObject> &object));
 };
 
 static void *g_interface = nullptr;
@@ -123,6 +131,13 @@ extern "C" {
         }
         return GetIPCProcessSkeletonInterface()->PingService(handle);
     }
+    bool BinderInvoker::SetRegistryObject(sptr<IRemoteObject> &object)
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return false;
+        }
+        return GetIPCProcessSkeletonInterface()->SetRegistryObject(object);
+    }
 }
 
 class IPCProcessSkeletonUnitTest : public testing::Test {
@@ -170,6 +185,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest002, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
     auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
     current->instance_ = nullptr;
     current->exitFlag_ = true;
 
@@ -214,6 +230,28 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachObjectTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AttachObjectTest003
+ * @tc.desc: Verify the AttachObject function current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    bool ret = skeleton->AttachObject(object, false);
+    EXPECT_FALSE(ret);
+    skeleton->instance_ = nullptr;
+    skeleton->exitFlag_ = false;
+    current->exitFlag_ = false;
+}
+
+/**
  * @tc.name: DetachObjectTest001
  * @tc.desc: Verify the DetachObject function object is empty
  * @tc.type: FUNC
@@ -254,6 +292,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, DetachObjectTest003, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
     auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
     current->instance_ = nullptr;
     current->exitFlag_ = true;
 
@@ -363,6 +402,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetRegistryObjectTest002, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
     auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
     current->instance_ = nullptr;
     current->exitFlag_ = true;
 
@@ -402,6 +442,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest001, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
     auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
     current->instance_ = nullptr;
     current->exitFlag_ = true;
 
@@ -499,7 +540,8 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest005, TestSize.Level1)
     bool newFlag = false;
     int handle = HANDLE_INVALID_TEST;
     NiceMock<IPCProcessSkeletonInterfaceMock> mock;
-    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
+    BinderInvoker *invoker = new BinderInvoker();
+    ASSERT_TRUE(invoker != nullptr);
 
     EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
     EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(nullptr));
@@ -511,6 +553,9 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest005, TestSize.Level1)
     EXPECT_EQ(object, nullptr);
     skeleton->exitFlag_ = false;
     skeleton->instance_ = nullptr;
+    if (invoker != nullptr) {
+        delete invoker;
+    }
 }
 
 /**
@@ -535,5 +580,341 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest006, TestSize.Level1)
     EXPECT_NE(object, nullptr);
     skeleton->exitFlag_ = false;
     skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: SetRegistryObjectTest001
+ * @tc.desc: Verify the SetRegistryObject function when object is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetRegistryObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = nullptr;
+    bool ret = skeleton->SetRegistryObject(object);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: SetRegistryObjectTest002
+ * @tc.desc: Verify the SetRegistryObject function when ProcessSkeleton::GetInstance() return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetRegistryObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+
+    bool ret = skeleton->SetRegistryObject(object);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: SetRegistryObjectTest003
+ * @tc.desc: Verify the SetRegistryObject function when GetRemoteInvoker function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetRegistryObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(nullptr));
+
+    bool ret = skeleton->SetRegistryObject(object);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: SetRegistryObjectTest004
+ * @tc.desc: Verify the SetRegistryObject function when ProcessSkeleton::GetInstance() return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetRegistryObjectTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+    BinderInvoker *invoker = new BinderInvoker();
+    ASSERT_TRUE(invoker != nullptr);
+
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(Return(invoker));
+    EXPECT_CALL(mock, SetRegistryObject(testing::_)).WillRepeatedly(Return(true));
+
+    bool ret = skeleton->SetRegistryObject(object);
+    EXPECT_TRUE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    if (invoker != nullptr) {
+        delete invoker;
+    }
+}
+
+/**
+ * @tc.name: SetRegistryObjectTest005
+ * @tc.desc: Verify the SetRegistryObject function when ProcessSkeleton::GetInstance() return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetRegistryObjectTest005, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+    BinderInvoker *invoker = new BinderInvoker();
+    ASSERT_TRUE(invoker != nullptr);
+
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(Return(invoker));
+    EXPECT_CALL(mock, SetRegistryObject(testing::_)).WillRepeatedly(Return(false));
+
+    bool ret = skeleton->SetRegistryObject(object);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    if (invoker != nullptr) {
+        delete invoker;
+    }
+}
+
+/**
+ * @tc.name: SpawnThreadTest001
+ * @tc.desc: Verify the SpawnThread function when threadPool_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SpawnThreadTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    int policy = POLICY_TEST;
+    int proto = PROTO_TEST;
+    skeleton->threadPool_ = nullptr;
+    bool ret = skeleton->SpawnThread(policy, proto);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: SpawnThreadTest002
+ * @tc.desc: Verify the SpawnThread function when threadPool_ is not nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SpawnThreadTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    int policy = POLICY_TEST;
+    int proto = PROTO_TEST;
+    int maxThreadNum = MAX_THREAD_NUM_TEST;
+    IPCWorkThreadPool *ipcThreadPool = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
+    ASSERT_TRUE(ipcThreadPool != nullptr);
+
+    skeleton->threadPool_ = ipcThreadPool;
+    bool ret = skeleton->SpawnThread(policy, proto);
+    EXPECT_TRUE(ret);
+    if (ipcThreadPool != nullptr) {
+        delete ipcThreadPool;
+    }
+}
+
+/**
+ * @tc.name: QueryObjectTest001
+ * @tc.desc: Verify the QueryObject function when descriptor is valid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::u16string descriptor = DESCRIPTOR_TEST;
+    auto ret = skeleton->QueryObject(descriptor, false);
+    EXPECT_EQ(ret, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryObjectTest002
+ * @tc.desc: Verify the QueryObject function when descriptor is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::u16string descriptor = DESCRIPTOR_INVALID_TEST;
+    auto ret = skeleton->QueryObject(descriptor, false);
+    EXPECT_EQ(ret, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryObjectTest003
+ * @tc.desc: Verify the QueryObject function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    std::u16string descriptor = DESCRIPTOR_INVALID_TEST;
+    auto ret = skeleton->QueryObject(descriptor, false);
+    EXPECT_EQ(ret, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: SetIPCProxyLimitTest001
+ * @tc.desc: Verify the SetIPCProxyLimit function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetIPCProxyLimitTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    std::function<void(uint64_t)> callback = [](uint64_t) {};
+    auto ret = skeleton->SetIPCProxyLimit(NUM_TEST, callback);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: SetIPCProxyLimitTest002
+ * @tc.desc: Verify the SetIPCProxyLimit function when current->instance_ is not nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetIPCProxyLimitTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::function<void(uint64_t)> callback = [](uint64_t) {};
+    auto ret = skeleton->SetIPCProxyLimit(NUM_TEST, callback);
+    EXPECT_TRUE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: GetSAMgrObjectTest001
+ * @tc.desc: Verify the GetSAMgrObject function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetSAMgrObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    auto current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    auto ret = skeleton->GetSAMgrObject();
+    EXPECT_EQ(ret, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: ProxyMoveDBinderSessionTest001
+ * @tc.desc: Verify the ProxyMoveDBinderSession function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ProxyMoveDBinderSessionTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IPCObjectProxy> proxy = new (std::nothrow) IPCObjectProxy(0);
+    ASSERT_TRUE(proxy != nullptr);
+    auto ret = skeleton->ProxyMoveDBinderSession(HANDLE_TEST, proxy);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: ProxyMoveDBinderSessionTest002
+ * @tc.desc: Verify the ProxyMoveDBinderSession function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ProxyMoveDBinderSessionTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->proxyToSession_[HANDLE_TEST] = nullptr;
+    sptr<IPCObjectProxy> proxy = new (std::nothrow) IPCObjectProxy(0);
+    ASSERT_TRUE(proxy != nullptr);
+    auto ret = skeleton->ProxyMoveDBinderSession(HANDLE_TEST, proxy);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    skeleton->proxyToSession_.clear();
+}
+
+/**
+ * @tc.name: ProxyMoveDBinderSessionTest003
+ * @tc.desc: Verify the ProxyMoveDBinderSession function when remoteSession is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ProxyMoveDBinderSessionTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    sptr<IPCObjectProxy> proxy = new (std::nothrow) IPCObjectProxy(0);
+    ASSERT_TRUE(proxy != nullptr);
+    auto ret = skeleton->ProxyMoveDBinderSession(HANDLE_TEST, proxy);
+    EXPECT_TRUE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    skeleton->proxyToSession_.clear();
 }
 } // namespace OHOS
