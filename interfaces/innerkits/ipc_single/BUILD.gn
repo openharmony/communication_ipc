@@ -82,10 +82,13 @@ common_external_deps = [
   "faultloggerd:libbacktrace_local",
   "ffrt:libffrt",
   "hilog:libhilog",
-  "hisysevent:libhisysevent",
   "hitrace:libhitracechain",
   "selinux:libselinux",
 ]
+
+if (hiviewdfx_hisysevent_support) {
+  common_external_deps += [ "hisysevent:libhisysevent" ]
+}
 
 ohos_shared_library("ipc_single") {
   sanitize = {

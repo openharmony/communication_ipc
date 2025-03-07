@@ -60,8 +60,11 @@ ohos_static_library("ipc_common_test_static") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
   ]
+
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
 
   defines = [ "FFRT_IPC_ENABLE" ]
 
@@ -129,10 +132,14 @@ ohos_static_library("ipc_single_test_static") {
     "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
     "selinux:libselinux",
   ]
+
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
   defines = [ "FFRT_IPC_ENABLE" ]
   if (build_selinux) {
     defines += [ "WITH_SELINUX" ]
