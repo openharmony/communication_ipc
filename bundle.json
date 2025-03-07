@@ -45,14 +45,16 @@
           "json",
           "selinux",
           "rust",
-          "faultloggerd"
+          "faultloggerd",
+          "runtime_core"
         ],
         "third_party": [
         ]
       },
       "build": {
         "sub_component": [
-          "//foundation/communication/ipc:ipc_components"
+          "//foundation/communication/ipc:ipc_components",
+          "//foundation/communication/ipc/ipc/native/src/ani:rpc_ani_packages"
         ],
         "inner_kits": [
           {
