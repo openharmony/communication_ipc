@@ -19,16 +19,6 @@
 #include "message_parcel.h"
 
 namespace OHOS {
-void TlsDestructorFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    uint8_t *nonConstDataPtr = const_cast<uint8_t *>(data);
-    void *voidPtr = nonConstDataPtr;
-    IPCThreadSkeleton::TlsDestructor(voidPtr);
-}
-
 void GetRemoteInvokerFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -86,17 +76,6 @@ void SaveThreadNameFuzzTest(const uint8_t *data, size_t size)
     IPCThreadSkeleton::SaveThreadName(name);
 }
 
-void UpdateSendRequestCountFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
-    int delta = parcel.ReadInt32();
-    IPCThreadSkeleton::UpdateSendRequestCount(delta);
-}
-
 void IsInstanceExceptionFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -120,32 +99,6 @@ void SetThreadTypeFuzzTest(const uint8_t *data, size_t size)
         IPCThreadSkeleton::SetThreadType(ThreadType::IPC_THREAD);
     } else {
         IPCThreadSkeleton::SetThreadType(ThreadType::NORMAL_THREAD);
-    }
-}
-
-void JoinWorkThreadFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    if (current != nullptr) {
-        MessageParcel parcel;
-        parcel.WriteBuffer(data, size);
-        int32_t statue = parcel.ReadInt32();
-        switch (statue) {
-            case IRemoteObject::IF_PROT_DEFAULT:
-                current->JoinWorkThread(IRemoteObject::IF_PROT_DEFAULT);
-                break;
-            case IRemoteObject::IF_PROT_DATABUS:
-                current->JoinWorkThread(IRemoteObject::IF_PROT_DATABUS);
-                break;
-            case IRemoteObject::IF_PROT_ERROR:
-                current->JoinWorkThread(IRemoteObject::IF_PROT_ERROR);
-                break;
-            default:
-                break;
-        }
     }
 }
 
@@ -182,12 +135,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     OHOS::GetRemoteInvokerFuzzTest(data, size);
     OHOS::GetProxyInvokerFuzzTest(data, size);
-    OHOS::TlsDestructorFuzzTest(data, size);
     OHOS::SaveThreadNameFuzzTest(data, size);
     OHOS::IsInstanceExceptionFuzzTest(data, size);
     OHOS::SetThreadTypeFuzzTest(data, size);
-    OHOS::JoinWorkThreadFuzzTest(data, size);
     OHOS::StopWorkThreadFuzzTest(data, size);
-    OHOS::UpdateSendRequestCountFuzzTest(data, size);
     return 0;
 }
