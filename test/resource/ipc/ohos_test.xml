@@ -13,6 +13,18 @@
      limitations under the License.
 -->
 <configuration ver="2.0">
+    <target name="BinderInvokerTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IremoteBrokerTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
     <target name="BinderInvokerUnitTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
