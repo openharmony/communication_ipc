@@ -14,7 +14,9 @@
  */
 
 #include "ipcprocessskeleton_fuzzer.h"
+#define private public
 #include "ipc_process_skeleton.h"
+#undef private
 #include "message_parcel.h"
 
 namespace OHOS {
@@ -131,7 +133,10 @@ void SpawnThreadFuzzTest(const uint8_t *data, size_t size)
     if (ipcSktPtr == nullptr) {
         return;
     }
-    (void)ipcSktPtr->SpawnThread(policy, proto);
+    std::lock_guard<std::mutex> lock(ipcSktPtr->threadPool_->mutex_);
+    if (ipcSktPtr->threadPool_->threads_.size() < IPCProcessSkeleton::DEFAULT_WORK_THREAD_NUM) {
+        (void)ipcSktPtr->SpawnThread(policy, proto);
+    }
 }
 
 void FindOrNewObjectFuzzTest(const uint8_t *data, size_t size)
