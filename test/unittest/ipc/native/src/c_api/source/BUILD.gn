@@ -94,6 +94,10 @@ c_api_unittest("IPCInnerObjectTest") {
   sources = [ "ipc_inner_object_unittest.cpp" ]
 }
 
+c_api_unittest("IPCCparcelTest") {
+  sources = [ "ipc_cparcel_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -102,6 +106,7 @@ group("unittest") {
     ":IPCCskeletonTest",
     ":IPCInnerObjectTest",
     ":IPCInternalUtilsTest",
+    ":IPCCparcelTest",
   ]
 }
 ###############################################################################
