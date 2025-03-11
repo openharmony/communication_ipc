@@ -57,11 +57,14 @@ template("ipc_dbinder_unittest") {
       "c_utils:utils",
       "googletest:gmock",
       "hilog:libhilog",
-      "hisysevent:libhisysevent",
       "hitrace:libhitracechain",
       "ipc:libdbinder",
       "samgr:samgr_proxy",
     ]
+
+    if (hiviewdfx_hisysevent_support) {
+      external_deps += [ "hisysevent:libhisysevent" ]
+    }
 
     if (defined(invoker.external_deps)) {
       external_deps += invoker.external_deps

@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
@@ -70,8 +71,12 @@ ohos_shared_library("libdbinder") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
   ]
+
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
   subsystem_name = "communication"
   part_name = "ipc"
 }

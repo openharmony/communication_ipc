@@ -16,16 +16,16 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("ListenFuzzTest") {
+ohos_fuzztest("IPCObjectStubFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../listen_fuzzer"
+  fuzz_config_file = "../ipcobjectstub_fuzzer"
 
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "listen_fuzzer.cpp" ]
+  sources = [ "ipcobjectstub_fuzzer.cpp" ]
 
   deps = [ "../../../../../../../test:ipc_single_test_static" ]
 

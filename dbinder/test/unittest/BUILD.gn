@@ -47,10 +47,13 @@ ohos_unittest("RPCDbinderTest") {
     "c_utils:utils",
     "googletest:gmock",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
     "hitrace:libhitracechain",
     "ipc:libdbinder",
   ]
+
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
 
   resource_config_file = "$IPC_ROOT_PATH/test/resource/ipc/ohos_test.xml"
 }

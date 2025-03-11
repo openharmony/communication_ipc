@@ -19,7 +19,9 @@
 #include <cmath>
 #include <string>
 
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
 #include "hisysevent.h"
+#endif
 
 namespace OHOS {
 class DbinderErrorCode {
@@ -145,11 +147,12 @@ inline void DfxReportFailEvent(int type, int errorCode, const char *func)
     if (type == 0 || errorCode == 0) {
         return;
     }
-
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
     HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "TYPE", type);
+#endif
 }
 
 inline void DfxReportFailListenEvent(int type, int listenFd, int errorCode, const char *func)
@@ -157,12 +160,13 @@ inline void DfxReportFailListenEvent(int type, int listenFd, int errorCode, cons
     if (type == 0 || errorCode == 0) {
         return;
     }
-
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
     HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "LISTEN_FD", listenFd, "TYPE",
         type);
+#endif
 }
 
 inline void DfxReportFailHandleEvent(int type, int handle, int errorCode, const char *func)
@@ -170,11 +174,12 @@ inline void DfxReportFailHandleEvent(int type, int handle, int errorCode, const 
     if (type == 0 || errorCode == 0) {
         return;
     }
-
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
     HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "HANDLE", handle, "TYPE", type);
+#endif
 }
 
 inline void DfxReportFailDeviceEvent(int type, const std::string &device, int errorCode, const char *func)
@@ -182,11 +187,12 @@ inline void DfxReportFailDeviceEvent(int type, const std::string &device, int er
     if (type == 0 || device.empty() || errorCode == 0) {
         return;
     }
-
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
     HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "DEVICE", device, "TYPE", type);
+#endif
 }
 
 inline void DfxReportEvent(int type, int stageRes, const char *func)
@@ -194,11 +200,12 @@ inline void DfxReportEvent(int type, int stageRes, const char *func)
     if (type == 0) {
         return;
     }
-
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
     HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", stageRes, "TYPE", type);
+#endif
 }
 
 inline void DfxReportDeviceEvent(int type, int stageRes, const std::string &device, const char *func)
@@ -206,11 +213,12 @@ inline void DfxReportDeviceEvent(int type, int stageRes, const std::string &devi
     if (type == 0 || device.empty()) {
         return;
     }
-
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
     HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", stageRes, "DEVICE", device, "TYPE", type);
+#endif
 }
 
 } // namespace OHOS
