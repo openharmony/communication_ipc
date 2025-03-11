@@ -16,13 +16,10 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
-#define private public
 #include "ipc_cparcel.h"
 #include "ipc_inner_object.h"
 #include "ipc_error_code.h"
 #include "message_parcel.h"
-#undef private
 
 using namespace testing;
 using namespace testing::ext;
@@ -321,4 +318,4 @@ HWTEST_F(IPCCparcelTest, OH_IPCParcel_WriteInterfaceToken004, TestSize.Level1)
     auto result = OH_IPCParcel_WriteInterfaceToken(&parcel, longToken.c_str());
     EXPECT_EQ(result, OH_IPC_CHECK_PARAM_ERROR);
 }
-}// namespace OHOS
+} // namespace OHOS

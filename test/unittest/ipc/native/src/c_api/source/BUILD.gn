@@ -102,11 +102,11 @@ c_api_unittest("IPCCparcelTest") {
 group("unittest") {
   testonly = true
   deps = [
+    ":IPCCparcelTest",
     ":IPCCremoteObjectTest",
     ":IPCCskeletonTest",
     ":IPCInnerObjectTest",
     ":IPCInternalUtilsTest",
-    ":IPCCparcelTest",
   ]
 }
 ###############################################################################
