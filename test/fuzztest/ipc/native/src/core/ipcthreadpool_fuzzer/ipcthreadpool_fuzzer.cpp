@@ -18,20 +18,6 @@
 #include "message_parcel.h"
 
 namespace OHOS {
-void SpawnThreadFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
-    int32_t policy = parcel.ReadInt32();
-    int32_t proto = parcel.ReadInt32();
-    const int threadPoolSize = 4;
-    IPCWorkThreadPool threadPool(threadPoolSize);
-    threadPool.SpawnThread(policy, proto);
-}
-
 void RemoveThreadFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -81,7 +67,6 @@ void UpdateMaxThreadNumFuzzTest(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::SpawnThreadFuzzTest(data, size);
     OHOS::RemoveThreadFuzzTest(data, size);
     OHOS::IPCWorkThreadPoolFuzzTest(data, size);
     OHOS::UpdateMaxThreadNumFuzzTest(data, size);

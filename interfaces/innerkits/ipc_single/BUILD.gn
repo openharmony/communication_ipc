@@ -82,10 +82,13 @@ common_external_deps = [
   "faultloggerd:libbacktrace_local",
   "ffrt:libffrt",
   "hilog:libhilog",
-  "hisysevent:libhisysevent",
   "hitrace:libhitracechain",
   "selinux:libselinux",
 ]
+
+if (hiviewdfx_hisysevent_support) {
+  common_external_deps += [ "hisysevent:libhisysevent" ]
+}
 
 ohos_shared_library("ipc_single") {
   sanitize = {
@@ -99,19 +102,25 @@ ohos_shared_library("ipc_single") {
 
   configs = common_configs
   public_configs = common_public_configs
-
   all_dependent_configs = [ ":ipc_all_deps_config" ]
+
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
+
   external_deps = common_external_deps
   defines = [ "FFRT_IPC_ENABLE" ]
   if (build_selinux) {
     defines += [ "WITH_SELINUX" ]
+  }
+  if (ipc_feature_trace_enabled) {
+    defines += [ "ENABLE_IPC_TRACE" ]
+    sources += [ "$IPC_CORE_ROOT/src/core/framework/source/ipc_trace.cpp" ]
   }
   innerapi_tags = [
     "chipsetsdk",
     "platformsdk",
     "sasdk",
   ]
+
   install_images = [
     system_base_dir,
     updater_base_dir,
@@ -149,6 +158,7 @@ ohos_shared_library("ipc_single_test") {
     "platformsdk",
     "sasdk",
   ]
+
   install_images = [
     system_base_dir,
     updater_base_dir,

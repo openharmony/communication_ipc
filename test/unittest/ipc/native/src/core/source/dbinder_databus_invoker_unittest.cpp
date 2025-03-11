@@ -363,8 +363,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy001, TestSize.Level1)
 
 /**
  * @tc.name: GetSessionForProxy002
- * @tc.desc: Verify the GetSessionForProxy function
- * when InvokeListenThread function return 0
+ * @tc.desc: Verify the GetSessionForProxy function when WriteUint32 function return false
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy002, TestSize.Level1)
@@ -387,8 +386,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy002, TestSize.Level1)
 
 /**
  * @tc.name: GetSessionForProxy003
- * @tc.desc: Verify the GetSessionForProxy function
- * when InvokeListenThread function return 0
+ * @tc.desc: Verify the GetSessionForProxy function when InvokeListenThread function return 1
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy003, TestSize.Level1)
@@ -403,7 +401,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy003, TestSize.Level1)
     EXPECT_CALL(*proxy, GetSessionName()).WillRepeatedly(testing::Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, WriteUint32(testing::_)).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString(testing::_)).WillRepeatedly(Return(true));
-    EXPECT_CALL(*proxy, InvokeListenThread(testing::_, testing::_)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*proxy, InvokeListenThread(testing::_, testing::_)).WillRepeatedly(testing::Return(1));
 
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.GetSessionForProxy(
@@ -413,8 +411,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy003, TestSize.Level1)
 
 /**
  * @tc.name: GetSessionForProxy004
- * @tc.desc: Verify the GetSessionForProxy function
- * when InvokeListenThread function return 0
+ * @tc.desc: Verify the GetSessionForProxy function when ReadUint64 function return 0
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy004, TestSize.Level1)
@@ -429,7 +426,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy004, TestSize.Level1)
     EXPECT_CALL(*proxy, GetSessionName()).WillRepeatedly(testing::Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, WriteUint32(testing::_)).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString(testing::_)).WillRepeatedly(Return(true));
-    EXPECT_CALL(*proxy, InvokeListenThread(testing::_, testing::_)).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(*proxy, InvokeListenThread(testing::_, testing::_)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(mock, ReadUint64()).WillRepeatedly(Return(0));
 
     DBinderDatabusInvoker testInvoker;
@@ -440,8 +437,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy004, TestSize.Level1)
 
 /**
  * @tc.name: GetSessionForProxy005
- * @tc.desc: Verify the GetSessionForProxy function
- * when InvokeListenThread function return 0
+ * @tc.desc: Verify the GetSessionForProxy function when ReadUint64 function return 1
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy005, TestSize.Level1)
@@ -456,7 +452,7 @@ HWTEST_F(DbinderDataBusInvokerTest, GetSessionForProxy005, TestSize.Level1)
     EXPECT_CALL(*proxy, GetSessionName()).WillRepeatedly(testing::Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, WriteUint32(testing::_)).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString(testing::_)).WillRepeatedly(Return(true));
-    EXPECT_CALL(*proxy, InvokeListenThread(testing::_, testing::_)).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(*proxy, InvokeListenThread(testing::_, testing::_)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(mock, ReadUint64()).WillRepeatedly(Return(1));
 
     DBinderDatabusInvoker testInvoker;
@@ -848,7 +844,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest001, TestSize.Level1)
 
 /**
  * @tc.name: OnMessageAvailableTest002
- * @tc.desc: Verify the OnMessageAvailable function when HasCompletePackage function return 0
+ * @tc.desc: Verify the OnMessageAvailable function when HasRawDataPackage function return 0
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest002, TestSize.Level1)
@@ -862,7 +858,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest002, TestSize.Level1)
 
 /**
  * @tc.name: OnMessageAvailableTest003
- * @tc.desc: Verify the OnMessageAvailable function when HasCompletePackage function return greater than 0
+ * @tc.desc: Verify the OnMessageAvailable function when HasRawDataPackage function return greater than 0
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest003, TestSize.Level1)
@@ -874,7 +870,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest003, TestSize.Level1)
     tr.magic = DBINDER_MAGICWORD;
     tr.cmd = BC_SEND_RAWDATA;
     char data[sizeof(tr)];
-    memcpy(data, &tr, sizeof(tr));
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
     ssize_t len = sizeof(data);
     ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, DATA_TEST, len));
 }
@@ -892,7 +888,7 @@ HWTEST_F(DbinderDataBusInvokerTest, HasRawDataPackageTest001, TestSize.Level1)
     tr.magic = DBINDER_MAGICWORD;
     tr.cmd = BC_SEND_RAWDATA;
     char data[sizeof(tr)];
-    memcpy(data, &tr, sizeof(tr));
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
     ssize_t len = sizeof(data);
     uint32_t result = testInvoker.HasRawDataPackage(data, len);
     EXPECT_EQ(result, tr.sizeOfSelf);
@@ -911,7 +907,7 @@ HWTEST_F(DbinderDataBusInvokerTest, HasRawDataPackageTest002, TestSize.Level1)
     tr.magic = 0xDEADBEEF;
     tr.cmd = 0x1234;
     char data[sizeof(tr)];
-    memcpy(data, &tr, sizeof(tr));
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
     ssize_t len = sizeof(data);
     uint32_t result = testInvoker.HasRawDataPackage(data, len);
     EXPECT_EQ(result, 0);
@@ -930,7 +926,7 @@ HWTEST_F(DbinderDataBusInvokerTest, HasRawDataPackageTest003, TestSize.Level1)
     tr.magic = DBINDER_MAGICWORD;
     tr.cmd = BC_SEND_RAWDATA;
     char data[sizeof(tr)];
-    memcpy(data, &tr, sizeof(tr));
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
     ssize_t len = sizeof(data);
     uint32_t result = testInvoker.HasRawDataPackage(data, len);
     EXPECT_EQ(result, 0);
@@ -945,7 +941,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     std::shared_ptr<DBinderSessionObject> sessionOfPeer = nullptr;
-    uint32_t result = testInvoker.OnSendMessage(sessionOfPeer);
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
     EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 
@@ -960,7 +956,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest002, TestSize.Level1)
     auto sessionOfPeer = std::make_shared<DBinderSessionObject>(
         SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX, nullptr, TOKEN_ID);
     sessionOfPeer->SetSocketId(0);
-    uint32_t result = testInvoker.OnSendMessage(sessionOfPeer);
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
     EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 
@@ -978,7 +974,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest003, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
 
     EXPECT_CALL(mock, GetSessionBuff()).WillOnce(testing::Return(nullptr));
-    uint32_t result = testInvoker.OnSendMessage(sessionOfPeer);
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
     EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 
@@ -992,14 +988,14 @@ HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest004, TestSize.Level1)
     DBinderDatabusInvoker testInvoker;
     auto sessionOfPeer = std::make_shared<DBinderSessionObject>(
         SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX, nullptr, TOKEN_ID);
-    sessionOfPeer->SetSocketId(1); 
+    sessionOfPeer->SetSocketId(1);
     auto sessionBuff = std::make_shared<BufferObject>();
     NiceMock<DbinderDataBusInvokerMock> mock;
 
     EXPECT_CALL(mock, GetSessionBuff()).WillOnce(testing::Return(sessionBuff));
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillOnce(testing::Return(nullptr));
+    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillRepeatedly(testing::Return(nullptr));
 
-    uint32_t result = testInvoker.OnSendMessage(sessionOfPeer);
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
     EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 } //namespace OHOS

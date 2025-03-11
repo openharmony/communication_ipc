@@ -53,6 +53,11 @@ ohos_shared_library("ipc_common") {
 
   defines = [ "FFRT_IPC_ENABLE" ]
 
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+    defines += [ "HIVIEWDFX_HISYSEVENT_SUPPORT" ]
+  }
+
   innerapi_tags = [
     "chipsetsdk_indirect",
     "platformsdk_indirect",

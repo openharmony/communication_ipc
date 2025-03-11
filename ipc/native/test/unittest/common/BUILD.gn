@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../../../../config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_TEST_ROOT = "$SUBSYSTEM_DIR/ipc/test"
@@ -60,6 +61,11 @@ template("ipc_unittest") {
       "hitrace:libhitracechain",
       "samgr:samgr_proxy",
     ]
+
+    if (hiviewdfx_hisysevent_support) {
+      external_deps += [ "hisysevent:libhisysevent" ]
+    }
+
     if (defined(invoker.external_deps)) {
       external_deps += invoker.external_deps
     }
@@ -197,6 +203,10 @@ ohos_unittest("IpcCApiUnitTest") {
     "hitrace:libhitracechain",
     "samgr:samgr_proxy",
   ]
+
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
