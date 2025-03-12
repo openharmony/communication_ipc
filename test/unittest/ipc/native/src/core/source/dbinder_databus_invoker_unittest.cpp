@@ -14,6 +14,7 @@
  */
 
 #include <algorithm>
+#include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iostream>
@@ -37,12 +38,15 @@ namespace {
 const std::string DEVICE_ID_TEST = "deviceidTest";
 const std::string SESSION_NAME_TEST = "sessionNameTest";
 const std::string SERVICE_NAME_TEST = "serviceNameTest";
+const char DATA_TEST[] = "test data";
 constexpr int32_t TEST_HANDLE_INVALID = 0;
 constexpr int32_t TEST_UINT_HANDLE_INVALID = 0;
 constexpr uint32_t TEST_HANDLE_VALID = 1;
 constexpr int32_t SOCKET_ID_TEST = 1;
 constexpr int PEER_PID_TEST = 1;
 constexpr int PEER_UID_TEST = 1;
+constexpr uint64_t STUB_INDEX = 1;
+constexpr uint32_t TOKEN_ID = 1;
 }
 
 class DbinderDataBusInvokerInterface {
@@ -59,6 +63,9 @@ public:
     virtual bool WriteString(const std::string &value) = 0;
     virtual uint64_t ReadUint64() = 0;
     virtual bool WriteUint64(uint64_t value) = 0;
+    virtual int GetSocketIdleThreadNum() = 0;
+    virtual char *GetSendBufferAndLock(uint32_t size) = 0;
+    virtual std::shared_ptr<BufferObject> GetSessionBuff() = 0;
 };
 class DbinderDataBusInvokerMock : public DbinderDataBusInvokerInterface {
 public:
@@ -74,6 +81,9 @@ public:
     MOCK_METHOD1(WriteString, bool(const std::string &value));
     MOCK_METHOD0(ReadUint64, uint64_t());
     MOCK_METHOD1(WriteUint64, bool(uint64_t value));
+    MOCK_METHOD0(GetSocketIdleThreadNum, int());
+    MOCK_METHOD0(GetSessionBuff, std::shared_ptr<BufferObject>());
+    MOCK_METHOD1(GetSendBufferAndLock, char *(uint32_t size));
 };
 
 static void *g_interface = nullptr;
@@ -156,6 +166,27 @@ extern "C" {
             return false;
         }
         return GetDbinderDataBusInvokerInterface()->WriteUint64(value);
+    }
+    int IPCProcessSkeleton::GetSocketIdleThreadNum() const
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetDbinderDataBusInvokerInterface()->GetSocketIdleThreadNum();
+    }
+    std::shared_ptr<BufferObject> DBinderSessionObject::GetSessionBuff()
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetDbinderDataBusInvokerInterface()->GetSessionBuff();
+    }
+    char *BufferObject::GetSendBufferAndLock(uint32_t size)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetDbinderDataBusInvokerInterface()->GetSendBufferAndLock(size);
     }
 }
 
@@ -723,5 +754,248 @@ HWTEST_F(DbinderDataBusInvokerTest, OnReceiveNewConnectionTest004, TestSize.Leve
     std::string networkId = DEVICE_ID_TEST;
     bool ret = testInvoker.OnReceiveNewConnection(socketId, peerPid, peerUid, peerName, networkId);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: CreateProcessThreadTest001
+ * @tc.desc: Verify the CreateProcessThread function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CreateProcessThreadTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    bool ret = testInvoker.CreateProcessThread();
+    EXPECT_FALSE(ret);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: CreateProcessThreadTest002
+ * @tc.desc: Verify the CreateProcessThread function when GetSocketIdleThreadNum function return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CreateProcessThreadTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, GetSocketIdleThreadNum()).WillRepeatedly(testing::Return(0));
+
+    bool ret = testInvoker.CreateProcessThread();
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: CreateProcessThreadTest003
+ * @tc.desc: Verify the CreateProcessThread function when GetSocketIdleThreadNum function return 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CreateProcessThreadTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, GetSocketIdleThreadNum()).WillRepeatedly(testing::Return(1));
+
+    bool ret = testInvoker.CreateProcessThread();
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: OnRawDataAvailableTest001
+ * @tc.desc: Verify the OnRawDataAvailable function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnRawDataAvailableTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+    
+    int32_t socketId = SOCKET_ID_TEST;
+    uint32_t dataSize = sizeof(DATA_TEST);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, DATA_TEST, dataSize));
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: OnMessageAvailableTest001
+ * @tc.desc: Verify the OnMessageAvailable function
+ * when socketId is 0 or data is nullptr or len is greater than MAX_RAWDATA_SIZE
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    ssize_t len = 0;
+    int32_t socketId = SOCKET_ID_TEST;
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(-1, DATA_TEST, len));
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, nullptr, len));
+    len = static_cast<ssize_t>(MAX_RAWDATA_SIZE) + 1;
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, DATA_TEST, len));
+}
+
+/**
+ * @tc.name: OnMessageAvailableTest002
+ * @tc.desc: Verify the OnMessageAvailable function when HasRawDataPackage function return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    int32_t socketId = SOCKET_ID_TEST;
+    char data[sizeof(dbinder_transaction_data)] = {0};
+    ssize_t len = sizeof(data);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, DATA_TEST, len));
+}
+
+/**
+ * @tc.name: OnMessageAvailableTest003
+ * @tc.desc: Verify the OnMessageAvailable function when HasRawDataPackage function return greater than 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnMessageAvailableTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    int32_t socketId = SOCKET_ID_TEST;
+    dbinder_transaction_data tr = {0};
+    tr.sizeOfSelf = sizeof(tr);
+    tr.magic = DBINDER_MAGICWORD;
+    tr.cmd = BC_SEND_RAWDATA;
+    char data[sizeof(tr)];
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
+    ssize_t len = sizeof(data);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, DATA_TEST, len));
+}
+
+/**
+ * @tc.name: HasRawDataPackageTest001
+ * @tc.desc: Verify the HasRawDataPackage function when data is valid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, HasRawDataPackageTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    dbinder_transaction_data tr = {0};
+    tr.sizeOfSelf = sizeof(tr);
+    tr.magic = DBINDER_MAGICWORD;
+    tr.cmd = BC_SEND_RAWDATA;
+    char data[sizeof(tr)];
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
+    ssize_t len = sizeof(data);
+    uint32_t result = testInvoker.HasRawDataPackage(data, len);
+    EXPECT_EQ(result, tr.sizeOfSelf);
+}
+
+/**
+ * @tc.name: HasRawDataPackageTest002
+ * @tc.desc: Verify the HasRawDataPackage function when tr.magic and tr.cmd are invalid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, HasRawDataPackageTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    dbinder_transaction_data tr = {0};
+    tr.sizeOfSelf = sizeof(tr);
+    tr.magic = 0xDEADBEEF;
+    tr.cmd = 0x1234;
+    char data[sizeof(tr)];
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
+    ssize_t len = sizeof(data);
+    uint32_t result = testInvoker.HasRawDataPackage(data, len);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: HasRawDataPackageTest003
+ * @tc.desc: Verify the HasRawDataPackage function when tr.sizeOfSelf greater than MAX_RAWDATA_SIZE
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, HasRawDataPackageTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    dbinder_transaction_data tr = {0};
+    tr.sizeOfSelf = MAX_RAWDATA_SIZE + 1;
+    tr.magic = DBINDER_MAGICWORD;
+    tr.cmd = BC_SEND_RAWDATA;
+    char data[sizeof(tr)];
+    memcpy_s(data, sizeof(data), &tr, sizeof(tr));
+    ssize_t len = sizeof(data);
+    uint32_t result = testInvoker.HasRawDataPackage(data, len);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: OnSendMessageTest001
+ * @tc.desc: Verify the OnSendMessage function when sessionOfPeer is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> sessionOfPeer = nullptr;
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendMessageTest002
+ * @tc.desc: Verify the OnSendMessage function when socketId is less than or equal to 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    auto sessionOfPeer = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX, nullptr, TOKEN_ID);
+    sessionOfPeer->SetSocketId(0);
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendMessageTest003
+ * @tc.desc: Verify the OnSendMessage function when sessionBuff is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    auto sessionOfPeer = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX, nullptr, TOKEN_ID);
+    sessionOfPeer->SetSocketId(1);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, GetSessionBuff()).WillOnce(testing::Return(nullptr));
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnSendMessageTest004
+ * @tc.desc: Verify the OnSendMessage function when GetSendBufferAndLock function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest004, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    auto sessionOfPeer = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX, nullptr, TOKEN_ID);
+    sessionOfPeer->SetSocketId(1);
+    auto sessionBuff = std::make_shared<BufferObject>();
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, GetSessionBuff()).WillOnce(testing::Return(sessionBuff));
+    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillRepeatedly(testing::Return(nullptr));
+
+    int result = testInvoker.OnSendMessage(sessionOfPeer);
+    EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
 }
 } //namespace OHOS
