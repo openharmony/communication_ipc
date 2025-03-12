@@ -35,12 +35,16 @@ namespace {
     const std::u16string DESCRIPTOR_INVALID_TEST = u"";
     const std::string SERVICE_NAME_TEST = "serviceNameTest";
     const std::string DEVICE_ID_TEST = "deviceidTest";
+    const std::string DEVICE_ID_SECOND_TEST = "deviceidTest_second";
     constexpr int HANDLE_TEST = 1;
     constexpr int HANDLE_INVALID_TEST = 0;
     constexpr int POLICY_TEST = 1;
     constexpr int PROTO_TEST = 1;
     constexpr int MAX_THREAD_NUM_TEST = 1;
     constexpr uint64_t NUM_TEST = 10;
+    constexpr int32_t SOCKET_ID_TEST = 1;
+    constexpr uint64_t STUB_INDEX_TEST = 123;
+    constexpr uint32_t TOKEN_ID = 1;
 }
 
 class IPCProcessSkeletonInterface {
@@ -891,9 +895,9 @@ HWTEST_F(IPCProcessSkeletonUnitTest, ProxyMoveDBinderSessionTest002, TestSize.Le
     ASSERT_TRUE(proxy != nullptr);
     auto ret = skeleton->ProxyMoveDBinderSession(HANDLE_TEST, proxy);
     EXPECT_FALSE(ret);
+    skeleton->proxyToSession_.clear();
     skeleton->exitFlag_ = false;
     skeleton->instance_ = nullptr;
-    skeleton->proxyToSession_.clear();
 }
 
 /**
@@ -913,8 +917,282 @@ HWTEST_F(IPCProcessSkeletonUnitTest, ProxyMoveDBinderSessionTest003, TestSize.Le
     ASSERT_TRUE(proxy != nullptr);
     auto ret = skeleton->ProxyMoveDBinderSession(HANDLE_TEST, proxy);
     EXPECT_TRUE(ret);
+    skeleton->proxyToSession_.clear();
     skeleton->exitFlag_ = false;
     skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryProxyBySocketIdTest001
+ * @tc.desc: Verify the QueryProxyBySocketId function when it->second is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryProxyBySocketIdTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->proxyToSession_[HANDLE_TEST] = nullptr;
+    std::vector<uint32_t> proxyHandle;
+    bool result = skeleton->QueryProxyBySocketId(SOCKET_ID_TEST, proxyHandle);
+    EXPECT_FALSE(result);
     skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryProxyBySocketIdTest002
+ * @tc.desc: Verify the QueryProxyBySocketId function when socketId not equal GetSocketId()
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryProxyBySocketIdTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    remoteSession->SetSocketId(2);
+    std::vector<uint32_t> proxyHandle;
+    bool result = skeleton->QueryProxyBySocketId(SOCKET_ID_TEST, proxyHandle);
+    EXPECT_TRUE(result);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryProxyBySocketIdTest003
+ * @tc.desc: Verify the QueryProxyBySocketId function when socketId equal GetSocketId()
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryProxyBySocketIdTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    remoteSession->SetSocketId(SOCKET_ID_TEST);
+    std::vector<uint32_t> proxyHandle;
+    bool result = skeleton->QueryProxyBySocketId(SOCKET_ID_TEST, proxyHandle);
+    EXPECT_TRUE(result);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryHandleByDatabusSessionTest001
+ * @tc.desc: Verify the QueryHandleByDatabusSession function when it->second is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleByDatabusSessionTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->proxyToSession_[HANDLE_TEST] = nullptr;
+    uint32_t result = skeleton->QueryHandleByDatabusSession(SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX_TEST);
+    EXPECT_EQ(result, 0);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryHandleByDatabusSessionTest002
+ * @tc.desc: Verify the QueryHandleByDatabusSession function when proxyToSession_ not contain match object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleByDatabusSessionTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    uint32_t result = skeleton->QueryHandleByDatabusSession(SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX_TEST);
+    EXPECT_EQ(result, 0);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryHandleByDatabusSessionTest003
+ * @tc.desc: Verify the QueryHandleByDatabusSession function when proxyToSession_ contain match object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryHandleByDatabusSessionTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX_TEST, nullptr, 1);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    uint32_t result = skeleton->QueryHandleByDatabusSession(SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX_TEST);
+    EXPECT_EQ(result, HANDLE_TEST);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QuerySessionByInfoTest001
+ * @tc.desc: Verify the QuerySessionByInfo function when it->second is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QuerySessionByInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->proxyToSession_[HANDLE_TEST] = nullptr;
+    auto result = skeleton->QuerySessionByInfo(SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    EXPECT_EQ(result, nullptr);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QuerySessionByInfoTest002
+ * @tc.desc: Verify the QuerySessionByInfo function when proxyToSession_ not contain match object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QuerySessionByInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_SECOND_TEST, STUB_INDEX_TEST, nullptr, TOKEN_ID);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    auto result = skeleton->QuerySessionByInfo(SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    EXPECT_EQ(result, nullptr);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QuerySessionByInfoTest003
+ * @tc.desc: Verify the QuerySessionByInfo function when proxyToSession_ contain match object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QuerySessionByInfoTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX_TEST, nullptr, TOKEN_ID);
+    skeleton->proxyToSession_[HANDLE_TEST] = remoteSession;
+    auto result = skeleton->QuerySessionByInfo(SERVICE_NAME_TEST, DEVICE_ID_TEST);
+    EXPECT_EQ(result, remoteSession);
+    skeleton->proxyToSession_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: StubDetachDBinderSessionTest001
+ * @tc.desc: Verify the StubDetachDBinderSession function when it->second is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, StubDetachDBinderSessionTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->dbinderSessionObjects_[HANDLE_TEST] = nullptr;
+    uint32_t tokenId = TOKEN_ID;
+    auto result = skeleton->StubDetachDBinderSession(HANDLE_TEST, tokenId);
+    EXPECT_FALSE(result);
+    skeleton->dbinderSessionObjects_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: StubDetachDBinderSessionTest002
+ * @tc.desc: Verify the StubDetachDBinderSession function when proxyToSession_ not contain match HANDLE_TEST
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, StubDetachDBinderSessionTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t tokenId = TOKEN_ID;
+    skeleton->dbinderSessionObjects_.clear();
+    auto result = skeleton->StubDetachDBinderSession(HANDLE_TEST, tokenId);
+    EXPECT_FALSE(result);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: StubDetachDBinderSessionTest003
+ * @tc.desc: Verify the StubDetachDBinderSession function when dbinderSessionObjects_ contain match object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, StubDetachDBinderSessionTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_TEST, STUB_INDEX_TEST, nullptr, TOKEN_ID);
+    skeleton->dbinderSessionObjects_[HANDLE_TEST] = remoteSession;
+    uint32_t tokenId = TOKEN_ID;
+    auto result = skeleton->StubDetachDBinderSession(HANDLE_TEST, tokenId);
+    EXPECT_TRUE(result);
+    skeleton->dbinderSessionObjects_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: StubQueryDBinderSessionTest001
+ * @tc.desc: Verify the StubQueryDBinderSession function when dbinderSessionObjects_ contain match HANDLE_TEST
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, StubQueryDBinderSessionTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::shared_ptr<DBinderSessionObject> remoteSession = std::make_shared<DBinderSessionObject>(
+        SERVICE_NAME_TEST, DEVICE_ID_SECOND_TEST, STUB_INDEX_TEST, nullptr, TOKEN_ID);
+    skeleton->dbinderSessionObjects_[HANDLE_TEST] = remoteSession;
+    auto result = skeleton->StubQueryDBinderSession(HANDLE_TEST);
+    skeleton->dbinderSessionObjects_.clear();
+    EXPECT_EQ(result, remoteSession);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: StubQueryDBinderSessionTest002
+ * @tc.desc: Verify the StubQueryDBinderSession function when dbinderSessionObjects_ not contain match HANDLE_TEST
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, StubQueryDBinderSessionTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->dbinderSessionObjects_.clear();
+    auto result = skeleton->StubQueryDBinderSession(HANDLE_TEST);
+    EXPECT_EQ(result, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
 }
 } // namespace OHOS
