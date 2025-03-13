@@ -45,6 +45,8 @@ namespace {
     constexpr int32_t SOCKET_ID_TEST = 1;
     constexpr uint64_t STUB_INDEX_TEST = 123;
     constexpr uint32_t TOKEN_ID = 1;
+    constexpr int PID_TEST = 1;
+    constexpr int UID_TEST = 1;
 }
 
 class IPCProcessSkeletonInterface {
@@ -59,6 +61,7 @@ public:
     virtual sptr<IRemoteObject> GetRegistryObject() = 0;
     virtual bool PingService(int32_t handle) = 0;
     virtual bool SetRegistryObject(sptr<IRemoteObject> &object) = 0;
+    virtual int32_t StartServerListener(const std::string &ownName) = 0;
 };
 
 class IPCProcessSkeletonInterfaceMock : public IPCProcessSkeletonInterface {
@@ -73,6 +76,7 @@ public:
     MOCK_METHOD0(GetRegistryObject, sptr<IRemoteObject>());
     MOCK_METHOD1(PingService, bool(int32_t));
     MOCK_METHOD1(SetRegistryObject, bool(sptr<IRemoteObject> &object));
+    MOCK_METHOD1(StartServerListener, int32_t(const std::string &ownName));
 };
 
 static void *g_interface = nullptr;
@@ -141,6 +145,13 @@ extern "C" {
             return false;
         }
         return GetIPCProcessSkeletonInterface()->SetRegistryObject(object);
+    }
+    int32_t DatabusSocketListener::StartServerListener(const std::string &ownName)
+    {
+        if (GetIPCProcessSkeletonInterface() == nullptr) {
+            return false;
+        }
+        return GetIPCProcessSkeletonInterface()->StartServerListener(ownName);
     }
 }
 
@@ -374,6 +385,68 @@ HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest001, TestSize.Level1
     EXPECT_EQ(ret, false);
     skeleton->instance_ = nullptr;
     skeleton->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest002
+ * @tc.desc: Verify the CreateSoftbusServer function when StartServerListener function return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, StartServerListener(testing::_)).WillRepeatedly(Return(0));
+
+    std::string name = SERVICE_NAME_TEST;
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_FALSE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest003
+ * @tc.desc: Verify the CreateSoftbusServer function when sessionName_ not equal to name
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, StartServerListener(testing::_)).WillRepeatedly(Return(1));
+
+    std::string name = SERVICE_NAME_TEST;
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_TRUE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: CreateSoftbusServerTest004
+ * @tc.desc: Verify the CreateSoftbusServer function when sessionName_ equal name
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, CreateSoftbusServerTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    NiceMock<IPCProcessSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, StartServerListener(testing::_)).WillRepeatedly(Return(1));
+
+    std::string name = SERVICE_NAME_TEST;
+    skeleton->sessionName_ = SERVICE_NAME_TEST;
+    auto ret = skeleton->CreateSoftbusServer(name);
+    EXPECT_TRUE(ret);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+    skeleton->sessionName_ = "";
 }
 
 /**
@@ -1192,6 +1265,248 @@ HWTEST_F(IPCProcessSkeletonUnitTest, StubQueryDBinderSessionTest002, TestSize.Le
     skeleton->dbinderSessionObjects_.clear();
     auto result = skeleton->StubQueryDBinderSession(HANDLE_TEST);
     EXPECT_EQ(result, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: AddSendThreadInWaitTest001
+ * @tc.desc: Verify the AddSendThreadInWait function when messageInfo is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest001, TestSize.Level1)
+{
+    uint64_t seqNumber = 1;
+    int userWaitTime = 1;
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    auto messageInfo = nullptr;
+    bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddSendThreadInWaitTest002
+ * @tc.desc: Verify the AddSendThreadInWait function AddThreadBySeqNumber function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest002, TestSize.Level1)
+{
+    uint64_t seqNumber = 1;
+    int userWaitTime = 1;
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->seqNumberToThread_.clear();
+    auto messageInfo = std::make_shared<ThreadMessageInfo>();
+    messageInfo->socketId = 1;
+    skeleton->AddThreadBySeqNumber(seqNumber, messageInfo);
+
+    bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddSendThreadInWaitTest003
+ * @tc.desc: Verify the AddSendThreadInWait function when messageInfo->ready is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest003, TestSize.Level1)
+{
+    uint64_t seqNumber = 1;
+    int userWaitTime = 1;
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->seqNumberToThread_.clear();
+    auto messageInfo = std::make_shared<ThreadMessageInfo>();
+    messageInfo->socketId = 1;
+    messageInfo->ready = false;
+
+    bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddSendThreadInWaitTest004
+ * @tc.desc: Verify the AddSendThreadInWait function when messageInfo->ready is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest004, TestSize.Level1)
+{
+    uint64_t seqNumber = 1;
+    int userWaitTime = 1;
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->seqNumberToThread_.clear();
+    auto messageInfo = std::make_shared<ThreadMessageInfo>();
+    messageInfo->socketId = 1;
+    messageInfo->ready = true;
+
+    bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: QueryStubByIndexTest001
+ * @tc.desc: Verify the QueryStubByIndex function when stubIndex is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryStubByIndexTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint64_t stubIndex = 0;
+    auto ret = skeleton->QueryStubByIndex(stubIndex);
+    EXPECT_EQ(ret, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryStubByIndexTest002
+ * @tc.desc: Verify the QueryStubByIndex function when stubObjects_ not contain stubIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryStubByIndexTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint64_t stubIndex = 1;
+    skeleton->stubObjects_.clear();
+    auto ret = skeleton->QueryStubByIndex(stubIndex);
+    EXPECT_EQ(ret, nullptr);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryStubByIndexTest003
+ * @tc.desc: Verify the QueryStubByIndex function when stubObjects_ contain stubIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryStubByIndexTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint64_t stubIndex = 1;
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(HANDLE_TEST, DESCRIPTOR_TEST);
+    ASSERT_TRUE(object != nullptr);
+
+    skeleton->stubObjects_.clear();
+    skeleton->stubObjects_[1] = object;
+    auto ret = skeleton->QueryStubByIndex(stubIndex);
+    EXPECT_EQ(ret, object);
+    skeleton->stubObjects_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachCommAuthInfoTest001
+ * @tc.desc: Verify the DetachCommAuthInfo function when commAuth_ is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachCommAuthInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->commAuth_.clear();
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(DESCRIPTOR_TEST);
+    auto ret = skeleton->DetachCommAuthInfo(stubObject.GetRefPtr(), PID_TEST, UID_TEST, TOKEN_ID, DEVICE_ID_TEST);
+    EXPECT_EQ(ret, false);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachCommAuthInfoTest002
+ * @tc.desc: Verify the DetachCommAuthInfo function when commAuth_ is not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachCommAuthInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(DESCRIPTOR_TEST);
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), PID_TEST, UID_TEST, TOKEN_ID, DEVICE_ID_TEST);
+    skeleton->commAuth_.clear();
+    skeleton->commAuth_.push_back(auth);
+    auto ret = skeleton->DetachCommAuthInfo(stubObject.GetRefPtr(), PID_TEST, UID_TEST, TOKEN_ID, DEVICE_ID_TEST);
+    EXPECT_EQ(ret, true);
+    skeleton->commAuth_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryCommAuthInfoTest001
+ * @tc.desc: Verify the QueryCommAuthInfo function when it != commAuth_.end()
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCommAuthInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t tokenId = TOKEN_ID;
+    std::string deviceId = DEVICE_ID_TEST;
+    skeleton->commAuth_.clear();
+    auto ret = skeleton->QueryCommAuthInfo(PID_TEST, UID_TEST, tokenId, deviceId);
+    EXPECT_EQ(ret, false);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: QueryCommAuthInfoTest002
+ * @tc.desc: Verify the QueryCommAuthInfo function when it != commAuth_.end()
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, QueryCommAuthInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t tokenId = TOKEN_ID;
+    std::string deviceId = DEVICE_ID_TEST;
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(DESCRIPTOR_TEST);
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), PID_TEST, UID_TEST, tokenId, deviceId);
+    skeleton->commAuth_.clear();
+    skeleton->commAuth_.push_back(auth);
+    auto ret = skeleton->QueryCommAuthInfo(PID_TEST, UID_TEST, tokenId, deviceId);
+    EXPECT_EQ(ret, true);
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateCommAuthSocketInfoTest001
+ * @tc.desc: Verify the UpdateCommAuthSocketInfo function when it != commAuth_.end()
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, UpdateCommAuthSocketInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    uint32_t tokenId = TOKEN_ID;
+    std::string deviceId = DEVICE_ID_TEST;
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(DESCRIPTOR_TEST);
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), PID_TEST, UID_TEST, tokenId, deviceId);
+    skeleton->commAuth_.clear();
+    skeleton->commAuth_.push_back(auth);
+    ASSERT_NO_FATAL_FAILURE(skeleton->UpdateCommAuthSocketInfo(PID_TEST, UID_TEST, tokenId, deviceId, SOCKET_ID_TEST));
     skeleton->exitFlag_ = false;
     skeleton->instance_ = nullptr;
 }
