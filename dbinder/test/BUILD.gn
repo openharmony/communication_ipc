@@ -15,7 +15,7 @@ import("//build/test.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 DBINDER_TEST_ROOT = "$SUBSYSTEM_DIR/dbinder/test"
-MODULE_OUTPUT_PATH = "ipc/dbinder"
+MODULE_OUTPUT_PATH = "ipc/ipc"
 
 ###############################################################################
 config("libtestdbinder_config") {
