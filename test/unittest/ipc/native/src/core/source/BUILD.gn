@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("../../../../../../../config.gni")
 
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
-MODULE_OUTPUT_PATH = "ipc"
+MODULE_OUTPUT_PATH = "ipc/ipc"
 
 template("ipc_unittest") {
   ohos_unittest(target_name) {
