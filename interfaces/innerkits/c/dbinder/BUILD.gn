@@ -43,7 +43,6 @@ if (ohos_kernel_type == "linux") {
       "$IPC_CORE_ROOT/c/rpc/trans_adapter/include",
       "$IPC_CORE_ROOT/c/manager/include",
       "$SUBSYSTEM_DIR/utils/include",
-      "//commonlibrary/utils_lite/include",
     ]
     ldflags = [
       "-lstdc++",
@@ -77,7 +76,6 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/test/rpc/include",
       "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
-      "//commonlibrary/utils_lite/include",
       "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite",
     ]
     ldflags = [ "-lpthread" ]

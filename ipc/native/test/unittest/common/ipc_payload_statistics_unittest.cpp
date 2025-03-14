@@ -21,6 +21,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
     constexpr int32_t PID = 1;
     constexpr int32_t INVALID_PID = -1;
@@ -282,3 +283,4 @@ HWTEST_F(IPCPayloadStatisticsUnitTest, ClearStatisticsData001, TestSize.Level1)
 {
     EXPECT_EQ(IPCPayloadStatistics::ClearStatisticsData(), true);
 }
+} // namespace OHOS

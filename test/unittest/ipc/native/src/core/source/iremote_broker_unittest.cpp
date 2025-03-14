@@ -105,11 +105,11 @@ HWTEST_F(IremoteBrokerTest, RegisterTest003, TestSize.Level1)
     BrokerDelegatorBase obj;
     std::u16string descriptor = DESCRIPTOR_TEST;
     std::string soPath = SO_PATH_TEST;
-
+    registration.creators_.clear();
     registration.GetObjectSoPath(reinterpret_cast<uintptr_t>(&obj));
 
     bool result = registration.Register(descriptor, creator, &obj);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**

@@ -21,6 +21,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IpcBlockThreadTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -59,3 +60,4 @@ HWTEST_F(IpcBlockThreadTest, BlockUntilThreadAvailableTest001, TestSize.Level1)
     }
     EXPECT_EQ(test, true);
 }
+} // namespace OHOS

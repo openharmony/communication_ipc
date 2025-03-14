@@ -16,10 +16,10 @@
 #ifndef OHOS_RPC_PROCESS_SKELETON_H
 #define OHOS_RPC_PROCESS_SKELETON_H
 
+#include "doubly_linked_list.h"
 #include "ipc_skeleton.h"
 #include "rpc_trans.h"
 #include "rpc_session_handle.h"
-#include "utils_list.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,18 +35,18 @@ typedef struct {
 } RpcSkeleton;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     uint64_t stubIndex;
     OnRemoteRequest func;
 } StubObject;
 
 typedef struct {
-    UTILS_DL_LIST stubObjects;
+    DL_LIST stubObjects;
     pthread_mutex_t mutex;
 } StubObjectList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_t threadId;
     uint32_t sessionId;
     uint32_t packageSize;
@@ -54,34 +54,34 @@ typedef struct {
 } ThreadProcessInfo;
 
 typedef struct {
-    UTILS_DL_LIST processInfo;
+    DL_LIST processInfo;
     pthread_mutex_t mutex;
 } ThreadProcessInfoList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_t threadId;
     pthread_mutex_t mutex;
     pthread_cond_t condition;
 } SocketThreadLockInfo;
 
 typedef struct {
-    UTILS_DL_LIST socketLockInfo;
+    DL_LIST socketLockInfo;
     pthread_mutex_t mutex;
 } SocketThreadLockInfoList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_t threadId;
 } IdleDataThread;
 
 typedef struct {
-    UTILS_DL_LIST idleDataThread;
+    DL_LIST idleDataThread;
     pthread_mutex_t mutex;
 } IdleDataThreadsList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     uint32_t handle;
     uint32_t sessionId;
     char *buffer;
@@ -89,13 +89,13 @@ typedef struct {
 } HandleSessionList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     uint32_t handle;
     uint64_t index;
 } HandleToIndexList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_t threadId;
     uint64_t seqNumber;
     uint32_t flags;

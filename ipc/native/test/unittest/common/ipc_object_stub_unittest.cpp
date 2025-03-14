@@ -39,6 +39,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 constexpr pid_t ALLOWED_UID = 10000;
 constexpr pid_t VALID_PID = 1234;
@@ -1358,3 +1359,4 @@ HWTEST_F(IPCObjectStubTest, GetAndSaveDBinderDataTest001, TestSize.Level1)
     int result = testStub->GetAndSaveDBinderData(VALID_PID, VALID_UID);
     EXPECT_EQ(result, ERR_INVALID_STATE);
 }
+} // namespace OHOS
