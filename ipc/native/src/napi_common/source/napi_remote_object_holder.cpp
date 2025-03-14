@@ -43,7 +43,7 @@ static void OnEnvCleanUp(void *data)
 }
 
 NAPIRemoteObjectHolder::NAPIRemoteObjectHolder(napi_env env, const std::u16string &descriptor, napi_value thisVar)
-    : env_(env), jsThreadId_(std::this_thread::get_id();),descriptor_(descriptor), sptrCachedObject_(nullptr),
+    : env_(env), jsThreadId_(std::this_thread::get_id()), descriptor_(descriptor), sptrCachedObject_(nullptr),
       wptrCachedObject_(nullptr), localInterfaceRef_(nullptr), attachCount_(1), jsObjectRef_(nullptr)
 {
     DetectCreatedInIPCThread();
