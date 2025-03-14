@@ -23,6 +23,7 @@ group("ipc_components") {
       "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+      "$SUBSYSTEM_DIR/interfaces/kits/cj:cj_ipc_ffi",
       "$SUBSYSTEM_DIR/ipc/native/src/core:ipc_common",
     ]
     if (!build_ohos_sdk) {

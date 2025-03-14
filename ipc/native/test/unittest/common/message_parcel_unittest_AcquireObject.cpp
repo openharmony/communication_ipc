@@ -26,6 +26,7 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class MockIPCProcessSkeleton : public IPCProcessSkeleton {
 public:
     MockIPCProcessSkeleton();
@@ -173,3 +174,4 @@ HWTEST_F(MessageParcelTest, AcquireObjectTest006, TestSize.Level1)
     AcquireObject(&flat, nullptr);
     EXPECT_EQ(flat.hdr.type, BINDER_TYPE_PTR);
 }
+} // namespace OHOS

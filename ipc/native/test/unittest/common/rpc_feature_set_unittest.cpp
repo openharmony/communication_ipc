@@ -22,6 +22,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
     constexpr uint32_t RPC_FEATURE_ACK = 0x80000000;
     constexpr uint32_t INVAL_TOKEN_ID = 0x0;
@@ -312,3 +313,4 @@ HWTEST_F(RpcFeatureSetTest, IsFeatureAck002, TestSize.Level1)
     bool res = IsFeatureAck(featureSet);
     EXPECT_EQ(res, false);
 }
+} // namespace OHOS

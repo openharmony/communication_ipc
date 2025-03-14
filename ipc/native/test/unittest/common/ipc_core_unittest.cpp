@@ -43,6 +43,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
+namespace OHOS {
 namespace {
 constexpr uint32_t INVAL_TOKEN_ID = 0x0;
 constexpr int MAX_WAIT_TIME = 3000;
@@ -672,3 +673,4 @@ HWTEST_F(IPCNativeUnitTest, CommAuthInfo_SetRemoteSocketIdTest003, TestSize.Leve
     commAuthInfo.SetRemoteSocketId(expectedSocketId);
     ASSERT_EQ(commAuthInfo.socketId_, expectedSocketId);
 }
+} // namespace OHOS
