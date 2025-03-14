@@ -609,7 +609,8 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     env_ = env;
     thisVarRef_ = jsObjectRef;
 
-    if (jsThreadId_ == std::this_thread::get_id()) {
+    if (jsThreadId_ == std::this_thread::get_id() &&
+            IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD) {
         IncreaseJsObjectRef(env_, jsObjectRef);
     } else {
         std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
