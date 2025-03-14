@@ -17,7 +17,7 @@ import("../../../../../config.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_TEST_ROOT = "$SUBSYSTEM_DIR/ipc/test"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
-MODULE_OUTPUT_PATH = "ipc"
+MODULE_OUTPUT_PATH = "ipc/ipc"
 
 template("ipc_unittest") {
   ohos_unittest(target_name) {

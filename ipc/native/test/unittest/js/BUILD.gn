@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_output_path = "ipc/"
+module_output_path = "ipc/ipc"
 ohos_js_unittest("IPCjsTest") {
   module_out_path = module_output_path
   hap_profile = "./config.json"

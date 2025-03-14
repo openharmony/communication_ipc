@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../config.gni")
 
-MODULE_OUTPUT_PATH = "ipc"
+MODULE_OUTPUT_PATH = "ipc/ipc"
 
 ohos_unittest("RPCDbinderTest") {
   module_out_path = MODULE_OUTPUT_PATH
