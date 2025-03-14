@@ -72,6 +72,12 @@ public:
     virtual ssize_t GetSendBufferReadCursor() = 0;
     virtual std::string GetDeviceId() = 0;
     virtual std::string GetServiceName() = 0;
+    virtual bool QueryProxyBySocketId(int32_t socketId, std::vector<uint32_t> &proxyHandle) = 0;
+    virtual std::list<uint64_t> DetachAppAuthInfoBySocketId(int32_t socketId) = 0;
+    virtual IRemoteObject *QueryStubByIndex(uint64_t stubIndex) = 0;
+    virtual bool QueryAppInfoToStubIndex(const AppAuthInfo &appAuthInfo) = 0;
+    virtual bool IsContainsObject(IRemoteObject *object) = 0;
+    virtual uint64_t AddStubByIndex(IRemoteObject *stubObject) = 0;
 };
 class DbinderDataBusInvokerMock : public DbinderDataBusInvokerInterface {
 public:
@@ -95,6 +101,12 @@ public:
     MOCK_METHOD0(GetSendBufferReadCursor, ssize_t());
     MOCK_METHOD0(GetDeviceId, std::string());
     MOCK_METHOD0(GetServiceName, std::string());
+    MOCK_METHOD2(QueryProxyBySocketId, bool(int32_t socketId, std::vector<uint32_t> &proxyHandle));
+    MOCK_METHOD1(DetachAppAuthInfoBySocketId, std::list<uint64_t>(int32_t socketId));
+    MOCK_METHOD1(QueryStubByIndex, IRemoteObject *(uint64_t stubIndex));
+    MOCK_METHOD1(QueryAppInfoToStubIndex, bool(const AppAuthInfo &appAuthInfo));
+    MOCK_METHOD1(IsContainsObject, bool(IRemoteObject *object));
+    MOCK_METHOD1(AddStubByIndex, uint64_t(IRemoteObject *stubObject));
 };
 
 static void *g_interface = nullptr;
@@ -233,6 +245,48 @@ extern "C" {
             return "";
         }
         return GetDbinderDataBusInvokerInterface()->GetServiceName();
+    }
+    bool IPCProcessSkeleton::QueryAppInfoToStubIndex(const AppAuthInfo &appAuthInfo)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetDbinderDataBusInvokerInterface()->QueryAppInfoToStubIndex(appAuthInfo);
+    }
+    bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetDbinderDataBusInvokerInterface()->IsContainsObject(object);
+    }
+    uint64_t IPCProcessSkeleton::AddStubByIndex(IRemoteObject *stubObject)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetDbinderDataBusInvokerInterface()->AddStubByIndex(stubObject);
+    }
+    IRemoteObject *IPCProcessSkeleton::QueryStubByIndex(uint64_t stubIndex)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetDbinderDataBusInvokerInterface()->QueryStubByIndex(stubIndex);
+    }
+    bool IPCProcessSkeleton::QueryProxyBySocketId(int32_t socketId, std::vector<uint32_t> &proxyHandle)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetDbinderDataBusInvokerInterface()->QueryProxyBySocketId(socketId, proxyHandle);
+    }
+    std::list<uint64_t> IPCProcessSkeleton::DetachAppAuthInfoBySocketId(int32_t socketId)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return std::list<uint64_t>();
+        }
+        return GetDbinderDataBusInvokerInterface()->DetachAppAuthInfoBySocketId(socketId);
     }
 }
 
@@ -1316,5 +1370,299 @@ HWTEST_F(DbinderDataBusInvokerTest, FlattenSessionTest004, TestSize.Level1)
 
     auto result = testInvoker.FlattenSession(sessionOffset, connectSession, binderVersion);
     EXPECT_NE(result, 0);
+}
+
+/**
+ * @tc.name: OnDatabusSessionClientSideClosedTest001
+ * @tc.desc: Verify the OnDatabusSessionClientSideClosed function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionClientSideClosedTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionClientSideClosed(SOCKET_ID_TEST));
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: OnDatabusSessionClientSideClosedTest002
+ * @tc.desc: Verify the OnDatabusSessionClientSideClosed function when QueryProxyBySocketId function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionClientSideClosedTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, QueryProxyBySocketId(testing::_, testing::_)).WillOnce(testing::Return(false));
+
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionClientSideClosed(SOCKET_ID_TEST));
+}
+
+/**
+ * @tc.name: OnDatabusSessionClientSideClosedTest003
+ * @tc.desc: Verify the OnDatabusSessionClientSideClosed function when proxyHandle is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionClientSideClosedTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    NiceMock<DbinderDataBusInvokerMock> mock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->proxyToSession_.clear();
+
+    EXPECT_CALL(mock, QueryProxyBySocketId(testing::_, testing::_)).WillOnce(testing::Return(true));
+
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionClientSideClosed(SOCKET_ID_TEST));
+}
+
+/**
+ * @tc.name: OnDatabusSessionClientSideClosedTest004
+ * @tc.desc: Verify the OnDatabusSessionClientSideClosed function when QueryProxyBySocketId return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionClientSideClosedTest004, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    NiceMock<DbinderDataBusInvokerMock> mock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    current->proxyToSession_[TEST_HANDLE_VALID] = remoteSession;
+
+    EXPECT_CALL(mock, QueryProxyBySocketId(testing::_, testing::_)).WillOnce(testing::Return(true));
+
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionClientSideClosed(SOCKET_ID_TEST));
+    current->proxyToSession_.clear();
+}
+
+/**
+ * @tc.name: OnDatabusSessionServerSideClosedTest001
+ * @tc.desc: Verify the OnDatabusSessionServerSideClosed function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionServerSideClosedTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionServerSideClosed(SOCKET_ID_TEST));
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: OnDatabusSessionServerSideClosedTest002
+ * @tc.desc: Verify the OnDatabusSessionServerSideClosed function normal valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionServerSideClosedTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    NiceMock<DbinderDataBusInvokerMock> mock;
+    std::list<uint64_t> stubIndexs = {1, 2, 3};
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_HANDLE_VALID);
+
+    EXPECT_CALL(mock, StubDetachDBinderSession(testing::_, testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, DetachAppAuthInfoBySocketId(testing::_)).WillOnce(testing::Return(stubIndexs));
+    EXPECT_CALL(mock, QueryStubByIndex(testing::_)).WillOnce(testing::Return(nullptr))
+        .WillRepeatedly(testing::Return(object));
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionServerSideClosed(SOCKET_ID_TEST));
+}
+
+/**
+ * @tc.name: QueryHandleBySessionTest001
+ * @tc.desc: Verify the QueryHandleBySession function when current->instance_ is not nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, QueryHandleBySessionTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    auto result = testInvoker.QueryHandleBySession(nullptr);
+    EXPECT_EQ(result, 0);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: QueryHandleBySessionTest002
+ * @tc.desc: Verify the QueryHandleBySession function when TEST_HANDLE_VALID
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, QueryHandleBySessionTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    current->proxyToSession_[TEST_HANDLE_VALID] = remoteSession;
+
+    auto result = testInvoker.QueryHandleBySession(remoteSession);
+    EXPECT_EQ(result, TEST_HANDLE_VALID);
+}
+
+/**
+ * @tc.name: CheckAndSetCallerInfoTest001
+ * @tc.desc: Verify the CheckAndSetCallerInfo function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CheckAndSetCallerInfoTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    auto result = testInvoker.CheckAndSetCallerInfo(SOCKET_ID_TEST, STUB_INDEX);
+    EXPECT_EQ(result, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: CheckAndSetCallerInfoTest002
+ * @tc.desc: Verify the CheckAndSetCallerInfo function when uid less than 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CheckAndSetCallerInfoTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+    remoteSession->SetPeerPid(PEER_PID_TEST);
+    remoteSession->SetPeerUid(-1);
+
+        EXPECT_CALL(mock, StubQueryDBinderSession(testing::_))
+            .WillRepeatedly(testing::Return(remoteSession));
+
+    auto result = testInvoker.CheckAndSetCallerInfo(SOCKET_ID_TEST, STUB_INDEX);
+    EXPECT_EQ(result, RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: CheckAndSetCallerInfoTest003
+ * @tc.desc: Verify the CheckAndSetCallerInfo function whenwhen QueryAppInfoToStubIndex function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CheckAndSetCallerInfoTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+    remoteSession->SetPeerPid(PEER_PID_TEST);
+    remoteSession->SetPeerUid(1);
+
+    EXPECT_CALL(mock, StubQueryDBinderSession(testing::_)).WillRepeatedly(testing::Return(remoteSession));
+    EXPECT_CALL(mock, QueryAppInfoToStubIndex(testing::_)).WillRepeatedly(testing::Return(false));
+
+    auto result = testInvoker.CheckAndSetCallerInfo(SOCKET_ID_TEST, STUB_INDEX);
+    EXPECT_EQ(result, RPC_DATABUS_INVOKER_INVALID_STUB_INDEX);
+}
+
+/**
+ * @tc.name: CheckAndSetCallerInfoTest004
+ * @tc.desc: Verify the CheckAndSetCallerInfo function ERR_NONE when QueryAppInfoToStubIndex function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, CheckAndSetCallerInfoTest004, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    std::shared_ptr<DBinderSessionObject> remoteSession =
+        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+    remoteSession->SetPeerPid(PEER_PID_TEST);
+    remoteSession->SetPeerUid(1);
+
+    EXPECT_CALL(mock, StubQueryDBinderSession(testing::_)).WillRepeatedly(testing::Return(remoteSession));
+    EXPECT_CALL(mock, QueryAppInfoToStubIndex(testing::_)).WillRepeatedly(testing::Return(true));
+
+    auto result = testInvoker.CheckAndSetCallerInfo(SOCKET_ID_TEST, STUB_INDEX);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+
+/**
+ * @tc.name: MakeStubIndexByRemoteObjectTest001
+ * @tc.desc: Verify the MakeStubIndexByRemoteObject function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, MakeStubIndexByRemoteObjectTest001, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_HANDLE_VALID);
+
+    auto result = testInvoker.MakeStubIndexByRemoteObject(object);
+    EXPECT_EQ(result, 0);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: MakeStubIndexByRemoteObjectTest002
+ * @tc.desc: Verify the MakeStubIndexByRemoteObject function when IsContainsObject is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, MakeStubIndexByRemoteObjectTest002, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_HANDLE_VALID);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, IsContainsObject(testing::_)).WillOnce(testing::Return(false));
+
+    auto result = testInvoker.MakeStubIndexByRemoteObject(object);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: MakeStubIndexByRemoteObjectTest003
+ * @tc.desc: Verify the MakeStubIndexByRemoteObject function when AddStubByIndex is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, MakeStubIndexByRemoteObjectTest003, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_HANDLE_VALID);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, IsContainsObject(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, AddStubByIndex(testing::_)).WillOnce(testing::Return(0));
+
+    auto result = testInvoker.MakeStubIndexByRemoteObject(object);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: MakeStubIndexByRemoteObjectTest004
+ * @tc.desc: Verify the MakeStubIndexByRemoteObject function when AddStubByIndex is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDataBusInvokerTest, MakeStubIndexByRemoteObjectTest004, TestSize.Level1)
+{
+    DBinderDatabusInvoker testInvoker;
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_HANDLE_VALID);
+    NiceMock<DbinderDataBusInvokerMock> mock;
+
+    EXPECT_CALL(mock, IsContainsObject(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, AddStubByIndex(testing::_)).WillOnce(testing::Return(1));
+
+    auto result = testInvoker.MakeStubIndexByRemoteObject(object);
+    EXPECT_EQ(result, 1);
 }
 } //namespace OHOS
