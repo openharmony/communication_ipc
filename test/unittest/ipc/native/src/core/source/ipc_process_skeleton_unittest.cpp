@@ -1510,4 +1510,194 @@ HWTEST_F(IPCProcessSkeletonUnitTest, UpdateCommAuthSocketInfoTest001, TestSize.L
     skeleton->exitFlag_ = false;
     skeleton->instance_ = nullptr;
 }
+
+/**
+ * @tc.name: AttachOrUpdateAppAuthInfoTest001
+ * @tc.desc: Verify the AttachOrUpdateAppAuthInfo function
+ * when appAuthInfo.stub equal nullptr and appInfoToStubIndex_ is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachOrUpdateAppAuthInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    AppAuthInfo appAuthInfo;
+    appAuthInfo.deviceId = DEVICE_ID_TEST;
+    appAuthInfo.pid = PID_TEST;
+    appAuthInfo.uid = UID_TEST;
+    appAuthInfo.tokenId = TOKEN_ID;
+    appAuthInfo.stub = nullptr;
+    appAuthInfo.stubIndex = STUB_INDEX_TEST;
+
+    skeleton->appInfoToStubIndex_.clear();
+    auto result = skeleton->AttachOrUpdateAppAuthInfo(appAuthInfo);
+    EXPECT_EQ(result, false);
+    skeleton->appInfoToStubIndex_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: AttachOrUpdateAppAuthInfoTest002
+ * @tc.desc: Verify the AttachOrUpdateAppAuthInfo function when appAuthInfo.stub equal nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachOrUpdateAppAuthInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    AppAuthInfo appAuthInfo;
+    appAuthInfo.deviceId = DEVICE_ID_TEST;
+    appAuthInfo.pid = PID_TEST;
+    appAuthInfo.uid = UID_TEST;
+    appAuthInfo.tokenId = TOKEN_ID;
+    appAuthInfo.stub = nullptr;
+    appAuthInfo.stubIndex = STUB_INDEX_TEST;
+
+    std::string appInfo = appAuthInfo.deviceId + skeleton->UIntToString(appAuthInfo.pid) +
+        skeleton->UIntToString(appAuthInfo.uid) + skeleton->UIntToString(appAuthInfo.tokenId);
+    std::map<uint64_t, int32_t> indexMap = {{ STUB_INDEX_TEST, TOKEN_ID }};
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    auto result = skeleton->AttachOrUpdateAppAuthInfo(appAuthInfo);
+    EXPECT_EQ(result, false);
+    skeleton->appInfoToStubIndex_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: AttachOrUpdateAppAuthInfoTest003
+ * @tc.desc: Verify the AttachOrUpdateAppAuthInfo function
+ * when iter not equal to commAuth_.end() and appAuthInfo.socketId not equal to 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachOrUpdateAppAuthInfoTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(DESCRIPTOR_TEST);
+    AppAuthInfo appAuthInfo;
+    appAuthInfo.deviceId = DEVICE_ID_TEST;
+    appAuthInfo.pid = PID_TEST;
+    appAuthInfo.uid = UID_TEST;
+    appAuthInfo.tokenId = TOKEN_ID;
+    appAuthInfo.stub = stubObject;
+    appAuthInfo.stubIndex = HANDLE_INVALID_TEST;
+    appAuthInfo.socketId = SOCKET_ID_TEST;
+
+    std::string appInfo = appAuthInfo.deviceId + skeleton->UIntToString(appAuthInfo.pid) +
+        skeleton->UIntToString(appAuthInfo.uid) + skeleton->UIntToString(appAuthInfo.tokenId);
+    std::map<uint64_t, int32_t> indexMap = {{ STUB_INDEX_TEST, TOKEN_ID }};
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    std::shared_ptr<CommAuthInfo> auth =
+        std::make_shared<CommAuthInfo>(stubObject.GetRefPtr(), PID_TEST, UID_TEST, TOKEN_ID, DEVICE_ID_TEST);
+    skeleton->commAuth_.clear();
+    skeleton->commAuth_.push_back(auth);
+
+    auto result = skeleton->AttachOrUpdateAppAuthInfo(appAuthInfo);
+    EXPECT_EQ(result, false);
+    skeleton->appInfoToStubIndex_.clear();
+    skeleton->commAuth_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: AttachOrUpdateAppAuthInfoTest004
+ * @tc.desc: Verify the AttachOrUpdateAppAuthInfo function return true when appAuthInfo.socketId is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachOrUpdateAppAuthInfoTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stubObject = new IPCObjectStub(DESCRIPTOR_TEST);
+    AppAuthInfo appAuthInfo;
+    appAuthInfo.deviceId = DEVICE_ID_TEST;
+    appAuthInfo.pid = PID_TEST;
+    appAuthInfo.uid = UID_TEST;
+    appAuthInfo.tokenId = TOKEN_ID;
+    appAuthInfo.stub = stubObject;
+    appAuthInfo.stubIndex = HANDLE_INVALID_TEST;
+    appAuthInfo.socketId = HANDLE_INVALID_TEST;
+
+    std::string appInfo = appAuthInfo.deviceId + skeleton->UIntToString(appAuthInfo.pid) +
+        skeleton->UIntToString(appAuthInfo.uid) + skeleton->UIntToString(appAuthInfo.tokenId);
+    std::map<uint64_t, int32_t> indexMap = {{ STUB_INDEX_TEST, TOKEN_ID }};
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    auto result = skeleton->AttachOrUpdateAppAuthInfo(appAuthInfo);
+    EXPECT_EQ(result, true);
+    skeleton->appInfoToStubIndex_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachAppAuthInfoTest001
+ * @tc.desc: Verify the DetachAppAuthInfo function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppAuthInfoTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    AppAuthInfo appAuthInfo;
+    appAuthInfo.deviceId = DEVICE_ID_TEST;
+    appAuthInfo.pid = PID_TEST;
+    appAuthInfo.uid = UID_TEST;
+    appAuthInfo.tokenId = TOKEN_ID;
+    appAuthInfo.stub = nullptr;
+    appAuthInfo.stubIndex = STUB_INDEX_TEST;
+    appAuthInfo.socketId = SOCKET_ID_TEST;
+
+    std::string appInfo = appAuthInfo.deviceId + skeleton->UIntToString(appAuthInfo.pid) +
+        skeleton->UIntToString(appAuthInfo.uid) + skeleton->UIntToString(appAuthInfo.tokenId);
+    std::map<uint64_t, int32_t> indexMap = {{ STUB_INDEX_TEST, SOCKET_ID_TEST }};
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    auto result = skeleton->DetachAppAuthInfo(appAuthInfo);
+    EXPECT_EQ(result, true);
+    skeleton->appInfoToStubIndex_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
+
+/**
+ * @tc.name: DetachAppAuthInfoTest002
+ * @tc.desc: Verify the DetachAppAuthInfo function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachAppAuthInfoTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    AppAuthInfo appAuthInfo;
+    appAuthInfo.deviceId = DEVICE_ID_TEST;
+    appAuthInfo.pid = PID_TEST;
+    appAuthInfo.uid = UID_TEST;
+    appAuthInfo.tokenId = TOKEN_ID;
+    appAuthInfo.stub = nullptr;
+    appAuthInfo.stubIndex = STUB_INDEX_TEST;
+    appAuthInfo.socketId = SOCKET_ID_TEST;
+
+    std::string appInfo = appAuthInfo.deviceId + skeleton->UIntToString(appAuthInfo.pid) +
+        skeleton->UIntToString(appAuthInfo.uid) + skeleton->UIntToString(appAuthInfo.tokenId);
+    std::map<uint64_t, int32_t> indexMap = {{ TOKEN_ID, SOCKET_ID_TEST }};
+    skeleton->appInfoToStubIndex_[appInfo] = indexMap;
+
+    auto result = skeleton->DetachAppAuthInfo(appAuthInfo);
+    EXPECT_EQ(result, false);
+    skeleton->appInfoToStubIndex_.clear();
+    skeleton->exitFlag_ = false;
+    skeleton->instance_ = nullptr;
+}
 } // namespace OHOS
