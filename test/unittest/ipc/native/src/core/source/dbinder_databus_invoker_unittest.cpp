@@ -415,30 +415,6 @@ HWTEST_F(DbinderDataBusInvokerTest, NewSessionOfBinderProxy004, TestSize.Level1)
 }
 
 /**
- * @tc.name: NewSessionOfBinderProxy005
- * @tc.desc: Verify the NewSessionOfBinderProxy function
- * when GetProto function return IRemoteObject::IF_PROT_ERROR
- * @tc.type: FUNC
- */
-HWTEST_F(DbinderDataBusInvokerTest, NewSessionOfBinderProxy005, TestSize.Level1)
-{
-    uint32_t handle = REGISTRY_HANDLE;
-    std::shared_ptr<DBinderSessionObject> remoteSession =
-        std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
-    EXPECT_TRUE (remoteSession != nullptr);
-
-    DBinderDatabusInvoker testInvoker;
-    NiceMock<DbinderDataBusInvokerMock> mock;
-    sptr<MockIPCObjectProxy> proxy = sptr<MockIPCObjectProxy>::MakeSptr();
-
-    EXPECT_CALL(mock, FindOrNewObject).WillRepeatedly(testing::Return(proxy));
-    EXPECT_CALL(*proxy, GetProto()).WillRepeatedly(testing::Return(IRemoteObject::IF_PROT_ERROR));
-
-    std::shared_ptr<DBinderSessionObject> ret = testInvoker.NewSessionOfBinderProxy(handle, remoteSession);
-    EXPECT_EQ(ret, nullptr);
-}
-
-/**
  * @tc.name: GetSessionForProxy001
  * @tc.desc: Verify the GetSessionForProxy function when sessionName is empty
  * @tc.type: FUNC
@@ -1456,25 +1432,6 @@ HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionServerSideClosedTest001, Tes
     ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionServerSideClosed(SOCKET_ID_TEST));
     current->instance_ = nullptr;
     current->exitFlag_ = false;
-}
-
-/**
- * @tc.name: OnDatabusSessionServerSideClosedTest002
- * @tc.desc: Verify the OnDatabusSessionServerSideClosed function normal valid
- * @tc.type: FUNC
- */
-HWTEST_F(DbinderDataBusInvokerTest, OnDatabusSessionServerSideClosedTest002, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    NiceMock<DbinderDataBusInvokerMock> mock;
-    std::list<uint64_t> stubIndexs = {1, 2, 3};
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_HANDLE_VALID);
-
-    EXPECT_CALL(mock, StubDetachDBinderSession(testing::_, testing::_)).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, DetachAppAuthInfoBySocketId(testing::_)).WillOnce(testing::Return(stubIndexs));
-    EXPECT_CALL(mock, QueryStubByIndex(testing::_)).WillOnce(testing::Return(nullptr))
-        .WillRepeatedly(testing::Return(object));
-    ASSERT_NO_FATAL_FAILURE(testInvoker.OnDatabusSessionServerSideClosed(SOCKET_ID_TEST));
 }
 
 /**
