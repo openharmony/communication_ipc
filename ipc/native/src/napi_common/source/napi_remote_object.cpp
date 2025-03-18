@@ -609,8 +609,8 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
     env_ = env;
     thisVarRef_ = jsObjectRef;
 
-    if (jsThreadId_ == std::this_thread::get_id() &&
-            IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD) {
+    if ((jsThreadId_ == std::this_thread::get_id()) &&
+        (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
         IncreaseJsObjectRef(env_, jsObjectRef);
     } else {
         std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
@@ -645,8 +645,8 @@ NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", desc_.c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
-        if (jsThreadId_ == std::this_thread::get_id() &&
-            IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD) {
+        if ((jsThreadId_ == std::this_thread::get_id()) &&
+            (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
             DecreaseJsObjectRef(env_, thisVarRef_);
         } else {
             OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
