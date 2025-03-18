@@ -181,7 +181,7 @@ static int32_t MoveTransData2Buffer(HandleSessionList *sessionObject, dbinder_tr
 static HandleSessionList *WriteTransaction(int32_t cmd, MessageOption option, int32_t handle,
     int32_t sessionId, uint32_t code, IpcIo *data, uint64_t *seqNumber, int status)
 {
-    HandleSessionList *sessionObject = GetSessionObject(handle, sessionId);
+    HandleSessionList *sessionObject = GetSessionObject((uint32_t)handle, (uint32_t)sessionId);
     if (sessionObject == NULL) {
         RPC_LOG_ERROR("session is not exist for sessionId = %d, handle = %d", sessionId, handle);
         return NULL;
@@ -274,7 +274,7 @@ static int32_t HandleReply(uint64_t seqNumber, IpcIo *reply, uintptr_t *buffer)
     }
 
     if (messageInfo->flags & TF_OP_STATUS_CODE) {
-        int32_t err = messageInfo->offsetsSize;
+        int32_t err = (int32_t)messageInfo->offsetsSize;
         return err;
     }
 
@@ -285,6 +285,11 @@ static int32_t HandleReply(uint64_t seqNumber, IpcIo *reply, uintptr_t *buffer)
         .buffer = messageInfo->buffer
     };
     ToIpcData(&transData, reply);
+    if (buffer == NULL) {
+        RPC_LOG_ERROR("receive messageInfo`s buffer is nullptr");
+        return ERR_FAILED;
+    }
+
     *buffer = (uintptr_t)messageInfo->buffer;
 
     return ERR_NONE;
@@ -546,7 +551,7 @@ int32_t OnReceiveNewConnection(int sessionId)
         return ERR_FAILED;
     }
     stubSession->handle = handle;
-    stubSession->sessionId = sessionId;
+    stubSession->sessionId = (uint32_t)sessionId;
     if (AttachStubSession(stubSession) != ERR_NONE) {
         RPC_LOG_ERROR("AttachStubSession failed");
         free(stubSession);
@@ -593,7 +598,7 @@ void OnDatabusSessionClosed(int sessionId)
     DeathCallback *node = NULL;
     DL_LIST_FOR_EACH_ENTRY(node, &ipcSkeleton->objects, DeathCallback, list)
     {
-        if (node->handle == handleSession->handle) {
+        if (node->handle == (int32_t)handleSession->handle) {
             RPC_LOG_INFO("OnDatabusSessionClosed SendObituary handle %d", node->handle);
             SendObituary(node);
             DeleteDeathCallback(node);
@@ -656,8 +661,8 @@ void UpdateClientSession(int32_t handle, HandleSessionList *sessionObject,
         return;
     }
 
-    sessionObject->handle = handle;
-    sessionObject->sessionId = sessionId;
+    sessionObject->handle = (uint32_t)handle;
+    sessionObject->sessionId = (uint32_t)sessionId;
     if (AttachProxySession(sessionObject) != ERR_NONE) {
         RPC_LOG_ERROR("UpdateClientSession AttachProxySession failed");
     }
