@@ -63,7 +63,7 @@ static SessionIdList *FindOrNewSessionIdObject(SessionIdList *sessionIdList, int
     memset_s(node, sizeof(SessionIdList), 0, sizeof(SessionIdList));
     (void)pthread_mutex_init(&node->mutex, NULL);
     (void)pthread_cond_init(&node->condition, NULL);
-    node->sessionId = sessionId;
+    node->sessionId = (uint32_t)sessionId;
     node->isReady = false;
 
     DLListAdd(&sessionIdList->idList, &node->idList);

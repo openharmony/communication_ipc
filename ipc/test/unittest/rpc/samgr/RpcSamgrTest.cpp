@@ -40,7 +40,7 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
         return ERR_FAILED;
     }
     RPC_LOG_INFO("AddSystemAbility called.... handle = %d", sid->handle);
-    RPC_LOG_INFO("AddSystemAbility called.... cookie = %u", sid->cookie);
+    RPC_LOG_INFO("AddSystemAbility called.... cookie = %llu", sid->cookie);
     if (g_saList == nullptr) {
         return ERR_FAILED;
     }
@@ -66,7 +66,7 @@ int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
             sid->handle = node->sid->handle;
             sid->token = node->sid->token;
             sid->cookie = node->sid->cookie;
-            RPC_LOG_INFO("find sa, said = %d, handle = %d, cookie = %u", saId, sid->handle, sid->cookie);
+            RPC_LOG_INFO("find sa, said = %d, handle = %d, cookie = %llu", saId, sid->handle, sid->cookie);
             return ERR_NONE;
         }
     }
@@ -107,7 +107,7 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("MakeRemoteBinder failed");
     }
-    RPC_LOG_INFO("GetRemoteSystemAbility handle=%d, cookie=%u", sid->handle, sid->cookie);
+    RPC_LOG_INFO("GetRemoteSystemAbility handle=%d, cookie=%llu", sid->handle, sid->cookie);
 
     return ret;
 }
@@ -220,11 +220,6 @@ public:
  */
 HWTEST_F(RpcSamgrTest, RpcSamgrTest001, TestSize.Level1)
 {
-    IpcObjectStub objectStub = {
-        .func = RemoteRequest,
-        .isRemote = false
-    };
-
     SvcIdentity target = {
         .handle = 0,
         .cookie = 0
