@@ -133,10 +133,13 @@ void SpawnThreadFuzzTest(const uint8_t *data, size_t size)
     if (ipcSktPtr == nullptr) {
         return;
     }
-    std::lock_guard<std::mutex> lock(ipcSktPtr->threadPool_->mutex_);
-    if (ipcSktPtr->threadPool_->threads_.size() < IPCProcessSkeleton::DEFAULT_WORK_THREAD_NUM) {
-        (void)ipcSktPtr->SpawnThread(policy, proto);
+    {
+        std::lock_guard<std::mutex> lock(ipcSktPtr->threadPool_->mutex_);
+        if (ipcSktPtr->threadPool_->threads_.size() >= IPCProcessSkeleton::DEFAULT_WORK_THREAD_NUM) {
+            return;
+        }
     }
+    (void)ipcSktPtr->SpawnThread(policy, proto);
 }
 
 void FindOrNewObjectFuzzTest(const uint8_t *data, size_t size)
