@@ -22,6 +22,7 @@
 
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
+#include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
 #include "log_tags.h"
 #include "napi/native_api.h"
@@ -601,15 +602,15 @@ bool NapiScope::IsValid()
 
 NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef,
     const std::u16string &descriptor)
-    : IPCObjectStub(descriptor)
+    : IPCObjectStub(descriptor), jsThreadId_(jsThreadId)
 {
     desc_ = Str16ToStr8(descriptor_);
     ZLOGD(LOG_LABEL, "created, desc:%{public}s", desc_.c_str());
     env_ = env;
-    jsThreadId_ = jsThreadId;
     thisVarRef_ = jsObjectRef;
 
-    if (jsThreadId_ == std::this_thread::get_id()) {
+    if ((jsThreadId_ == std::this_thread::get_id()) &&
+        (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
         IncreaseJsObjectRef(env_, jsObjectRef);
     } else {
         std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
@@ -644,7 +645,8 @@ NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", desc_.c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
-        if (jsThreadId_ == std::this_thread::get_id()) {
+        if ((jsThreadId_ == std::this_thread::get_id()) &&
+            (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
             DecreaseJsObjectRef(env_, thisVarRef_);
         } else {
             OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
