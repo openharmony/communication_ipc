@@ -20,6 +20,7 @@
 #include <iostream>
 #include <thread>
 #include <securec.h>
+#include "ani_remote_object.h"
 #include "ani_utils.h"
 #include "iremote_object.h"
 #include "ipc_object_stub.h"
@@ -178,7 +179,6 @@ public:
         ani_object aniData = CreateMessageSequence(env, data);
         ani_object aniReply = CreateMessageSequence(env, reply);
         ani_object aniOption = CreateMessageOption(env, option);
-        // ani_object aniOption{};
 
         auto obj = reinterpret_cast<ani_object>(saveRemote_);
         std::cerr << "[ANI] before Object_CallMethodByName_Void onRemoteMessageRequestSync" << std::endl;
@@ -224,12 +224,11 @@ public:
         return ret;
     }
 
-    sptr<IPCAniStub> Get()
+    sptr<IRemoteObject> Get()
     {
         if (object_ == nullptr) {
             object_ = new IPCAniStub(env_, saveRemote_, descriptor_);
         }
-
         return object_;
     }
 
@@ -240,13 +239,16 @@ public:
 
     ~IPCObjectRemoteHolder()
     {
-        delete object_;
-        object_ = nullptr;
+        if (object_ != nullptr) {
+            IPCAniStub* aniStub = reinterpret_cast<IPCAniStub*>(object_.GetRefPtr());
+            delete aniStub;
+            object_ = nullptr;
+        }
         std::cout << "[ANI] enter IPCObjectRemoteHolder dtor " << std::endl;
     }
 
 private:
-    sptr<IPCAniStub> object_;
+    sptr<IRemoteObject> object_;
     ani_env *env_ = nullptr;
     ani_ref saveRemote_;
     std::u16string descriptor_;
@@ -267,12 +269,26 @@ private:
     sptr<IPCObjectProxy> object_;
 };
 
+sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
+{
+    std::cout << "[ANI] enter AniGetNativeRemoteObject func " << std::endl;
+    auto holder = AniObjectUtils::Unwrap<IPCObjectRemoteHolder>(env, obj);
+    if (holder != nullptr) {
+        return holder->Get();
+    }
+    return nullptr;
+}
+
 static ani_string MessageSequenceReadString([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     std::cout << "[ANI] enter MessageSequenceReadString func " << std::endl;
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
-    auto str = parcel->ReadString();
-    return AniStringUtils::ToAni(env, str);
+    if (parcel != nullptr) {
+        auto str = parcel->ReadString();
+        return AniStringUtils::ToAni(env, str);
+    }
+    ani_string result_string{};
+    return result_string;
 }
 
 static bool MessageSequenceWriteString([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
@@ -280,17 +296,24 @@ static bool MessageSequenceWriteString([[maybe_unused]] ani_env *env, [[maybe_un
 {
     std::cout << "[ANI] enter MessageSequenceWriteString func " << std::endl;
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
-    auto stringContent = AniStringUtils::ToStd(env, str);
-    return parcel->WriteString(stringContent);
+    if (parcel != nullptr) {
+        auto stringContent = AniStringUtils::ToStd(env, str);
+        return parcel->WriteString(stringContent);
+    }
+    return false;
 }
 
 static ani_string MessageSequencereadInterfaceToken([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     std::cout << "[ANI] enter MessageSequencereadInterfaceToken func" << std::endl;
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
-    auto str = parcel->ReadInterfaceToken();
-    std::string outString = Str16ToStr8(str.c_str());
-    return AniStringUtils::ToAni(env, outString);
+    if (parcel != nullptr) {
+        auto str = parcel->ReadInterfaceToken();
+        std::string outString = Str16ToStr8(str.c_str());
+        return AniStringUtils::ToAni(env, outString);
+    }
+    ani_string result_string{};
+    return result_string;
 }
 
 static void RemoteObjectConstructor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
@@ -324,11 +347,12 @@ static void OnRemoteMessageRequestCallback([[maybe_unused]] ani_env *env, [[mayb
                                            ani_boolean result)
 {
     std::cout << "[ANI] enter OnRemoteMessageRequestCallback func, result: " << static_cast<bool>(result) << std::endl;
-    auto objectRemoteHolder = AniObjectUtils::Unwrap<IPCObjectRemoteHolder>(env, object);
-    if (objectRemoteHolder != nullptr) {
-        sptr<IPCAniStub> stub = objectRemoteHolder->Get();
-        stub->SetResult(static_cast<bool>(result));
+    sptr<IRemoteObject> stub = AniGetNativeRemoteObject(env, object);
+    if (stub == nullptr) {
+        return;
     }
+    IPCAniStub* aniStub = reinterpret_cast<IPCAniStub*>(stub.GetRefPtr());
+    aniStub->SetResult(static_cast<bool>(result));
 }
 
 static ani_string GetRemoteProxyDescriptor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
@@ -356,7 +380,8 @@ static void TestSendRequest([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_
     if (objectRemoteHolder != nullptr) {
         auto descriptorStr = objectRemoteHolder->GetDescriptor();
         std::cout << "[ANI] get remote descriptor: " << descriptorStr << std::endl;
-        sptr<IPCObjectStub> stub = objectRemoteHolder->Get();
+        sptr<IRemoteObject> stub = objectRemoteHolder->Get();
+        IPCAniStub* aniStub = reinterpret_cast<IPCAniStub*>(stub.GetRefPtr());
         MessageParcel data;
         data.WriteString(AniStringUtils::ToStd(env, message));
         std::u16string interfaceToken = Str8ToStr16(AniStringUtils::ToStd(env, message).c_str());
@@ -365,7 +390,7 @@ static void TestSendRequest([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_
         MessageOption option;
         option.SetFlags(MESSAGE_OPTION_FLAGS);
         option.SetWaitTime(MESSAGE_OPTION_WAIT_TIME_MS);
-        stub->OnRemoteRequest((int)code, data, reply, option);
+        aniStub->OnRemoteRequest((int)code, data, reply, option);
     } else {
         std::cout << "[ANI] not find IPCObjectRemoteHolder" << std::endl;
     }

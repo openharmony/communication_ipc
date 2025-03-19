@@ -18,7 +18,11 @@ group("rpc_ani_package") {
   deps = [
     ":rpc_abc_etc",
     ":rpc_ani",
+    "test:test_abc",
   ]
+}
+config("ani_rpc_public_config") {
+  include_dirs = [ "include" ]
 }
 
 ohos_shared_library("rpc_ani") {
@@ -27,6 +31,7 @@ ohos_shared_library("rpc_ani") {
     "include",
     "../../../../../interfaces/innerkits/ipc_core/include",
   ]
+  public_configs = [ ":ani_rpc_public_config" ]
 
   deps = [ "../../../../../interfaces/innerkits/ipc_core:ipc_core" ]
   external_deps = [
