@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("../../../../../../../config.gni")
 
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
-MODULE_OUTPUT_PATH = "ipc"
+MODULE_OUTPUT_PATH = "ipc/ipc"
 
 template("ipc_unittest") {
   ohos_unittest(target_name) {
@@ -42,7 +42,6 @@ template("ipc_unittest") {
     deps = [
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core:ipc_core",
-      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
@@ -60,10 +59,13 @@ template("ipc_unittest") {
       "ffrt:libffrt",
       "googletest:gmock",
       "hilog:libhilog",
-      "hisysevent:libhisysevent",
       "hitrace:libhitracechain",
       "samgr:samgr_proxy",
     ]
+
+    if (hiviewdfx_hisysevent_support) {
+      external_deps += [ "hisysevent:libhisysevent" ]
+    }
 
     if (defined(invoker.external_deps)) {
       external_deps += invoker.external_deps
@@ -87,12 +89,12 @@ ipc_unittest("DBinderCallbackStubTest") {
   sources = [ "dbinder_callback_stub_unittest.cpp" ]
 }
 
-ipc_unittest("DBinderSoftbusClientTest") {
-  sources = [ "dbinder_softbus_client_unittest.cpp" ]
-}
-
 ipc_unittest("BinderInvokerTest") {
   sources = [ "binder_invoker_unittest.cpp" ]
+}
+
+ipc_unittest("DBinderSoftbusClientTest") {
+  sources = [ "dbinder_softbus_client_unittest.cpp" ]
 }
 
 ipc_unittest("IremoteBrokerTest") {
@@ -111,6 +113,14 @@ ipc_unittest("ProcessSkeletonTest") {
   sources = [ "process_skeleton_unittest.cpp" ]
 }
 
+ipc_unittest("IremoteObjectTest") {
+  sources = [ "iremote_object_unittest.cpp" ]
+}
+
+ipc_unittest("IpcObjectStubTest") {
+  sources = [ "ipc_object_stub_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -122,7 +132,9 @@ group("unittest") {
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IPCSkeletonTest",
+    ":IpcObjectStubTest",
     ":IremoteBrokerTest",
+    ":IremoteObjectTest",
     ":ProcessSkeletonTest",
   ]
 }

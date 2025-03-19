@@ -15,12 +15,12 @@
 
 #include "ipc_skeleton.h"
 
+#include "doubly_linked_list.h"
 #include "ipc_process_skeleton.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "rpc_types.h"
 #include "securec.h"
-#include "utils_list.h"
 
 static const int COOKIE_NULL = 0;
 static const int INVALID_HANDLE = 0;

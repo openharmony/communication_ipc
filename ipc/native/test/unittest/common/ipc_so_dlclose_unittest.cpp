@@ -19,6 +19,7 @@
 
 using namespace testing::ext;
 
+namespace OHOS {
 class IpcSoDlcloseTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -76,3 +77,4 @@ HWTEST_F(IpcSoDlcloseTest, CoreSoDlcloseTest001, TestSize.Level1)
         EXPECT_EQ(ret, 0);
     }
 }
+} // namespace OHOS

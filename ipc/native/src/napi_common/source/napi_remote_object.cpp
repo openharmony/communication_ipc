@@ -885,6 +885,9 @@ napi_value GetJsStubRemoteObjectByRef(napi_env env, const sptr<IRemoteObject> ta
 {
     NAPIRemoteObject *object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
     NAPI_ASSERT(env, object != nullptr, "get NAPIRemoteObject failed");
+    if (std::this_thread::get_id() != object->GetJSThreadId()) {
+        return CreateJsStubRemoteObject(env, target);
+    }
     napi_value jsRemoteObject = nullptr;
     napi_get_reference_value(env, object->GetJsObjectRef(), &jsRemoteObject);
     return jsRemoteObject;

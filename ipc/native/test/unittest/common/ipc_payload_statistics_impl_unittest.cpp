@@ -22,6 +22,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
     constexpr int32_t PID_1 = 1;
     constexpr int32_t PID_2 = 2;
@@ -547,3 +548,4 @@ HWTEST_F(IPCPayloadStatisticsImplUnitTest, UpdatePayloadInfo003, TestSize.Level1
     EXPECT_EQ(instance.ClearStatisticsData(), true);
     EXPECT_EQ(instance.StopStatistics(), true);
 }
+} // namespace OHOS

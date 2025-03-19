@@ -21,6 +21,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IPCTraceUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void) {}
@@ -105,3 +106,4 @@ HWTEST_F(IPCTraceUnitTest, IPCTraceUnitTest005, TestSize.Level1)
     bool isEnable = IPCTrace::IsEnabled();
     EXPECT_FALSE(isEnable);
 }
+} // namespace OHOS
