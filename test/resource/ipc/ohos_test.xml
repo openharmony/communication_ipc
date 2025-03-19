@@ -83,4 +83,28 @@
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
+    <target name="IPCInnerObjectTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCCremoteObjectTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCInternalUtilsTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCCskeletonTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
 </configuration>
