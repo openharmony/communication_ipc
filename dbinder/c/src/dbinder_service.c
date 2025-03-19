@@ -823,7 +823,7 @@ int32_t MakeRemoteBinder(const void *serviceName, uint32_t nameLen, const char *
     } while (ret != ERR_NONE && (retryTimes < RETRY_TIMES));
 
     if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("fail to invoke service, service name = %s", serviceName);
+        RPC_LOG_ERROR("fail to invoke service, service name = %s", (char *)serviceName);
         SessionInfo *sessionObject = QuerySessionObject((uintptr_t)(dBinderServiceStub->svc.cookie));
         if (sessionObject != NULL) {
             DetachSessionObject(sessionObject);

@@ -50,7 +50,7 @@ static void UpdateDatabusClientSession(int32_t handle, IpcIo *reply)
         free(sessionObject);
         return;
     }
-    handleToIndex->handle = handle;
+    handleToIndex->handle = (uint32_t)handle;
     handleToIndex->index = stubIndex;
 
     if (AttachHandleToIndex(handleToIndex) != ERR_NONE) {
@@ -194,7 +194,11 @@ char *GetDataBusName(void)
         .flags = TF_OP_SYNC
     };
     uintptr_t ptr;
-    int32_t ret = ProcessSendRequest(*GetContextObject(), GRANT_DATABUS_NAME, &data, &reply, option, &ptr);
+    SvcIdentity *identity = GetContextObject();
+    if (identity == NULL) {
+        return NULL;
+    }
+    int32_t ret = ProcessSendRequest(*identity, GRANT_DATABUS_NAME, &data, &reply, option, &ptr);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("sendrequest GRANT_DATABUS_NAME failed, error %d", ret);
         FreeBuffer((void *)ptr);
@@ -214,7 +218,7 @@ char *GetDataBusName(void)
     }
     size_t len;
     const char *name = (const char *)ReadString(&reply, &len);
-    RPC_LOG_INFO("GetDataBusName name %s, len %d", name, len);
+    RPC_LOG_INFO("GetDataBusName name %s, len %lu", name, len);
     char *sessionName = (char *)malloc(len + 1);
     if (sessionName == NULL) {
         RPC_LOG_ERROR("GetDataBusName sessionName malloc failed");
