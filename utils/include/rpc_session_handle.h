@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "utils_list.h"
+#include "doubly_linked_list.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +29,7 @@ extern "C" {
 #define CONNECT_WAIT_TIME_SECONDS 2
 
 typedef struct {
-    UTILS_DL_LIST idList;
+    DL_LIST idList;
     pthread_mutex_t mutex;
     pthread_cond_t condition;
     uint32_t sessionId;

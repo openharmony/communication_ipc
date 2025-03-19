@@ -22,6 +22,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class InvokerRawDataTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -89,3 +90,4 @@ HWTEST_F(InvokerRawDataTest, GetSize001, TestSize.Level1)
     InvokerRawData rawData(validSize_);
     EXPECT_EQ(rawData.GetSize(), validSize_);
 }
+} // namespace OHOS

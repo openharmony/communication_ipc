@@ -91,7 +91,7 @@ static int32_t AddList(IpcObjectStub *stub, uint32_t *token, IpcCallback *ipcCal
     anonymousApi->token = *token;
     ret = memcpy_s((char *)&anonymousApi->hdlerPair, sizeof(IpcObjectStub), stub, sizeof(IpcObjectStub));
     if (ret == 0) {
-        UtilsListAdd(&ipcCallback->apis, &anonymousApi->list);
+        DLListAdd(&ipcCallback->apis, &anonymousApi->list);
         pthread_mutex_unlock(&ipcCallback->mutex);
         return ret;
     }

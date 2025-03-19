@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     char serviceName[SERVICENAME_LENGTH + 1];
     char deviceID[DEVICEID_LENGTH + 1];
     uintptr_t binderObject;

@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("../../../../../../../config.gni")
 
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
-MODULE_OUTPUT_PATH = "ipc"
+MODULE_OUTPUT_PATH = "ipc/ipc"
 
 template("c_api_unittest") {
   ohos_unittest(target_name) {
@@ -90,12 +90,17 @@ c_api_unittest("IPCCremoteObjectTest") {
   sources = [ "ipc_cremote_object_unittest.cpp" ]
 }
 
+c_api_unittest("IPCInnerObjectTest") {
+  sources = [ "ipc_inner_object_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
     ":IPCCremoteObjectTest",
     ":IPCCskeletonTest",
+    ":IPCInnerObjectTest",
     ":IPCInternalUtilsTest",
   ]
 }

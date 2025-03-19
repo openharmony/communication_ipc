@@ -27,7 +27,7 @@ ohos_fuzztest("ListenFuzzTest") {
   ]
   sources = [ "listen_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../interfaces/innerkits/ipc_single:ipc_single" ]
+  deps = [ "../../../../../../../test:ipc_single_test_static" ]
 
   external_deps = [
     "c_utils:utils",

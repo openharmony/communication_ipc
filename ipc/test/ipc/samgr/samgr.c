@@ -16,20 +16,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "doubly_linked_list.h"
 #include "ipc_proxy.h"
 #include "ipc_skeleton.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "serializer.h"
-#include "utils_list.h"
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     int32_t saId;
     SvcIdentity *sid;
 } SvcInfo;
 
-static UTILS_DL_LIST *g_saList = NULL;
+static DL_LIST *g_saList = NULL;
 
 static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 {
@@ -43,7 +43,7 @@ static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     }
     node->saId = saId;
     node->sid = sid;
-    UtilsListAdd(g_saList, &node->list);
+    DLListAdd(g_saList, &node->list);
     return ERR_NONE;
 }
 
@@ -52,7 +52,7 @@ static int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity 
     (void)deviceId;
     SvcInfo* node = NULL;
     SvcInfo* next = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
     {
         if (node->saId == saId) {
             sid->handle = node->sid->handle;
@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
 {
     RPC_LOG_INFO("Enter System Ability Manager .... ");
 
-    g_saList = (UTILS_DL_LIST *)calloc(1, sizeof(UTILS_DL_LIST));
-    UtilsListInit(g_saList);
+    g_saList = (DL_LIST *)calloc(1, sizeof(DL_LIST));
+    DLListInit(g_saList);
 
     IpcObjectStub objectStub = {
         .func = RemoteRequest,

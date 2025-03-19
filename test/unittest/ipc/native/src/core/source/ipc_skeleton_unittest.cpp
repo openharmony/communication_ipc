@@ -26,19 +26,18 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
     const std::u16string DESCRIPTOR_TEST = u"test";
     const int HANDLE_TEST = 1;
     const int RESULT_TEST = 111;
 }
 
-namespace OHOS {
-    class IPCSkeletonInterface {
+class IPCSkeletonInterface {
 public:
     IPCSkeletonInterface() {};
     virtual ~IPCSkeletonInterface() {};
 
-    virtual IPCProcessSkeleton *GetCurrent() = 0;
     virtual sptr<IRemoteObject> GetRegistryObject() = 0;
     virtual bool SetRegistryObject(sptr<IRemoteObject> &object) = 0;
     virtual bool SetMaxWorkThread(int maxThreadNum) = 0;
@@ -46,12 +45,12 @@ public:
     virtual IRemoteInvoker *GetActiveInvoker() = 0;
     virtual IRemoteInvoker *GetProxyInvoker(IRemoteObject *object) = 0;
 };
+
 class IPCSkeletonInterfaceMock : public IPCSkeletonInterface {
 public:
     IPCSkeletonInterfaceMock();
     ~IPCSkeletonInterfaceMock() override;
 
-    MOCK_METHOD0(GetCurrent, IPCProcessSkeleton *());
     MOCK_METHOD0(GetRegistryObject, sptr<IRemoteObject>());
     MOCK_METHOD1(SetRegistryObject, bool(sptr<IRemoteObject> &object));
     MOCK_METHOD1(SetMaxWorkThread, bool(int maxThreadNum));
@@ -78,13 +77,6 @@ static IPCSkeletonInterface *GetIPCSkeletonInterface()
 }
 
 extern "C" {
-    IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
-    {
-        if (GetIPCSkeletonInterface() == nullptr) {
-            return nullptr;
-        }
-        return GetIPCSkeletonInterface()->GetCurrent();
-    }
     sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
     {
         if (GetIPCSkeletonInterface() == nullptr) {
@@ -128,7 +120,6 @@ extern "C" {
         return GetIPCSkeletonInterface()->GetProxyInvoker(object);
     }
 }
-} // namespace OHOS
 
 class IPCSkeletonTest : public testing::Test {
 public:
@@ -163,12 +154,14 @@ HWTEST_F(IPCSkeletonTest, SetContextObject001, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
     sptr<IRemoteObject> obj;
-    NiceMock<IPCSkeletonInterfaceMock> mock;
-
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(nullptr));
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
 
     bool ret = skeleton.SetContextObject(obj);
     EXPECT_FALSE(ret);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -180,16 +173,29 @@ HWTEST_F(IPCSkeletonTest, SetContextObject002, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
     sptr<IRemoteObject> obj;
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     NiceMock<IPCSkeletonInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(current));
     EXPECT_CALL(mock, SetRegistryObject(testing::_)).WillRepeatedly(testing::Return(false));
 
     bool ret = skeleton.SetContextObject(obj);
     EXPECT_FALSE(ret);
-    current->instance_ = nullptr;
-    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: SetContextObject003
+ * @tc.desc: Verify the SetContextObject function when SetRegistryObject function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, SetContextObject003, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    sptr<IRemoteObject> obj;
+    NiceMock<IPCSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, SetRegistryObject(testing::_)).WillRepeatedly(testing::Return(true));
+
+    bool ret = skeleton.SetContextObject(obj);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -200,12 +206,14 @@ HWTEST_F(IPCSkeletonTest, SetContextObject002, TestSize.Level1)
 HWTEST_F(IPCSkeletonTest, GetContextObject001, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-    NiceMock<IPCSkeletonInterfaceMock> mock;
-
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(nullptr));
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
 
     sptr<IRemoteObject> ret = skeleton.GetContextObject();
     EXPECT_EQ(ret, nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -217,16 +225,12 @@ HWTEST_F(IPCSkeletonTest, GetContextObject002, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
     sptr<IRemoteObject> obj;
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     NiceMock<IPCSkeletonInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(current));
     EXPECT_CALL(mock, GetRegistryObject()).WillRepeatedly(testing::Return(obj));
 
     sptr<IRemoteObject> ret = skeleton.GetContextObject();
     EXPECT_EQ(ret, obj);
-    current->instance_ = nullptr;
-    current->exitFlag_ = false;
 }
 
 /**
@@ -237,16 +241,12 @@ HWTEST_F(IPCSkeletonTest, GetContextObject002, TestSize.Level1)
 HWTEST_F(IPCSkeletonTest, GetContextObject003, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     NiceMock<IPCSkeletonInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(current));
     EXPECT_CALL(mock, GetRegistryObject()).WillRepeatedly(testing::Return(nullptr));
 
     sptr<IRemoteObject> ret = skeleton.GetContextObject();
     EXPECT_EQ(ret, nullptr);
-    current->instance_ = nullptr;
-    current->exitFlag_ = false;
 }
 
 /**
@@ -257,12 +257,14 @@ HWTEST_F(IPCSkeletonTest, GetContextObject003, TestSize.Level1)
 HWTEST_F(IPCSkeletonTest, SetMaxWorkThreadNum001, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-    NiceMock<IPCSkeletonInterfaceMock> mock;
-
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(nullptr));
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
 
     bool ret = skeleton.SetMaxWorkThreadNum(1);
     EXPECT_FALSE(ret);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -273,35 +275,28 @@ HWTEST_F(IPCSkeletonTest, SetMaxWorkThreadNum001, TestSize.Level1)
 HWTEST_F(IPCSkeletonTest, SetMaxWorkThreadNum002, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     NiceMock<IPCSkeletonInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(current));
     EXPECT_CALL(mock, SetMaxWorkThread(testing::_)).WillRepeatedly(testing::Return(false));
 
     bool ret = skeleton.SetMaxWorkThreadNum(1);
     EXPECT_FALSE(ret);
-    current->instance_ = nullptr;
-    current->exitFlag_ = false;
 }
 
 /**
  * @tc.name: SetMaxWorkThreadNum003
- * @tc.desc: Verify the SetMaxWorkThreadNum function when maxThreadNum is -1
+ * @tc.desc: Verify the SetMaxWorkThreadNum function when SetMaxWorkThread function return false
  * @tc.type: FUNC
  */
 HWTEST_F(IPCSkeletonTest, SetMaxWorkThreadNum003, TestSize.Level1)
 {
     IPCSkeleton skeleton = IPCSkeleton::GetInstance();
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     NiceMock<IPCSkeletonInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(testing::Return(current));
+    EXPECT_CALL(mock, SetMaxWorkThread(testing::_)).WillRepeatedly(testing::Return(true));
 
-    bool ret = skeleton.SetMaxWorkThreadNum(-1);
-    EXPECT_FALSE(ret);
-    current->instance_ = nullptr;
-    current->exitFlag_ = false;
+    bool ret = skeleton.SetMaxWorkThreadNum(1);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -331,7 +326,6 @@ HWTEST_F(IPCSkeletonTest, GetSelfTokenID002, TestSize.Level1)
     NiceMock<IPCSkeletonInterfaceMock> mock;
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
 
     EXPECT_CALL(mock, GetDefaultInvoker()).WillRepeatedly(testing::Return(invoker));
@@ -356,7 +350,6 @@ HWTEST_F(IPCSkeletonTest, GetFirstTokenID001, TestSize.Level1)
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
-    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
 
     EXPECT_CALL(mock, GetActiveInvoker()).WillRepeatedly(testing::Return(invoker));
     EXPECT_CALL(mock, GetDefaultInvoker()).WillRepeatedly(testing::Return(invoker));
@@ -380,7 +373,6 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenID001, TestSize.Level1)
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
-    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
 
     EXPECT_CALL(mock, GetActiveInvoker()).WillRepeatedly(testing::Return(invoker));
     EXPECT_CALL(mock, GetDefaultInvoker()).WillRepeatedly(testing::Return(invoker));
@@ -413,7 +405,7 @@ HWTEST_F(IPCSkeletonTest, FlushCommands001, TestSize.Level1)
 
 /**
  * @tc.name: FlushCommandsTest002
- * @tc.desc: Verify the FlushCommands function return ret
+ * @tc.desc: Verify the FlushCommands function return valid value
  * @tc.type: FUNC
  */
 HWTEST_F(IPCSkeletonTest, FlushCommandsTest002, TestSize.Level1)
@@ -471,9 +463,7 @@ HWTEST_F(IPCSkeletonTest, TriggerThreadReclaim002, TestSize.Level1)
     EXPECT_CALL(*invoker, TriggerSystemIPCThreadReclaim()).WillRepeatedly(testing::Return(true));
 
     bool result = skeleton.TriggerSystemIPCThreadReclaim();
-    ASSERT_TRUE(result);
-
-    ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
+    EXPECT_TRUE(result);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
@@ -507,17 +497,32 @@ HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim002, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
     EXPECT_CALL(mock, GetDefaultInvoker()).WillRepeatedly(testing::Return(invoker));
-    EXPECT_CALL(*invoker, EnableIPCThreadReclaim(false)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*invoker, EnableIPCThreadReclaim(false)).WillRepeatedly(testing::Return(false));
 
     auto result = skeleton.EnableIPCThreadReclaim(false);
-    ASSERT_TRUE(result);
-
-    EXPECT_CALL(*invoker, EnableIPCThreadReclaim(true)).WillRepeatedly(testing::Return(true));
-
-    result = skeleton.EnableIPCThreadReclaim(true);
-    ASSERT_TRUE(result);
-
-    ASSERT_TRUE(IPCThreadSkeleton::GetCurrent() != nullptr);
+    EXPECT_FALSE(result);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+
+/**
+ * @tc.name: EnableIPCThreadReclaim003
+ * @tc.desc: Verify the EnableIPCThreadReclaim function when GetDefaultInvoker function return valid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim003, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    NiceMock<IPCSkeletonInterfaceMock> mock;
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    EXPECT_CALL(mock, GetDefaultInvoker()).WillRepeatedly(testing::Return(invoker));
+    EXPECT_CALL(*invoker, EnableIPCThreadReclaim(true)).WillRepeatedly(testing::Return(true));
+
+    auto result = skeleton.EnableIPCThreadReclaim(true);
+    EXPECT_TRUE(result);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
+}
+} // namespace OHOS
