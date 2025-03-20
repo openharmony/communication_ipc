@@ -121,6 +121,10 @@ ipc_unittest("IpcObjectStubTest") {
   sources = [ "ipc_object_stub_unittest.cpp" ]
 }
 
+ipc_unittest("IPCFileDescriptorTest") {
+  sources = [ "ipc_file_descriptor_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -129,6 +133,7 @@ group("unittest") {
     ":DBinderCallbackStubTest",
     ":DBinderSoftbusClientTest",
     ":DbinderDataBusInvokerTest",
+    ":IPCFileDescriptorTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IPCSkeletonTest",
