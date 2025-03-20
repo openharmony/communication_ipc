@@ -19,6 +19,7 @@
 #include "cj_common_ffi.h"
 #include "ffi_remote_data.h"
 #include "message_sequence_impl.h"
+#include "napi/native_api.h"
 
 extern "C" {
 FFI_EXPORT int64_t FfiRpcMessageSequenceImplCreate();
@@ -59,9 +60,9 @@ FFI_EXPORT void FfiRpcMessageSequenceImplWriteArrayBuffer(
     int64_t id, int32_t typeCode, void* value, size_t byteLength, int32_t* errCode);
 FFI_EXPORT bool FfiRpcMessageSequenceImplWriteUint32(int64_t id, uint32_t value);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteRawDataBuffer(int64_t id, uint8_t* data, int64_t size, int32_t* errCode);
-FFI_EXPORT void FfiRpcMessageSequenceImplWriteRemoteObject(int64_t id, RetDataI64 object, int32_t* errCode);
+FFI_EXPORT void FfiRpcMessageSequenceImplWriteRemoteObject(int64_t id, int64_t object, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteRemoteObjectArray(
-    int64_t id, OHOS::RemoteObjectArray value, int32_t* errCode);
+    int64_t id, OHOS::CJLongArray value, int32_t* errCode);
 
 FFI_EXPORT int8_t FfiRpcMessageSequenceImplReadByte(int64_t id, int32_t* errCode);
 FFI_EXPORT int16_t FfiRpcMessageSequenceImplReadShort(int64_t id, int32_t* errCode);
@@ -132,7 +133,7 @@ FFI_EXPORT uint32_t FfiRpcIPCSkeletonGetCallingTokenId();
 FFI_EXPORT char* FfiRpcIPCSkeletonGetCallingDeviceID();
 FFI_EXPORT char* FfiRpcIPCSkeletonGetLocalDeviceID();
 FFI_EXPORT bool FfiRpcIPCSkeletonIsLocalCalling();
-FFI_EXPORT void FfiRpcIPCSkeletonFlushCmdBuffer(RetDataI64 object);
+FFI_EXPORT void FfiRpcIPCSkeletonFlushCmdBuffer(int64_t object);
 
 FFI_EXPORT int32_t FfiRpcRemoteProxySendMessageRequest(
     int64_t id, uint32_t code, int64_t dataId, int64_t replyId, OHOS::MesOption opt, int64_t funcId);
@@ -140,6 +141,10 @@ FFI_EXPORT void FfiRpcRemoteProxyRegisterDeathRecipient(int64_t id, int64_t func
 FFI_EXPORT void FfiRpcRemoteProxyUnregisterDeathRecipient(int64_t id, int64_t funcId, int32_t flag, int32_t* errCode);
 FFI_EXPORT char* FfiRpcRemoteProxyGetDescriptor(int64_t id, int32_t* errCode);
 FFI_EXPORT bool FfiRpcRemoteProxyIsObjectDead(int64_t id);
+
+FFI_EXPORT int32_t FfiRpcGetRemoteType(int64_t id);
+FFI_EXPORT int64_t FfiCreateRemoteObjectFromNapi(napi_env env, napi_value object);
+FFI_EXPORT napi_value FfiConvertRemoteObject2Napi(napi_env env, int64_t object);
 }
 
 #endif
