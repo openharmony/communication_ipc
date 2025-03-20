@@ -109,7 +109,7 @@ int32_t RemoteProxyHolderImpl::SendMessageRequest(
     int32_t errCode =
         object_->SendRequest(code, *(data->GetMessageParcel().get()), *(reply->GetMessageParcel().get()), option);
     auto callback = CJLambda::Create(reinterpret_cast<void (*)(RequestResult)>(funcId));
-    if (!callback) {
+    if (callback) {
         ZLOGI(LOG_LABEL, "callback started");
         RequestResult result = RequestResult { .errCode = errCode, .code = code, .data = dataId, .reply = replyId };
         callback(result);
@@ -176,5 +176,19 @@ int32_t RemoteProxyHolderImpl::UnregisterDeathRecipient(int64_t funcId, int32_t 
     bool ret = list_->Remove(nativeRecipient);
     ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
     return 0;
+}
+
+bool RemoteProxyHolderImpl::IsProxyObject()
+{
+    if (object_ == nullptr) {
+        ZLOGE(LOG_LABEL, "object_ is nullptr");
+        return false;
+    }
+    return object_->IsProxyObject();
+}
+
+sptr<IRemoteObject> RemoteProxyHolderImpl::GetRemoteObject()
+{
+    return object_;
 }
 } // namespace OHOS

@@ -20,9 +20,10 @@
 #include "ffi_remote_data.h"
 #include "message_sequence_impl.h"
 #include "remote_object_holder_impl.h"
+#include "iremote_object_impl.h"
 
 namespace OHOS {
-class CjRemoteObjectImpl : public OHOS::FFI::FFIData {
+class CjRemoteObjectImpl : public CjIRemoteObjectImpl {
     DECL_TYPE(CjRemoteObjectImpl, OHOS::FFI::FFIData)
 public:
     explicit CjRemoteObjectImpl(RemoteObjectHolderImpl* holder);
@@ -31,14 +32,16 @@ public:
     int32_t ModifyLocalInterface(char* stringValue);
     int32_t SendMessageRequest(uint32_t code, int64_t dataId, int64_t replyId, MessageOption option, int64_t funcId);
     RemoteObjectHolderImpl* GetHolder();
+    bool IsProxyObject() override;
+    sptr<IRemoteObject> GetRemoteObject() override;
 
 private:
     RemoteObjectHolderImpl* holder_;
 };
 
-RetDataI64 CreateStubRemoteObject(const sptr<IRemoteObject> target);
-RetDataI64 CreateProxyRemoteObject(const sptr<IRemoteObject> target);
-RetDataI64 CJ_rpc_CreateRemoteObject(const sptr<IRemoteObject> target);
-sptr<IRemoteObject> CJ_rpc_getNativeRemoteObject(RetDataI64 object);
+int64_t CreateStubRemoteObject(const sptr<IRemoteObject> target);
+int64_t CreateProxyRemoteObject(const sptr<IRemoteObject> target);
+int64_t CJ_rpc_CreateRemoteObject(const sptr<IRemoteObject> target);
+sptr<IRemoteObject> CJ_rpc_getNativeRemoteObject(int64_t object);
 } // namespace OHOS
 #endif // REMOTE_OBJECT_IMPL_H
