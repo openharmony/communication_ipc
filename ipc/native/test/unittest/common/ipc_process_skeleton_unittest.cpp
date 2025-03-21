@@ -29,6 +29,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 constexpr int THREAD_NUM_2 = 2;
 constexpr uint32_t INDEX_1 = 1;
@@ -1975,3 +1976,4 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachDBinderCallbackStubTest, TestSize.Lev
     EXPECT_FALSE(ret);
 }
 #endif
+} // namespace OHOS

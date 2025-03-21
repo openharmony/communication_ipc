@@ -14,6 +14,8 @@
  */
 
 #include "ipc_process_skeleton.h"
+
+#include "doubly_linked_list.h"
 #include "ipc_skeleton.h"
 #include "ipc_skeleton_pri.h"
 #include "ipc_thread_pool.h"
@@ -24,7 +26,6 @@
 #include "rpc_process_skeleton.h"
 #include "rpc_types.h"
 #include "securec.h"
-#include "utils_list.h"
 
 static IpcSkeleton *g_ipcSkeleton = NULL;
 static pthread_mutex_t g_ipcSkeletonMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -68,7 +69,7 @@ static IpcSkeleton* IpcProcessSkeleton()
         return NULL;
     }
     SpawnNewThread(temp->threadPool, SPAWN_ACTIVE, IF_PROT_BINDER);
-    UtilsListInit(&temp->objects);
+    DLListInit(&temp->objects);
     pthread_mutex_init(&temp->lock, NULL);
     return temp;
 }
@@ -178,12 +179,12 @@ int32_t DeleteHandle(int32_t handle)
     DeathCallback *next = NULL;
     bool isValidHandle = false;
     int32_t ret = ERR_INVALID_PARAM;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
     {
         if (node->handle == handle) {
             isValidHandle = true;
             pthread_mutex_destroy(&node->lock);
-            UtilsListDelete(&node->list);
+            DLListDelete(&node->list);
             free(node);
             break;
         }
@@ -227,7 +228,7 @@ static bool FirstAddObject(int32_t handle)
     }
     DeathCallback *node = NULL;
     DeathCallback *next = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
     {
         if (node->handle == handle) {
             RPC_LOG_INFO("current handle already exist");
@@ -246,7 +247,7 @@ static bool FirstAddObject(int32_t handle)
     node->isRemoteDead = false;
     node->isNewHandler = true;
     pthread_mutex_init(&node->lock, NULL);
-    UtilsListAdd(&g_ipcSkeleton->objects, &node->list);
+    DLListAdd(&g_ipcSkeleton->objects, &node->list);
     pthread_mutex_unlock(&g_ipcSkeleton->lock);
     return true;
 }
@@ -297,7 +298,7 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
     DeathCallback *node = NULL;
     DeathCallback *next = NULL;
     bool firstDeathNode = false;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
     {
         if (node->handle != handle) {
             continue;
@@ -352,7 +353,7 @@ int32_t ProcessRemoveDeathRecipient(int32_t handle, uint32_t cbId)
     }
     DeathCallback *node = NULL;
     DeathCallback *next = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
     {
         if (node->handle != handle) {
             continue;
@@ -426,7 +427,7 @@ void WaitForProxyInit(SvcIdentity *svc)
 
 void DeleteDeathCallback(DeathCallback *deathCallback)
 {
-    UtilsListDelete(&deathCallback->list);
+    DLListDelete(&deathCallback->list);
     pthread_mutex_destroy(&deathCallback->lock);
     free(deathCallback);
 }
@@ -440,10 +441,10 @@ static void DeleteAllNode(void)
     (void)pthread_mutex_lock(&g_ipcSkeleton->lock);
     DeathCallback *node = NULL;
     DeathCallback *next = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, &g_ipcSkeleton->objects, DeathCallback, list)
     {
         pthread_mutex_destroy(&node->lock);
-        UtilsListDelete(&node->list);
+        DLListDelete(&node->list);
         free(node);
     }
     pthread_mutex_unlock(&g_ipcSkeleton->lock);

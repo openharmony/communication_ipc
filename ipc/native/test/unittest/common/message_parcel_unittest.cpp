@@ -28,6 +28,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 constexpr int INVALID_LEN = 9999;
 }
@@ -513,4 +514,4 @@ HWTEST_F(MessageParcelTest, WriteRawDataTest005, TestSize.Level1)
     auto ret = parcel.WriteRawData(data, 1);
     ASSERT_TRUE(!ret);
 }
-
+} // namespace OHOS

@@ -33,43 +33,43 @@
 #include "rpc_types.h"
 #include "securec.h"
 #include "serializer.h"
-#include "utils_list.h"
+#include "doubly_linked_list.h"
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     char *serviceName;
     uintptr_t binder;
 } RemoteBinderObjects;
 
 typedef struct {
-    UTILS_DL_LIST remoteBinderObjects;
+    DL_LIST remoteBinderObjects;
     pthread_mutex_t mutex;
 } RemoteBinderObjectsList;
 
 typedef struct {
-    UTILS_DL_LIST dBinderStubs;
+    DL_LIST dBinderStubs;
     pthread_mutex_t mutex;
 } DBinderStubRegistedList;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_mutex_t mutex;
     pthread_cond_t condition;
     uint32_t seqNumber;
 } ThreadLockInfo;
 
 typedef struct {
-    UTILS_DL_LIST threadLocks;
+    DL_LIST threadLocks;
     pthread_mutex_t mutex;
 } ThreadLockInfoList;
 
 typedef struct {
-    UTILS_DL_LIST sessionInfos;
+    DL_LIST sessionInfos;
     pthread_mutex_t mutex;
 } SessionInfoList;
 
 typedef struct {
-    UTILS_DL_LIST proxyObject;
+    DL_LIST proxyObject;
     pthread_mutex_t mutex;
 } ProxyObjectList;
 
@@ -93,12 +93,12 @@ static int g_listInit = 0;
 static int32_t InitDBinder(void)
 {
     if (g_listInit == 0) {
-        UtilsListInit(&g_binderList.remoteBinderObjects);
-        UtilsListInit(&g_stubRegistedList.dBinderStubs);
-        UtilsListInit(&g_threadLockInfoList.threadLocks);
-        UtilsListInit(&g_sessionInfoList.sessionInfos);
-        UtilsListInit(&g_proxyObjectList.proxyObject);
-        UtilsListInit(&g_sessionIdList.idList);
+        DLListInit(&g_binderList.remoteBinderObjects);
+        DLListInit(&g_stubRegistedList.dBinderStubs);
+        DLListInit(&g_threadLockInfoList.threadLocks);
+        DLListInit(&g_sessionInfoList.sessionInfos);
+        DLListInit(&g_proxyObjectList.proxyObject);
+        DLListInit(&g_sessionIdList.idList);
         g_listInit = 1;
     }
     return ERR_NONE;
@@ -108,7 +108,7 @@ static char *GetRegisterService(uintptr_t binderObject)
 {
     RemoteBinderObjects *node = NULL;
     pthread_mutex_lock(&g_binderList.mutex);
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_binderList.remoteBinderObjects, RemoteBinderObjects, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_binderList.remoteBinderObjects, RemoteBinderObjects, list)
     {
         if (node->binder == binderObject) {
             pthread_mutex_unlock(&g_binderList.mutex);
@@ -122,7 +122,7 @@ static char *GetRegisterService(uintptr_t binderObject)
 static void AddRegisterService(RemoteBinderObjects *binderObject)
 {
     pthread_mutex_lock(&g_binderList.mutex);
-    UtilsListAdd(&g_binderList.remoteBinderObjects, &binderObject->list);
+    DLListAdd(&g_binderList.remoteBinderObjects, &binderObject->list);
     pthread_mutex_unlock(&g_binderList.mutex);
 }
 
@@ -146,7 +146,7 @@ static DBinderServiceStub *QueryDBinderStub(const char *serviceName, const char 
 {
     pthread_mutex_lock(&g_stubRegistedList.mutex);
     DBinderServiceStub *node = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_stubRegistedList.dBinderStubs, DBinderServiceStub, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_stubRegistedList.dBinderStubs, DBinderServiceStub, list)
     {
         if (IsSameStub(node, serviceName, deviceID, binderObject)) {
             RPC_LOG_INFO("find dBinderStub in g_stubRegistedList");
@@ -161,7 +161,7 @@ static DBinderServiceStub *QueryDBinderStub(const char *serviceName, const char 
 static void AddDBinderStub(DBinderServiceStub *stub)
 {
     pthread_mutex_lock(&g_stubRegistedList.mutex);
-    UtilsListAdd(&g_stubRegistedList.dBinderStubs, &stub->list);
+    DLListAdd(&g_stubRegistedList.dBinderStubs, &stub->list);
     pthread_mutex_unlock(&g_stubRegistedList.mutex);
 }
 
@@ -272,7 +272,7 @@ static int32_t SendEntryToRemote(DBinderServiceStub *stub, const uint32_t seqNum
 static int32_t AttachThreadLockInfo(ThreadLockInfo *threadLockInfo)
 {
     pthread_mutex_lock(&g_threadLockInfoList.mutex);
-    UtilsListAdd(&g_threadLockInfoList.threadLocks, &threadLockInfo->list);
+    DLListAdd(&g_threadLockInfoList.threadLocks, &threadLockInfo->list);
     pthread_mutex_unlock(&g_threadLockInfoList.mutex);
     return ERR_NONE;
 }
@@ -280,7 +280,7 @@ static int32_t AttachThreadLockInfo(ThreadLockInfo *threadLockInfo)
 static void DetachThreadLockInfo(ThreadLockInfo *threadLockInfo)
 {
     pthread_mutex_lock(&g_threadLockInfoList.mutex);
-    UtilsListDelete(&threadLockInfo->list);
+    DLListDelete(&threadLockInfo->list);
     pthread_mutex_unlock(&g_threadLockInfoList.mutex);
 }
 
@@ -388,7 +388,7 @@ static uint32_t GetSeqNumber(void)
 static int32_t AttachSessionObject(SessionInfo *sessionInfo)
 {
     pthread_mutex_lock(&g_sessionInfoList.mutex);
-    UtilsListAdd(&g_sessionInfoList.sessionInfos, &sessionInfo->list);
+    DLListAdd(&g_sessionInfoList.sessionInfos, &sessionInfo->list);
     pthread_mutex_unlock(&g_sessionInfoList.mutex);
     return ERR_NONE;
 }
@@ -396,7 +396,7 @@ static int32_t AttachSessionObject(SessionInfo *sessionInfo)
 static void DetachSessionObject(SessionInfo *sessionInfo)
 {
     pthread_mutex_lock(&g_sessionInfoList.mutex);
-    UtilsListDelete(&sessionInfo->list);
+    DLListDelete(&sessionInfo->list);
     pthread_mutex_unlock(&g_sessionInfoList.mutex);
 }
 
@@ -404,7 +404,7 @@ SessionInfo *QuerySessionObject(uintptr_t stub)
 {
     SessionInfo *node = NULL;
     pthread_mutex_lock(&g_sessionInfoList.mutex);
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_sessionInfoList.sessionInfos, SessionInfo, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_sessionInfoList.sessionInfos, SessionInfo, list)
     {
         if (node->stub == stub) {
             pthread_mutex_unlock(&g_sessionInfoList.mutex);
@@ -422,7 +422,7 @@ static void DeleteDBinderStub(DBinderServiceStub *stub)
         return;
     }
     pthread_mutex_lock(&g_stubRegistedList.mutex);
-    UtilsListDelete(&stub->list);
+    DLListDelete(&stub->list);
     pthread_mutex_unlock(&g_stubRegistedList.mutex);
 }
 
@@ -430,7 +430,7 @@ static ProxyObject *QueryProxyObject(uintptr_t binderObject)
 {
     ProxyObject *node = NULL;
     pthread_mutex_lock(&g_proxyObjectList.mutex);
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_proxyObjectList.proxyObject, ProxyObject, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_proxyObjectList.proxyObject, ProxyObject, list)
     {
         if (node->binderObject == binderObject) {
             pthread_mutex_unlock(&g_proxyObjectList.mutex);
@@ -444,7 +444,7 @@ static ProxyObject *QueryProxyObject(uintptr_t binderObject)
 static int32_t AttachProxyObject(ProxyObject *proxy)
 {
     pthread_mutex_lock(&g_proxyObjectList.mutex);
-    UtilsListAdd(&g_proxyObjectList.proxyObject, &proxy->list);
+    DLListAdd(&g_proxyObjectList.proxyObject, &proxy->list);
     pthread_mutex_unlock(&g_proxyObjectList.mutex);
     return ERR_NONE;
 }
@@ -452,7 +452,7 @@ static int32_t AttachProxyObject(ProxyObject *proxy)
 static void DetachProxyObject(ProxyObject *proxy)
 {
     pthread_mutex_lock(&g_proxyObjectList.mutex);
-    UtilsListDelete(&proxy->list);
+    DLListDelete(&proxy->list);
     pthread_mutex_unlock(&g_proxyObjectList.mutex);
 }
 
@@ -625,7 +625,7 @@ static ThreadLockInfo *QueryThreadLockInfo(uint32_t seqNumber)
 {
     ThreadLockInfo *node = NULL;
     pthread_mutex_lock(&g_threadLockInfoList.mutex);
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_threadLockInfoList.threadLocks, ThreadLockInfo, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_threadLockInfoList.threadLocks, ThreadLockInfo, list)
     {
         if (node->seqNumber == seqNumber) {
             pthread_mutex_unlock(&g_threadLockInfoList.mutex);
@@ -652,7 +652,7 @@ static bool HasDBinderStub(uintptr_t binderObject)
 {
     DBinderServiceStub *node;
     pthread_mutex_lock(&g_stubRegistedList.mutex);
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &g_stubRegistedList.dBinderStubs, DBinderServiceStub, list)
+    DL_LIST_FOR_EACH_ENTRY(node, &g_stubRegistedList.dBinderStubs, DBinderServiceStub, list)
     {
         if (node->binderObject == binderObject) {
             pthread_mutex_unlock(&g_stubRegistedList.mutex);
@@ -823,7 +823,7 @@ int32_t MakeRemoteBinder(const void *serviceName, uint32_t nameLen, const char *
     } while (ret != ERR_NONE && (retryTimes < RETRY_TIMES));
 
     if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("fail to invoke service, service name = %s", serviceName);
+        RPC_LOG_ERROR("fail to invoke service, service name = %s", (char *)serviceName);
         SessionInfo *sessionObject = QuerySessionObject((uintptr_t)(dBinderServiceStub->svc.cookie));
         if (sessionObject != NULL) {
             DetachSessionObject(sessionObject);

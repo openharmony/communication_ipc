@@ -32,6 +32,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 
+namespace OHOS {
 static constexpr uint32_t ON_CALLBACK_REPLIED_INT = 1598311760;
 
 class IpcCApiRemoteObjectUnitTest : public testing::Test {
@@ -154,3 +155,4 @@ HWTEST_F(IpcCApiRemoteObjectUnitTest, DeathRecipient_Destroy_001, TestSize.Level
     OH_IPCDeathRecipient_Destroy(deathRecipient);
     EXPECT_EQ(GetCallbackReply(), ON_CALLBACK_REPLIED_INT);
 }
+} // namespace OHOS

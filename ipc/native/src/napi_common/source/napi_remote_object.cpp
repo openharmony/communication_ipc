@@ -22,6 +22,7 @@
 
 #include "ipc_debug.h"
 #include "ipc_process_skeleton.h"
+#include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
 #include "log_tags.h"
 #include "napi/native_api.h"
@@ -601,15 +602,15 @@ bool NapiScope::IsValid()
 
 NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef,
     const std::u16string &descriptor)
-    : IPCObjectStub(descriptor)
+    : IPCObjectStub(descriptor), jsThreadId_(jsThreadId)
 {
     desc_ = Str16ToStr8(descriptor_);
     ZLOGD(LOG_LABEL, "created, desc:%{public}s", desc_.c_str());
     env_ = env;
-    jsThreadId_ = jsThreadId;
     thisVarRef_ = jsObjectRef;
 
-    if (jsThreadId_ == std::this_thread::get_id()) {
+    if ((jsThreadId_ == std::this_thread::get_id()) &&
+        (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
         IncreaseJsObjectRef(env_, jsObjectRef);
     } else {
         std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
@@ -644,7 +645,8 @@ NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", desc_.c_str());
     if (thisVarRef_ != nullptr && env_ != nullptr) {
-        if (jsThreadId_ == std::this_thread::get_id()) {
+        if ((jsThreadId_ == std::this_thread::get_id()) &&
+            (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
             DecreaseJsObjectRef(env_, thisVarRef_);
         } else {
             OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
@@ -885,8 +887,14 @@ napi_value GetJsStubRemoteObjectByRef(napi_env env, const sptr<IRemoteObject> ta
 {
     NAPIRemoteObject *object = static_cast<NAPIRemoteObject *>(target.GetRefPtr());
     NAPI_ASSERT(env, object != nullptr, "get NAPIRemoteObject failed");
+    if (std::this_thread::get_id() != object->GetJSThreadId()) {
+        return CreateJsStubRemoteObject(env, target);
+    }
     napi_value jsRemoteObject = nullptr;
     napi_get_reference_value(env, object->GetJsObjectRef(), &jsRemoteObject);
+    if (jsRemoteObject == nullptr) {
+        ZLOGW(LOG_LABEL, "jsRemoteObject is nullptr")
+    }
     return jsRemoteObject;
 }
 
@@ -958,6 +966,7 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             return holder != nullptr ? holder->object_ : nullptr;
         }
     }
+    ZLOGW(LOG_LABEL, "napi object is nullptr");
     return nullptr;
 }
 
@@ -1036,6 +1045,7 @@ static napi_value NAPI_RemoteObject_getInterfaceDescriptor(napi_env env, napi_ca
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     sptr<IRemoteObject> nativeObject = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    NAPI_ASSERT(env, nativeObject != nullptr, "nativeObject is NULL.");
     std::u16string descriptor = nativeObject->GetObjectDescriptor();
     napi_create_string_utf8(env, Str16ToStr8(descriptor).c_str(), NAPI_AUTO_LENGTH, &result);
     return result;
@@ -1268,6 +1278,7 @@ static napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    NAPI_ASSERT(env, target != nullptr, "target is nullptr, failed to get native remote object");
     if (argc == argcCallback) {
         napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
         napi_valuetype valuetype = napi_undefined;
@@ -1352,6 +1363,7 @@ static napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callba
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    NAPI_ASSERT(env, target != nullptr, "target is nullptr, failed to get native remote object");
     if (argc == argcCallback) {
         napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
         napi_valuetype valuetype = napi_undefined;
