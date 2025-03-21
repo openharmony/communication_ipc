@@ -30,6 +30,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IPCObjectProxyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -1551,3 +1552,4 @@ HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest004, TestSize.Level1)
     ret = object.GetDBinderNegotiationData(handle, reply, dbinderData);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
+} // namespace OHOS

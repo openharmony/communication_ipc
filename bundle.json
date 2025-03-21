@@ -125,6 +125,13 @@
               }
             },
             {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/cj:cj_ipc_ffi",
+              "header": {
+                "header_files": [],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/cj/include"
+              }
+            },
+            {
               "name": "//foundation/communication/ipc/interfaces/kits/js/napi:rpc",
               "header": {
                 "header_files": [

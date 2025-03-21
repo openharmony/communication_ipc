@@ -111,15 +111,13 @@ extern "C" {
 HWTEST_F(MessageParcelTest, WriteDBinderProxyTest001, TestSize.Level1)
 {
     MessageParcel parcel;
-    uint32_t handle = HANDLE_TEST;
-    uint64_t stubIndex = STUBINDEX_TEST;
     MockIPCProcessSkeleton *instance = new MockIPCProcessSkeleton();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
 
     sptr<IRemoteObject> object = new IPCObjectStub();
     EXPECT_CALL(*instance, GetCurrent())
         .WillRepeatedly(testing::Return(nullptr));
-    auto ret = parcel.WriteDBinderProxy(object, handle, stubIndex);
+    auto ret = parcel.WriteDBinderProxy(object, HANDLE_TEST, STUBINDEX_TEST);
     EXPECT_EQ(ret, false);
     delete instance;
 }
@@ -132,23 +130,19 @@ HWTEST_F(MessageParcelTest, WriteDBinderProxyTest001, TestSize.Level1)
 HWTEST_F(MessageParcelTest, WriteDBinderProxyTest002, TestSize.Level1)
 {
     MessageParcel parcel;
-    uint32_t handle = HANDLE_TEST;
-    uint64_t stubIndex = STUBINDEX_TEST;
     MockIPCProcessSkeleton *instance = new MockIPCProcessSkeleton();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     sptr<IRemoteObject> object = new IPCObjectStub();
     auto dbinderSessionObject = std::make_shared<DBinderSessionObject>(NAME_TEST, DEVICE_TEST,
         NUMBER_TEST, nullptr, NUMBER_TEST);
-    current->proxyToSession_[handle] = dbinderSessionObject;
+    current->proxyToSession_[HANDLE_TEST] = dbinderSessionObject;
     sptr<DBinderCallbackStub> fakeStub = new DBinderCallbackStub(NAME_TEST, DEVICE_TEST, LOCAL_TEST, STUBINDEX_TEST,
-        handle, NUMBER_TEST);
-    EXPECT_CALL(*instance, QueryDBinderCallbackStub(object))
-        .WillRepeatedly(Return(nullptr));
-    EXPECT_CALL(*instance, AttachDBinderCallbackStub(object, fakeStub))
-        .WillRepeatedly(Return(false));
-    auto ret = parcel.WriteDBinderProxy(object, handle, stubIndex);
+        HANDLE_TEST, NUMBER_TEST);
+    EXPECT_CALL(*instance, QueryDBinderCallbackStub(object)).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(*instance, AttachDBinderCallbackStub(object, fakeStub)).WillRepeatedly(Return(false));
+    auto ret = parcel.WriteDBinderProxy(object, HANDLE_TEST, STUBINDEX_TEST);
     EXPECT_EQ(ret, false);
-    current->proxyToSession_.erase(handle);
+    current->proxyToSession_.erase(HANDLE_TEST);
     delete instance;
 }
 
@@ -181,7 +175,7 @@ HWTEST_F(MessageParcelTest, WriteRawDataTest002, TestSize.Level1)
 
 /**
  * @tc.name: WriteRawDataTest003
- * @tc.desc: Verify the MessageParcel::WriteRawData function return false
+ * @tc.desc: Verify the MessageParcel::WriteRawData function return true
  * @tc.type: FUNC
  */
 HWTEST_F(MessageParcelTest, WriteRawDataTest003, TestSize.Level1)
@@ -220,6 +214,20 @@ HWTEST_F(MessageParcelTest, WriteRawDataTest005, TestSize.Level1)
     NiceMock<MessageParcelInterfaceMock> mock;
     EXPECT_CALL(mock, WriteInt32).WillOnce(Return(false));
     auto ret = parcel.WriteRawData(data, sizeof(data));
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: WriteRawDataTest006
+ * @tc.desc: Verify the MessageParcel::WriteRawData function size is MessageParcel::MAX_RAWDATA_SIZE + NUMBER_TEST
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRawDataTest006, TestSize.Level1)
+{
+    MessageParcel parcel;
+    NiceMock<MessageParcelInterfaceMock> mock;
+    char data[NUMBER_TEST] = { 0 };
+    auto ret = parcel.WriteRawData(data, MessageParcel::MAX_RAWDATA_SIZE + NUMBER_TEST);
     EXPECT_EQ(ret, false);
 }
 

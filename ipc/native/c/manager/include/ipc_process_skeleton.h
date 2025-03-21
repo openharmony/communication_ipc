@@ -18,10 +18,10 @@
 
 #include <stdbool.h>
 
+#include "doubly_linked_list.h"
 #include "ipc_skeleton.h"
 #include "ipc_thread_pool.h"
 #include "rpc_types.h"
-#include "utils_list.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ typedef struct {
 } DeathHandler;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_mutex_t lock;
     DeathHandler handler[MAX_DEATH_CALLBACK_NUM];
     int32_t handle;
@@ -44,7 +44,7 @@ typedef struct {
 } DeathCallback;
 
 typedef struct {
-    UTILS_DL_LIST objects;
+    DL_LIST objects;
     pthread_mutex_t lock;
     ThreadPool *threadPool;
 } IpcSkeleton;

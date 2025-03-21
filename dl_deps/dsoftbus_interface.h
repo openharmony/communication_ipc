@@ -1217,6 +1217,7 @@ typedef struct {
     void (*OnQos)(int32_t socket, QoSEvent eventId, const QosTV *qos, uint32_t qosCount);
     void (*OnError)(int32_t socket, int32_t errCode);
     bool (*OnNegotiate)(int32_t socket, PeerSocketInfo info);
+    void (*OnBytesSent)(int32_t socket, uint32_t dataSeq, int32_t errCode);
 } ISocketListener;
 
 #ifdef __cplusplus
