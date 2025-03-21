@@ -125,6 +125,10 @@ ipc_unittest("IPCThreadSkeletonTest") {
   sources = [ "ipc_thread_skeleton_unittest.cpp" ]
 }
 
+ipc_unittest("DatabusSocketListenerUnitTest") {
+  sources = [ "databus_socket_listener_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -132,6 +136,7 @@ group("unittest") {
     ":BinderInvokerTest",
     ":DBinderCallbackStubTest",
     ":DBinderSoftbusClientTest",
+    ":DatabusSocketListenerUnitTest",
     ":DbinderDataBusInvokerTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
