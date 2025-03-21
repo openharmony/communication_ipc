@@ -29,7 +29,6 @@ void AddDeathRecipientFuzzTest(const uint8_t *data, size_t size)
     int32_t handle = parcel.ReadInt32();
     sptr<IRemoteObject> point = parcel.ReadRemoteObject();
     BinderInvoker invoker;
-    
     invoker.AddDeathRecipient(handle, reinterpret_cast<void*>(point.GetRefPtr()));
 }
 
@@ -232,29 +231,6 @@ void SetStatusFuzzTest(const uint8_t *data, size_t size)
     invoker.SetStatus(status);
 }
 
-void TranslateIRemoteObjectFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
-    int32_t cmd = parcel.ReadInt32();
-    size_t length = parcel.GetReadableBytes();
-    if (length == 0) {
-        return;
-    }
-    const char *bufData = reinterpret_cast<const char *>(parcel.ReadBuffer(length));
-    if (bufData == nullptr) {
-        return;
-    }
-    std::string testStubName_str(bufData, length);
-    std::u16string testStubName(testStubName_str.begin(), testStubName_str.end());
-    BinderInvoker binderInvoker;
-    sptr<IRemoteObject> testStub = new IPCObjectStub(testStubName);
-    binderInvoker.TranslateIRemoteObject(cmd, testStub);
-}
-
 void UnFlattenObjectFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -275,7 +251,6 @@ void WriteFileDescriptorFuzzTest(const uint8_t *data, size_t size)
     int32_t fd = parcel.ReadInt32();
     bool takeOwnership = parcel.ReadBool();
     BinderInvoker invoker;
-    
     invoker.WriteFileDescriptor(parcel, fd, takeOwnership);
 }
 } // namespace OHOS
@@ -300,7 +275,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::SetMaxWorkThreadFuzzTest(data, size);
     OHOS::SetRegistryObjectFuzzTest(data, size);
     OHOS::SetStatusFuzzTest(data, size);
-    OHOS::TranslateIRemoteObjectFuzzTest(data, size);
     OHOS::UnFlattenObjectFuzzTest(data, size);
     OHOS::WriteFileDescriptorFuzzTest(data, size);
     return 0;

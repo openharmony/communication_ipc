@@ -222,7 +222,6 @@ enum binder_driver_return_protocol {
     BR_TRANSACTION_SEC_CTX = _IOR('r', 2, struct binder_transaction_data_secctx),
     BR_TRANSACTION = _IOR('r', 2, struct binder_transaction_data),
     BR_REPLY = _IOR('r', 3, struct binder_transaction_data),
-    BR_ACQUIRE_RESULT = _IOR('r', 4, __s32),
     BR_DEAD_REPLY = _IO('r', 5),
     BR_TRANSACTION_COMPLETE = _IO('r', 6),
     BR_INCREFS = _IOR('r', 7, struct binder_ptr_cookie),
@@ -237,7 +236,6 @@ enum binder_driver_return_protocol {
     BR_CLEAR_DEATH_NOTIFICATION_DONE = _IOR('r', 16, binder_uintptr_t),
     BR_FAILED_REPLY = _IO('r', 17),
     BR_RELEASE_NODE = _IO('r', 18),
-    BR_TRANSLATION_COMPLETE = _IOR('r', 20, __u32),
 };
 enum binder_driver_command_protocol {
     BC_TRANSACTION = _IOW('c', 0, struct binder_transaction_data),

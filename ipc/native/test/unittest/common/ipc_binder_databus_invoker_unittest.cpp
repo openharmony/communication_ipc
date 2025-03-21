@@ -800,19 +800,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest002, TestSize.Level
 }
 
 /**
- * @tc.name: TranslateIRemoteObjectTest001
- * @tc.desc: TranslateIRemoteObject
- * @tc.type: FUNC
- */
-HWTEST_F(IPCDbinderDataBusInvokerTest, TranslateIRemoteObjectTest001, TestSize.Level1)
-{
-    DBinderDatabusInvoker testInvoker;
-    uint32_t cmd = 0;
-    int ret = testInvoker.TranslateIRemoteObject(cmd, nullptr);
-    EXPECT_EQ(ret, -IPC_INVOKER_TRANSLATE_ERR);
-}
-
-/**
  * @tc.name: OnRawDataAvailable001
  * @tc.desc: OnRawDataAvailable
  * @tc.type: FUNC
