@@ -29,6 +29,9 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
+const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
+const std::string STR_TEST = "<0671418004000000000023721104375808";
+const std::string IDENTITY_TEST = "testIdentity";
 static constexpr int EXECUTE_ONCE = 1;
 static constexpr int EXECUTE_TWICE = 2;
 static constexpr int32_t TEST_HANDLE = 1;
@@ -51,6 +54,9 @@ public:
     virtual uintptr_t ReadPointer() = 0;
     virtual bool CheckOffsets() = 0;
     virtual uint8_t *ReadBuffer(size_t length, bool isValidate) = 0;
+    virtual sptr<IRemoteObject> GetRegistryObject() = 0;
+    virtual bool IsValidObject(IRemoteObject *object, std::u16string &desc) = 0;
+    virtual int GetSptrRefCount() = 0;
 };
 class BinderInvokerInterfaceMock : public BinderInvokerInterface {
 public:
@@ -68,6 +74,9 @@ public:
     MOCK_METHOD0(ReadPointer, uintptr_t());
     MOCK_METHOD0(CheckOffsets, bool());
     MOCK_METHOD2(ReadBuffer, uint8_t *(size_t length, bool isValidate));
+    MOCK_METHOD0(GetRegistryObject, sptr<IRemoteObject>());
+    MOCK_METHOD2(IsValidObject, bool(IRemoteObject *object, std::u16string &desc));
+    MOCK_METHOD0(GetSptrRefCount, int());
 };
 static void *g_interface = nullptr;
 
@@ -89,47 +98,101 @@ static BinderInvokerInterface *GetBinderInvokerInterface()
 extern "C" {
     size_t Parcel::GetWritePosition()
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
         return GetBinderInvokerInterface()->GetWritePosition();
     }
     size_t Parcel::GetReadPosition()
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
         return GetBinderInvokerInterface()->GetReadPosition();
     }
     bool Parcel::WriteUint32(uint32_t value)
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
         return GetBinderInvokerInterface()->WriteUint32(value);
     }
     bool Parcel::WriteInt32(int32_t value)
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
         return GetBinderInvokerInterface()->WriteInt32(value);
     }
     bool Parcel::RewindWrite(size_t newPosition)
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
         return GetBinderInvokerInterface()->RewindWrite(newPosition);
     }
     bool Parcel::RewindRead(size_t newPosition)
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
         return GetBinderInvokerInterface()->RewindRead(newPosition);
     }
     bool Parcel::WritePointer(uintptr_t value)
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
         return GetBinderInvokerInterface()->WritePointer(value);
     }
     uintptr_t Parcel::ReadPointer()
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
         return GetBinderInvokerInterface()->ReadPointer();
     }
     const uint8_t *Parcel::ReadBuffer(size_t length, bool isValidate)
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
         return GetBinderInvokerInterface()->ReadBuffer(length, isValidate);
     }
     uint32_t Parcel::ReadUint32()
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
         return GetBinderInvokerInterface()->ReadUint32();
     }
     bool Parcel::CheckOffsets()
     {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
         return GetBinderInvokerInterface()->CheckOffsets();
+    }
+    sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetBinderInvokerInterface()->GetRegistryObject();
+    }
+    bool ProcessSkeleton::IsValidObject(IRemoteObject *object, std::u16string &desc)
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->IsValidObject(object, desc);
+    }
+    int RefBase::GetSptrRefCount()
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetBinderInvokerInterface()->GetSptrRefCount();
     }
 }
 
@@ -279,7 +342,7 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest002, TestSize.Level1) {
     EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
     EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
     EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
     bool ret = binderInvoker.ReleaseHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -334,6 +397,7 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest002, TestSize.Level1) {
     EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -355,6 +419,7 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest003, TestSize.Level1) {
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
     EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -413,6 +478,7 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest002, TestSize.Level1) {
     EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -434,6 +500,7 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest003, TestSize.Level1) {
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
     EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -548,6 +615,164 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnAcquireObjectTest002
+ * @tc.desc: Verify the OnAcquireObject function
+ * When the ReadPointer function returns 0 for the first time and 1 for the second time
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnAcquireObjectTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t cmd = TEST_HANDLE;
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return(0))
+        .WillOnce(testing::Return(1));
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
+}
+
+/**
+ * @tc.name: OnAcquireObjectTest003
+ * @tc.desc: Verify the OnAcquireObject function when current->validObjectRecord_ is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnAcquireObjectTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t cmd = TEST_HANDLE;
+
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    current->validObjectRecord_.clear();
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return(1))
+        .WillOnce(testing::Return(1));
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
+}
+
+/**
+ * @tc.name: OnAcquireObjectTest004
+ * @tc.desc: Verify the OnAcquireObject function when GetSptrRefCount function return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnAcquireObjectTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t cmd = TEST_HANDLE;
+
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    std::u16string str(DESCRIPTOR_TEST);
+    RefCounter refs;
+    IPCObjectStub object;
+    uintptr_t refsPointer = reinterpret_cast<uintptr_t>(&refs);
+    uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
+    current->AttachValidObject(&object, str);
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return(refsPointer))
+        .WillOnce(testing::Return(objectPointer));
+    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(0));
+
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
+    current->validObjectRecord_.clear();
+}
+
+/**
+ * @tc.name: OnAcquireObjectTest005
+ * @tc.desc: Verify the OnAcquireObject function WriteInt32 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnAcquireObjectTest005, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t cmd = TEST_HANDLE;
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    std::u16string str(DESCRIPTOR_TEST);
+    RefCounter refs;
+    IPCObjectStub object;
+    uintptr_t refsPointer = reinterpret_cast<uintptr_t>(&refs);
+    uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
+    current->AttachValidObject(&object, str);
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return(refsPointer))
+        .WillOnce(testing::Return(objectPointer));
+    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(false));
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
+    current->validObjectRecord_.clear();
+}
+
+/**
+ * @tc.name: OnAcquireObjectTest006 When WriteInt32 function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnAcquireObjectTest006, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t cmd = BR_ACQUIRE;
+
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    std::u16string str(DESCRIPTOR_TEST);
+    RefCounter refs;
+    IPCObjectStub object;
+    uintptr_t refsPointer = reinterpret_cast<uintptr_t>(&refs);
+    uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
+    current->AttachValidObject(&object, str);
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return(refsPointer))
+        .WillOnce(testing::Return(objectPointer));
+    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(true));
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
+    current->validObjectRecord_.clear();
+}
+
+/**
+ * @tc.name: OnAcquireObjectTest007
+ * @tc.desc: Verify the OnAcquireObject function When RewindWrite function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnAcquireObjectTest007, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t cmd = BR_ACQUIRE;
+
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+    std::u16string str(DESCRIPTOR_TEST);
+    RefCounter refs;
+    IPCObjectStub object;
+    uintptr_t refsPointer = reinterpret_cast<uintptr_t>(&refs);
+    uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
+    current->AttachValidObject(&object, str);
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return(refsPointer))
+        .WillOnce(testing::Return(objectPointer));
+    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillRepeatedly(testing::Return(false));
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
+    current->validObjectRecord_.clear();
+}
+
+/**
  * @tc.name: OnReleaseObjectTest001
  * @tc.desc: Verify the OnReleaseObject function
  * When the ReadPointer function returns 0 for the first time and 1 for the second time
@@ -606,7 +831,7 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest001, TestSize.Level1)
 HWTEST_F(BinderInvokerTest, SetCallingIdentityTest002, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    std::string identity = "testIdentity";
+    std::string identity = IDENTITY_TEST;
     bool flag = true;
     bool result = binderInvoker.SetCallingIdentity(identity, flag);
     EXPECT_FALSE(result);
@@ -693,7 +918,7 @@ HWTEST_F(BinderInvokerTest, IsSendRequestingTest002, TestSize.Level1)
 HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    std::string str = "<0671418004000000000023721104375808";
+    std::string str = STR_TEST;
     size_t offset = str.length();
     size_t length = 1;
     uint64_t value = 0;
@@ -727,7 +952,7 @@ HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest002, TestSize.Level1)
 HWTEST_F(BinderInvokerTest, GetCallerRealPidByStrTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    std::string str = "<0671418004000000000023721104375808";
+    std::string str = STR_TEST;
     size_t offset = str.length();
     size_t length = 1;
     pid_t callerRealPid = 0;
@@ -760,7 +985,7 @@ HWTEST_F(BinderInvokerTest, GetCallerRealPidByStrTest002, TestSize.Level1)
 HWTEST_F(BinderInvokerTest, GetCallerPidAndUidByStrTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    std::string str = "<0671418004000000000023721104375808";
+    std::string str = STR_TEST;
     size_t offset = str.length() + 1;
     pid_t pid = 0;
     pid_t uid = 0;
@@ -783,5 +1008,147 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
 
     sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
     EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetSAMgrObjectTest001
+ * @tc.desc: Verify the GetSAMgrObject function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetSAMgrObjectTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    auto ret = binderInvoker.GetSAMgrObject();
+    EXPECT_EQ(ret, nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: GetSAMgrObjectTest002
+ * @tc.desc: Verify the GetSAMgrObject function when GetRegistryObject function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetSAMgrObjectTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetRegistryObject).WillOnce(testing::Return(nullptr));
+
+    auto ret = binderInvoker.GetSAMgrObject();
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetSAMgrObjectTest003
+ * @tc.desc: Verify the GetSAMgrObject function when GetRegistryObject function return valid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetSAMgrObjectTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testStub = new IPCObjectStub(DESCRIPTOR_TEST);
+
+    EXPECT_CALL(mock, GetRegistryObject).WillOnce(testing::Return(testStub));
+
+    auto ret = binderInvoker.GetSAMgrObject();
+    EXPECT_EQ(ret, testStub);
+}
+
+/**
+ * @tc.name: WriteTransactionTest001
+ * @tc.desc: Verify the WriteTransaction function when WriteInt32 function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, WriteTransactionTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    int cmd = 1;
+    uint32_t flags = 0;
+    int32_t handle = TEST_HANDLE;
+    uint32_t code = 456;
+    const int32_t* status = nullptr;
+    size_t totalDBinderBufSize = 1024;
+    MessageParcel data;
+    data.SetDataSize(100);
+    data.objectCursor_ = 10;
+
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(true));
+
+    bool result = binderInvoker.WriteTransaction(cmd, flags, handle, code, data, status, totalDBinderBufSize);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: WriteTransactionTest002
+ * @tc.desc: Verify the WriteTransaction function when WriteInt32 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, WriteTransactionTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    int cmd = 1;
+    uint32_t flags = 0;
+    int32_t handle = TEST_HANDLE;
+    uint32_t code = 456;
+    const int32_t* status = nullptr;
+    size_t totalDBinderBufSize = 1024;
+    MessageParcel data;
+    data.SetDataSize(100);
+    data.objectCursor_ = 10;
+
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(false));
+
+    bool result = binderInvoker.WriteTransaction(cmd, flags, handle, code, data, status, totalDBinderBufSize);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SamgrServiceSendRequestTest001
+ * @tc.desc: Verify the SamgrServiceSendRequest function when GetRegistryObject function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SamgrServiceSendRequestTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binder_transaction_data tr;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetRegistryObject).WillRepeatedly(testing::Return(nullptr));
+
+    int32_t result = binderInvoker.SamgrServiceSendRequest(tr, data, reply, option);
+    EXPECT_EQ(result, ERR_DEAD_OBJECT);
+}
+
+/**
+ * @tc.name: SamgrServiceSendRequestTest002
+ * @tc.desc: Verify the SamgrServiceSendRequest function when GetRegistryObject function return not nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SamgrServiceSendRequestTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binder_transaction_data tr;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testStub = new IPCObjectStub(DESCRIPTOR_TEST);
+
+    EXPECT_CALL(mock, GetRegistryObject).WillRepeatedly(testing::Return(testStub));
+
+    int32_t result = binderInvoker.SamgrServiceSendRequest(tr, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_UNKNOW_TRANS_ERR);
 }
 } // namespace OHOS
