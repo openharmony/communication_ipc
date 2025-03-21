@@ -17,7 +17,6 @@
 #include <cinttypes>
 #include <fcntl.h>
 #include <iostream>
-#include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
 #include <sys/ioctl.h>
@@ -34,6 +33,7 @@
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "fd_san.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -255,6 +255,7 @@ int TestServiceProxy::TestDumpService()
         ZLOGE(LABEL, "Call to open system function failed.");
         return -1;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
     ZLOGI(LABEL, "Start Dump Service");
     std::vector<std::u16string> args;
     args.push_back(u"DumpTest");
@@ -262,7 +263,7 @@ int TestServiceProxy::TestDumpService()
     if (ret != 0) {
         return -1;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, IPC_FD_TAG);
     return ret;
 }
 
@@ -432,33 +433,41 @@ constexpr char TOKENID_DEVNODE[] = "/dev/access_token_id";
 
 int RpcSetSelfTokenID(uint64_t tokenID)
 {
-    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    FILE *fp = fopen(TOKENID_DEVNODE, "r+");
+    if (fp == nullptr) {
+        return ACCESS_TOKEN_ERROR;
+    }
+    int fd = fileno(fp);
     if (fd < 0) {
+        (void)fclose(fp);
         return ACCESS_TOKEN_ERROR;
     }
     int ret = ioctl(fd, ACCESS_TOKENID_SET_TOKENID, &tokenID);
-    if (ret) {
-        close(fd);
+    if (ret != 0) {
+        (void)fclose(fp);
         return ACCESS_TOKEN_ERROR;
     }
-
-    close(fd);
+    (void)fclose(fp);
     return ACCESS_TOKEN_OK;
 }
 
 int RpcSetFirstCallerTokenID(uint64_t tokenID)
 {
-    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    FILE *fp = fopen(TOKENID_DEVNODE, "r+");
+    if (fp == nullptr) {
+        return ACCESS_TOKEN_ERROR;
+    }
+    int fd = fileno(fp);
     if (fd < 0) {
+        (void)fclose(fp);
         return ACCESS_TOKEN_ERROR;
     }
     int ret = ioctl(fd, ACCESS_TOKENID_SET_FTOKENID, &tokenID);
-    if (ret) {
-        close(fd);
+    if (ret != 0) {
+        (void)fclose(fp);
         return ACCESS_TOKEN_ERROR;
     }
-
-    close(fd);
+    (void)fclose(fp);
     return ACCESS_TOKEN_OK;
 }
 
