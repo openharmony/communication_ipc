@@ -32,10 +32,19 @@ using namespace OHOS;
 const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
 const std::string STR_TEST = "<0671418004000000000023721104375808";
 const std::string IDENTITY_TEST = "testIdentity";
+const std::string CALLER_SID_TEST = "test_caller_id";
+const std::string SID_TEST = "test_id";
 static constexpr int EXECUTE_ONCE = 1;
 static constexpr int EXECUTE_TWICE = 2;
 static constexpr int32_t TEST_HANDLE = 1;
 static constexpr int32_t TEST_HANDLE_INVALID = 0;
+static constexpr uint64_t TOKEN_ID_TEST = 1;
+static constexpr uint64_t TOKEN_ID_INVALID_TEST = 0;
+static constexpr uint64_t FIRST_TOKEN_ID_TEST = 1;
+static constexpr pid_t PID_TEST_INVALID = 0;
+static constexpr pid_t PID_TEST = 1;
+static constexpr pid_t UID_INVALID_TEST = 0;
+static constexpr pid_t UID_TEST = 1;
 
 namespace OHOS {
 class BinderInvokerInterface {
@@ -1205,5 +1214,334 @@ HWTEST_F(BinderInvokerTest, SamgrServiceSendRequestTest002, TestSize.Level1)
 
     int32_t result = binderInvoker.SamgrServiceSendRequest(tr, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: FreeBufferTest001
+ * @tc.desc: Verify the FreeBuffer function when WriteUint32 function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, FreeBufferTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    void* data = nullptr;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(false));
+
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.FreeBuffer(data));
+}
+
+/**
+ * @tc.name: FreeBufferTest002
+ * @tc.desc: Verify the FreeBuffer function when RewindWrite function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, FreeBufferTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    void* data = nullptr;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.FreeBuffer(data));
+}
+
+/**
+ * @tc.name: FreeBufferTest003
+ * @tc.desc: Verify the FreeBuffer function when RewindWrite function return true and binderConnector_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, FreeBufferTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.binderConnector_ = nullptr;
+    void *data = nullptr;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.FreeBuffer(data));
+}
+
+/**
+ * @tc.name: GetCallerPidTest001
+ * @tc.desc: Verify the FreeBuffer function when callerPid_ is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerPidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerPid_ = PID_TEST;
+    binderInvoker.status_ = true;
+    EXPECT_EQ(binderInvoker.GetCallerPid(), PID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerPidTest002
+ * @tc.desc: Verify the FreeBuffer function when status_ is true and invokerInfo_.pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerPidTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerPid_ = PID_TEST;
+    binderInvoker.status_ = true;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetCallerPid(), PID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerPidTest003
+ * @tc.desc: Verify the FreeBuffer function when status_ is false and invokerInfo_.pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerPidTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerPid_ = PID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetCallerPid(), PID_TEST_INVALID);
+}
+
+/**
+ * @tc.name: GetCallerSidTest001
+ * @tc.desc: Verify the GetCallerSid function when callerPid_ is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerSidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerSid_ = CALLER_SID_TEST;
+    EXPECT_EQ(binderInvoker.GetCallerSid(), CALLER_SID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerSidTest002
+ * @tc.desc: Verify the GetCallerSid function when status_ is true and invokerInfo_.pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerSidTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerSid_ = CALLER_SID_TEST;
+    binderInvoker.status_ = true;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.sid = SID_TEST;
+    EXPECT_EQ(binderInvoker.GetCallerSid(), CALLER_SID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerSidTest003
+ * @tc.desc: Verify the GetCallerSid function when status_ is false and invokerInfo_.sid is SID_TEST
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerSidTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerSid_ = CALLER_SID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.sid = SID_TEST;
+    EXPECT_EQ(binderInvoker.GetCallerSid(), SID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerRealPidTest001
+ * @tc.desc: Verify the GetCallerRealPid function when callerRealPid_ is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerRealPidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerRealPid_ = PID_TEST;
+    binderInvoker.status_ = true;
+    EXPECT_EQ(binderInvoker.GetCallerRealPid(), PID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerRealPidTest002
+ * @tc.desc: Verify the GetCallerRealPid function when status_ is true and invokerInfo_.pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerRealPidTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerRealPid_ = PID_TEST;
+    binderInvoker.status_ = true;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.realPid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetCallerRealPid(), PID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerRealPidTest003
+ * @tc.desc: Verify the GetCallerRealPid function when status_ is false and invokerInfo_.realPid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerRealPidTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerRealPid_ = PID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.realPid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetCallerRealPid(), PID_TEST_INVALID);
+}
+
+/**
+ * @tc.name: GetCallerUidTest001
+ * @tc.desc: Verify the GetCallerUid function when callerUid_ is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUidTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_TEST;
+    binderInvoker.status_ = true;
+    EXPECT_EQ(binderInvoker.GetCallerUid(), UID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerUidTest002
+ * @tc.desc: Verify the GetCallerUid function when status_ is true and invokerInfo_.pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUidTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_TEST;
+    binderInvoker.status_ = true;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.uid = UID_INVALID_TEST;
+    EXPECT_EQ(binderInvoker.GetCallerUid(), UID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerUidTest003
+ * @tc.desc: Verify the GetCallerRealPid function when status_ is false and invokerInfo_.pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUidTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.uid = UID_INVALID_TEST;
+    EXPECT_EQ(binderInvoker.GetCallerUid(), UID_INVALID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerTokenIDTest001
+ * @tc.desc: Verify the GetCallerTokenID function when callerUid_ is 1 and callerTokenID_ is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerTokenIDTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_TEST;
+    binderInvoker.callerTokenID_ = TOKEN_ID_INVALID_TEST;
+    binderInvoker.status_ = true;
+    EXPECT_EQ(binderInvoker.GetCallerTokenID(), UID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerTokenIDTest002
+ * @tc.desc: Verify the GetCallerTokenID function when callerUid_ is 0 and callerTokenID_ is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerTokenIDTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_INVALID_TEST;
+    binderInvoker.callerTokenID_ = TOKEN_ID_TEST;
+    binderInvoker.status_ = true;
+    EXPECT_EQ(binderInvoker.GetCallerTokenID(), TOKEN_ID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerTokenIDTest003
+ * @tc.desc: Verify the GetCallerTokenID function when status_ is false and tokenId is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerTokenIDTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_INVALID_TEST;
+    binderInvoker.callerTokenID_ = TOKEN_ID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.uid = UID_TEST;
+    binderInvoker.invokerInfo_.tokenId = TOKEN_ID_INVALID_TEST;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetCallerTokenID(), TOKEN_ID_TEST);
+}
+
+/**
+ * @tc.name: GetCallerTokenIDTest004
+ * @tc.desc: Verify the GetCallerTokenID function when status_ is false and tokenId is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerTokenIDTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.callerUid_ = UID_INVALID_TEST;
+    binderInvoker.callerTokenID_ = TOKEN_ID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.uid = UID_TEST;
+    binderInvoker.invokerInfo_.tokenId = TOKEN_ID_TEST;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetCallerTokenID(), TOKEN_ID_TEST);
+}
+
+/**
+ * @tc.name: GetFirstCallerTokenIDTest001
+ * @tc.desc: Verify the GetFirstCallerTokenID function when firstTokenID_ is 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetFirstCallerTokenIDTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.firstTokenID_ = TOKEN_ID_TEST;
+    binderInvoker.status_ = true;
+    EXPECT_EQ(binderInvoker.GetFirstCallerTokenID(), TOKEN_ID_TEST);
+}
+
+/**
+ * @tc.name: GetFirstCallerTokenIDTest002
+ * @tc.desc: Verify the GetFirstCallerTokenID function when status_ is false and pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetFirstCallerTokenIDTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.firstTokenID_ = TOKEN_ID_TEST;
+    binderInvoker.status_ = false;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    binderInvoker.invokerInfo_.firstTokenId = FIRST_TOKEN_ID_TEST;
+    EXPECT_EQ(binderInvoker.GetFirstCallerTokenID(), FIRST_TOKEN_ID_TEST);
+}
+
+/**
+ * @tc.name: GetFirstCallerTokenIDTest003
+ * @tc.desc: Verify the GetFirstCallerTokenID function when status_ is true and pid is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetFirstCallerTokenIDTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.firstTokenID_ = TOKEN_ID_TEST;
+    binderInvoker.status_ = true;
+    binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
+    EXPECT_EQ(binderInvoker.GetFirstCallerTokenID(), TOKEN_ID_TEST);
 }
 } // namespace OHOS
