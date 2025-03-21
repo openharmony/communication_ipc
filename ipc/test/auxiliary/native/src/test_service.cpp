@@ -17,7 +17,6 @@
 
 #include <fcntl.h>
 #include <iostream>
-#include <unistd.h>
 
 #include "ipc_skeleton.h"
 #include "ipc_debug.h"
@@ -26,6 +25,7 @@
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "fd_san.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -75,7 +75,7 @@ TestService::TestService(bool serialInvokeFlag) : TestServiceStub(serialInvokeFl
 TestService::~TestService()
 {
     if (testFd_ != INVALID_FD) {
-        close(testFd_);
+        fdsan_close_with_tag(testFd_, IPC_FD_TAG);
     }
 }
 
@@ -129,7 +129,7 @@ sptr<IFoo> TestService::TestGetFooService()
 int TestService::TestGetFileDescriptor()
 {
     if (testFd_ != INVALID_FD) {
-        close(testFd_);
+        fdsan_close_with_tag(testFd_, IPC_FD_TAG);
     }
 
     testFd_ = open("/data/test.txt",
@@ -138,11 +138,12 @@ int TestService::TestGetFileDescriptor()
         ZLOGE(LABEL, "Open failed.");
         return !INVALID_FD;
     }
+    fdsan_exchange_owner_tag(testFd_, 0, IPC_FD_TAG);
 
     ssize_t writeLen = write(testFd_, "Sever write!\n", strlen("Sever write!\n"));
     if (writeLen < 0) {
         ZLOGE(LABEL, "Server write file failed.");
-        close(testFd_);
+        fdsan_close_with_tag(testFd_, IPC_FD_TAG);
         return INVALID_FD;
     } else {
         ZLOGI(LABEL, "Server write file success.");

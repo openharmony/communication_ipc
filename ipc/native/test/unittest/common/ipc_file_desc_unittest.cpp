@@ -14,7 +14,6 @@
  */
 
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <gtest/gtest.h>
@@ -26,6 +25,7 @@
 #include "log_tags.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
+#include "fd_san.h"
 #undef private
 
 namespace OHOS {
@@ -61,6 +61,7 @@ HWTEST_F(IPCFileDescOpsTest, fd_parcelable_001, TestSize.Level1)
         ZLOGD(LABEL, "%s(%d):open failed.", __func__, __LINE__);
     }
     ASSERT_TRUE(testFdNum >= 0);
+    fdsan_exchange_owner_tag(testFdNum, 0, IPC_FD_TAG);
 
     Parcel parcel(nullptr);
     sptr<IPCFileDescriptor> wdesc = new IPCFileDescriptor(testFdNum);
@@ -72,7 +73,7 @@ HWTEST_F(IPCFileDescOpsTest, fd_parcelable_001, TestSize.Level1)
     sptr<IPCFileDescriptor> rdesc = parcel.ReadObject<IPCFileDescriptor>();
     ASSERT_TRUE(rdesc != nullptr);
     EXPECT_EQ(testFdNum, rdesc->GetFd());
-    close(testFdNum);
+    fdsan_close_with_tag(testFdNum, IPC_FD_TAG);
 }
 
 HWTEST_F(IPCFileDescOpsTest, fd_parcelable_002, TestSize.Level1)

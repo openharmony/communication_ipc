@@ -17,7 +17,6 @@
 #include <cinttypes>
 #include <fcntl.h>
 #include <iostream>
-#include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
 #include <sys/ioctl.h>
@@ -34,6 +33,7 @@
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "fd_san.h"
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -122,8 +122,9 @@ int32_t TestServiceStub::ServerGetFooService(MessageParcel &data, MessageParcel 
 int32_t TestServiceStub::ServerTransactFileDesc(MessageParcel &data, MessageParcel &reply)
 {
     int desc = TestGetFileDescriptor();
+    fdsan_exchange_owner_tag(desc, 0, IPC_FD_TAG);
     reply.WriteFileDescriptor(desc);
-    close(desc);
+    fdsan_close_with_tag(desc, IPC_FD_TAG);
     return 0;
 }
 
