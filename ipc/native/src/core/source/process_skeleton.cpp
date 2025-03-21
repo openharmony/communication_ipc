@@ -158,7 +158,7 @@ sptr<IRemoteObject> ProcessSkeleton::QueryObject(const std::u16string &descripto
         return result;
     }
     result = remoteObject;
-    result->CheckAttemptAcquireSet(this);
+    result->CheckIsAttemptAcquireSet(this);
     
     return result;
 }
