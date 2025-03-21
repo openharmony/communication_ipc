@@ -459,60 +459,6 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest004, TestSize.Level1) {
 }
 
 /**
- * @tc.name: TranslateIRemoteObjectTest001
- * @tc.desc: Verify the TranslateIRemoteObject function When binderInvoker.binderConnector_ is nullptr
- * @tc.type: FUNC
- */
-#ifndef CONFIG_IPC_SINGLE
-HWTEST_F(BinderInvokerTest, TranslateIRemoteObjectTest001, TestSize.Level1) {
-    BinderInvoker binderInvoker;
-    int32_t cmd = TEST_HANDLE;
-    const sptr<IRemoteObject> obj;
-    binderInvoker.binderConnector_ = nullptr;
-    int ret = binderInvoker.TranslateIRemoteObject(cmd, obj);
-    EXPECT_EQ(ret, -IPC_INVOKER_CONNECT_ERR);
-}
-#endif
-
-/**
- * @tc.name: TranslateIRemoteObjectTest002
- * @tc.desc: Verify the TranslateIRemoteObject function When WritePointer function return false
- * @tc.type: FUNC
- */
-#ifndef CONFIG_IPC_SINGLE
-HWTEST_F(BinderInvokerTest, TranslateIRemoteObjectTest002, TestSize.Level1) {
-    BinderInvoker binderInvoker;
-    NiceMock<BinderInvokerInterfaceMock> mock;
-    int32_t cmd = TEST_HANDLE;
-    const sptr<IRemoteObject> obj;
-
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    int ret = binderInvoker.TranslateIRemoteObject(cmd, obj);
-    EXPECT_EQ(ret, -IPC_INVOKER_TRANSLATE_ERR);
-}
-#endif
-
-/**
- * @tc.name: TranslateIRemoteObjectTest003
- * @tc.desc: Verify the TranslateIRemoteObject function When WritePointer function return true
- * @tc.type: FUNC
- */
-#ifndef CONFIG_IPC_SINGLE
-HWTEST_F(BinderInvokerTest, TranslateIRemoteObjectTest003, TestSize.Level1) {
-    BinderInvoker binderInvoker;
-    NiceMock<BinderInvokerInterfaceMock> mock;
-    int32_t cmd = TEST_HANDLE;
-    const sptr<IRemoteObject> obj;
-
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(true));
-    int ret = binderInvoker.TranslateIRemoteObject(cmd, obj);
-    EXPECT_EQ(ret, -IPC_INVOKER_TRANSLATE_ERR);
-}
-#endif
-
-/**
  * @tc.name: GetDBinderCallingPidUidTest001
  * @tc.desc: Verify the GetDBinderCallingPidUid function When pid is -1 and uid is 0
  * @tc.type: FUNC

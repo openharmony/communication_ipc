@@ -189,37 +189,6 @@ namespace OHOS {
         delete invoker;
     }
 
-#ifndef CONFIG_IPC_SINGLE
-    void TranslateIRemoteObjectTest001()
-    {
-        BinderInvoker *invoker = new BinderInvoker();
-        if (invoker == nullptr) {
-            return;
-        }
-        int32_t cmd;
-        GenerateInt32(cmd);
-        sptr<IRemoteObject> obj = nullptr;
-        invoker->TranslateIRemoteObject(cmd, obj);
-        delete invoker;
-    }
-
-    void TranslateIRemoteObjectTest002()
-    {
-        BinderInvoker *invoker = new BinderInvoker();
-        if (invoker == nullptr) {
-            return;
-        }
-        int32_t cmd;
-        int handle;
-        int proto;
-        GenerateInt32(cmd);
-        GenerateInt32(handle);
-        GenerateInt32(proto);
-        sptr<IRemoteObject> obj = new IPCObjectProxy(handle, u"", proto);
-        invoker->TranslateIRemoteObject(cmd, obj);
-        delete invoker;
-    }
-#endif
     void FuzzTestInner1(const uint8_t* data, size_t size)
     {
         DataGenerator::Write(data, size);
@@ -233,10 +202,6 @@ namespace OHOS {
         SetRegistryObjectTest001();
         SetRegistryObjectTest002();
         SetRegistryObjectTest003();
-#ifndef CONFIG_IPC_SINGLE
-        TranslateIRemoteObjectTest001();
-        TranslateIRemoteObjectTest002();
-#endif
         DataGenerator::Clear();
     }
 }

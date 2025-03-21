@@ -1021,11 +1021,6 @@ bool DBinderDatabusInvoker::EnableIPCThreadReclaim(bool enable)
     return false;
 }
 
-int DBinderDatabusInvoker::TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj)
-{
-    return -IPC_INVOKER_TRANSLATE_ERR;
-}
-
 uint32_t DBinderDatabusInvoker::HasRawDataPackage(const char *data, ssize_t len)
 {
     const dbinder_transaction_data *tr = reinterpret_cast<const dbinder_transaction_data *>(data);
