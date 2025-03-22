@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import hilog from '@ohos.hilog';
+
 export namespace rpc {
     // loadLibrary("rpc_ani");
     export class MessageSequence {
@@ -25,9 +27,10 @@ export namespace rpc {
     }
 
     export class MessageOption {
-        static { loadLibrary("rpc_ani") }
+        // static { loadLibrary("rpc_ani") }
+
         constructor(asyncFlag: boolean) {
-            console.log("[ETS] Enter MessageOption.constructor(asyncFlag)");
+            hilog.info(0x0000, '', '[ETS] Enter MessageOption.constructor(asyncFlag)');
             if (asyncFlag === true) {
                 this.init(1, 0);
             }
@@ -37,7 +40,7 @@ export namespace rpc {
         }
 
         constructor(syncFlags?: number, waitTime?: number) {
-            console.log("[ETS] Enter MessageOption.constructor(syncFlags, waitTime)");
+            hilog.info(0x0000, '', '[ETS] Enter MessageOption.constructor(syncFlags, waitTime)');
             if (syncFlags != undefined && waitTime != undefined) {
                 this.init(syncFlags, waitTime);
             }
@@ -69,6 +72,7 @@ export namespace rpc {
 
     export class RemoteObject extends IRemoteObject {
         static { loadLibrary("rpc_ani") }
+
         native constructor(descriptor: string);
 
         native getDescriptor(): string;
@@ -83,7 +87,7 @@ export namespace rpc {
             reply: rpc.MessageSequence,
             options: rpc.MessageOption
         ): boolean | Promise<boolean> {
-            console.log("[ETS] Enter RemoteObject.onRemoteMessageRequest(" + code + ", " + data.readString() + ")");
+            hilog.info(0x0000, '', '[ETS] Enter RemoteObject.onRemoteMessageRequest(' + code + ", " + data.readString() + ')');
             return true;
         }
 

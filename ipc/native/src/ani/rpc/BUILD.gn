@@ -29,6 +29,7 @@ ohos_shared_library("rpc_ani") {
   sources = [ "src/rpc_ani.cpp" ]
   include_dirs = [
     "include",
+    "../../../../../utils/include",
     "../../../../../interfaces/innerkits/ipc_core/include",
   ]
   public_configs = [ ":ani_rpc_public_config" ]
@@ -36,6 +37,7 @@ ohos_shared_library("rpc_ani") {
   deps = [ "../../../../../interfaces/innerkits/ipc_core:ipc_core" ]
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "runtime_core:ani",
   ]
   subsystem_name = "communication"
