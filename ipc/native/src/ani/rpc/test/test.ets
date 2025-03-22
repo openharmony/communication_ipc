@@ -62,7 +62,6 @@ export class MyService extends rpc.RemoteObject {
 
     executeFunc() : int {
         console.log("[TEST] enter executeFunc");
-        waitSecond(1)
         return 0;
     }
 
@@ -82,9 +81,6 @@ export class MyService extends rpc.RemoteObject {
     }
 }
 
-export native function testSendRequest(remoteObj: rpc.RemoteObject, code: number, message: string): void;
-export native function waitSecond(waitTime: number): void;
-
 function main() {
     console.println("[TEST] ----------------------------------------------------");
     let messageOptionObj = new rpc.MessageOption(true);
@@ -100,13 +96,5 @@ function main() {
     let myService: rpc.RemoteObject = new MyService("myservice");
     console.println("[TEST] ----------------------------------------------------");
     console.println("[TEST] myService.getDescriptor(): " + '[' + myService.getDescriptor() + ']')
-    console.println("[TEST] ----------------------------------------------------");
-    let msg: string = "hello world 2025 once";
-    console.println("[TEST] Sending (" + msg + " to " + myService + ")");
-    testSendRequest(myService, 1, msg);
-    console.println("[TEST] ----------------------------------------------------");
-    msg = "hello world 2025 twice";
-    console.println("[TEST] Sending (" + msg + " to " + myService + ")");
-    testSendRequest(myService, 2, msg);
     console.println("[TEST] ----------------------------------------------------");
 }
