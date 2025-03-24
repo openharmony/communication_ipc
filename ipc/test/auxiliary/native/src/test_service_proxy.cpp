@@ -49,7 +49,8 @@ TestServiceProxy::TestServiceProxy(const sptr<IRemoteObject> &impl)
 int TestServiceProxy::TestEnableSerialInvokeFlag()
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     std::string value = "testData";
 
     ZLOGI(LABEL, "Send to server data = %{public}s", value.c_str());
@@ -69,7 +70,8 @@ int TestServiceProxy::TestEnableSerialInvokeFlag()
 int TestServiceProxy::TestSyncTransaction(int value, int &reply, int delayTime)
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     int ret = -1;
 
     ZLOGI(LABEL, "Send to server data = %{public}d", value);
@@ -146,7 +148,8 @@ int TestServiceProxy::TestMultiThreadSendRequest(int data, int &reply)
 int TestServiceProxy::TestAsyncTransaction(int data, int timeout)
 {
     MessageOption option = { MessageOption::TF_ASYNC };
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     ZLOGI(LABEL, "TestAsyncTransaction is called, data = %{public}d", data);
     dataParcel.WriteInt32(data);
     dataParcel.WriteInt32(timeout);
@@ -163,7 +166,8 @@ int TestServiceProxy::TestAsyncCallbackTrans(int data, int &reply, int timeout)
 {
     int ret;
     MessageOption option = { MessageOption::TF_ASYNC };
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     ZLOGI(LABEL, "TestAsyncCallbackTrans is called, data = %{public}d", data);
     dataParcel.WriteInt32(data);
     dataParcel.WriteInt32(timeout);
@@ -183,7 +187,8 @@ int TestServiceProxy::TestAsyncCallbackTrans(int data, int &reply, int timeout)
 
 int TestServiceProxy::TestZtraceTransaction(std::string &send, std::string &reply, int len)
 {
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     MessageOption option;
 
     dataParcel.WriteInt32(len);
@@ -204,7 +209,8 @@ int TestServiceProxy::TestPingService(const std::u16string &serviceName)
 {
     int ret;
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     ZLOGI(LABEL, "PingService");
     dataParcel.WriteString16(serviceName);
     ret = Remote()->SendRequest(TRANS_ID_PING_SERVICE, dataParcel, replyParcel, option);
@@ -216,7 +222,8 @@ int TestServiceProxy::TestPingService(const std::u16string &serviceName)
 sptr<IFoo> TestServiceProxy::TestGetFooService()
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     Remote()->SendRequest(TRANS_ID_GET_FOO_SERVICE, dataParcel, replyParcel, option);
     auto rep = replyParcel.ReadRemoteObject();
     if (rep == nullptr) {
@@ -229,7 +236,8 @@ sptr<IFoo> TestServiceProxy::TestGetFooService()
 int TestServiceProxy::TestGetFileDescriptor()
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     sptr<IPCFileDescriptor> desc;
     option.SetFlags(MessageOption::TF_ACCEPT_FDS);
     Remote()->SendRequest(TRANS_ID_TRANSACT_FILE_DESC, dataParcel, replyParcel, option);
@@ -240,7 +248,8 @@ int TestServiceProxy::TestGetFileDescriptor()
 int TestServiceProxy::TestStringTransaction(const std::string &data)
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     dataParcel.WriteString(data);
     Remote()->SendRequest(TRANS_ID_STRING_TRANSACTION, dataParcel, replyParcel, option);
     int testSize = replyParcel.ReadInt32();
@@ -270,7 +279,8 @@ int TestServiceProxy::TestRawDataTransaction(int length, int &reply)
 {
     int ret;
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     ZLOGE(LABEL, "Send to server data length = %{public}d", length);
     if (length <= 1 || static_cast<unsigned>(length) > dataParcel.GetRawDataCapacity()) {
         ZLOGE(LABEL, "length should > 1, length is %{public}d", length);
@@ -297,7 +307,8 @@ int TestServiceProxy::TestRawDataTransaction(int length, int &reply)
 int TestServiceProxy::TestRawDataReply(int length)
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     if (length <= 1 || static_cast<unsigned>(length) > dataParcel.GetRawDataCapacity()) {
         ZLOGE(LABEL, "Length should > 1, length is %{public}d", length);
         return ERR_INVALID_STATE;
@@ -344,7 +355,8 @@ int TestServiceProxy::TestRawDataReply(int length)
 int TestServiceProxy::TestCallingUidPid()
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     int ret = Remote()->SendRequest(TRANS_ID_CALLING_UID_PID, dataParcel, replyParcel, option);
     if (ret != ERR_NONE) {
         ZLOGE(LABEL, "ret = %{public}d", ret);
@@ -508,7 +520,9 @@ bool TestServiceProxy::CheckSetSelfToken(uint64_t token_expected)
 int TestServiceProxy::TestAccessTokenID64(uint64_t token_expected, uint64_t ftoken_expected)
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel1, replyParcel2;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel1;
+    MessageParcel replyParcel2;
     uint64_t token  = IPCSkeleton::GetCallingFullTokenID();
     uint64_t ftoken  = IPCSkeleton::GetFirstFullTokenID();
     uint64_t tokenSelf = IPCSkeleton::GetSelfTokenID();
@@ -555,7 +569,9 @@ ERR:
 int TestServiceProxy::TestAccessTokenID(int32_t ftoken_expected)
 {
     MessageOption option;
-    MessageParcel dataParcel, replyParcel1, replyParcel2;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel1;
+    MessageParcel replyParcel2;
 
     int32_t token  = (int32_t)IPCSkeleton::GetCallingTokenID();
     int32_t ftoken  = (int32_t)IPCSkeleton::GetFirstTokenID();
@@ -635,7 +651,8 @@ int TestServiceProxy::TestFlushAsyncCalls(int count, int length)
 {
     int ret;
     MessageOption option = { MessageOption::TF_ASYNC };
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     std::u16string legalData(length, 'a');
     dataParcel.WriteString16(legalData);
     for (int i = 0; i < count; i++) {
@@ -654,7 +671,8 @@ int TestServiceProxy::TestMultipleProcesses(int data, int &rep, int delayTime)
 {
     int ret;
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     ZLOGI(LABEL, "Send to server data = %{public}d", data);
     if (data > 0) {
         dataParcel.WriteInt32(data);
@@ -673,7 +691,8 @@ std::u16string TestServiceProxy::TestAshmem(sptr<Ashmem> ashmem, int32_t content
     }
 
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     if (!dataParcel.WriteInt32(contentSize) || !dataParcel.WriteAshmem(ashmem)) {
         return u"";
     }
@@ -711,7 +730,8 @@ int TestServiceProxy::TestNestingSend(int sendCode, int &replyCode)
 {
     ZLOGW(LABEL, "Start");
     MessageOption option;
-    MessageParcel dataParcel, replyParcel;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
     sptr<IFoo> foo = new FooStub();
     sptr<IRemoteObject> sendFoo = foo->AsObject();
     sendFoo->SetBehavior(Parcelable::BehaviorFlag::HOLD_OBJECT);
