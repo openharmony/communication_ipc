@@ -16,10 +16,6 @@
 #include <ani.h>
 #include <array>
 #include <cstring>
-#include <future>
-#include <iostream>
-#include <thread>
-#include <securec.h>
 #include "ani_remote_object.h"
 #include "ani_utils.h"
 #include "iremote_object.h"
@@ -33,8 +29,6 @@
 using namespace OHOS;
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "rpc_ani" };
-
-constexpr int REQUEST_WAIT_TIME_SECOND = 5;
 
 static ani_object CreateMessageSequence([[maybe_unused]] ani_env *env, MessageParcel &msgParcel)
 {
@@ -183,21 +177,12 @@ public:
 
         auto obj = reinterpret_cast<ani_object>(saveRemote_);
         ZLOGE(LOG_LABEL, "[ANI] before Object_CallMethodByName_Void onRemoteMessageRequestSync");
-        env_->Object_CallMethodByName_Void(obj, "onRemoteMessageRequestSync", nullptr,
+        ani_boolean result;
+        env_->Object_CallMethodByName_Boolean(obj, "onRemoteMessageRequestSync", nullptr, &result,
             (ani_double)code, aniData, aniReply, aniOption);
         ZLOGE(LOG_LABEL, "[ANI] after Object_CallMethodByName_Void onRemoteMessageRequestSync");
 
-        const std::chrono::seconds waitSecond(REQUEST_WAIT_TIME_SECOND);
-        std::this_thread::sleep_for(waitSecond);
-        ZLOGE(LOG_LABEL, "[ANI] Leave OnRemoteRequest with %{public}d", result_);
-
-        return result_;
-    }
-
-    void SetResult(bool result)
-    {
-        ZLOGE(LOG_LABEL, "[ANI] IPCAniStub::SetResult(%{public}d)", result);
-        result_ = result;
+        return result;
     }
 
     ~IPCAniStub()
@@ -206,7 +191,6 @@ public:
     }
 
 private:
-    bool result_;
     ani_env *env_ = nullptr;
     ani_ref saveRemote_;
 };
@@ -228,7 +212,7 @@ public:
     sptr<IRemoteObject> Get()
     {
         if (object_ == nullptr) {
-            object_ = new IPCAniStub(env_, saveRemote_, descriptor_);
+            object_ = sptr<IPCAniStub>::MakeSptr(env_, saveRemote_, descriptor_);
         }
         return object_;
     }
@@ -240,11 +224,6 @@ public:
 
     ~IPCObjectRemoteHolder()
     {
-        if (object_ != nullptr) {
-            IPCAniStub* aniStub = reinterpret_cast<IPCAniStub*>(object_.GetRefPtr());
-            delete aniStub;
-            object_ = nullptr;
-        }
         ZLOGI(LOG_LABEL, "[ANI] enter IPCObjectRemoteHolder dtor");
     }
 
@@ -274,22 +253,21 @@ sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter AniGetNativeRemoteObject func");
     auto holder = AniObjectUtils::Unwrap<IPCObjectRemoteHolder>(env, obj);
-    if (holder != nullptr) {
-        return holder->Get();
+    if (holder == nullptr) {
+        return nullptr;
     }
-    return nullptr;
+    return holder->Get();
 }
 
 static ani_string MessageSequenceReadString([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequenceReadString func");
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
-    if (parcel != nullptr) {
-        auto str = parcel->ReadString();
-        return AniStringUtils::ToAni(env, str);
+    if (parcel == nullptr) {
+        return ani_string{};
     }
-    ani_string result_string{};
-    return result_string;
+    auto str = parcel->ReadString();
+    return AniStringUtils::ToAni(env, str);
 }
 
 static bool MessageSequenceWriteString([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
@@ -297,24 +275,23 @@ static bool MessageSequenceWriteString([[maybe_unused]] ani_env *env, [[maybe_un
 {
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequenceWriteString func");
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
-    if (parcel != nullptr) {
-        auto stringContent = AniStringUtils::ToStd(env, str);
-        return parcel->WriteString(stringContent);
+    if (parcel == nullptr) {
+        return false;
     }
-    return false;
+    auto stringContent = AniStringUtils::ToStd(env, str);
+    return parcel->WriteString(stringContent);
 }
 
 static ani_string MessageSequencereadInterfaceToken([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequencereadInterfaceToken func");
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
-    if (parcel != nullptr) {
-        auto str = parcel->ReadInterfaceToken();
-        std::string outString = Str16ToStr8(str.c_str());
-        return AniStringUtils::ToAni(env, outString);
+    if (parcel == nullptr) {
+        return ani_string{};
     }
-    ani_string result_string{};
-    return result_string;
+    auto str = parcel->ReadInterfaceToken();
+    std::string outString = Str16ToStr8(str.c_str());
+    return AniStringUtils::ToAni(env, outString);
 }
 
 static void RemoteObjectConstructor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
@@ -334,26 +311,14 @@ static ani_string GetRemoteObjectDescriptor([[maybe_unused]] ani_env *env, [[may
     ZLOGI(LOG_LABEL, "[ANI] enter GetRemoteObjectDescriptor func");
     ani_string result_string{};
     auto objectRemoteHolder = AniObjectUtils::Unwrap<IPCObjectRemoteHolder>(env, object);
-    if (objectRemoteHolder != nullptr) {
-        auto descriptorStr = objectRemoteHolder->GetDescriptor();
-        ZLOGI(LOG_LABEL, "[ANI] get descriptor: %{public}s", descriptorStr.c_str());
-        env->String_NewUTF8(descriptorStr.c_str(), descriptorStr.size(), &result_string);
-    } else {
+    if (objectRemoteHolder == nullptr) {
         env->String_NewUTF8("", 0, &result_string);
+        return result_string;
     }
+    auto descriptorStr = objectRemoteHolder->GetDescriptor();
+    ZLOGI(LOG_LABEL, "[ANI] get descriptor: %{public}s", descriptorStr.c_str());
+    env->String_NewUTF8(descriptorStr.c_str(), descriptorStr.size(), &result_string);
     return result_string;
-}
-
-static void OnRemoteMessageRequestCallback([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
-                                           ani_boolean result)
-{
-    ZLOGI(LOG_LABEL, "[ANI] enter OnRemoteMessageRequestCallback func, result: %{public}d", static_cast<bool>(result));
-    sptr<IRemoteObject> stub = AniGetNativeRemoteObject(env, object);
-    if (stub == nullptr) {
-        return;
-    }
-    IPCAniStub* aniStub = reinterpret_cast<IPCAniStub*>(stub.GetRefPtr());
-    aniStub->SetResult(static_cast<bool>(result));
 }
 
 static ani_string GetRemoteProxyDescriptor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
@@ -361,13 +326,13 @@ static ani_string GetRemoteProxyDescriptor([[maybe_unused]] ani_env *env, [[mayb
     ZLOGI(LOG_LABEL, "[ANI] enter GetRemoteProxyDescriptor func");
     ani_string result_string{};
     auto objectProxyHolder = AniObjectUtils::Unwrap<IPCObjectProxyHolder>(env, object);
-    if (objectProxyHolder != nullptr) {
-        auto descriptorStr = objectProxyHolder->GetDescriptor();
-        ZLOGI(LOG_LABEL, "[ANI] get descriptor: %{public}s", descriptorStr.c_str());
-        env->String_NewUTF8(descriptorStr.c_str(), descriptorStr.size(), &result_string);
-    } else {
+    if (objectProxyHolder == nullptr) {
         env->String_NewUTF8("", 0, &result_string);
+        return result_string;
     }
+    auto descriptorStr = objectProxyHolder->GetDescriptor();
+    ZLOGI(LOG_LABEL, "[ANI] get descriptor: %{public}s", descriptorStr.c_str());
+    env->String_NewUTF8(descriptorStr.c_str(), descriptorStr.size(), &result_string);
     return result_string;
 }
 
@@ -428,8 +393,6 @@ static ani_status BindRemoteObjectClassMethods(ani_env* env, ani_namespace& ns)
     std::array methods = {
         ani_native_function {"getDescriptor", nullptr, reinterpret_cast<void *>(GetRemoteObjectDescriptor)},
         ani_native_function {"<ctor>", "Lstd/core/String;:V", reinterpret_cast<void *>(RemoteObjectConstructor)},
-        ani_native_function {"onRemoteMessageRequestCallback", nullptr,
-                             reinterpret_cast<void*>(OnRemoteMessageRequestCallback)},
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(remoteObjClass, methods.data(), methods.size())) {

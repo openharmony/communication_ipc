@@ -27,10 +27,10 @@ export namespace rpc {
     }
 
     export class MessageOption {
-        // static { loadLibrary("rpc_ani") }
+        static { loadLibrary("rpc_ani") }
 
         constructor(asyncFlag: boolean) {
-            hilog.info(0x0000, '', '[ETS] Enter MessageOption.constructor(asyncFlag)');
+            hilog.info(0x0000, 'rpc', '[ETS] Enter MessageOption.constructor(asyncFlag)');
             if (asyncFlag === true) {
                 this.init(1, 0);
             }
@@ -40,7 +40,7 @@ export namespace rpc {
         }
 
         constructor(syncFlags?: number, waitTime?: number) {
-            hilog.info(0x0000, '', '[ETS] Enter MessageOption.constructor(syncFlags, waitTime)');
+            hilog.info(0x0000, 'rpc', '[ETS] Enter MessageOption.constructor(syncFlags, waitTime)');
             if (syncFlags != undefined && waitTime != undefined) {
                 this.init(syncFlags, waitTime);
             }
@@ -87,26 +87,8 @@ export namespace rpc {
             reply: rpc.MessageSequence,
             options: rpc.MessageOption
         ): boolean | Promise<boolean> {
-            hilog.info(0x0000, '', '[ETS] Enter RemoteObject.onRemoteMessageRequest(' + code + ", " + data.readString() + ')');
+            hilog.info(0x0000, 'rpc', '[ETS] Enter RemoteObject.onRemoteMessageRequest(' + code + ', ...)');
             return true;
-        }
-
-        private onRemoteMessageRequestWithCallback(
-            code: number,
-            data: rpc.MessageSequence,
-            reply: rpc.MessageSequence,
-            options: rpc.MessageOption,
-            callback: (result: boolean) => void
-        ): void {
-            const result = this.onRemoteMessageRequest(code, data, reply, options);
-
-            if (result instanceof Promise) {
-                result.then((resolvedResult: boolean): void => {
-                    callback(resolvedResult);
-                })
-            } else {
-                callback(result);
-            }
         }
 
         private onRemoteMessageRequestSync(
@@ -114,13 +96,13 @@ export namespace rpc {
             data: rpc.MessageSequence,
             reply: rpc.MessageSequence,
             options: rpc.MessageOption
-        ): void {
-            return this.onRemoteMessageRequestWithCallback(code, data, reply, options, (result: boolean): void => {
-                this.onRemoteMessageRequestCallback(result);
-            });
+        ): boolean {
+            const result = this.onRemoteMessageRequest(code, data, reply, options);
+            if (result instanceof Promise) {
+                return await (result as Promise<boolean>);
+            }
+            return result as boolean;
         }
-
-        native onRemoteMessageRequestCallback(result: boolean): void;
 
         private nativePtr: long = 0;
     }

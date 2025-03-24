@@ -18,9 +18,9 @@ group("rpc_ani_package") {
   deps = [
     ":rpc_abc_etc",
     ":rpc_ani",
-    "test:test_abc",
   ]
 }
+
 config("ani_rpc_public_config") {
   include_dirs = [ "include" ]
 }
