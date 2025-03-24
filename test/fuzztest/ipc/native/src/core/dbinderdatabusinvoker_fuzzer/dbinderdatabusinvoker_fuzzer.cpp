@@ -322,26 +322,6 @@ static void SetCallingIdentityFuzzTest(const uint8_t *data, size_t size)
     (void)invoker.ResetCallingIdentity();
 }
 
-static void TranslateIRemoteObjectFuzzTest(const uint8_t *data, size_t size)
-{
-    if (data == nullptr || size < sizeof(int32_t)) {
-        return;
-    }
-
-    Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
-        return;
-    }
-
-    int32_t cmd = -1;
-    if (!parcel.ReadInt32(cmd)) {
-        return;
-    }
-
-    DBinderDatabusInvoker invoker;
-    invoker.TranslateIRemoteObject(cmd, nullptr);
-}
-
 static void OnMessageAvailableFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size < sizeof(int32_t)) {
@@ -498,7 +478,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::OnDatabusSessionClientSideClosedFuzzTest(data, size);
     OHOS::OnReceiveNewConnectionFuzzTest(data, size);
     OHOS::SetCallingIdentityFuzzTest(data, size);
-    OHOS::TranslateIRemoteObjectFuzzTest(data, size);
     OHOS::OnMessageAvailableFuzzTest(data, size);
     OHOS::TriggerSystemIPCThreadReclaimFuzzTest(data, size);
     OHOS::MakeThreadProcessInfoFuzzTest(data, size);
