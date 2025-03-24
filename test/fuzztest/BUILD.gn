@@ -14,6 +14,7 @@
 group("fuzztest") {
   testonly = true
   deps = [
+    "interfaces/innerkits/ipc_core/messageparcel_fuzzer:MessageParcelFuzzTest",
     "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
     "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
     "ipc/native/src/core/binderinvoker_fuzzer:BinderInvokerTwoFuzzTest",
