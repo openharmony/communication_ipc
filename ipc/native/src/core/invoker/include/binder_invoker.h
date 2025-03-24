@@ -142,8 +142,6 @@ public:
     bool IsSendRequesting();
 
 #ifndef CONFIG_IPC_SINGLE
-    int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) override;
-
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif
 
@@ -163,7 +161,7 @@ private:
     bool WriteTransaction(int cmd, uint32_t flags, int32_t handle, uint32_t code, const MessageParcel &data,
         const int *status, size_t totalDBinderBufSize);
 
-    int WaitForCompletion(MessageParcel *reply = nullptr, int32_t *acquireResult = nullptr);
+    int WaitForCompletion(MessageParcel *reply = nullptr);
 
     void OnAttemptAcquire();
 
@@ -195,23 +193,13 @@ private:
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
 
-    void OnTransactionComplete(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+    void OnTransactionComplete(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
 
-    void OnDeadOrFailedReply(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+    void OnDeadOrFailedReply(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
 
-    void OnAcquireResult(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+    void OnReply(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
 
-    void OnReply(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
-
-    void OnTranslationComplete(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
-
-    void DealWithCmd(MessageParcel *reply,
-        int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd);
+    void DealWithCmd(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
 
     int32_t TargetStubSendRequest(const binder_transaction_data &tr,
         MessageParcel &data, MessageParcel &reply, MessageOption &option, uint32_t &flagValue);

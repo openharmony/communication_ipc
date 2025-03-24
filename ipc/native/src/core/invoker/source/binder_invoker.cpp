@@ -288,36 +288,6 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
 }
 
 #ifndef CONFIG_IPC_SINGLE
-int BinderInvoker::TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj)
-{
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        return -IPC_INVOKER_CONNECT_ERR;
-    }
-    size_t rewindPos = output_.GetWritePosition();
-    if (!output_.WriteInt32(cmd)) {
-        if (!output_.RewindWrite(rewindPos)) {
-            output_.FlushBuffer();
-        }
-        return -IPC_INVOKER_TRANSLATE_ERR;
-    }
-    if (!FlattenObject(output_, obj.GetRefPtr())) {
-        if (!output_.RewindWrite(rewindPos)) {
-            output_.FlushBuffer();
-        }
-        return -IPC_INVOKER_TRANSLATE_ERR;
-    }
-    MessageParcel reply;
-    int error = WaitForCompletion(&reply);
-    if (error == ERR_NONE) {
-        uint32_t handle = reply.ReadUint32();
-        if (handle > 0) {
-            return handle;
-        }
-    }
-    ZLOGE(LABEL, "failed to TranslateIRemoteObject");
-    return -IPC_INVOKER_TRANSLATE_ERR;
-}
-
 sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
 {
     ZLOGI(LABEL, "get samgr object!");
@@ -1170,49 +1140,27 @@ bool BinderInvoker::WriteTransaction(int cmd, uint32_t flags, int32_t handle, ui
     return ret;
 }
 
-void BinderInvoker::OnTransactionComplete(
-    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+void BinderInvoker::OnTransactionComplete(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd)
 {
-    (void)continueLoop;
     (void)error;
     (void)cmd;
 
-    if (reply == nullptr && acquireResult == nullptr) {
+    if (reply == nullptr) {
         continueLoop = false;
     }
 }
 
-void BinderInvoker::OnDeadOrFailedReply(
-    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+void BinderInvoker::OnDeadOrFailedReply(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd)
 {
     (void)reply;
 
     error = static_cast<int32_t>(cmd);
-    if (acquireResult != nullptr) {
-        *acquireResult = cmd;
-    }
     continueLoop = false;
 }
 
-void BinderInvoker::OnAcquireResult(
-    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+void BinderInvoker::OnReply(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd)
 {
     (void)reply;
-    (void)error;
-    (void)cmd;
-
-    int32_t result = input_.ReadInt32();
-    if (acquireResult != nullptr) {
-        *acquireResult = result ? ERR_NONE : ERR_INVALID_OPERATION;
-        continueLoop = false;
-    }
-}
-
-void BinderInvoker::OnReply(
-    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
-{
-    (void)reply;
-    (void)acquireResult;
     (void)cmd;
 
     bool isStubRet = false;
@@ -1224,40 +1172,18 @@ void BinderInvoker::OnReply(
     error = ERR_NONE;
 }
 
-void BinderInvoker::OnTranslationComplete(
-    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
-{
-    (void)reply;
-    (void)acquireResult;
-    (void)error;
-    (void)cmd;
-
-    uint32_t handle = input_.ReadUint32();
-    if (reply != nullptr) {
-        reply->WriteUint32(handle);
-    }
-    continueLoop = false;
-}
-
-void BinderInvoker::DealWithCmd(
-    MessageParcel *reply, int32_t *acquireResult, bool &continueLoop, int32_t &error, uint32_t cmd)
+void BinderInvoker::DealWithCmd(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd)
 {
     switch (cmd) {
         case BR_TRANSACTION_COMPLETE:
-            OnTransactionComplete(reply, acquireResult, continueLoop, error, cmd);
+            OnTransactionComplete(reply, continueLoop, error, cmd);
             break;
         case BR_DEAD_REPLY:
         case BR_FAILED_REPLY:
-            OnDeadOrFailedReply(reply, acquireResult, continueLoop, error, cmd);
-            break;
-        case BR_ACQUIRE_RESULT:
-            OnAcquireResult(reply, acquireResult, continueLoop, error, cmd);
+            OnDeadOrFailedReply(reply, continueLoop, error, cmd);
             break;
         case BR_REPLY:
-            OnReply(reply, acquireResult, continueLoop, error, cmd);
-            break;
-        case BR_TRANSLATION_COMPLETE:
-            OnTranslationComplete(reply, acquireResult, continueLoop, error, cmd);
+            OnReply(reply, continueLoop, error, cmd);
             break;
         default:
             error = HandleCommands(cmd);
@@ -1268,7 +1194,7 @@ void BinderInvoker::DealWithCmd(
     }
 }
 
-int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResult)
+int BinderInvoker::WaitForCompletion(MessageParcel *reply)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
         ZLOGE(LABEL, "driver is died");
@@ -1285,7 +1211,7 @@ int BinderInvoker::WaitForCompletion(MessageParcel *reply, int32_t *acquireResul
             continue;
         }
         cmd = input_.ReadUint32();
-        DealWithCmd(reply, acquireResult, continueLoop, error, cmd);
+        DealWithCmd(reply, continueLoop, error, cmd);
     }
     return error;
 }
