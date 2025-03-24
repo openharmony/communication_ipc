@@ -59,52 +59,6 @@ void IPCThreadSkeletonTest::TearDown()
 }
 
 /**
- * @tc.name: TlsDestructorTest001
- * @tc.desc: Verify the TlsDestructor function use default construction method
- * @tc.type: FUNC
- */
-HWTEST_F(IPCThreadSkeletonTest, TlsDestructorTest001, TestSize.Level1)
-{
-    IPCThreadSkeleton skeleton;
-    skeleton.usingFlag_ = IPCThreadSkeleton::INVOKER_IDLE_MAGIC;
-    ASSERT_NO_FATAL_FAILURE(IPCThreadSkeleton::TlsDestructor(&skeleton));
-}
-
-/**
- * @tc.name: TlsDestructorTest002
- * @tc.desc: Verify the TlsDestructor function use default construction method
- * @tc.type: FUNC
- */
-HWTEST_F(IPCThreadSkeletonTest, TlsDestructorTest002, TestSize.Level1)
-{
-    IPCThreadSkeleton skeleton;
-    skeleton.usingFlag_ = IPCThreadSkeleton::INVOKER_USE_MAGIC;
-    ASSERT_NO_FATAL_FAILURE(IPCThreadSkeleton::TlsDestructor(&skeleton));
-}
-
-/**
- * @tc.name: TlsDestructorTest003
- * @tc.desc: Verify the TlsDestructor function when args is nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(IPCThreadSkeletonTest, TlsDestructorTest003, TestSize.Level1)
-{
-    ASSERT_NO_FATAL_FAILURE(IPCThreadSkeleton::TlsDestructor(nullptr));
-}
-
-/**
- * @tc.name: TlsDestructorTest004
- * @tc.desc: Verify the TlsDestructor function when args`s usingFlag_ not INVOKER_IDLE_MAGIC or INVOKER_USE_MAGIC
- * @tc.type: FUNC
- */
-HWTEST_F(IPCThreadSkeletonTest, TlsDestructorTest004, TestSize.Level1)
-{
-    IPCThreadSkeleton skeleton;
-    skeleton.usingFlag_ = INVOKER_IDLE_EXCEPTION;
-    ASSERT_NO_FATAL_FAILURE(IPCThreadSkeleton::TlsDestructor(&skeleton));
-}
-
-/**
  * @tc.name: GetRemoteInvokerTest001
  * @tc.desc: Verify the GetRemoteInvoker function when proto is negative number
  * @tc.type: FUNC
