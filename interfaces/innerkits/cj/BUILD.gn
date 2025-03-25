@@ -29,15 +29,21 @@ if (support_jsapi) {
     include_dirs = [
       "include",
       "../../../utils/include",
+      "../../../ipc/native/src/napi_common/include",
+      "../../../interfaces/innerkits/ipc_napi_common/include",
     ]
     public_configs = [ ":ffi_common_deps_config" ]
 
-    deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
+    deps = [
+      "../../../interfaces/innerkits/ipc_core:ipc_core",
+      "../../../interfaces/innerkits/ipc_napi_common:ipc_napi",
+    ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
       "libuv:uv",
+      "napi:ace_napi",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",
     ]

@@ -72,8 +72,8 @@ public:
     int32_t CJ_WriteArrayBuffer(int32_t typeCode, void* value, size_t byteLength);
     int32_t CJ_WriteRawDataBuffer(uint8_t* data, int64_t size);
     bool CJ_WriteUint32(uint32_t value);
-    int32_t CJ_WriteRemoteObject(RetDataI64 object);
-    int32_t CJ_WriteRemoteObjectArray(RemoteObjectArray value);
+    int32_t CJ_WriteRemoteObject(int64_t object);
+    int32_t CJ_WriteRemoteObjectArray(CJLongArray value);
 
     int8_t CJ_ReadByte(int32_t* errCode);
     int16_t CJ_ReadShort(int32_t* errCode);

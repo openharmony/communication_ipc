@@ -575,7 +575,7 @@ bool MessageSequenceImpl::CJ_WriteUint32(uint32_t value)
     return nativeParcel_->WriteUint32(value);
 }
 
-int32_t MessageSequenceImpl::CJ_WriteRemoteObject(RetDataI64 object)
+int32_t MessageSequenceImpl::CJ_WriteRemoteObject(int64_t object)
 {
     if (nativeParcel_ == nullptr) {
         return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
@@ -593,7 +593,7 @@ int32_t MessageSequenceImpl::CJ_WriteRemoteObject(RetDataI64 object)
     return 0;
 }
 
-int32_t MessageSequenceImpl::CJ_WriteRemoteObjectArray(RemoteObjectArray value)
+int32_t MessageSequenceImpl::CJ_WriteRemoteObjectArray(CJLongArray value)
 {
     if (nativeParcel_ == nullptr) {
         return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
@@ -602,8 +602,7 @@ int32_t MessageSequenceImpl::CJ_WriteRemoteObjectArray(RemoteObjectArray value)
     size_t pos = nativeParcel_->GetWritePosition();
     bool result = nativeParcel_->WriteInt32(arrayLength);
     for (size_t i = 0; i < arrayLength; i++) {
-        RetDataI64 object = RetDataI64 { value.type[i], value.id[i] };
-        sptr<IRemoteObject> remoteObject = CJ_rpc_getNativeRemoteObject(object);
+        sptr<IRemoteObject> remoteObject = CJ_rpc_getNativeRemoteObject(value.data[i]);
         if (remoteObject == nullptr) {
             ZLOGE(LOG_LABEL, "remote object is nullptr");
             return errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR;
@@ -1109,7 +1108,8 @@ RetDataI64 MessageSequenceImpl::CJ_ReadRemoteObject(int32_t* errCode)
         return RetDataI64 { 0, 0 };
     }
     sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
-    return CJ_rpc_CreateRemoteObject(value);
+    int32_t type = value->IsProxyObject() ? 1 : 0;
+    return RetDataI64{type, CJ_rpc_CreateRemoteObject(value)};
 }
 
 RemoteObjectArray MessageSequenceImpl::CJ_ReadRemoteObjectArray(int32_t* errCode)
@@ -1134,9 +1134,9 @@ RemoteObjectArray MessageSequenceImpl::CJ_ReadRemoteObjectArray(int32_t* errCode
     }
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
-        RetDataI64 element = CJ_rpc_CreateRemoteObject(value);
-        type[i] = element.code;
-        id[i] = element.data;
+        int64_t element = CJ_rpc_CreateRemoteObject(value);
+        type[i] = value->IsProxyObject() ? 1 : 0;
+        id[i] = element;
     }
     res.type = type;
     res.id = id;
