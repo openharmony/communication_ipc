@@ -73,7 +73,6 @@ public:
 
 #ifndef CONFIG_IPC_SINGLE
     MOCK_METHOD0(GetSAMgrObject, sptr<IRemoteObject>());
-    MOCK_METHOD2(TranslateIRemoteObject, int(int32_t cmd, const sptr<IRemoteObject> &obj));
 #endif
 };
 #ifdef CONFIG_IPC_SINGLE

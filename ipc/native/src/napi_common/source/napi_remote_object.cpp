@@ -892,6 +892,9 @@ napi_value GetJsStubRemoteObjectByRef(napi_env env, const sptr<IRemoteObject> ta
     }
     napi_value jsRemoteObject = nullptr;
     napi_get_reference_value(env, object->GetJsObjectRef(), &jsRemoteObject);
+    if (jsRemoteObject == nullptr) {
+        ZLOGW(LOG_LABEL, "jsRemoteObject is nullptr")
+    }
     return jsRemoteObject;
 }
 
@@ -963,6 +966,7 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             return holder != nullptr ? holder->object_ : nullptr;
         }
     }
+    ZLOGW(LOG_LABEL, "napi object is nullptr");
     return nullptr;
 }
 
@@ -1274,6 +1278,7 @@ static napi_value NAPI_RemoteObject_sendRequest(napi_env env, napi_callback_info
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    NAPI_ASSERT(env, target != nullptr, "target is nullptr, failed to get native remote object");
     if (argc == argcCallback) {
         napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
         napi_valuetype valuetype = napi_undefined;
@@ -1358,6 +1363,7 @@ static napi_value NAPI_RemoteObject_sendMessageRequest(napi_env env, napi_callba
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &code);
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, thisVar);
+    NAPI_ASSERT(env, target != nullptr, "target is nullptr, failed to get native remote object");
     if (argc == argcCallback) {
         napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
         napi_valuetype valuetype = napi_undefined;

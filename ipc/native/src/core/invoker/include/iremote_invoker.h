@@ -122,8 +122,6 @@ public:
 
 #ifndef CONFIG_IPC_SINGLE
     virtual sptr<IRemoteObject> GetSAMgrObject() = 0;
-
-    virtual int TranslateIRemoteObject(int32_t cmd, const sptr<IRemoteObject> &obj) = 0;
 #endif
 
 private:
