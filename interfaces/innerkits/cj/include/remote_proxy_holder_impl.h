@@ -19,8 +19,8 @@
 #include <set>
 
 #include "ffi_remote_data.h"
-#include "iremote_object.h"
 #include "message_sequence_impl.h"
+#include "iremote_object_impl.h"
 
 namespace OHOS {
 class CJDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -55,7 +55,7 @@ private:
     std::set<sptr<CJDeathRecipient>> set_;
 };
 
-class RemoteProxyHolderImpl : public OHOS::FFI::FFIData {
+class RemoteProxyHolderImpl : public CjIRemoteObjectImpl {
     DECL_TYPE(RemoteProxyHolderImpl, OHOS::FFI::FFIData)
 public:
     RemoteProxyHolderImpl();
@@ -68,6 +68,8 @@ public:
     bool IsObjectDead();
     int32_t RegisterDeathRecipient(int64_t funcId, int32_t flag);
     int32_t UnregisterDeathRecipient(int64_t funcId, int32_t flag);
+    bool IsProxyObject() override;
+    sptr<IRemoteObject> GetRemoteObject() override;
 };
 } // namespace OHOS
 #endif // REMOTE_PROXY_HOLDER_IMPL_H
