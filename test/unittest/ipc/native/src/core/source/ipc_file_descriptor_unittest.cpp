@@ -142,6 +142,7 @@ HWTEST_F(IPCFileDescriptorTest, MarshallingTest003, TestSize.Level1) {
 
     auto result = ipcFileDescriptor.Marshalling(parcel);
     EXPECT_FALSE(result);
+    delete invoker;
 }
 
 /**
@@ -161,6 +162,7 @@ HWTEST_F(IPCFileDescriptorTest, MarshallingTest004, TestSize.Level1) {
 
     auto result = ipcFileDescriptor.Marshalling(parcel);
     EXPECT_TRUE(result);
+    delete invoker;
 }
 
 /**
@@ -210,6 +212,7 @@ HWTEST_F(IPCFileDescriptorTest, MarshallingTest007, TestSize.Level1) {
 
     auto result = ipcFileDescriptor.Marshalling(parcel, object);
     EXPECT_FALSE(result);
+    delete invoker;
 }
 
 /**
@@ -228,6 +231,7 @@ HWTEST_F(IPCFileDescriptorTest, MarshallingTest008, TestSize.Level1) {
 
     auto result = ipcFileDescriptor.Marshalling(parcel, object);
     EXPECT_TRUE(result);
+    delete invoker;
 }
 
 /**
@@ -235,7 +239,7 @@ HWTEST_F(IPCFileDescriptorTest, MarshallingTest008, TestSize.Level1) {
  * @tc.desc: Verify the Unmarshalling function when GetRemoteInvoker function return nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCFileDescriptorTest, ReadFileDescriptorTest001, TestSize.Level1) {
+HWTEST_F(IPCFileDescriptorTest, UnmarshallingTest001, TestSize.Level1) {
     IPCFileDescriptor ipcFileDescriptor;
     Parcel parcel;
     NiceMock<IPCFileDescriptorInterfaceMock> mock;
@@ -251,7 +255,7 @@ HWTEST_F(IPCFileDescriptorTest, ReadFileDescriptorTest001, TestSize.Level1) {
  * @tc.desc: Verify the Unmarshalling function when ReadFileDescriptor function return 1
  * @tc.type: FUNC
  */
-HWTEST_F(IPCFileDescriptorTest, ReadFileDescriptorTest002, TestSize.Level1) {
+HWTEST_F(IPCFileDescriptorTest, UnmarshallingTest002, TestSize.Level1) {
     IPCFileDescriptor ipcFileDescriptor;
     Parcel parcel;
     NiceMock<IPCFileDescriptorInterfaceMock> mock;
@@ -261,5 +265,6 @@ HWTEST_F(IPCFileDescriptorTest, ReadFileDescriptorTest002, TestSize.Level1) {
 
     auto result = ipcFileDescriptor.Unmarshalling(parcel);
     EXPECT_NE(result, nullptr);
+    delete invoker;
 }
 } // namespace OHOS

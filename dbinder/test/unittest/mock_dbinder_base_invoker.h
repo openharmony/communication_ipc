@@ -50,7 +50,6 @@ public:
     MOCK_METHOD2(SetCallingIdentity, bool(std::string &identity, bool flag));
     MOCK_METHOD0(TriggerSystemIPCThreadReclaim, bool());
     MOCK_METHOD1(EnableIPCThreadReclaim, bool(bool enable));
-    MOCK_METHOD2(TranslateIRemoteObject, int(int32_t cmd, const sptr<IRemoteObject> &obj));
     MOCK_METHOD1(QueryServerSessionObject, std::shared_ptr<DBinderSessionObject>(uint32_t handle));
     MOCK_METHOD1(UpdateClientSession, bool(std::shared_ptr<DBinderSessionObject> sessionObject));
     MOCK_METHOD1(QueryHandleBySession, uint32_t(std::shared_ptr<DBinderSessionObject> session));

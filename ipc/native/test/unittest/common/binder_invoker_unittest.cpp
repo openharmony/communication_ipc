@@ -556,39 +556,8 @@ HWTEST_F(BinderInvokerUnitTest, WaitForCompletionTest001, TestSize.Level1)
     BinderInvoker binderInvoker;
     binderInvoker.input_.WriteUint32(BR_FAILED_REPLY);
     MessageParcel reply;
-    int32_t acquireResult = 1;
-    int error = binderInvoker.WaitForCompletion(&reply, &acquireResult);
+    int error = binderInvoker.WaitForCompletion(&reply);
     EXPECT_EQ(error, static_cast<int>(BR_FAILED_REPLY));
-}
-
-/**
- * @tc.name: WaitForCompletionTest002
- * @tc.desc: Override WaitForCompletion branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, WaitForCompletionTest002, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    binderInvoker.input_.WriteUint32(BR_ACQUIRE_RESULT);
-    MessageParcel reply;
-    int32_t acquireResult;
-    int error = binderInvoker.WaitForCompletion(&reply, &acquireResult);
-    EXPECT_EQ(error, ERR_NONE);
-}
-
-/**
- * @tc.name: WaitForCompletionTest003
- * @tc.desc: Override WaitForCompletion branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, WaitForCompletionTest003, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    binderInvoker.input_.WriteUint32(BR_TRANSLATION_COMPLETE);
-    MessageParcel reply;
-    int32_t acquireResult;
-    int error = binderInvoker.WaitForCompletion(&reply, &acquireResult);
-    EXPECT_EQ(error, ERR_NONE);
 }
 
 /**
@@ -684,55 +653,6 @@ HWTEST_F(BinderInvokerUnitTest, FlattenObjectTest001, TestSize.Level1)
     const IRemoteObject* object = nullptr;
     EXPECT_EQ(binderInvoker.FlattenObject(parcel, object), false);
 }
-
-#ifndef CONFIG_IPC_SINGLE
-/**
- * @tc.name: TranslateIRemoteObjectTest001
- * @tc.desc: Override TranslateIRemoteObject branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateIRemoteObjectTest001, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    int32_t cmd = 1;
-    sptr<IRemoteObject> testStub = new IPCObjectStub(u"testStub");
-    BinderConnector *binderConnector = BinderConnector::GetInstance();
-    binderConnector->driverFD_ = 1;
-    auto ret = binderInvoker.TranslateIRemoteObject(cmd, testStub);
-    EXPECT_EQ(ret, -IPC_INVOKER_TRANSLATE_ERR);
-}
-
-/**
- * @tc.name: TranslateIRemoteObjectTest002
- * @tc.desc: Override TranslateIRemoteObject branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateIRemoteObjectTest002, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    int32_t cmd = 1;
-    binderInvoker.binderConnector_ = nullptr;
-    sptr<IRemoteObject> testStub = new IPCObjectStub(u"testStub");
-    auto ret = binderInvoker.TranslateIRemoteObject(cmd, testStub);
-    EXPECT_EQ(ret, -IPC_INVOKER_CONNECT_ERR);
-}
-
-/**
- * @tc.name: TranslateIRemoteObjectTest003
- * @tc.desc: Override TranslateIRemoteObject branch
- * @tc.type: FUNC
- */
-HWTEST_F(BinderInvokerUnitTest, TranslateIRemoteObjectTest003, TestSize.Level1)
-{
-    BinderInvoker binderInvoker;
-    int32_t cmd = 1;
-    BinderConnector *binderConnector = BinderConnector::GetInstance();
-    binderConnector->driverFD_ = -1;
-    sptr<IRemoteObject> testStub = new IPCObjectStub(u"testStub");
-    auto ret = binderInvoker.TranslateIRemoteObject(cmd, testStub);
-    EXPECT_EQ(ret, -IPC_INVOKER_CONNECT_ERR);
-}
-#endif
 
 /**
  * @tc.name: GetSelfTokenIDTest002

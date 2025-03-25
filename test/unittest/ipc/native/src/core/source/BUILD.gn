@@ -121,6 +121,14 @@ ipc_unittest("IpcObjectStubTest") {
   sources = [ "ipc_object_stub_unittest.cpp" ]
 }
 
+ipc_unittest("IPCThreadSkeletonTest") {
+  sources = [ "ipc_thread_skeleton_unittest.cpp" ]
+}
+
+ipc_unittest("DatabusSocketListenerUnitTest") {
+  sources = [ "databus_socket_listener_unittest.cpp" ]
+}
+
 ipc_unittest("IPCFileDescriptorTest") {
   sources = [ "ipc_file_descriptor_unittest.cpp" ]
 }
@@ -132,11 +140,13 @@ group("unittest") {
     ":BinderInvokerTest",
     ":DBinderCallbackStubTest",
     ":DBinderSoftbusClientTest",
+    ":DatabusSocketListenerUnitTest",
     ":DbinderDataBusInvokerTest",
     ":IPCFileDescriptorTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IPCSkeletonTest",
+    ":IPCThreadSkeletonTest",
     ":IpcObjectStubTest",
     ":IremoteBrokerTest",
     ":IremoteObjectTest",

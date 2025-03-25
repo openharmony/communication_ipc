@@ -31,7 +31,6 @@ ErrorMap &BinderDebug::GetErrorMap()
                                  { BR_OK, "BR_OK" },
                                  { BR_TRANSACTION, "BR_TRANSACTION" },
                                  { BR_REPLY, "BR_REPLY" },
-                                 { BR_ACQUIRE_RESULT, "BR_ACQUIRE_RESULT" },
                                  { BR_DEAD_REPLY, "BR_DEAD_REPLY" },
                                  { BR_TRANSACTION_COMPLETE, "BR_TRANSACTION_COMPLETE" },
                                  { BR_INCREFS, "BR_INCREFS" },
