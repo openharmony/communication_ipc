@@ -80,6 +80,16 @@
               }
             },
             {
+              "name": "//foundation/communication/ipc/ipc/native/src/ani/rpc:rpc_ani",
+              "header": {
+                "header_files": [
+                  "ani_remote_object.h",
+                  "ani_utils.h"
+                ],
+                "header_base": "//foundation/communication/ipc/ipc/native/src/ani/rpc/include"
+              }
+            },
+            {
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
               "header": {
                 "header_files": [
