@@ -22,7 +22,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <securec.h>
-#include <unistd.h>
 #include <random>
 #include "system_ability_definition.h"
 #include "iservice_registry.h"
@@ -30,6 +29,7 @@
 #include "test_capi_skeleton.h"
 #include "ipc_debug.h"
 #include "ipc_inner_object.h"
+#include "fd_san.h"
 
 namespace OHOS {
 
@@ -451,16 +451,17 @@ int NativeRemoteProxyTest::SendAndEchoFileDescriptor()
         ZLOGE(LABEL, "open file failed!");
         return -1;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
     OH_IPCParcel_WriteFileDescriptor(data, fd);
     int ret = OH_IPCRemoteProxy_SendRequest(proxy_, NATIVE_TEST_CMD_SEND_FILE_DESCRIPTOR, data, reply, &option);
     if (ret != OH_IPC_SUCCESS) {
         ZLOGE(LABEL, "SendAndEchoFileDescriptor SendRequest ret:%{public}d", ret);
         OH_IPCParcel_Destroy(data);
         OH_IPCParcel_Destroy(reply);
-        close(fd);
+        fdsan_close_with_tag(fd, IPC_FD_TAG);
         return -1;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, IPC_FD_TAG);
     OH_IPCParcel_Destroy(data);
     OH_IPCParcel_Destroy(reply);
     return 0;
@@ -748,8 +749,9 @@ int OHOS::NativeRemoteStubTest::SendAndEchoFileDescriptor()
         ZLOGE(LABEL, "OH_IPCParcel_ReadFileDescriptor failed! ret:%{public}d", ret);
         return OH_IPC_PARCEL_READ_ERROR;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
     (void)write(fd, TEST_VAL_STRING.c_str(), TEST_VAL_STRING.length());
-    close(fd);
+    fdsan_close_with_tag(fd, IPC_FD_TAG);
     return OH_IPC_SUCCESS;
 }
 

@@ -21,7 +21,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <unistd.h>
+#include <cstdio>
 
 #include "__mutex_base"
 #include "cerrno"
@@ -34,6 +34,7 @@
 #include "new"
 #include "string"
 #include "sys_binder.h"
+#include "fd_san.h"
 
 namespace OHOS {
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_BINDER_CONNECT, "BinderConnector" };
@@ -71,13 +72,15 @@ bool BinderConnector::OpenDriver()
         ZLOGE(LABEL, "fail to open errno:%{public}d", errno);
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
+
     int32_t version = 0;
     int ret = ioctl(fd, BINDER_VERSION, &version);
     if (ret != 0 || version != BINDER_CURRENT_PROTOCOL_VERSION) {
         ZLOGE(LABEL, "Get Binder version failed, error:%{public}d "
             "or version not match, driver version:%{public}d, ipc version:%{public}d",
             errno, version, BINDER_CURRENT_PROTOCOL_VERSION);
-        close(fd);
+        fdsan_close_with_tag(fd, IPC_FD_TAG);
         return false;
     }
     uint64_t featureSet = 0;
@@ -90,7 +93,7 @@ bool BinderConnector::OpenDriver()
     driverFD_.store(fd);
 
     if (!MapMemory(featureSet)) {
-        close(driverFD_.load());
+        fdsan_close_with_tag(driverFD_.load(), IPC_FD_TAG);
         driverFD_.store(-1);
         return false;
     }
@@ -158,27 +161,40 @@ uint64_t BinderConnector::GetSelfTokenID()
     if (IsAccessTokenSupported() != true) {
         return 0;
     }
-    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    FILE *fp = fopen(TOKENID_DEVNODE, "r+");
+    if (fp == nullptr) {
+        ZLOGE(LABEL, "fail to open tokenId node, errno:%{public}d", errno);
+        return 0;
+    }
+    int fd = fileno(fp);
     if (fd < 0) {
         ZLOGE(LABEL, "fail to open tokenId node, errno:%{public}d", errno);
+        (void)fclose(fp);
         return 0;
     }
     int ret = ioctl(fd, ACCESS_TOKENID_GET_TOKENID, &selfTokenID_);
     if (ret != 0) {
         selfTokenID_ = 0;
     }
-    close(fd);
+    (void)fclose(fp);
     return selfTokenID_;
 }
+
 
 uint64_t BinderConnector::GetSelfFirstCallerTokenID()
 {
     if (IsAccessTokenSupported() != true) {
         return 0;
     }
-    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    FILE *fp = fopen(TOKENID_DEVNODE, "r+");
+    if (fp == nullptr) {
+        ZLOGE(LABEL, "fail to open tokenId node, errno:%{public}d", errno);
+        return 0;
+    }
+    int fd = fileno(fp);
     if (fd < 0) {
         ZLOGE(LABEL, "fail to open tokenId node, errno:%{public}d", errno);
+        (void)fclose(fp);
         return 0;
     }
     uint64_t token = 0;
@@ -186,7 +202,7 @@ uint64_t BinderConnector::GetSelfFirstCallerTokenID()
     if (ret != 0) {
         token = 0;
     }
-    close(fd);
+    (void)fclose(fp);
     return token;
 }
 
@@ -196,7 +212,7 @@ void BinderConnector::CloseDriverFd()
         int tmpFd = driverFD_.exchange(-1);
         // avoid call 'close' and 'ioctl' concurrently
         std::this_thread::sleep_for(std::chrono::milliseconds(CLOSE_WAIT_TIME_MS));
-        close(tmpFd);
+        fdsan_close_with_tag(tmpFd, IPC_FD_TAG);
     }
 }
 

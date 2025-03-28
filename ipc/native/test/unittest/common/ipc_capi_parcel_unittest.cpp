@@ -14,7 +14,6 @@
  */
 
 #include <gtest/gtest.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -22,6 +21,7 @@
 #include <securec.h>
 #include <thread>
 #include <chrono>
+#include <cstdio>
 #include "parcel.h"
 #include "refbase.h"
 #include "ipc_cparcel.h"
@@ -34,6 +34,7 @@
 #include <vector>
 #include "ipc_debug.h"
 #include "log_tags.h"
+#include "fd_san.h"
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
@@ -638,7 +639,9 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteFileDescriptor_001, Te
     OHIPCParcel *parcel = OH_IPCParcel_Create();
     EXPECT_NE(parcel, nullptr);
 
-    int32_t fd = open("/dev/null", O_RDONLY);
+    FILE *fp = fopen("/dev/null", "r");
+    EXPECT_NE(fp, nullptr);
+    int32_t fd = fileno(fp);
     EXPECT_TRUE(fd >= 0);
     EXPECT_EQ(OH_IPCParcel_WriteFileDescriptor(nullptr, fd), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_WriteFileDescriptor(parcel, fd), OH_IPC_SUCCESS);
@@ -648,8 +651,9 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteFileDescriptor_001, Te
     EXPECT_EQ(OH_IPCParcel_ReadFileDescriptor(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_ReadFileDescriptor(parcel, &readFd), OH_IPC_SUCCESS);
     EXPECT_TRUE(readFd > 0);
-    close(fd);
-    close(readFd);
+    fdsan_exchange_owner_tag(readFd, 0, IPC_FD_TAG);
+    (void)fclose(fp);
+    fdsan_close_with_tag(readFd, IPC_FD_TAG);
     OH_IPCParcel_Destroy(parcel);
 }
 
