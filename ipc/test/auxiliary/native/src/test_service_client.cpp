@@ -15,13 +15,13 @@
 
 #include "test_service_client.h"
 #include <iostream>
-#include <unistd.h>
 #include <map>
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "fd_san.h"
 
 namespace OHOS {
 
@@ -136,11 +136,12 @@ bool TestServiceClient::StartTestFileDescriptor()
         ZLOGE(LABEL, "TestGetFileDescriptor function call failed");
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
     if (write(fd, "client write!\n", strlen("client write!\n")) < 0) {
         ZLOGE(LABEL, "write fd error");
         return false;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, IPC_FD_TAG);
     return true;
 }
 

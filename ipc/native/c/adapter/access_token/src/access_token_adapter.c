@@ -15,9 +15,8 @@
 
 #include "access_token_adapter.h"
 
-#include <fcntl.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
+#include <stdio.h>
 
 #include "bits/ioctl.h"
 
@@ -47,33 +46,42 @@ enum {
 uint64_t RpcGetSelfTokenID(void)
 {
     uint64_t token = INVAL_TOKEN_ID;
-    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    FILE *fp = fopen(TOKENID_DEVNODE, "r+");
+    if (fp == NULL) {
+        return INVAL_TOKEN_ID;
+    }
+    int fd = fileno(fp);
     if (fd < 0) {
+        (void)fclose(fp);
         return INVAL_TOKEN_ID;
     }
     int ret = ioctl(fd, ACCESS_TOKENID_GET_TOKENID, &token);
-    if (ret) {
-        close(fd);
+    if (ret != 0) {
+        (void)fclose(fp);
         return INVAL_TOKEN_ID;
     }
-
-    close(fd);
+    (void)fclose(fp);
     return token;
 }
 
 uint64_t RpcGetFirstCallerTokenID(void)
 {
     uint64_t token = INVAL_TOKEN_ID;
-    int fd = open(TOKENID_DEVNODE, O_RDWR);
+    FILE *fp = fopen(TOKENID_DEVNODE, "r+");
+    if (fp == NULL) {
+        return INVAL_TOKEN_ID;
+    }
+    int fd = fileno(fp);
     if (fd < 0) {
+        (void)fclose(fp);
         return INVAL_TOKEN_ID;
     }
     int ret = ioctl(fd, ACCESS_TOKENID_GET_FTOKENID, &token);
-    if (ret) {
-        close(fd);
+    if (ret != 0) {
+        (void)fclose(fp);
         return INVAL_TOKEN_ID;
     }
 
-    close(fd);
+    (void)fclose(fp);
     return token;
 }
