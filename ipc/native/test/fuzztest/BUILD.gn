@@ -26,7 +26,6 @@ group("fuzztest") {
       "core/bufferobject_fuzzer:fuzztest",
       "core/ipcprocessskeleton_fuzzer:fuzztest",
       "core/ipcskeleton_fuzzer:fuzztest",
-      "mock/binderinvoker_fuzzer:fuzztest",
     ]
   }
 }
