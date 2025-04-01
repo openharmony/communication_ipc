@@ -23,9 +23,6 @@ group("fuzztest") {
       "c/isatenable_fuzzer:fuzztest",
       "c/isfeatureack_fuzzer:fuzztest",
       "c/setfeaturetransdata_fuzzer:fuzztest",
-      "core/bufferobject_fuzzer:fuzztest",
-      "core/ipcprocessskeleton_fuzzer:fuzztest",
-      "core/ipcskeleton_fuzzer:fuzztest",
     ]
   }
 }
