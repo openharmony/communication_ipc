@@ -129,6 +129,10 @@ ipc_unittest("DatabusSocketListenerUnitTest") {
   sources = [ "databus_socket_listener_unittest.cpp" ]
 }
 
+ipc_unittest("IPCFileDescriptorTest") {
+  sources = [ "ipc_file_descriptor_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -138,6 +142,7 @@ group("unittest") {
     ":DBinderSoftbusClientTest",
     ":DatabusSocketListenerUnitTest",
     ":DbinderDataBusInvokerTest",
+    ":IPCFileDescriptorTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IPCSkeletonTest",
