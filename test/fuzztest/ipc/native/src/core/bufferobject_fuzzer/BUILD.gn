@@ -16,16 +16,16 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("BufferObjectTwoFuzzTest") {
+ohos_fuzztest("BufferObjectFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../bufferobjecttwo_fuzzer"
+  fuzz_config_file = "../bufferobject_fuzzer"
 
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
     "-fstack-protector-strong",
   ]
-  sources = [ "bufferobjecttwo_fuzzer.cpp" ]
+  sources = [ "bufferobject_fuzzer.cpp" ]
 
   deps = [ "../../../../../../../test:ipc_single_test_static" ]
 
