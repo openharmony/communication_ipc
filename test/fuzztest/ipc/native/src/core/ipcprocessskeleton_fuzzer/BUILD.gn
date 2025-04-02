@@ -16,7 +16,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IPCProcessSkeletonTwoFuzzTest") {
+ohos_fuzztest("IPCProcessSkeletonFuzzTest") {
   module_out_path = "ipc/ipc"
   fuzz_config_file = "../ipcprocessskeleton_fuzzer"
 
