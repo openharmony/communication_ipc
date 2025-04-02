@@ -25,6 +25,6 @@ uint32_t GetCallingTokenId();
 char* GetCallingDeviceID();
 char* GetLocalDeviceID();
 bool IsLocalCalling();
-void FlushCmdBuffer(RetDataI64 object);
+void FlushCmdBuffer(int64_t object);
 } // namespace OHOS
 #endif

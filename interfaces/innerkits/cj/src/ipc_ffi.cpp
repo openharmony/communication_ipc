@@ -19,6 +19,9 @@
 
 #include "ipc_skeleton_imp.h"
 #include "message_option.h"
+#include "napi_remote_object_holder.h"
+#include "napi_remote_proxy_holder.h"
+#include "napi/native_common.h"
 #include "process_skeleton_impl.h"
 #include "remote_object_impl.h"
 #include "remote_proxy_holder_impl.h"
@@ -27,6 +30,7 @@
 using namespace OHOS::FFI;
 
 namespace OHOS {
+static const size_t ARGV_LENGTH_1 = 1;
 extern "C" {
 int64_t FfiRpcMessageSequenceImplCreate()
 {
@@ -531,7 +535,7 @@ void FfiRpcMessageSequenceImplWriteRawDataBuffer(int64_t id, uint8_t* data, int6
     *errCode = rpc->CJ_WriteRawDataBuffer(data, size);
 }
 
-void FfiRpcMessageSequenceImplWriteRemoteObject(int64_t id, RetDataI64 object, int32_t* errCode)
+void FfiRpcMessageSequenceImplWriteRemoteObject(int64_t id, int64_t object, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplWriteRemoteObject start");
     auto rpc = FFIData::GetData<MessageSequenceImpl>(id);
@@ -544,7 +548,7 @@ void FfiRpcMessageSequenceImplWriteRemoteObject(int64_t id, RetDataI64 object, i
     *errCode = rpc->CJ_WriteRemoteObject(object);
 }
 
-void FfiRpcMessageSequenceImplWriteRemoteObjectArray(int64_t id, OHOS::RemoteObjectArray value, int32_t* errCode)
+void FfiRpcMessageSequenceImplWriteRemoteObjectArray(int64_t id, OHOS::CJLongArray value, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplWriteRemoteObjectArray start");
     auto rpc = FFIData::GetData<MessageSequenceImpl>(id);
@@ -1122,6 +1126,7 @@ uint8_t* FfiRpcMessageSequenceImplReadRawDataBuffer(int64_t id, int64_t size, in
     return rpc->CJ_ReadRawDataBuffer(size, errCode);
 }
 
+
 RetDataI64 FfiRpcMessageSequenceImplReadRemoteObject(int64_t id, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplReadRemoteObject start");
@@ -1524,7 +1529,7 @@ bool FfiRpcIPCSkeletonIsLocalCalling()
     return IsLocalCalling();
 }
 
-void FfiRpcIPCSkeletonFlushCmdBuffer(RetDataI64 object)
+void FfiRpcIPCSkeletonFlushCmdBuffer(int64_t object)
 {
     FlushCmdBuffer(object);
 }
@@ -1592,6 +1597,145 @@ bool FfiRpcRemoteProxyIsObjectDead(int64_t id)
     }
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcRemoteProxyIsObjectDead end");
     return remoteProxy->IsObjectDead();
+}
+
+int32_t FfiRpcGetRemoteType(int64_t id)
+{
+    auto remoteObject  = FFIData::GetData<CjIRemoteObjectImpl>(id);
+    if (!remoteObject) {
+        ZLOGE(LOG_LABEL, "[RPC] get construct failed");
+        return -1;
+    }
+    return remoteObject->IsProxyObject() ? 1 : 0;
+}
+
+NAPIRemoteProxyHolder *GetRemoteProxyHolder(napi_env env, napi_value jsRemoteProxy)
+{
+    NAPIRemoteProxyHolder *proxyHolder = nullptr;
+    napi_unwrap(env, jsRemoteProxy, (void **)&proxyHolder);
+    NAPI_ASSERT(env, proxyHolder != nullptr, "failed to get napi remote proxy holder");
+    return proxyHolder;
+}
+
+int64_t FfiCreateRemoteObjectFromNapi(napi_env env, napi_value object)
+{
+    if (env != nullptr || object != nullptr) {
+        napi_value global = nullptr;
+        napi_status status = napi_get_global(env, &global);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "get napi global failed");
+            return 0;
+        }
+        napi_value stubConstructor = nullptr;
+        status = napi_get_named_property(env, global, "IPCStubConstructor_", &stubConstructor);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "get stub constructor failed");
+            return 0;
+        }
+        bool instanceOfStub = false;
+        status = napi_instanceof(env, object, stubConstructor, &instanceOfStub);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "failed to check js object type");
+            return 0;
+        }
+        if (instanceOfStub) {
+            NAPIRemoteObjectHolder *holder = nullptr;
+            napi_unwrap(env, object, (void **)&holder);
+            if (holder == nullptr) {
+                ZLOGE(LOG_LABEL, "failed to get napi remote object holder");
+                return 0;
+            }
+            return CreateStubRemoteObject(holder->Get());
+        }
+
+        napi_value proxyConstructor = nullptr;
+        status = napi_get_named_property(env, global, "IPCProxyConstructor_", &proxyConstructor);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "get proxy constructor failed");
+            return 0;
+        }
+        bool instanceOfProxy = false;
+        status = napi_instanceof(env, object, proxyConstructor, &instanceOfProxy);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "failed to check js object type");
+            return 0;
+        }
+        if (instanceOfProxy) {
+            NAPIRemoteProxyHolder *proxyHolder = GetRemoteProxyHolder(env, object);
+            return CreateProxyRemoteObject(proxyHolder->object_);
+        }
+    }
+    return 0;
+}
+
+napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+{
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(env, global, "IPCProxyConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "get proxy constructor failed");
+    napi_value jsRemoteProxy;
+    status = napi_new_instance(env, constructor, 0, nullptr, &jsRemoteProxy);
+    NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteProxy");
+    NAPIRemoteProxyHolder *proxyHolder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
+    if (proxyHolder == nullptr) {
+        ZLOGE(LOG_LABEL, "proxyHolder null");
+        return nullptr;
+    }
+    proxyHolder->object_ = target;
+    proxyHolder->list_ = new (std::nothrow) NAPIDeathRecipientList();
+    NAPI_ASSERT(env, proxyHolder->list_ != nullptr, "new NAPIDeathRecipientList failed");
+
+    return jsRemoteProxy;
+}
+
+napi_value CreateJsStubRemoteObject(napi_env env, const sptr<IRemoteObject> target)
+{
+    // retrieve js remote object constructor
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(env, &global);
+    NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(env, global, "IPCStubConstructor_", &constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
+    NAPI_ASSERT(env, constructor != nullptr, "failed to get js RemoteObject constructor");
+    // retrieve descriptor and it's length
+    std::u16string descriptor = target->GetObjectDescriptor();
+    std::string desc = Str16ToStr8(descriptor);
+    napi_value jsDesc = nullptr;
+    napi_create_string_utf8(env, desc.c_str(), desc.length(), &jsDesc);
+    // create a new js remote object
+    size_t argc = 1;
+    napi_value argv[ARGV_LENGTH_1] = { jsDesc };
+    napi_value jsRemoteObject = nullptr;
+    status = napi_new_instance(env, constructor, argc, argv, &jsRemoteObject);
+    NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteObject");
+    // retrieve holder and set object
+    NAPIRemoteObjectHolder *holder = nullptr;
+    napi_unwrap(env, jsRemoteObject, (void **)&holder);
+    NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
+    holder->Set(target);
+    return jsRemoteObject;
+}
+
+napi_value FfiConvertRemoteObject2Napi(napi_env env, int64_t object)
+{
+    sptr<IRemoteObject> target = CJ_rpc_getNativeRemoteObject(object);
+    if (target == nullptr) {
+        return nullptr;
+    }
+    if (!target->IsProxyObject()) {
+        IPCObjectStub *tmp = static_cast<IPCObjectStub *>(target.GetRefPtr());
+        uint32_t objectType = static_cast<uint32_t>(tmp->GetObjectType());
+        ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
+        if (objectType == IPCObjectStub::OBJECT_TYPE_JAVASCRIPT || objectType == IPCObjectStub::OBJECT_TYPE_NATIVE) {
+            return CreateJsStubRemoteObject(env, target);
+        }
+    }
+
+    return CreateJsProxyRemoteObject(env, target);
 }
 }
 } // namespace OHOS
