@@ -19,24 +19,10 @@
 #include <thread>
 
 #include "ipc_object_stub.h"
+#include "napi_remote_object.h"
+#include "napi_remote_object_internal.h"
 
 namespace OHOS {
-struct ThreadLockInfo {
-    std::mutex mutex;
-    std::condition_variable condition;
-    bool ready = false;
-};
-
-struct CallingInfo {
-    pid_t callingPid;
-    pid_t callingUid;
-    uint32_t callingTokenId;
-    std::string callingDeviceID;
-    std::string localDeviceID;
-    bool isLocalCalling;
-    int activeStatus;
-};
-
 struct CJCallbackParam {
     int64_t id;
     uint32_t code;
