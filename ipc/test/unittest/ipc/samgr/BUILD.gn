@@ -14,8 +14,9 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/config/test.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc/test/unittest/ipc"
-IPC_CORE_ROOT = "//foundation/communication/ipc/ipc/native/c"
+IPC_ROOT_DIR = "//foundation/communication/ipc"
+SUBSYSTEM_DIR = "$IPC_ROOT_DIR/ipc/test/unittest/ipc"
+IPC_CORE_ROOT = "$IPC_ROOT_DIR/ipc/native/c"
 
 unittest("samgr") {
   output_extension = "bin"
@@ -27,13 +28,13 @@ unittest("samgr") {
 
   include_dirs = [
     "$SUBSYSTEM_DIR/include",
-    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/ipc/include",
+    "$IPC_ROOT_DIR/utils/include",
   ]
 
   sources = [ "IpcSamgrTest.cpp" ]
 
-  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
+  deps = [ "$IPC_ROOT_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
   external_deps = [ "bounds_checking_function:libsec_shared" ]
 }

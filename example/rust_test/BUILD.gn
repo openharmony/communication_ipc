@@ -12,14 +12,17 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../config.gni")
 
 #################################group#########################################
 
 group("example_unittest") {
   testonly = true
-  deps = [
-    "client:example_rust_ipc_client",
-    "server:example_rust_ipc_server",
-  ]
+  if (ipc_feature_test_enabled) {
+    deps = [
+      "client:example_rust_ipc_client",
+      "server:example_rust_ipc_server",
+    ]
+  }
 }
 ###############################################################################

@@ -24,6 +24,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 constexpr uint32_t BUFF_SIZE_TEST = 128;
 constexpr ssize_t BUFFER_WRITE_CURSOR_TEST = 8;
@@ -603,3 +604,4 @@ HWTEST_F(BufferObjectUnitTest, GetRecvBufferSizeTest001, TestSize.Level1)
     object.recvBuffSize_ = BUFF_SIZE_TEST;
     EXPECT_EQ(object.GetRecvBufferSize(), BUFF_SIZE_TEST);
 }
+} // namespace OHOS

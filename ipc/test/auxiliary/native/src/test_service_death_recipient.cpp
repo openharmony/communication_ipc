@@ -26,7 +26,7 @@ bool TestDeathRecipient::GotDeathRecipient()
 void TestDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     gotDeathRecipient_ = true;
-    ZLOGI(LABEL, "recv death notice");
+    ZLOGI(LABEL, "Recv death notice");
 }
 
 TestDeathRecipient::TestDeathRecipient()

@@ -68,7 +68,7 @@ NativeRemoteProxyTest::NativeRemoteProxyTest(const sptr<ITestService> &testServi
     : NativeRemoteBase(testService)
 {
     if (testService_ == nullptr) {
-        ZLOGE(LABEL, "test service is nullptr");
+        ZLOGE(LABEL, "Test service is nullptr");
         return;
     }
 
@@ -143,10 +143,12 @@ int NativeRemoteProxyTest::SyncAdd()
 int NativeRemoteProxyTest::ASyncAdd()
 {
     if (proxy_ == nullptr) {
+        ZLOGE(LABEL, "proxy_ is nullptr");
         return -1;
     }
     OHIPCParcel *data = OH_IPCParcel_Create();
     if (data == nullptr) {
+        ZLOGE(LABEL, "data is nullptr");
         return -1;
     }
 
@@ -164,13 +166,13 @@ int NativeRemoteProxyTest::ASyncAdd()
     int ret = OH_IPCRemoteProxy_SendRequest(proxy_, NATIVE_TEST_CMD_ASYNC_ADD, data, nullptr, &option);
     OH_IPCParcel_Destroy(data);
     if (ret != OH_IPC_SUCCESS) {
-        ZLOGE(LABEL, "ipc sendRequest return=%{public}d ", ret);
+        ZLOGE(LABEL, "ipc sendRequest return = %{public}d ", ret);
         return -1;
     }
     static constexpr int TIMEOUT = 3;
     WaitForAsyncReply(TIMEOUT);
     if ((a + b) == asyncReply_) {
-        ZLOGD(LABEL, "ASyncAdd success! %{public}d + %{public}d = %{public}d", a, b, asyncReply_);
+        ZLOGI(LABEL, "ASyncAdd success! %{public}d + %{public}d = %{public}d", a, b, asyncReply_);
         return 0;
     }
     ZLOGE(LABEL, "ASyncAdd failed! %{public}d + %{public}d = %{public}d", a, b, asyncReply_);
@@ -180,7 +182,7 @@ int NativeRemoteProxyTest::ASyncAdd()
 int NativeRemoteProxyTest::OnRemoteRequestStubCallBack(uint32_t code,
     const OHIPCParcel *data, OHIPCParcel *reply, void *userData)
 {
-    ZLOGD(LABEL, "start %{public}u", code);
+    ZLOGI(LABEL, "start %{public}u", code);
     auto *proxyTest = reinterpret_cast<NativeRemoteProxyTest *>(userData);
     if (code != NATIVE_TEST_CMD_ASYNC_ADD || proxyTest == nullptr) {
         ZLOGE(LABEL, "check params or init failed!");
@@ -209,8 +211,8 @@ int NativeRemoteProxyTest::WaitForAsyncReply(int timeout)
 {
     asyncReply_ = 0;
     std::unique_lock<std::mutex> lck(mutex_);
-    cv_.wait_for(lck, std::chrono::seconds(timeout), [&]() {
-        return asyncReply_ != 0;
+    cv_.wait_for(lck, std::chrono::seconds(timeout), [this]() {
+        return this->asyncReply_ != 0;
     });
     return asyncReply_;
 }
@@ -476,7 +478,7 @@ int NativeRemoteProxyTest::SendErrorCode()
     if (proxy_ == nullptr) {
         return -1;
     }
-    auto func = [&, this](int val, int expect) -> int {
+    auto func = [proxy = this->proxy_](int val, int expect) -> int {
         OHIPCParcel *data = OH_IPCParcel_Create();
         if (data == nullptr) {
             return -1;
@@ -493,7 +495,7 @@ int NativeRemoteProxyTest::SendErrorCode()
             return -1;
         }
         OH_IPCParcel_WriteInt32(data, val);
-        int ret = OH_IPCRemoteProxy_SendRequest(this->proxy_, NATIVE_TEST_CMD_SEND_ERROR_CODE, data, reply, &option);
+        int ret = OH_IPCRemoteProxy_SendRequest(proxy, NATIVE_TEST_CMD_SEND_ERROR_CODE, data, reply, &option);
         OH_IPCParcel_Destroy(data);
         OH_IPCParcel_Destroy(reply);
         return (ret == expect) ? 0 : -1;
@@ -522,7 +524,7 @@ int NativeRemoteProxyTest::AddParallel(bool isSync)
             return ret;
         }
     }
-    ZLOGD(LABEL, "Parallel test success!");
+    ZLOGI(LABEL, "Parallel test success!");
     return 0;
 }
 
@@ -556,7 +558,7 @@ NativeRemoteStubTest::~NativeRemoteStubTest()
 
 int NativeRemoteStubTest::RegisterRemoteStub()
 {
-    ZLOGD(LABEL, "TestRegisterRemoteStubTest");
+    ZLOGI(LABEL, "TestRegisterRemoteStubTest");
     if (testService_ == nullptr) {
         ZLOGE(LABEL, "Member variable testService_ Is a null pointer");
         return OH_IPC_INNER_ERROR;
@@ -567,7 +569,7 @@ int NativeRemoteStubTest::RegisterRemoteStub()
 
 int NativeRemoteStubTest::UnRegisterRemoteStub()
 {
-    ZLOGD(LABEL, "TestRegisterRemoteStubTest");
+    ZLOGI(LABEL, "TestRegisterRemoteStubTest");
     if (testService_ == nullptr) {
         ZLOGE(LABEL, "Member variable testService_ Is a null pointer");
         return OH_IPC_INNER_ERROR;
@@ -639,16 +641,16 @@ int NativeRemoteStubTest::ASyncAdd()
         OH_IPCParcel_Destroy(dataParcel);
         return OH_IPC_MEM_ALLOCATOR_ERROR;
     }
-    ZLOGD(LABEL, "start create sendCallback thread!");
+    ZLOGI(LABEL, "start create sendCallback thread!");
     std::thread th([proxyCallBack, dataParcel, replyParcel, a, b] {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         OH_IPCParcel_WriteInt32(dataParcel, a + b);
         OH_IPC_MessageOption option{ OH_IPC_REQUEST_MODE_ASYNC, 0 };
-        ZLOGD(LABEL, "thread start sendCallback!");
+        ZLOGI(LABEL, "thread start sendCallback!");
         int ret = OH_IPCRemoteProxy_SendRequest(proxyCallBack, NATIVE_TEST_CMD_ASYNC_ADD,
             dataParcel, replyParcel, &option);
         if (ret != OH_IPC_SUCCESS) {
-            ZLOGE(LABEL, "ASyncAdd SendRequest failed! ret=%{public}d", ret);
+            ZLOGE(LABEL, "ASyncAdd SendRequest failed! ret = %{public}d", ret);
         }
         OH_IPCRemoteProxy_Destroy(proxyCallBack);
         OH_IPCParcel_Destroy(dataParcel);

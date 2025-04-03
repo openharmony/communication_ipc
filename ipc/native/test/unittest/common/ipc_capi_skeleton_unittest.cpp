@@ -21,8 +21,6 @@
 #include "ipc_cparcel.h"
 #include "ipc_cremote_object.h"
 #include "ipc_cskeleton.h"
-#include "ipc_test_helper.h"
-#include "test_service_command.h"
 
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -56,6 +54,7 @@ using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 using namespace testing::ext;
 
+namespace OHOS {
 static constexpr int MAX_MEMORY_SIZE = 204800;
 
 class IpcCApiSkeletonUnitTest : public testing::Test {
@@ -265,3 +264,4 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_SetMaxWorkThreadNum_001, TestSize.Lev
     EXPECT_EQ(OH_IPCSkeleton_SetMaxWorkThreadNum(negativeCount), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCSkeleton_SetMaxWorkThreadNum(maxCount), OH_IPC_CHECK_PARAM_ERROR);
 }
+} // namespace OHOS

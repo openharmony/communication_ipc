@@ -25,7 +25,6 @@ unittest("rpc_client") {
   include_dirs = [
     "${SUBSYSTEM_DIR}/ipc/test/unittest/rpc/include",
     "//third_party/bounds_checking_function/include",
-    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/rpc/trans_adapter/include",
     "$IPC_CORE_ROOT/rpc/ipc_adapter/include",
@@ -33,7 +32,7 @@ unittest("rpc_client") {
     "$IPC_CORE_ROOT/ipc/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
-    "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    "$SUBSYSTEM_DIR/dbinder/c/include",
     "$SUBSYSTEM_DIR/utils/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
   ]

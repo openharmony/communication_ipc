@@ -20,7 +20,6 @@
 #define private public
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
-#include "ipc_test_helper.h"
 #include "ipc_thread_skeleton.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
@@ -31,6 +30,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IPCObjectProxyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -138,22 +138,8 @@ HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest001, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-    IPCTestHelper helper;
-    std::string ret = object.GetSessionNameForPidUid(helper.GetPid(), helper.GetUid());
+    std::string ret = object.GetSessionNameForPidUid(getuid(), getpid());
     ASSERT_TRUE(ret.size() == 0);
-}
-
-/**
- * @tc.name: GetPidUidTest001
- * @tc.desc: Verify the IPCObjectProxy::GetPidUid function
- * @tc.type: FUNC
- */
-HWTEST_F(IPCObjectProxyTest, GetPidUidTest001, TestSize.Level1)
-{
-    IPCObjectProxy object(1);
-    MessageParcel reply;
-    auto ret = object.GetPidUid(reply);
-    ASSERT_TRUE(ret != 0);
 }
 
 /**
@@ -190,7 +176,7 @@ HWTEST_F(IPCObjectProxyTest, GetObjectRefCountTest001, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest002, TestSize.Level1)
 {
     IPCObjectProxy object(0);
-    object.remoteDescriptor_ = u"";
+    object.interfaceDesc_ = u"";
     auto ret = object.GetInterfaceDescriptor();
     ASSERT_TRUE(ret.size() == 0);
 }
@@ -230,7 +216,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest005, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
+    object.interfaceDesc_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -258,7 +244,7 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
+    object.interfaceDesc_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -348,7 +334,6 @@ HWTEST_F(IPCObjectProxyTest, GetGrantedSessionNameTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -376,7 +361,6 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest004, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -404,7 +388,6 @@ HWTEST_F(IPCObjectProxyTest, GetSessionNameForPidUidTest005, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -432,7 +415,6 @@ HWTEST_F(IPCObjectProxyTest, OnFirstStrongRefTest005, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"";
 
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_BINDER] = nullptr;
@@ -705,6 +687,24 @@ HWTEST_F(IPCObjectProxyTest, NoticeServiceDieTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InvokeListenThreadTest001
+ * @tc.desc: Verify the IPCObjectProxy::InvokeListenThread function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, InvokeListenThreadTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    object->isRemoteDead_ = true;
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+    MessageParcel data;
+    MessageParcel reply;
+
+    auto ret = object->InvokeListenThread(data, reply);
+    EXPECT_EQ(ret, ERR_DEAD_OBJECT);
+}
+
+/**
  * @tc.name: IncRefToRemoteTest001
  * @tc.desc: Verify the IPCObjectProxy::IncRefToRemote function
  * @tc.type: FUNC
@@ -791,7 +791,6 @@ HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
-    object.remoteDescriptor_ = u"test";
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -827,7 +826,7 @@ HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipientTest001, TestSize.Level1)
     current->noticeStub_[object.GetRefPtr()] = objectStub;
     auto ret = object->AddDbinderDeathRecipient();
 
-    ASSERT_TRUE(ret == true);
+    ASSERT_TRUE(ret);
     current->noticeStub_.erase(object.GetRefPtr());
 }
 
@@ -847,7 +846,7 @@ HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipientTest002, TestSize.Level1)
     current->noticeStub_.clear();
     auto ret = object->AddDbinderDeathRecipient();
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -867,7 +866,7 @@ HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipientTest003, TestSize.Level1)
     current->noticeStub_[object.GetRefPtr()] = objectStub;
     auto ret = object->AddDbinderDeathRecipient();
 
-    ASSERT_TRUE(ret == true);
+    ASSERT_TRUE(ret);
     current->noticeStub_.erase(object.GetRefPtr());
 }
 
@@ -888,7 +887,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDbinderDeathRecipientTest001, TestSize.Level1
     current->noticeStub_[object.GetRefPtr()] = objectStub;
     auto ret = object->RemoveDbinderDeathRecipient();
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     current->noticeStub_.erase(object.GetRefPtr());
 }
 
@@ -918,7 +917,7 @@ HWTEST_F(IPCObjectProxyTest, CheckHaveSessionTest001, TestSize.Level1)
     ASSERT_TRUE(current->ProxyQueryDBinderSession(1) != nullptr);
     auto ret = object->CheckHaveSession();
 
-    ASSERT_TRUE(ret == true);
+    ASSERT_TRUE(ret);
     dbinderSessionObject->proxy_ = nullptr;
 }
 
@@ -940,7 +939,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest001, TestSize.Level1)
     MessageParcel reply;
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
 }
 
@@ -975,7 +974,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest002, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -1009,7 +1008,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest003, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -1042,7 +1041,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest004, TestSize.Level1)
     reply.WriteUint32(rpcFeatureSet);
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -1081,7 +1080,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest005, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     processCurrent->proxyToSession_.clear();
     dbinderSessionObject->proxy_ = nullptr;
 }
@@ -1123,7 +1122,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest006, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     processCurrent->proxyToSession_.clear();
     dbinderSessionObject->proxy_ = nullptr;
 }
@@ -1164,7 +1163,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest007, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     processCurrent->proxyToSession_.clear();
     dbinderSessionObject->proxy_ = nullptr;
 }
@@ -1203,7 +1202,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest008, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -1242,9 +1241,53 @@ HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest009, TestSize.Level1)
 
     auto ret = object->UpdateDatabusClientSession(1, reply);
 
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     processCurrent->proxyToSession_.clear();
     dbinderSessionObject->proxy_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest010
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest010, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    dData->stub_index = 1;
+    dData->tokenid = 1;
+    auto ret = strcpy_s(dData->target_name, SESSION_NAME_LENGTH, "DBinder");
+    ret += strcpy_s(dData->target_device, OHOS::DEVICEID_LENGTH, "target_device");
+    ret += strcpy_s(dData->local_device, OHOS::DEVICEID_LENGTH, "local_device");
+    ret += strcpy_s(dData->local_name, SESSION_NAME_LENGTH, "local_name");
+    ASSERT_EQ(ret, EOK);
+    bool result = object.UpdateDatabusClientSession();
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: UpdateDatabusClientSessionTest011
+ * @tc.desc: Verify the IPCObjectProxy::UpdateDatabusClientSession function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateDatabusClientSessionTest011, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    dData->stub_index = 1;
+    dData->tokenid = 1;
+    auto ret = strcpy_s(dData->target_name, SESSION_NAME_LENGTH, "DBinder 123_123");
+    ret += strcpy_s(dData->target_device, OHOS::DEVICEID_LENGTH, "target_device");
+    ret += strcpy_s(dData->local_device, OHOS::DEVICEID_LENGTH, "local_device");
+    ret += strcpy_s(dData->local_name, SESSION_NAME_LENGTH, "local_name");
+    ASSERT_EQ(ret, EOK);
+    bool result = object.UpdateDatabusClientSession();
+    ASSERT_FALSE(result);
 }
 
 /**
@@ -1333,6 +1376,54 @@ HWTEST_F(IPCObjectProxyTest, GetStrongRefCountForStubTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateProtoTest001
+ * @tc.desc: Verify the IPCObjectProxy::UpdateProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateProtoTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = "test";
+
+    auto ret = object.UpdateProto();
+    ASSERT_TRUE(ret == IRemoteObject::IF_PROT_ERROR);
+}
+
+/**
+ * @tc.name: UpdateProtoTest002
+ * @tc.desc: Verify the IPCObjectProxy::UpdateProto function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateProtoTest002, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = "test";
+
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    dbinder_negotiation_data dbinderData = {
+        .proto = IRemoteObject::IF_PROT_DATABUS,
+        .tokenid = 0,
+        .stub_index = 0,
+        .target_name = "target_name",
+        .local_name = "local_name",
+        .target_device = "target_device",
+        .local_device = "local_device",
+        .desc = {},
+        .reserved = {0, 0, 0}
+    };
+
+    auto ret = object.UpdateProto(&dbinderData);
+    ASSERT_FALSE(ret);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
+}
+
+/**
  * @tc.name: RemoveSessionNameTest001
  * @tc.desc: Verify the IPCObjectProxy::RemoveSessionName function
  * @tc.type: FUNC
@@ -1383,3 +1474,82 @@ HWTEST_F(IPCObjectProxyTest, RemoveSessionNameTest002, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+
+/**
+ * @tc.name: GetDBinderNegotiationDataTest001
+ * @tc.desc: Verify the IPCObjectProxy::GetDBinderNegotiationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    object.dbinderData_ = nullptr;
+    DBinderNegotiationData dbinderData;
+    int result = object.GetDBinderNegotiationData(dbinderData);
+    ASSERT_EQ(result, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetDBinderNegotiationDataTest002
+ * @tc.desc: Verify the IPCObjectProxy::GetDBinderNegotiationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest002, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    std::string serviceName = "DataBinder";
+    int ret = memcpy_s(dData->target_name, SESSION_NAME_LENGTH, serviceName.c_str(), serviceName.length());
+    ASSERT_EQ(ret, EOK);
+    int32_t handle = 0;
+    MessageParcel reply;
+    DBinderNegotiationData dbinderData;
+    ret = object.GetDBinderNegotiationData(handle, reply, dbinderData);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetDBinderNegotiationDataTest003
+ * @tc.desc: Verify the IPCObjectProxy::GetDBinderNegotiationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest003, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    std::string serviceName = "ServiceBinding_003";
+    int ret = memcpy_s(dData->target_name, SESSION_NAME_LENGTH, serviceName.c_str(), serviceName.length());
+    ASSERT_EQ(ret, ERR_NONE);
+    int32_t handle = 0;
+    MessageParcel reply;
+    DBinderNegotiationData dbinderData;
+    ret = object.GetDBinderNegotiationData(handle, reply, dbinderData);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetDBinderNegotiationDataTest004
+ * @tc.desc: Verify the IPCObjectProxy::GetDBinderNegotiationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest004, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    std::string serviceName = "DataBinderService";
+    int ret = memcpy_s(dData->target_name, SESSION_NAME_LENGTH, serviceName.c_str(), serviceName.length());
+    ASSERT_EQ(ret, ERR_NONE);
+    int32_t handle = 0;
+    MessageParcel reply;
+    DBinderNegotiationData dbinderData;
+    ret = object.GetDBinderNegotiationData(handle, reply, dbinderData);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+} // namespace OHOS

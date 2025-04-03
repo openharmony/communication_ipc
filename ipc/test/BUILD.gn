@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("../../config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_TEST_ROOT = "//foundation/communication/ipc/ipc/test"
@@ -21,7 +22,9 @@ config("ipc_test_config") {
     "//commonlibrary/c_utils/base/include",
     "$IPC_TEST_ROOT/auxiliary/native/include",
     "$SUBSYSTEM_DIR/utils/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/mock/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/dbinder/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/framework/include",
+    "$SUBSYSTEM_DIR/ipc/native/src/core/invoker/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api/include",
   ]
 }
@@ -29,6 +32,8 @@ config("ipc_test_config") {
 #################################group#########################################
 group("moduletest") {
   testonly = true
-  deps = [ "moduletest/native:moduletest" ]
+  if (ipc_feature_test_enabled) {
+    deps = [ "moduletest/native:moduletest" ]
+  }
 }
 ###############################################################################

@@ -22,7 +22,6 @@ executable("ipc_test_server") {
   output_dir = "$root_out_dir/test/ipc"
   sources = [ "$IPC_TEST_CORE/ipc/server/ipc_test_server.c" ]
   include_dirs = [
-    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/manager/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
     "$IPC_TEST_CORE/ipc/include",

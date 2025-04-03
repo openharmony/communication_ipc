@@ -25,6 +25,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IPCWorkThreadPoolUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -152,3 +153,4 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, UpdateMaxThreadNumTest001, TestSize.Level1)
 
     EXPECT_EQ(threadPool.maxThreadNum_, 2);
 }
+} // namespace OHOS

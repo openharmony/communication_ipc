@@ -17,9 +17,9 @@
 #define IPC_REMOTE_OBJECT_INTERNAL_H
 
 #include "ipc_cremote_object.h"
-#include "iremote_object.h"
-#include "ipc_object_stub.h"
 #include "ipc_error_code.h"
+#include "ipc_object_stub.h"
+#include "iremote_object.h"
 
 static inline bool IsUserDefinedError(int error)
 {
@@ -55,8 +55,8 @@ public:
         OH_OnRemoteDestroyCallback destroyCallback, void *userData);
     ~OHIPCRemoteServiceStub();
 
-    int OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data,
-        OHOS::MessageParcel &reply, OHOS::MessageOption &option) override;
+    int OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply,
+        OHOS::MessageOption &option) override;
 
 private:
     OH_OnRemoteRequestCallback requestCallback_;

@@ -138,15 +138,11 @@ HWTEST_F(RpcClientTest, RpcClientTest003, TestSize.Level1)
 
     IpcIo reply2;
     uintptr_t ptr2 = 0;
-    int32_t oldHandle = sid.handle;
     sid.handle = INVALID_HANDLE;
     int32_t ret = SendRequest(sid, OP_ADD, &data2, &reply2, option, &ptr2);
     EXPECT_EQ(ret, ERR_FAILED);
     RPC_LOG_ERROR("SendRequest OP_ADD failed, error = %d", ret);
     FreeBuffer((void *)ptr2);
-
-    sid.handle = oldHandle;
-    EXPECT_EQ(sid.handle, oldHandle);
 }
 
 /**

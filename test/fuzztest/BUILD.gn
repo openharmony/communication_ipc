@@ -1,0 +1,50 @@
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+group("fuzztest") {
+  testonly = true
+  deps = [
+    "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
+    "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
+    "ipc/native/src/core/binderinvoker_fuzzer:BinderInvokerTwoFuzzTest",
+    "ipc/native/src/core/bufferobjecttwo_fuzzer:BufferObjectTwoFuzzTest",
+    "ipc/native/src/core/databussocketlistener_fuzzer:DataBusSocketListenerFuzzTest",
+    "ipc/native/src/core/dbindercallbackstub_fuzzer:DBinderCallBackStubFuzzTest",
+    "ipc/native/src/core/dbinderdatabusinvoker_fuzzer:DBinderDatabusInvokerFuzzTest",
+    "ipc/native/src/core/dbindergrantpermission_fuzzer:DBinderGrantPermissionFuzzTest",
+    "ipc/native/src/core/dbinderremovepermission_fuzzer:DBinderRemovePermissionFuzzTest",
+    "ipc/native/src/core/dbindersessionobject_fuzzer:DBinderSessionObjectFuzzTest",
+    "ipc/native/src/core/dbindersoftbusclient_fuzzer:DBinderSoftbusClientFuzzTest",
+    "ipc/native/src/core/getlocalnodedeviceid_fuzzer:GetLocalNodeDeviceIdFuzzTest",
+    "ipc/native/src/core/invokerfactory_fuzzer:InvokerFactoryFuzzTest",
+    "ipc/native/src/core/ipcfiledescriptor_fuzzer:IPCFileDescriptorFuzzTest",
+    "ipc/native/src/core/ipcfiledescriptormarshalling_fuzzer:IPCFileDescriptorMarshallingFuzzTest",
+    "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
+    "ipc/native/src/core/ipcobjectproxy_fuzzer:IPCObjectProxyFuzzTest",
+    "ipc/native/src/core/ipcobjectstub_fuzzer:IPCObjectStubFuzzTest",
+    "ipc/native/src/core/ipcpayloadstatistics_fuzzer:IPCPayloadStatisticsFuzzTest",
+    "ipc/native/src/core/ipcprocessskeleton_fuzzer:IPCProcessSkeletonTwoFuzzTest",
+    "ipc/native/src/core/ipcskeleton_fuzzer:IPCSkeletonTwoFuzzTest",
+    "ipc/native/src/core/ipcthreadpool_fuzzer:IPCThreadPoolFuzzTest",
+    "ipc/native/src/core/ipcthreadskeleton_fuzzer:IPCThreadSkeletonFuzzTest",
+    "ipc/native/src/core/listen_fuzzer:ListenFuzzTest",
+    "ipc/native/src/core/messageoption_fuzzer:MessageOptionFuzzTest",
+    "ipc/native/src/core/removedeathrecipient_fuzzer:RemoveDeathRecipientFuzzTest",
+    "ipc/native/src/core/sendbytes_fuzzer:SendBytesFuzzTest",
+    "ipc/native/src/core/sendrequest_fuzzer:SendRequestFuzzTest",
+    "ipc/native/src/core/setcallingidentity_fuzzer:SetCallingIdentityFuzzTest",
+    "ipc/native/src/core/setipcproxylimit_fuzzer:SetIPCProxyLimitFuzzTest",
+    "ipc/native/src/core/socket_fuzzer:SocketFuzzTest",
+    "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
+  ]
+}

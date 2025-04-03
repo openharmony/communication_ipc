@@ -14,7 +14,7 @@
 import("//build/lite/config/component/lite_component.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
-DBINDER_ROOT = "$SUBSYSTEM_DIR/services/dbinder/c"
+DBINDER_ROOT = "$SUBSYSTEM_DIR/dbinder/c"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 
 config("ipc_rpc_interface") {
@@ -37,13 +37,12 @@ if (ohos_kernel_type == "linux") {
     include_dirs = [
       "$DBINDER_ROOT/include",
       "$DBINDER_ROOT/ipc_adapter/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/ipc/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/rpc/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/rpc/ipc_adapter/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/rpc/trans_adapter/include",
-      "$SUBSYSTEM_DIR/ipc/native/c/manager/include",
+      "$IPC_CORE_ROOT/c/ipc/include",
+      "$IPC_CORE_ROOT/c/rpc/include",
+      "$IPC_CORE_ROOT/c/rpc/ipc_adapter/include",
+      "$IPC_CORE_ROOT/c/rpc/trans_adapter/include",
+      "$IPC_CORE_ROOT/c/manager/include",
       "$SUBSYSTEM_DIR/utils/include",
-      "//commonlibrary/utils_lite/include",
     ]
     ldflags = [
       "-lstdc++",
@@ -77,7 +76,6 @@ if (ohos_kernel_type == "linux") {
       "$SUBSYSTEM_DIR/ipc/test/rpc/include",
       "$SUBSYSTEM_DIR/utils/include",
       "//third_party/bounds_checking_function/include",
-      "//commonlibrary/utils_lite/include",
       "//base/hiviewdfx/hilog_lite/interfaces/native/kits/hilog_lite",
     ]
     ldflags = [ "-lpthread" ]

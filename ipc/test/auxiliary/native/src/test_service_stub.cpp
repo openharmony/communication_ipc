@@ -105,7 +105,7 @@ int32_t TestServiceStub::ServerPingService(MessageParcel &data, MessageParcel &r
 {
     std::u16string serviceName = data.ReadString16();
     int32_t result = TestPingService(serviceName);
-    ZLOGD(LABEL, "%{public}s:PingService: result=%{public}d", __func__, result);
+    ZLOGI(LABEL, "Result:%{public}d", result);
     reply.WriteInt32(result);
     return 0;
 }
@@ -141,7 +141,7 @@ int32_t TestServiceStub::ServerZtraceTransaction(MessageParcel &data, MessagePar
     int32_t ret = 0;
     int32_t len = data.ReadInt32();
     if (len < 0) {
-        ZLOGE(LABEL, "%{public}s:get len failed, len = %{public}d", __func__, len);
+        ZLOGE(LABEL, "Get len failed, len = %{public}d", len);
         return ret;
     }
     std::string recvString;
@@ -159,18 +159,18 @@ int32_t TestServiceStub::ServerCallingUidAndPid(MessageParcel &data, MessageParc
     reply.WriteInt32(IPCSkeleton::GetCallingUid());
     reply.WriteInt32(IPCSkeleton::GetCallingPid());
 
-    ZLOGE(LABEL, "calling before reset uid = %{public}d, pid = %{public}d",
+    ZLOGI(LABEL, "Calling before reset uid = %{public}d, pid = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     std::string token = IPCSkeleton::ResetCallingIdentity();
 
-    ZLOGE(LABEL, "calling before set uid = %{public}d, pid = %{public}d",
+    ZLOGI(LABEL, "Calling before set uid = %{public}d, pid = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     if (!IPCSkeleton::SetCallingIdentity(token)) {
         ZLOGE(LABEL, "Set Calling Identity fail");
         return 0;
     }
 
-    ZLOGE(LABEL, "calling after set uid = %{public}d, pid = %{public}d",
+    ZLOGI(LABEL, "Calling after set uid = %{public}d, pid = %{public}d",
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     return 0;
 }
@@ -178,7 +178,15 @@ int32_t TestServiceStub::ServerCallingUidAndPid(MessageParcel &data, MessageParc
 int32_t TestServiceStub::ServerNestingSend(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
+    if (object == nullptr) {
+        ZLOGE(LABEL, "object is nullptr");
+        return -1;
+    }
     sptr<IFoo> foo = iface_cast<IFoo>(object);
+    if (foo == nullptr) {
+        ZLOGE(LABEL, "foo is nullptr");
+        return -1;
+    }
     int innerResult = foo->TestNestingSend(data.ReadInt32());
     reply.WriteInt32(innerResult);
     return 0;
@@ -188,8 +196,8 @@ int32_t TestServiceStub::ServerAccessTokenId(MessageParcel &data, MessageParcel 
 {
     int32_t token = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     int32_t ftoken = static_cast<int32_t>(IPCSkeleton::GetFirstTokenID());
-    ZLOGE(LABEL, "server GetCallingTokenID:%{public}d", token);
-    ZLOGE(LABEL, "server GetFirstTokenID:%{public}d", ftoken);
+    ZLOGI(LABEL, "Server GetCallingTokenID:%{public}d", token);
+    ZLOGI(LABEL, "Server GetFirstTokenID:%{public}d", ftoken);
     reply.WriteInt32(token);
     reply.WriteInt32(ftoken);
     return 0;
@@ -199,8 +207,8 @@ int32_t TestServiceStub::ServerAccessTokenId64(MessageParcel &data, MessageParce
 {
     uint64_t token = IPCSkeleton::GetCallingFullTokenID();
     uint64_t ftoken = IPCSkeleton::GetFirstFullTokenID();
-    ZLOGE(LABEL, "server GetCallingFullTokenID:%{public}" PRIu64, token);
-    ZLOGE(LABEL, "server GetFirstFullTokenID:%{public}" PRIu64, ftoken);
+    ZLOGI(LABEL, "Server GetCallingFullTokenID:%{public}" PRIu64, token);
+    ZLOGI(LABEL, "Server GetFirstFullTokenID:%{public}" PRIu64, ftoken);
     reply.WriteUint64(token);
     reply.WriteUint64(ftoken);
     return 0;
@@ -296,44 +304,44 @@ int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Message
 
 int32_t TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &reply)
 {
-    ZLOGD(LABEL, "enter transfer raw data");
+    ZLOGI(LABEL, "Enter transfer raw data");
     int length = data.ReadInt32();
     if (length <= 1) {
-        ZLOGE(LABEL, "%{public}s: length should > 1, length is %{public}d", __func__, length);
+        ZLOGE(LABEL, "Length should > 1, length is %{public}d", length);
         if (!reply.WriteInt32(length)) {
-            ZLOGE(LABEL, "fail to write parcel");
+            ZLOGE(LABEL, "Fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
 
     if (!data.ContainFileDescriptors()) {
-        ZLOGE(LABEL, "sent raw data is less than 32k");
+        ZLOGE(LABEL, "Sent raw data is less than 32k");
     }
 
     const char *buffer = nullptr;
     if ((buffer = reinterpret_cast<const char *>(data.ReadRawData((size_t)length))) == nullptr) {
-        ZLOGE(LABEL, "%{public}s:read raw data failed, length = %{public}d", __func__, length);
+        ZLOGE(LABEL, "Read raw data failed, length = %{public}d", length);
         if (reply.WriteInt32(0)) {
-            ZLOGE(LABEL, "fail to write parcel");
+            ZLOGE(LABEL, "Fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
     if (buffer[0] != 'a' || buffer[length - 1] != 'z') {
-        ZLOGE(LABEL, "%{public}s:buffer error, length = %{public}d", __func__, length);
+        ZLOGE(LABEL, "Buffer error, length = %{public}d", length);
         if (reply.WriteInt32(0)) {
-            ZLOGE(LABEL, "fail to write parcel");
+            ZLOGE(LABEL, "Fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
     if (data.ReadInt32() != length) {
-        ZLOGE(LABEL, "%{public}s:read raw data after failed, length = %{public}d", __func__, length);
+        ZLOGE(LABEL, "Read raw data after failed, length = %{public}d", length);
         if (!reply.WriteInt32(0)) {
-            ZLOGE(LABEL, "fail to write parcel");
+            ZLOGE(LABEL, "Fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
     if (!reply.WriteInt32(length)) {
-        ZLOGE(LABEL, "fail to write parcel");
+        ZLOGE(LABEL, "Fail to write parcel");
         return ERR_INVALID_DATA;
     }
     return ERR_NONE;
@@ -341,19 +349,19 @@ int32_t TestServiceStub::TransferRawData(MessageParcel &data, MessageParcel &rep
 
 int32_t TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
 {
-    ZLOGD(LABEL, "enter reply raw data");
+    ZLOGI(LABEL, "Enter reply raw data");
     int length = data.ReadInt32();
     if (length <= 1) {
-        ZLOGE(LABEL, "%{public}s: length should > 1, length is %{public}d", __func__, length);
+        ZLOGE(LABEL, "Length should > 1, length is %{public}d", length);
         if (!reply.WriteInt32(length)) {
-            ZLOGE(LABEL, "fail to write parcel");
+            ZLOGE(LABEL, "Fail to write parcel");
         }
         return ERR_INVALID_DATA;
     }
 
     unsigned char *buffer = new (std::nothrow) unsigned char[length];
     if (buffer == nullptr) {
-        ZLOGE(LABEL, "new buffer failed of length = %{public}d", length);
+        ZLOGE(LABEL, "New buffer failed of length = %{public}d", length);
         return ERR_INVALID_STATE;
     }
     buffer[0] = 'a';
@@ -361,7 +369,7 @@ int32_t TestServiceStub::ReplyRawData(MessageParcel &data, MessageParcel &reply)
     if (!reply.WriteInt32(length) ||
         !reply.WriteRawData(buffer, (size_t)length) ||
         !reply.WriteInt32(length)) {
-        ZLOGE(LABEL, "fail to write parcel");
+        ZLOGE(LABEL, "Fail to write parcel");
         delete [] buffer;
         return ERR_INVALID_STATE;
     }

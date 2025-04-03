@@ -22,6 +22,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 const uint64_t STUB_INDEX = 1;
 const uint32_t TOKEN_ID = 1;
@@ -208,3 +209,4 @@ HWTEST_F(DBinderSessionObjectTest, CloseDatabusSessionTest001, TestSize.Level1)
     object.CloseDatabusSession();
     EXPECT_EQ(object.GetSocketId(), SOCKET_ID_INVALID);
 }
+} // namespace OHOS

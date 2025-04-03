@@ -19,7 +19,6 @@ IPC_CORE_ROOT = "${SUBSYSTEM_DIR}/ipc/native/c"
 executable("rpc_server") {
   sources = [ "$SUBSYSTEM_DIR/ipc/test/rpc/server/rpc_server.c" ]
   include_dirs = [
-    "//commonlibrary/utils_lite/include",
     "$IPC_CORE_ROOT/ipc/include",
     "$IPC_CORE_ROOT/manager/include",
     "$IPC_CORE_ROOT/rpc/include",
@@ -27,7 +26,7 @@ executable("rpc_server") {
     "$IPC_CORE_ROOT/rpc/trans_adapter/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/dbinder/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc/include",
-    "$SUBSYSTEM_DIR/services/dbinder/c/include",
+    "$SUBSYSTEM_DIR/dbinder/c/include",
     "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
     "$SUBSYSTEM_DIR/utils/include",
   ]

@@ -45,10 +45,10 @@ static int Reverse(int x)
 
 int TestService::Instantiate(bool isEnableSerialInvokeFlag)
 {
-    ZLOGD(LABEL, "%{public}s call in", __func__);
+    ZLOGI(LABEL, "Start");
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (saMgr == nullptr) {
-        ZLOGE(LABEL, "%{public}s:fail to get Registry", __func__);
+        ZLOGE(LABEL, "Fail to get Registry");
         return -ENODEV;
     }
 
@@ -58,13 +58,13 @@ int TestService::Instantiate(bool isEnableSerialInvokeFlag)
 
 #ifdef IPCSERVERTESTEXTRA
     int result = saMgr->AddSystemAbility(IPC_EXTRA_TEST_SERVICE, newInstance);
-    ZLOGD(LABEL, "%{public}s: IPC_EXTRA_TEST_SERVICE result = %{public}d", __func__, result);
+    ZLOGI(LABEL, "IPC_EXTRA_TEST_SERVICE result = %{public}d", result);
 #else
     int result = saMgr->AddSystemAbility(IPC_TEST_SERVICE, newInstance);
-    ZLOGD(LABEL, "%{public}s: IPC_TEST_SERVICE result = %{public}d", __func__, result);
+    ZLOGI(LABEL, "IPC_TEST_SERVICE result = %{public}d", result);
 #endif
 
-    ZLOGD(LABEL, "TestService: strong = %d", newInstance->GetSptrRefCount());
+    ZLOGI(LABEL, "TestService: strong = %{public}d", newInstance->GetSptrRefCount());
     return result;
 }
 
@@ -113,7 +113,7 @@ int TestService::TestPingService(const std::u16string &serviceName)
 {
     std::u16string localServiceName = GetObjectDescriptor();
     if (localServiceName.compare(serviceName) != 0) {
-        ZLOGE(LABEL, "local name is ""%s, passing is %s",
+        ZLOGE(LABEL, "Local name is %{public}s, passing is %{public}s",
             Str16ToStr8(localServiceName).c_str(), Str16ToStr8(serviceName).c_str());
         return -1;
     }
@@ -135,17 +135,17 @@ int TestService::TestGetFileDescriptor()
     testFd_ = open("/data/test.txt",
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
     if (testFd_ == INVALID_FD) {
-        ZLOGE(LABEL, "%s(%d):open failed.", __func__, __LINE__);
+        ZLOGE(LABEL, "Open failed.");
         return !INVALID_FD;
     }
 
     ssize_t writeLen = write(testFd_, "Sever write!\n", strlen("Sever write!\n"));
     if (writeLen < 0) {
-        ZLOGE(LABEL, "%s(%d): server write file failed.", __func__, __LINE__);
+        ZLOGE(LABEL, "Server write file failed.");
         close(testFd_);
         return INVALID_FD;
     } else {
-        ZLOGD(LABEL, "%s(%d): server write file success.", __func__, __LINE__);
+        ZLOGI(LABEL, "Server write file success.");
     }
 
     return testFd_;
@@ -291,6 +291,7 @@ int TestService::TestRegisterRemoteStub(const char *descriptor, const sptr<IRemo
 int TestService::TestUnRegisterRemoteStub(const char *descriptor)
 {
     if (descriptor == nullptr || strlen(descriptor) < 1) {
+        ZLOGE(LABEL, "The descriptor pointer is empty or has a length less than 1");
         return -1;
     }
     std::lock_guard<std::mutex> lockGuard(remoteObjectsMutex_);
@@ -301,12 +302,14 @@ int TestService::TestUnRegisterRemoteStub(const char *descriptor)
 sptr<IRemoteObject> TestService::TestQueryRemoteProxy(const char *descriptor)
 {
     if (descriptor == nullptr || strlen(descriptor) < 1) {
+        ZLOGE(LABEL, "The descriptor pointer is empty or has a length less than 1");
         return nullptr;
     }
     auto data = remoteObjects_.find(descriptor);
     if (data != remoteObjects_.end()) {
         return data->second;
     }
+    ZLOGI(LABEL, "The descriptor is not registered");
     return nullptr;
 }
 

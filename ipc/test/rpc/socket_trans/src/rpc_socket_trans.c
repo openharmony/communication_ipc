@@ -24,23 +24,23 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "doubly_linked_list.h"
 #include "rpc_errno.h"
 #include "rpc_log.h"
 #include "securec.h"
-#include "utils_list.h"
 
 #define DEVICEID_LENGTH 64
 #define SERVICENAME_LENGTH 200
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     char *saSessionName;
     char *deviceId;
     TransCallback cb;
 } SocketNode;
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     pthread_mutex_t mutex;
 } SocketNodeList;
 
@@ -62,8 +62,10 @@ static uint16_t Hash(const char *name)
     uint16_t hash = DEFAULT_HASH_SEED;
     uint16_t c;
 
-    while (c = *name++)
+    while (c = *name) {
         hash = ((hash << DEFAULT_HASH_OFFSET) + hash) + c;
+        name++;
+    }
 
     return hash % DEFAULT_PORT_MIN + DEFAULT_PORT_MIN;
 }
@@ -126,7 +128,7 @@ static void HandleAccept(void *args)
                 return;
             }
             if (readLen < 0) {
-                RPC_LOG_ERROR("socket read error=%d", readLen);
+                RPC_LOG_ERROR("socket read error=%lld", readLen);
                 TcpShutDown(clientFd);
                 return;
             }
@@ -137,6 +139,12 @@ static void HandleAccept(void *args)
             }
         }
     }
+}
+
+static void* WrapperHandleAccept(void* args)
+{
+    HandleAccept(args);
+    return NULL;
 }
 
 static void OpenTcpServerSocket(void *args)
@@ -174,9 +182,15 @@ static void OpenTcpServerSocket(void *args)
         socklen_t len = sizeof(addr);
         int32_t clientFd = accept(fd, (struct sockaddr *)&addr, &len);
         pthread_t threadId;
-        pthread_create(&threadId, NULL, HandleAccept, (void *)&clientFd);
+        pthread_create(&threadId, NULL, WrapperHandleAccept, (void *)&clientFd);
         pthread_detach(threadId);
     }
+}
+
+static void* WrapperOpenTcpServerSocket(void* args)
+{
+    OpenTcpServerSocket(args);
+    return NULL;
 }
 
 static int32_t StartListen(const char *SaSessionName, void *cb)
@@ -195,7 +209,7 @@ static int32_t StartListen(const char *SaSessionName, void *cb)
         return ERR_FAILED;
     }
     pthread_t threadId;
-    pthread_create(&threadId, NULL, OpenTcpServerSocket, (void *)SaSessionName);
+    pthread_create(&threadId, NULL, WrapperOpenTcpServerSocket, (void *)SaSessionName);
     pthread_detach(threadId);
 
     return ERR_NONE;
@@ -221,19 +235,25 @@ static void HandleSendReply(void *args)
         for (; ;) {
             ssize_t readLen = read(fd, buf, DEFAULT_PACKET_SIZE);
             if (readLen == 0) {
-                RPC_LOG_INFO("HandleSendReply received len %d", readLen);
+                RPC_LOG_INFO("HandleSendReply received len %ld", readLen);
                 g_callback.OnDisconnected(fd);
                 TcpShutDown(fd);
                 return;
             }
             if (readLen < 0) {
-                RPC_LOG_ERROR("HandleSendReply received len %d", readLen);
+                RPC_LOG_ERROR("HandleSendReply received len %ld", readLen);
                 TcpShutDown(fd);
                 return;
             }
             g_callback.OnRecieved(fd, buf, readLen);
         }
     }
+}
+
+static void* WrapperHandleSendReply(void* args)
+{
+    HandleSendReply(args);
+    return NULL;
 }
 
 static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void *args)
@@ -277,7 +297,7 @@ static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void
     }
 
     pthread_t threadId;
-    pthread_create(&threadId, NULL, HandleSendReply, (void *)sessionId);
+    pthread_create(&threadId, NULL, WrapperHandleSendReply, (void *)sessionId);
     pthread_detach(threadId);
 
     return fd;
@@ -290,14 +310,14 @@ static int32_t Disconnect(int32_t sessionId)
 
 static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
 {
-    if (sessionId < 0 || data == NULL || len <= 0) {
+    if (sessionId < 0 || data == NULL || len == 0) {
         RPC_LOG_ERROR("send invail params");
         return ERR_FAILED;
     }
 
     ssize_t ret = write(sessionId, data, len);
     if (ret < 0) {
-        RPC_LOG_ERROR("send error=%d", ret);
+        RPC_LOG_ERROR("send error=%ld", ret);
         return ERR_FAILED;
     }
 
@@ -363,7 +383,7 @@ TransInterface *GetSocketTrans(void)
 {
     if (g_init == -1) {
         pthread_mutex_lock(&g_socketNodeList.mutex);
-        UtilsListInit(&g_socketNodeList.list);
+        DLListInit(&g_socketNodeList.list);
         g_init = 0;
         pthread_mutex_unlock(&g_socketNodeList.mutex);
     }

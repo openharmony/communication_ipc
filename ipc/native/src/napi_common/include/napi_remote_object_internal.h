@@ -51,6 +51,18 @@ struct OperateJsRefParam {
     ThreadLockInfo *lockInfo;
 };
 
+class NapiScope {
+public:
+    NapiScope(napi_env env);
+    ~NapiScope();
+
+    bool IsValid();
+private:
+    napi_env env_;
+    napi_handle_scope scope_;
+    bool isValid_ = false;
+};
+
 class NAPIRemoteObject : public IPCObjectStub {
 public:
     NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor);
@@ -66,10 +78,16 @@ public:
     napi_ref GetJsObjectRef() const;
 
     void ResetJsEnv();
+
+    std::thread::id GetJSThreadId() const
+    {
+        return jsThreadId_;
+    }
 private:
     napi_env env_ = nullptr;
-    std::thread::id jsThreadId_;
+    const std::thread::id jsThreadId_;
     napi_ref thisVarRef_ = nullptr;
+    std::string desc_;
     int OnJsRemoteRequest(CallbackParam *jsParam);
 };
 
