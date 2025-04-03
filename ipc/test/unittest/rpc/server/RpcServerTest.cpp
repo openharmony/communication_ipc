@@ -163,6 +163,7 @@ HWTEST_F(RpcServerTest, RpcServerTest002, TestSize.Level1)
 {
     IpcSkeleton *current = GetCurrentSkeleton();
     ASSERT_TRUE(current != NULL);
+    ASSERT_TRUE(current->threadPool != NULL);
     if (current->threadPool->idleSocketThreadNum > 0) {
         int32_t ret = SpawnThread(SPAWN_PASSIVE, IF_PROT_DATABUS);
         EXPECT_EQ(ret, ERR_NONE);
