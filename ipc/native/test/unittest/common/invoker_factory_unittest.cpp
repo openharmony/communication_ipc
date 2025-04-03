@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,7 +52,7 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
     int protocol = 1;
 
     IRemoteInvoker* invoker = nullptr;
-    auto invokerObject = [&invoker]() -> IRemoteInvoker* {
+    auto creator = [&invoker]() -> IRemoteInvoker* {
         invoker = new (std::nothrow) BinderInvoker();
         if (invoker == nullptr) {
             return nullptr;
@@ -60,7 +60,7 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
         return invoker;
     };
 
-    bool ret = invokerFactory.Register(protocol, invokerObject);
+    bool ret = invokerFactory.Register(protocol, creator);
     EXPECT_EQ(ret, false);
     if (invoker != nullptr) {
         delete invoker;
@@ -68,7 +68,7 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
     }
     invokerFactory.isAvailable_ = true;
 
-    ret = invokerFactory.Register(protocol, invokerObject);
+    ret = invokerFactory.Register(protocol, creator);
     EXPECT_EQ(ret, false);
     IRemoteInvoker* iRemoteInvoker = invokerFactory.newInstance(protocol);
     EXPECT_NE(iRemoteInvoker, nullptr);
@@ -76,6 +76,40 @@ HWTEST_F(InvokerFactoryTest, Register001, TestSize.Level1)
         delete invoker;
         invoker = nullptr;
     }
+    // after leaving the scope, the captured 'invoker' object will be invalid in 'creator' lambda expression
+    // so we need to delete 'creator' lambda expression
+    invokerFactory.Unregister(protocol);
+}
+
+/**
+ * @tc.name: Register002
+ * @tc.desc: Register
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, Register002, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    invokerFactory.isAvailable_ = false;
+    int protocol = 1;
+
+    IRemoteInvoker* invoker = nullptr;
+    auto creator = [&invoker]() -> IRemoteInvoker* {
+        invoker = new (std::nothrow) BinderInvoker();
+        if (invoker == nullptr) {
+            return nullptr;
+        }
+        return invoker;
+    };
+
+    bool ret = invokerFactory.Register(protocol, creator);
+    if (invoker != nullptr) {
+        delete invoker;
+        invoker = nullptr;
+    }
+    EXPECT_EQ(ret, false);
+    // after leaving the scope, the captured 'invoker' object will be invalid in 'creator' lambda expression
+    // so we need to delete 'creator' lambda expression
+    invokerFactory.Unregister(protocol);
 }
 
 /**
@@ -91,4 +125,33 @@ HWTEST_F(InvokerFactoryTest, Unregister001, TestSize.Level1)
     invokerFactory.Unregister(protocol);
     EXPECT_EQ(invokerFactory.isAvailable_, false);
 }
+
+/**
+ * @tc.name: newInstance002
+ * @tc.desc: Unregister
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, Unregister002, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    invokerFactory.isAvailable_ = true;
+    int protocol = 1;
+    invokerFactory.Unregister(protocol);
+    EXPECT_EQ(invokerFactory.isAvailable_, true);
+}
+
+/**
+ * @tc.name: newInstance002
+ * @tc.desc: newInstance
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, newInstance002, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    invokerFactory.isAvailable_ = true;
+    int protocol = 1;
+    invokerFactory.newInstance(protocol);
+    EXPECT_EQ(invokerFactory.isAvailable_, true);
+}
+
 } // namespace OHOS

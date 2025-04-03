@@ -14,11 +14,12 @@
  */
 
 #include "ipc_remote_object_internal.h"
-#include "ipc_inner_object.h"
-#include "message_parcel.h"
-#include "log_tags.h"
+
 #include "ipc_debug.h"
 #include "ipc_error_code.h"
+#include "ipc_inner_object.h"
+#include "log_tags.h"
+#include "message_parcel.h"
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "IPCRemoteObject" };
 
@@ -38,7 +39,7 @@ IPCDeathRecipient::~IPCDeathRecipient()
     userData_ = nullptr;
 }
 
-void IPCDeathRecipient::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject>&)
+void IPCDeathRecipient::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &object)
 {
     if (deathRecipientCallback_ != nullptr) {
         deathRecipientCallback_(userData_);
@@ -61,8 +62,8 @@ OHIPCRemoteServiceStub::~OHIPCRemoteServiceStub()
     requestCallback_ = nullptr;
 }
 
-int OHIPCRemoteServiceStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data,
-    OHOS::MessageParcel &reply, OHOS::MessageOption &)
+int OHIPCRemoteServiceStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply,
+    OHOS::MessageOption &option)
 {
     if (requestCallback_ == nullptr) {
         ZLOGE(LOG_LABEL, "Callback is null for code: %{public}u", code);
@@ -71,11 +72,9 @@ int OHIPCRemoteServiceStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &
     OHIPCParcel parcelData{ &data };
     OHIPCParcel parcelReply{ &reply };
     int err = requestCallback_(code, &parcelData, &parcelReply, userData_);
-    if (err != OH_IPC_SUCCESS
-        && !IsIpcErrorCode(err)
-        && !IsUserDefinedError(err)) {
-        ZLOGE(LOG_LABEL, "user define error code:%{public}d out of range[%{public}d, %{public}d]",
-            err, OH_IPC_USER_ERROR_CODE_MIN, OH_IPC_USER_ERROR_CODE_MAX);
+    if (err != OH_IPC_SUCCESS && !IsIpcErrorCode(err) && !IsUserDefinedError(err)) {
+        ZLOGE(LOG_LABEL, "user define error code:%{public}d out of range[%{public}d, %{public}d]", err,
+            OH_IPC_USER_ERROR_CODE_MIN, OH_IPC_USER_ERROR_CODE_MAX);
         err = OH_IPC_INVALID_USER_ERROR_CODE;
     }
     return err;

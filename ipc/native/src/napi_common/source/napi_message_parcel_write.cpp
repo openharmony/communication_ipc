@@ -769,7 +769,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceable(napi_env env, napi_callback_
     if (callResult != nullptr && valueType != napi_undefined) {
         return callResult;
     }
-    ZLOGE(LOG_LABEL, "call mashalling failed");
+    ZLOGE(LOG_LABEL, "call marshalling failed");
     napiParcel->nativeParcel_->RewindWrite(pos);
     return result;
 }
@@ -823,7 +823,7 @@ napi_value NAPI_MessageParcel::JS_writeSequenceableArray(napi_env env, napi_call
         napi_call_function(env, element, prop, 1, funcArg, &callResult);
         napi_typeof(env, callResult, &valueType);
         if (callResult == nullptr || valueType == napi_undefined) {
-            ZLOGE(LOG_LABEL, "call mashalling failed, element index:%{public}zu", i);
+            ZLOGE(LOG_LABEL, "call marshalling failed, element index:%{public}zu", i);
             napiParcel->nativeParcel_->RewindWrite(pos);
             return retValue;
         }
@@ -1221,6 +1221,7 @@ napi_value NAPI_MessageParcel::JS_DupFileDescriptor(napi_env env, napi_callback_
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
     int32_t dupResult = dup(fd);
+    NAPI_ASSERT(env, dupResult >= 0, "invalid fd");
     napi_value napiValue;
     napi_create_int32(env, dupResult, &napiValue);
     return napiValue;
@@ -1450,7 +1451,8 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
         NAPI_ASSERT(env, parcel != nullptr, "parcel is null");
     }
     // new native parcel object
-    auto messageParcel = new NAPI_MessageParcel(env, thisVar, parcel);
+    auto messageParcel = new (std::nothrow) NAPI_MessageParcel(env, thisVar, parcel);
+    NAPI_ASSERT(env, messageParcel != nullptr, "new messageParcel failed");
     // connect native object to js thisVar
     status = napi_wrap(
         env, thisVar, messageParcel,
@@ -1461,7 +1463,10 @@ napi_value NAPI_MessageParcel::JS_constructor(napi_env env, napi_callback_info i
             }
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "napi wrap message parcel failed");
+    if (status != napi_ok) {
+        delete messageParcel;
+        NAPI_ASSERT(env, false, "napi wrap message parcel failed");
+    }
     return thisVar;
 }
 } // namespace OHOS

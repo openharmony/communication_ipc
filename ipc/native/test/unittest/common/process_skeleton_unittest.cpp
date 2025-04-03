@@ -26,6 +26,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class ProcessSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -166,6 +167,20 @@ HWTEST_F(ProcessSkeletonUnitTest, SetRegistryObjectTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSamgrFlagTest001
+ * @tc.desc: Verify the SetSamgrFlag functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, SetSamgrFlagTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    skeleton->SetSamgrFlag(true);
+    ASSERT_TRUE(skeleton->GetSamgrFlag());
+}
+
+/**
  * @tc.name: LockObjectMutexTest001
  * @tc.desc: Verify the LockObjectMutex and UnlockObjectMutex functions
  * @tc.type: FUNC
@@ -223,3 +238,202 @@ HWTEST_F(ProcessSkeletonUnitTest, IsPrintTest001, TestSize.Level1)
     EXPECT_EQ(lastErr, 1);
     EXPECT_EQ(lastErrCnt, 0);
 }
+
+/**
+ * @tc.name: UnFlattenDBinderDataTest001
+ * @tc.desc: Verify the UnFlattenDBinderData functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, UnFlattenDBinderData001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+    Parcel data;
+    dbinder_negotiation_data *bindingData;
+    bool ret = skeleton->UnFlattenDBinderData(data, bindingData);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnFlattenDBinderDataTest002
+ * @tc.desc: Verify the UnFlattenDBinderData functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, UnFlattenDBinderDataTest002, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+    Parcel data;
+    dbinder_negotiation_data *dbinderData = nullptr;
+    binder_buffer_object bufferObject;
+    bufferObject.hdr.type = BINDER_TYPE_PTR;
+    bufferObject.flags = BINDER_BUFFER_FLAG_HAS_DBINDER;
+    bufferObject.buffer = reinterpret_cast<binder_uintptr_t>(dbinderData);
+    bufferObject.length = sizeof(dbinder_negotiation_data);
+    data.WriteBuffer(&bufferObject, sizeof(binder_buffer_object));
+    bool ret = skeleton->UnFlattenDBinderData(data, dbinderData);
+    ASSERT_FALSE(ret);
+}
+/**
+ * @tc.name: StrToUint64001
+ * @tc.desc: Verify the IsPrint function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, StrToUint64001, TestSize.Level1)
+{
+    uint64_t value = 0;
+    bool ret = false;
+
+    ret = ProcessSkeleton::StrToUint64("", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToUint64("1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 1);
+
+    std::string uint64MaxVal = std::to_string(UINT64_MAX);
+    ret = ProcessSkeleton::StrToUint64(uint64MaxVal, value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, UINT64_MAX);
+
+    // UINT64_MAX + 1
+    ret = ProcessSkeleton::StrToUint64("18446744073709551616", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("-0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToUint64("-1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, UINT64_MAX);
+
+    ret = ProcessSkeleton::StrToUint64("- 1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("a1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("1a", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("99999999999999999999", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToUint64("3.14", value);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: StrToInt32001
+ * @tc.desc: Verify the IsPrint function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, StrToInt32001, TestSize.Level1)
+{
+    int32_t value = 0;
+    bool ret = false;
+
+    ret = ProcessSkeleton::StrToInt32("", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToInt32("1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 1);
+
+    std::string int32MaxVal = std::to_string(INT32_MAX);
+    ret = ProcessSkeleton::StrToInt32(int32MaxVal, value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, INT32_MAX);
+
+    // INT32_MAX + 1
+    ret = ProcessSkeleton::StrToInt32("2147483648", value);
+    EXPECT_FALSE(ret);
+
+    std::string int32MinVal = std::to_string(INT32_MIN);
+    ret = ProcessSkeleton::StrToInt32(int32MinVal, value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, INT32_MIN);
+
+    // INT32_MIN - 1
+    ret = ProcessSkeleton::StrToInt32("-2147483649", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("-0", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, 0);
+
+    ret = ProcessSkeleton::StrToInt32("-1", value);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(value, -1);
+
+    ret = ProcessSkeleton::StrToInt32("- 1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("a1", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("1a", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("99999999999999999999", value);
+    EXPECT_FALSE(ret);
+
+    ret = ProcessSkeleton::StrToInt32("3.14", value);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: NotifyChildThreadStop001
+ * @tc.desc: Verify the NotifyChildThreadStop function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop001, TestSize.Level1)
+{
+    ProcessSkeleton *processSkeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(processSkeleton != nullptr);
+
+    processSkeleton->NotifyChildThreadStop();
+    EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+}
+
+/**
+ * @tc.name: NotifyChildThreadStop002
+ * @tc.desc: Verify the NotifyChildThreadStop function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop002, TestSize.Level1)
+{
+    ProcessSkeleton *processSkeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(processSkeleton != nullptr);
+
+    processSkeleton->IncreaseThreadCount();
+    processSkeleton->NotifyChildThreadStop();
+    EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+    processSkeleton->DecreaseThreadCount();
+}
+
+/**
+ * @tc.name: NotifyChildThreadStop003
+ * @tc.desc: Verify the NotifyChildThreadStop function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop003, TestSize.Level1)
+{
+    ProcessSkeleton *processSkeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(processSkeleton != nullptr);
+
+    processSkeleton->IncreaseThreadCount();
+    processSkeleton->DecreaseThreadCount();
+    processSkeleton->NotifyChildThreadStop();
+    EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
+}
+} // namespace OHOS

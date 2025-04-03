@@ -135,7 +135,7 @@ bool IpcIoAppend(IpcIo *dst, IpcIo *src)
         return false;
     }
     if (srcUsedBufferSize > 0) {
-        char *ptr = (uint8_t *)IoPush(dst, srcUsedBufferSize);
+        char *ptr = (char *)IoPush(dst, srcUsedBufferSize);
         if (ptr == NULL) {
             return false;
         }
@@ -148,7 +148,7 @@ bool IpcIoAppend(IpcIo *dst, IpcIo *src)
             dst->flag |= IPC_IO_OVERFLOW;
             return false;
         }
-        for (int i = 0; i < srcUsedOffsetsNum; i++) {
+        for (size_t i = 0; i < srcUsedOffsetsNum; i++) {
             dst->offsetsLeft--;
             *(dst->offsetsCur) = *(src->offsetsBase + i) + offsetAdjust;
             dst->offsetsCur++;
@@ -711,7 +711,7 @@ static bool WriteBufferAddTerminator(IpcIo *io, const void *value, size_t size, 
 
 bool WriteString16(IpcIo *io, const uint16_t *value, size_t len)
 {
-    if (io == NULL || value == NULL || len <= 0) {
+    if (io == NULL || value == NULL || len == 0) {
         RPC_LOG_ERROR("IPC io == NULL || value == NULL || len <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
@@ -735,8 +735,8 @@ bool WriteString16(IpcIo *io, const uint16_t *value, size_t len)
 
 bool WriteBuffer(IpcIo *io, const void *data, size_t size)
 {
-    if (data == NULL || size <= 0 || io == NULL) {
-        RPC_LOG_ERROR("IPC data == NULL || size <= 0 || io == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (data == NULL || size == 0 || io == NULL) {
+        RPC_LOG_ERROR("IPC data == NULL || size == 0 || io == NULL failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -765,7 +765,7 @@ bool WriteBuffer(IpcIo *io, const void *data, size_t size)
 
 bool WriteInterfaceToken(IpcIo *io, const uint16_t *name, size_t len)
 {
-    if (io == NULL || name == NULL || len <= 0) {
+    if (io == NULL || name == NULL || len == 0) {
         RPC_LOG_ERROR("IPC io == NULL || name == NULL || len <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
@@ -784,8 +784,8 @@ bool WriteInterfaceToken(IpcIo *io, const uint16_t *name, size_t len)
 
 bool WriteRawData(IpcIo *io, const void *data, size_t size)
 {
-    if (io == NULL || data == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || data == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || data == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || data == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -804,14 +804,14 @@ bool WriteRawData(IpcIo *io, const void *data, size_t size)
 
 bool WriteBoolVector(IpcIo *io, const bool *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
     bool ret = WriteUint32(io, (uint32_t)size);
     if (ret) {
-        for (int32_t i = 0; i != size; i++) {
+        for (size_t i = 0; i != size; i++) {
             ret = WriteBool(io, val[i]);
             if (!ret) {
                 return false;
@@ -824,8 +824,8 @@ bool WriteBoolVector(IpcIo *io, const bool *val, size_t size)
 
 bool WriteInt8Vector(IpcIo *io, const int8_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -848,14 +848,14 @@ bool WriteInt8Vector(IpcIo *io, const int8_t *val, size_t size)
 
 bool WriteInt16Vector(IpcIo *io, const int16_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
     bool ret = WriteUint32(io, (uint32_t)size);
     if (ret) {
-        for (int32_t i = 0; i != size; i++) {
+        for (size_t i = 0; i != size; i++) {
             ret = WriteInt16(io, val[i]);
             if (!ret) {
                 return false;
@@ -868,8 +868,8 @@ bool WriteInt16Vector(IpcIo *io, const int16_t *val, size_t size)
 
 bool WriteInt32Vector(IpcIo *io, const int32_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -892,8 +892,8 @@ bool WriteInt32Vector(IpcIo *io, const int32_t *val, size_t size)
 
 bool WriteInt64Vector(IpcIo *io, const int64_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -916,8 +916,8 @@ bool WriteInt64Vector(IpcIo *io, const int64_t *val, size_t size)
 
 bool WriteUInt8Vector(IpcIo *io, const uint8_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -940,8 +940,8 @@ bool WriteUInt8Vector(IpcIo *io, const uint8_t *val, size_t size)
 
 bool WriteUInt16Vector(IpcIo *io, const uint16_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -964,8 +964,8 @@ bool WriteUInt16Vector(IpcIo *io, const uint16_t *val, size_t size)
 
 bool WriteUInt32Vector(IpcIo *io, const uint32_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -988,8 +988,8 @@ bool WriteUInt32Vector(IpcIo *io, const uint32_t *val, size_t size)
 
 bool WriteUInt64Vector(IpcIo *io, const uint64_t *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1012,8 +1012,8 @@ bool WriteUInt64Vector(IpcIo *io, const uint64_t *val, size_t size)
 
 bool WriteFloatVector(IpcIo *io, const float *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1036,8 +1036,8 @@ bool WriteFloatVector(IpcIo *io, const float *val, size_t size)
 
 bool WriteDoubleVector(IpcIo *io, const double *val, size_t size)
 {
-    if (io == NULL || val == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || val == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || val == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1072,7 +1072,7 @@ uint16_t *ReadString16(IpcIo *io, size_t *len)
 
     size_t readCapacity = (*len + 1) * sizeof(uint16_t);
     uint16_t *ptr = (uint16_t *)IoPop(io, readCapacity);
-    if (ptr[*len] == 0) {
+    if (ptr != NULL && ptr[*len] == 0) {
         return ptr;
     } else {
         return NULL;
@@ -1102,8 +1102,8 @@ uint16_t *ReadInterfaceToken(IpcIo *io, size_t *len)
 
 const uint8_t *ReadBuffer(IpcIo *io, size_t size)
 {
-    if (io == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
     return (uint8_t *)IoPop(io, size);
@@ -1111,8 +1111,8 @@ const uint8_t *ReadBuffer(IpcIo *io, size_t size)
 
 void *ReadRawData(IpcIo *io, size_t size)
 {
-    if (io == NULL || size <= 0) {
-        RPC_LOG_ERROR("IPC io == NULL || size <= 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
+    if (io == NULL || size == 0) {
+        RPC_LOG_ERROR("IPC io == NULL || size == 0 failed: %s:%d\n", __FUNCTION__, __LINE__);
         return NULL;
     }
     uint32_t len = 0;

@@ -1,0 +1,95 @@
+# Copyright (C) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("../../../config.gni")
+
+MODULE_OUTPUT_PATH = "ipc/ipc"
+
+ohos_unittest("RPCDbinderTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [
+    "$IPC_ROOT_PATH/ipc/native/src/core/invoker/include",
+    "$IPC_ROOT_PATH/ipc/native/src/core/framework/include",
+    "$IPC_ROOT_PATH/ipc/native/c/manager/include",
+    "$IPC_ROOT_PATH/utils/include",
+    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
+    "$IPC_ROOT_PATH/ipc/native/c/rpc/include",
+  ]
+
+  sources = [
+    "$IPC_ROOT_PATH/ipc/native/src/core/invoker/source/hitrace_invoker.cpp",
+    "dbinder_base_invoker_unittest.cpp",
+    "dbinder_death_recipient_unittest.cpp",
+    "dbinder_remote_listener_unittest.cpp",
+    "dbinder_service_stub_unittest.cpp",
+  ]
+
+  configs = [ "$IPC_ROOT_PATH/config:dsoftbus_header_deps_config" ]
+
+  deps = [
+    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
+    "$IPC_ROOT_PATH/ipc/native/src/core:ipc_common",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "hilog:libhilog",
+    "hitrace:libhitracechain",
+    "ipc:libdbinder",
+  ]
+
+  if (hiviewdfx_hisysevent_support) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
+  resource_config_file = "$IPC_ROOT_PATH/test/resource/ipc/ohos_test.xml"
+}
+
+ohos_unittest("RPCDbinderServiceTest") {
+  module_out_path = MODULE_OUTPUT_PATH
+
+  include_dirs = [
+    "$IPC_ROOT_PATH/ipc/native/c/manager/include",
+    "$IPC_ROOT_PATH/utils/include",
+    "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
+    "$IPC_ROOT_PATH/ipc/native/c/rpc/include",
+  ]
+
+  sources = [ "dbinder_service_unittest.cpp" ]
+
+  configs = [ "$IPC_ROOT_PATH/config:dsoftbus_header_deps_config" ]
+
+  deps = [ "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "hilog:libhilog",
+    "ipc:libdbinder",
+  ]
+
+  resource_config_file = "$IPC_ROOT_PATH/test/resource/ipc/ohos_test.xml"
+}
+
+###############################################################################
+group("unittest") {
+  testonly = true
+  deps = [
+    ":RPCDbinderServiceTest",
+    ":RPCDbinderTest",
+    "../auxiliary:Dynamic_loading_softbus_client_test",
+  ]
+}

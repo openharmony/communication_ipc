@@ -26,20 +26,20 @@
 #include "refbase.h"
 #include "ipc_cparcel.h"
 #include "ipc_cremote_object.h"
-#include "ipc_test_helper.h"
-#include "test_service_command.h"
 #include "ipc_error_code.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "ipc_inner_object.h"
 #include <vector>
-
+#include "ipc_debug.h"
+#include "log_tags.h"
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::HiviewDFX;
 using namespace std;
 
+namespace OHOS {
 static constexpr int NUMBER_CONSTANT = 100;
 static constexpr float FLOAT_CONSTANT = 1.1;
 static const char *STRING_CONSTANT = "HELLO";
@@ -674,34 +674,6 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteRemoteStub_001, TestSi
     OH_IPCRemoteStub_Destroy(stub);
 }
 
-HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteRemoteProxy_001, TestSize.Level1)
-{
-    OHIPCParcel *parcel = OH_IPCParcel_Create();
-    EXPECT_NE(parcel, nullptr);
-    OHIPCRemoteProxy *remoteProxy = OH_IPCParcel_ReadRemoteProxy(nullptr);
-    EXPECT_EQ(remoteProxy, nullptr);
-
-    IPCTestHelper helper;
-    bool res = helper.StartTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_NE(saMgr, nullptr);
-    sptr<IRemoteObject> object = saMgr->GetSystemAbility(IPC_TEST_SERVICE);
-    OHIPCRemoteProxy *proxy = CreateIPCRemoteProxy(object);
-    ASSERT_NE(proxy, nullptr);
-    EXPECT_EQ(OH_IPCParcel_WriteRemoteProxy(nullptr, proxy), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_WriteRemoteProxy(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
-    EXPECT_EQ(OH_IPCParcel_WriteRemoteProxy(parcel, proxy), OH_IPC_SUCCESS);
-    remoteProxy = OH_IPCParcel_ReadRemoteProxy(parcel);
-    EXPECT_NE(remoteProxy, nullptr);
-    // destroy the objects
-    OH_IPCParcel_Destroy(parcel);
-    OH_IPCRemoteProxy_Destroy(proxy);
-    OH_IPCRemoteProxy_Destroy(remoteProxy);
-    res = helper.StopTestApp(IPCTestHelper::IPC_TEST_SERVER);
-    ASSERT_TRUE(res);
-}
-
 HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_Append_001, TestSize.Level1)
 {
     OHIPCParcel *parcel1 = OH_IPCParcel_Create();
@@ -892,3 +864,4 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteInterfaceTokenPerforma
     readCppAvg /= TEST_PERFORMANCE_OPERATOR_GROUP;
     PerformanceStatistic(writeAvg, readAvg, writeCppAvg, readCppAvg);
 }
+} // namespace OHOS

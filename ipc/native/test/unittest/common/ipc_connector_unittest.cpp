@@ -22,6 +22,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class BinderConnectorTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -151,15 +152,4 @@ HWTEST_F(BinderConnectorTest, IsRealPidSupported002, TestSize.Level1)
     bool res = binderConnector->IsRealPidSupported();
     EXPECT_EQ(res, false);
 }
-
-/**
- * @tc.name: GetInstance001
- * @tc.desc: Verify the GetInstance function
- * @tc.type: FUNC
- */
-HWTEST_F(BinderConnectorTest, GetInstance001, TestSize.Level1)
-{
-    BinderConnector* binderConnector1 = BinderConnector::GetInstance();
-    BinderConnector* binderConnector2 = BinderConnector::GetInstance();
-    EXPECT_EQ(binderConnector1, binderConnector2);
-}
+} // namespace OHOS

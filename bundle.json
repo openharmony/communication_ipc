@@ -21,8 +21,9 @@
         "mini"
       ],
       "features": [
-        "ipc_feature_actv_binder_enabled",
-        "ipc_feature_rpc_enabled"
+        "ipc_feature_rpc_enabled",
+        "ipc_feature_test_enabled",
+        "ipc_feature_trace_enabled"
       ],
       "syscap":[
         "SystemCapability.Communication.IPC.Core"
@@ -73,8 +74,7 @@
                   "ipc_object_proxy.h",
                   "ipc_object_stub.h",
                   "peer_holder.h",
-                  "ipc_file_descriptor.h",
-                  "jni_help.h"
+                  "ipc_file_descriptor.h"
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
               }
@@ -105,8 +105,7 @@
                   "ipc_object_proxy.h",
                   "ipc_object_stub.h",
                   "peer_holder.h",
-                  "ipc_file_descriptor.h",
-                  "jni_help.h"
+                  "ipc_file_descriptor.h"
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
               }
@@ -138,6 +137,13 @@
               }
             },
             {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/cj:cj_ipc_ffi",
+              "header": {
+                "header_files": [],
+                "header_base": "//foundation/communication/ipc/interfaces/innerkits/cj/include"
+              }
+            },
+            {
               "name": "//foundation/communication/ipc/interfaces/kits/js/napi:rpc",
               "header": {
                 "header_files": [
@@ -165,8 +171,10 @@
           "//foundation/communication/ipc/ipc/test:moduletest",
           "//foundation/communication/ipc/ipc/native/test:unittest",
           "//foundation/communication/ipc/ipc/native/test/fuzztest:fuzztest",
-          "//foundation/communication/ipc/services/dbinder/test/unittest:unittest",
-          "//foundation/communication/ipc/services/dbinder/test/fuzztest:fuzztest"
+          "//foundation/communication/ipc/dbinder/test/unittest:unittest",
+          "//foundation/communication/ipc/dbinder/test/fuzztest:fuzztest",
+          "//foundation/communication/ipc/test/fuzztest:fuzztest",
+          "//foundation/communication/ipc/test/unittest:unittest"
         ]
       }
     }

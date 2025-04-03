@@ -85,14 +85,12 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
         case SERVER_OP_ADD_SERVICE: {
             sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
             ReadRemoteObject(data, sid);
-            const char *str = "server call anonymos service one.";
             WriteInt32(reply, ERR_NONE);
             uint32_t cbId1 = -1;
-            int ret = AddDeathRecipient(*sid, (OnRemoteDead)ServerDead1, (void *)NULL, (uint32_t *)&cbId1);
             break;
         }
         default:
-            RPC_LOG_ERROR("unknown code %d", code);
+            RPC_LOG_ERROR("unknown code %u", code);
             break;
     }
     return result;
@@ -218,6 +216,7 @@ HWTEST_F(IpcServerTest, IpcServerTest005, TestSize.Level0)
     uintptr_t ptr = 0;
     IpcIo reply;
     const SvcIdentity *target = GetContextObject();
+    EXPECT_NE(target, nullptr);
     int ret = SendRequest(*target, GET_SYSTEM_ABILITY_TRANSACTION, &data1, &reply, g_option, &ptr);
     ReadRemoteObject(&reply, &sidOne);
     FreeBuffer((void *)ptr);

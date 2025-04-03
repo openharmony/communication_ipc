@@ -29,6 +29,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 constexpr int THREAD_NUM_2 = 2;
 constexpr uint32_t INDEX_1 = 1;
@@ -764,7 +765,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest001, TestSize.Level1
     skeleton->AddThreadBySeqNumber(seqNumber, messageInfo);
 
     bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -796,7 +797,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest002, TestSize.Level1
 
     int userWaitTime = 1;
     bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     thread1.join();
 }
 
@@ -824,7 +825,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest003, TestSize.Level1
 
     int userWaitTime = 1;
     bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
     thread1.join();
 }
 
@@ -854,7 +855,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AddSendThreadInWaitTest004, TestSize.Level1
     int userWaitTime = 1;
     bool ret = skeleton->AddSendThreadInWait(seqNumber, messageInfo, userWaitTime);
     thread1.join();
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -1975,3 +1976,4 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachDBinderCallbackStubTest, TestSize.Lev
     EXPECT_FALSE(ret);
 }
 #endif
+} // namespace OHOS

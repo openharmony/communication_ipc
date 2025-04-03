@@ -60,14 +60,14 @@ void ThreadFunc(std::shared_ptr<TestServiceClient> testClient)
 
 void SignalHandler(int signum)
 {
-    ZLOGD(LABEL, "caught signal %{public}d", signum);
+    ZLOGI(LABEL, "Caught signal %{public}d", signum);
     if (gTestClient != nullptr) {
         ZLOGE(LABEL, "UnRegister RemoteStub before application exit");
         gTestClient->TestUnRegisterRemoteStub();
         gTestClient = nullptr;
     }
     if (signum == SIGINT) {
-        ZLOGD(LABEL, "SIGINT");
+        ZLOGI(LABEL, "SIGINT");
         IPCSkeleton::StopWorkThread();
     }
 }
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 
     // The non IPC context obtains one's own sid
     std::string selfSid = IPCSkeleton::GetCallingSid();
-    ZLOGI(LABEL, "get from service: sid: %{public}s", selfSid.c_str());
+    ZLOGI(LABEL, "Get from service: sid = %{public}s", selfSid.c_str());
     system("kill -9 $(pidof /system/bin/ipc_server_test)");
 
     return 0;

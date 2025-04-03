@@ -23,6 +23,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 class IRemoteObjectTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -84,3 +85,4 @@ HWTEST_F(IRemoteObjectTest, GetInterfaceDescriptorTest001, TestSize.Level1)
 
     EXPECT_EQ(object->descriptor_, object->GetInterfaceDescriptor());
 }
+} // namespace OHOS

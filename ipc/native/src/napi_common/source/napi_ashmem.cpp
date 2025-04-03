@@ -120,7 +120,9 @@ napi_value NAPIAshmem::CreateAshmemFromExisting(napi_env env, napi_callback_info
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
     NAPI_ASSERT(env,  (fd > 0) && (size > 0), "fd <= 0 or  size <= 0");
-    sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
+    int dupFd = dup(fd);
+    NAPI_ASSERT(env, dupFd >= 0, "failed to dup fd");
+    sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     NAPI_ASSERT(env, newAshmem != nullptr, "napiAshmem is null");
     napi_value jsAshmem = nullptr;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsAshmem);
@@ -232,8 +234,8 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
     }
     int32_t fd = napiAshmem->GetAshmem()->GetAshmemFd();
     uint32_t size = (uint32_t)(napiAshmem->GetAshmem()->GetAshmemSize());
-    if (fd <= 0 || size <= 0) {
-        ZLOGE(LOG_LABEL, "fd <= 0 or  size <= 0");
+    if (fd <= 0 || size == 0) {
+        ZLOGE(LOG_LABEL, "fd <= 0 or  size == 0");
         return nullptr;
     }
 
@@ -242,7 +244,12 @@ napi_value NAPIAshmem::GetAshmemFromExisting(napi_env env, napi_callback_info in
 
 napi_value NAPIAshmem::getNewAshmemConstructor(napi_env env, napi_value& constructor, int32_t fd, uint32_t size)
 {
-    sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
+    int dupFd = dup(fd);
+    if (dupFd < 0) {
+        ZLOGE(LOG_LABEL, "fail to dup fd:%{public}d", dupFd);
+        return napiErr.ThrowError(env, OHOS::errorDesc::OS_DUP_ERROR);
+    }
+    sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "newAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
@@ -766,7 +773,7 @@ napi_value NAPIAshmem::WriteDataToAshmem(napi_env env, napi_callback_info info)
     size_t byteLength = 0;
     napi_status isGet = napi_get_arraybuffer_info(env, argv[ARGV_INDEX_0], (void **)&data, &byteLength);
     if (isGet != napi_ok) {
-        ZLOGE(LOG_LABEL, "arraybuffery get info failed");
+        ZLOGE(LOG_LABEL, "arraybuffer get info failed");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
@@ -928,7 +935,7 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPIAshmem *napiAshmem = nullptr;
     if (argc == 0) {
-        napiAshmem = new NAPIAshmem();
+        napiAshmem = new (std::nothrow) NAPIAshmem();
     } else {
         NAPI_ASSERT(env, argc == 2, "requires 2 parameter");
         napi_valuetype valueType = napi_null;
@@ -950,8 +957,9 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
         // new napi Ashmem
         sptr<Ashmem> nativeAshmem = Ashmem::CreateAshmem(ashmemName.c_str(), ashmemSize);
         NAPI_ASSERT(env, nativeAshmem != nullptr, "invalid parameters");
-        napiAshmem = new NAPIAshmem(nativeAshmem);
+        napiAshmem = new (std::nothrow) NAPIAshmem(nativeAshmem);
     }
+    NAPI_ASSERT(env, napiAshmem != nullptr, "new NAPIAshmem failed");
     // connect native object to js thisVar
     napi_status status = napi_wrap(
         env, thisVar, napiAshmem,
@@ -960,7 +968,10 @@ napi_value NAPIAshmem::Ashmem_JS_Constructor(napi_env env, napi_callback_info in
             delete (reinterpret_cast<NAPIAshmem *>(data));
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js Ashmem and native holder failed");
+    if (status != napi_ok) {
+        delete napiAshmem;
+        NAPI_ASSERT(env, false, "wrap js Ashmem and native holder failed");
+    }
     return thisVar;
 }
 } // namespace OHOS

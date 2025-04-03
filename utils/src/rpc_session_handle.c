@@ -45,7 +45,7 @@ static SessionIdList *FindOrNewSessionIdObject(SessionIdList *sessionIdList, int
     }
     pthread_mutex_lock(&sessionIdList->mutex);
     SessionIdList *node = NULL;
-    UTILS_DL_LIST_FOR_EACH_ENTRY(node, &sessionIdList->idList, SessionIdList, idList)
+    DL_LIST_FOR_EACH_ENTRY(node, &sessionIdList->idList, SessionIdList, idList)
     {
         if (node->sessionId == sessionId) {
             RPC_LOG_INFO("find sessionId in sessionIdList");
@@ -63,10 +63,10 @@ static SessionIdList *FindOrNewSessionIdObject(SessionIdList *sessionIdList, int
     memset_s(node, sizeof(SessionIdList), 0, sizeof(SessionIdList));
     (void)pthread_mutex_init(&node->mutex, NULL);
     (void)pthread_cond_init(&node->condition, NULL);
-    node->sessionId = sessionId;
+    node->sessionId = (uint32_t)sessionId;
     node->isReady = false;
 
-    UtilsListAdd(&sessionIdList->idList, &node->idList);
+    DLListAdd(&sessionIdList->idList, &node->idList);
     pthread_mutex_unlock(&sessionIdList->mutex);
     return node;
 }

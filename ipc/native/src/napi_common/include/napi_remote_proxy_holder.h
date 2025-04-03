@@ -36,18 +36,17 @@ public:
 
     napi_ref GetDeathRecipientRef() const;
 
-    void CleanDeatRecipientRef();
+    void CleanDeathRecipientRef();
 
 protected:
     virtual ~NAPIDeathRecipient() = default;
 
 private:
-    static void AfterWorkCallback(uv_work_t *work, int status);
-
     struct OnRemoteDiedParam {
         napi_env env;
         sptr<NAPIDeathRecipient> deathRecipient;
     };
+    static void AfterWorkCallback(OnRemoteDiedParam *param);
     napi_env env_ = nullptr;
     napi_ref deathRecipientRef_ = nullptr;
 };

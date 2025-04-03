@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -172,15 +172,6 @@ public:
     int32_t NoticeServiceDie();
 
     /**
-     * @brief Obtains the corresponding PID and UID.
-     * @param reply Indicates the object returned by the peer process.
-     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
-     * defined in {@link ipc_types.h} otherwise.
-     * @since 9
-     */
-    int GetPidUid(MessageParcel &reply);
-
-    /**
      * @brief Obtains the session name.
      * @return Returns the session name of type string.
      * @since 9
@@ -242,7 +233,7 @@ public:
 
     void SetObjectDied(bool isDied);
 
-#ifndef EMULATOR_PLATFORM
+#ifdef OHOS_PLATFORM
     bool CanPromote() override;
 #endif
 
@@ -359,6 +350,13 @@ private:
     bool RegisterBinderDeathRecipient();
     bool UnRegisterBinderDeathRecipient();
 
+    std::string GetDescriptor(MessageParcel &data);
+
+#ifdef ENABLE_IPC_TRACE
+    void StartLifeCycleTrace();
+    std::string GenLifeCycleTraceInfo() const;
+    std::string GenSendRequestTraceInfo(uint32_t code) const;
+#endif
     struct DeathRecipientAddrInfo : public virtual RefBase {
     public:
         explicit DeathRecipientAddrInfo(const sptr<DeathRecipient> &recipient);
@@ -377,15 +375,20 @@ private:
     std::shared_mutex descMutex_;
 
     std::vector<sptr<DeathRecipientAddrInfo>> recipients_;
-    const uint32_t handle_;
+    uint32_t handle_;
     int proto_;
     bool isFinishInit_;
     std::atomic<bool> isRemoteDead_;
-    std::u16string remoteDescriptor_;
+    // anonymized descriptor, only for log
+    std::string remoteDescriptor_;
     std::u16string interfaceDesc_;
     std::atomic<int> lastErr_ = 0;
     std::atomic<int> lastErrCnt_ = 0;
     std::unique_ptr<uint8_t[]> dbinderData_{nullptr};
+#ifdef ENABLE_IPC_TRACE
+    std::string fullRemoteDescriptor_;
+    bool isTraceEnabled_ = false;
+#endif
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_PROXY_H

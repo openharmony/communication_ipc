@@ -35,6 +35,7 @@ public:
     napi_ref GetJsObjectRef() const;
     napi_env GetJsObjectEnv() const;
     void CleanJsEnv();
+    void DetectCreatedInIPCThread();
     void Lock()
     {
         mutex_.lock();
@@ -68,7 +69,7 @@ private:
 
     std::mutex mutex_;
     napi_env env_ = nullptr;
-    std::thread::id jsThreadId_;
+    const std::thread::id jsThreadId_;
     std::u16string descriptor_;
     sptr<IRemoteObject> sptrCachedObject_;
     wptr<IRemoteObject> wptrCachedObject_;

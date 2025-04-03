@@ -18,21 +18,21 @@
 
 #include <cstring>
 
+#include "dbinder_service.h"
+#include "doubly_linked_list.h"
 #include "rpc_log.h"
 #include "rpc_errno.h"
 #include "ipc_skeleton.h"
 #include "serializer.h"
-#include "utils_list.h"
-#include "dbinder_service.h"
 
 typedef struct {
-    UTILS_DL_LIST list;
+    DL_LIST list;
     int32_t saId;
     SvcIdentity *sid;
 } SvcInfo;
 
 namespace {
-UTILS_DL_LIST *g_saList = nullptr;
+DL_LIST *g_saList = nullptr;
 
 int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 {
@@ -40,7 +40,7 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
         return ERR_FAILED;
     }
     RPC_LOG_INFO("AddSystemAbility called.... handle = %d", sid->handle);
-    RPC_LOG_INFO("AddSystemAbility called.... cookie = %u", sid->cookie);
+    RPC_LOG_INFO("AddSystemAbility called.... cookie = %llu", sid->cookie);
     if (g_saList == nullptr) {
         return ERR_FAILED;
     }
@@ -52,7 +52,7 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     }
     node->saId = saId;
     node->sid = sid;
-    UtilsListAdd(g_saList, &node->list);
+    DLListAdd(g_saList, &node->list);
     return ERR_NONE;
 }
 
@@ -60,13 +60,13 @@ int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
     SvcInfo* node = nullptr;
     SvcInfo* next = nullptr;
-    UTILS_DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
+    DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
     {
         if (node->saId == saId) {
             sid->handle = node->sid->handle;
             sid->token = node->sid->token;
             sid->cookie = node->sid->cookie;
-            RPC_LOG_INFO("find sa, said = %d, handle = %d, cookie = %u", saId, sid->handle, sid->cookie);
+            RPC_LOG_INFO("find sa, said = %d, handle = %d, cookie = %llu", saId, sid->handle, sid->cookie);
             return ERR_NONE;
         }
     }
@@ -107,7 +107,7 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("MakeRemoteBinder failed");
     }
-    RPC_LOG_INFO("GetRemoteSystemAbility handle=%d, cookie=%u", sid->handle, sid->cookie);
+    RPC_LOG_INFO("GetRemoteSystemAbility handle=%d, cookie=%llu", sid->handle, sid->cookie);
 
     return ret;
 }
@@ -184,12 +184,12 @@ int32_t mainFunc(void)
 {
     RPC_LOG_INFO("Enter System Ability Manager .... ");
 
-    g_saList = (UTILS_DL_LIST *)calloc(1, sizeof(UTILS_DL_LIST));
+    g_saList = (DL_LIST *)calloc(1, sizeof(DL_LIST));
     if (g_saList == nullptr) {
         RPC_LOG_ERROR("g_saList calloc failed");
         return ERR_FAILED;
     }
-    UtilsListInit(g_saList);
+    DLListInit(g_saList);
     return ERR_NONE;
 }
 }
@@ -220,14 +220,9 @@ public:
  */
 HWTEST_F(RpcSamgrTest, RpcSamgrTest001, TestSize.Level1)
 {
-    IpcObjectStub objectStub = {
-        .func = RemoteRequest,
-        .isRemote = false
-    };
-
     SvcIdentity target = {
         .handle = 0,
-        .cookie = NULL
+        .cookie = 0
     };
 
     int32_t ret = SetContextObject(target);

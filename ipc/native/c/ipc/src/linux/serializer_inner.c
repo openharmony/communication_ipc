@@ -117,7 +117,7 @@ bool ReadRemoteObject(IpcIo *io, SvcIdentity *svc)
         svc->handle = IPC_INVALID_HANDLE;
         svc->cookie = obj->cookie;
     } else {
-        svc->handle = obj->handle;
+        svc->handle = (int32_t)obj->handle;
         svc->cookie = obj->cookie;
         WaitForProxyInit(svc);
     }

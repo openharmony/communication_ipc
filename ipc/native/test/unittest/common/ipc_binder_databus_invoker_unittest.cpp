@@ -18,7 +18,6 @@
 #include "mock_iremote_object.h"
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
-#include "ipc_test_helper.h"
 #include "log_tags.h"
 #include "access_token_adapter.h"
 #include "sys_binder.h"
@@ -36,41 +35,19 @@ using namespace std;
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace OHOS {
 namespace {
 const std::string DEVICE_ID_TEST = "deviceidTest";
 const std::string SESSION_NAME_TEST = "sessionNameTest";
 const std::string PEER_SESSION_NAME_TEST = "peerSessionNameTest";
 const std::string SERVICE_NAME_TEST = "serviceNameTest";
+const uint32_t DEVICEID_LENGTH_TEST = 64;
 }
 
 class IPCDbinderDataBusInvokerTest : public testing::Test {
 public:
-    static void SetUpTestCase(void);
-    static void TearDownTestCase(void);
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCUnitTest" };
-
-private:
-    static inline IPCTestHelper *g_globalHelper = { nullptr };
 };
-
-void IPCDbinderDataBusInvokerTest::SetUpTestCase()
-{
-    if (g_globalHelper == nullptr) {
-        g_globalHelper = new IPCTestHelper();
-        bool res = g_globalHelper->PrepareTestSuite();
-        ASSERT_TRUE(res);
-    }
-}
-
-void IPCDbinderDataBusInvokerTest::TearDownTestCase()
-{
-    if (g_globalHelper != nullptr) {
-        bool res = g_globalHelper->TearDownTestSuite();
-        ASSERT_TRUE(res);
-        delete g_globalHelper;
-        g_globalHelper = nullptr;
-    }
-}
 
 /**
  * @tc.name: AcquireHandle001
@@ -774,7 +751,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, ResetCallingIdentityTest001, TestSize.Lev
  */
 HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest001, TestSize.Level1)
 {
-    #define DEVICEID_LENGTH_TEST 64
     uint64_t tokenId = 1;
     uint64_t pid = 1;
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
@@ -792,6 +768,35 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest001, TestSize.Level
     DBinderDatabusInvoker testInvoker;
     bool result = testInvoker.SetCallingIdentity(identity, false);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest002
+ * @tc.desc: SetCallingIdentity
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest002, TestSize.Level1)
+{
+    uint64_t testCallerTokenID = 1;
+    std::string testCallerDeviceID(DEVICEID_LENGTH_TEST, 'a');
+    pid_t testCallerPid = getpid();
+    pid_t testCallerUid = getuid();
+
+    std::stringstream ss;
+    ss << std::setw(DBinderDatabusInvoker::ACCESS_TOKEN_MAX_LEN) << std::setfill('0') << testCallerTokenID;
+    ss << testCallerDeviceID;
+    ss << std::to_string((static_cast<uint64_t>(testCallerUid) << PID_LEN) | static_cast<uint64_t>(testCallerPid));
+    std::string identity = ss.str();
+    std::cout << "identity=" << identity << std::endl;
+
+    DBinderDatabusInvoker testInvoker;
+    bool result = testInvoker.SetCallingIdentity(identity, false);
+    EXPECT_TRUE(result);
+
+    EXPECT_EQ(testInvoker.callerTokenID_, testCallerTokenID);
+    EXPECT_EQ(testInvoker.callerDeviceID_, testCallerDeviceID);
+    EXPECT_EQ(testInvoker.callerPid_, testCallerPid);
+    EXPECT_EQ(testInvoker.callerUid_, testCallerUid);
 }
 
 /**
@@ -1210,7 +1215,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession001, TestSize.Level1)
     std::shared_ptr<DBinderSessionObject> session =
         std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, serverDeviceId, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
     uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
     EXPECT_EQ(ret, 0);
@@ -1231,7 +1236,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession002, TestSize.Level1)
     std::shared_ptr<DBinderSessionObject> session =
         std::make_shared<DBinderSessionObject>(serviceName, DEVICE_ID_TEST, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
     uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
     EXPECT_EQ(ret, 0);
@@ -1251,7 +1256,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, FlattenSession003, TestSize.Level1)
     std::shared_ptr<DBinderSessionObject> session =
         std::make_shared<DBinderSessionObject>(SERVICE_NAME_TEST, DEVICE_ID_TEST, 1, nullptr, 1);
     FlatDBinderSession flatDBinderSession;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     uint64_t stubIndex = 0;
     uint32_t ret = testInvoker.FlattenSession(sessionOffset, session, stubIndex);
     EXPECT_EQ(ret, 280);
@@ -1269,7 +1274,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession001, TestSize.Level1)
     uint64_t stubIndex = 0;
     FlatDBinderSession flatDBinderSession;
     flatDBinderSession.stubIndex = 0;
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.UnFlattenSession(sessionOffset, stubIndex);
     EXPECT_EQ(ret, nullptr);
 }
@@ -1287,7 +1292,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession002, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.UnFlattenSession(sessionOffset, stubIndex);
     EXPECT_EQ(ret, nullptr);
 }
@@ -1629,7 +1634,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession003, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1651,7 +1656,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession004, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1673,7 +1678,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession005, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1695,7 +1700,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, UnFlattenSession006, TestSize.Level1)
     int len = 65;
     strcpy_s(flatDBinderSession.serviceName, len, "testServiceName");
     strcpy_s(flatDBinderSession.deviceId, len, "testDeviceId");
-    char* sessionOffset = reinterpret_cast<char*>(&flatDBinderSession);
+    unsigned char* sessionOffset = reinterpret_cast<unsigned char*>(&flatDBinderSession);
 
     uint32_t binderVersion = SUPPORT_TOKENID_VERSION_NUM - 1;
     auto ret = testInvoker.UnFlattenSession(sessionOffset, binderVersion);
@@ -1713,7 +1718,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable001, TestSize.Level1)
     int32_t socketId = 0;
     const char *data = nullptr;
     ssize_t len = 0;
-    testInvoker.OnMessageAvailable(socketId, data, len);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, data, len));
 }
 
 /**
@@ -1727,5 +1732,6 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnMessageAvailable002, TestSize.Level1)
     int32_t socketId = 1;
     const char *data = new char();
     ssize_t len = 200;
-    testInvoker.OnMessageAvailable(socketId, data, len);
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnMessageAvailable(socketId, data, len));
 }
+} // namespace OHOS
