@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+rpc_ani_path = "//foundation/communication/ipc/ipc/native/src/ani"
 IPC_ROOT_PATH = "//foundation/communication/ipc"
 IPC_UNITTEST_ROOT_PATH = "$IPC_ROOT_PATH/test/unittest"
 
