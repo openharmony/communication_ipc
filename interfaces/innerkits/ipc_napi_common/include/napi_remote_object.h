@@ -16,21 +16,11 @@
 #define NAPI_IPC_OHOS_REMOTE_OBJECT_H
 
 #include "iremote_object.h"
+#include "napi_calling_info.h"
 #include "napi/native_api.h"
 #include "refbase.h"
 
 namespace OHOS {
-    // Description of caller information parameters.
-    struct CallingInfo {
-        pid_t callingPid;
-        pid_t callingUid;
-        uint32_t callingTokenId;
-        std::string callingDeviceID;
-        std::string localDeviceID;
-        bool isLocalCalling;
-        int activeStatus;
-    };
-
     // NAPI caller information parameter description.
     struct NAPI_CallingInfo {
         napi_value callingPid;

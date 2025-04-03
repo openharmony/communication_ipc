@@ -1,0 +1,63 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+
+group("rpc_ani_package") {
+  deps = [
+    ":rpc_abc_etc",
+    ":rpc_ani",
+  ]
+}
+
+config("ani_rpc_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("rpc_ani") {
+  sources = [ "src/rpc_ani.cpp" ]
+  include_dirs = [
+    "include",
+    "../../../../../utils/include",
+    "../../../../../interfaces/innerkits/ipc_core/include",
+  ]
+  public_configs = [ ":ani_rpc_public_config" ]
+
+  deps = [ "../../../../../interfaces/innerkits/ipc_core:ipc_core" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "runtime_core:ani",
+  ]
+  subsystem_name = "communication"
+  part_name = "ipc"
+  output_extension = "so"
+}
+
+generate_static_abc("rpc_abc") {
+  base_url = "./ets"
+  files = [ "./ets/@ohos.rpc.ets" ]
+  dst_file = "$target_out_dir/rpc.abc"
+  out_puts = [ "$target_out_dir/rpc.abc" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/rpc.abc"
+}
+
+ohos_prebuilt_etc("rpc_abc_etc") {
+  source = "$target_out_dir/rpc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "communication"
+  part_name = "ipc"
+  deps = [ ":rpc_abc" ]
+}
