@@ -416,4 +416,299 @@ HWTEST_F(IPCObjectProxyTest, AddDeathRecipient005, TestSize.Level1)
     bool ret = object.AddDeathRecipient(death.GetRefPtr());
     ASSERT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: RemoveDeathRecipientTest001
+ * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when recipient nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    bool ret = object.RemoveDeathRecipient(nullptr);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RemoveDeathRecipientTest002
+ * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when IsObjectDead return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient002, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    object.SetObjectDied(true);
+    bool ret = object.RemoveDeathRecipient(death.GetRefPtr());
+    object.SetObjectDied(false);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RemoveDeathRecipientTest003
+ * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when handle_ >= DBINDER_HANDLE_BASE
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient003, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    uint32_t tmp = object.handle_;
+    object.handle_ = IPCProcessSkeleton::DBINDER_HANDLE_BASE;
+    object.AddDeathRecipient(death.GetRefPtr());
+    bool ret = object.RemoveDeathRecipient(death.GetRefPtr());
+    object.handle_ = tmp;
+    ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: UpdateProtoTest001
+ * @tc.desc: Verify the IPCObjectProxy::UpdateProto function when CheckHaveSession return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateProtoTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = "test";
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(nullptr));
+    auto ret = object.UpdateProto(nullptr);
+    ASSERT_TRUE(ret == true);
+}
+
+/**
+ * @tc.name: UpdateProtoTest002
+ * @tc.desc: Verify the IPCObjectProxy::UpdateProto function when dbinderData_ nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateProtoTest002, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = "test";
+    std::unique_ptr<uint8_t[]> temp = std::move(object.dbinderData_);
+    dbinder_negotiation_data dbinderData = {
+        .proto = IRemoteObject::IF_PROT_DATABUS,
+        .tokenid = 0,
+        .stub_index = 0,
+        .target_name = "target_name",
+        .local_name = "local_name",
+        .target_device = "target_device",
+        .local_device = "local_device",
+        .desc = {},
+        .reserved = {0, 0, 0}
+    };
+
+    auto ret = object.UpdateProto(&dbinderData);
+    ASSERT_FALSE(ret);
+    object.dbinderData_ = std::move(temp);
+}
+
+/**
+ * @tc.name: UpdateProtoTest003
+ * @tc.desc: Verify the IPCObjectProxy::UpdateProto function when UpdateDatabusClientSession return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, UpdateProtoTest003, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+    object.remoteDescriptor_ = "test";
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(Return(nullptr));
+    dbinder_negotiation_data dbinderData = {
+        .proto = IRemoteObject::IF_PROT_DATABUS,
+        .tokenid = 0,
+        .stub_index = 0,
+        .target_name = "target_name",
+        .local_name = "local_name",
+        .target_device = "target_device",
+        .local_device = "local_device",
+        .desc = {},
+        .reserved = {0, 0, 0}
+    };
+
+    auto ret = object.UpdateProto(&dbinderData);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetStrongRefCountForStubTest001
+ * @tc.desc: Verify the GetStrongRefCountForStub function when invoker nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetStrongRefCountForStubTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(nullptr));
+    object->proto_ = IRemoteObject::IF_PROT_DEFAULT;
+    uint32_t count = object->GetStrongRefCountForStub();
+    ASSERT_TRUE(count == 0);
+}
+
+/**
+ * @tc.name: AddDbinderDeathRecipient001
+ * @tc.desc: Verify the AddDbinderDeathRecipient function when function GetCurrent nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipient001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(nullptr));
+    auto ret = object->AddDbinderDeathRecipient();
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: MakeDBinderTransSession001
+ * @tc.desc: Verify the MakeDBinderTransSession function when GetRemoteInvoker return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(nullptr));
+    DBinderNegotiationData data = {
+        .peerPid = 0,
+        .peerUid = 0,
+        .peerTokenId = 0,
+        .stubIndex = 0,
+        .peerServiceName = "test",
+        .peerDeviceId = "test",
+        .localServiceName = "test",
+        .localDeviceId = "test"
+    };
+    auto ret = object->MakeDBinderTransSession(data);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: MakeDBinderTransSession002
+ * @tc.desc: Verify the MakeDBinderTransSession function when GetCurrent return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession002, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(invoker));
+    EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(nullptr));
+    DBinderNegotiationData data = {
+        .peerPid = 0,
+        .peerUid = 0,
+        .peerTokenId = 0,
+        .stubIndex = 0,
+        .peerServiceName = "test",
+        .peerDeviceId = "test",
+        .localServiceName = "test",
+        .localDeviceId = "test"
+    };
+    auto ret = object->MakeDBinderTransSession(data);
+    delete invoker;
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: MakeDBinderTransSession003
+ * @tc.desc: Verify the MakeDBinderTransSession function when peerServiceName is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession003, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCProcessSkeleton *current = new IPCProcessSkeleton();
+    IPCThreadSkeleton *currentptr = IPCThreadSkeleton::GetCurrent();
+    currentptr->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(invoker));
+    EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(current));
+    DBinderNegotiationData data = {
+        .peerPid = 0,
+        .peerUid = 0,
+        .peerTokenId = 0,
+        .stubIndex = 0,
+        .peerServiceName = "",
+        .peerDeviceId = "test",
+        .localServiceName = "test",
+        .localDeviceId = "test"
+    };
+    auto ret = object->MakeDBinderTransSession(data);
+    delete current;
+    delete invoker;
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: MakeDBinderTransSession004
+ * @tc.desc: Verify the MakeDBinderTransSession function when CreateSoftbusServer return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession004, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCProcessSkeleton *current = new IPCProcessSkeleton();
+    IPCThreadSkeleton *currentptr = IPCThreadSkeleton::GetCurrent();
+    currentptr->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(invoker));
+    EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(current));
+    EXPECT_CALL(mock, CreateSoftbusServer(testing::_)).WillOnce(Return(false));
+    DBinderNegotiationData data = {
+        .peerPid = 0,
+        .peerUid = 0,
+        .peerTokenId = 0,
+        .stubIndex = 0,
+        .peerServiceName = "test",
+        .peerDeviceId = "test",
+        .localServiceName = "test",
+        .localDeviceId = "test"
+    };
+    auto ret = object->MakeDBinderTransSession(data);
+    delete current;
+    delete invoker;
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: DeathRecipientAddrInfo001
+ * @tc.desc: Verify the DeathRecipientAddrInfo function when recipient is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfo001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    sptr<OHOS::IRemoteObject::DeathRecipient> nullRecipient = nullptr;
+    IPCObjectProxy::DeathRecipientAddrInfo info(nullRecipient);
+    EXPECT_EQ(info.recipient_, nullptr);
+}
+
+/**
+ * @tc.name: DeathRecipientAddrInfo002
+ * @tc.desc: Verify the DeathRecipientAddrInfo function when recipient is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfo002, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    sptr<MockDeathRecipient> recipient = new MockDeathRecipient();
+    IPCObjectProxy::DeathRecipientAddrInfo info(recipient);
+    EXPECT_NE(info.recipient_, nullptr);
+}
 } // namespace OHOS
