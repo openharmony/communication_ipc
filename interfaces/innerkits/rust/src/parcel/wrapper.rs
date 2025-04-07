@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Huawei Device Co., Ltd.
+// Copyright (C) 2024-2025 Huawei Device Co., Ltd.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -583,6 +583,9 @@ mod test {
 
     use crate::parcel::MsgParcel;
 
+    const TEST_STR_LEN: i32 = 2;
+    const TEST_INVALID_CHARACTER: i32 = 0xFFFF;
+
     /// UT test cases for `MsgParcel`
     ///
     /// # Brief
@@ -821,5 +824,27 @@ mod test {
 
         msg.skip_read(4);
         assert_eq!(2, msg.read().unwrap());
+    }
+
+    /// UT test cases for `MsgParcel`
+    ///
+    /// # Brief
+    /// 1. Create a MsgParcel
+    /// 2. Write invalid UTF-8 data to the MsgParcel, and expected read failure.
+    #[test]
+    fn invalid_string() {
+        let mut msg = MsgParcel::new();
+
+        msg.write(&TEST_STR_LEN).unwrap();
+        msg.write(&TEST_INVALID_CHARACTER).unwrap();
+        msg.write("B").unwrap();
+
+        // Read a string containing invalid UTF-8 data and expected read failure.
+        let result = msg.read::<String>();
+        let value = match result {
+            Ok(val) => val,
+            Err(..) => String::from("Failed to read")
+        };
+        assert_eq!(value, "Failed to read");
     }
 }
