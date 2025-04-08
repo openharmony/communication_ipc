@@ -78,6 +78,7 @@ public:
     virtual bool StrToUint64(const std::string &str, uint64_t &value) = 0;
     virtual bool StrToInt32(const std::string &str, int32_t &value) = 0;
     virtual int WriteBinder(unsigned long request, void *value) = 0;
+    virtual size_t GetDataSize() = 0;
 };
 class BinderInvokerInterfaceMock : public BinderInvokerInterface {
 public:
@@ -104,6 +105,7 @@ public:
     MOCK_METHOD2(StrToUint64, bool(const std::string &str, uint64_t &value));
     MOCK_METHOD2(StrToInt32, bool(const std::string &str, int32_t &value));
     MOCK_METHOD2(WriteBinder, int(unsigned long request, void *value));
+    MOCK_METHOD0(GetDataSize, size_t());
 };
 static void *g_interface = nullptr;
 
@@ -199,6 +201,13 @@ extern "C" {
             return false;
         }
         return GetBinderInvokerInterface()->CheckOffsets();
+    }
+    size_t Parcel::GetDataSize() const
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetBinderInvokerInterface()->GetDataSize();
     }
     sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
     {
@@ -1778,4 +1787,43 @@ HWTEST_F(BinderInvokerTest, GetFirstCallerTokenIDTest003, TestSize.Level1)
     EXPECT_EQ(binderInvoker.GetFirstCallerTokenID(), TOKEN_ID_TEST);
 }
 
+/**
+ * @tc.name: UpdateConsumedDataTest001
+ * @tc.desc: Verify the UpdateConsumedData function when bwr.write_consumed > output_.GetDataSize()
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, UpdateConsumedDataTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.sendNestCount_ = 3;
+    binder_write_read bwr = {};
+    bwr.write_consumed = 1;
+    bwr.read_consumed = 1;
+    size_t outAvail = 3;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetDataSize).WillRepeatedly(testing::Return(0));
+
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.UpdateConsumedData(bwr, outAvail));
+}
+
+/**
+ * @tc.name: UpdateConsumedDataTest002
+ * @tc.desc: Verify the UpdateConsumedData function when bwr.write_consumed is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, UpdateConsumedDataTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.sendNestCount_ = 3;
+    binder_write_read bwr = {};
+    bwr.write_consumed = 0;
+    bwr.read_consumed = 1;
+    size_t outAvail = 3;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(0));
+
+    ASSERT_NO_FATAL_FAILURE(binderInvoker.UpdateConsumedData(bwr, outAvail));
+}
 } // namespace OHOS

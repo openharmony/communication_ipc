@@ -13,9 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef BUFFEROBJECTTWO_FUZZER_H
-#define BUFFEROBJECTTWO_FUZZER_H
+#ifndef OHOS_IPC_TEST_SMALL_SERVER_BUSINESS_IMPL_H
+#define OHOS_IPC_TEST_SMALL_SERVER_BUSINESS_IMPL_H
 
-#define FUZZ_PROJECT_NAME "bufferobjecttwo_fuzzer"
+#include "iproxy_client.h"
+#include "iproxy_server.h"
+#include "serializer.h"
 
-#endif // BUFFEROBJECTTWO_FUZZER_H
+int32_t DispatchInvoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply);
+
+#endif // OHOS_IPC_TEST_SMALL_SERVER_BUSINESS_IMPL_H

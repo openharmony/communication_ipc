@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,18 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../../../../config.gni")
+import("//build/lite/config/component/lite_component.gni")
 
-group("fuzztest") {
-  testonly = true
-  if (ipc_feature_test_enabled) {
-    deps = [
-      "c/getfeaturesize_fuzzer:fuzztest",
-      "c/getrpcfeatureack_fuzzer:fuzztest",
-      "c/gettokenfromdata_fuzzer:fuzztest",
-      "c/isatenable_fuzzer:fuzztest",
-      "c/isfeatureack_fuzzer:fuzztest",
-      "c/setfeaturetransdata_fuzzer:fuzztest",
-    ]
-  }
+lite_component("ipc_test_small") {
+  features = [
+    "client:ipc_test_small_client",
+    "server:ipc_test_small_server",
+  ]
 }

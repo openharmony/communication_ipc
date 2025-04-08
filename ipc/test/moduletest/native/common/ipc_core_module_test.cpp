@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
 #include <fcntl.h>
 #include <thread>
 #include <gtest/gtest.h>
@@ -32,6 +31,7 @@
 #include "foo_service.h"
 
 #include "log_tags.h"
+#include "fd_san.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -292,11 +292,12 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_006, TestSize.Level1)
         int fd = testService->TestGetFileDescriptor();
         ZLOGW(LABEL, "Got fd:%{public}d!\n", fd);
         ASSERT_TRUE(fd > 0);
+        fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
 
         ssize_t len = write(fd, "client write!\n", strlen("client write!\n"));
         EXPECT_GT(len, 0);
 
-        close(fd);
+        fdsan_close_with_tag(fd, IPC_FD_TAG);
     }
 }
 
@@ -356,12 +357,13 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_008, TestSize.Level1)
         O_RDWR | O_APPEND | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
 
     ASSERT_TRUE(fd > 0);
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
 
     std::vector<std::u16string> args;
     args.push_back(u"test");
 
     int result = object->Dump(fd, args);
-    close(fd);
+    fdsan_close_with_tag(fd, IPC_FD_TAG);
     EXPECT_TRUE(result == ERR_NONE);
 }
 

@@ -105,6 +105,10 @@ ipc_unittest("DbinderDataBusInvokerTest") {
   sources = [ "dbinder_databus_invoker_unittest.cpp" ]
 }
 
+ipc_unittest("MessageParcelAddTest") {
+  sources = [ "message_parcel_unittest.cpp" ]
+}
+
 ipc_unittest("IPCSkeletonTest") {
   sources = [ "ipc_skeleton_unittest.cpp" ]
 }
@@ -129,6 +133,10 @@ ipc_unittest("DatabusSocketListenerUnitTest") {
   sources = [ "databus_socket_listener_unittest.cpp" ]
 }
 
+ipc_unittest("IPCFileDescriptorTest") {
+  sources = [ "ipc_file_descriptor_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -138,6 +146,7 @@ group("unittest") {
     ":DBinderSoftbusClientTest",
     ":DatabusSocketListenerUnitTest",
     ":DbinderDataBusInvokerTest",
+    ":IPCFileDescriptorTest",
     ":IPCObjectProxyTest",
     ":IPCProcessSkeletonUnitTest",
     ":IPCSkeletonTest",
@@ -145,6 +154,7 @@ group("unittest") {
     ":IpcObjectStubTest",
     ":IremoteBrokerTest",
     ":IremoteObjectTest",
+    ":MessageParcelAddTest",
     ":ProcessSkeletonTest",
   ]
 }

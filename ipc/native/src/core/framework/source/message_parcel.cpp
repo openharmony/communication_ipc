@@ -38,6 +38,7 @@
 #include "refbase.h"
 #include "securec.h"
 #include "sys_binder.h"
+#include "fd_san.h"
 
 #ifndef CONFIG_IPC_SINGLE
 #include "dbinder_callback_stub.h"
@@ -106,11 +107,11 @@ MessageParcel::~MessageParcel()
     }
 
     if (readRawDataFd_ > 0) {
-        ::close(readRawDataFd_);
+        ::fdsan_close_with_tag(readRawDataFd_, IPC_FD_TAG);
         readRawDataFd_ = -1;
     }
     if (writeRawDataFd_ > 0) {
-        ::close(writeRawDataFd_);
+        ::fdsan_close_with_tag(writeRawDataFd_, IPC_FD_TAG);
         writeRawDataFd_ = -1;
     }
 
@@ -394,6 +395,7 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
     if (fd < 0) {
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
     writeRawDataFd_ = fd;
 
     int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
@@ -469,6 +471,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     if (fd < 0) {
         return nullptr;
     }
+    fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
     readRawDataFd_ = fd;
 
     int ashmemSize = AshmemGetSize(fd);
