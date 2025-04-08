@@ -98,6 +98,10 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     }
     size_t len;
     const char *deviceId = (const char *)ReadString(data, &len);
+    if (deviceId == nullptr) {
+        RPC_LOG_INFO("deviceId is nullptr");
+        return ERR_FAILED;
+    }
 
     const char *name = "16";
     uint32_t idLen = (uint32_t)strlen(deviceId);
