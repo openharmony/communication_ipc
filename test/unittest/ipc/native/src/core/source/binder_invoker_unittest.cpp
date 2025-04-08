@@ -31,9 +31,15 @@ using namespace OHOS;
 
 const std::u16string DESCRIPTOR_TEST = u"test_descriptor";
 const std::string STR_TEST = "<0671418004000000000023721104375808";
+const std::string STR_TEST_ONE = "0671418004000000000023721104375808<";
+const std::string STR_TEST_TWO = "0671418004000000000023<721104375808";
+const std::string STR_TEST_THREE = "<12345678901234567890";
 const std::string IDENTITY_TEST = "testIdentity";
+const std::string IDENTITY_TEST_INVALID = "identity";
 const std::string CALLER_SID_TEST = "test_caller_id";
 const std::string SID_TEST = "test_id";
+static constexpr const char *DRIVER_NAME = "/dev/binder";
+static constexpr const char *DRIVER_NAME_INVALID = "/dev/test/test";
 static constexpr int EXECUTE_ONCE = 1;
 static constexpr int EXECUTE_TWICE = 2;
 static constexpr int32_t TEST_HANDLE = 1;
@@ -66,6 +72,12 @@ public:
     virtual sptr<IRemoteObject> GetRegistryObject() = 0;
     virtual bool IsValidObject(IRemoteObject *object, std::u16string &desc) = 0;
     virtual int GetSptrRefCount() = 0;
+    virtual uint64_t GetSelfFirstCallerTokenID() = 0;
+    virtual bool IsDriverAlive() = 0;
+    virtual bool GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length) = 0;
+    virtual bool StrToUint64(const std::string &str, uint64_t &value) = 0;
+    virtual bool StrToInt32(const std::string &str, int32_t &value) = 0;
+    virtual int WriteBinder(unsigned long request, void *value) = 0;
     virtual size_t GetDataSize() = 0;
 };
 class BinderInvokerInterfaceMock : public BinderInvokerInterface {
@@ -87,6 +99,12 @@ public:
     MOCK_METHOD0(GetRegistryObject, sptr<IRemoteObject>());
     MOCK_METHOD2(IsValidObject, bool(IRemoteObject *object, std::u16string &desc));
     MOCK_METHOD0(GetSptrRefCount, int());
+    MOCK_METHOD0(GetSelfFirstCallerTokenID, uint64_t());
+    MOCK_METHOD0(IsDriverAlive, bool());
+    MOCK_METHOD4(GetSubStr, bool(const std::string &str, std::string &substr, size_t offset, size_t length));
+    MOCK_METHOD2(StrToUint64, bool(const std::string &str, uint64_t &value));
+    MOCK_METHOD2(StrToInt32, bool(const std::string &str, int32_t &value));
+    MOCK_METHOD2(WriteBinder, int(unsigned long request, void *value));
     MOCK_METHOD0(GetDataSize, size_t());
 };
 static void *g_interface = nullptr;
@@ -166,7 +184,7 @@ extern "C" {
     const uint8_t *Parcel::ReadBuffer(size_t length, bool isValidate)
     {
         if (GetBinderInvokerInterface() == nullptr) {
-            return 0;
+            return nullptr;
         }
         return GetBinderInvokerInterface()->ReadBuffer(length, isValidate);
     }
@@ -211,6 +229,48 @@ extern "C" {
             return 0;
         }
         return GetBinderInvokerInterface()->GetSptrRefCount();
+    }
+    uint64_t BinderConnector::GetSelfFirstCallerTokenID()
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetBinderInvokerInterface()->GetSelfFirstCallerTokenID();
+    }
+    bool BinderConnector::IsDriverAlive()
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->IsDriverAlive();
+    }
+    bool ProcessSkeleton::GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length)
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->GetSubStr(str, substr, offset, length);
+    }
+    bool ProcessSkeleton::StrToUint64(const std::string &str, uint64_t &value)
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->StrToUint64(str, value);
+    }
+    bool ProcessSkeleton::StrToInt32(const std::string &str, int32_t &value)
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->StrToInt32(str, value);
+    }
+    int BinderConnector::WriteBinder(unsigned long request, void *value)
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetBinderInvokerInterface()->WriteBinder(request, value);
     }
 }
 
@@ -459,8 +519,31 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest004, TestSize.Level1) {
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
     EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: AddDeathRecipientTest005
+ * @tc.desc: Verify the AddDeathRecipient function
+ * When WriteInt32 function return true, When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddDeathRecipientTest005, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -539,8 +622,30 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest004, TestSize.Level1) {
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
     EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: RemoveDeathRecipientTest005
+ * @tc.desc: Verify the RemoveDeathRecipient function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest005, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -843,16 +948,113 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest001, TestSize.Level1)
 
 /**
  * @tc.name: SetCallingIdentityTest002
- * @tc.desc: Override SetCallingIdentity function when identity is valid value
+ * @tc.desc: Override SetCallingIdentity function when identity is invalid value
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, SetCallingIdentityTest002, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    std::string identity = IDENTITY_TEST;
-    bool flag = true;
-    bool result = binderInvoker.SetCallingIdentity(identity, flag);
+    std::string identity = IDENTITY_TEST_INVALID;
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest003
+ * @tc.desc: Override SetCallingIdentity function when identity is valid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SetCallingIdentityTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string identity = IDENTITY_TEST;
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest004
+ * @tc.desc: Override SetCallingIdentity function when GetSubStr function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SetCallingIdentityTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string identity = STR_TEST;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(false));
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest005
+ * @tc.desc: Override SetCallingIdentity function when GetUint64ValueByStrSlice function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SetCallingIdentityTest005, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string identity = STR_TEST_ONE;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest006
+ * @tc.desc: Override SetCallingIdentity function when GetCallerRealPidByStr function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SetCallingIdentityTest006, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string identity = STR_TEST_TWO;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest007
+ * @tc.desc: Override SetCallingIdentity function when GetCallerPidAndUidByStr function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SetCallingIdentityTest007, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string identity = STR_TEST_THREE;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToInt32).WillRepeatedly(testing::Return(true));
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCallingIdentityTest008
+ * @tc.desc: Override SetCallingIdentity function when true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, SetCallingIdentityTest008, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string identity = STR_TEST;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToInt32).WillRepeatedly(testing::Return(true));
+    bool result = binderInvoker.SetCallingIdentity(identity, true);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -877,10 +1079,9 @@ HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest001, TestSize.Level
 HWTEST_F(BinderInvokerTest, EnableIPCThreadReclaimTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
-    bool enable = true;
     binderInvoker.binderConnector_ = nullptr;
 
-    bool result = binderInvoker.EnableIPCThreadReclaim(enable);
+    bool result = binderInvoker.EnableIPCThreadReclaim(true);
     EXPECT_FALSE(result);
 }
 
@@ -962,6 +1163,46 @@ HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUint64ValueByStrSliceTest003
+ * @tc.desc: cover GetUint64ValueByStrSlice function when StrToUint64 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = STR_TEST;
+    size_t offset = 2;
+    size_t length = 1;
+    uint64_t value = 0;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(false));
+    bool ret = binderInvoker.GetUint64ValueByStrSlice(str, offset, length, value);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetUint64ValueByStrSliceTest004
+ * @tc.desc: cover GetUint64ValueByStrSlice function when StrToUint64 function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    std::string str = STR_TEST;
+    size_t offset = 2;
+    size_t length = 1;
+    uint64_t value = 0;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.GetUint64ValueByStrSlice(str, offset, length, value);
+    EXPECT_TRUE(ret);
+}
+
+/**
  * @tc.name: GetCallerRealPidByStrTest001
  * @tc.desc: cover GetCallerRealPidByStr function
  * when str.length is less than offset + length
@@ -1013,7 +1254,7 @@ HWTEST_F(BinderInvokerTest, GetCallerPidAndUidByStrTest001, TestSize.Level1)
 
 /**
  * @tc.name: UnflattenObjectTest001
- * @tc.desc: Verify the UnflattenObject function when str is ""
+ * @tc.desc: Verify the UnflattenObject function when CheckOffsets function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
@@ -1026,6 +1267,53 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
 
     sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
     EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: UnflattenObjectTest002
+ * @tc.desc: Verify the UnflattenObject function when ReadBuffer function return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, UnflattenObjectTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    Parcel parcel;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, CheckOffsets).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, ReadBuffer).WillRepeatedly(testing::Return(nullptr));
+
+    sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: UnflattenObjectTest003
+ * @tc.desc: Verify the UnflattenObject function when current->instance_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, UnflattenObjectTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    Parcel parcel;
+    parcel.SetDataSize(100);
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    flat_binder_object tr {};
+    tr.flags = 1;
+    tr.hdr.type = -1;
+    uint8_t *buffer = (uint8_t *)&tr;
+
+    EXPECT_CALL(mock, CheckOffsets).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, ReadBuffer).WillRepeatedly(testing::Return(buffer));
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
+    EXPECT_EQ(ret, nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -1334,7 +1622,7 @@ HWTEST_F(BinderInvokerTest, GetCallerRealPidTest002, TestSize.Level1)
     binderInvoker.status_ = true;
     binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
     binderInvoker.invokerInfo_.realPid = PID_TEST_INVALID;
-    EXPECT_EQ(binderInvoker.GetCallerRealPid(), PID_TEST);
+    EXPECT_EQ(binderInvoker.GetCallerRealPid(), 1);
 }
 
 /**
@@ -1362,7 +1650,7 @@ HWTEST_F(BinderInvokerTest, GetCallerUidTest001, TestSize.Level1)
     BinderInvoker binderInvoker;
     binderInvoker.callerUid_ = UID_TEST;
     binderInvoker.status_ = true;
-    EXPECT_EQ(binderInvoker.GetCallerUid(), UID_TEST);
+    EXPECT_EQ(binderInvoker.GetCallerUid(), 1);
 }
 
 /**
@@ -1377,12 +1665,12 @@ HWTEST_F(BinderInvokerTest, GetCallerUidTest002, TestSize.Level1)
     binderInvoker.status_ = true;
     binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
     binderInvoker.invokerInfo_.uid = UID_INVALID_TEST;
-    EXPECT_EQ(binderInvoker.GetCallerUid(), UID_TEST);
+    EXPECT_EQ(binderInvoker.GetCallerUid(), 1);
 }
 
 /**
  * @tc.name: GetCallerUidTest003
- * @tc.desc: Verify the GetCallerRealPid function when status_ is false and invokerInfo_.pid is 0
+ * @tc.desc: Verify the GetCallerRealPid function when status_ is false and invokerInfo_.realPid is 0
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, GetCallerUidTest003, TestSize.Level1)
@@ -1392,7 +1680,7 @@ HWTEST_F(BinderInvokerTest, GetCallerUidTest003, TestSize.Level1)
     binderInvoker.status_ = false;
     binderInvoker.invokerInfo_.pid = PID_TEST_INVALID;
     binderInvoker.invokerInfo_.uid = UID_INVALID_TEST;
-    EXPECT_EQ(binderInvoker.GetCallerUid(), UID_INVALID_TEST);
+    EXPECT_EQ(binderInvoker.GetCallerUid(), PID_TEST_INVALID);
 }
 
 /**
@@ -1406,7 +1694,7 @@ HWTEST_F(BinderInvokerTest, GetCallerTokenIDTest001, TestSize.Level1)
     binderInvoker.callerUid_ = UID_TEST;
     binderInvoker.callerTokenID_ = TOKEN_ID_INVALID_TEST;
     binderInvoker.status_ = true;
-    EXPECT_EQ(binderInvoker.GetCallerTokenID(), UID_TEST);
+    EXPECT_EQ(binderInvoker.GetCallerTokenID(), 1);
 }
 
 /**
