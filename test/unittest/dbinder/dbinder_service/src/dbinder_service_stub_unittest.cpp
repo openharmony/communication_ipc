@@ -52,6 +52,9 @@ public:
     virtual bool FlattenDBinderData(Parcel &parcel, const dbinder_negotiation_data *&dbinderData) = 0;
     virtual pid_t GetCallingPid() = 0;
     virtual pid_t GetCallingUid() = 0;
+    virtual bool WriteUint64(uint64_t value) = 0;
+    virtual bool WriteString(const std::string &value) = 0;
+    virtual bool WriteString16(const std::u16string &value) = 0;
 };
 class DBinderServiceStubInterfaceMock : public DBinderServiceStubInterface {
 public:
@@ -64,6 +67,9 @@ public:
     MOCK_METHOD2(FlattenDBinderData, bool(Parcel &parcel, const dbinder_negotiation_data *&dbinderData));
     MOCK_METHOD0(GetCallingPid, pid_t());
     MOCK_METHOD0(GetCallingUid, pid_t());
+    MOCK_METHOD1(WriteUint64, bool(uint64_t value));
+    MOCK_METHOD1(WriteString, bool(const std::string &value));
+    MOCK_METHOD1(WriteString16, bool(const std::u16string &value));
 };
 
 static void *g_interface = nullptr;
@@ -98,6 +104,27 @@ extern "C" {
         }
         return GetDBinderServiceStubInterface()->WriteUint32(value);
     }
+    bool Parcel::WriteUint64(uint64_t value)
+    {
+        if (GetDBinderServiceStubInterface() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceStubInterface()->WriteUint64(value);
+    }
+    bool Parcel::WriteString(const std::string &value)
+    {
+        if (GetDBinderServiceStubInterface() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceStubInterface()->WriteString(value);
+    }
+    bool Parcel::WriteString16(const std::u16string &value)
+    {
+        if (GetDBinderServiceStubInterface() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceStubInterface()->WriteString16(value);
+    }
     IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     {
         if (GetDBinderServiceStubInterface() == nullptr) {
@@ -128,12 +155,6 @@ extern "C" {
     }
 }
 
-class MockDBinderService : public DBinderService {
-public:
-    MOCK_METHOD1(QuerySessionObject, std::shared_ptr<struct SessionInfo>(binder_uintptr_t stub));
-    MOCK_METHOD0(GetInstance, sptr<DBinderService>());
-};
-
 class DBinderServiceStubTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -160,7 +181,7 @@ void DBinderServiceStubTest::TearDown()
 
 /**
  * @tc.name: ProcessProtoTest001
- * @tc.desc: Verify the ProcessProto function when GetInstance function return nullptr
+ * @tc.desc: Verify the ProcessProto function when QuerySessionObject function return nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest001, TestSize.Level1)
@@ -169,9 +190,8 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest001, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    NiceMock<MockDBinderService> mockService;
-
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(nullptr));
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->sessionObject_.clear();
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
@@ -179,7 +199,7 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest001, TestSize.Level1)
 
 /**
  * @tc.name: ProcessProtoTest002
- * @tc.desc: Verify the ProcessProto function when QuerySessionObject function return nullptr
+ * @tc.desc: Verify the ProcessProto function when GetCallingUid function return -1
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest002, TestSize.Level1)
@@ -188,19 +208,23 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest002, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    NiceMock<MockDBinderService> mockService;
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(INVALID_UID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: ProcessProtoTest003
- * @tc.desc: Verify the ProcessProto function when GetCallingUid function return -1
+ * @tc.desc: Verify the ProcessProto function when GetCallingPid function return -1
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest003, TestSize.Level1)
@@ -210,22 +234,22 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest003, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
-    NiceMock<MockDBinderService> mockService;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(Return(sessionInfo));
-    EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(INVALID_UID_TEST));
-    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(INVALID_PID_TEST));
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: ProcessProtoTest004
- * @tc.desc: Verify the ProcessProto function when GetCallingPid function return -1
+ * @tc.desc: Verify the ProcessProto function when CreateDatabusName function return empty
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest004, TestSize.Level1)
@@ -235,22 +259,23 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest004, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
-    NiceMock<MockDBinderService> mockService;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(Return(sessionInfo));
     EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
-    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(INVALID_PID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(""));
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: ProcessProtoTest005
- * @tc.desc: Verify the ProcessProto function when CreateDatabusName function return empty
+ * @tc.desc: Verify the ProcessProto function when sessionInfo->type is IRemoteObject::IF_PROT_ERROR
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest005, TestSize.Level1)
@@ -260,24 +285,24 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest005, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
-    NiceMock<MockDBinderService> mockService;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sessionInfo->type = IRemoteObject::IF_PROT_ERROR;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(Return(sessionInfo));
     EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
     EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
-    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(""));
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(LOCAL_BUS_NAME_TEST));
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: ProcessProtoTest006
- * @tc.desc: Verify the ProcessProto function when sessionInfo->type is IRemoteObject::IF_PROT_ERROR
+ * @tc.desc: Verify the ProcessProto function when WriteUint32 function return false
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest006, TestSize.Level1)
@@ -287,24 +312,25 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest006, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
-    NiceMock<MockDBinderService> mockService;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
-    sessionInfo->type = IRemoteObject::IF_PROT_ERROR;
+    sessionInfo->type = IRemoteObject::DATABUS_TYPE;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(Return(sessionInfo));
     EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
     EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
     EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(LOCAL_BUS_NAME_TEST));
+    EXPECT_CALL(mockServiceStub, WriteUint32).WillRepeatedly(Return(false));
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: ProcessProtoTest007
- * @tc.desc: Verify the ProcessProto function when return ERR_NONE
+ * @tc.desc: Verify the ProcessProto function when WriteUint64 function return false
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, ProcessProtoTest007, TestSize.Level1)
@@ -314,20 +340,113 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest007, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
-    NiceMock<MockDBinderService> mockService;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sessionInfo->type = IRemoteObject::DATABUS_TYPE;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(Return(sessionInfo));
     EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
     EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
     EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(LOCAL_BUS_NAME_TEST));
-    EXPECT_CALL(mockServiceStub, WriteUint32).WillRepeatedly(Return(false));
+    EXPECT_CALL(mockServiceStub, WriteUint32).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteUint64).WillRepeatedly(Return(false));
 
     int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
     EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
+}
+
+/**
+ * @tc.name: ProcessProtoTest008
+ * @tc.desc: Verify the ProcessProto function when WriteString function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessProtoTest008, TestSize.Level1)
+{
+    DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
+    sessionInfo->type = IRemoteObject::DATABUS_TYPE;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
+
+    EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(LOCAL_BUS_NAME_TEST));
+    EXPECT_CALL(mockServiceStub, WriteUint32).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteUint64).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteString).WillRepeatedly(Return(false));
+
+    int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
+}
+
+/**
+ * @tc.name: ProcessProtoTest09
+ * @tc.desc: Verify the ProcessProto function when WriteString16 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessProtoTest09, TestSize.Level1)
+{
+    DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
+    sessionInfo->type = IRemoteObject::DATABUS_TYPE;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
+
+    EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(LOCAL_BUS_NAME_TEST));
+    EXPECT_CALL(mockServiceStub, WriteUint32).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteUint64).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteString).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteString16).WillRepeatedly(Return(false));
+
+    int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+    dBinderService->DetachSessionObject(stub);
+}
+
+/**
+ * @tc.name: ProcessProtoTest010
+ * @tc.desc: Verify the ProcessProto function when WriteString16 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessProtoTest010, TestSize.Level1)
+{
+    DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
+    sessionInfo->type = IRemoteObject::DATABUS_TYPE;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
+
+    EXPECT_CALL(mockServiceStub, GetCallingUid).WillRepeatedly(Return(VALID_UID_TEST));
+    EXPECT_CALL(mockServiceStub, GetCallingPid).WillRepeatedly(Return(VALID_PID_TEST));
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(Return(LOCAL_BUS_NAME_TEST));
+    EXPECT_CALL(mockServiceStub, WriteUint32).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteUint64).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteString).WillRepeatedly(Return(true));
+    EXPECT_CALL(mockServiceStub, WriteString16).WillRepeatedly(Return(true));
+
+    int32_t ret = dBinderServiceStub.ProcessProto(PROCESS_PROTO_CODE, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
@@ -443,9 +562,8 @@ HWTEST_F(DBinderServiceStubTest, MarshallingTest005, TestSize.Level1)
 HWTEST_F(DBinderServiceStubTest, CheckSessionObjectValidityTest001, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
-    MockDBinderService mockService;
-
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(nullptr));
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->sessionObject_.clear();
 
     bool result = dBinderServiceStub.CheckSessionObjectValidity();
     EXPECT_FALSE(result);
@@ -459,15 +577,15 @@ HWTEST_F(DBinderServiceStubTest, CheckSessionObjectValidityTest001, TestSize.Lev
 HWTEST_F(DBinderServiceStubTest, CheckSessionObjectValidityTest002, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
-    MockDBinderService mockService;
+    std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
+    sessionInfo->type = IRemoteObject::IF_PROT_ERROR;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->sessionObject_.clear();
-
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(testing::Return(nullptr));
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
     bool result = dBinderServiceStub.CheckSessionObjectValidity();
     EXPECT_FALSE(result);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
@@ -478,17 +596,15 @@ HWTEST_F(DBinderServiceStubTest, CheckSessionObjectValidityTest002, TestSize.Lev
 HWTEST_F(DBinderServiceStubTest, CheckSessionObjectValidityTest003, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
-    MockDBinderService mockService;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
-    sessionInfo->type = IRemoteObject::IF_PROT_ERROR;
+    sessionInfo->type = IRemoteObject::DATABUS_TYPE;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    dBinderService->sessionObject_.clear();
-
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(testing::Return(sessionInfo));
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
 
     bool result = dBinderServiceStub.CheckSessionObjectValidity();
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
@@ -531,9 +647,8 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData003, TestSize.Level1)
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     pid_t pid = VALID_PID_TEST;
     uid_t uid = VALID_UID_TEST;
-    MockDBinderService mockService;
-
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(testing::Return(nullptr));
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    dBinderService->sessionObject_.clear();
 
     int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
     EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
@@ -541,7 +656,7 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData003, TestSize.Level1)
 
 /**
  * @tc.name: GetAndSaveDBinderData004
- * @tc.desc: Verify the GetAndSaveDBinderData function when GetInstance function return nullptr
+ * @tc.desc: Verify the GetAndSaveDBinderData function when CreateDatabusName function return ""
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData004, TestSize.Level1)
@@ -549,64 +664,68 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData004, TestSize.Level1)
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     pid_t pid = VALID_PID_TEST;
     uid_t uid = VALID_UID_TEST;
-    MockDBinderService mockService;
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sessionInfo->type = IRemoteObject::DATABUS_TYPE;
-
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(testing::Return(sessionInfo));
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(nullptr));
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
+
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(testing::Return(""));
 
     int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
     EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: GetAndSaveDBinderData005
- * @tc.desc: Verify the GetAndSaveDBinderData function when CreateDatabusName function return ""
+ * @tc.desc: Verify the GetAndSaveDBinderData function when return DBINDER_SERVICE_MALLOC_ERR
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData005, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    dBinderServiceStub.dbinderData_ = nullptr;
     pid_t pid = VALID_PID_TEST;
     uid_t uid = VALID_UID_TEST;
-    MockDBinderService mockService;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sessionInfo->type = IRemoteObject::DATABUS_TYPE;
-
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(testing::Return(sessionInfo));
-    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(testing::Return(""));
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
+
+    EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(testing::Return(LOCAL_BUS_NAME_TEST));
 
     int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
-    EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+    EXPECT_EQ(ret, DBINDER_SERVICE_MALLOC_ERR);
+    dBinderService->DetachSessionObject(stub);
 }
 
 /**
  * @tc.name: GetAndSaveDBinderData006
- * @tc.desc: Verify the GetAndSaveDBinderData function when CreateDatabusName function return valid value
+ * @tc.desc: Verify the GetAndSaveDBinderData function when return ERR_NONE
  * @tc.type: FUNC
  */
 HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData006, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    dBinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
     pid_t pid = VALID_PID_TEST;
     uid_t uid = VALID_UID_TEST;
-    MockDBinderService mockService;
     NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
     std::shared_ptr<struct SessionInfo> sessionInfo = std::make_shared<struct SessionInfo>();
     sessionInfo->type = IRemoteObject::DATABUS_TYPE;
-
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    EXPECT_CALL(mockService, GetInstance).WillRepeatedly(testing::Return(dBinderService));
-    EXPECT_CALL(mockService, QuerySessionObject).WillRepeatedly(testing::Return(sessionInfo));
+    binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
+    dBinderService->AttachSessionObject(sessionInfo, stub);
+
     EXPECT_CALL(mockServiceStub, CreateDatabusName).WillRepeatedly(testing::Return(LOCAL_BUS_NAME_TEST));
 
     int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
-    EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+    EXPECT_EQ(ret, ERR_NONE);
+    dBinderService->DetachSessionObject(stub);
+    dBinderServiceStub.dbinderData_ = nullptr;;
 }
 } // namespace OHOS
