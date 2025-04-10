@@ -1662,7 +1662,9 @@ int64_t FfiCreateRemoteObjectFromNapi(napi_env env, napi_value object)
         }
         if (instanceOfProxy) {
             NAPIRemoteProxyHolder *proxyHolder = GetRemoteProxyHolder(env, object);
-            return CreateProxyRemoteObject(proxyHolder->object_);
+            if (proxyHolder != nullptr) {
+                return CreateProxyRemoteObject(proxyHolder->object_);
+            }
         }
     }
     return 0;
