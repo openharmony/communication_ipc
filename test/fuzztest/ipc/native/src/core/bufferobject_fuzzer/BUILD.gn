@@ -23,7 +23,6 @@ ohos_fuzztest("BufferObjectFuzzTest") {
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "-fstack-protector-strong",
   ]
   sources = [ "bufferobject_fuzzer.cpp" ]
 
