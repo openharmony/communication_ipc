@@ -422,7 +422,7 @@ HWTEST_F(IPCObjectProxyTest, AddDeathRecipient005, TestSize.Level1)
  * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when recipient nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     bool ret = object.RemoveDeathRecipient(nullptr);
@@ -434,7 +434,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient001, TestSize.Level1)
  * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when IsObjectDead return true
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient002, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest002, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
@@ -449,7 +449,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient002, TestSize.Level1)
  * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when handle_ >= DBINDER_HANDLE_BASE
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipient003, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
@@ -550,11 +550,11 @@ HWTEST_F(IPCObjectProxyTest, GetStrongRefCountForStubTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddDbinderDeathRecipient001
+ * @tc.name: AddDbinderDeathRecipientTest001
  * @tc.desc: Verify the AddDbinderDeathRecipient function when function GetCurrent nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipient001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipientTest001, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -565,11 +565,11 @@ HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipient001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeDBinderTransSession001
+ * @tc.name: MakeDBinderTransSessionTest001
  * @tc.desc: Verify the MakeDBinderTransSession function when GetRemoteInvoker return nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest001, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -590,11 +590,11 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeDBinderTransSession002
+ * @tc.name: MakeDBinderTransSessionTest002
  * @tc.desc: Verify the MakeDBinderTransSession function when GetCurrent return nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession002, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest002, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -620,11 +620,11 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeDBinderTransSession003
+ * @tc.name: MakeDBinderTransSessionTest003
  * @tc.desc: Verify the MakeDBinderTransSession function when peerServiceName is empty
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession003, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest003, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -652,11 +652,11 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession003, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeDBinderTransSession004
+ * @tc.name: MakeDBinderTransSessionTest004
  * @tc.desc: Verify the MakeDBinderTransSession function when CreateSoftbusServer return false
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession004, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest004, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -685,11 +685,11 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSession004, TestSize.Level1)
 }
 
 /**
- * @tc.name: DeathRecipientAddrInfo001
+ * @tc.name: DeathRecipientAddrInfoTest001
  * @tc.desc: Verify the DeathRecipientAddrInfo function when recipient is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfo001, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfoTest001, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
@@ -699,11 +699,11 @@ HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfo001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DeathRecipientAddrInfo002
+ * @tc.name: DeathRecipientAddrInfoTest002
  * @tc.desc: Verify the DeathRecipientAddrInfo function when recipient is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfo002, TestSize.Level1)
+HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfoTest002, TestSize.Level1)
 {
     sptr<IPCObjectProxy> object = new IPCObjectProxy(
         1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
