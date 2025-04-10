@@ -85,7 +85,7 @@ public:
     }
 private:
     napi_env env_ = nullptr;
-    std::thread::id jsThreadId_;
+    const std::thread::id jsThreadId_;
     napi_ref thisVarRef_ = nullptr;
     std::string desc_;
     int OnJsRemoteRequest(CallbackParam *jsParam);
