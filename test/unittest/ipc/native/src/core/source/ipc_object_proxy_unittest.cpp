@@ -426,7 +426,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     bool ret = object.RemoveDeathRecipient(nullptr);
-    ASSERT_EQ(ret, false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -441,7 +441,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest002, TestSize.Level1)
     object.SetObjectDied(true);
     bool ret = object.RemoveDeathRecipient(death.GetRefPtr());
     object.SetObjectDied(false);
-    ASSERT_EQ(ret, false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -458,7 +458,7 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest003, TestSize.Level1)
     object.AddDeathRecipient(death.GetRefPtr());
     bool ret = object.RemoveDeathRecipient(death.GetRefPtr());
     object.handle_ = tmp;
-    ASSERT_EQ(ret, true);
+    ASSERT_TRUE(ret);
 }
 
 /**
@@ -474,7 +474,7 @@ HWTEST_F(IPCObjectProxyTest, UpdateProtoTest001, TestSize.Level1)
     NiceMock<IpcObjectProxyInterfaceMock> mock;
     EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(nullptr));
     auto ret = object.UpdateProto(nullptr);
-    ASSERT_TRUE(ret == true);
+    ASSERT_TRUE(ret);
 }
 
 /**
@@ -561,7 +561,7 @@ HWTEST_F(IPCObjectProxyTest, AddDbinderDeathRecipientTest001, TestSize.Level1)
     NiceMock<IpcObjectProxyInterfaceMock> mock;
     EXPECT_CALL(mock, GetCurrent()).WillOnce(Return(nullptr));
     auto ret = object->AddDbinderDeathRecipient();
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -586,7 +586,7 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest001, TestSize.Level1)
         .localDeviceId = "test"
     };
     auto ret = object->MakeDBinderTransSession(data);
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -616,7 +616,7 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest002, TestSize.Level1)
     };
     auto ret = object->MakeDBinderTransSession(data);
     delete invoker;
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -648,7 +648,7 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest003, TestSize.Level1)
     auto ret = object->MakeDBinderTransSession(data);
     delete current;
     delete invoker;
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -681,7 +681,7 @@ HWTEST_F(IPCObjectProxyTest, MakeDBinderTransSessionTest004, TestSize.Level1)
     auto ret = object->MakeDBinderTransSession(data);
     delete current;
     delete invoker;
-    ASSERT_TRUE(ret == false);
+    ASSERT_FALSE(ret);
 }
 
 /**
