@@ -53,7 +53,6 @@ if (support_jsapi) {
       "src/ipc_skeleton_imp.cpp",
       "src/ipc_utils_ffi.cpp",
       "src/message_sequence_impl.cpp",
-      "src/process_skeleton_impl.cpp",
       "src/remote_object_holder_impl.cpp",
       "src/remote_object_impl.cpp",
       "src/remote_proxy_impl.cpp",
