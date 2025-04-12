@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -798,6 +798,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
         }
         for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
             sptr<IRemoteObject> value = napiParcel->nativeParcel_->ReadRemoteObject();
+            CHECK_BREAK(value != nullptr);
             napi_value napiValue = NAPI_ohos_rpc_CreateJsRemoteObject(env, value);
             napi_set_element(env, argv[ARGV_INDEX_0], i, napiValue);
         }
@@ -811,6 +812,7 @@ napi_value NAPI_MessageParcel::JS_readRemoteObjectArray(napi_env env, napi_callb
     napi_create_array(env, &result);
     for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
         sptr<IRemoteObject> value = napiParcel->nativeParcel_->ReadRemoteObject();
+        CHECK_BREAK(value != nullptr);
         napi_value napiValue = NAPI_ohos_rpc_CreateJsRemoteObject(env, value);
         napi_set_element(env, result, i, napiValue);
     }
