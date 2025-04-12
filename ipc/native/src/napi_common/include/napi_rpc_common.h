@@ -74,6 +74,11 @@ static NapiError napiErr;
         }                                                                                                            \
     } while (0)
 
+#define CHECK_BREAK(cond)    \
+    if (!(cond)) {           \
+        break;               \
+    }
+
 constexpr size_t MAX_CAPACITY_TO_WRITE = 200 * 1024;
 constexpr size_t MAX_BYTES_LENGTH = 40960;
 constexpr size_t BYTE_SIZE_8 = 1;
