@@ -42,7 +42,7 @@ FFI_EXPORT void FfiRpcMessageSequenceImplWriteByte(int64_t id, int8_t value, int
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteShort(int64_t id, int16_t value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteInt(int64_t id, int32_t value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteLong(int64_t id, int64_t value, int32_t* errCode);
-FFI_EXPORT void FfiRpcMessageSequenceImplWriteFloat(int64_t id, double value, int32_t* errCode);
+FFI_EXPORT void FfiRpcMessageSequenceImplWriteFloat(int64_t id, float value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteDouble(int64_t id, double value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteBoolean(int64_t id, int8_t value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteChar(int64_t id, uint8_t value, int32_t* errCode);
@@ -51,7 +51,7 @@ FFI_EXPORT void FfiRpcMessageSequenceImplWriteByteArray(int64_t id, OHOS::CJByte
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteShortArray(int64_t id, OHOS::CJShortArray value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteIntArray(int64_t id, OHOS::CJIntArray value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteLongArray(int64_t id, OHOS::CJLongArray value, int32_t* errCode);
-FFI_EXPORT void FfiRpcMessageSequenceImplWriteFloatArray(int64_t id, OHOS::CJDoubleArray value, int32_t* errCode);
+FFI_EXPORT void FfiRpcMessageSequenceImplWriteFloatArray(int64_t id, OHOS::CJFloatArray value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteDoubleArray(int64_t id, OHOS::CJDoubleArray value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteBooleanArray(int64_t id, OHOS::CJByteArray value, int32_t* errCode);
 FFI_EXPORT void FfiRpcMessageSequenceImplWriteCharArray(int64_t id, OHOS::CJCharArray value, int32_t* errCode);
@@ -68,7 +68,7 @@ FFI_EXPORT int8_t FfiRpcMessageSequenceImplReadByte(int64_t id, int32_t* errCode
 FFI_EXPORT int16_t FfiRpcMessageSequenceImplReadShort(int64_t id, int32_t* errCode);
 FFI_EXPORT int32_t FfiRpcMessageSequenceImplReadInt(int64_t id, int32_t* errCode);
 FFI_EXPORT int64_t FfiRpcMessageSequenceImplReadLong(int64_t id, int32_t* errCode);
-FFI_EXPORT double FfiRpcMessageSequenceImplReadFloat(int64_t id, int32_t* errCode);
+FFI_EXPORT float FfiRpcMessageSequenceImplReadFloat(int64_t id, int32_t* errCode);
 FFI_EXPORT double FfiRpcMessageSequenceImplReadDouble(int64_t id, int32_t* errCode);
 FFI_EXPORT int8_t FfiRpcMessageSequenceImplReadBoolean(int64_t id, int32_t* errCode);
 FFI_EXPORT uint8_t FfiRpcMessageSequenceImplReadChar(int64_t id, int32_t* errCode);
@@ -77,7 +77,7 @@ FFI_EXPORT OHOS::CJByteArray FfiRpcMessageSequenceImplReadByteArray(int64_t id, 
 FFI_EXPORT OHOS::CJShortArray FfiRpcMessageSequenceImplReadShortArray(int64_t id, int32_t* errCode);
 FFI_EXPORT OHOS::CJIntArray FfiRpcMessageSequenceImplReadIntArray(int64_t id, int32_t* errCode);
 FFI_EXPORT OHOS::CJLongArray FfiRpcMessageSequenceImplReadLongArray(int64_t id, int32_t* errCode);
-FFI_EXPORT OHOS::CJDoubleArray FfiRpcMessageSequenceImplReadFloatArray(int64_t id, int32_t* errCode);
+FFI_EXPORT OHOS::CJFloatArray FfiRpcMessageSequenceImplReadFloatArray(int64_t id, int32_t* errCode);
 FFI_EXPORT OHOS::CJDoubleArray FfiRpcMessageSequenceImplReadDoubleArray(int64_t id, int32_t* errCode);
 FFI_EXPORT OHOS::CJByteArray FfiRpcMessageSequenceImplReadBooleanArray(int64_t id, int32_t* errCode);
 FFI_EXPORT OHOS::CJCharArray FfiRpcMessageSequenceImplReadCharArray(int64_t id, int32_t* errCode);

@@ -20,6 +20,16 @@
 #include "remote_object_impl.h"
 
 namespace OHOS {
+int32_t GetCallingPid()
+{
+    return OHOS::IPCSkeleton::GetCallingPid();
+}
+
+int32_t GetCallingUid()
+{
+    return OHOS::IPCSkeleton::GetCallingUid();
+}
+
 // 0:remoteObject 1:remoteProxy
 RetDataI64 GetContextObject()
 {
@@ -34,23 +44,22 @@ RetDataI64 GetContextObject()
 
 uint32_t GetCallingTokenId()
 {
-    uint64_t tokenId = IPCSkeleton::GetSelfTokenID();
-    return static_cast<uint32_t>(tokenId);
+    return OHOS::IPCSkeleton::GetCallingTokenID();
 }
 
 char* GetCallingDeviceID()
 {
-    return MallocCString("");
+    return MallocCString(OHOS::IPCSkeleton::GetCallingDeviceID());
 }
 
 char* GetLocalDeviceID()
 {
-    return MallocCString("");
+    return MallocCString(OHOS::IPCSkeleton::GetLocalDeviceID());
 }
 
 bool IsLocalCalling()
 {
-    return true;
+    return OHOS::IPCSkeleton::IsLocalCalling();
 }
 
 void FlushCmdBuffer(int64_t object)

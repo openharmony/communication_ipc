@@ -135,7 +135,7 @@ uint32_t MessageSequenceImpl::CJ_GetReadPosition(int32_t* errCode)
         *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
         return 0;
     }
-    size_t value = nativeParcel_->GetReadableBytes();
+    size_t value = nativeParcel_->GetReadPosition();
     return static_cast<uint32_t>(value);
 }
 
@@ -295,7 +295,23 @@ int32_t MessageSequenceImpl::CJ_WriteLong(int64_t value)
     return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
 }
 
-int32_t MessageSequenceImpl::CJ_WriteFloat(double value)
+int32_t MessageSequenceImpl::CJ_WriteFloat(float value)
+{
+    if (nativeParcel_ == nullptr) {
+        return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
+    }
+    if (CheckWriteCapacity(sizeof(float))) {
+        bool result = nativeParcel_->WriteFloat(value);
+        if (!result) {
+            ZLOGE(LOG_LABEL, "write float failed");
+            return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
+        }
+        return 0;
+    }
+    return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
+}
+
+int32_t MessageSequenceImpl::CJ_WriteDouble(double value)
 {
     if (nativeParcel_ == nullptr) {
         return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
@@ -309,11 +325,6 @@ int32_t MessageSequenceImpl::CJ_WriteFloat(double value)
         return 0;
     }
     return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
-}
-
-int32_t MessageSequenceImpl::CJ_WriteDouble(double value)
-{
-    return CJ_WriteFloat(value);
 }
 
 int32_t MessageSequenceImpl::CJ_WriteBoolean(int8_t value)
@@ -441,7 +452,29 @@ int32_t MessageSequenceImpl::CJ_WriteLongArray(CJLongArray value)
     return errorDesc::CHECK_PARAM_ERROR;
 }
 
-int32_t MessageSequenceImpl::CJ_WriteFloatArray(CJDoubleArray value)
+int32_t MessageSequenceImpl::CJ_WriteFloatArray(CJFloatArray value)
+{
+    if (nativeParcel_ == nullptr) {
+        return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
+    }
+    if (CheckWriteCapacity(BYTE_SIZE_32 + sizeof(float) * value.len)) {
+        size_t pos = nativeParcel_->GetWritePosition();
+        nativeParcel_->WriteUint32(value.len);
+        bool result = false;
+        for (size_t i = 0; i < value.len; i++) {
+            result = nativeParcel_->WriteFloat(value.data[i]);
+            if (!result) {
+                nativeParcel_->RewindWrite(pos);
+                ZLOGE(LOG_LABEL, "write float failed");
+                return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
+            }
+        }
+        return 0;
+    }
+    return errorDesc::CHECK_PARAM_ERROR;
+}
+
+int32_t MessageSequenceImpl::CJ_WriteDoubleArray(CJDoubleArray value)
 {
     if (nativeParcel_ == nullptr) {
         return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
@@ -461,11 +494,6 @@ int32_t MessageSequenceImpl::CJ_WriteFloatArray(CJDoubleArray value)
         return 0;
     }
     return errorDesc::CHECK_PARAM_ERROR;
-}
-
-int32_t MessageSequenceImpl::CJ_WriteDoubleArray(CJDoubleArray value)
-{
-    return CJ_WriteFloatArray(value);
 }
 
 int32_t MessageSequenceImpl::CJ_WriteBooleanArray(CJByteArray value)
@@ -701,18 +729,22 @@ int64_t MessageSequenceImpl::CJ_ReadLong(int32_t* errCode)
     return nativeParcel_->ReadInt64();
 }
 
-double MessageSequenceImpl::CJ_ReadFloat(int32_t* errCode)
+float MessageSequenceImpl::CJ_ReadFloat(int32_t* errCode)
+{
+    if (nativeParcel_ == nullptr) {
+        *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+        return 0;
+    }
+    return nativeParcel_->ReadFloat();
+}
+
+double MessageSequenceImpl::CJ_ReadDouble(int32_t* errCode)
 {
     if (nativeParcel_ == nullptr) {
         *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
         return 0;
     }
     return nativeParcel_->ReadDouble();
-}
-
-double MessageSequenceImpl::CJ_ReadDouble(int32_t* errCode)
-{
-    return CJ_ReadFloat(errCode);
 }
 
 int8_t MessageSequenceImpl::CJ_ReadBoolean(int32_t* errCode)
@@ -788,7 +820,9 @@ CJByteArray MessageSequenceImpl::CJ_ReadByteArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadInt8();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
@@ -812,7 +846,9 @@ CJShortArray MessageSequenceImpl::CJ_ReadShortArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadInt16();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
@@ -836,7 +872,9 @@ CJIntArray MessageSequenceImpl::CJ_ReadIntArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadInt32();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
@@ -860,11 +898,39 @@ CJLongArray MessageSequenceImpl::CJ_ReadLongArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadInt64();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
-CJDoubleArray MessageSequenceImpl::CJ_ReadFloatArray(int32_t* errCode)
+CJFloatArray MessageSequenceImpl::CJ_ReadFloatArray(int32_t* errCode)
+{
+    CJFloatArray arr = CJFloatArray { 0 };
+    if (nativeParcel_ == nullptr) {
+        *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+        return arr;
+    }
+    arr.len = nativeParcel_->ReadUint32();
+    if (arr.len == 0) {
+        return arr;
+    }
+    if (CheckReadLength(static_cast<size_t>(arr.len), sizeof(float))) {
+        arr.data = static_cast<float*>(malloc(sizeof(float) * arr.len));
+        if (arr.data == nullptr) {
+            *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+            return arr;
+        }
+        for (uint32_t i = 0; i < arr.len; i++) {
+            arr.data[i] = nativeParcel_->ReadFloat();
+        }
+        return arr;
+    }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+    return arr;
+}
+
+CJDoubleArray MessageSequenceImpl::CJ_ReadDoubleArray(int32_t* errCode)
 {
     CJDoubleArray arr = CJDoubleArray { 0 };
     if (nativeParcel_ == nullptr) {
@@ -884,13 +950,10 @@ CJDoubleArray MessageSequenceImpl::CJ_ReadFloatArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadDouble();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
-}
-
-CJDoubleArray MessageSequenceImpl::CJ_ReadDoubleArray(int32_t* errCode)
-{
-    return CJ_ReadFloatArray(errCode);
 }
 
 CJByteArray MessageSequenceImpl::CJ_ReadBooleanArray(int32_t* errCode)
@@ -913,7 +976,9 @@ CJByteArray MessageSequenceImpl::CJ_ReadBooleanArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadInt8();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
@@ -937,7 +1002,9 @@ CJCharArray MessageSequenceImpl::CJ_ReadCharArray(int32_t* errCode)
         for (uint32_t i = 0; i < arr.len; i++) {
             arr.data[i] = nativeParcel_->ReadUint8();
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
@@ -967,7 +1034,9 @@ CJStringArray MessageSequenceImpl::CJ_ReadStringArray(int32_t* errCode)
             std::string str = converter.to_bytes(parcelString);
             arr.data[i] = MallocCString(str);
         }
+        return arr;
     }
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return arr;
 }
 
@@ -1108,6 +1177,10 @@ RetDataI64 MessageSequenceImpl::CJ_ReadRemoteObject(int32_t* errCode)
         return RetDataI64 { 0, 0 };
     }
     sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
+    if (value == nullptr) {
+        *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+        return RetDataI64 { 0, 0 };
+    }
     int32_t type = value->IsProxyObject() ? 1 : 0;
     return RetDataI64{type, CJ_rpc_CreateRemoteObject(value)};
 }
@@ -1123,23 +1196,28 @@ RemoteObjectArray MessageSequenceImpl::CJ_ReadRemoteObjectArray(int32_t* errCode
     if (arrayLength <= 0) {
         return res;
     }
-    int32_t* type = static_cast<int32_t*>(malloc(arrayLength));
-    if (type == nullptr) {
+    if (CheckReadLength(static_cast<size_t>(arrayLength), BYTE_SIZE_32)) {
+        int32_t* type = static_cast<int32_t*>(malloc(arrayLength));
+        if (type == nullptr) {
+            *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+            return res;
+        }
+        int64_t* id = static_cast<int64_t*>(malloc(arrayLength));
+        if (id == nullptr) {
+            *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
+            free(type);
+            return res;
+        }
+        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+            sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
+            type[i] = value->IsProxyObject() ? 1 : 0;
+            id[i] = CJ_rpc_CreateRemoteObject(value);
+        }
+        res.type = type;
+        res.id = id;
         return res;
     }
-    int64_t* id = static_cast<int64_t*>(malloc(arrayLength));
-    if (id == nullptr) {
-        free(type);
-        return res;
-    }
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
-        sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
-        int64_t element = CJ_rpc_CreateRemoteObject(value);
-        type[i] = value->IsProxyObject() ? 1 : 0;
-        id[i] = element;
-    }
-    res.type = type;
-    res.id = id;
+    *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
     return res;
 }
 

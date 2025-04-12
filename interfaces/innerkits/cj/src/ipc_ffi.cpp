@@ -22,7 +22,6 @@
 #include "napi_remote_object_holder.h"
 #include "napi_remote_proxy_holder.h"
 #include "napi/native_common.h"
-#include "process_skeleton_impl.h"
 #include "remote_object_impl.h"
 #include "remote_proxy_holder_impl.h"
 #include "securec.h"
@@ -297,7 +296,7 @@ void FfiRpcMessageSequenceImplWriteLong(int64_t id, int64_t value, int32_t* errC
     *errCode = rpc->CJ_WriteLong(value);
 }
 
-void FfiRpcMessageSequenceImplWriteFloat(int64_t id, double value, int32_t* errCode)
+void FfiRpcMessageSequenceImplWriteFloat(int64_t id, float value, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplWriteFloat start");
     auto rpc = FFIData::GetData<MessageSequenceImpl>(id);
@@ -421,7 +420,7 @@ void FfiRpcMessageSequenceImplWriteLongArray(int64_t id, OHOS::CJLongArray value
     *errCode = rpc->CJ_WriteLongArray(value);
 }
 
-void FfiRpcMessageSequenceImplWriteFloatArray(int64_t id, OHOS::CJDoubleArray value, int32_t* errCode)
+void FfiRpcMessageSequenceImplWriteFloatArray(int64_t id, OHOS::CJFloatArray value, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplWriteFloatArray start");
     auto rpc = FFIData::GetData<MessageSequenceImpl>(id);
@@ -613,7 +612,7 @@ int64_t FfiRpcMessageSequenceImplReadLong(int64_t id, int32_t* errCode)
     return rpc->CJ_ReadLong(errCode);
 }
 
-double FfiRpcMessageSequenceImplReadFloat(int64_t id, int32_t* errCode)
+float FfiRpcMessageSequenceImplReadFloat(int64_t id, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplReadFloat start");
     auto rpc = FFIData::GetData<MessageSequenceImpl>(id);
@@ -736,14 +735,14 @@ OHOS::CJLongArray FfiRpcMessageSequenceImplReadLongArray(int64_t id, int32_t* er
     return rpc->CJ_ReadLongArray(errCode);
 }
 
-OHOS::CJDoubleArray FfiRpcMessageSequenceImplReadFloatArray(int64_t id, int32_t* errCode)
+OHOS::CJFloatArray FfiRpcMessageSequenceImplReadFloatArray(int64_t id, int32_t* errCode)
 {
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplReadFloatArray start");
     auto rpc = FFIData::GetData<MessageSequenceImpl>(id);
     if (!rpc) {
         ZLOGE(LOG_LABEL, "[RPC] instance not exist.");
         *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
-        return OHOS::CJDoubleArray { 0 };
+        return OHOS::CJFloatArray { 0 };
     }
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplReadFloatArray end");
     return rpc->CJ_ReadFloatArray(errCode);
