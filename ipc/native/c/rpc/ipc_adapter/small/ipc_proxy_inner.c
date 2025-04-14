@@ -194,7 +194,7 @@ char *GetDataBusName(void)
         .flags = TF_OP_SYNC
     };
     uintptr_t ptr;
-    SvcIdentity *identity = GetContextObject();
+    SvcIdentity *identity = (SvcIdentity *)GetContextObject();
     if (identity == NULL) {
         return NULL;
     }
