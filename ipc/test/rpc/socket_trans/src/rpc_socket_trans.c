@@ -60,11 +60,11 @@ static uint16_t Hash(const char *name)
     }
 
     uint16_t hash = DEFAULT_HASH_SEED;
-    uint16_t c;
-
-    while (c = *name) {
+    uint16_t c = *name;
+    
+    while (c != 0) {
         hash = ((hash << DEFAULT_HASH_OFFSET) + hash) + c;
-        name++;
+        c = *(name++);
     }
 
     return hash % DEFAULT_PORT_MIN + DEFAULT_PORT_MIN;
@@ -128,7 +128,7 @@ static void HandleAccept(void *args)
                 return;
             }
             if (readLen < 0) {
-                RPC_LOG_ERROR("socket read error=%lld", readLen);
+                RPC_LOG_ERROR("socket read error=%zd", readLen);
                 TcpShutDown(clientFd);
                 return;
             }

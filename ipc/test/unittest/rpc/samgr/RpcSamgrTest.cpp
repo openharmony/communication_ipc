@@ -17,6 +17,7 @@
 #include "rpc_test.h"
 
 #include <cstring>
+#include <cinttypes>
 
 #include "dbinder_service.h"
 #include "doubly_linked_list.h"
@@ -39,8 +40,8 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     if (saId <= INVALID_SAID) {
         return ERR_FAILED;
     }
-    RPC_LOG_INFO("AddSystemAbility called.... handle = %d", sid->handle);
-    RPC_LOG_INFO("AddSystemAbility called.... cookie = %llu", sid->cookie);
+    RPC_LOG_INFO("AddSystemAbility called.... handle = %" PRId32, sid->handle);
+    RPC_LOG_INFO("AddSystemAbility called.... cookie = %" PRIuPTR, sid->cookie);
     if (g_saList == nullptr) {
         return ERR_FAILED;
     }
@@ -66,7 +67,8 @@ int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
             sid->handle = node->sid->handle;
             sid->token = node->sid->token;
             sid->cookie = node->sid->cookie;
-            RPC_LOG_INFO("find sa, said = %d, handle = %d, cookie = %llu", saId, sid->handle, sid->cookie);
+            RPC_LOG_INFO("find sa, said = %" PRId32 ", handle = %" PRId32 ", cookie = %" PRIuPTR,
+                saId, sid->handle, sid->cookie);
             return ERR_NONE;
         }
     }
@@ -100,14 +102,14 @@ int32_t GetRemoteSystemAbility(IpcIo *data, SvcIdentity *sid)
     const char *deviceId = (const char *)ReadString(data, &len);
 
     const char *name = "16";
-    uint32_t idLen = (uint32_t)strlen(deviceId);
+    uint32_t idLen = static_cast<uint32_t>(strlen(deviceId));
     RPC_LOG_INFO("GetRemoteSystemAbility start");
 
     int32_t ret = MakeRemoteBinder(name, 2, deviceId, idLen, (uintptr_t)saId, 0, (void *)sid);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("MakeRemoteBinder failed");
     }
-    RPC_LOG_INFO("GetRemoteSystemAbility handle=%d, cookie=%llu", sid->handle, sid->cookie);
+    RPC_LOG_INFO("GetRemoteSystemAbility handle=%" PRId32 ", cookie=%" PRIuPTR, sid->handle, sid->cookie);
 
     return ret;
 }
@@ -180,7 +182,7 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
     return result;
 }
 
-int32_t mainFunc(void)
+int32_t MainFunc(void)
 {
     RPC_LOG_INFO("Enter System Ability Manager .... ");
 
@@ -202,7 +204,7 @@ public:
     static void SetUpTestCase()
     {
         RPC_LOG_INFO("----------test case for rpc samgr start-------------\n");
-        mainFunc();
+        MainFunc();
     }
     static void TearDownTestCase()
     {
