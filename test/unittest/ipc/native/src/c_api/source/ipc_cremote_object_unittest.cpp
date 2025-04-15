@@ -664,4 +664,111 @@ HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_IsRemoteDeadTest004, TestSize.L
     int result = OH_IPCRemoteProxy_IsRemoteDead(&proxy);
     EXPECT_EQ(result, 0);
 }
+
+/**
+ * @tc.name: OH_IPCRemoteProxy_SendRequestTest008
+ * @tc.desc: Verify the OH_IPCRemoteProxy_SendRequest function
+ * when SendRequest function return OH_IPC_USER_ERROR_CODE_MIN
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest008, TestSize.Level1)
+{
+    sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
+    OHIPCRemoteProxy proxy = {mock};
+    OHIPCParcel data = {new MessageParcel()};
+    OHIPCParcel *reply = nullptr;
+    OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_ASYNC, TEST_TIMEOUT, nullptr};
+
+    EXPECT_CALL(*mock, SendRequest(TEST_CODE, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(OH_IPC_USER_ERROR_CODE_MIN));
+
+    int result = OH_IPCRemoteProxy_SendRequest(&proxy, TEST_CODE, &data, reply, &option);
+    EXPECT_EQ(result, OH_IPC_USER_ERROR_CODE_MIN);
+    delete data.msgParcel;
+}
+
+/**
+ * @tc.name: OH_IPCRemoteProxy_SendRequestTest009
+ * @tc.desc: Verify the OH_IPCRemoteProxy_SendRequest function
+ * when SendRequest function return OH_IPC_USER_ERROR_CODE_MAX
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest009, TestSize.Level1)
+{
+    sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
+    OHIPCRemoteProxy proxy = {mock};
+    OHIPCParcel data = {new MessageParcel()};
+    OHIPCParcel *reply = nullptr;
+    OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_ASYNC, TEST_TIMEOUT, nullptr};
+
+    EXPECT_CALL(*mock, SendRequest(TEST_CODE, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(OH_IPC_USER_ERROR_CODE_MAX));
+
+    int result = OH_IPCRemoteProxy_SendRequest(&proxy, TEST_CODE, &data, reply, &option);
+    EXPECT_EQ(result, OH_IPC_USER_ERROR_CODE_MAX);
+    delete data.msgParcel;
+}
+
+/**
+ * @tc.name: OH_IPCRemoteProxy_SendRequestTest010
+ * @tc.desc: Verify the OH_IPCRemoteProxy_SendRequest function when SendRequest function return OH_IPC_ERROR_CODE_BASE
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest010, TestSize.Level1)
+{
+    sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
+    OHIPCRemoteProxy proxy = {mock};
+    OHIPCParcel data = {new MessageParcel()};
+    OHIPCParcel *reply = nullptr;
+    OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_ASYNC, TEST_TIMEOUT, nullptr};
+
+    EXPECT_CALL(*mock, SendRequest(TEST_CODE, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(OH_IPC_ERROR_CODE_BASE));
+
+    int result = OH_IPCRemoteProxy_SendRequest(&proxy, TEST_CODE, &data, reply, &option);
+    EXPECT_EQ(result, OH_IPC_ERROR_CODE_BASE);
+    delete data.msgParcel;
+}
+
+/**
+ * @tc.name: OH_IPCRemoteProxy_SendRequestTest011
+ * @tc.desc: Verify the OH_IPCRemoteProxy_SendRequest function when SendRequest function return OH_IPC_INNER_ERROR
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest011, TestSize.Level1)
+{
+    sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
+    OHIPCRemoteProxy proxy = {mock};
+    OHIPCParcel data = {new MessageParcel()};
+    OHIPCParcel *reply = nullptr;
+    OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_ASYNC, TEST_TIMEOUT, nullptr};
+
+    EXPECT_CALL(*mock, SendRequest(TEST_CODE, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(OH_IPC_INNER_ERROR));
+
+    int result = OH_IPCRemoteProxy_SendRequest(&proxy, TEST_CODE, &data, reply, &option);
+    EXPECT_EQ(result, OH_IPC_INNER_ERROR);
+    delete data.msgParcel;
+}
+/**
+ * @tc.name: OH_IPCRemoteProxy_SendRequestTest012
+ * @tc.desc: Verify the OH_IPCRemoteProxy_SendRequest function
+ * when SendRequest function return OH_IPC_ERROR_CODE_BASE - 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCCremoteObjectTest, OH_IPCRemoteProxy_SendRequestTest012, TestSize.Level1)
+{
+    sptr<MockIPCObjectProxy> mock = sptr<MockIPCObjectProxy>::MakeSptr();
+    OHIPCRemoteProxy proxy = {mock};
+    OHIPCParcel data = {new MessageParcel()};
+    OHIPCParcel *reply = nullptr;
+    OH_IPC_MessageOption option = {OH_IPC_REQUEST_MODE_ASYNC, TEST_TIMEOUT, nullptr};
+
+    EXPECT_CALL(*mock, SendRequest(TEST_CODE, testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(OH_IPC_ERROR_CODE_BASE - 1));
+
+    int result = OH_IPCRemoteProxy_SendRequest(&proxy, TEST_CODE, &data, reply, &option);
+    EXPECT_EQ(result, OH_IPC_INNER_ERROR);
+    delete data.msgParcel;
+}
 } // namespace OHOS
