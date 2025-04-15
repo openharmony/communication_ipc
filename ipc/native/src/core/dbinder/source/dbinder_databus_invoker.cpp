@@ -367,6 +367,12 @@ int DBinderDatabusInvoker::SendData(std::shared_ptr<BufferObject> sessionBuff, i
     ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
     ssize_t sendBuffSize = (ssize_t)sessionBuff->GetSendBufferSize();
+    if (readCursor > sendBuffSize || readCursor < 0) {
+        ZLOGE(LOG_LABEL, "no data to send, invalid readCursor:%{public}zu, send buff size:%{public}zu",
+            readCursor, sendBuffSize);
+        sessionBuff->ReleaseSendBufferLock();
+        return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
+    }
     if (writeCursor < readCursor) {
         ZLOGE(LOG_LABEL, "no data to send, write cursor:%{public}zu, read cursor:%{public}zu",
             writeCursor, readCursor);
@@ -378,9 +384,6 @@ int DBinderDatabusInvoker::SendData(std::shared_ptr<BufferObject> sessionBuff, i
             writeCursor, readCursor);
         sessionBuff->ReleaseSendBufferLock();
         return ERR_NONE;
-    }
-    if (readCursor > sendBuffSize || readCursor < 0) {
-        return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
     ssize_t size = writeCursor - readCursor;
 
