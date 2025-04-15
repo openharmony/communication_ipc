@@ -19,6 +19,8 @@
 
 #include "dbinder_service.h"
 #include "dbinder_remote_listener.h"
+#include "mock_iremote_invoker.h"
+#include "ipc_thread_skeleton.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,10 +31,15 @@ namespace {
     const std::u16string ZERO_SERVICENAME = u"";
     const std::u16string RANDOM_SERVICENAME = u"servicename";
     const std::string RANDOM_DEVICEID = "device";
+    const std::string SERVICE_NAME_TEST = "serviceNameTest";
     const std::string ZERO_DEVICEID = "";
+    const std::u16string DESCRIPTOR_TEST = u"proxyTest";
+    const std::string SESSION_NAME_TEST = "sessionNameTest";
+    const std::u16string TEST_MOCK_DESCRIPTOR = u"mockProxyService";
     const int32_t BINDEROBJECT = 1;
     const uint32_t PID = 1;
     const uint32_t UID = 1;
+    const uint32_t TOKEN_ID = 1;
     const binder_uintptr_t BINDER_OBJECT = 1ULL;
 }
 
@@ -47,6 +54,12 @@ public:
     virtual std::shared_ptr<DBinderRemoteListener> GetRemoteListener() = 0;
     virtual bool SendDataToRemote(const std::string &networkId, const struct DHandleEntryTxRx *msg) = 0;
     virtual int32_t GetLocalNodeDeviceId(const std::string &pkgName, std::string &devId) = 0;
+    virtual std::string GetSessionName() = 0;
+    virtual bool WriteUint32(uint32_t value) = 0;
+    virtual bool WriteString(const std::string &value) = 0;
+    virtual bool WriteUint16(uint16_t value) = 0;
+    virtual uint64_t ReadUint64() = 0;
+    virtual const std::string ReadString() = 0;
 };
 class DBinderServiceInterfaceMock : public DBinderServiceInterface {
 public:
@@ -59,6 +72,12 @@ public:
     MOCK_METHOD0(GetRemoteListener, std::shared_ptr<DBinderRemoteListener>());
     MOCK_METHOD2(SendDataToRemote, bool(const std::string &networkId, const struct DHandleEntryTxRx *msg));
     MOCK_METHOD2(GetLocalNodeDeviceId, int32_t(const std::string &pkgName, std::string &devId));
+    MOCK_METHOD0(GetSessionName, std::string());
+    MOCK_METHOD1(WriteUint32, bool(uint32_t value));
+    MOCK_METHOD1(WriteString, bool(const std::string &value));
+    MOCK_METHOD1(WriteUint16, bool(uint16_t value));
+    MOCK_METHOD0(ReadUint64, uint64_t());
+    MOCK_METHOD0(ReadString, const std::string());
 };
 
 static void *g_interface = nullptr;
@@ -121,7 +140,57 @@ extern "C" {
 
         return GetDBinderServiceInterfaceMock()->GetLocalNodeDeviceId(pkgName, devId);
     }
+    std::string IPCObjectProxy::GetSessionName()
+    {
+        if (GetDBinderServiceInterfaceMock() == nullptr) {
+            return "";
+        }
+        return GetDBinderServiceInterfaceMock()->GetSessionName();
+    }
+    bool Parcel::WriteUint32(uint32_t value)
+    {
+        if (GetDBinderServiceInterfaceMock() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceInterfaceMock()->WriteUint32(value);
+    }
+    bool Parcel::WriteString(const std::string &value)
+    {
+        if (GetDBinderServiceInterfaceMock() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceInterfaceMock()->WriteString(value);
+    }
+    bool Parcel::WriteUint16(uint16_t value)
+    {
+        if (GetDBinderServiceInterfaceMock() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceInterfaceMock()->WriteUint16(value);
+    }
+    uint64_t Parcel::ReadUint64()
+    {
+        if (GetDBinderServiceInterfaceMock() == nullptr) {
+            return 0;
+        }
+        return GetDBinderServiceInterfaceMock()->ReadUint64();
+    }
+    const std::string Parcel::ReadString()
+    {
+        if (GetDBinderServiceInterfaceMock() == nullptr) {
+            return "";
+        }
+        return GetDBinderServiceInterfaceMock()->ReadString();
+    }
 }
+
+class MockIPCObjectProxy : public IPCObjectProxy {
+public:
+    MockIPCObjectProxy() : IPCObjectProxy(1, TEST_MOCK_DESCRIPTOR) {};
+    ~MockIPCObjectProxy() {};
+
+    MOCK_CONST_METHOD0(IsObjectDead, bool());
+};
 
 class DBinderServiceTest : public testing::Test {
 public:
@@ -368,5 +437,171 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest003, TestSize.Level1)
 
     int32_t result = dBinderService.InvokerRemoteDBinder(dBinderServiceStub, PID, PID, PID);
     EXPECT_EQ(result, DBinderErrorCode::MAKE_THREADLOCK_FAILED);
+}
+
+/**
+ * @tc.name: OnRemoteInvokerDataBusMessageTest001
+ * @tc.desc: Verify the OnRemoteInvokerDataBusMessage function when WriteUint16 function false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, OnRemoteInvokerDataBusMessageTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string deviceId(RANDOM_DEVICEID);
+    int pid = PID;
+    int uid = UID;
+    uint32_t tokenId = TOKEN_ID;
+    sptr<IPCObjectProxy> proxy = new IPCObjectProxy(REGISTRY_HANDLE, DESCRIPTOR_TEST, IRemoteObject::IF_PROT_BINDER);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    NiceMock<DBinderServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSessionName).WillOnce(testing::Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteUint16).WillRepeatedly(testing::Return(false));
+
+    auto result = dBinderService->OnRemoteInvokerDataBusMessage(proxy, replyMessage, deviceId, pid, uid, tokenId);
+    EXPECT_EQ(result, DBinderErrorCode::WRITE_PARCEL_FAILED);
+}
+
+/**
+ * @tc.name: OnRemoteInvokerDataBusMessageTest002
+ * @tc.desc: Verify the OnRemoteInvokerDataBusMessage function when WriteString function false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, OnRemoteInvokerDataBusMessageTest002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string deviceId(RANDOM_DEVICEID);
+    sptr<IPCObjectProxy> proxy = new IPCObjectProxy(REGISTRY_HANDLE, DESCRIPTOR_TEST, IRemoteObject::IF_PROT_BINDER);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    NiceMock<DBinderServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSessionName).WillOnce(testing::Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteUint16).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(testing::Return(false));
+
+    auto result = dBinderService->OnRemoteInvokerDataBusMessage(proxy, replyMessage, deviceId, PID, UID, TOKEN_ID);
+    EXPECT_EQ(result, DBinderErrorCode::WRITE_PARCEL_FAILED);
+}
+
+/**
+ * @tc.name: OnRemoteInvokerDataBusMessageTest003
+ * @tc.desc: Verify the OnRemoteInvokerDataBusMessage function when WriteUint32 function false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, OnRemoteInvokerDataBusMessageTest003, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string deviceId(RANDOM_DEVICEID);
+    sptr<IPCObjectProxy> proxy = new IPCObjectProxy(REGISTRY_HANDLE, DESCRIPTOR_TEST, IRemoteObject::IF_PROT_BINDER);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    NiceMock<DBinderServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetSessionName).WillOnce(testing::Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteUint16).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillRepeatedly(testing::Return(false));
+
+    auto result = dBinderService->OnRemoteInvokerDataBusMessage(proxy, replyMessage, deviceId, PID, UID, TOKEN_ID);
+    EXPECT_EQ(result, DBinderErrorCode::WRITE_PARCEL_FAILED);
+}
+
+/**
+ * @tc.name: OnRemoteInvokerDataBusMessageTest004
+ * @tc.desc: Verify the OnRemoteInvokerDataBusMessage function when IsObjectDead function true
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, OnRemoteInvokerDataBusMessageTest004, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string deviceId(RANDOM_DEVICEID);
+    sptr<IPCObjectProxy> proxy = new IPCObjectProxy(REGISTRY_HANDLE, DESCRIPTOR_TEST, IRemoteObject::IF_PROT_BINDER);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    sptr<MockIPCObjectProxy> objectMock = sptr<MockIPCObjectProxy>::MakeSptr();
+
+    EXPECT_CALL(mock, GetSessionName).WillOnce(testing::Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteUint16).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*objectMock, IsObjectDead).WillRepeatedly(testing::Return(true));
+
+    auto result = dBinderService->OnRemoteInvokerDataBusMessage(proxy, replyMessage, deviceId, PID, UID, TOKEN_ID);
+    EXPECT_EQ(result, DBinderErrorCode::INVOKE_STUB_THREAD_FAILED);
+}
+
+/**
+ * @tc.name: OnRemoteInvokerDataBusMessageTest005
+ * @tc.desc: Verify the OnRemoteInvokerDataBusMessage function when ReadUint64 function 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, OnRemoteInvokerDataBusMessageTest005, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string deviceId(RANDOM_DEVICEID);
+    sptr<IPCObjectProxy> proxy = new IPCObjectProxy(REGISTRY_HANDLE, DESCRIPTOR_TEST, IRemoteObject::IF_PROT_BINDER);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    sptr<MockIPCObjectProxy> objectMock = sptr<MockIPCObjectProxy>::MakeSptr();
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(mock, GetSessionName).WillOnce(testing::Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteUint16).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*objectMock, IsObjectDead).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*invoker, SendRequest).WillRepeatedly(testing::Return(ERR_NONE));
+    EXPECT_CALL(mock, ReadUint64).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(testing::Return(SERVICE_NAME_TEST));
+
+    auto result = dBinderService->OnRemoteInvokerDataBusMessage(proxy, replyMessage, deviceId, PID, UID, TOKEN_ID);
+    EXPECT_EQ(result, DBinderErrorCode::SESSION_NAME_INVALID);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
+}
+
+/**
+ * @tc.name: OnRemoteInvokerDataBusMessageTest006
+ * @tc.desc: Verify the OnRemoteInvokerDataBusMessage function when 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, OnRemoteInvokerDataBusMessageTest006, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+    std::string deviceId(RANDOM_DEVICEID);
+    sptr<IPCObjectProxy> proxy = new IPCObjectProxy(REGISTRY_HANDLE, DESCRIPTOR_TEST, IRemoteObject::IF_PROT_BINDER);
+
+    std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<DHandleEntryTxRx>();
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    sptr<MockIPCObjectProxy> objectMock = sptr<MockIPCObjectProxy>::MakeSptr();
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(mock, GetSessionName).WillOnce(testing::Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteUint16).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*objectMock, IsObjectDead).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*invoker, SendRequest).WillRepeatedly(testing::Return(ERR_NONE));
+    EXPECT_CALL(mock, ReadUint64).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(testing::Return(SERVICE_NAME_TEST));
+
+    auto result = dBinderService->OnRemoteInvokerDataBusMessage(proxy, replyMessage, deviceId, PID, UID, TOKEN_ID);
+    EXPECT_EQ(result, 0);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
 }
 }
