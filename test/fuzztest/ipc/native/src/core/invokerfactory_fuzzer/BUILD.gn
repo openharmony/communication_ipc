@@ -23,7 +23,6 @@ ohos_fuzztest("InvokerFactoryFuzzTest") {
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "-fstack-protector-strong",
   ]
   sources = [ "invokerfactory_fuzzer.cpp" ]
 

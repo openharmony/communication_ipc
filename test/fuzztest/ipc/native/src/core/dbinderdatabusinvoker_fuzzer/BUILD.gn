@@ -25,7 +25,6 @@ ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "-fstack-protector-strong",
   ]
   sources = [ "dbinderdatabusinvoker_fuzzer.cpp" ]
 
