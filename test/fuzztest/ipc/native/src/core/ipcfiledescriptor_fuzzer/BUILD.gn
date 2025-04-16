@@ -23,7 +23,6 @@ ohos_fuzztest("IPCFileDescriptorFuzzTest") {
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "-fstack-protector-strong",
   ]
   sources = [ "ipcfiledescriptor_fuzzer.cpp" ]
 
