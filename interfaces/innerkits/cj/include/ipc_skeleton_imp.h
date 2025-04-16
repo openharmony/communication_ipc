@@ -20,6 +20,8 @@
 #include "cj_common_ffi.h"
 
 namespace OHOS {
+int32_t GetCallingPid();
+int32_t GetCallingUid();
 RetDataI64 GetContextObject();
 uint32_t GetCallingTokenId();
 char* GetCallingDeviceID();
