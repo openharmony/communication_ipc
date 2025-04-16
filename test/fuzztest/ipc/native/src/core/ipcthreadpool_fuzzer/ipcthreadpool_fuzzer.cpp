@@ -46,7 +46,7 @@ void IPCWorkThreadPoolFuzzTest(const uint8_t *data, size_t size)
     }
     MessageParcel parcel;
     parcel.WriteBuffer(data, size);
-    int32_t maxThreadNum = parcel.ReadInt32();
+    int32_t maxThreadNum = parcel.ReadInt32() % (INT_MAX >> 1);
     IPCWorkThreadPool threadPool(maxThreadNum);
 }
 
@@ -57,7 +57,7 @@ void UpdateMaxThreadNumFuzzTest(const uint8_t *data, size_t size)
     }
     MessageParcel parcel;
     parcel.WriteBuffer(data, size);
-    int32_t maxThreadNum = parcel.ReadInt32();
+    int32_t maxThreadNum = parcel.ReadInt32() % (INT_MAX >> 1);
     IPCWorkThreadPool threadPool(0);
     threadPool.UpdateMaxThreadNum(maxThreadNum);
 }
