@@ -23,7 +23,6 @@ ohos_fuzztest("MessageOptionFuzzTest") {
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "-fstack-protector-strong",
   ]
   sources = [ "messageoption_fuzzer.cpp" ]
 
