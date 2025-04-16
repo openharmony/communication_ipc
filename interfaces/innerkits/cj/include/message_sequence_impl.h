@@ -55,7 +55,7 @@ public:
     int32_t CJ_WriteShort(int16_t value);
     int32_t CJ_WriteInt(int32_t value);
     int32_t CJ_WriteLong(int64_t value);
-    int32_t CJ_WriteFloat(double value);
+    int32_t CJ_WriteFloat(float value);
     int32_t CJ_WriteDouble(double value);
     int32_t CJ_WriteBoolean(int8_t value);
     int32_t CJ_WriteChar(uint8_t value);
@@ -64,7 +64,7 @@ public:
     int32_t CJ_WriteShortArray(CJShortArray value);
     int32_t CJ_WriteIntArray(CJIntArray value);
     int32_t CJ_WriteLongArray(CJLongArray value);
-    int32_t CJ_WriteFloatArray(CJDoubleArray value);
+    int32_t CJ_WriteFloatArray(CJFloatArray value);
     int32_t CJ_WriteDoubleArray(CJDoubleArray value);
     int32_t CJ_WriteBooleanArray(CJByteArray value);
     int32_t CJ_WriteCharArray(CJCharArray value);
@@ -79,7 +79,7 @@ public:
     int16_t CJ_ReadShort(int32_t* errCode);
     int32_t CJ_ReadInt(int32_t* errCode);
     int64_t CJ_ReadLong(int32_t* errCode);
-    double CJ_ReadFloat(int32_t* errCode);
+    float CJ_ReadFloat(int32_t* errCode);
     double CJ_ReadDouble(int32_t* errCode);
     int8_t CJ_ReadBoolean(int32_t* errCode);
     uint8_t CJ_ReadChar(int32_t* errCode);
@@ -88,7 +88,7 @@ public:
     CJShortArray CJ_ReadShortArray(int32_t* errCode);
     CJIntArray CJ_ReadIntArray(int32_t* errCode);
     CJLongArray CJ_ReadLongArray(int32_t* errCode);
-    CJDoubleArray CJ_ReadFloatArray(int32_t* errCode);
+    CJFloatArray CJ_ReadFloatArray(int32_t* errCode);
     CJDoubleArray CJ_ReadDoubleArray(int32_t* errCode);
     CJByteArray CJ_ReadBooleanArray(int32_t* errCode);
     CJCharArray CJ_ReadCharArray(int32_t* errCode);
