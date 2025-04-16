@@ -75,6 +75,7 @@ public:
     virtual char *GetSendBufferAndLock(uint32_t size) = 0;
     virtual std::shared_ptr<BufferObject> GetSessionBuff() = 0;
     virtual int32_t SendBytes(int32_t socket, const void *data, uint32_t len) = 0;
+    virtual uint32_t GetSendBufferSize() = 0;
     virtual ssize_t GetSendBufferWriteCursor() = 0;
     virtual ssize_t GetSendBufferReadCursor() = 0;
     virtual std::string GetDeviceId() = 0;
@@ -117,6 +118,7 @@ public:
     MOCK_METHOD0(GetSessionBuff, std::shared_ptr<BufferObject>());
     MOCK_METHOD1(GetSendBufferAndLock, char *(uint32_t size));
     MOCK_METHOD3(SendBytes, int32_t(int32_t socket, const void *data, uint32_t len));
+    MOCK_METHOD0(GetSendBufferSize, uint32_t());
     MOCK_METHOD0(GetSendBufferWriteCursor, ssize_t());
     MOCK_METHOD0(GetSendBufferReadCursor, ssize_t());
     MOCK_METHOD0(GetDeviceId, std::string());
@@ -250,6 +252,13 @@ extern "C" {
             return 0;
         }
         return GetDbinderDataBusInvokerInterface()->SendBytes(socket, data, len);
+    }
+    uint32_t BufferObject::GetSendBufferSize() const
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return 0;
+        }
+        return GetDbinderDataBusInvokerInterface()->GetSendBufferSize();
     }
     ssize_t BufferObject::GetSendBufferReadCursor() const
     {
@@ -1363,6 +1372,7 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest003, TestSize.Level1)
     char sendBuffer[1024] = {0};
 
     EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillOnce(testing::Return(sendBuffer));
+    EXPECT_CALL(mock, GetSendBufferSize()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(1024));
 
