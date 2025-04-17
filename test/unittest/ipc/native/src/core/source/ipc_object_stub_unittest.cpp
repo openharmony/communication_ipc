@@ -627,6 +627,143 @@ HWTEST_F(IPCObjectStubTest, DBinderDecRefsTransactionTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DBinderGetSessionNameTest001
+ * @tc.desc: Verify the DBinderGetSessionName function IsLocalCalling is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest001, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(false));
+    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: DBinderGetSessionNameTest002
+ * @tc.desc: Verify the DBinderGetSessionName function current == nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest002, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
+    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_CREATE_BUS_SERVER_ERR);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: DBinderGetSessionNameTest003
+ * @tc.desc: Verify the DBinderGetSessionName function WriteString function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest003, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE, u"test");
+
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
+    EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(object));
+    EXPECT_CALL(mock, GetGrantedSessionName).WillOnce(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(false));
+    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: DBinderGetSessionNameTest004
+ * @tc.desc: Verify the DBinderGetSessionName function WriteString function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest004, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE, u"test");
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
+    EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(object));
+    EXPECT_CALL(mock, GetGrantedSessionName).WillOnce(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
+    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, ERR_NONE);
+}
+
+/**
+ * @tc.name: DBinderGetGrantedSessionNameTest001
+ * @tc.desc: Verify the DBinderGetGrantedSessionName function IsLocalCalling function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest001, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(false));
+    auto result = stub.DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: DBinderGetGrantedSessionNameTest002
+ * @tc.desc: Verify the DBinderGetGrantedSessionName function SetSamgrFlag function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest002, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto current = ProcessSkeleton::GetInstance();
+    current->SetSamgrFlag(false);
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
+    auto result = stub.DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: DBinderGetGrantedSessionNameTest003
+ * @tc.desc: Verify the DBinderGetGrantedSessionName function SetSamgrFlag function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest003, TestSize.Level1)
+{
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto current = ProcessSkeleton::GetInstance();
+    current->SetSamgrFlag(true);
+    EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
+    auto result = stub.DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
+    EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
  * @tc.name: OnFirstStrongRefTest001
  * @tc.desc: Verify the OnFirstStrongRef function current->instance_ = nullptr
  * @tc.type: FUNC
@@ -875,5 +1012,279 @@ HWTEST_F(IPCObjectStubTest, AddAuthInfoTest002, TestSize.Level1)
     EXPECT_EQ(ret, IPC_STUB_CURRENT_NULL_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest001
+ * @tc.desc: Verify the InvokerDataBusThread function deviceId is ""
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest001, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillOnce(Return(""))
+        .WillOnce(Return(SESSION_NAME_TEST)).WillOnce(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest002
+ * @tc.desc: Verify the InvokerDataBusThread function remoteDeviceId is ""
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest002, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillOnce(Return(SESSION_NAME_TEST))
+        .WillOnce(Return("")).WillOnce(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest003
+ * @tc.desc: Verify the InvokerDataBusThread function sessionName is ""
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest003, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillOnce(Return(SESSION_NAME_TEST))
+        .WillOnce(Return(SESSION_NAME_TEST)).WillOnce(Return(""));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest004
+ * @tc.desc: Verify the InvokerDataBusThread function return current->instance_ = nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest004, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_CURRENT_NULL_ERR);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest005
+ * @tc.desc: Verify the InvokerDataBusThread function create ""
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest005, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->exitFlag_ = true;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_CREATE_BUS_SERVER_ERR);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest006
+ * @tc.desc: Verify the InvokerDataBusThread function AddStubByIndex function return 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest006, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(0));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest007
+ * @tc.desc: Verify the InvokerDataBusThread function WriteUint64 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest007, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
+    EXPECT_CALL(mock, WriteUint64).WillOnce(Return(false));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest008
+ * @tc.desc: Verify the InvokerDataBusThread function WriteString function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest008, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
+    EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteString).WillOnce(Return(false)).WillRepeatedly(Return(true));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest009
+ * @tc.desc: Verify the InvokerDataBusThread function WriteString function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest009, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
+    EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteString).WillOnce(Return(true)).WillRepeatedly(Return(false));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest0010
+ * @tc.desc: Verify the InvokerDataBusThread function WriteUint32 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest010, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
+    EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillOnce(Return(false));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest0011
+ * @tc.desc: Verify the InvokerDataBusThread function AttachOrUpdateAppAuthInfo function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest011, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
+    EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillOnce(Return(true));
+    EXPECT_CALL(mock, AttachOrUpdateAppAuthInfo).WillOnce(Return(false));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, ERR_NONE);
+    current->appInfoToStubIndex_.clear();
+}
+
+/**
+ * @tc.name: InvokerDataBusThreadTest0012
+ * @tc.desc: Verify the InvokerDataBusThread function AttachOrUpdateAppAuthInfo function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest012, TestSize.Level1)
+{
+    IPCObjectStub stub;
+    MessageParcel data;
+    MessageParcel reply;
+    NiceMock<IpcObjectStubInterfaceMock> mock;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+
+    EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
+    EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
+    EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
+    EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
+    EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
+    EXPECT_CALL(mock, WriteUint32).WillOnce(Return(true));
+    EXPECT_CALL(mock, AttachOrUpdateAppAuthInfo).WillOnce(Return(true));
+
+    auto ret = stub.InvokerDataBusThread(data, reply);
+    EXPECT_EQ(ret, ERR_NONE);
+    current->appInfoToStubIndex_.clear();
 }
 }
