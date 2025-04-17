@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@ static NapiError napiErr;
         if (cap < (lenToWrite)) {                                                                                     \
             ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{public}zu", cap, lenToWrite);   \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
+            return nullptr;                                                                                           \
         }                                                                                                             \
     } while (0)
 
@@ -57,6 +58,7 @@ static NapiError napiErr;
             ZLOGE(LOG_LABEL, "No enough write capacity, cap:%{public}zu, lenToWrite:%{public}zu", cap, lenToWrite);   \
             (napiParcel)->nativeParcel_->RewindWrite(pos);                                                            \
             napi_throw_range_error(env, nullptr, "No enough capacity to write");                                      \
+            return nullptr;                                                                                           \
         }                                                                                                             \
     } while (0)
 
@@ -71,6 +73,7 @@ static NapiError napiErr;
                 remainSize, typeSize, (napiParcel)->nativeParcel_->GetDataSize(),                                    \
                 (napiParcel)->nativeParcel_->GetReadPosition());                                                     \
             napi_throw_range_error(env, nullptr, "No enough data to read");                                          \
+            return nullptr;                                                                                          \
         }                                                                                                            \
     } while (0)
 
