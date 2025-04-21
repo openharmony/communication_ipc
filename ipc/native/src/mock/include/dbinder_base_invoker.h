@@ -345,10 +345,12 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(char *dataBuffer, bind
                     ZLOGE(LOG_LABEL, "fail to translate big raw data");
                     // do nothing
                 }
+                binderObject->handle = -1;
                 break;
             }
             default: {
                 ZLOGE(LOG_LABEL, "do not support this type:%{public}u of translation", binderObject->hdr.type);
+                binderObject->hdr.type = BINDER_TYPE_INVALID_TYPE;
                 // do nothing
                 break;
             }
