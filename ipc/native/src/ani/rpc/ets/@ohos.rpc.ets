@@ -109,5 +109,7 @@ export namespace rpc {
 
     export class RemoteProxy extends IRemoteObject {
         native getDescriptor(): string;
+
+        private nativePtr: long = 0;
     }
 }
