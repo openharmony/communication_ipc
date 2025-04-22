@@ -24,5 +24,6 @@ namespace OHOS {
 }
 
 OHOS::sptr<OHOS::IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj);
+ani_object ANI_ohos_rpc_CreateJsRemoteObject(ani_env *env, OHOS::sptr<OHOS::IRemoteObject> remoteObject);
 
 #endif //ANI_REMOTE_OBJECT_H
