@@ -259,6 +259,32 @@ sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
     return holder->Get();
 }
 
+ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObject> target)
+{
+    auto holder = new SharedPtrHolder<IRemoteObject>(target);
+    if (holder == nullptr) {
+        ZLOGE(LOG_LABEL, "[ANI] SharedPtrHolder constructor failed");
+        return nullptr;
+    }
+    ani_object jsRemoteProxy = AniObjectUtils::Create(env, "L@ohos/rpc/rpc;", "LRemoteProxy;");
+    if (jsRemoteProxy == nullptr) {
+        ZLOGE(LOG_LABEL, "[ANI] Create jsRemoteProxy failed");
+        return nullptr;
+    }
+    AniObjectUtils::Wrap<SharedPtrHolder<IRemoteObject>>(env, jsRemoteProxy, holder);
+    return jsRemoteProxy;
+}
+
+ani_object ANI_ohos_rpc_CreateJsRemoteObject(ani_env *env, sptr<IRemoteObject> remoteObject)
+{
+    if (remoteObject == nullptr) {
+        ZLOGE(LOG_LABEL, "[ANI] RemoteObject is nullptr");
+        return nullptr;
+    }
+
+    return CreateJsProxyRemoteObject(env, remoteObject);
+}
+
 static ani_string MessageSequenceReadString([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequenceReadString func");

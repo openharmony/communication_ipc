@@ -446,4 +446,33 @@ std::optional<std::string> OptionalAccessor::Convert<std::string>()
     return content;
 }
 
+class NativeObject {
+public:
+    virtual ~NativeObject() = default;
+};
+
+template<typename T>
+class SharedPtrHolder : public NativeObject {
+public:
+    SharedPtrHolder(const OHOS::sptr<T> &sptr) : sptr_(sptr)
+    {
+    }
+
+    OHOS::sptr<T> Get()
+    {
+        return sptr_;
+    }
+
+    OHOS::sptr<T> GetOrDefault()
+    {
+        if (!sptr_) {
+            sptr_ = std::make_shared<T>();
+        }
+        return sptr_;
+    }
+
+private:
+    OHOS::sptr<T> sptr_;
+};
+
 #endif
