@@ -13,29 +13,30 @@
  * limitations under the License.
  */
 
+#include "ani_remote_object.h"
+#include "ani_rpc_error.h"
+#include "ani_utils.h"
+#include "ipc_debug.h"
+#include "ipc_object_proxy.h"
+#include "ipc_object_stub.h"
+#include "iremote_object.h"
+#include "log_tags.h"
+#include "message_parcel.h"
+#include "string_ex.h"
 #include <ani.h>
 #include <array>
 #include <cstring>
-#include "ani_remote_object.h"
-#include "ani_utils.h"
-#include "iremote_object.h"
-#include "ipc_object_stub.h"
-#include "ipc_object_proxy.h"
-#include "message_parcel.h"
-#include "string_ex.h"
-#include "ipc_debug.h"
-#include "log_tags.h"
 
 using namespace OHOS;
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_NAPI, "rpc_ani" };
+static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, LOG_ID_IPC_NAPI, "rpc_ani"};
 
 static ani_object CreateMessageSequence([[maybe_unused]] ani_env *env, MessageParcel &msgParcel)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter CreateMessageSequence func");
     static const char *nsName = "L@ohos/rpc/rpc;";
     ani_namespace ns;
-    ani_object nullobj{};
+    ani_object nullobj {};
     if (ANI_OK != env->FindNamespace(nsName, &ns)) {
         ZLOGE(LOG_LABEL, "[ANI] Not found MessageSequence Namespace: '%{public}s'", nsName);
         return nullobj;
@@ -93,7 +94,7 @@ static ani_object CreateMessageOption([[maybe_unused]] ani_env *env, MessageOpti
 
     static const char *nsName = "L@ohos/rpc/rpc;";
     ani_namespace ns;
-    ani_object nullobj{};
+    ani_object nullobj {};
     if (ANI_OK != env->FindNamespace(nsName, &ns)) {
         ZLOGE(LOG_LABEL, "[ANI] Not found MessageSequence Namespace: '%{public}s'", nsName);
         return nullobj;
@@ -125,11 +126,13 @@ static ani_object CreateMessageOption([[maybe_unused]] ani_env *env, MessageOpti
     return optionObj;
 }
 
-static void InitMessageOption([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object obj, ani_double syncFlags,
+static void InitMessageOption([[maybe_unused]] ani_env *env,
+                              [[maybe_unused]] ani_object obj,
+                              ani_double syncFlags,
                               ani_double waitTimeParam)
 {
-    ZLOGI(LOG_LABEL, "[ANI] enter InitMessageOption func syncFlags: %{public}f, waitTimeParam: %{public}f",
-        syncFlags, waitTimeParam);
+    ZLOGI(LOG_LABEL, "[ANI] enter InitMessageOption func syncFlags: %{public}f, waitTimeParam: %{public}f", syncFlags,
+          waitTimeParam);
     int flags = MessageOption::TF_SYNC;
     int waitTime = MessageOption::TF_WAIT_TIME;
 
@@ -140,17 +143,20 @@ static void InitMessageOption([[maybe_unused]] ani_env *env, [[maybe_unused]] an
         waitTime = waitTimeValue;
     }
 
-    auto messageOption = new MessageOption(flags, waitTime);
-    AniObjectUtils::Wrap<MessageOption>(env, obj, messageOption);
+    auto messageOptionHolder = new StdSharedPtrHolder(std::make_shared<MessageOption>(flags, waitTime));
+    AniObjectUtils::Wrap<StdSharedPtrHolder<MessageOption>>(env, obj, messageOptionHolder);
     ZLOGI(LOG_LABEL, "[ANI] InitMessageOption end");
 }
 
 class IPCAniStub : public IPCObjectStub {
 public:
-    IPCAniStub(ani_env *env, ani_ref saveRemote, const std::u16string &descriptor) : IPCObjectStub(descriptor),
-        env_(env), saveRemote_(saveRemote)
+    IPCAniStub(ani_env *env, ani_object remoteObject, const std::u16string &descriptor)
+        : IPCObjectStub(descriptor), env_(env)
     {
         ZLOGI(LOG_LABEL, "[ANI] enter IPCAniStub ctor");
+        if (ANI_OK != env_->GlobalReference_Create(reinterpret_cast<ani_ref>(remoteObject), &saveRemote_)) {
+            ZLOGE(LOG_LABEL, "[ANI] GlobalReference_Create failed");
+        }
     }
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
@@ -176,11 +182,13 @@ public:
         ani_object aniOption = CreateMessageOption(env, option);
 
         auto obj = reinterpret_cast<ani_object>(saveRemote_);
-        ZLOGE(LOG_LABEL, "[ANI] before Object_CallMethodByName_Void onRemoteMessageRequestSync");
+        ZLOGI(LOG_LABEL, "[ANI] before Object_CallMethodByName_Void onRemoteMessageRequestSync");
         ani_boolean result;
-        env_->Object_CallMethodByName_Boolean(obj, "onRemoteMessageRequestSync", nullptr, &result,
-            (ani_double)code, aniData, aniReply, aniOption);
-        ZLOGE(LOG_LABEL, "[ANI] after Object_CallMethodByName_Void onRemoteMessageRequestSync");
+        if (ANI_OK != env_->Object_CallMethodByName_Boolean(obj, "onRemoteMessageRequestSync", nullptr, &result,
+                                                            (ani_double)code, aniData, aniReply, aniOption)) {
+            AniError::ThrowError(env_, CALL_JS_METHOD_ERROR);
+        }
+        ZLOGI(LOG_LABEL, "[ANI] after Object_CallMethodByName_Void onRemoteMessageRequestSync");
 
         return result;
     }
@@ -188,6 +196,9 @@ public:
     ~IPCAniStub()
     {
         ZLOGI(LOG_LABEL, "[ANI] enter IPCAniStub dtor");
+        if (ANI_OK != env_->GlobalReference_Delete(saveRemote_)) {
+            ZLOGE(LOG_LABEL, "[ANI] GlobalReference_Delete failed");
+        }
     }
 
 private:
@@ -195,9 +206,10 @@ private:
     ani_ref saveRemote_;
 };
 
-class IPCObjectRemoteHolder {
+class IPCObjectRemoteHolder : public NativeObject {
 public:
-    IPCObjectRemoteHolder(ani_env *env, const std::u16string &descriptor) : env_(env), descriptor_(descriptor)
+    IPCObjectRemoteHolder(ani_env *env, ani_object remoteObject, const std::u16string &descriptor)
+        : env_(env), remoteObject_(remoteObject), descriptor_(descriptor)
     {
         ZLOGI(LOG_LABEL, "[ANI] enter IPCObjectRemoteHolder ctor");
     }
@@ -211,15 +223,12 @@ public:
 
     sptr<IRemoteObject> Get()
     {
-        if (object_ == nullptr) {
-            object_ = sptr<IPCAniStub>::MakeSptr(env_, saveRemote_, descriptor_);
+        sptr<IRemoteObject> tmp = object_.promote();
+        if (nullptr == tmp && nullptr != env_) {
+            tmp = sptr<IPCAniStub>::MakeSptr(env_, remoteObject_, descriptor_);
+            object_ = tmp;
         }
-        return object_;
-    }
-
-    void Set(ani_ref saveRemote)
-    {
-        saveRemote_ = saveRemote;
+        return tmp;
     }
 
     ~IPCObjectRemoteHolder()
@@ -228,10 +237,10 @@ public:
     }
 
 private:
-    sptr<IRemoteObject> object_;
     ani_env *env_ = nullptr;
-    ani_ref saveRemote_;
+    ani_object remoteObject_;
     std::u16string descriptor_;
+    wptr<IRemoteObject> object_;
 };
 
 class IPCObjectProxyHolder {
@@ -254,6 +263,7 @@ sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
     ZLOGI(LOG_LABEL, "[ANI] enter AniGetNativeRemoteObject func");
     auto holder = AniObjectUtils::Unwrap<IPCObjectRemoteHolder>(env, obj);
     if (holder == nullptr) {
+        ZLOGI(LOG_LABEL, "[ANI] IPCObjectRemoteHolder is nullptr");
         return nullptr;
     }
     return holder->Get();
@@ -261,9 +271,9 @@ sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
 
 ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObject> target)
 {
-    auto holder = new SharedPtrHolder<IRemoteObject>(target);
+    auto holder = new OhSharedPtrHolder<IRemoteObject>(target);
     if (holder == nullptr) {
-        ZLOGE(LOG_LABEL, "[ANI] SharedPtrHolder constructor failed");
+        ZLOGE(LOG_LABEL, "[ANI] OhSharedPtrHolder constructor failed");
         return nullptr;
     }
     ani_object jsRemoteProxy = AniObjectUtils::Create(env, "L@ohos/rpc/rpc;", "LRemoteProxy;");
@@ -271,7 +281,7 @@ ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObject> tar
         ZLOGE(LOG_LABEL, "[ANI] Create jsRemoteProxy failed");
         return nullptr;
     }
-    AniObjectUtils::Wrap<SharedPtrHolder<IRemoteObject>>(env, jsRemoteProxy, holder);
+    AniObjectUtils::Wrap<OhSharedPtrHolder<IRemoteObject>>(env, jsRemoteProxy, holder);
     return jsRemoteProxy;
 }
 
@@ -290,18 +300,21 @@ static ani_string MessageSequenceReadString([[maybe_unused]] ani_env *env, [[may
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequenceReadString func");
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
     if (parcel == nullptr) {
-        return ani_string{};
+        AniError::ThrowError(env, READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+        return ani_string {};
     }
     auto str = parcel->ReadString();
     return AniStringUtils::ToAni(env, str);
 }
 
-static bool MessageSequenceWriteString([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
-    ani_string str)
+static bool MessageSequenceWriteString([[maybe_unused]] ani_env *env,
+                                       [[maybe_unused]] ani_object object,
+                                       ani_string str)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequenceWriteString func");
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
     if (parcel == nullptr) {
+        AniError::ThrowError(env, WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
         return false;
     }
     auto stringContent = AniStringUtils::ToStd(env, str);
@@ -313,32 +326,30 @@ static ani_string MessageSequencereadInterfaceToken([[maybe_unused]] ani_env *en
     ZLOGI(LOG_LABEL, "[ANI] enter MessageSequencereadInterfaceToken func");
     auto parcel = AniObjectUtils::Unwrap<MessageParcel>(env, object);
     if (parcel == nullptr) {
-        return ani_string{};
+        AniError::ThrowError(env, READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+        return ani_string {};
     }
     auto str = parcel->ReadInterfaceToken();
     std::string outString = Str16ToStr8(str.c_str());
     return AniStringUtils::ToAni(env, outString);
 }
 
-static void RemoteObjectConstructor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
-    ani_string descriptor)
+static void RemoteObjectInit([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_string descriptor)
 {
-    ZLOGI(LOG_LABEL, "[ANI] enter RemoteObjectConstructor func");
+    ZLOGI(LOG_LABEL, "[ANI] enter RemoteObjectInit func");
     auto descriptorStr = AniStringUtils::ToStd(env, static_cast<ani_string>(descriptor));
-    ani_ref saveRemote = nullptr;
-    env->GlobalReference_Create(reinterpret_cast<ani_ref>(object), &saveRemote);
-    auto objectRemoteHolder = new IPCObjectRemoteHolder(env, OHOS::Str8ToStr16(descriptorStr));
-    objectRemoteHolder->Set(saveRemote);
+    auto objectRemoteHolder = new IPCObjectRemoteHolder(env, object, OHOS::Str8ToStr16(descriptorStr));
     AniObjectUtils::Wrap<IPCObjectRemoteHolder>(env, object, objectRemoteHolder);
 }
 
 static ani_string GetRemoteObjectDescriptor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter GetRemoteObjectDescriptor func");
-    ani_string result_string{};
+    ani_string result_string {};
     auto objectRemoteHolder = AniObjectUtils::Unwrap<IPCObjectRemoteHolder>(env, object);
     if (objectRemoteHolder == nullptr) {
-        env->String_NewUTF8("", 0, &result_string);
+        ZLOGE(LOG_LABEL, "[ANI] objectRemoteHolder is nullptr");
+        AniError::ThrowError(env, PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
         return result_string;
     }
     auto descriptorStr = objectRemoteHolder->GetDescriptor();
@@ -350,10 +361,11 @@ static ani_string GetRemoteObjectDescriptor([[maybe_unused]] ani_env *env, [[may
 static ani_string GetRemoteProxyDescriptor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter GetRemoteProxyDescriptor func");
-    ani_string result_string{};
+    ani_string result_string {};
     auto objectProxyHolder = AniObjectUtils::Unwrap<IPCObjectProxyHolder>(env, object);
     if (objectProxyHolder == nullptr) {
-        env->String_NewUTF8("", 0, &result_string);
+        ZLOGE(LOG_LABEL, "[ANI] objectProxyHolder is nullptr");
+        AniError::ThrowError(env, PROXY_OR_REMOTE_OBJECT_INVALID_ERROR);
         return result_string;
     }
     auto descriptorStr = objectProxyHolder->GetDescriptor();
@@ -362,7 +374,7 @@ static ani_string GetRemoteProxyDescriptor([[maybe_unused]] ani_env *env, [[mayb
     return result_string;
 }
 
-static ani_status BindMessageSequenceClassMethods(ani_env* env, ani_namespace& ns)
+static ani_status BindMessageSequenceClassMethods(ani_env *env, ani_namespace &ns)
 {
     static const char *msgSeqClsName = "LMessageSequence;";
     ani_class msgSequenceClass;
@@ -386,7 +398,7 @@ static ani_status BindMessageSequenceClassMethods(ani_env* env, ani_namespace& n
     return ANI_OK;
 }
 
-static ani_status BindMessageOptionClassMethods(ani_env* env, ani_namespace& ns)
+static ani_status BindMessageOptionClassMethods(ani_env *env, ani_namespace &ns)
 {
     static const char *msgOptClsName = "LMessageOption;";
     ani_class msgOptionClass;
@@ -407,7 +419,7 @@ static ani_status BindMessageOptionClassMethods(ani_env* env, ani_namespace& ns)
     return ANI_OK;
 }
 
-static ani_status BindRemoteObjectClassMethods(ani_env* env, ani_namespace& ns)
+static ani_status BindRemoteObjectClassMethods(ani_env *env, ani_namespace &ns)
 {
     static const char *remoteObjClsName = "LRemoteObject;";
     ani_class remoteObjClass;
@@ -418,7 +430,7 @@ static ani_status BindRemoteObjectClassMethods(ani_env* env, ani_namespace& ns)
 
     std::array methods = {
         ani_native_function {"getDescriptor", nullptr, reinterpret_cast<void *>(GetRemoteObjectDescriptor)},
-        ani_native_function {"<ctor>", "Lstd/core/String;:V", reinterpret_cast<void *>(RemoteObjectConstructor)},
+        ani_native_function {"init", "Lstd/core/String;:V", reinterpret_cast<void *>(RemoteObjectInit)},
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(remoteObjClass, methods.data(), methods.size())) {
@@ -429,7 +441,7 @@ static ani_status BindRemoteObjectClassMethods(ani_env* env, ani_namespace& ns)
     return ANI_OK;
 }
 
-static ani_status BindRemoteProxyClassMethods(ani_env* env, ani_namespace& ns)
+static ani_status BindRemoteProxyClassMethods(ani_env *env, ani_namespace &ns)
 {
     static const char *remoteProxyClsName = "LRemoteProxy;";
     ani_class remoteProxyClass;
@@ -448,6 +460,12 @@ static ani_status BindRemoteProxyClassMethods(ani_env* env, ani_namespace& ns)
     };
 
     return ANI_OK;
+}
+
+static ani_status BindCleanerclassMethods(ani_env *env, ani_namespace &ns)
+{
+    auto cleanerCls = AniTypeFinder(env).FindClass(ns, "LCleaner;");
+    return NativePtrCleaner(env).Bind(cleanerCls.value());
 }
 
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
@@ -482,6 +500,11 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 
     if (ANI_OK != BindRemoteProxyClassMethods(env, ns)) {
         ZLOGE(LOG_LABEL, "[ANI] BindRemoteProxyClassMethods failed");
+        return ANI_ERROR;
+    }
+
+    if (ANI_OK != BindCleanerclassMethods(env, ns)) {
+        ZLOGE(LOG_LABEL, "[ANI] BindCleanerclassMethods failed");
         return ANI_ERROR;
     }
 
