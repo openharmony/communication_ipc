@@ -26,7 +26,10 @@ config("ani_rpc_public_config") {
 }
 
 ohos_shared_library("rpc_ani") {
-  sources = [ "src/rpc_ani.cpp" ]
+  sources = [
+    "src/rpc_ani.cpp",
+    "src/ani_rpc_error.cpp"
+   ]
   include_dirs = [
     "include",
     "../../../../../utils/include",
