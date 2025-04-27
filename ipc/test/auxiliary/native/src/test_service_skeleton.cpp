@@ -853,7 +853,15 @@ int32_t TestServiceStub::ServerCallingUidAndPid(MessageParcel &data, MessageParc
 int32_t TestServiceStub::ServerNestingSend(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
+    if (object == nullptr) {
+        ZLOGE(LABEL, "object is nullptr");
+        return -1;
+    }
     sptr<IFoo> foo = iface_cast<IFoo>(object);
+    if (foo == nullptr) {
+        ZLOGE(LABEL, "foo is nullptr");
+        return -1;
+    }
     int innerResult = foo->TestNestingSend(data.ReadInt32());
     reply.WriteInt32(innerResult);
     return 0;

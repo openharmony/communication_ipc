@@ -252,9 +252,15 @@ bool MessageParcel::WriteFileDescriptor(int fd)
     sptr<IPCFileDescriptor> descriptor = new (std::nothrow) IPCFileDescriptor(dupFd);
     if (descriptor == nullptr) {
         ZLOGE(LOG_LABEL, "create IPCFileDescriptor object failed");
+        close(dupFd);
         return false;
     }
-    return WriteObject<IPCFileDescriptor>(descriptor);
+    if (!WriteObject<IPCFileDescriptor>(descriptor)) {
+        ZLOGE(LOG_LABEL, "WriteObject failed");
+        close(dupFd);
+        return false;
+    }
+    return true;
 }
 
 int MessageParcel::ReadFileDescriptor()
