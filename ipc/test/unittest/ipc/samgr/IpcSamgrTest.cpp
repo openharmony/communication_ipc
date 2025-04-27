@@ -77,6 +77,9 @@ int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption op
             ReadInt32(data, &saId);
             RPC_LOG_INFO("samgr pop said = %d....", saId);
             SvcIdentity *sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
+            if (sid == NULL) {
+                return ERR_FAILED;
+            }
             ReadRemoteObject(data, sid);
             result = AddSystemAbility(saId, sid);
             if (result != ERR_NONE) {

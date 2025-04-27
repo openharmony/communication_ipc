@@ -73,6 +73,9 @@ static int32_t RemoteRequest(uint32_t code, IpcIo *data, IpcIo *reply, MessageOp
             int32_t saId;
             ReadInt32(data, &saId);
             SvcIdentity *sid = (SvcIdentity *)malloc(sizeof(SvcIdentity));
+            if (sid == NULL) {
+                return ERR_FAILED;
+            }
             ReadRemoteObject(data, sid);
             result = AddSystemAbility(saId, sid);
             if (result != ERR_NONE) {
