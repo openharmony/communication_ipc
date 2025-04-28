@@ -251,7 +251,7 @@ napi_value NAPIAshmem::getNewAshmemConstructor(napi_env env, napi_value& constru
     int dupFd = dup(fd);
     if (dupFd < 0) {
         ZLOGE(LOG_LABEL, "fail to dup fd:%{public}d", dupFd);
-        return napiErr.ThrowError(env, OHOS::errorDesc::OS_DUP_ERROR);
+        return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
     sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
