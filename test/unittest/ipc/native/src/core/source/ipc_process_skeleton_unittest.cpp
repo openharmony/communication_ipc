@@ -597,7 +597,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest004, TestSize.Level1)
 
     EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
     EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(nullptr));
-    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(nullptr));
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(Return(nullptr));
     EXPECT_CALL(mock, UnlockObjectMutex()).WillRepeatedly(Return(true));
 
     sptr<IRemoteObject> object = skeleton->GetProxyObject(handle, newFlag);
@@ -624,7 +624,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, GetProxyObjectTest005, TestSize.Level1)
 
     EXPECT_CALL(mock, LockObjectMutex()).WillOnce(Return(true));
     EXPECT_CALL(mock, QueryObject(testing::_, testing::_)).WillOnce(Return(nullptr));
-    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillOnce(Return(invoker));
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(Return(invoker));
     EXPECT_CALL(mock, PingService(testing::_)).WillRepeatedly(Return(false));
     EXPECT_CALL(mock, UnlockObjectMutex()).WillRepeatedly(Return(true));
 
