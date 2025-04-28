@@ -310,12 +310,12 @@ HWTEST_F(IPCObjectStubTest, OnRemoteDumpTest001, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     int fd = 1;
     data.WriteFileDescriptor(fd);
     NiceMock<IpcObjectStubInterfaceMock> mock;
     EXPECT_CALL(mock, ReadFileDescriptor).WillOnce(Return(-1));
-    int result = stub.OnRemoteDump(CODE_TEST, data, reply, option);
+    int result = stub->OnRemoteDump(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -329,13 +329,13 @@ HWTEST_F(IPCObjectStubTest, OnRemoteDumpTest002, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     int fd = 1;
     data.WriteFileDescriptor(fd);
     NiceMock<IpcObjectStubInterfaceMock> mock;
     EXPECT_CALL(mock, ReadFileDescriptor).WillOnce(Return(12));
     EXPECT_CALL(mock, ReadString16Vector).WillOnce(Return(false));
-    int result = stub.OnRemoteDump(CODE_TEST, data, reply, option);
+    int result = stub->OnRemoteDump(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
 }
 
@@ -349,10 +349,10 @@ HWTEST_F(IPCObjectStubTest, DBinderPingTransactionTest001, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     EXPECT_CALL(mock, WriteInt32).WillOnce(Return(false));
-    int result = stub.DBinderPingTransaction(CODE_TEST, data, reply, option);
+    int result = stub->DBinderPingTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_WRITE_PARCEL_ERR);
 }
 
@@ -364,12 +364,12 @@ HWTEST_F(IPCObjectStubTest, DBinderPingTransactionTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderSearchDescriptorTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     EXPECT_CALL(mock, WriteString16).WillOnce(Return(true));
-    int result = stub.DBinderSearchDescriptor(CODE_TEST, data, reply, option);
+    int result = stub->DBinderSearchDescriptor(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
 }
 
@@ -381,12 +381,12 @@ HWTEST_F(IPCObjectStubTest, DBinderSearchDescriptorTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderSearchDescriptorTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     EXPECT_CALL(mock, WriteString16).WillOnce(Return(false));
-    int result = stub.DBinderSearchDescriptor(CODE_TEST, data, reply, option);
+    int result = stub->DBinderSearchDescriptor(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_WRITE_PARCEL_ERR);
 }
 
@@ -398,7 +398,7 @@ HWTEST_F(IPCObjectStubTest, DBinderSearchDescriptorTest002, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -409,7 +409,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest001, TestSize.Level1)
 
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
     EXPECT_CALL(mock, ReadFileDescriptor).WillOnce(Return(-1));
-    int result = stub.DBinderDumpTransaction(CODE_TEST, data, reply, option);
+    int result = stub->DBinderDumpTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
@@ -423,13 +423,13 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(UID_TEST));
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(false));
-    auto result = stub.DBinderDumpTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderDumpTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
 }
 
@@ -441,7 +441,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest002, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest003, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -452,7 +452,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest003, TestSize.Level1)
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, ReadFileDescriptor).WillOnce(Return(-1));
-    auto result = stub.DBinderDumpTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderDumpTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
     delete invoker;
 }
@@ -465,7 +465,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest003, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest004, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -476,7 +476,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest004, TestSize.Level1)
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, ReadFileDescriptor).WillOnce(Return(-1));
-    auto result = stub.DBinderDumpTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderDumpTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
@@ -490,7 +490,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest004, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest005, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -500,7 +500,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest005, TestSize.Level1)
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = invoker;
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
-    auto result = stub.DBinderDumpTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderDumpTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
@@ -514,7 +514,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDumpTransactionTest005, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -523,7 +523,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest001, TestSize.Level1)
     EXPECT_CALL(mock, GetCallingUid).WillRepeatedly(Return(UID_TEST));
     EXPECT_CALL(mock, GetCallingTokenID).WillRepeatedly(Return(TOKEN_ID_TEST));
     EXPECT_CALL(mock, GetCallingDeviceID).WillRepeatedly(Return(DEVICEID_TEST));
-    auto result = stub.DBinderIncRefsTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderIncRefsTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -535,7 +535,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -547,7 +547,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest002, TestSize.Level1)
     EXPECT_CALL(mock, GetCallingUid).WillRepeatedly(Return(UID_TEST));
     EXPECT_CALL(mock, GetCallingTokenID).WillRepeatedly(Return(TOKEN_ID_TEST));
     EXPECT_CALL(mock, GetCallingDeviceID).WillRepeatedly(Return(DEVICEID_TEST));
-    auto result = stub.DBinderIncRefsTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderIncRefsTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -561,7 +561,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest002, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest003, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -575,7 +575,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest003, TestSize.Level1)
     EXPECT_CALL(mock, GetCallingUid).WillRepeatedly(Return(UID_TEST));
     EXPECT_CALL(mock, GetCallingTokenID).WillRepeatedly(Return(TOKEN_ID_TEST));
     EXPECT_CALL(mock, GetCallingDeviceID).WillRepeatedly(Return(DEVICEID_TEST));
-    auto result = stub.DBinderIncRefsTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderIncRefsTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
@@ -589,7 +589,7 @@ HWTEST_F(IPCObjectStubTest, DBinderIncRefsTransactionTest003, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDecRefsTransactionTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -597,7 +597,7 @@ HWTEST_F(IPCObjectStubTest, DBinderDecRefsTransactionTest001, TestSize.Level1)
     current->instance_ = nullptr;
     current->exitFlag_ = true;
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(false));
-    auto result = stub.DBinderDecRefsTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderDecRefsTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -611,16 +611,17 @@ HWTEST_F(IPCObjectStubTest, DBinderDecRefsTransactionTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderDecRefsTransactionTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     DBinderDatabusInvoker *invoker = new DBinderDatabusInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = invoker;
+    stub->IncStrongRef(stub.GetRefPtr());
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(false));
     EXPECT_CALL(mock, DetachAppAuthInfo).WillOnce(Return(true));
-    auto result = stub.DBinderDecRefsTransaction(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderDecRefsTransaction(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
@@ -634,12 +635,12 @@ HWTEST_F(IPCObjectStubTest, DBinderDecRefsTransactionTest002, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(false));
-    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -651,7 +652,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -659,7 +660,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest002, TestSize.Level1)
     current->instance_ = nullptr;
     current->exitFlag_ = true;
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
-    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_CREATE_BUS_SERVER_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -673,7 +674,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest002, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest003, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -683,7 +684,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest003, TestSize.Level1)
     EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(object));
     EXPECT_CALL(mock, GetGrantedSessionName).WillOnce(Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(false));
-    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -695,7 +696,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest003, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest004, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -704,7 +705,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest004, TestSize.Level1)
     EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(object));
     EXPECT_CALL(mock, GetGrantedSessionName).WillOnce(Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
-    auto result = stub.DBinderGetSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
 }
 
@@ -716,12 +717,12 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameTest004, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(false));
-    auto result = stub.DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -733,14 +734,14 @@ HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest001, TestSize.Level1
 HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     auto current = ProcessSkeleton::GetInstance();
     current->SetSamgrFlag(false);
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
-    auto result = stub.DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -752,15 +753,16 @@ HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest002, TestSize.Level1
 HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest003, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     auto current = ProcessSkeleton::GetInstance();
     current->SetSamgrFlag(true);
     EXPECT_CALL(mock, IsLocalCalling).WillOnce(Return(true));
-    auto result = stub.DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
+    auto result = stub->DBinderGetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
+    current->SetSamgrFlag(false);
 }
 
 /**
@@ -771,11 +773,11 @@ HWTEST_F(IPCObjectStubTest, DBinderGetGrantedSessionNameTest003, TestSize.Level1
 HWTEST_F(IPCObjectStubTest, OnFirstStrongRefTest001, TestSize.Level1)
 {
     const void* objectId = nullptr;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->instance_ = nullptr;
     current->exitFlag_ = true;
-    ASSERT_NO_FATAL_FAILURE(stub.OnFirstStrongRef(objectId));
+    ASSERT_NO_FATAL_FAILURE(stub->OnFirstStrongRef(objectId));
     current->instance_ = nullptr;
     current->exitFlag_ = false;
 }
@@ -787,13 +789,13 @@ HWTEST_F(IPCObjectStubTest, OnFirstStrongRefTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, NoticeServiceDieTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data, reply;
     MessageOption option;
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->instance_ = nullptr;
     current->exitFlag_ = true;
-    int32_t result = stub.NoticeServiceDie(data, reply, option);
+    int32_t result = stub->NoticeServiceDie(data, reply, option);
     EXPECT_EQ(result, IPC_STUB_CURRENT_NULL_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -807,11 +809,11 @@ HWTEST_F(IPCObjectStubTest, NoticeServiceDieTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, NoticeServiceDieTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data, reply;
     MessageOption option;
     IPCProcessSkeleton realObject;
-    int32_t result = stub.NoticeServiceDie(data, reply, option);
+    int32_t result = stub->NoticeServiceDie(data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -822,9 +824,9 @@ HWTEST_F(IPCObjectStubTest, NoticeServiceDieTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, IsDeviceIdIllegalTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     std::string remoteDeviceId = DEVICEID_TEST;
-    int32_t ret = stub.IsDeviceIdIllegal(remoteDeviceId);
+    int32_t ret = stub->IsDeviceIdIllegal(remoteDeviceId);
     EXPECT_EQ(ret, false);
 }
 
@@ -836,11 +838,11 @@ HWTEST_F(IPCObjectStubTest, IsDeviceIdIllegalTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, GetSessionNameTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->instance_ = nullptr;
     current->exitFlag_ = true;
-    auto ret = stub.GetSessionName();
+    auto ret = stub->GetSessionName();
     EXPECT_EQ(ret, "");
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -853,13 +855,13 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, GetSessionNameTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE, u"");
 
     EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(object));
 
-    auto ret = stub.GetSessionName();
+    auto ret = stub->GetSessionName();
     EXPECT_EQ(ret, "");
 }
 
@@ -870,14 +872,14 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, GetSessionNameTest003, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE, u"test");
 
     EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(object));
     EXPECT_CALL(mock, GetGrantedSessionName).WillOnce(Return(SESSION_NAME_TEST));
 
-    auto ret = stub.GetSessionName();
+    auto ret = stub->GetSessionName();
     EXPECT_EQ(ret, SESSION_NAME_TEST);
 }
 
@@ -889,13 +891,13 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameTest003, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub Stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     EXPECT_CALL(mock, GetCallingPid).WillOnce(Return(PID_TEST));
     EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(UID_TEST));
-    int result = Stub.GetGrantedSessionName(CODE_TEST, data, reply, option);
+    int result = stub->GetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -907,7 +909,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub Stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -917,7 +919,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest002, TestSize.Level1)
     EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(UID_TEST));
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(false));
 
-    int result = Stub.GetGrantedSessionName(CODE_TEST, data, reply, option);
+    int result = stub->GetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -929,7 +931,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest002, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest003, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub Stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -940,7 +942,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest003, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString).WillOnce(Return(false));
 
-    int result = Stub.GetGrantedSessionName(CODE_TEST, data, reply, option);
+    int result = stub->GetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -952,7 +954,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest003, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest004, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub Stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -963,7 +965,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest004, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString).WillOnce(Return(true));
 
-    int result = Stub.GetGrantedSessionName(CODE_TEST, data, reply, option);
+    int result = stub->GetGrantedSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(result, ERR_NONE);
     DBinderSoftbusClient::GetInstance().grantPermissionFunc_ = nullptr;
 }
@@ -976,7 +978,7 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest004, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, AddAuthInfoTest001, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -985,7 +987,7 @@ HWTEST_F(IPCObjectStubTest, AddAuthInfoTest001, TestSize.Level1)
     EXPECT_CALL(mock, ReadString).WillOnce(Return(DEVICEID_TEST));
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(REMOTEUID_TEST));
     EXPECT_CALL(mock, ReadUint64).WillOnce(Return(STUBINDEX_TEST2));
-    int32_t ret = stub.AddAuthInfo(data, reply, CODE_TEST);
+    int32_t ret = stub->AddAuthInfo(data, reply, CODE_TEST);
     EXPECT_EQ(ret, BINDER_CALLBACK_STUBINDEX_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -999,7 +1001,7 @@ HWTEST_F(IPCObjectStubTest, AddAuthInfoTest001, TestSize.Level1)
 HWTEST_F(IPCObjectStubTest, AddAuthInfoTest002, TestSize.Level1)
 {
     NiceMock<IpcObjectStubInterfaceMock> mock;
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -1008,7 +1010,7 @@ HWTEST_F(IPCObjectStubTest, AddAuthInfoTest002, TestSize.Level1)
 
     EXPECT_CALL(mock, ReadString).WillOnce(Return(DEVICEID_TEST));
 
-    int32_t ret = stub.AddAuthInfo(data, reply, CODE_TEST);
+    int32_t ret = stub->AddAuthInfo(data, reply, CODE_TEST);
     EXPECT_EQ(ret, IPC_STUB_CURRENT_NULL_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -1021,7 +1023,7 @@ HWTEST_F(IPCObjectStubTest, AddAuthInfoTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1030,7 +1032,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest001, TestSize.Level1)
         .WillOnce(Return(SESSION_NAME_TEST)).WillOnce(Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1041,7 +1043,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1050,7 +1052,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest002, TestSize.Level1)
         .WillOnce(Return("")).WillOnce(Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1061,7 +1063,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest003, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1070,7 +1072,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest003, TestSize.Level1)
         .WillOnce(Return(SESSION_NAME_TEST)).WillOnce(Return(""));
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1081,7 +1083,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest003, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest004, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1092,7 +1094,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest004, TestSize.Level1)
     EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_CURRENT_NULL_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -1105,7 +1107,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest004, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest005, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1115,7 +1117,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest005, TestSize.Level1)
     EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(SESSION_NAME_TEST));
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(UID_TEST));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_CREATE_BUS_SERVER_ERR);
     current->instance_ = nullptr;
     current->exitFlag_ = false;
@@ -1128,7 +1130,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest005, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest006, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1138,7 +1140,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest006, TestSize.Level1)
     EXPECT_CALL(mock, CreateSoftbusServer).WillOnce(Return(true));
     EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(0));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1149,7 +1151,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest006, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest007, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1160,7 +1162,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest007, TestSize.Level1)
     EXPECT_CALL(mock, AddStubByIndex).WillOnce(Return(10));
     EXPECT_CALL(mock, WriteUint64).WillOnce(Return(false));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1171,7 +1173,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest007, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest008, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1183,7 +1185,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest008, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteString).WillOnce(Return(false)).WillRepeatedly(Return(true));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1194,7 +1196,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest008, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest009, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1206,7 +1208,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest009, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint64).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteString).WillOnce(Return(true)).WillRepeatedly(Return(false));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1217,7 +1219,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest009, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest010, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1230,7 +1232,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest010, TestSize.Level1)
     EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteUint32).WillOnce(Return(false));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1241,7 +1243,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest010, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest011, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1256,7 +1258,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest011, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillOnce(Return(true));
     EXPECT_CALL(mock, AttachOrUpdateAppAuthInfo).WillOnce(Return(false));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, ERR_NONE);
     current->appInfoToStubIndex_.clear();
 }
@@ -1268,7 +1270,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest011, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest012, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     NiceMock<IpcObjectStubInterfaceMock> mock;
@@ -1283,7 +1285,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest012, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillOnce(Return(true));
     EXPECT_CALL(mock, AttachOrUpdateAppAuthInfo).WillOnce(Return(true));
 
-    auto ret = stub.InvokerDataBusThread(data, reply);
+    auto ret = stub->InvokerDataBusThread(data, reply);
     EXPECT_EQ(ret, ERR_NONE);
     current->appInfoToStubIndex_.clear();
 }
@@ -1295,7 +1297,7 @@ HWTEST_F(IPCObjectStubTest, InvokerDataBusThreadTest012, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1303,7 +1305,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest001, TestSize.Leve
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(false));
 
-    auto ret = stub.DBinderGetSessionNameForPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderGetSessionNameForPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1314,7 +1316,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest001, TestSize.Leve
  */
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1324,7 +1326,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest002, TestSize.Leve
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
 
-    auto ret = stub.DBinderGetSessionNameForPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderGetSessionNameForPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1335,7 +1337,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest002, TestSize.Leve
  */
 HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest003, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1347,8 +1349,9 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest003, TestSize.Leve
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(PID_TEST));
     EXPECT_CALL(mock, GetCallingPid).WillOnce(Return(PID_TEST));
 
-    auto ret = stub.DBinderGetSessionNameForPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderGetSessionNameForPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+    current->SetSamgrFlag(false);
 }
 
 /**
@@ -1358,7 +1361,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetSessionNameForPidUidTest003, TestSize.Leve
  */
 HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1370,7 +1373,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest001, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(false));
     EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
 
-    auto ret = stub.GetSessionNameForPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->GetSessionNameForPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
     DBinderSoftbusClient::GetInstance().grantPermissionFunc_ = nullptr;
 }
@@ -1382,7 +1385,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1394,7 +1397,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest002, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(false));
 
-    auto ret = stub.GetSessionNameForPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->GetSessionNameForPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
     DBinderSoftbusClient::GetInstance().grantPermissionFunc_ = nullptr;
 }
@@ -1406,7 +1409,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest003, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1418,7 +1421,7 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest003, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString).WillRepeatedly(Return(true));
 
-    auto ret = stub.GetSessionNameForPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->GetSessionNameForPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
     DBinderSoftbusClient::GetInstance().grantPermissionFunc_ = nullptr;
 }
@@ -1430,12 +1433,12 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest003, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, CreateSessionNameTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     DBinderSoftbusClient::GetInstance().grantPermissionFunc_ = [](int32_t, int32_t, const char*) { return 0; };
     std::string sessionName = DBINDER_SOCKET_NAME_PREFIX + std::to_string(UID_TEST)
         + std::string("_") + std::to_string(PID_TEST);
 
-    auto ret = stub.CreateSessionName(UID_TEST, PID_TEST);
+    auto ret = stub->CreateSessionName(UID_TEST, PID_TEST);
     EXPECT_EQ(ret, sessionName);
     DBinderSoftbusClient::GetInstance().grantPermissionFunc_ = nullptr;
 }
@@ -1447,7 +1450,7 @@ HWTEST_F(IPCObjectStubTest, CreateSessionNameTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, RemoveSessionNameTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     DBinderSoftbusClient::GetInstance().removePermissionFunc_ = [](const char *) { return 0; };
@@ -1456,7 +1459,7 @@ HWTEST_F(IPCObjectStubTest, RemoveSessionNameTest001, TestSize.Level1)
 
     EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(sessionName));
 
-    auto ret = stub.RemoveSessionName(data);
+    auto ret = stub->RemoveSessionName(data);
     EXPECT_EQ(ret, ERR_NONE);
     DBinderSoftbusClient::GetInstance().removePermissionFunc_ = nullptr;
 }
@@ -1468,7 +1471,7 @@ HWTEST_F(IPCObjectStubTest, RemoveSessionNameTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, DBinderGetPidUidTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1479,8 +1482,9 @@ HWTEST_F(IPCObjectStubTest, DBinderGetPidUidTest001, TestSize.Level1)
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(false));
 
-    auto ret = stub.DBinderGetPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderGetPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+    current->SetSamgrFlag(false);
 }
 
 /**
@@ -1490,7 +1494,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetPidUidTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, DBinderGetPidUidTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1501,8 +1505,9 @@ HWTEST_F(IPCObjectStubTest, DBinderGetPidUidTest002, TestSize.Level1)
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
 
-    auto ret = stub.DBinderGetPidUid(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderGetPidUid(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+    current->SetSamgrFlag(false);
 }
 
 /**
@@ -1512,7 +1517,7 @@ HWTEST_F(IPCObjectStubTest, DBinderGetPidUidTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1522,8 +1527,9 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest001, TestSize.Level1)
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(false));
 
-    auto ret = stub.DBinderRemoveSessionName(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderRemoveSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+    current->SetSamgrFlag(false);
 }
 
 /**
@@ -1533,7 +1539,7 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1543,7 +1549,7 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest002, TestSize.Level1)
 
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
 
-    auto ret = stub.DBinderRemoveSessionName(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderRemoveSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
 }
 
@@ -1554,7 +1560,7 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest003, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1568,9 +1574,10 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest003, TestSize.Level1)
     EXPECT_CALL(mock, IsLocalCalling).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, ReadString).WillRepeatedly(Return(sessionName));
 
-    auto ret = stub.DBinderRemoveSessionName(CODE_TEST, data, reply, option);
+    auto ret = stub->DBinderRemoveSessionName(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
     DBinderSoftbusClient::GetInstance().removePermissionFunc_ = nullptr;
+    current->SetSamgrFlag(false);
 }
 
 /**
@@ -1580,7 +1587,7 @@ HWTEST_F(IPCObjectStubTest, DBinderRemoveSessionNameTest003, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, ProcessProtoTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1588,7 +1595,7 @@ HWTEST_F(IPCObjectStubTest, ProcessProtoTest001, TestSize.Level1)
 
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(false));
 
-    auto ret = stub.ProcessProto(CODE_TEST, data, reply, option);
+    auto ret = stub->ProcessProto(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_WRITE_PARCEL_ERR);
 }
 
@@ -1599,7 +1606,7 @@ HWTEST_F(IPCObjectStubTest, ProcessProtoTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, ProcessProtoTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1608,7 +1615,7 @@ HWTEST_F(IPCObjectStubTest, ProcessProtoTest002, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString16).WillRepeatedly(Return(false));
 
-    auto ret = stub.ProcessProto(CODE_TEST, data, reply, option);
+    auto ret = stub->ProcessProto(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_WRITE_PARCEL_ERR);
 }
 
@@ -1619,7 +1626,7 @@ HWTEST_F(IPCObjectStubTest, ProcessProtoTest002, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, ProcessProtoTest003, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1628,7 +1635,7 @@ HWTEST_F(IPCObjectStubTest, ProcessProtoTest003, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, WriteString16).WillRepeatedly(Return(true));
 
-    auto ret = stub.ProcessProto(CODE_TEST, data, reply, option);
+    auto ret = stub->ProcessProto(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
 
@@ -1639,7 +1646,7 @@ HWTEST_F(IPCObjectStubTest, ProcessProtoTest003, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerThreadTest001, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1655,7 +1662,7 @@ HWTEST_F(IPCObjectStubTest, InvokerThreadTest001, TestSize.Level1)
     EXPECT_CALL(mock, WriteUint32).WillOnce(Return(true));
     EXPECT_CALL(mock, AttachOrUpdateAppAuthInfo).WillOnce(Return(false));
 
-    auto ret = stub.InvokerThread(CODE_TEST, data, reply, option);
+    auto ret = stub->InvokerThread(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
     current->appInfoToStubIndex_.clear();
 }
@@ -1667,7 +1674,7 @@ HWTEST_F(IPCObjectStubTest, InvokerThreadTest001, TestSize.Level1)
  */
 HWTEST_F(IPCObjectStubTest, InvokerThreadTest002, TestSize.Level1)
 {
-    IPCObjectStub stub;
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
     NiceMock<IpcObjectStubInterfaceMock> mock;
     MessageParcel data;
     MessageParcel reply;
@@ -1676,7 +1683,7 @@ HWTEST_F(IPCObjectStubTest, InvokerThreadTest002, TestSize.Level1)
 
     EXPECT_CALL(mock, ReadUint32).WillRepeatedly(Return(IRemoteObject::IF_PROT_ERROR));
 
-    auto ret = stub.InvokerThread(CODE_TEST, data, reply, option);
+    auto ret = stub->InvokerThread(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
     current->appInfoToStubIndex_.clear();
 }
