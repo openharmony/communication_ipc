@@ -358,7 +358,7 @@ static int32_t AddThreadBySeqNumber(ThreadMessageInfo *messageInfo)
 int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, uint32_t userWaitTime)
 {
     if (AddThreadBySeqNumber(messageInfo) != ERR_NONE) {
-        RPC_LOG_ERROR("add seqNumber = %llu failed", seqNumber);
+        RPC_LOG_ERROR("add seqNumber = %lu failed", seqNumber);
         return ERR_FAILED;
     }
 
@@ -392,7 +392,7 @@ int32_t AddSendThreadInWait(uint64_t seqNumber, ThreadMessageInfo *messageInfo, 
         return ERR_FAILED;
     }
 
-    waitTime.tv_sec = now.tv_sec + userWaitTime;
+    waitTime.tv_sec = (time_t)(now.tv_sec + userWaitTime);
     waitTime.tv_nsec = now.tv_usec * USECTONSEC;
     int ret = pthread_cond_timedwait(&threadLockInfo->condition, &threadLockInfo->mutex, &waitTime);
     pthread_mutex_unlock(&threadLockInfo->mutex);

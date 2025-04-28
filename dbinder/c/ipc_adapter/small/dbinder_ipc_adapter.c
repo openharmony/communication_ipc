@@ -48,7 +48,11 @@ ProxyObject *RpcGetSystemAbility(int32_t systemAbility)
 
     RPC_LOG_INFO("get system ability from samgr");
     uintptr_t ptr;
-    int32_t ret = SendRequest(*GetContextObject(), GET_SYSTEM_ABILITY_TRANSACTION, &data, &reply, option, &ptr);
+    SvcIdentity *identity = GetContextObject();
+    if (identity == NULL) {
+        return NULL;
+    }
+    int32_t ret = SendRequest(*identity, GET_SYSTEM_ABILITY_TRANSACTION, &data, &reply, option, &ptr);
     if (ret != ERR_NONE) {
         RPC_LOG_ERROR("GetSystemAbility failed");
         FreeBuffer((void *)ptr);

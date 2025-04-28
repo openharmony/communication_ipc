@@ -47,7 +47,7 @@ static char *CreateDatabusName(void)
     int32_t uid = (int32_t)GetCallingUid();
     int32_t uidLen = GetDigits(uid);
 
-    uint32_t sessionNameLen = SESSION_NAME_LEGNTH + pidLen + uidLen;
+    uint32_t sessionNameLen = SESSION_NAME_LEGNTH + (uint32_t)pidLen + (uint32_t)uidLen;
     char *sessionName = (char *)malloc(sessionNameLen + 1);
     if (sessionName == NULL) {
         RPC_LOG_ERROR("sessionName mallo failed");
