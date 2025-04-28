@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -123,7 +123,11 @@ napi_value NAPIAshmem::CreateAshmemFromExisting(napi_env env, napi_callback_info
     int dupFd = dup(fd);
     NAPI_ASSERT(env, dupFd >= 0, "failed to dup fd");
     sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
-    NAPI_ASSERT(env, newAshmem != nullptr, "napiAshmem is null");
+    if (newAshmem == nullptr) {
+        close(dupFd);
+        napi_throw_error(env, nullptr, "failed to new Ashmem");
+        return nullptr;
+    }
     napi_value jsAshmem = nullptr;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsAshmem);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js Ashmem");
@@ -251,6 +255,7 @@ napi_value NAPIAshmem::getNewAshmemConstructor(napi_env env, napi_value& constru
     }
     sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
+        close(dupFd);
         ZLOGE(LOG_LABEL, "newAshmem is null");
         return napiErr.ThrowError(env, OHOS::errorDesc::CHECK_PARAM_ERROR);
     }
