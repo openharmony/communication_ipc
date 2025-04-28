@@ -35,8 +35,6 @@ static void ServerDeadCallback(void *arg)
 
 static void AddDeathCallback()
 {
-    IpcIo reply;
-    SvcIdentity sid;
     uint32_t cbId = 0;
 
     SvcIdentity svcIdentity = SAMGR_GetRemoteIdentity(IPC_TEST_SERVICE, NULL);

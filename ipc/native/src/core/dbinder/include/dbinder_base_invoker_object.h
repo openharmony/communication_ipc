@@ -164,7 +164,8 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenSend(std::shared_ptr<dbind
     uint32_t offsetOfSession = bufferSize + transData->offsets_size;
     unsigned char *flatOffset = dataBuffer + offsetOfSession;
     binder_size_t objCount = transData->offsets_size / sizeof(binder_size_t);
-    binder_size_t preOffset = 0, preObjectSize = 0;
+    binder_size_t preOffset = 0;
+    binder_size_t preObjectSize = 0;
 
     for (size_t i = 0; i < objCount; i++) {
         if (!IsValidRemoteObjectOffset(dataBuffer, bufferSize, binderObjectsOffsets[i], i, preOffset, preObjectSize)) {
