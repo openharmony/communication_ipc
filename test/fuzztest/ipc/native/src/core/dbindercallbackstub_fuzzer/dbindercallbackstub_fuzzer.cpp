@@ -41,7 +41,8 @@ void DBinderCallbackStubFuzzTest(const uint8_t *data, size_t size)
     std::string device(bufData, length);
     std::string localDevice(bufData, length);
 
-    new DBinderCallbackStub(service, device, localDevice, stubIndex, handle, tokenId);
+    auto stub = new DBinderCallbackStub(service, device, localDevice, stubIndex, handle, tokenId);
+    delete stub;
 }
 
 void MarshallingFuzzTest(const uint8_t *data, size_t size)
@@ -69,6 +70,7 @@ void MarshallingFuzzTest(const uint8_t *data, size_t size)
     auto stub = new DBinderCallbackStub(service, device, localDevice, stubIndex, handle, tokenId);
 
     stub->Marshalling(parcel);
+    delete stub;
 }
 
 void MarshallingPSFuzzTest(const uint8_t *data, size_t size)
@@ -112,6 +114,7 @@ void GetAndSaveDBinderDataFuzzTest(const uint8_t *data, size_t size)
     auto stub = new DBinderCallbackStub(service, device, localDevice, stubIndex, handle, tokenId);
 
     stub->GetAndSaveDBinderData(pid, uid);
+    delete stub;
 }
 
 void ProcessProtoFuzzTest(const uint8_t *data, size_t size)
@@ -142,6 +145,7 @@ void ProcessProtoFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
 
     stub->ProcessProto(code, parcel, parcel, option);
+    delete stub;
 }
 
 void OnRemoteRequestFuzzTest(const uint8_t *data, size_t size)
@@ -172,6 +176,7 @@ void OnRemoteRequestFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
 
     stub->OnRemoteRequest(code, parcel, parcel, option);
+    delete stub;
 }
 } // namespace OHOS
 
