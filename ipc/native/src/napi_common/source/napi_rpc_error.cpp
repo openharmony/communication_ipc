@@ -22,7 +22,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_
 
 std::map<int, errorInfo> NapiError::napiErrMap_ {
     {CHECK_PARAM_ERROR, errorInfo{401, "check param error"}},
-    {OS_MMAP_ERROR, errorInfo{1900001, "os mmap function failed"}},
+    {OS_MMAP_ERROR, errorInfo{1900001, "Failed to call mmap function. Possible causes: Oversized mapping request."}},
     {OS_IOCTL_ERROR, errorInfo{1900002, "os ioctl function failed"}},
     {WRITE_TO_ASHMEM_ERROR, errorInfo{1900003, "write to ashmem failed"}},
     {READ_FROM_ASHMEM_ERROR, errorInfo{1900004, "read from ashmem failed"}},
@@ -34,7 +34,8 @@ std::map<int, errorInfo> NapiError::napiErrMap_ {
     {READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, errorInfo{1900010, "read data from message sequence failed"}},
     {PARCEL_MEMORY_ALLOC_ERROR, errorInfo{1900011, "parcel memory alloc failed"}},
     {CALL_JS_METHOD_ERROR, errorInfo{1900012, "call js method failed"}},
-    {OS_DUP_ERROR, errorInfo{1900013, "os dup function failed"}}
+    {OS_DUP_ERROR, errorInfo{1900013,
+        "Failed to call dup function. Possible causes: The file descriptor has already been closed."}}
 };
 
 napi_value NapiError::GetError(napi_env& env) const
