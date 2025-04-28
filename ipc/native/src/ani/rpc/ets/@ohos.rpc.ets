@@ -15,8 +15,44 @@
 
 import hilog from '@ohos.hilog';
 
+
+
 export namespace rpc {
-    // loadLibrary("rpc_ani");
+    export class Cleaner {
+        static { loadLibrary("rpc_ani") }
+        static callback(cleaner: Cleaner): void {
+            console.println("[Cleaner] enter Cleaner.callback");
+            cleaner.clean()
+        }
+        constructor(targetPtr: long) {
+            this.targetPtr = targetPtr
+        }
+
+        native clean(): void
+
+        private targetPtr: long = 0
+    }
+
+    class FinalizationAgent<T extends Object> {
+        constructor(obj: T, ptr: long) {
+            this.register(obj, ptr);
+        }
+
+        register(obj: T, ptr: long): void {
+            this.unregisterToken = {};
+            this.cleaner = new Cleaner(ptr);
+            finalizer.register(obj, this.cleaner!, this.unregisterToken);
+        }
+
+        unregister(): void {
+            finalizer.unregister(this.unregisterToken);
+        }
+
+        private cleaner: Cleaner | null = null;
+        private unregisterToken: object;
+    }
+
+    let finalizer = new FinalizationRegistry<Cleaner>(Cleaner.callback)
     export class MessageSequence {
         constructor() {}
         native function readString(): string;
@@ -37,6 +73,7 @@ export namespace rpc {
             else {
                 this.init(0, 0);
             }
+            this.registerCleaner();
         }
 
         constructor(syncFlags?: number, waitTime?: number) {
@@ -53,6 +90,15 @@ export namespace rpc {
             else if (syncFlags != undefined && waitTime === undefined) {
                 this.init(syncFlags, 0);
             }
+            this.registerCleaner();
+        }
+
+        registerCleaner(): void {
+            this.fzAgent = new FinalizationAgent<MessageOption>(this, this.nativePtr);
+        }
+
+        unregisterCleaner(): void {
+            this.fzAgent.unregister();
         }
 
         native init(syncFlags: number, waitTime: number): void;
@@ -62,6 +108,7 @@ export namespace rpc {
         }
 
         private nativePtr: long = 0;
+        private fzAgent: FinalizationAgent<MessageOption>;
     }
 
     export abstract class IRemoteObject {
@@ -73,9 +120,17 @@ export namespace rpc {
     export class RemoteObject extends IRemoteObject {
         static { loadLibrary("rpc_ani") }
 
-        native constructor(descriptor: string);
+        constructor(descriptor: string) {
+            this.init(string);
+            this.fzAgent = new FinalizationAgent<RemoteObject>(this, this.nativePtr);
+        }
 
+        native init(descriptor: string): void;
         native getDescriptor(): string;
+
+        unregisterCleaner(): void {
+            this.fzAgent.unregister();
+        }
 
         getNativePtr(): long {
             return this.nativePtr;
@@ -105,9 +160,12 @@ export namespace rpc {
         }
 
         private nativePtr: long = 0;
+        private fzAgent: FinalizationAgent<RemoteObject>;
     }
 
     export class RemoteProxy extends IRemoteObject {
         native getDescriptor(): string;
+
+        private nativePtr: long = 0;
     }
 }
