@@ -96,10 +96,11 @@ impl RemoteObj {
                     option.inner.pin_mut(),
                 );
                 data.inner = ParcelMem::Unique(p);
-                if res != 0 {
-                    return Err(IpcStatusCode::Failed);
+                match res {
+                    0 => Ok(reply),
+                    29189 => Err(IpcStatusCode::ServiceDied),
+                    _ => Err(IpcStatusCode::Failed),
                 }
-                Ok(reply)
             }
             _ => Err(IpcStatusCode::Failed),
         }
