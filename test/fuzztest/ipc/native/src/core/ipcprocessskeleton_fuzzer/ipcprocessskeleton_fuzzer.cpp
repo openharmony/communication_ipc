@@ -1141,7 +1141,7 @@ void SpawnThreadFuzzTest(const uint8_t *data, size_t size)
     }
     {
         std::lock_guard<std::mutex> lock(ipcSktPtr->threadPool_->mutex_);
-        if (ipcSktPtr->threadPool_->threads_.size() >= IPCProcessSkeleton::DEFAULT_WORK_THREAD_NUM) {
+        if (ipcSktPtr->threadPool_->spawnPassiveThreads_.size() >= IPCProcessSkeleton::DEFAULT_WORK_THREAD_NUM) {
             return;
         }
     }

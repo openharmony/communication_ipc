@@ -66,42 +66,50 @@ IPCWorkThreadPool::~IPCWorkThreadPool()
 void IPCWorkThreadPool::StopAllThreads()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto it = threads_.begin(); it != threads_.end(); it++) {
+    for (auto it = spawnPassiveThreads_.begin(); it != spawnPassiveThreads_.end(); it++) {
         it->second->StopWorkThread();
     }
-    threads_.clear();
+    spawnPassiveThreads_.clear();
 }
 
 bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!(proto == IRemoteObject::IF_PROT_DEFAULT && idleThreadNum_ > 0) &&
-        !(proto == IRemoteObject::IF_PROT_DATABUS && idleSocketThreadNum_ > 0)) {
+    if (((proto == IRemoteObject::IF_PROT_DEFAULT) && (idleThreadNum_ <= 0)) ||
+        ((proto == IRemoteObject::IF_PROT_DATABUS) && (idleSocketThreadNum_ <= 0))) {
+        ZLOGE(LOG_LABEL, "Request thread exceeds online limit, proto:%{public}d", proto);
         return false;
     }
     int threadIndex = 0;
     std::string threadName = MakeThreadName(proto, threadIndex);
     ZLOGD(LOG_LABEL, "name:%{public}s", threadName.c_str());
+    if (spawnPassiveThreads_.find(threadName) != spawnPassiveThreads_.end()) {
+        ZLOGW(LOG_LABEL, "This thread already exists, threadName:%{public}s", threadName.c_str());
+        return false;
+    }
 
-    if (threads_.find(threadName) == threads_.end()) {
-        sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>::MakeSptr(threadName);
-        if (newThread == nullptr) {
-            ZLOGE(LOG_LABEL, "create IPCWorkThread object failed");
-            return false;
+    sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>::MakeSptr(threadName);
+    if (newThread == nullptr) {
+        ZLOGE(LOG_LABEL, "create IPCWorkThread object failed");
+        return false;
+    }
+
+    if (proto == IRemoteObject::IF_PROT_DEFAULT) {
+        if (policy == IPCWorkThread::SPAWN_ACTIVE) {
+            spawnActiveThreads_ = newThread;
         }
-        threads_[threadName] = newThread;
-        if (proto == IRemoteObject::IF_PROT_DEFAULT) {
+        // IdleThreadNum_ variable manages SPAWN-PASSIVE type, does not manage SPAWN-ACTION.
+        if (policy == IPCWorkThread::SPAWN_PASSIVE) {
+            spawnPassiveThreads_[threadName] = newThread;
             idleThreadNum_--;
             ZLOGD(LOG_LABEL, "now idleThreadNum:%{public}d", idleThreadNum_);
         }
-        if (proto == IRemoteObject::IF_PROT_DATABUS) {
-            idleSocketThreadNum_--;
-            ZLOGD(LOG_LABEL, "now idleSocketThreadNum:%{public}d", idleSocketThreadNum_);
-        }
-        newThread->Start(policy, proto, threadIndex);
-        return true;
     }
-    return false;
+    if (proto == IRemoteObject::IF_PROT_DATABUS) {
+        idleSocketThreadNum_--;
+        ZLOGD(LOG_LABEL, "now idleSocketThreadNum:%{public}d", idleSocketThreadNum_);
+    }
+    return newThread->Start(policy, proto, threadIndex);
 }
 
 std::string IPCWorkThreadPool::MakeThreadName(int proto, int &threadIndex)
@@ -114,18 +122,19 @@ std::string IPCWorkThreadPool::MakeThreadName(int proto, int &threadIndex)
 bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto it = threads_.find(threadName);
-    if (it != threads_.end()) {
+    auto it = spawnPassiveThreads_.find(threadName);
+    if (it != spawnPassiveThreads_.end()) {
         sptr<IPCWorkThread> workThread = it->second;
         if (workThread == nullptr) {
             return false;
         }
-        if (workThread->proto_ == IRemoteObject::IF_PROT_DEFAULT) {
+        if ((workThread->proto_ == IRemoteObject::IF_PROT_DEFAULT) &&
+            (workThread->policy_ == IPCWorkThread::SPAWN_PASSIVE)) {
             idleThreadNum_++;
         } else if (workThread->proto_ == IRemoteObject::IF_PROT_DATABUS) {
             idleSocketThreadNum_++;
         }
-        threads_.erase(it);
+        spawnPassiveThreads_.erase(it);
         ZLOGD(LOG_LABEL, "now idleThreadNum:%{public}d", idleSocketThreadNum_);
         return true;
     }
