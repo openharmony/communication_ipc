@@ -1975,5 +1975,26 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachDBinderCallbackStubTest, TestSize.Lev
     ret = skeleton->DetachDBinderCallbackStubByProxy(proxy);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: LockForNumExecutingTest001
+ * @tc.desc: Verify the LockForNumExecuting and UnlockForNumExecuting function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, LockForNumExecutingTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    skeleton->SetMaxWorkThread(1);
+    ASSERT_TRUE(skeleton->threadPool_ != nullptr);
+
+    // test full thread duration 1s
+    skeleton->LockForNumExecuting();
+    EXPECT_NE(skeleton->numExecutingFullLastTime_, 0);
+    EXPECT_EQ(skeleton->numExecuting_, skeleton->threadPool_->GetMaxThreadNum());
+    sleep(1);
+    skeleton->UnlockForNumExecuting();
+    EXPECT_EQ(skeleton->numExecutingFullLastTime_, 0);
+}
 #endif
 } // namespace OHOS
