@@ -121,7 +121,7 @@ export namespace rpc {
         static { loadLibrary("rpc_ani") }
 
         constructor(descriptor: string) {
-            this.init(string);
+            this.init(descriptor);
             this.fzAgent = new FinalizationAgent<RemoteObject>(this, this.nativePtr);
         }
 
