@@ -60,6 +60,8 @@ pub enum IpcStatusCode {
     ErrDeadObject = -32,
     /// invail value
     InvalidValue = 0,
+    /// service died
+    ServiceDied = 29189,
     /// unknow value
     Unknow = 99999,
 }
