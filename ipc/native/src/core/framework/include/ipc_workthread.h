@@ -47,9 +47,9 @@ public:
 
     void StopWorkThread();
     int proto_ = IRemoteObject::IF_PROT_DEFAULT;
-    int policy_ = SPAWN_PASSIVE;
 
 private:
+    int policy_ = SPAWN_PASSIVE;
     std::thread thread_;
     std::string threadName_;
     static void *ThreadHandler(void *args);
