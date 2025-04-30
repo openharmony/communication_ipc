@@ -59,12 +59,12 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest001, TestSize.Level1)
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
     ASSERT_TRUE(ipcThread != nullptr);
     ipcThread->proto_ = IRemoteObject::IF_PROT_DEFAULT;
-    threadPool.spawnPassiveThreads_[threadName] = ipcThread;
+    threadPool.threads_[threadName] = ipcThread;
 
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
-    threadPool.spawnPassiveThreads_.clear();
+    threadPool.threads_.clear();
     ASSERT_TRUE(ipcThread != nullptr);
 }
 
@@ -80,12 +80,12 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest002, TestSize.Level1)
 
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
     ipcThread->proto_ = IRemoteObject::IF_PROT_DATABUS;
-    threadPool.spawnPassiveThreads_[threadName] = ipcThread;
+    threadPool.threads_[threadName] = ipcThread;
 
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
-    threadPool.spawnPassiveThreads_.clear();
+    threadPool.threads_.clear();
 }
 
 /**
@@ -100,12 +100,12 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest003, TestSize.Level1)
 
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
     ipcThread->proto_ = IRemoteObject::IF_PROT_ERROR;
-    threadPool.spawnPassiveThreads_[threadName] = ipcThread;
+    threadPool.threads_[threadName] = ipcThread;
 
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
-    threadPool.spawnPassiveThreads_.clear();
+    threadPool.threads_.clear();
 }
 
 /**
@@ -119,11 +119,11 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest004, TestSize.Level1)
     std::string threadName = "threadName4";
 
     sptr<IPCWorkThread> ipcThread = nullptr;
-    threadPool.spawnPassiveThreads_[threadName] = ipcThread;
+    threadPool.threads_[threadName] = ipcThread;
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, false);
-    threadPool.spawnPassiveThreads_.clear();
+    threadPool.threads_.clear();
 }
 
 /**
