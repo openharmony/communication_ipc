@@ -2047,6 +2047,7 @@ napi_value NAPI_MessageParcel::JS_DupFileDescriptor(napi_env env, napi_callback_
     int32_t fd = -1;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &fd);
     int32_t dupResult = dup(fd);
+    NAPI_ASSERT(env, dupResult >= 0, "invalid fd");
     napi_value napiValue;
     napi_create_int32(env, dupResult, &napiValue);
     return napiValue;
