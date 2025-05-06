@@ -30,6 +30,7 @@ namespace IPC_SINGLE {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThreadPool" };
 
 static void *g_selfSoHandler = nullptr;
+static constexpr int32_t IDLE_SPAWN_ACTIVE_NUM = 1;
 
 // this func is called when ipc_single and ipc_core before loading
 extern "C" __attribute__((constructor)) void InitIpcSo()
@@ -53,8 +54,8 @@ extern "C" __attribute__((constructor)) void InitIpcSo()
 }
 
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
-    : threadSequence_(0), maxThreadNum_(maxThreadNum + maxThreadNum), idleThreadNum_(maxThreadNum),
-      idleSocketThreadNum_(maxThreadNum)
+    : threadSequence_(0), maxThreadNum_(maxThreadNum + maxThreadNum),
+      idleThreadNum_(maxThreadNum + IDLE_SPAWN_ACTIVE_NUM), idleSocketThreadNum_(maxThreadNum)
 {
 }
 
@@ -75,33 +76,36 @@ void IPCWorkThreadPool::StopAllThreads()
 bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!(proto == IRemoteObject::IF_PROT_DEFAULT && idleThreadNum_ > 0) &&
-        !(proto == IRemoteObject::IF_PROT_DATABUS && idleSocketThreadNum_ > 0)) {
+    if (((proto == IRemoteObject::IF_PROT_DEFAULT) && (idleThreadNum_ <= 0)) ||
+        ((proto == IRemoteObject::IF_PROT_DATABUS) && (idleSocketThreadNum_ <= 0))) {
+        ZLOGE(LOG_LABEL, "Request thread exceeds online limit, proto:%{public}d", proto);
         return false;
     }
     int threadIndex = 0;
     std::string threadName = MakeThreadName(proto, threadIndex);
     ZLOGD(LOG_LABEL, "name:%{public}s", threadName.c_str());
-
-    if (threads_.find(threadName) == threads_.end()) {
-        sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>::MakeSptr(threadName);
-        if (newThread == nullptr) {
-            ZLOGE(LOG_LABEL, "create IPCWorkThread object failed");
-            return false;
-        }
-        threads_[threadName] = newThread;
-        if (proto == IRemoteObject::IF_PROT_DEFAULT) {
-            idleThreadNum_--;
-            ZLOGD(LOG_LABEL, "now idleThreadNum:%{public}d", idleThreadNum_);
-        }
-        if (proto == IRemoteObject::IF_PROT_DATABUS) {
-            idleSocketThreadNum_--;
-            ZLOGD(LOG_LABEL, "now idleSocketThreadNum:%{public}d", idleSocketThreadNum_);
-        }
-        newThread->Start(policy, proto, threadIndex);
-        return true;
+    if (threads_.find(threadName) != threads_.end()) {
+        ZLOGW(LOG_LABEL, "This thread already exists, threadName:%{public}s", threadName.c_str());
+        return false;
     }
-    return false;
+
+    sptr<IPCWorkThread> newThread = sptr<IPCWorkThread>::MakeSptr(threadName);
+    if (newThread == nullptr) {
+        ZLOGE(LOG_LABEL, "create IPCWorkThread object failed");
+        return false;
+    }
+    threads_[threadName] = newThread;
+    if (proto == IRemoteObject::IF_PROT_DEFAULT) {
+        idleThreadNum_--;
+        ZLOGD(LOG_LABEL, "now idleThreadNum:%{public}d", idleThreadNum_);
+    } else if (proto == IRemoteObject::IF_PROT_DATABUS) {
+        idleSocketThreadNum_--;
+        ZLOGD(LOG_LABEL, "now idleSocketThreadNum:%{public}d", idleSocketThreadNum_);
+    } else {
+        ZLOGE(LOG_LABEL, "Proto is incorrect:%{public}d", proto);
+        return false;
+    }
+    return newThread->Start(policy, proto, threadIndex);
 }
 
 std::string IPCWorkThreadPool::MakeThreadName(int proto, int &threadIndex)
@@ -144,7 +148,7 @@ int IPCWorkThreadPool::GetSocketTotalThreadNum() const
 
 int IPCWorkThreadPool::GetMaxThreadNum() const
 {
-    return maxThreadNum_ / PROTO_NUM;
+    return (maxThreadNum_ / PROTO_NUM) + IDLE_SPAWN_ACTIVE_NUM;
 }
 
 void IPCWorkThreadPool::UpdateMaxThreadNum(int maxThreadNum)
