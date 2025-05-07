@@ -444,6 +444,25 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest003, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: ReleaseHandleTest004
+ * @tc.desc: Verify the ReleaseHandle function
+ * When WriteUint32 function return true, When RewindWrite function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, ReleaseHandleTest004, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    bool ret = binderInvoker.ReleaseHandle(handle);
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: AddDeathRecipientTest001
  * @tc.desc: Verify the AddDeathRecipient function When WriteInt32 function return false
  * @tc.type: FUNC
@@ -542,6 +561,49 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest005, TestSize.Level1) {
         .WillOnce(testing::Return(true));
     EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
     EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddDeathRecipientTest006
+ * @tc.desc: Verify the AddDeathRecipient function When RewindWrite function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddDeathRecipientTest006, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32)
+        .Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddDeathRecipientTest007
+ * @tc.desc: Verify the AddDeathRecipient function when WritePointer function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddDeathRecipientTest007, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32)
+        .Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -701,6 +763,151 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest001, TestSize.Level1) {
     EXPECT_CALL(mock, ReadBuffer).WillOnce(testing::Return(nullptr));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_FALSE(ret);
+}
+#endif
+
+/**
+ * @tc.name: UnFlattenDBinderObjectTest002
+ * @tc.desc: Verify the UnFlattenDBinderObject function When RewindRead function return false
+ * @tc.type: FUNC
+ */
+#ifndef CONFIG_IPC_SINGLE
+HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest002, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    dbinder_negotiation_data dbinderData;
+    Parcel parcel;
+
+    binder_object_header hdr{};
+    hdr.type = BINDER_TYPE_BINDER;
+    uint8_t *buffer = (uint8_t *)&hdr;
+
+    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer).WillOnce(testing::Return(buffer));
+    EXPECT_CALL(mock, RewindRead).WillOnce(testing::Return(false));
+    bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
+    EXPECT_FALSE(ret);
+}
+#endif
+
+/**
+ * @tc.name: UnFlattenDBinderObjectTest003
+ * @tc.desc: Verify the UnFlattenDBinderObject function When ReadBuffer function return null
+ * @tc.type: FUNC
+ */
+#ifndef CONFIG_IPC_SINGLE
+HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest003, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    dbinder_negotiation_data dbinderData;
+    Parcel parcel;
+
+    binder_object_header hdr{};
+    hdr.type = BINDER_TYPE_PTR;
+    uint8_t *buffer = (uint8_t *)&hdr;
+
+    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer)
+        .WillOnce(testing::Return(buffer))
+        .WillOnce(testing::Return(nullptr));
+    EXPECT_CALL(mock, RewindRead).WillOnce(testing::Return(false));
+    bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
+    EXPECT_FALSE(ret);
+}
+#endif
+
+/**
+ * @tc.name: UnFlattenDBinderObjectTest004
+ * @tc.desc: Verify the UnFlattenDBinderObject function When flags is BINDER_BUFFER_FLAG_HAS_PARENT
+ * @tc.type: FUNC
+ */
+#ifndef CONFIG_IPC_SINGLE
+HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest004, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    dbinder_negotiation_data dbinderData;
+    Parcel parcel;
+
+    binder_object_header hdr{};
+    hdr.type = BINDER_TYPE_PTR;
+    uint8_t *buffer = (uint8_t *)&hdr;
+
+    binder_buffer_object obj{};
+    obj.flags = BINDER_BUFFER_FLAG_HAS_PARENT;
+    obj.length = sizeof(dbinder_negotiation_data);
+    uint8_t *buffer2 = (uint8_t *)&obj;
+
+    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer)
+        .WillOnce(testing::Return(buffer))
+        .WillOnce(testing::Return(buffer2));
+    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(0));
+    bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
+    EXPECT_FALSE(ret);
+}
+#endif
+
+/**
+ * @tc.name: UnFlattenDBinderObjectTest005
+ * @tc.desc: Verify the UnFlattenDBinderObject function When flags is BINDER_BUFFER_FLAG_HAS_DBINDER
+ * @tc.type: FUNC
+ */
+#ifndef CONFIG_IPC_SINGLE
+HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest005, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    dbinder_negotiation_data dbinderData;
+    Parcel parcel;
+
+    binder_object_header hdr{};
+    hdr.type = BINDER_TYPE_PTR;
+    uint8_t *buffer = (uint8_t *)&hdr;
+
+    binder_buffer_object obj{};
+    obj.flags = BINDER_BUFFER_FLAG_HAS_DBINDER;
+    obj.length = sizeof(dbinder_negotiation_data) + 1;
+    uint8_t *buffer2 = (uint8_t *)&obj;
+
+    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer)
+        .WillOnce(testing::Return(buffer))
+        .WillOnce(testing::Return(buffer2));
+    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(0));
+    bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
+    EXPECT_FALSE(ret);
+}
+#endif
+
+/**
+ * @tc.name: UnFlattenDBinderObjectTest006
+ * @tc.desc: Verify the UnFlattenDBinderObject function return true
+ * @tc.type: FUNC
+ */
+#ifndef CONFIG_IPC_SINGLE
+HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest006, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    dbinder_negotiation_data dbinderData;
+    dbinder_negotiation_data validDbinderData_;
+    Parcel parcel;
+
+    binder_object_header hdr{};
+    hdr.type = BINDER_TYPE_PTR;
+    uint8_t *buffer = (uint8_t *)&hdr;
+
+    binder_buffer_object obj{};
+    obj.flags = BINDER_BUFFER_FLAG_HAS_DBINDER;
+    obj.length = sizeof(dbinder_negotiation_data);
+    obj.buffer = reinterpret_cast<binder_uintptr_t>(&validDbinderData_);
+    uint8_t *buffer2 = (uint8_t *)&obj;
+
+    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer)
+        .WillOnce(testing::Return(buffer))
+        .WillOnce(testing::Return(buffer2));
+    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(false));
+    bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
+    EXPECT_TRUE(ret);
 }
 #endif
 
@@ -1069,6 +1276,53 @@ HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest001, TestSize.Level
 
     bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: TriggerSystemIPCThreadReclaimTest002
+ * @tc.desc: Verify the TriggerSystemIPCThreadReclaim function When IsDriverAlive is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest002, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+
+    bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: TriggerSystemIPCThreadReclaimTest003
+ * @tc.desc: Verify the TriggerSystemIPCThreadReclaim function When WriteBinder return ERR_INVALID_DATA
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest003, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder).WillRepeatedly(testing::Return(ERR_INVALID_DATA));
+
+    bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: TriggerSystemIPCThreadReclaimTest004
+ * @tc.desc: Verify the TriggerSystemIPCThreadReclaim function When WriteBinder return ERR_NONE
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest004, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder).WillRepeatedly(testing::Return(ERR_NONE));
+
+    bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
+    EXPECT_TRUE(result);
 }
 
 /**
