@@ -122,9 +122,7 @@ int32_t TestServiceStub::ServerGetFooService(MessageParcel &data, MessageParcel 
 int32_t TestServiceStub::ServerTransactFileDesc(MessageParcel &data, MessageParcel &reply)
 {
     int desc = TestGetFileDescriptor();
-    fdsan_exchange_owner_tag(desc, 0, IPC_FD_TAG);
     reply.WriteFileDescriptor(desc);
-    fdsan_close_with_tag(desc, IPC_FD_TAG);
     return 0;
 }
 
