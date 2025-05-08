@@ -48,7 +48,7 @@ ProxyObject *RpcGetSystemAbility(int32_t systemAbility)
 
     RPC_LOG_INFO("get system ability from samgr");
     uintptr_t ptr;
-    SvcIdentity *identity = GetContextObject();
+    SvcIdentity *identity = (SvcIdentity *)GetContextObject();
     if (identity == NULL) {
         return NULL;
     }

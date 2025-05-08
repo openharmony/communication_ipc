@@ -49,11 +49,6 @@ void CallAnonymosFunc(const char *str)
     SendRequest(*sid, CLIENT_OP_PRINT, &data, &reply, option, nullptr);
 }
 
-void ServerDead1(void)
-{
-    RPC_LOG_INFO("#### server dead callback11 called ... ");
-}
-
 int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
 {
     int32_t result = ERR_NONE;
@@ -86,7 +81,6 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
             sid = (SvcIdentity *)calloc(1, sizeof(SvcIdentity));
             ReadRemoteObject(data, sid);
             WriteInt32(reply, ERR_NONE);
-            uint32_t cbId1 = -1;
             break;
         }
         default:
