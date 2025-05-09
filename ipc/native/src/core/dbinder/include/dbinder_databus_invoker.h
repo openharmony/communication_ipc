@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -118,7 +118,7 @@ private:
     uint64_t seqNumber_ = 0;
     int32_t clientFd_ = 0;
     uint32_t status_;
-    static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
+    static constexpr int ACCESS_TOKEN_MAX_LEN = 20;
     static inline InvokerDelegator<DBinderDatabusInvoker> DBinderDatabusDelegator_ = { IRemoteObject::IF_PROT_DATABUS };
 };
 } // namespace OHOS

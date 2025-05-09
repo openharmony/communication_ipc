@@ -1530,13 +1530,13 @@ std::string BinderInvoker::ResetCallingIdentity()
     }
 
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
-    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, tempTokenId);
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%020" PRIu64, tempTokenId);
     if (ret < 0) {
         ZLOGE(LABEL, "sprintf callerTokenID:%{public}" PRIu64 " failed", tempTokenId);
         return "";
     }
     std::string accessToken(buf);
-    ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010d", tempRealPid);
+    ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%020d", tempRealPid);
     if (ret < 0) {
         ZLOGE(LABEL, "sprintf callerRealPid_:%{public}d failed", tempRealPid);
         return "";

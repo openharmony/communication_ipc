@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -240,7 +240,7 @@ private:
     DISALLOW_COPY_AND_MOVE(BinderInvoker);
     static constexpr int IPC_DEFAULT_PARCEL_SIZE = 256;
     static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500;
-    static constexpr int ACCESS_TOKEN_MAX_LEN = 10;
+    static constexpr int ACCESS_TOKEN_MAX_LEN = 20;
     Parcel input_;
     Parcel output_;
     BinderConnector *binderConnector_;

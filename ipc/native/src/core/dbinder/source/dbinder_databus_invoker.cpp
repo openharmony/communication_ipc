@@ -964,7 +964,7 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
         | static_cast<uint64_t>(callerPid_)));
     std::string identity = callerDeviceID_ + token;
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
-    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010" PRIu64, callerTokenID_);
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%020" PRIu64, callerTokenID_);
     if (ret < 0) {
         ZLOGE(LOG_LABEL, "sprintf callerTokenID:%{public}" PRIu64 " failed", callerTokenID_);
         return "";
