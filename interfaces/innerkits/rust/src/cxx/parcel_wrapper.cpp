@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,12 +111,13 @@ bool ReadBuffer(MessageParcel &msgParcel, size_t len, rust::vec<uint8_t> &buffer
 bool ReadString(Parcel &parcel, rust::string &val)
 {
     std::string v;
-    if (parcel.ReadString(v)) {
-        val = v;
-        return true;
-    } else {
+    if (!parcel.ReadString(v)) {
         return false;
     }
+
+    val = rust::string::lossy(v);
+    // If the two strings are different, it is because the string 'v' contains invalid UTF-8 data.
+    return std::string(val) == v;
 }
 
 bool WriteString(Parcel &parcel, const rust::str val)

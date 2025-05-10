@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Huawei Device Co., Ltd.
+// Copyright (C) 2024-2025 Huawei Device Co., Ltd.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -135,8 +135,21 @@ fn interactive_msg_parcel_write() {
     check_parcel(&mut reply);
 }
 
+#[test]
+fn interactive_msg_parcel_string_read() {
+    let mut msg = unsafe { MsgParcel::from_ptr(GetMessageParcelContainingInvalidString()) };
+    // Read a string containing invalid UTF-8 data and expected read failure.
+    let result = msg.read::<String>();
+    let value = match result {
+        Ok(val) => val,
+        Err(..) => String::from("Failed to read"),
+    };
+    assert_eq!(value, "Failed to read");
+}
+
 #[link(name = "ipc_rust_test_c")]
 extern "C" {
     fn GetTestMessageParcel() -> *mut MessageParcel;
     fn ReadAndWrite(parcel: *mut MessageParcel) -> *mut MessageParcel;
+    fn GetMessageParcelContainingInvalidString() -> *mut MessageParcel;
 }

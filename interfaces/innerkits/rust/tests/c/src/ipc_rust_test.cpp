@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,8 @@ const int VEC_NUM = 3;
 const int TEST_BUFFER_LENGTH = 4;
 const float TEST_FLOAT = 7.02;
 const double TEST_DOUBLE = 7.03;
+const int32_t TEST_STR_LEN = 2;
+const int32_t TEST_INVALID_CHARACTER = 0xFFFF;
 
 template<typename T> void WriteTestVector(Parcel *parcel, T testValue, bool (Parcel::*Write)(const std::vector<T> &))
 {
@@ -70,6 +72,10 @@ void WriteTestVec(MessageParcel *parcel)
 MessageParcel *GetTestMessageParcel()
 {
     MessageParcel *parcel = new MessageParcel();
+    if (parcel == nullptr) {
+        return nullptr;
+    }
+
     std::u16string interface = std::u16string(u"TEST");
     parcel->WriteInterfaceToken(interface);
 
@@ -113,6 +119,9 @@ void ReadAndWriteV(MessageParcel *parcel, MessageParcel &data, bool (Parcel::*Wr
 MessageParcel *ReadAndWrite(MessageParcel &data)
 {
     MessageParcel *parcel = new MessageParcel();
+    if (parcel == nullptr) {
+        return nullptr;
+    }
 
     parcel->WriteInterfaceToken(data.ReadInterfaceToken());
     parcel->WriteBuffer(data.ReadBuffer(TEST_BUFFER_LENGTH), TEST_BUFFER_LENGTH);
@@ -158,6 +167,18 @@ MessageParcel *ReadAndWrite(MessageParcel &data)
     ReadAndWriteV(parcel, data, &Parcel::WriteStringVector, &Parcel::ReadStringVector);
     ReadAndWriteV(parcel, data, &Parcel::WriteString16Vector, &Parcel::ReadString16Vector);
 
+    return parcel;
+}
+
+MessageParcel *GetMessageParcelContainingInvalidString()
+{
+    MessageParcel *parcel = new MessageParcel();
+    if (parcel == nullptr) {
+        return nullptr;
+    }
+    parcel->WriteInt32(TEST_STR_LEN);
+    parcel->WriteInt32(TEST_INVALID_CHARACTER);
+    parcel->WriteString("B");
     return parcel;
 }
 
