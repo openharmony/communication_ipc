@@ -54,7 +54,7 @@ constexpr int PEER_UID_TEST = 1;
 constexpr uint64_t STUB_INDEX = 1;
 constexpr uint32_t TOKEN_ID = 1;
 constexpr int32_t SOCKET_ID_INVALID_TEST = 0;
-constexpr int ACCESS_TOKEN_MAX_LEN = 10;
+constexpr int ACCESS_TOKEN_MAX_LEN = 20;
 }
 
 class DbinderDataBusInvokerInterface {

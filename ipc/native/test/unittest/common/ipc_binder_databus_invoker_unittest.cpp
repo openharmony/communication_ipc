@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -756,7 +756,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SetCallingIdentityTest001, TestSize.Level
     char buf[ACCESS_TOKEN_MAX_LEN + 1] = {0};
     std::string deviceId;
 
-    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%010u", tokenId);
+    int ret = sprintf_s(buf, ACCESS_TOKEN_MAX_LEN + 1, "%020u", tokenId);
     EXPECT_FALSE(ret < 0);
     std::string accessToken(buf);
     for (int i = 0; i < DEVICEID_LENGTH_TEST; i++) {
