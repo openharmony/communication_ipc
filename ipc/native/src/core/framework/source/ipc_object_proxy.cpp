@@ -179,6 +179,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
     }
     if (err != ERR_NONE && ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, desc, ProcessSkeleton::ConvertAddr(this));
+#ifdef ENABLE_IPC_PROXY_DFX_BACKTRACE
         if (err == BR_FAILED_REPLY) {
             std::string backtrace;
             if (!GetBacktrace(backtrace, false)) {
@@ -187,6 +188,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
                 ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
             }
         }
+#endif
     }
     return err;
 }

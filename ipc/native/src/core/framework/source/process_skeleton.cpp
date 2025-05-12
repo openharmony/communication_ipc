@@ -133,7 +133,7 @@ bool ProcessSkeleton::DetachObject(IRemoteObject *object, const std::u16string &
     if (object->IsProxyObject()) {
         proxyObjectCountNum_.fetch_sub(1, std::memory_order_relaxed);
         if (iterator->second.GetRefPtr() != object) {
-            ZLOGI(LOG_LABEL, "can not erase it because addr is different, desc:%{public}s, recorded object:%{public}u,"
+            ZLOGD(LOG_LABEL, "can not erase it because addr is different, desc:%{public}s, recorded object:%{public}u,"
                 " detach object:%{public}u", ConvertToSecureDesc(Str16ToStr8(descriptor)).c_str(),
                 ConvertAddr(iterator->second.GetRefPtr()), ConvertAddr(object));
             return true;
@@ -499,6 +499,6 @@ void ProcessSkeleton::NotifyChildThreadStop()
         ZLOGI(LOG_LABEL, "wait timeout, %{public}zu child threads not exiting", runningChildThreadNum_.load());
         return;
     }
-    ZLOGI(LOG_LABEL, "wait finished, all child thread have exited");
+    ZLOGD(LOG_LABEL, "wait finished, all child thread have exited");
 }
 } // namespace OHOS
