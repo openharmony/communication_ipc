@@ -469,6 +469,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     }
     int fd = ReadFileDescriptor();
     if (fd < 0) {
+        ZLOGE(LOG_LABEL, "fd is less than 0");
         return nullptr;
     }
     fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
@@ -483,6 +484,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
+        ZLOGE(LOG_LABEL, "mmap is failed");
         return nullptr;
     }
     kernelMappedRead_ = ptr;

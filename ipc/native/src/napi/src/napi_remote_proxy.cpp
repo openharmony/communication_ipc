@@ -458,9 +458,9 @@ napi_value NAPI_RemoteProxy_registerDeathRecipient(napi_env env, napi_callback_i
     if (ret) {
         NAPIDeathRecipientList *list = proxyHolder->list_;
         list->Add(nativeRecipient);
+    } else {
+        ZLOGE(LOG_LABEL, "register death recipent failed");
     }
-
-    ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
     return result;
 }
 
@@ -581,8 +581,9 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
         return result;
     }
     target->RemoveDeathRecipient(nativeRecipient);
-    bool ret = list->Remove(nativeRecipient);
-    ZLOGI(LOG_LABEL, "%{public}s", ret ? "succ" : "fail");
+    if (!list->Remove(nativeRecipient)) {
+        ZLOGE(LOG_LABEL, "unregister death recipent failed");
+    }
     return result;
 }
 
