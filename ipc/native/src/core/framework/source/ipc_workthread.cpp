@@ -66,24 +66,26 @@ std::string IPCWorkThread::MakeBasicThreadName(int proto, int threadIndex)
 void IPCWorkThread::JoinThread(int proto, int policy)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(proto);
-    if (invoker != nullptr) {
-        switch (policy) {
-            case SPAWN_PASSIVE:
-                invoker->JoinThread(false);
-                break;
-            case SPAWN_ACTIVE:
-                invoker->JoinThread(true);
-                break;
-            case PROCESS_PASSIVE:
-                invoker->JoinProcessThread(false);
-                break;
-            case PROCESS_ACTIVE:
-                invoker->JoinProcessThread(true);
-                break;
-            default:
-                ZLOGE(LOG_LABEL, "invalid policy:%{public}d", policy);
-                break;
-        }
+    if (invoker == nullptr) {
+        ZLOGE(LOG_LABEL, "invoker is nullptr.");
+        return;
+    }
+    switch (policy) {
+        case SPAWN_PASSIVE:
+            invoker->JoinThread(false);
+            break;
+        case SPAWN_ACTIVE:
+            invoker->JoinThread(true);
+            break;
+        case PROCESS_PASSIVE:
+            invoker->JoinProcessThread(false);
+            break;
+        case PROCESS_ACTIVE:
+            invoker->JoinProcessThread(true);
+            break;
+        default:
+            ZLOGE(LOG_LABEL, "invalid policy:%{public}d", policy);
+            break;
     }
 }
 
@@ -91,6 +93,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
 {
     auto param = (IPCWorkThreadParam *)args;
     if (param == nullptr) {
+        ZLOGE(LOG_LABEL, "param is nullptr.");
         return nullptr;
     }
 
@@ -123,8 +126,10 @@ void *IPCWorkThread::ThreadHandler(void *args)
     JoinThread(param->proto, param->policy);
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current != nullptr) {
-        current->OnThreadTerminated(basicName);
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "current is nullptr.");
+    } else if (!current->OnThreadTerminated(basicName)) {
+        ZLOGE(LOG_LABEL, "OnThreadTerminated is failed.");
     }
     ZLOGI(LOG_LABEL, "exit, proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u", param->proto,
         param->policy, threadName.c_str(), ProcessSkeleton::ConvertAddr(invoker));
@@ -140,23 +145,23 @@ void IPCWorkThread::StopWorkThread()
     }
 }
 
-void IPCWorkThread::Start(int policy, int proto, int threadIndex)
+bool IPCWorkThread::Start(int policy, int proto, int threadIndex)
 {
     ProcessSkeleton *process = ProcessSkeleton::GetInstance();
     if (process == nullptr) {
         ZLOGE(LOG_LABEL, "get ProcessSkeleton object failed");
-        return;
+        return false;
     }
 
     if (process->GetThreadStopFlag()) {
         ZLOGW(LOG_LABEL, "the stop flag is true, can not create other thread");
-        return;
+        return false;
     }
 
     auto param = new (std::nothrow) IPCWorkThreadParam();
     if (param == nullptr) {
         ZLOGE(LOG_LABEL, "create IPCWorkThreadParam failed");
-        return;
+        return false;
     }
 
     policy_ = policy;
@@ -170,13 +175,15 @@ void IPCWorkThread::Start(int policy, int proto, int threadIndex)
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "create thread failed, ret:%{public}d", ret);
         delete param;
-        return;
+        return false;
     }
     process->IncreaseThreadCount();
     ZLOGD(LOG_LABEL, "create thread, policy:%{public}d proto:%{public}d", policy, proto);
     if (pthread_detach(threadId) != 0) {
         ZLOGE(LOG_LABEL, "detach error");
+        return false;
     }
+    return true;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

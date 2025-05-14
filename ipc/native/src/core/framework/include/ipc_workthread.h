@@ -43,7 +43,7 @@ public:
 
     ~IPCWorkThread();
 
-    void Start(int policy, int proto, int threadIndex);
+    bool Start(int policy, int proto, int threadIndex);
 
     void StopWorkThread();
     int proto_ = IRemoteObject::IF_PROT_DEFAULT;
