@@ -63,7 +63,7 @@ private:
     std::string MakeThreadName(int proto, int &threadIndex);
     std::unordered_map<std::string, sptr<IPCWorkThread>> threads_;
     std::atomic<int> threadSequence_;
-    int maxThreadNum_;
+    int maxThreadNum_; // Number of spawn active threads not included
     int idleThreadNum_;
     int idleSocketThreadNum_;
     std::mutex mutex_;
