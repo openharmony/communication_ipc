@@ -1208,13 +1208,11 @@ typedef enum {
 } QoSEvent;
 
 typedef struct {
-    char *name;              /**< Peer socket name, maximum length 255 bytes */
-    char *networkId;         /**< Peer network ID, maximum length 64 bytes */
-    char *pkgName;           /**< Peer package name, maximum length 64 bytes */
-    int32_t userId;          /**< Peer user ID of the application that initiates link setup */
-    char *accountId;         /**< Peer account ID of the application that initiates link setup */
-    TransDataType dataType; /**< Data type of peer socket*/
-} PeerSocketAccessInfo;
+    int32_t userId;         /**< User ID of the application that initiates link setup */
+    uint64_t localTokenId;  /**< Token ID of the application that initiates link setup */
+    char *businessAccountId;/**< Business account ID of the application that initiates link setup (reserved)*/
+    char *extraAccessInfo;  /**< Extra Info of the application that initiates link setup, maximum length 256 bytes */
+} SocketAccessInfo;
 
 typedef struct {
     void (*OnBind)(int32_t socket, PeerSocketInfo info);
@@ -1227,7 +1225,7 @@ typedef struct {
     void (*OnError)(int32_t socket, int32_t errCode);
     bool (*OnNegotiate)(int32_t socket, PeerSocketInfo info);
     void (*OnBytesSent)(int32_t socket, uint32_t dataSeq, int32_t errCode);
-    bool (*OnCheckAccess)(int32_t socket, PeerSocketAccessInfo info);
+    bool (*OnNegotiate2)(int32_t socket, PeerSocketInfo info, SocketAccessInfo *peerInfo, SocketAccessInfo *localInfo);
 } ISocketListener;
 
 #ifdef __cplusplus
