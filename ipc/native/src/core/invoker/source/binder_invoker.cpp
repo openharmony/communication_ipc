@@ -850,9 +850,11 @@ void BinderInvoker::OnRemoveRecipientDone()
 void BinderInvoker::OnSpawnThread()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current != nullptr) {
-        current->SpawnThread();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "current is nullptr.");
+        return;
     }
+    current->SpawnThread();
 }
 
 void BinderInvoker::OnTransaction(uint32_t cmd, int32_t &error)
