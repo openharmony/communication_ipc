@@ -322,22 +322,21 @@ bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
 bool IPCProcessSkeleton::SpawnThread(int policy, int proto)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    if (threadPool_ != nullptr) {
-        return threadPool_->SpawnThread(policy, proto);
+    if (threadPool_ == nullptr) {
+        ZLOGE(LOG_LABEL, "threadPool_ is nullptr.");
+        return false;
     }
-
-    /* can NOT reach here */
-    return false;
+    return threadPool_->SpawnThread(policy, proto);
 }
 
 bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
-    if (threadPool_ != nullptr) {
-        return threadPool_->RemoveThread(threadName);
+    if (threadPool_ == nullptr) {
+        ZLOGE(LOG_LABEL, "threadPool_ is nullptr.");
+        return false;
     }
-
-    return true;
+    return threadPool_->RemoveThread(threadName);
 }
 
 bool IPCProcessSkeleton::IsContainsObject(IRemoteObject *object)
