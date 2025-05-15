@@ -427,12 +427,29 @@ void IPCProcessSkeleton::LockForNumExecuting()
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     numExecuting_++;
+
+    if (numExecuting_ == threadPool_->GetMaxThreadNum()) {
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        numExecutingFullLastTime_ = curTime;
+    }
 }
 
 void IPCProcessSkeleton::UnlockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
+
+    if (numExecuting_ == threadPool_->GetMaxThreadNum()) {
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        uint64_t intervalTime = curTime - numExecutingFullLastTime_;
+        if (intervalTime > THREADS_FULL_TIME_THRESHOLD) {
+            ZLOGW(LOG_LABEL, "IPC threads is full long time, %{public}" PRIu64 " ms", intervalTime);
+        }
+        numExecutingFullLastTime_ = 0;
+    }
+
     numExecuting_--;
     if (numWaitingForThreads_ > 0) {
         cv_.notify_all();

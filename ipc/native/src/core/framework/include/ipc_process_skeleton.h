@@ -218,6 +218,7 @@ public:
     static constexpr uint32_t DBINDER_HANDLE_RANG = 100;
     static constexpr int ENCRYPT_LENGTH = 4;
     static constexpr uint32_t INVALID_HANDLE_VALUE = 0xFFFFFFFF;
+    static constexpr uint32_t THREADS_FULL_TIME_THRESHOLD = 500;    // 500ms
 
 private:
     DISALLOW_COPY_AND_MOVE(IPCProcessSkeleton);
@@ -243,6 +244,7 @@ private:
     std::condition_variable cv_;
     int numExecuting_ = 0;
     int numWaitingForThreads_ = 0;
+    int64_t numExecutingFullLastTime_ = 0;
 
     IPCWorkThreadPool *threadPool_ = nullptr;
 
