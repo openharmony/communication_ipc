@@ -1985,16 +1985,23 @@ HWTEST_F(IPCProcessSkeletonUnitTest, LockForNumExecutingTest001, TestSize.Level1
 {
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
+    delete skeleton->threadPool_;
+    skeleton->threadPool_ = nullptr;
     skeleton->SetMaxWorkThread(1);
     ASSERT_TRUE(skeleton->threadPool_ != nullptr);
 
-    // test full thread duration 1s
+    // test full thread duration 1s， max thread is setNum + 1 
+    skeleton->LockForNumExecuting();
     skeleton->LockForNumExecuting();
     EXPECT_NE(skeleton->numExecutingFullLastTime_, 0);
     EXPECT_EQ(skeleton->numExecuting_, skeleton->threadPool_->GetMaxThreadNum());
     sleep(1);
     skeleton->UnlockForNumExecuting();
+    skeleton->UnlockForNumExecuting();
     EXPECT_EQ(skeleton->numExecutingFullLastTime_, 0);
+    delete skeleton->threadPool_;
+    skeleton->threadPool_ = nullptr;
+    skeleton->SetMaxWorkThread(IPCProcessSkeleton::DEFAULT_WORK_THREAD_NUM);
 }
 #endif
 } // namespace OHOS
