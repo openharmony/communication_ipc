@@ -329,6 +329,7 @@ private:
         uint32_t pid, uint32_t uid);
     bool SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
     bool IsInvalidStub(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
+    bool IsValidSessionName(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     bool CopyDeviceIdInfo(std::shared_ptr<struct SessionInfo> &session,
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     void InitializeSession(std::shared_ptr<struct SessionInfo> &session,
