@@ -2270,3 +2270,41 @@ HWTEST_F(DBinderServiceUnitTest, NoticeServiceDie001, TestSize.Level1)
     int32_t ret = dBinderService->NoticeServiceDie(serviceName, deviceID);
     EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
 }
+
+
+/**
+ * @tc.name: IsValidSessionName001
+ * @tc.desc: Verify the IsValidSessionName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, IsValidSessionName001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_NE(dBinderService, nullptr);
+
+    auto replyMessage = std::make_shared<struct DHandleEntryTxRx>();
+    (void)memset_s(replyMessage.get(), sizeof(DHandleEntryTxRx), 0, sizeof(DHandleEntryTxRx));
+
+    // empty sessionName
+    replyMessage->serviceNameLength = 0;
+    (void)memset_s(replyMessage->serviceName, SERVICENAME_LENGTH + 1, 0, SERVICENAME_LENGTH + 1);
+    bool ret = dBinderService->IsValidSessionName(replyMessage);
+    ASSERT_TRUE(ret);
+
+    // serviceNameLength > SERVICENAME_LENGTH
+    replyMessage->serviceNameLength = SERVICENAME_LENGTH + 1;
+    ret = dBinderService->IsValidSessionName(replyMessage);
+    ASSERT_FALSE(ret);
+
+    // testName length < serviceNameLength < SERVICENAME_LENGTH
+    std::string testName = "abc";
+    replyMessage->serviceNameLength = testName.size() + 1;
+    ASSERT_EQ(strcpy_s(replyMessage->serviceName, SERVICENAME_LENGTH + 1, testName.c_str()), EOK);
+    ret = dBinderService->IsValidSessionName(replyMessage);
+    ASSERT_FALSE(ret);
+
+    // serviceNameLength == testName length
+    replyMessage->serviceNameLength = testName.size();
+    ret = dBinderService->IsValidSessionName(replyMessage);
+    ASSERT_TRUE(ret);
+}
