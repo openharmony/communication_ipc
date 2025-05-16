@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1011,6 +1011,22 @@ bool DBinderService::IsInvalidStub(std::shared_ptr<struct DHandleEntryTxRx> repl
     return false;
 }
 
+bool DBinderService::IsValidSessionName(std::shared_ptr<struct DHandleEntryTxRx> replyMessage)
+{
+    if (replyMessage->serviceNameLength > SERVICENAME_LENGTH) {
+        DBINDER_LOGE(LOG_LABEL, "invalid serviceNameLength:%{public}u", replyMessage->serviceNameLength);
+        return false;
+    }
+
+    uint32_t realLen = strlen(replyMessage->serviceName);
+    if (replyMessage->serviceNameLength != realLen) {
+        DBINDER_LOGE(LOG_LABEL, "invalid serviceName, serviceNameLength:%{public}u, realLen:%{public}u",
+            replyMessage->serviceNameLength, realLen);
+        return false;
+    }
+    return true;
+}
+
 bool DBinderService::CopyDeviceIdInfo(std::shared_ptr<struct SessionInfo> &session,
     std::shared_ptr<struct DHandleEntryTxRx> replyMessage)
 {
@@ -1038,6 +1054,11 @@ void DBinderService::MakeSessionByReplyMessage(std::shared_ptr<struct DHandleEnt
 {
     if (IsInvalidStub(replyMessage)) {
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_STUB_INVALID, __FUNCTION__);
+        return;
+    }
+
+    if (!IsValidSessionName(replyMessage)) {
+        DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SESSION_NAME_INVALID, __FUNCTION__);
         return;
     }
 

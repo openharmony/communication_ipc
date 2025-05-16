@@ -222,4 +222,27 @@ HWTEST_F(RpcClientTest, TestGetSystemAbility001, TestSize.Level1)
     sleep(1);
     EXPECT_EQ(objectSet.size(), expectSize);
 }
+
+/**
+ * @tc.name: TestSendMessageCircularly001
+ * @tc.desc: Verify sending rpc message 1000 times.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcClientTest, TestSendMessageCircularly001, TestSize.Level1)
+{
+    sptr<RpcTestServiceProxy> proxyObject = GetRemoteProxyObject();
+    ASSERT_TRUE(proxyObject != nullptr) << "GetRemoteProxyObject is failed";
+
+    const size_t testCount = 1000;
+    for (size_t i = 1; i <= testCount; i++) {
+        MessageOption option;
+        MessageParcel data, reply;
+        int32_t ret = proxyObject->TestGetServiceName(data, reply, option);
+        EXPECT_EQ(ret, ERR_NONE);
+
+        std::string remoteName = reply.ReadString();
+        std::string localName = proxyObject->GetServiceName();
+        EXPECT_TRUE(remoteName == localName) << "remoteName: " << remoteName << " localName: " << localName;
+    }
+}
 }
