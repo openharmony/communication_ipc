@@ -23,7 +23,9 @@
 namespace OHOS {
 class MockIPCProcessSkeleton : public IPCProcessSkeleton {
 public:
-    MockIPCProcessSkeleton() {}
+    MockIPCProcessSkeleton() {
+        SetMaxWorkThread(DEFAULT_WORK_THREAD_NUM);
+    }
     MOCK_METHOD0(GetCurrent, IPCProcessSkeleton* ());
     MOCK_METHOD2(FindOrNewObject, sptr<IRemoteObject>(
         int handle, const dbinder_negotiation_data *data));
