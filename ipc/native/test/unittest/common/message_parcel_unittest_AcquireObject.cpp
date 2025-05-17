@@ -35,6 +35,7 @@ public:
 
 MockIPCProcessSkeleton::MockIPCProcessSkeleton()
 {
+    SetMaxWorkThread(DEFAULT_WORK_THREAD_NUM);
 }
 
 MockIPCProcessSkeleton::~MockIPCProcessSkeleton()
