@@ -115,6 +115,9 @@ ohos_shared_library("ipc_single") {
     defines += [ "ENABLE_IPC_TRACE" ]
     sources += [ "$IPC_CORE_ROOT/src/core/framework/source/ipc_trace.cpp" ]
   }
+  if (ipc_proxy_dfx_backtrace_enabled) {
+    defines += [ "ENABLE_IPC_PROXY_DFX_BACKTRACE" ]
+  }
   innerapi_tags = [
     "chipsetsdk",
     "platformsdk",
