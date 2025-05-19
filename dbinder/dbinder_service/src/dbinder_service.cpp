@@ -950,16 +950,22 @@ bool DBinderService::OnRemoteMessageTask(std::shared_ptr<struct DHandleEntryTxRx
 
 bool DBinderService::ProcessOnSessionClosed(const std::string &networkId)
 {
-    std::lock_guard<std::mutex> lock(threadLockMutex_);
-    for (auto it = threadLockInfo_.begin(); it != threadLockInfo_.end();) {
-        if (it->second->networkId != networkId) {
-            it++;
-            continue;
+    std::list<std::shared_ptr<struct ThreadLockInfo>> deletedThreadLockInfo;
+    {
+        std::lock_guard<std::mutex> lock(threadLockMutex_);
+        for (auto it = threadLockInfo_.begin(); it != threadLockInfo_.end();) {
+            if (it->second->networkId != networkId) {
+                it++;
+                continue;
+            }
+            deletedThreadLockInfo.push_back(it->second);
+            it = threadLockInfo_.erase(it);
         }
-        std::unique_lock<std::mutex> lock(it->second->mutex);
-        it->second->ready = false;
-        it->second->condition.notify_all();
-        it = threadLockInfo_.erase(it);
+    }
+    for (auto it = deletedThreadLockInfo.begin(); it != deletedThreadLockInfo.end(); it++) {
+        std::unique_lock<std::mutex> lock((*it)->mutex);
+        (*it)->ready = false;
+        (*it)->condition.notify_all();
     }
     return true;
 }
