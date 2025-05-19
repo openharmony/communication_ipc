@@ -1062,7 +1062,7 @@ napi_value NAPI_MessageSequence::JS_ReadRawDataBuffer(napi_env env, napi_callbac
     napi_valuetype valueType = napi_null;
     napi_typeof(env, argv[ARGV_INDEX_0], &valueType);
     if (valueType != napi_number) {
-        ZLOGE(LOG_LABEL, "type mismatch for parameter 1");
+        ZLOGD(LOG_LABEL, "type mismatch for parameter 1");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
     int64_t arraySize = 0;
@@ -1081,7 +1081,7 @@ napi_value NAPI_MessageSequence::JS_ReadRawDataBuffer(napi_env env, napi_callbac
     }
     const void *rawData = napiSequence->nativeParcel_->ReadRawData(arraySize);
     if (rawData == nullptr) {
-        ZLOGE(LOG_LABEL, "rawData is null");
+        ZLOGD(LOG_LABEL, "rawData is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 

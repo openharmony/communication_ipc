@@ -67,6 +67,8 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
         std::string soPath = GetObjectSoPath(reinterpret_cast<uintptr_t>(object));
         if (!soPath.empty()) {
             objects_.insert(std::make_pair(reinterpret_cast<uintptr_t>(object), soPath));
+        } else {
+            ZLOGW(LABEL, "path is empty");
         }
     } else {
         ZLOGW(LABEL, "path:%{public}s is already Register", Str16ToStr8(descriptor).c_str());
@@ -128,7 +130,7 @@ std::string BrokerRegistration::GetObjectSoPath(uintptr_t ptr)
     Dl_info info;
     int32_t ret = dladdr(reinterpret_cast<void *>(ptr), &info);
     if ((ret == 0) || (info.dli_fname == nullptr)) {
-        ZLOGW(LABEL, "dladdr failed ret:%{public}d", ret);
+        ZLOGD(LABEL, "dladdr failed ret:%{public}d", ret);
         return "";
     }
     return info.dli_fname;

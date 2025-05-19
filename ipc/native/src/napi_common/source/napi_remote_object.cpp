@@ -212,7 +212,7 @@ static napi_value ThenCallback(napi_env env, napi_callback_info info)
 {
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    ZLOGI(LOG_LABEL, "call js onRemoteRequest done, time:%{public}" PRIu64, curTime);
+    ZLOGD(LOG_LABEL, "call js onRemoteRequest done, time:%{public}" PRIu64, curTime);
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
@@ -1482,7 +1482,7 @@ static napi_value NAPI_RemoteObject_addDeathRecipient(napi_env env, napi_callbac
 
 static napi_value NAPI_RemoteObject_registerDeathRecipient(napi_env env, napi_callback_info info)
 {
-    ZLOGE(LOG_LABEL, "only proxy object permitted");
+    ZLOGD(LOG_LABEL, "only proxy object permitted");
     return napiErr.ThrowError(env, errorDesc::ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
@@ -1495,7 +1495,7 @@ static napi_value NAPI_RemoteObject_removeDeathRecipient(napi_env env, napi_call
 
 static napi_value NAPI_RemoteObject_unregisterDeathRecipient(napi_env env, napi_callback_info info)
 {
-    ZLOGE(LOG_LABEL, "only proxy object permitted");
+    ZLOGD(LOG_LABEL, "only proxy object permitted");
     return napiErr.ThrowError(env, errorDesc::ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
