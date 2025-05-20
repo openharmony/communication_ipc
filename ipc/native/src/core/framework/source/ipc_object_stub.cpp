@@ -62,6 +62,7 @@ static constexpr int SHELL_UID = 2000;
 static constexpr int HIDUMPER_SERVICE_UID = 1212;
 static constexpr int COEFF_MILLI_TO_MICRO = 1000;
 static constexpr int IPC_CMD_PROCESS_WARN_TIME = 500 * COEFF_MILLI_TO_MICRO; // 500 ms
+static constexpr int IPC_CMD_PROCESS_DFX_REPORT_TIME = 5000 * COEFF_MILLI_TO_MICRO; // 5000 ms
 
 IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     : IRemoteObject(descriptor), serialInvokeFlag_(serialInvokeFlag), lastRequestTime_(0),
@@ -389,6 +390,10 @@ int IPCObjectStub::SendRequestInner(uint32_t code, MessageParcel &data, MessageP
     if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
         ZLOGW(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}ums",
             remoteDescriptor_.c_str(), code, duration / COEFF_MILLI_TO_MICRO);
+        if (duration >= IPC_CMD_PROCESS_DFX_REPORT_TIME) {
+            DfxReportRequestProcEvent(remoteDescriptor_.c_str(), static_cast<int32_t>(duration / COEFF_MILLI_TO_MICRO),
+                static_cast<int32_t>(code), __FUNCTION__);
+        }
     }
 
     IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
