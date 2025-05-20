@@ -269,7 +269,7 @@ sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
     return holder->Get();
 }
 
-ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObject> target)
+static ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObject> target)
 {
     auto holder = new OhSharedPtrHolder<IRemoteObject>(target);
     if (holder == nullptr) {
