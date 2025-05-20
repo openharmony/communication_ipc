@@ -153,6 +153,13 @@
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/c_api/include"
               }
+            },
+            {
+              "name": "//foundation/communication/ipc/interfaces/innerkits/rust:ipc_rust_cxx",
+              "header": {
+                "header_files": [],
+                "header_base": []
+              }
             }
         ],
         "test": [
