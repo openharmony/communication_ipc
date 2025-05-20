@@ -37,6 +37,7 @@ public:
 
     static constexpr char DSOFTBUS_DOMAIN[] = "DSOFTBUS";
     static constexpr char DSOFTBUS_EVENT_NAME[] = "IPC_BEHAVIOR";
+    static constexpr char DSOFTBUS_REQUEST_PROC_EVENT_NAME[] = "IPC_REQUEST_PROC_BEHAVIOR";
     static constexpr char DSOFTBUS_PKG_NAME[] = "dsoftbus_ipc";
 
     inline static constexpr const char *ERROR_TYPE = "ErrType";
@@ -218,6 +219,20 @@ inline void DfxReportDeviceEvent(int type, int stageRes, const std::string &devi
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
         "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
         "STAGE_RES", stageRes, "DEVICE", device, "TYPE", type);
+#endif
+}
+
+inline void DfxReportRequestProcEvent(const std::string &desc, int procTime, int code, const char *func)
+{
+    if (desc.empty()) {
+        return;
+    }
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_REQUEST_PROC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
+        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
+        "STAGE_RES", DbinderErrorCode::IPC_RESULT_OK, "IPC_REQUEST_DESC", desc,
+        "IPC_REQUEST_TIME", procTime, "IPC_REQUEST_CODE", code);
 #endif
 }
 
