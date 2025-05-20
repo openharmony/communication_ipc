@@ -49,6 +49,7 @@ private:
     int32_t UnRegisterRemoteStub(MessageParcel &data, MessageParcel &reply);
     int32_t QueryRemoteProxy(MessageParcel &data, MessageParcel &reply);
     int32_t ServerFlushAsyncCalls(MessageParcel &data, MessageParcel &reply);
+    int32_t ServerThreadInvocationState(MessageParcel &data, MessageParcel &reply);
     void InitMessageProcessMap();
 
     using TestServiceStubFunc = int32_t(TestServiceStub::*)(MessageParcel &data, MessageParcel &reply);

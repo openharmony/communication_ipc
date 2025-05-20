@@ -302,4 +302,18 @@ bool TestServiceClient::TestMultiThreadSendRequest()
     return true;
 }
 
+bool TestServiceClient::TestQueryThreadInvocationState()
+{
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
+    int ret = testService_->TestQueryThreadInvocationState();
+    if (ret != 0) {
+        ZLOGE(LABEL, "TestQueryThreadInvocationState function call failed");
+        return false;
+    }
+    return true;
+}
 } // namespace OHOS

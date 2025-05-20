@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <unordered_set>
+#include "ipc_types.h"
 #include "binder_connector.h"
 #include "iremote_invoker.h"
 #include "invoker_factory.h"
@@ -134,6 +135,8 @@ public:
     bool TriggerSystemIPCThreadReclaim() override;
 
     bool EnableIPCThreadReclaim(bool enable) override;
+
+    int32_t GetInvocationState();
 
     void ExitCurrentThread();
 
@@ -255,6 +258,7 @@ private:
     std::vector<IRemoteObject *> decStrongRefs_;
     std::mutex weakRefMutex_;
     std::vector<RefCounter *> decWeakRefs_;
+    int32_t isFirstInvoke_ = STATUS_INIT;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE

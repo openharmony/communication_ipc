@@ -542,4 +542,25 @@ HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim001, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+
+/**
+ * @tc.name: GetThreadInvokationStateTest001
+ * @tc.desc: cover GetThreadInvokationState branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetThreadInvocationStateTest001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    BinderInvoker *invoker = new BinderInvoker();
+    if (invoker != nullptr) {
+        invoker->isFirstInvoke_ = STATUS_FIRST_INVOKE;
+        invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+        IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+        current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+        EXPECT_EQ(skeleton.GetThreadInvocationState(), STATUS_FIRST_INVOKE);
+
+        delete invoker;
+    }
+}
 } // namespace OHOS

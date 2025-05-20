@@ -45,6 +45,7 @@ public:
     bool TestUnRegisterRemoteStub();
     bool TestSendTooManyRequest();
     bool TestMultiThreadSendRequest();
+    bool TestQueryThreadInvocationState();
 
 private:
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "TestServiceClient" };

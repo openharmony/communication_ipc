@@ -71,6 +71,7 @@ void TestServiceStub::InitMessageProcessMap()
     funcMap_[static_cast<uint32_t>(TRANS_ID_REGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::RegisterRemoteStub;
     funcMap_[static_cast<uint32_t>(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::UnRegisterRemoteStub;
     funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT)] = &TestServiceStub::QueryRemoteProxy;
+    funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_THREAD_INVOCATION_STATE)] = &TestServiceStub::ServerThreadInvocationState;
 }
 
 int32_t TestServiceStub::ServerSyncTransaction(MessageParcel &data, MessageParcel &reply)
@@ -475,4 +476,10 @@ int32_t TestServiceStub::ServerFlushAsyncCalls(MessageParcel &data, MessageParce
     return ERR_NONE;
 }
 
+int32_t TestServiceStub::ServerThreadInvocationState(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = TestQueryThreadInvocationState();
+    reply.WriteInt32(ret);
+    return ret;
+}
 }  // namespace OHOS

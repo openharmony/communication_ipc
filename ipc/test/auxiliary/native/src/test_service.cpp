@@ -337,4 +337,12 @@ int TestService::TestAsyncTransaction(int data, int timeout)
 
     return Reverse(data);
 }
+
+int TestService::TestQueryThreadInvocationState()
+{
+    int state = IPCSkeleton::GetThreadInvocationState();
+    ZLOGI(LABEL, "Thread state = %{public}d", state);
+
+    return state;
+}
 } // namespace OHOS
