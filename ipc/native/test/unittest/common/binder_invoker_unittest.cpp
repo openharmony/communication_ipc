@@ -816,4 +816,18 @@ HWTEST_F(BinderInvokerUnitTest, GetCallerPidAndUidByStrTest002, TestSize.Level1)
     bool ret = binderInvoker.GetCallerPidAndUidByStr(str, offset, pid, uid);
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: GetInvocationStateTest001
+ * @tc.desc: cover GetInvocationState branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerUnitTest, GetInvocationStateTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    EXPECT_EQ(binderInvoker.GetInvocationState(), STATUS_INIT);
+
+    binderInvoker.isFirstInvoke_ = STATUS_FIRST_INVOKE;
+    EXPECT_EQ(binderInvoker.GetInvocationState(), STATUS_FIRST_INVOKE);
+}
 } // namespace OHOS

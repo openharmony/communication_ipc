@@ -14,6 +14,8 @@
  */
 
 #include <iostream>
+#include <thread>
+#include "ipc_types.h"
 #include "ipc_debug.h"
 #include "ipc_skeleton.h"
 #include "test_service.h"
@@ -43,6 +45,18 @@ static void InitTokenId(void)
     SetSelfTokenID(tokenId);
 }
 
+void TestCaseCheckThreadInvocationState()
+{
+    int state = IPCSkeleton::GetThreadInvocationState();
+    ZLOGI(LABEL, "Thread state = %{public}d", state);
+
+    if (state != STATUS_NO_SUPPORT){
+        std::cout << "[FAILED] Execution of TestCaseCheckThreadInvocationState case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseCheckThreadInvocationState case Successful" <<std::endl;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     std::cout << "Start executing the server" <<std::endl;
@@ -53,5 +67,7 @@ int main(int argc, char *argv[])
     InitTokenId();
     TestService::Instantiate(isEnableSerialInvokeFlag);
     ZLOGI(LABEL, "Call  StartThreadPool");
+
+    TestCaseCheckThreadInvocationState();
     IPCSkeleton::JoinWorkThread();
 }
