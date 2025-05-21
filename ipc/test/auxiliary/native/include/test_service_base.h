@@ -55,6 +55,7 @@ public:
         TRANS_ID_REGISTER_REMOTE_STUB_OBJECT = 23,
         TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT = 24,
         TRANS_ID_QUERY_REMOTE_PROXY_OBJECT = 25,
+        TRANS_ID_QUERY_THREAD_INVOCATION_STATE = 26,
     };
 public:
     virtual int TestSyncTransaction(int value, int &reply, int delayTime = 0) = 0;
@@ -85,6 +86,7 @@ public:
     virtual sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) = 0;
     virtual int TestSendTooManyRequest(int data, int &reply) = 0;
     virtual int TestMultiThreadSendRequest(int data, int &reply) = 0;
+    virtual int TestQueryThreadInvocationState() = 0;
 
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");

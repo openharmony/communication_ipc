@@ -330,6 +330,21 @@ ThreadType IPCThreadSkeleton::GetThreadType()
     }
     return current->threadType_;
 }
+
+int32_t IPCThreadSkeleton::GetThreadInvocationState()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
+    if (invoker == nullptr) {
+        ZLOGE(LOG_LABEL, "get remote invoker failed");
+        return STATUS_UNKNOWN;
+    }
+    if(invoker->GetStatus() != IRemoteInvoker::ACTIVE_INVOKER) {
+        ZLOGE(LOG_LABEL, "not ipc thread");
+        return STATUS_NO_SUPPORT;
+    }
+    BinderInvoker *binder = reinterpret_cast<BinderInvoker *>(invoker);
+    return binder->GetInvocationState();
+}
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif

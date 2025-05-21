@@ -55,6 +55,7 @@ public:
     sptr<IRemoteObject> TestQueryRemoteProxy(const char *descriptor) override;
     int TestSendTooManyRequest(int data, int &reply) override;
     int TestMultiThreadSendRequest(int data, int &reply) override;
+    int TestQueryThreadInvocationState() override;
 private:
     int testFd_;
     std::mutex remoteObjectsMutex_;

@@ -199,6 +199,16 @@ void TestCaseMultiThreadSendRequest(std::shared_ptr<TestServiceClient> &testClie
     }
 }
 
+void TestCaseQueryThreadInvocationState(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->TestQueryThreadInvocationState();
+    if (!ret) {
+        std::cout << "[FAILED] Execution of TestCaseQueryThreadInvocationState case failed" <<std::endl;
+    } else {
+        std::cout << "[PASS] Execution of TestCaseQueryThreadInvocationState case Successful" <<std::endl;
+    }
+}
+
 void ExecuteAllTestCase()
 {
     std::shared_ptr<TestServiceClient> testClient = std::make_shared<TestServiceClient>();
@@ -207,6 +217,7 @@ void ExecuteAllTestCase()
         ZLOGE(LABEL, "ConnectService failed");
         return;
     }
+    TestCaseQueryThreadInvocationState(testClient);
     TestCaseSyncTrans(testClient);
     TestCasePingService(testClient);
     TestCaseGetFooService(testClient);

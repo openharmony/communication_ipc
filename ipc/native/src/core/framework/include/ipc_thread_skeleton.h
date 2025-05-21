@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <unordered_map>
 
+#include "ipc_types.h"
 #include "binder_invoker.h"
 #include "iremote_invoker.h"
 
@@ -65,6 +66,8 @@ public:
     static bool SetThreadType(ThreadType type);
 
     static ThreadType GetThreadType();
+
+    static int32_t GetThreadInvocationState();
 
     bool IsSendRequesting();
 
