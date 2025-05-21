@@ -192,6 +192,13 @@ public:
      * @since 9
      */
     static bool EnableIPCThreadReclaim(bool enable);
+
+    /**
+     * @brief Get thread invocation state.
+     * @return Returns the invocation state
+     * @since 20
+     */
+    static int32_t GetThreadInvocationState();
 };
 
 class IPCDfx {

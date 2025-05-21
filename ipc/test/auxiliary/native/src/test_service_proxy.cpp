@@ -754,4 +754,24 @@ int TestServiceProxy::TestNestingSend(int sendCode, int &replyCode)
     return ret;
 }
 
+int TestServiceProxy::TestQueryThreadInvocationState()
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ZLOGI(LABEL, "The obtained proxy is a null pointer");
+        return -1;
+    }
+
+    int ret = remote->SendRequest(TRANS_ID_QUERY_THREAD_INVOCATION_STATE, dataParcel, replyParcel, option);
+    int reply = replyParcel.ReadInt32();
+    ZLOGI(LABEL, "Get result from server data = %{public}d %{public}d", reply, ret);
+    if (reply != STATUS_NOT_FIRST_INVOKE) {
+        ret = ERR_TRANSACTION_FAILED;
+    }
+    return ret;
+}
 }  // namespace OHOS

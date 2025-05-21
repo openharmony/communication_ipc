@@ -276,6 +276,11 @@ bool IPCSkeleton::EnableIPCThreadReclaim(bool enable)
     return false;
 }
 
+int32_t IPCSkeleton::GetThreadInvocationState()
+{
+    return IPCThreadSkeleton::GetThreadInvocationState();
+}
+
 void IPCDfx::BlockUntilThreadAvailable()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();

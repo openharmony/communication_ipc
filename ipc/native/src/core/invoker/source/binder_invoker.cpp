@@ -505,6 +505,7 @@ void BinderInvoker::StartWorkLoop()
         return;
     }
     int error;
+    isFirstInvoke_ = STATUS_FIRST_INVOKE;
     do {
         ProcessSkeleton *process = ProcessSkeleton::GetInstance();
         if (process == nullptr || process->GetThreadStopFlag()) {
@@ -527,12 +528,18 @@ void BinderInvoker::StartWorkLoop()
         if (current != nullptr) {
             current->UnlockForNumExecuting();
         }
+        isFirstInvoke_ = STATUS_NOT_FIRST_INVOKE;
         if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
             ZLOGW(LABEL, "exit, userError:%{public}d", userError);
             break;
         }
         ProcDeferredDecRefs();
     } while (error != -ECONNREFUSED && error != -EBADF && !stopWorkThread);
+}
+
+int32_t BinderInvoker::GetInvocationState()
+{
+    return isFirstInvoke_;
 }
 
 int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
