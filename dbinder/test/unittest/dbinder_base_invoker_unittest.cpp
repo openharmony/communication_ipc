@@ -39,9 +39,28 @@ HWTEST_F(DBinderBaseInvokerUnitTest, ProcessTransactionAbnormalBranch001, TestSi
     std::shared_ptr<MockDBinderBaseInvoker> invoker = std::make_shared<MockDBinderBaseInvoker>();
     EXPECT_TRUE(invoker != nullptr);
     int32_t listenFd = 0;
-    std::shared_ptr<dbinder_transaction_data> tr(new dbinder_transaction_data);
+    /**                                     |-----tr->buffer_size-----|---tr->offsets_size------|
+     * |* sizeof(dbinder_transaction_data) *|* sizeof(binder_size_t) *|* sizeof(binder_size_t) *|
+     *                                    tr->buffer       tr->buffer + tr->offsets
+     */
+    size_t pkgSize = sizeof(dbinder_transaction_data) + sizeof(binder_size_t) + sizeof(binder_size_t);
+    std::shared_ptr<dbinder_transaction_data> tr(reinterpret_cast<dbinder_transaction_data *>(
+        ::operator new(pkgSize)));
     EXPECT_TRUE(tr != nullptr);
-    (void)memset_s(tr.get(), sizeof(dbinder_transaction_data), 0, sizeof(dbinder_transaction_data));
+    tr->sizeOfSelf = pkgSize;
+    tr->magic = DBINDER_MAGICWORD;
+    tr->version = SUPPORT_TOKENID_VERSION_NUM;
+    tr->cmd = BC_TRANSACTION;
+    tr->code = 0;
+    tr->flags = MessageOption::TF_STATUS_CODE;
+    tr->seqNumber = 0;
+    tr->buffer_size = sizeof(binder_size_t);
+    tr->offsets = tr->buffer_size;
+    tr->offsets_size = sizeof(binder_size_t);
+    binder_size_t *binderObjectOffsets = reinterpret_cast<binder_size_t *>(tr->buffer + tr->offsets);
+    binderObjectOffsets[0] = tr->buffer_size;  // To make IsValidRemoteObjectOffset function fail
+    bool ret = invoker->CheckTransactionData(tr.get());
+    ASSERT_TRUE(ret);
     invoker->ProcessTransaction(tr.get(), listenFd);
     EXPECT_EQ(invoker->result_, RPC_BASE_INVOKER_TRANSLATE_ERR);
 }
@@ -56,10 +75,28 @@ HWTEST_F(DBinderBaseInvokerUnitTest, ProcessTransactionAbnormalBranch002, TestSi
     std::shared_ptr<MockDBinderBaseInvoker> invoker = std::make_shared<MockDBinderBaseInvoker>();
     EXPECT_TRUE(invoker != nullptr);
     int32_t listenFd = 0;
-    std::shared_ptr<dbinder_transaction_data> tr(new dbinder_transaction_data);
+    /**                                     |-----tr->buffer_size-----|--tr->offsets_size--|
+     * |* sizeof(dbinder_transaction_data) *|* sizeof(binder_size_t) *|*       empty      *|
+     *                                    tr->buffer       tr->buffer + tr->offsets
+     */
+    size_t pkgSize = sizeof(dbinder_transaction_data) + sizeof(binder_size_t);
+    std::shared_ptr<dbinder_transaction_data> tr(reinterpret_cast<dbinder_transaction_data *>(
+        ::operator new(pkgSize)));
     EXPECT_TRUE(tr != nullptr);
-    (void)memset_s(tr.get(), sizeof(dbinder_transaction_data) + 1, 0, sizeof(dbinder_transaction_data) + 1);
-    tr->buffer_size = 1;
+    tr->sizeOfSelf = pkgSize;
+    tr->magic = DBINDER_MAGICWORD;
+    tr->version = SUPPORT_TOKENID_VERSION_NUM;
+    tr->cmd = BC_TRANSACTION;
+    tr->code = 0;
+    tr->flags = MessageOption::TF_STATUS_CODE;
+    tr->seqNumber = 0;
+    tr->buffer_size = sizeof(binder_size_t);
+    tr->offsets = tr->buffer_size;
+    tr->offsets_size = 0;
+
+    bool ret = invoker->CheckTransactionData(tr.get());
+    ASSERT_TRUE(ret);
+
     EXPECT_CALL(*invoker,
         CheckAndSetCallerInfo(testing::_, testing::_)).WillOnce(testing::Return(RPC_DATABUS_INVOKER_INVALID_DATA_ERR));
     invoker->ProcessTransaction(tr.get(), listenFd);
