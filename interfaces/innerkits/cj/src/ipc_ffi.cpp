@@ -1289,9 +1289,16 @@ int64_t FfiRpcAshmemImplCreateFromExisting(int64_t id, int32_t* errCode)
         *errCode = errorDesc::CHECK_PARAM_ERROR;
         return -1;
     }
-    sptr<Ashmem> newAshmem(new Ashmem(dup(fd), size));
+    int dupFd = dup(fd);
+    if (dupFd < 0) {
+        ZLOGE(LOG_LABEL, "[RPC] failed to dup fd");
+        *errCode = errorDesc::CHECK_PARAM_ERROR;
+        return -1;
+    }
+    sptr<Ashmem> newAshmem(new Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
-        ZLOGE(LOG_LABEL, "[RPC] newAshmem is null");
+        close(dupFd);
+        ZLOGE(LOG_LABEL, "[RPC] failed to new Ashmem");
         *errCode = errorDesc::CHECK_PARAM_ERROR;
         return -1;
     }

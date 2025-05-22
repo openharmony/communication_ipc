@@ -1228,7 +1228,11 @@ void MessageSequenceImpl::CJ_CloseFileDescriptor(int32_t fd)
 
 int32_t MessageSequenceImpl::CJ_DupFileDescriptor(int32_t fd)
 {
-    return dup(fd);
+    int32_t dupResult = dup(fd);
+    if (dupResult < 0) {
+        ZLOGE(LOG_LABEL, "os dup function failed");
+    }
+    return dupResult;
 }
 
 bool MessageSequenceImpl::CJ_ContainFileDescriptors(int32_t* errCode)
