@@ -29,7 +29,6 @@ void MakeBasicThreadNameFuzzTest(const uint8_t *data, size_t size)
     parcel.WriteBuffer(data, size);
     int proto = parcel.ReadInt32();
     int threadIndex = parcel.ReadInt32();
-    bool serialInvokeFlag = parcel.ReadBool();
     size_t length = parcel.GetReadableBytes();
     if (length == 0) {
         return;
