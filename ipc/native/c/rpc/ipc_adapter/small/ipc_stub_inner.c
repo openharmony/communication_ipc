@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,9 +28,22 @@
 
 static int32_t IsDeviceIdIllegal(const char *deviceID, uint32_t len)
 {
-    if (deviceID == NULL || len > DEVICEID_LENGTH) {
+    if (deviceID == NULL) {
+        RPC_LOG_ERROR("deviceId is null");
         return ERR_FAILED;
     }
+
+    if (len != DEVICEID_LENGTH) {
+        RPC_LOG_ERROR("invalid deviceID len:%{public}u", len);
+        return ERR_FAILED;
+    }
+
+    uint32_t realLen = strlen(deviceID);
+    if (realLen != len) {
+        RPC_LOG_ERROR("invalid deviceID, realLen:%{public}u, len:%{public}u", realLen, len);
+        return ERR_FAILED;
+    }
+
     return ERR_NONE;
 }
 
@@ -104,10 +117,13 @@ static int32_t InvokerDataBusThread(IpcIo *data, IpcIo *reply, OnRemoteRequest f
     }
     current->sessionName = (char *)malloc(sessionNameLen + 1);
     if (current->sessionName == NULL) {
+        RPC_LOG_ERROR("malloc sessionName fail");
         return ERR_FAILED;
     }
     if (strcpy_s(current->sessionName, sessionNameLen + 1, sessionName) != EOK) {
+        RPC_LOG_ERROR("copy sessionName fail");
         free(current->sessionName);
+        current->sessionName = NULL;
         return ERR_FAILED;
     }
 
