@@ -336,7 +336,7 @@ napi_value NAPI_RemoteProxy_queryLocalInterface(napi_env env, napi_callback_info
 
 napi_value NAPI_RemoteProxy_getLocalInterface(napi_env env, napi_callback_info info)
 {
-    ZLOGE(LOG_LABEL, "only remote object permitted");
+    ZLOGD(LOG_LABEL, "only remote object permitted");
     return napiErr.ThrowError(env, errorDesc::ONLY_REMOTE_OBJECT_PERMITTED_ERROR);
 }
 
