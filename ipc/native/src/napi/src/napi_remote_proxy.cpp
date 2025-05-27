@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -144,7 +144,7 @@ napi_value SendRequestPromise(napi_env env, sptr<IRemoteObject> target, uint32_t
 {
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
-    napi_create_promise(env, &deferred, &promise);
+    NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
     SendRequestParam *sendRequestParam = new (std::nothrow) SendRequestParam {
         .target = target,
         .code = code,
