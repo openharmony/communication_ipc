@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -163,7 +163,10 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     auto dataSize = data.GetDataSize();
     if (totalDBinderBufSize > 0 && dataSize % BINDER_ALIGN_BYTES != 0) {
         ZLOGI(LABEL, "not 8 bytes aligned(%{public}zu), padding it", dataSize);
-        data.WriteInt8(0);
+        if (!data.WriteInt8(0)) {
+            ZLOGE(LABEL, "Failed to write padding byte for alignment");
+            return IPC_INVOKER_WRITE_TRANS_ERR;
+        }
     }
 #endif
     MessageParcel &newData = const_cast<MessageParcel &>(data);
@@ -552,7 +555,10 @@ int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t resul
     auto replySize = reply.GetDataSize();
     if (totalDBinderBufSize > 0 && replySize % BINDER_ALIGN_BYTES != 0) {
         ZLOGI(LABEL, "not 8 bytes aligned(%{public}zu), padding it", replySize);
-        reply.WriteInt8(0);
+        if (!reply.WriteInt8(0)) {
+            ZLOGE(LABEL, "Failed to write padding byte for alignment");
+            return IPC_INVOKER_WRITE_TRANS_ERR;
+        }
     }
 #endif
 

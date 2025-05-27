@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -331,8 +331,8 @@ static int32_t SendOrWaitForCompletion(uint32_t userWaitTime, uint64_t seqNumber
     }
     int32_t result = OnSendMessage(sessionOfPeer);
     if (result != ERR_NONE) {
-        RPC_LOG_ERROR("fail to send to remote session with error = %d", result);
-        // no return, for msg send failed maybe not mine
+        RPC_LOG_ERROR("fail to send to remote session with error = %{public}d", result);
+        return ERR_FAILED;
     }
     return WaitForReply(seqNumber, reply, sessionOfPeer->handle, userWaitTime, buffer);
 }
