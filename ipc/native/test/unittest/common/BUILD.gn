@@ -223,7 +223,10 @@ ohos_unittest("IPCTraceUnitTest") {
 
   configs = [ "$IPC_TEST_ROOT:ipc_test_config" ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog"
+    ]
 
   resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
