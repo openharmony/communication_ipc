@@ -1,0 +1,165 @@
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.rpc", "rpc")
+
+@!sts_inject("""
+static { loadLibrary("rpc_taihe.z"); }
+""")
+
+interface Parcelable {
+    Marshalling(dataOut: MessageSequence): bool;
+    Unmarshalling(dataIn: MessageSequence): bool;
+}
+
+@class
+interface MessageSequence {
+    Reclaim(): void;
+
+    AddJsObjWeakRef(obj: MessageSequence): void;
+
+    WriteInterfaceToken(token: String): void;
+    ReadInterfaceToken(): String;
+
+    GetCapacity(): i32;
+    SetCapacity(size: i32): void;
+
+    WriteNoException(): void;
+    ReadException(): void;
+
+    WriteInt(val: i32): void;
+    WriteLong(val: i64): void;
+    WriteBoolean(val: bool): void;
+    WriteString(val: String): void;
+    WriteParcelable(val: Parcelable): void;
+
+    WriteByteArray(byteArray: Array<i8>): void;
+    WriteIntArray(intArray: Array<i32>): void;
+    WriteDoubleArray(doubleArray: Array<f64>): void;
+    WriteBooleanArray(booleanArray: Array<bool>): void;
+    WriteStringArray(stringArray: Array<String>): void;
+    WriteParcelableArray(parcelableArray: Array<Parcelable>): void;
+
+    ReadInt(): i32;
+    ReadLong(): i64;
+    ReadBoolean(): bool;
+    ReadString(): String;
+    ReadParcelable(dataIn: Parcelable): void;
+
+    @overload("readIntArray")
+    ReadIntArrayImpl(): Array<i32>;
+    @!sts_inject_into_class("""
+        readIntArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readIntArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readDoubleArray")
+    ReadDoubleArrayImpl(): Array<f64>;
+    @!sts_inject_into_class("""
+        readDoubleArray(dataIn: Array<double>): void {
+            let res: Array<double> = this.readDoubleArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readBooleanArray")
+    ReadBooleanArrayImpl(): Array<bool>;
+    @!sts_inject_into_class("""
+        readBooleanArray(dataIn: Array<boolean>): void {
+            let res: Array<boolean> = this.readBooleanArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readStringArray")
+    ReadStringArrayImpl(): Array<String>;
+    @!sts_inject_into_class("""
+        readStringArray(dataIn: Array<String>): void {
+            let res: Array<String> = this.readStringArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    ReadParcelableArray(parcelableArray: Array<Parcelable>): void;
+
+    WriteFileDescriptor(fd: i32): void;
+    ReadFileDescriptor(): i32;
+
+    WriteAshmem(ashmem: Ashmem): void;
+    ReadAshmem(): Ashmem;
+
+    WriteRawDataBuffer(rawData: @arraybuffer Array<u8>, size: i32): void;
+    ReadRawDataBuffer(size: i32): @arraybuffer Array<u8>;
+}
+
+@static("MessageSequence")
+@overload("create")
+function CreateMessageSequence(): MessageSequence;
+
+@static("MessageSequence")
+function CloseFileDescriptor(fd: i32): void;
+
+@class
+interface MessageOption {
+    IsAsync(): bool;
+    SetAsync(isAsync: bool): void;
+}
+
+@ctor("MessageOption")
+function CreateMessageOption_WithTwoParam(syncFlags: i32, waitTime: i32): MessageOption;
+
+@ctor("MessageOption")
+function CreateMessageOption_WithOneParam(isAsync: bool): MessageOption;
+
+@ctor("MessageOption")
+function CreateMessageOption(): MessageOption;
+
+@class
+interface Ashmem {
+    MapReadWriteAshmem(): void;
+    GetImplPtr(): i64;
+    GetAshmemSize(): i32;
+}
+
+@static("Ashmem")
+@overload("create")
+function CreateAshmem_WithTwoParam(name: String, size: i32): Ashmem;
+
+@static("Ashmem")
+@overload("create")
+function CreateAshmem_WithOneParam(ashmem: Ashmem): Ashmem;
+
+@class
+interface IPCSkeleton {
+}
+
+@static("IPCSkeleton")
+function GetCallingPid(): i32;
+
+@static("IPCSkeleton")
+function GetCallingUid(): i32;
+
+@static("IPCSkeleton")
+function GetCallingTokenId(): u32;
