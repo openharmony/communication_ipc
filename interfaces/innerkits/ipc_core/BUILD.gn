@@ -36,6 +36,7 @@ ohos_prebuilt_shared_library("ipc_core") {
     "$SUBSYSTEM_DIR/config:ipc_util_config",
     ":ipc_all_deps_config",
   ]
+  public_external_deps = [ "c_utils:utils" ]
 
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single" ]
 
