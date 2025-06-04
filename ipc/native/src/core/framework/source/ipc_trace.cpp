@@ -21,12 +21,7 @@
 
 namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_COMMON, "IPC_TRACE" };
-
-#if (defined(__aarch64__) || defined(__x86_64__))
-std::string IPCTrace::HITRACE_METER_SO_NAME = "/system/lib64/chipset-pub-sdk/libhitrace_meter.so";
-#else
-std::string IPCTrace::HITRACE_METER_SO_NAME = "/system/lib/chipset-pub-sdk/libhitrace_meter.so";
-#endif
+std::string IPCTrace::HITRACE_METER_SO_NAME = "libhitrace_meter.so";
 
 bool IPCTrace::IsEnabled()
 {
