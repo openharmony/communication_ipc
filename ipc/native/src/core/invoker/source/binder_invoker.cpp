@@ -531,7 +531,9 @@ void BinderInvoker::StartWorkLoop()
         if (current != nullptr) {
             current->UnlockForNumExecuting();
         }
-        isFirstInvoke_ = STATUS_NOT_FIRST_INVOKE;
+        if ((cmd == BR_TRANSACTION) || (cmd == BR_TRANSACTION_SEC_CTX)) {
+            isFirstInvoke_ = STATUS_NOT_FIRST_INVOKE;
+        }
         if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
             ZLOGW(LABEL, "exit, userError:%{public}d", userError);
             break;
