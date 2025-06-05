@@ -71,7 +71,7 @@ bool BrokerRegistration::Register(const std::u16string &descriptor, const Constr
             ZLOGW(LABEL, "path is empty");
         }
     } else {
-        ZLOGW(LABEL, "path:%{public}s is already Register", Str16ToStr8(descriptor).c_str());
+        ZLOGD(LABEL, "path:%{public}s is already Register", Str16ToStr8(descriptor).c_str());
     }
     return ret;
 }
