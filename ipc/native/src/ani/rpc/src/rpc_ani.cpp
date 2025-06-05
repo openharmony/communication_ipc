@@ -211,7 +211,10 @@ public:
     IPCObjectRemoteHolder(ani_env *env, ani_object remoteObject, const std::u16string &descriptor)
         : env_(env), remoteObject_(remoteObject), descriptor_(descriptor)
     {
-        ZLOGI(LOG_LABEL, "[ANI] enter IPCObjectRemoteHolder ctor");
+        if (ANI_OK != env->GlobalReference_Create(reinterpret_cast<ani_ref>(remoteObject),
+            reinterpret_cast<ani_ref*>(&remoteObject_))) {
+            ZLOGE(LOG_LABEL, "[ANI] GlobalReference_Create failed");
+        }
     }
 
     std::string GetDescriptor()
@@ -221,11 +224,11 @@ public:
         return ret;
     }
 
-    sptr<IRemoteObject> Get()
+    sptr<IRemoteObject> Get(ani_env *env)
     {
         sptr<IRemoteObject> tmp = object_.promote();
-        if (nullptr == tmp && nullptr != env_) {
-            tmp = sptr<IPCAniStub>::MakeSptr(env_, remoteObject_, descriptor_);
+        if (nullptr == tmp && nullptr != env) {
+            tmp = sptr<IPCAniStub>::MakeSptr(env, remoteObject_, descriptor_);
             object_ = tmp;
         }
         return tmp;
@@ -234,6 +237,9 @@ public:
     ~IPCObjectRemoteHolder()
     {
         ZLOGI(LOG_LABEL, "[ANI] enter IPCObjectRemoteHolder dtor");
+        if (ANI_OK != env_->GlobalReference_Delete(remoteObject_)) {
+            ZLOGE(LOG_LABEL, "[ANI] GlobalReference_Delete failed");
+        }
     }
 
 private:
@@ -266,7 +272,7 @@ sptr<IRemoteObject> AniGetNativeRemoteObject(ani_env *env, ani_object obj)
         ZLOGI(LOG_LABEL, "[ANI] IPCObjectRemoteHolder is nullptr");
         return nullptr;
     }
-    return holder->Get();
+    return holder->Get(env);
 }
 
 static ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObject> target)
