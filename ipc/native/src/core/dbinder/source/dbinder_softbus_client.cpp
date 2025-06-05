@@ -25,12 +25,7 @@ namespace OHOS {
 
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_DBINDER_SOFTBUS_CLIENT, "DBinderSoftbusClient" };
-
-#ifdef __aarch64__
-static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib64/platformsdk/libsoftbus_client.z.so";
-#else
-static constexpr const char *SOFTBUS_PATH_NAME = "/system/lib/platformsdk/libsoftbus_client.z.so";
-#endif
+static constexpr const char *SOFTBUS_PATH_NAME = "libsoftbus_client.z.so";
 
 DBinderSoftbusClient& DBinderSoftbusClient::GetInstance()
 {
