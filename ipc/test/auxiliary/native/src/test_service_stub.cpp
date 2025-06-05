@@ -292,6 +292,9 @@ int32_t TestServiceStub::QueryRemoteProxy(MessageParcel &data, MessageParcel &re
 
 int TestServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    int state = IPCSkeleton::GetThreadInvocationState();
+    ZLOGI(LABEL, "Thread state = %{public}d, cmd = %{public}u", state, code);
+
     std::map<uint32_t, OHOS::TestServiceStub::TestServiceStubFunc>::iterator it = funcMap_.find(code);
     if (it != funcMap_.end()) {
         OHOS::TestServiceStub::TestServiceStubFunc itFunc = it->second;
