@@ -893,7 +893,7 @@ napi_value GetJsStubRemoteObjectByRef(napi_env env, const sptr<IRemoteObject> ta
     napi_value jsRemoteObject = nullptr;
     napi_get_reference_value(env, object->GetJsObjectRef(), &jsRemoteObject);
     if (jsRemoteObject == nullptr) {
-        ZLOGW(LOG_LABEL, "jsRemoteObject is nullptr")
+        ZLOGW(LOG_LABEL, "jsRemoteObject is nullptr");
     }
     return jsRemoteObject;
 }
