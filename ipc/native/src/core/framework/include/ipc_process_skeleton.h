@@ -244,7 +244,7 @@ private:
     std::condition_variable cv_;
     int numExecuting_ = 0;
     int numWaitingForThreads_ = 0;
-    int64_t numExecutingFullLastTime_ = 0;
+    uint64_t numExecutingFullLastTime_ = 0;
 
     IPCWorkThreadPool *threadPool_ = nullptr;
 
