@@ -760,6 +760,9 @@ int TestServiceProxy::TestQueryThreadInvocationState()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
+    int state = IPCSkeleton::GetThreadInvocationState();
+    ZLOGI(LABEL, "Thread state = %{public}d", state);
+
     auto remote = Remote();
     if (remote == nullptr) {
         ZLOGI(LABEL, "The obtained proxy is a null pointer");

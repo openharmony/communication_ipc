@@ -525,4 +525,61 @@ HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim003, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+
+/**
+ * @tc.name: GetThreadInvokationStateTest001
+ * @tc.desc: cover GetThreadInvokationState branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetThreadInvocationStateTest001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    BinderInvoker *invoker = new BinderInvoker();
+    EXPECT_TRUE(invoker != nullptr);
+
+    invoker->isFirstInvoke_ = STATUS_FIRST_INVOKE;
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    EXPECT_TRUE(current != nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    EXPECT_EQ(skeleton.GetThreadInvocationState(), STATUS_FIRST_INVOKE);
+    delete invoker;
+}
+
+/**
+ * @tc.name: GetThreadInvokationStateTest002
+ * @tc.desc: cover GetThreadInvokationState branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetThreadInvocationStateTest002, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    BinderInvoker *invoker = new BinderInvoker();
+    EXPECT_TRUE(invoker != nullptr);
+
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    EXPECT_TRUE(current != nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+    EXPECT_EQ(skeleton.GetThreadInvocationState(), STATUS_INIT);
+    delete invoker;
+}
+
+/**
+ * @tc.name: GetThreadInvokationStateTest003
+ * @tc.desc: cover GetThreadInvokationState branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetThreadInvocationStateTest003, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    EXPECT_TRUE(current != nullptr);
+
+    current->usingFlag_ = 0;
+    EXPECT_EQ(skeleton.GetThreadInvocationState(), STATUS_UNKNOWN);
+}
+
 } // namespace OHOS
