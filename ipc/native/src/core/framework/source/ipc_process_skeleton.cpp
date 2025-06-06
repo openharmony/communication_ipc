@@ -187,11 +187,6 @@ sptr<IRemoteObject> IPCProcessSkeleton::FindOrNewObject(int handle, const dbinde
     bool newFlag = false;
     sptr<IRemoteObject> result = GetProxyObject(handle, newFlag);
     if (result == nullptr) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        if (ProcessSkeleton::IsPrint(handle, lastErrHandle_, lastErrCnt_)) {
-            ZLOGE(LOG_LABEL, "GetProxyObject failed, handle:%{public}d time:%{public}" PRIu64, handle, curTime);
-        }
         return result;
     }
     sptr<IPCObjectProxy> proxy = reinterpret_cast<IPCObjectProxy *>(result.GetRefPtr());
@@ -218,18 +213,18 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
     sptr<IRemoteObject> result = nullptr;
     std::u16string descriptor = MakeHandleDescriptor(handle);
     if (descriptor.length() == 0) {
-        ZLOGE(LOG_LABEL, "make handle descriptor failed");
+        ZLOGE(LOG_LABEL, "make handle descriptor failed, handle:%{public}d", handle);
         return result;
     }
 
     auto current = ProcessSkeleton::GetInstance();
     if (current == nullptr) {
-        ZLOGE(LOG_LABEL, "get process skeleton failed");
+        ZLOGE(LOG_LABEL, "get process skeleton failed, handle:%{public}d", handle);
         return result;
     }
 
     if (!current->LockObjectMutex()) {
-        ZLOGE(LOG_LABEL, "LockObjectMutex failed!");
+        ZLOGE(LOG_LABEL, "LockObjectMutex failed, handle:%{public}d", handle);
         return result;
     }
     result = QueryObject(descriptor, false);
@@ -242,12 +237,12 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
     if (handle == REGISTRY_HANDLE) {
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
         if (invoker == nullptr) {
-            ZLOGE(LOG_LABEL, "failed to get invoker");
+            ZLOGE(LOG_LABEL, "failed to get invoker, handle:%{public}d", handle);
             current->UnlockObjectMutex();
             return result;
         }
         if (!invoker->PingService(REGISTRY_HANDLE)) {
-            ZLOGW(LOG_LABEL, "samgr is not exist now");
+            ZLOGW(LOG_LABEL, "samgr is not exist now, handle:%{public}d", handle);
             current->UnlockObjectMutex();
             return result;
         }
@@ -255,12 +250,12 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetProxyObject(int handle, bool &newFlag
     // OnFirstStrongRef will be called.
     result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
     if (result == nullptr) {
-        ZLOGE(LOG_LABEL, "new IPCObjectProxy failed!");
+        ZLOGE(LOG_LABEL, "new IPCObjectProxy failed, handle:%{public}d", handle);
         current->UnlockObjectMutex();
         return result;
     }
     if (!AttachObject(result.GetRefPtr(), false)) {
-        ZLOGE(LOG_LABEL, "AttachObject failed!");
+        ZLOGE(LOG_LABEL, "AttachObject failed, handle:%{public}d", handle);
         current->UnlockObjectMutex();
         return nullptr;
     }

@@ -562,7 +562,6 @@ bool MessageParcel::Append(MessageParcel &data)
 {
     size_t dataSize = data.GetDataSize();
     if (dataSize == 0) {
-        ZLOGI(LOG_LABEL, "no data to append");
         return true;
     }
     uintptr_t dataPtr = data.GetData();
