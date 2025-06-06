@@ -46,14 +46,16 @@
           "json",
           "selinux",
           "rust",
-          "faultloggerd"
+          "faultloggerd",
+          "runtime_core"
         ],
         "third_party": [
         ]
       },
       "build": {
         "sub_component": [
-          "//foundation/communication/ipc:ipc_components"
+          "//foundation/communication/ipc:ipc_components",
+          "//foundation/communication/ipc/ipc/native/src/ani:rpc_ani_packages"
         ],
         "inner_kits": [
           {
@@ -75,6 +77,16 @@
                   "ipc_file_descriptor.h"
                 ],
                 "header_base": "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include"
+              }
+            },
+            {
+              "name": "//foundation/communication/ipc/ipc/native/src/ani/rpc:rpc_ani",
+              "header": {
+                "header_files": [
+                  "ani_remote_object.h",
+                  "ani_utils.h"
+                ],
+                "header_base": "//foundation/communication/ipc/ipc/native/src/ani/rpc/include"
               }
             },
             {
