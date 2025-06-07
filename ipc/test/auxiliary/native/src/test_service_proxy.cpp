@@ -772,7 +772,7 @@ int TestServiceProxy::TestQueryThreadInvocationState()
     int ret = remote->SendRequest(TRANS_ID_QUERY_THREAD_INVOCATION_STATE, dataParcel, replyParcel, option);
     int reply = replyParcel.ReadInt32();
     ZLOGI(LABEL, "Get result from server data = %{public}d %{public}d", reply, ret);
-    if (reply != STATUS_NOT_FIRST_INVOKE) {
+    if (reply != STATUS_FIRST_INVOKE) {
         ret = ERR_TRANSACTION_FAILED;
     }
     return ret;
