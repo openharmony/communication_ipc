@@ -46,12 +46,12 @@ ohos_static_library("ipc_rust_cxx") {
   deps = [
     ":ipc_cxx_gen",
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
-    "//third_party/rust/crates/cxx:cxx_cppdeps",
   ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "rust_cxx:cxx_cppdeps",
   ]
 
   subsystem_name = "communication"
@@ -68,12 +68,12 @@ ohos_rust_shared_library("ipc_rust") {
 
   deps = [
     ":ipc_rust_cxx",
-    "//third_party/rust/crates/cxx:lib",
   ]
 
   external_deps = [
     "hilog:hilog_rust",
     "ylong_runtime:ylong_runtime",
+    "rust_cxx:lib",
   ]
 
   install_images = [ system_base_dir ]
