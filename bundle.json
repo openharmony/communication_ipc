@@ -47,7 +47,8 @@
           "selinux",
           "rust",
           "faultloggerd",
-          "runtime_core"
+          "runtime_core",
+          "rust_cxx"
         ],
         "third_party": [
         ]
