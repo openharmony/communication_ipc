@@ -152,6 +152,31 @@ std::string IPCObjectProxy::GetDescriptor(MessageParcel &data)
     return remoteDescriptor_;
 }
 
+
+void IPCObjectProxy::PrintErrorDetailedInfo(int err, const std::string &desc)
+{
+#ifndef __linux__
+    uint32_t errorCode;
+    std::string errorDesc;
+    if (err == BR_FAILED_REPLY) {
+        IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+        if (invoker == nullptr) {
+            ZLOGE(LABEL, "invoker is null");
+            return;
+        }
+        bool isInvokerSuccess = invoker->GetDetailedErrorInfo(errorCode, errorDesc);
+        if (isInvokerSuccess) {
+            std::string newDesc = "(subErr:" + std::to_string(errCode) + " SubErrDesc:" + errorDesc + ") " + desc;
+            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, newDesc, ProcessSkeleton::ConvertAddr(this));
+        } else {
+            PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, desc, ProcessSkeleton::ConvertAddr(this));
+        }
+    }
+#else
+    PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, desc, ProcessSkeleton::ConvertAddr(this));
+#endif
+}
+
 int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (code != DUMP_TRANSACTION && code > MAX_TRANSACTION_ID) {
@@ -178,7 +203,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
             timeInterval, code, desc.c_str());
     }
     if (err != ERR_NONE && ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
-        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, desc, ProcessSkeleton::ConvertAddr(this));
+        PrintErrorDetailedInfo(err, desc);
 #ifdef ENABLE_IPC_PROXY_DFX_BACKTRACE
         if (err == BR_FAILED_REPLY) {
             std::string backtrace;
