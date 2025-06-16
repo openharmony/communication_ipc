@@ -143,7 +143,9 @@ public:
     uint32_t GetStrongRefCountForStub(uint32_t handle);
 
     bool IsSendRequesting();
-
+#ifndef __linux
+    bool GetDetailedErrorInfo(uint32_t &errorCode, std::string &errorDesc);
+#endif
 #ifndef CONFIG_IPC_SINGLE
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif

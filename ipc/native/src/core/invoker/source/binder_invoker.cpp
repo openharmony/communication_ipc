@@ -1166,6 +1166,20 @@ void BinderInvoker::OnTransactionComplete(MessageParcel *reply, bool &continueLo
         continueLoop = false;
     }
 }
+#ifndef __linux__
+bool BinderInvoker::GetDetailedErrorInfo(uint32_t &errorCode, std::string &errDesc)
+{
+    struct hmb_detailed_err errInfo{};
+    int32_t err = binderConnector_->WriteBinder(HMB_GET_DETAILED_ERROR, &errInfo);
+    if (err != ERR_NONE) {
+        ZLOGE(LABEL, "HMB_GET_DETAILED_ERROR failed, error:%{public}d", err);
+        return false;
+    }
+    errorCode = errInfo.err_code;
+    errDesc = errInfo.err_str;
+    return true;
+}
+#endif
 
 void BinderInvoker::OnDeadOrFailedReply(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd)
 {
