@@ -24,12 +24,17 @@ pub use ffi::*;
 pub use super::obj::RemoteObj;
 use super::stub::RemoteStub;
 use crate::parcel::MsgParcel;
+use crate::remote::obj::ClosureWrapper;
 
 #[cxx::bridge(namespace = "OHOS::IpcRust")]
 pub mod ffi {
 
     extern "Rust" {
         type RemoteObj;
+        type ClosureWrapper;
+
+        fn execute(self: &mut ClosureWrapper, obj: Box<RemoteObj>);
+
         pub type RemoteStubWrapper;
 
         fn on_remote_request(
@@ -87,7 +92,7 @@ pub mod ffi {
         fn Dump(self: &IRemoteObjectWrapper, fd: i32, args: &[String]) -> i32;
         fn AddDeathRecipient(
             self: &IRemoteObjectWrapper,
-            cb: fn(Box<RemoteObj>),
+            cb: Box<ClosureWrapper>,
         ) -> UniquePtr<DeathRecipientRemoveHandler>;
 
         fn remove(self: &DeathRecipientRemoveHandler);
