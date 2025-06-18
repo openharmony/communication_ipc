@@ -32,6 +32,7 @@ namespace OHOS {
 typedef sptr<IRemoteObject> SptrIRemoteObject;
 
 namespace IpcRust {
+struct ClosureWrapper;
 struct RemoteObj;
 struct RemoteStubWrapper;
 struct DeathRecipientRemoveHandler;
@@ -51,7 +52,7 @@ public:
     bool CheckObjectLegality() const;
     int Dump(int fd, const rust::Slice<const rust::string> args) const;
 
-    std::unique_ptr<DeathRecipientRemoveHandler> AddDeathRecipient(rust::Fn<void(rust::Box<RemoteObj>)>) const;
+    std::unique_ptr<DeathRecipientRemoveHandler> AddDeathRecipient(rust::Box<ClosureWrapper>) const;
 
     IRemoteObject *GetInner() const;
 
@@ -62,11 +63,11 @@ public:
 
 struct DeathRecipientWrapper : public virtual IRemoteObject::DeathRecipient {
 public:
-    DeathRecipientWrapper(rust::Fn<void(rust::Box<RemoteObj>)> cb);
+    DeathRecipientWrapper(rust::Box<ClosureWrapper> cb);
     virtual void OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &object) override;
 
 private:
-    rust::Fn<void(rust::Box<RemoteObj>)> inner_;
+    rust::Box<ClosureWrapper> inner_;
 };
 
 struct DeathRecipientRemoveHandler {
