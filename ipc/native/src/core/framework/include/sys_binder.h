@@ -62,7 +62,13 @@ struct flat_binder_object {
     };
     binder_uintptr_t cookie;
 };
-
+#ifndef __linux__
+#define HMB_ERROR_INFO_LEN 64
+struct hmb_detailed_err {
+    uint32_t err_code;
+    char err_str[HMB_ERROR_INFO_LEN];
+};
+#endif
 struct binder_fd_object {
     struct binder_object_header hdr;
     __u32 pad_flags;
@@ -259,6 +265,9 @@ enum binder_driver_command_protocol {
     BC_REPLY_SG = _IOW('c', 18, struct binder_transaction_data_sg),
     BC_SEND_RAWDATA = _IOW('c', 20, __u32),
     BC_TRANSLATION = _IOW('c', 21, struct flat_binder_object),
+#ifndef __linux__
+    HMB_GET_DETAILED_ERROR = _IOWR('b', 161, struct hmb_detailed_err),
+#endif
 };
 #endif /* * _UAPI_LINUX_BINDER_H * */
 

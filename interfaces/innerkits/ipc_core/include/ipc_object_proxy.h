@@ -241,7 +241,7 @@ private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ClearDeathRecipients();
-
+    void PrintErrorDetailedInfo(int err, const std::string &desc);
 #ifndef CONFIG_IPC_SINGLE
     /**
      * @brief Set the proxy protocol.
