@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -519,7 +519,7 @@ HWTEST_F(DBinderServiceUnitTest, AddStubByTag001, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
 
@@ -547,7 +547,7 @@ HWTEST_F(DBinderServiceUnitTest, AddStubByTag002, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
 
@@ -571,13 +571,13 @@ HWTEST_F(DBinderServiceUnitTest, AddStubByTag003, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_NE(stub, nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     binder_uintptr_t stubTag = dBinderService->AddStubByTag(binderObjectPtr);
     EXPECT_GT(stubTag, 0);
 
-    sptr<DBinderServiceStub> stub2 = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub2 = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_NE(stub2, nullptr);
     binder_uintptr_t binderObject2Ptr = reinterpret_cast<binder_uintptr_t>(stub2.GetRefPtr());
     auto result = dBinderService->mapDBinderStubRegisters_.insert_or_assign(stubTag, binderObject2Ptr);
@@ -604,7 +604,7 @@ HWTEST_F(DBinderServiceUnitTest, QueryStubPtr001, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_NE(stub, nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
 
@@ -660,7 +660,7 @@ HWTEST_F(DBinderServiceUnitTest, CheckBinderObject002, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     bool res = dBinderService->CheckBinderObject(stub, binderObject);
     EXPECT_EQ(res, false);
@@ -678,7 +678,7 @@ HWTEST_F(DBinderServiceUnitTest, CheckBinderObject003, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
 
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -700,7 +700,7 @@ HWTEST_F(DBinderServiceUnitTest, HasDBinderStub001, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     dBinderService->DBinderStubRegisted_.push_back(stub);
 
@@ -725,7 +725,7 @@ HWTEST_F(DBinderServiceUnitTest, HasDBinderStub002, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
 
     binderObject = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -754,14 +754,14 @@ HWTEST_F(DBinderServiceUnitTest, DeleteDBinderStub001, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     dBinderService->DBinderStubRegisted_.push_back(stub);
 
     const std::string serviceName2 = "abcd";
     const std::string deviceID2 = "bcde";
     binder_uintptr_t binderObject2 = TEST_BINDER_OBJECT_PTR + 1;
-    sptr<DBinderServiceStub> stub2 = new DBinderServiceStub(serviceName2, deviceID2, binderObject2);
+    sptr<DBinderServiceStub> stub2 = new (std::nothrow) DBinderServiceStub(serviceName2, deviceID2, binderObject2);
     EXPECT_TRUE(stub2 != nullptr);
 
     binder_uintptr_t binderPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -941,9 +941,30 @@ HWTEST_F(DBinderServiceUnitTest, CreateMessage001, TestSize.Level1)
     std::string serviceName = "testServiceName";
     std::string deviceID = "testDeviceID";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
-    EXPECT_TRUE(stub != nullptr);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
+    ASSERT_NE(stub, nullptr);
+    uint32_t seqNumber = 1;
+    uint32_t pid = 1;
+    uint32_t uid = 1;
+    auto message = dBinderService->CreateMessage(stub, seqNumber, pid, uid);
+    EXPECT_EQ(message, nullptr);
+}
 
+/**
+ * @tc.name: CreateMessage002
+ * @tc.desc: Verify the CreateMessage function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, CreateMessage002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+
+    std::string serviceName = "123";
+    std::string deviceID = "testDeviceID";
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
+    ASSERT_NE(stub, nullptr);
     uint32_t seqNumber = 1;
     uint32_t pid = 1;
     uint32_t uid = 1;
@@ -963,7 +984,7 @@ HWTEST_F(DBinderServiceUnitTest, SendEntryToRemote001, TestSize.Level1)
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     uint32_t seqNumber = 0;
     uint32_t pid = 0;
@@ -1220,7 +1241,7 @@ HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderTest001, TestSize.Level1)
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     ret = dBinderService->InvokerRemoteDBinder(stub, seqNumber, pid, uid);
     EXPECT_EQ(ret, DBinderErrorCode::SEND_MESSAGE_FAILED);
@@ -1257,7 +1278,8 @@ HWTEST_F(DBinderServiceUnitTest, FindServicesByDeviceIDTest001, TestSize.Level1)
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> dBinderServiceStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject);
     EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->DBinderStubRegisted_.push_back(dBinderServiceStub);
     std::list<std::u16string> serviceNames;
@@ -1375,12 +1397,13 @@ HWTEST_F(DBinderServiceUnitTest, ProcessCallbackProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> dBinderServiceStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject);
     EXPECT_TRUE(dBinderServiceStub != nullptr);
     bool res = dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     dBinderService->ProcessCallbackProxy(dBinderServiceStub);
@@ -1396,12 +1419,13 @@ HWTEST_F(DBinderServiceUnitTest, NoticeCallbackProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
     std::string serviceName("testServer");
     std::string deviceID("123456");
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> dBinderServiceStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject);
     EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     EXPECT_EQ(dBinderService->NoticeCallbackProxy(dBinderServiceStub), false);
@@ -1416,12 +1440,13 @@ HWTEST_F(DBinderServiceUnitTest, DetachCallbackProxyTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
     std::string serviceName("test1");
     std::string deviceID("12345");
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> dBinderServiceStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject);
     EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
     EXPECT_EQ(dBinderService->DetachCallbackProxy(object), true);
@@ -1436,7 +1461,7 @@ HWTEST_F(DBinderServiceUnitTest, DetachCallbackProxyTest002, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
     EXPECT_EQ(dBinderService->DetachCallbackProxy(object), false);
 }
@@ -1450,9 +1475,9 @@ HWTEST_F(DBinderServiceUnitTest, QueryDeathRecipientTest001, TestSize.Level1)
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
-    sptr<IRemoteObject::DeathRecipient> deathRecipient = new TestDeathRecipient();
+    sptr<IRemoteObject::DeathRecipient> deathRecipient = new (std::nothrow) TestDeathRecipient();
     EXPECT_TRUE(deathRecipient != nullptr);
     dBinderService->AttachDeathRecipient(object, deathRecipient);
     EXPECT_EQ(dBinderService->QueryDeathRecipient(object), deathRecipient);
@@ -1480,7 +1505,7 @@ HWTEST_F(DBinderServiceUnitTest, AttachProxyObjectTest001, TestSize.Level1)
     std::string name("Test");
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
     binder_uintptr_t binderObject1 = TEST_BINDER_OBJECT_PTR + 1;
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
@@ -1528,7 +1553,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeSessionByReplyMessageTest001, TestSize.Leve
     std::string serviceName("testServer");
     std::string deviceID;
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     replyMessage->stub = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     dBinderService->MakeSessionByReplyMessage(replyMessage);
@@ -1567,7 +1592,7 @@ HWTEST_F(DBinderServiceUnitTest, RegisterRemoteProxyTest002, TestSize.Level1)
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, binderObject), false);
     serviceName = u"testServer";
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, binderObject), false);
-    sptr<IRemoteObject> object = new IPCObjectProxy(TEST_OBJECT_HANDLE);
+    sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(TEST_OBJECT_HANDLE);
     EXPECT_TRUE(object != nullptr);
     EXPECT_EQ(dBinderService->RegisterRemoteProxy(serviceName, object), true);
 }
@@ -1759,7 +1784,7 @@ HWTEST_F(DBinderServiceUnitTest, IsSameStubObjectTest002, TestSize.Level1)
     std::string serviceName = "test";
     std::string deviceID = "001";
     binder_uintptr_t binderObject = 1;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     std::u16string service(u"test");
     bool res = dBinderService->IsSameStubObject(stub, service, deviceID);
@@ -1778,7 +1803,7 @@ HWTEST_F(DBinderServiceUnitTest, SendEntryToRemoteTest002, TestSize.Level1)
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
     EXPECT_TRUE(dBinderService != nullptr);
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_TRUE(stub != nullptr);
     uint32_t seqNumber = 0;
     uint32_t pid = 0;
@@ -1858,7 +1883,7 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest002, TestSize.Level1)
     message->binderObject = 0;
     dBinderService->loadSaReply_.push_back(message);
 
-    sptr<IRemoteObject> remoteObject1 = new IPCObjectProxy(1);
+    sptr<IRemoteObject> remoteObject1 = new (std::nothrow) IPCObjectProxy(1);
     EXPECT_TRUE(remoteObject1 != nullptr);
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject1);
 }
@@ -1883,7 +1908,7 @@ HWTEST_F(DBinderServiceUnitTest, PopLoadSaItemTest003, TestSize.Level1)
     message->transType = IRemoteObject::DATABUS_TYPE + 1;
     dBinderService->loadSaReply_.push_back(message);
 
-    sptr<IRemoteObject> remoteObject1 = new IPCObjectProxy(1);
+    sptr<IRemoteObject> remoteObject1 = new (std::nothrow) IPCObjectProxy(1);
     EXPECT_TRUE(remoteObject1 != nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(remoteObject1.GetRefPtr());
     bool ret = dBinderService->AttachProxyObject(remoteObject1, binderObjectPtr);
@@ -2181,7 +2206,7 @@ HWTEST_F(DBinderServiceUnitTest, IsInvalidStub001, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_NE(stub, nullptr);
 
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
@@ -2232,7 +2257,7 @@ HWTEST_F(DBinderServiceUnitTest, MakeSessionByReplyMessage001, TestSize.Level1)
     const std::string serviceName = "abc";
     const std::string deviceID = "bcd";
     binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new DBinderServiceStub(serviceName, deviceID, binderObject);
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
     EXPECT_NE(stub, nullptr);
     binder_uintptr_t binderObjectPtr = reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr());
     binder_uintptr_t stubTag = dBinderService->AddStubByTag(binderObjectPtr);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2021 Huawei Device Co., Ltd.
+<!-- Copyright (C) 2021-2025 Huawei Device Co., Ltd.
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
@@ -79,8 +79,6 @@
     </target>
     <target name="IPCMockUnitTest">
         <preparer>
-            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
-            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
@@ -236,6 +234,12 @@
         </preparer>
     </target>
     <target name="RPCDbinderServiceTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DbinderServiceTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>

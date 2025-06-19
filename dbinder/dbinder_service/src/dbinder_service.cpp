@@ -16,6 +16,7 @@
 #include "dbinder_service.h"
 
 #include <cinttypes>
+#include <charconv>
 #include "securec.h"
 #include "string_ex.h"
 #include "ipc_skeleton.h"
@@ -447,13 +448,21 @@ std::shared_ptr<struct DHandleEntryTxRx> DBinderService::CreateMessage(const spt
         return nullptr;
     }
 
+    std::string serviceName = stub->GetServiceName();
+    uint64_t subIndex = 0;
+    auto result = std::from_chars(serviceName.c_str(), serviceName.c_str() + serviceName.size(), subIndex);
+    if (result.ec != std::errc()) {
+        DBINDER_LOGE(LOG_LABEL, "invalid serviceName:%{public}s", serviceName.c_str());
+        return nullptr;
+    }
+
     message->head.len = sizeof(DHandleEntryTxRx);
     message->head.version = RPC_TOKENID_SUPPORT_VERSION;
     message->dBinderCode = MESSAGE_AS_INVOKER;
     message->transType = GetRemoteTransType();
     message->fromPort = 0;
     message->toPort = 0;
-    message->stubIndex = static_cast<uint64_t>(std::atoi(stub->GetServiceName().c_str()));
+    message->stubIndex = subIndex;
     message->seqNumber = seqNumber;
     message->binderObject = stub->GetBinderObject();
     message->stub = AddStubByTag(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
