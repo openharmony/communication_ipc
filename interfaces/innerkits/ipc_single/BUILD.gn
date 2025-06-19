@@ -78,7 +78,6 @@ common_public_configs = [
 ]
 
 common_external_deps = [
-  "c_utils:utils",
   "faultloggerd:libbacktrace_local",
   "ffrt:libffrt",
   "hilog:libhilog",
@@ -105,6 +104,8 @@ ohos_shared_library("ipc_single") {
   all_dependent_configs = [ ":ipc_all_deps_config" ]
 
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
+
+  public_external_deps = [ "c_utils:utils" ]
 
   external_deps = common_external_deps
   defines = [ "FFRT_IPC_ENABLE" ]
@@ -151,6 +152,7 @@ ohos_shared_library("ipc_single_test") {
 
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
   external_deps = common_external_deps
+  external_deps += [ "c_utils:utils" ]
   defines = [ "FFRT_IPC_ENABLE" ]
   if (build_selinux) {
     defines += [ "WITH_SELINUX" ]
