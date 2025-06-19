@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -516,5 +516,86 @@ HWTEST_F(DatabusSocketListenerTest, RemoveSessionNameTest002, TestSize.Level1)  
     if (current != nullptr) {
         delete current;
     }
+}
+
+/**
+ * @tc.name: GetPidAndUidBySessionName001
+ * @tc.desc: Verify the GetPidAndUidFromServiceName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DatabusSocketListenerTest, GetPidAndUidBySessionName001, TestSize.Level1)
+{
+    int32_t pid = -1;
+    int32_t uid = -1;
+    bool ret = DatabusSocketListener::GetPidAndUidFromServiceName("DBinder1_1", pid, uid);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(pid, 1);
+    ASSERT_EQ(pid, 1);
+
+    pid = 0;
+    uid = 0;
+    ret = DatabusSocketListener::GetPidAndUidFromServiceName("DBinder-1_-1", pid, uid);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(pid, -1);
+    ASSERT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: GetPidAndUidBySessionName002
+ * @tc.desc: Verify the GetPidAndUidFromServiceName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DatabusSocketListenerTest, GetPidAndUidBySessionName002, TestSize.Level1)
+{
+    int32_t pid = -1;
+    int32_t uid = -1;
+    bool ret = DatabusSocketListener::GetPidAndUidFromServiceName("", pid, uid);
+    ASSERT_FALSE(ret);
+
+    ret = DatabusSocketListener::GetPidAndUidFromServiceName("abc", pid, uid);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetPidAndUidBySessionName003
+ * @tc.desc: Verify the GetPidAndUidFromServiceName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DatabusSocketListenerTest, GetPidAndUidBySessionName003, TestSize.Level1)
+{
+    int32_t pid = -1;
+    int32_t uid = -1;
+    bool ret = DatabusSocketListener::GetPidAndUidFromServiceName("DBinder", pid, uid);
+    ASSERT_FALSE(ret);
+
+    ret = DatabusSocketListener::GetPidAndUidFromServiceName("DBinder1_", pid, uid);
+    ASSERT_FALSE(ret);
+
+    ret = DatabusSocketListener::GetPidAndUidFromServiceName("DBinder_1", pid, uid);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetPidAndUidBySessionName004
+ * @tc.desc: Verify the GetPidAndUidFromServiceName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DatabusSocketListenerTest, GetPidAndUidBySessionName004, TestSize.Level1)
+{
+    std::string invalidIntegerStr = std::to_string(UINT64_MAX);
+
+    int32_t pid = -1;
+    int32_t uid = -1;
+    std::string sessionName = "DBinder" + invalidIntegerStr + "_1";
+    bool ret = DatabusSocketListener::GetPidAndUidFromServiceName(sessionName, pid, uid);
+    ASSERT_FALSE(ret);
+
+    sessionName = "DBinder1_" + invalidIntegerStr;
+    ret = DatabusSocketListener::GetPidAndUidFromServiceName(sessionName, pid, uid);
+    ASSERT_FALSE(ret);
+
+    sessionName = "DBinder" + invalidIntegerStr + "_" + invalidIntegerStr;
+    ret = DatabusSocketListener::GetPidAndUidFromServiceName(sessionName, pid, uid);
+    ASSERT_FALSE(ret);
 }
 } // end of OHOS
