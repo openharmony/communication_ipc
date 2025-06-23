@@ -37,7 +37,7 @@ public:
 private:
     static BinderConnector *instance_;
     static std::mutex skeletonMutex;
-    static constexpr size_t CLOSE_WAIT_TIME_MS = 10;
+    static constexpr size_t CLOSE_WAIT_TIME_MS = 15;
     bool OpenDriver();
     bool MapMemory(uint64_t featureSet);
     std::atomic_int driverFD_;

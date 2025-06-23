@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cinttypes>
+#include <charconv>
 
 #include "hilog/log.h"
 #include "ipc_skeleton.h"
@@ -32,7 +33,6 @@ static NapiError napiErr;
 static const size_t ARGV_INDEX_0 = 0;
 
 static const size_t ARGV_LENGTH_1 = 1;
-static constexpr size_t UINT64_STRING_MAX_LEN = 20;
 
 napi_value NAPI_IPCSkeleton_getContextObject(napi_env env, napi_callback_info info)
 {
@@ -252,20 +252,6 @@ napi_value NAPI_IPCSkeleton_resetCallingIdentity(napi_env env, napi_callback_inf
     }
 }
 
-static bool IsValidIdentity(const std::string &identity)
-{
-    // 20 represents the maximum string length uint64_t can represent
-    if (identity.empty() || identity.length() > UINT64_STRING_MAX_LEN) {
-        return false;
-    }
-
-    auto predicate = [](char c) {
-        return isdigit(c) == 0;
-    };
-    auto it = std::find_if(identity.begin(), identity.end(), predicate);
-    return it == identity.end();
-}
-
 napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info info)
 {
     napi_value global = nullptr;
@@ -308,14 +294,15 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
     napi_get_value_bool(env, napiIsLocalCalling, &isLocalCalling);
     napi_value result;
     if (isLocalCalling) {
-        if (!IsValidIdentity(identity)) {
+        uint64_t token = 0;
+        auto ret = std::from_chars(identity.c_str(), identity.c_str() + identity.size(), token);
+        if (ret.ec != std::errc()) {
+            ZLOGE(LOG_LABEL, "identity is invalid");
             napi_get_boolean(env, false, &result);
             return result;
         }
-
-        int64_t token = std::stoll(identity);
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
+        int32_t callerUid = static_cast<int32_t>(token >> PID_LEN);
+        int32_t callerPid = static_cast<int32_t>(token);
         napi_value napiCallingPid;
         napi_create_int32(env, callerPid, &napiCallingPid);
         napi_set_named_property(env, global, "callingPid_", napiCallingPid);
@@ -332,13 +319,15 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
 
         std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
         const std::string readIdentity = identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH);
-        if (!IsValidIdentity(readIdentity)) {
+        uint64_t token = 0;
+        auto ret = std::from_chars(readIdentity.c_str(), readIdentity.c_str() + readIdentity.size(), token);
+        if (ret.ec != std::errc()) {
+            ZLOGE(LOG_LABEL, "identity is invalid");
             napi_get_boolean(env, false, &result);
             return result;
         }
-        int64_t token = std::stoll(readIdentity);
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
+        int32_t callerUid = static_cast<int32_t>(token >> PID_LEN);
+        int32_t callerPid = static_cast<int32_t>(token);
         napi_value napiCallingPid;
         napi_create_int32(env, callerPid, &napiCallingPid);
         napi_set_named_property(env, global, "callingPid_", napiCallingPid);
@@ -365,47 +354,46 @@ static napi_value NAPI_IPCSkeleton_restoreCallingIdentitySetProperty(napi_env en
     napi_value result;
     napi_get_undefined(env, &result);
     if (isLocalCalling) {
-        if (!IsValidIdentity(identity)) {
-            ZLOGE(LOG_LABEL, "identity is empty");
+        uint64_t token = 0;
+        auto ret = std::from_chars(identity.c_str(), identity.c_str() + identity.size(), token);
+        if (ret.ec != std::errc()) {
+            ZLOGE(LOG_LABEL, "identity is invalid");
             return result;
         }
-
-        int64_t token = std::stoll(identity);
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
+        int32_t callerUid = static_cast<int32_t>(token >> PID_LEN);
+        int32_t callerPid = static_cast<int32_t>(token);
         napi_value napiCallingPid;
         napi_create_int32(env, callerPid, &napiCallingPid);
         napi_set_named_property(env, global, "callingPid_", napiCallingPid);
         napi_value napiCallingUid;
         napi_create_int32(env, callerUid, &napiCallingUid);
         napi_set_named_property(env, global, "callingUid_", napiCallingUid);
-        return result;
-    } else {
-        if (identity.empty() || identity.length() <= DEVICEID_LENGTH) {
-            ZLOGE(LOG_LABEL, "identity is empty or length is too short");
-            return result;
-        }
-
-        std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
-        const std::string readIdentity = identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH);
-        if (!IsValidIdentity(readIdentity)) {
-            ZLOGE(LOG_LABEL, "readIdentity is invalid");
-            return result;
-        }
-        int64_t token = std::stoll(readIdentity);
-        int callerUid = static_cast<int>((static_cast<uint64_t>(token)) >> PID_LEN);
-        int callerPid = static_cast<int>(token);
-        napi_value napiCallingPid;
-        napi_create_int32(env, callerPid, &napiCallingPid);
-        napi_set_named_property(env, global, "callingPid_", napiCallingPid);
-        napi_value napiCallingUid;
-        napi_create_int32(env, callerUid, &napiCallingUid);
-        napi_set_named_property(env, global, "callingUid_", napiCallingUid);
-        napi_value napiCallingDeviceID = nullptr;
-        napi_create_string_utf8(env, deviceId.c_str(), NAPI_AUTO_LENGTH, &napiCallingDeviceID);
-        napi_set_named_property(env, global, "callingDeviceID_", napiCallingDeviceID);
         return result;
     }
+    if (identity.empty() || identity.length() <= DEVICEID_LENGTH) {
+        ZLOGE(LOG_LABEL, "identity is empty or length is too short");
+        return result;
+    }
+    std::string deviceId = identity.substr(0, DEVICEID_LENGTH);
+    const std::string readIdentity = identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH);
+    uint64_t token = 0;
+    auto ret = std::from_chars(readIdentity.c_str(), readIdentity.c_str() + readIdentity.size(), token);
+    if (ret.ec != std::errc()) {
+        ZLOGE(LOG_LABEL, "readIdentity is invalid");
+        return result;
+    }
+    int32_t callerUid = static_cast<int32_t>(token >> PID_LEN);
+    int32_t callerPid = static_cast<int32_t>(token);
+    napi_value napiCallingPid;
+    napi_create_int32(env, callerPid, &napiCallingPid);
+    napi_set_named_property(env, global, "callingPid_", napiCallingPid);
+    napi_value napiCallingUid;
+    napi_create_int32(env, callerUid, &napiCallingUid);
+    napi_set_named_property(env, global, "callingUid_", napiCallingUid);
+    napi_value napiCallingDeviceID = nullptr;
+    napi_create_string_utf8(env, deviceId.c_str(), NAPI_AUTO_LENGTH, &napiCallingDeviceID);
+    napi_set_named_property(env, global, "callingDeviceID_", napiCallingDeviceID);
+    return result;
 }
 
 napi_value NAPI_IPCSkeleton_restoreCallingIdentity(napi_env env, napi_callback_info info)

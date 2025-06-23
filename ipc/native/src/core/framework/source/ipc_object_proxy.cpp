@@ -929,21 +929,15 @@ int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply, 
         return ERR_INVALID_DATA;
     }
 
-    std::string str = dbinderData.peerServiceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string::size_type pos = str.find("_");
-    if (pos == str.npos) {
-        ZLOGE(LABEL, "ServiceName format error");
+    int32_t peerPid = -1;
+    int32_t peerUid = -1;
+    if (!DatabusSocketListener::GetPidAndUidFromServiceName(dbinderData.peerServiceName, peerPid, peerUid)) {
+        ZLOGE(LOG_LABEL, "failed to get peerpid and peeruid from serviceName");
         return ERR_INVALID_DATA;
     }
-    std::string peerUid = str.substr(0, pos);
-    std::string peerPid = str.substr(pos + 1);
-    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
-        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
-        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
-        return ERR_INVALID_DATA;
-    }
-    dbinderData.peerUid = std::stoi(peerUid);
-    dbinderData.peerPid = std::stoi(peerPid);
+
+    dbinderData.peerUid = peerUid;
+    dbinderData.peerPid = peerPid;
     return ERR_NONE;
 }
 
@@ -970,21 +964,15 @@ int IPCObjectProxy::GetDBinderNegotiationData(DBinderNegotiationData &dbinderDat
     dbinderData.localServiceName = data->local_name;
     dbinderData.peerTokenId = data->tokenid;
 
-    std::string str = dbinderData.peerServiceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string::size_type pos = str.find("_");
-    if (pos == str.npos) {
-        ZLOGW(LABEL, "ServiceName format error");
+    int32_t peerPid = -1;
+    int32_t peerUid = -1;
+    if (!DatabusSocketListener::GetPidAndUidFromServiceName(dbinderData.peerServiceName, peerPid, peerUid)) {
+        ZLOGE(LOG_LABEL, "failed to get peerpid and peeruid from serviceName");
         return ERR_INVALID_DATA;
     }
-    std::string peerUid = str.substr(0, pos);
-    std::string peerPid = str.substr(pos + 1);
-    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
-        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
-        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
-        return ERR_INVALID_DATA;
-    }
-    dbinderData.peerUid = std::stoi(peerUid);
-    dbinderData.peerPid = std::stoi(peerPid);
+
+    dbinderData.peerUid = peerUid;
+    dbinderData.peerPid = peerPid;
     return ERR_NONE;
 }
 
