@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "databus_socket_listener.h"
 
+#include <charconv>
 #include "dbinder_databus_invoker.h"
 #include "dsoftbus_interface.h"
 #include "ipc_debug.h"
@@ -68,15 +69,13 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
 
     std::string networkId = info.networkId;
     std::string peerName = info.name;
-    std::string str = peerName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
-    std::string::size_type pos = str.find("_");
-    std::string peerUid = str.substr(0, pos);
-    std::string peerPid = str.substr(pos + 1);
-    if ((peerUid.length() > INT_STRING_MAX_LEN) || (peerPid.length() > INT_STRING_MAX_LEN) ||
-        !ProcessSkeleton::IsNumStr(peerUid) || !ProcessSkeleton::IsNumStr(peerPid)) {
-        ZLOGE(LOG_LABEL, "peerUid:%{public}s or peerPid:%{public}s is invalid", peerUid.c_str(), peerPid.c_str());
+    int32_t peerPid = -1;
+    int32_t peerUid = -1;
+    if (!GetPidAndUidFromServiceName(peerName, peerPid, peerUid)) {
+        ZLOGE(LOG_LABEL, "failed to get peerpid and peeruid from peerName");
         return;
     }
+
     DBinderDatabusInvoker *invoker =
         reinterpret_cast<DBinderDatabusInvoker *>(IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
@@ -84,7 +83,7 @@ void DatabusSocketListener::ServerOnBind(int32_t socket, PeerSocketInfo info)
         return;
     }
 
-    invoker->OnReceiveNewConnection(socket, std::stoi(peerPid), std::stoi(peerUid), peerName, networkId);
+    invoker->OnReceiveNewConnection(socket, peerPid, peerUid, peerName, networkId);
 }
 
 void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reason)
@@ -279,5 +278,34 @@ void DatabusSocketListener::RemoveSessionName(void)
     const std::string sessionName = current->GetDatabusName();
     samgr->RemoveSessionName(sessionName);
     ZLOGI(LABEL, "%{public}s", sessionName.c_str());
+}
+
+bool DatabusSocketListener::GetPidAndUidFromServiceName(const std::string &serviceName, int32_t &pid, int32_t &uid)
+{
+    if (serviceName.length() <= DBINDER_SOCKET_NAME_PREFIX.length()) {
+        ZLOGE(LOG_LABEL, "serviceName:%{public}s format error", serviceName.c_str());
+        return false;
+    }
+
+    std::string str = serviceName.substr(DBINDER_SOCKET_NAME_PREFIX.length());
+    std::string::size_type pos = str.find(DBINDER_UID_PID_SEPARATOR);
+    if (pos == std::string::npos) {
+        ZLOGE(LOG_LABEL, "serviceName:%{public}s format error", serviceName.c_str());
+        return false;
+    }
+
+    std::string uidStr = str.substr(0, pos);
+    std::string pidStr = str.substr(pos + 1);
+    auto result = std::from_chars(uidStr.c_str(), uidStr.c_str() + uidStr.size(), uid);
+    if (result.ec != std::errc()) {
+        ZLOGE(LOG_LABEL, "uid:%{public}s is invalid", uidStr.c_str());
+        return false;
+    }
+    result = std::from_chars(pidStr.c_str(), pidStr.c_str() + pidStr.size(), pid);
+    if (result.ec != std::errc()) {
+        ZLOGE(LOG_LABEL, "pid:%{public}s is invalid", pidStr.c_str());
+        return false;
+    }
+    return true;
 }
 } // namespace OHOS

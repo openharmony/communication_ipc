@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,7 @@ static constexpr uint32_t QOS_COUNT = static_cast<uint32_t>(sizeof(QOS_TV) / siz
 
 static const std::string DBINDER_PKG_NAME = "DBinderBus";
 static const std::string DBINDER_SOCKET_NAME_PREFIX = "DBinder";
+static const std::string DBINDER_UID_PID_SEPARATOR = "_";
 
 class DBinderSocketInfo {
 public:
@@ -78,6 +79,7 @@ public:
     static void EraseDeviceLock(DBinderSocketInfo info);
     static void RemoveSessionName(void);
 
+    static bool GetPidAndUidFromServiceName(const std::string &serviceName, int32_t &pid, int32_t &uid);
 private:
     std::shared_ptr<std::mutex> QueryOrNewInfoMutex(DBinderSocketInfo socketInfo);
 

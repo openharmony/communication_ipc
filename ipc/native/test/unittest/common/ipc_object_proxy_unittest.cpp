@@ -1552,4 +1552,43 @@ HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest004, TestSize.Level1)
     ret = object.GetDBinderNegotiationData(handle, reply, dbinderData);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
+
+/**
+ * @tc.name: GetDBinderNegotiationDataTest005
+ * @tc.desc: Verify the IPCObjectProxy::GetDBinderNegotiationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest005, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    std::string serviceName = "DBinder1_1";
+    int ret = memcpy_s(dData->target_name, SESSION_NAME_LENGTH, serviceName.c_str(), serviceName.length());
+    ASSERT_EQ(ret, ERR_NONE);
+    DBinderNegotiationData dbinderData;
+    ret = object.GetDBinderNegotiationData(dbinderData);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetDBinderNegotiationDataTest006
+ * @tc.desc: Verify the IPCObjectProxy::GetDBinderNegotiationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest006, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    dbinder_negotiation_data *dData = reinterpret_cast<dbinder_negotiation_data *>(object.dbinderData_.get());
+    (void)memset_s(dData, sizeof(dbinder_negotiation_data), 0, sizeof(dbinder_negotiation_data));
+    std::string invalidIntgertStr = std::to_string(UINT64_MAX);
+    std::string serviceName = "DBinder" + invalidIntgertStr + "_" + invalidIntgertStr;
+    int ret = memcpy_s(dData->target_name, SESSION_NAME_LENGTH, serviceName.c_str(), serviceName.length());
+    ASSERT_EQ(ret, ERR_NONE);
+    DBinderNegotiationData dbinderData;
+    ret = object.GetDBinderNegotiationData(dbinderData);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 #define private public
 #include "binder_connector.h"
 #undef private
-
+#include "fd_san.h"
 using namespace testing::ext;
 using namespace OHOS;
 
@@ -58,6 +58,32 @@ HWTEST_F(BinderConnectorTest, OpenDriver001, TestSize.Level1)
     BinderConnector binderConnector(deviceName);
     bool res = binderConnector.OpenDriver();
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: CloseDriverFd001
+ * @tc.desc: Verify the CloseDriverFd function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, CloseDriverFd001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    int32_t driverFd = binderConnector->driverFD_.load();
+
+    int32_t tmpFd = dup(driverFd);
+    ASSERT_GT(tmpFd, 0);
+    fdsan_exchange_owner_tag(tmpFd, 0, IPC_FD_TAG);
+
+    // test CloseDriverFd function when driverFD_ < 0
+    binderConnector->driverFD_ = -1;
+    binderConnector->CloseDriverFd();
+
+    // test CloseDriverFd function when driverFD_ >= 0
+    binderConnector->driverFD_ = tmpFd;
+    binderConnector->CloseDriverFd();
+    ASSERT_EQ(binderConnector->driverFD_, -1);
+
+    binderConnector->driverFD_ = driverFd;
 }
 
 /**
