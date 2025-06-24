@@ -185,8 +185,7 @@ fn read_and_write_vec(msg: &mut MsgParcel) {
     msg.write(&s).unwrap();
 }
 
-#[test]
-fn parcel_read_and_write() {
+fn parcel_write() -> MsgParcel {
     init();
 
     let test_service = SystemAbilityManager::get_system_ability(TEST_SYSTEM_ABILITY_ID).unwrap();
@@ -202,7 +201,13 @@ fn parcel_read_and_write() {
     msg.write_string16(&s);
     msg.write_string16_vec(&v);
 
-    let mut reply = test_service.send_request(0, &mut msg).unwrap();
+    test_service.send_request(0, &mut msg).unwrap()
+}
+
+#[test]
+fn parcel_read() {
+
+    let mut reply = parcel_write();
 
     assert_eq!(reply.read_interface_token().unwrap(), "hello ipc");
 
@@ -212,6 +217,27 @@ fn parcel_read_and_write() {
     );
 
     let mut file = reply.read_file().unwrap();
+    file.rewind();
+    let mut res = vec![];
+    file.read_to_end(&mut res);
+    let s = String::from_utf8(res).unwrap();
+    assert_eq!(s, "hello ipc");
+
+}
+
+#[test]
+fn parcel_read_from_raw_fd() {
+    
+    let mut reply = parcel_write();
+
+    assert_eq!(reply.read_interface_token().unwrap(), "hello ipc");
+
+    assert_eq!(
+        reply.read_buffer(TEST_LEN).unwrap(),
+        vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    );
+    let raw_fd = unsafe { reply.read_raw_fd() };
+    let mut file = unsafe { File::from_raw_fd(raw_fd) };
     file.rewind();
     let mut res = vec![];
     file.read_to_end(&mut res);
