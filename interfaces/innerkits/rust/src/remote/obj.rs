@@ -31,7 +31,6 @@ pub struct RemoteObj {
     pub(crate) inner: UniquePtr<IRemoteObjectWrapper>,
 }
 
-///
 pub struct ClosureWrapper {
     inner: Box<dyn FnMut(Box<RemoteObj>)>,
 }
@@ -150,9 +149,7 @@ impl RemoteObj {
         &self,
         f: F,
     ) -> Option<RecipientRemoveHandler> {
-        let inner = self
-            .inner
-            .AddDeathRecipient(Box::new(ClosureWrapper { inner: Box::new(f) }));
+        let inner = self.inner.AddDeathRecipient(Box::new(ClosureWrapper { inner: Box::new(f) }));
         inner.is_null().then_some(RecipientRemoveHandler { inner })
     }
 
