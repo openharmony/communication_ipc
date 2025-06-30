@@ -60,8 +60,7 @@ std::unique_ptr<DeathRecipientRemoveHandler> IRemoteObjectWrapper::AddDeathRecip
     rust::Box<ClosureWrapper> callback) const
 {
     auto *raw_recipient = new (std::nothrow) DeathRecipientWrapper(std::move(callback));
-    if (!raw_recipient)
-    {
+    if (!raw_recipient){
         return nullptr;
     }
     sptr<IRemoteObject::DeathRecipient> recipient(raw_recipient);
