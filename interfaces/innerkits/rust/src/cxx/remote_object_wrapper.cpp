@@ -59,11 +59,12 @@ rust::string IRemoteObjectWrapper::GetObjectDescriptor() const
 std::unique_ptr<DeathRecipientRemoveHandler> IRemoteObjectWrapper::AddDeathRecipient(
     rust::Box<ClosureWrapper> callback) const
 {
-    auto* raw_recipient = new(std::nothrow) DeathRecipientWrapper(std::move(callback));
-    if (!raw_recipient) {
+    auto *raw_recipient = new (std::nothrow) DeathRecipientWrapper(std::move(callback));
+    if (!raw_recipient)
+    {
         return nullptr;
     }
-    sptr<IRemoteObject::DeathRecipient> recipient(raw_recipient); 
+    sptr<IRemoteObject::DeathRecipient> recipient(raw_recipient);
     bool res = sptr_->AddDeathRecipient(recipient);
     if (!res) {
         return nullptr;
