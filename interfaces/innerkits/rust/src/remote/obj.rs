@@ -31,6 +31,16 @@ pub struct RemoteObj {
     pub(crate) inner: UniquePtr<IRemoteObjectWrapper>,
 }
 
+pub struct ClosureWrapper {
+    inner: Box<dyn FnMut(Box<RemoteObj>)>,
+}
+
+impl ClosureWrapper {
+    pub fn execute(&mut self, obj: Box<RemoteObj>) {
+        (self.inner)(obj);
+    }
+}
+
 impl Clone for RemoteObj {
     fn clone(&self) -> Self {
         Self {
@@ -135,8 +145,11 @@ impl RemoteObj {
 
     /// Registries a death recipient, and returns a RecipientRemoveHandler, if
     /// the registration is successful.
-    pub fn add_death_recipient(&self, f: fn(Box<RemoteObj>)) -> Option<RecipientRemoveHandler> {
-        let inner = self.inner.AddDeathRecipient(f);
+    pub fn add_death_recipient<F: FnMut(Box<RemoteObj>) + 'static>(
+        &self,
+        f: F,
+    ) -> Option<RecipientRemoveHandler> {
+        let inner = self.inner.AddDeathRecipient(Box::new(ClosureWrapper { inner: Box::new(f) }));
         inner.is_null().then_some(RecipientRemoveHandler { inner })
     }
 

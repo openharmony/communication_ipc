@@ -29,12 +29,10 @@
 
 namespace OHOS {
 namespace IpcRust {
-IRemoteObjectWrapper::IRemoteObjectWrapper(): raw_(nullptr)
-{
-}
+IRemoteObjectWrapper::IRemoteObjectWrapper() : raw_(nullptr) {}
 
-int32_t IRemoteObjectWrapper::SendRequest(
-    const uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) const
+int32_t IRemoteObjectWrapper::SendRequest(const uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option) const
 {
     return GetInner()->SendRequest(code, data, reply, option);
 }
@@ -59,9 +57,13 @@ rust::string IRemoteObjectWrapper::GetObjectDescriptor() const
 }
 
 std::unique_ptr<DeathRecipientRemoveHandler> IRemoteObjectWrapper::AddDeathRecipient(
-    rust::Fn<void(rust::Box<RemoteObj>)> callback) const
+    rust::Box<ClosureWrapper> callback) const
 {
-    sptr<IRemoteObject::DeathRecipient> recipient(new DeathRecipientWrapper(callback));
+    auto *raw_recipient = new (std::nothrow) DeathRecipientWrapper(std::move(callback));
+    if (!raw_recipient) {
+        return nullptr;
+    }
+    sptr<IRemoteObject::DeathRecipient> recipient(raw_recipient);
     bool res = sptr_->AddDeathRecipient(recipient);
     if (!res) {
         return nullptr;
@@ -97,10 +99,7 @@ int IRemoteObjectWrapper::Dump(int fd, const rust::Slice<const rust::string> arg
     return GetInner()->Dump(fd, res);
 }
 
-DeathRecipientWrapper::DeathRecipientWrapper(rust::Fn<void(rust::Box<RemoteObj>)> cb)
-{
-    this->inner_ = cb;
-}
+DeathRecipientWrapper::DeathRecipientWrapper(rust::Box<ClosureWrapper> cb) : inner_(std::move(cb)) {}
 
 void DeathRecipientWrapper::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &object)
 {
@@ -115,11 +114,11 @@ void DeathRecipientWrapper::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &
     wrapper->sptr_ = obj;
 
     auto rust_remote_obj = new_remote_obj(std::move(wrapper));
-    inner_(std::move(rust_remote_obj));
+    inner_->execute(std::move(rust_remote_obj));
 }
 
-DeathRecipientRemoveHandler::DeathRecipientRemoveHandler(
-    sptr<IRemoteObject> remote, sptr<IRemoteObject::DeathRecipient> recipient)
+DeathRecipientRemoveHandler::DeathRecipientRemoveHandler(sptr<IRemoteObject> remote,
+    sptr<IRemoteObject::DeathRecipient> recipient)
 {
     this->remote_ = std::move(remote);
     this->inner_ = std::move(recipient);
