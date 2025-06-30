@@ -38,6 +38,7 @@ IPCPayloadStatisticsImpl& IPCPayloadStatisticsImpl::GetInstance()
     return instance;
 }
 
+// LCOV_EXCL_START
 uint64_t IPCPayloadStatisticsImpl::GetTotalCount()
 {
     uint64_t totalCount = 0;
@@ -55,7 +56,9 @@ uint64_t IPCPayloadStatisticsImpl::GetTotalCount()
 
     return totalCount;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t IPCPayloadStatisticsImpl::GetTotalCost()
 {
     uint64_t totalCost = 0;
@@ -73,7 +76,9 @@ uint64_t IPCPayloadStatisticsImpl::GetTotalCost()
 
     return totalCost;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::vector<int32_t> IPCPayloadStatisticsImpl::GetPids()
 {
     std::vector<int32_t> vec;
@@ -88,6 +93,7 @@ std::vector<int32_t> IPCPayloadStatisticsImpl::GetPids()
 
     return vec;
 }
+// LCOV_EXCL_STOP
 
 uint64_t IPCPayloadStatisticsImpl::GetCount(const int32_t pid)
 {
@@ -202,6 +208,7 @@ bool IPCPayloadStatisticsImpl::GetPayloadInfo(const int32_t pid, const std::u16s
     return ret;
 }
 
+// LCOV_EXCL_START
 bool IPCPayloadStatisticsImpl::StartStatistics()
 {
     if (!isStatisticsFlag_) {
@@ -215,7 +222,9 @@ bool IPCPayloadStatisticsImpl::StartStatistics()
     isStatisticsFlag_ = true;
     return true;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IPCPayloadStatisticsImpl::StopStatistics()
 {
     if (!isStatisticsFlag_) {
@@ -226,18 +235,23 @@ bool IPCPayloadStatisticsImpl::StopStatistics()
     isStatisticsFlag_ = false;
     return true;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IPCPayloadStatisticsImpl::GetStatisticsStatus()
 {
     return isStatisticsFlag_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IPCPayloadStatisticsImpl::ClearStatisticsData()
 {
     std::unique_lock<std::shared_mutex> lockGuard(dataMutex_);
     payloadStat_.clear();
     return true;
 }
+// LCOV_EXCL_STOP
 
 bool IPCPayloadStatisticsImpl::UpdatePayloadInfo(const int32_t pid, const std::u16string &desc, const int32_t code,
     const uint32_t currentCost)

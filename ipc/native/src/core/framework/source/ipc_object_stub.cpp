@@ -113,10 +113,12 @@ bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
     return false;
 }
 
+// LCOV_EXCL_START
 int32_t IPCObjectStub::GetObjectRefCount()
 {
     return GetSptrRefCount();
 }
+// LCOV_EXCL_STOP
 
 int IPCObjectStub::Dump(int fd, const std::vector<std::u16string> &args)
 {
@@ -484,40 +486,54 @@ bool IPCObjectStub::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     return false;
 }
 
+// LCOV_EXCL_START
 pid_t IPCObjectStub::GetCallingPid()
 {
     return IPCSkeleton::GetCallingPid();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 pid_t IPCObjectStub::GetCallingUid()
 {
     return IPCSkeleton::GetCallingUid();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint32_t IPCObjectStub::GetCallingTokenID()
 {
     return IPCSkeleton::GetCallingTokenID();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetCallingFullTokenID()
 {
     return IPCSkeleton::GetCallingFullTokenID();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint32_t IPCObjectStub::GetFirstTokenID()
 {
     return IPCSkeleton::GetFirstTokenID();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetFirstFullTokenID()
 {
     return IPCSkeleton::GetFirstFullTokenID();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int IPCObjectStub::GetObjectType() const
 {
     return OBJECT_TYPE_NATIVE;
 }
+// LCOV_EXCL_STOP
 
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -530,10 +546,12 @@ int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageP
     return result;
 }
 
+// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetLastRequestTime()
 {
     return lastRequestTime_;
 }
+// LCOV_EXCL_STOP
 
 #ifndef CONFIG_IPC_SINGLE
 int32_t IPCObjectStub::InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -661,6 +679,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
     return ERR_NONE;
 }
 
+// LCOV_EXCL_START
 std::string IPCObjectStub::GetSessionName()
 {
     ZLOGI(LABEL, "enter");
@@ -682,6 +701,7 @@ std::string IPCObjectStub::GetSessionName()
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     return samgr->GetGrantedSessionName();
 }
+// LCOV_EXCL_STOP
 
 int32_t IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)

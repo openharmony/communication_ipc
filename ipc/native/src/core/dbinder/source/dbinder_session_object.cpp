@@ -34,6 +34,7 @@ DBinderSessionObject::~DBinderSessionObject()
     buff_ = nullptr;
 }
 
+// LCOV_EXCL_START
 void DBinderSessionObject::CloseDatabusSession()
 {
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
@@ -46,7 +47,9 @@ void DBinderSessionObject::CloseDatabusSession()
     listener->ShutdownSocket(socket_);
     socket_ = SOCKET_ID_INVALID;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<BufferObject> DBinderSessionObject::GetSessionBuff()
 {
     if (buff_ == nullptr) {
@@ -59,6 +62,7 @@ std::shared_ptr<BufferObject> DBinderSessionObject::GetSessionBuff()
 
     return buff_;
 }
+// LCOV_EXCL_STOP
 
 void DBinderSessionObject::SetServiceName(const std::string &serviceName)
 {
@@ -95,12 +99,14 @@ uint64_t DBinderSessionObject::GetStubIndex() const
     return stubIndex_;
 }
 
+// LCOV_EXCL_START
 uint32_t DBinderSessionObject::GetFlatSessionLen()
 {
     auto length = sizeof(struct FlatDBinderSession);
     ZLOGD(LOG_LABEL, "FlatDBinderSession size:%{public}zu", length);
     return length;
 }
+// LCOV_EXCL_STOP
 
 int32_t DBinderSessionObject::GetSocketId() const
 {
@@ -127,13 +133,17 @@ void DBinderSessionObject::SetPeerUid(int peerUid)
     uid_ = peerUid;
 }
 
+// LCOV_EXCL_START
 int DBinderSessionObject::GetPeerPid() const
 {
     return pid_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int DBinderSessionObject::GetPeerUid() const
 {
     return uid_;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

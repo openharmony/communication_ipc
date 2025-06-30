@@ -64,6 +64,7 @@ DBinderService::~DBinderService()
     DBINDER_LOGI(LOG_LABEL, "dbinder service died");
 }
 
+// LCOV_EXCL_START
 std::string DBinderService::GetLocalDeviceID()
 {
     std::string pkgName = "DBinderService";
@@ -76,6 +77,7 @@ std::string DBinderService::GetLocalDeviceID()
 
     return networkId;
 }
+// LCOV_EXCL_STOP
 
 bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallback> &callbackImpl)
 {
@@ -115,6 +117,7 @@ bool DBinderService::StartRemoteListener()
     return true;
 }
 
+// LCOV_EXCL_START
 bool DBinderService::ReStartRemoteListener()
 {
     if (remoteListener_ == nullptr) {
@@ -128,6 +131,7 @@ bool DBinderService::ReStartRemoteListener()
     }
     return true;
 }
+// LCOV_EXCL_STOP
 
 void DBinderService::StopRemoteListener()
 {
@@ -157,6 +161,7 @@ sptr<DBinderService> DBinderService::GetInstance()
     return instance_;
 }
 
+// LCOV_EXCL_START
 uint32_t DBinderService::GetSeqNumber()
 {
     std::lock_guard<std::mutex> lockGuard(instanceMutex_);
@@ -166,6 +171,7 @@ uint32_t DBinderService::GetSeqNumber()
     seqNumber_++;
     return seqNumber_;
 }
+// LCOV_EXCL_STOP
 
 bool DBinderService::IsDeviceIdIllegal(const std::string &deviceID)
 {

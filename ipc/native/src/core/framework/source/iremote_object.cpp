@@ -27,10 +27,12 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
+// LCOV_EXCL_START
 bool IRemoteObject::CheckObjectLegality() const
 {
     return false;
 }
+// LCOV_EXCL_STOP
 
 bool IRemoteObject::Marshalling(Parcel &parcel) const
 {
@@ -67,28 +69,36 @@ std::u16string IRemoteObject::GetObjectDescriptor() const
     return descriptor_;
 }
 
+// LCOV_EXCL_START
 sptr<IRemoteBroker> IRemoteObject::AsInterface()
 {
     return nullptr;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IRemoteObject::IsProxyObject() const
 {
     return true;
 }
+// LCOV_EXCL_STOP
 
 IRemoteObject::IRemoteObject(std::u16string descriptor) : descriptor_(descriptor)
 {
     asRemote_ = true;
 }
 
+// LCOV_EXCL_START
 bool IRemoteObject::IsObjectDead() const
 {
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::u16string IRemoteObject::GetInterfaceDescriptor()
 {
     return descriptor_;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

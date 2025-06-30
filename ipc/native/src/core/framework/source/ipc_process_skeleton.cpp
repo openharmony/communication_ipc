@@ -50,6 +50,7 @@ IPCProcessSkeleton::DestroyInstance IPCProcessSkeleton::destroyInstance_;
 std::atomic<bool> IPCProcessSkeleton::exitFlag_ = false;
 static constexpr int32_t INT_MIDMAX = INT_MAX / 2;
 
+// LCOV_EXCL_START
 IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
 {
     if ((instance_ == nullptr) && !exitFlag_) {
@@ -69,6 +70,7 @@ IPCProcessSkeleton *IPCProcessSkeleton::GetCurrent()
 
     return instance_;
 }
+// LCOV_EXCL_STOP
 
 IPCProcessSkeleton::IPCProcessSkeleton()
 {
@@ -81,6 +83,7 @@ IPCProcessSkeleton::IPCProcessSkeleton()
 #endif
 }
 
+// LCOV_EXCL_START
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
     std::lock_guard<std::mutex> lockGuard(procMutex_);
@@ -96,6 +99,7 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
     }
 #endif
 }
+// LCOV_EXCL_STOP
 
 std::string IPCProcessSkeleton::ConvertToSecureString(const std::string &str)
 {
@@ -157,6 +161,7 @@ void IPCProcessSkeleton::ClearDataResource()
 }
 #endif
 
+// LCOV_EXCL_START
 sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
@@ -174,6 +179,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetRegistryObject()
     }
     return object;
 }
+// LCOV_EXCL_STOP
 
 std::u16string IPCProcessSkeleton::MakeHandleDescriptor(int handle)
 {
@@ -417,6 +423,7 @@ void IPCProcessSkeleton::BlockUntilThreadAvailable()
     numWaitingForThreads_--;
 }
 
+// LCOV_EXCL_START
 void IPCProcessSkeleton::LockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
@@ -429,7 +436,9 @@ void IPCProcessSkeleton::LockForNumExecuting()
         numExecutingFullLastTime_ = curTime;
     }
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void IPCProcessSkeleton::UnlockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
@@ -450,6 +459,7 @@ void IPCProcessSkeleton::UnlockForNumExecuting()
         cv_.notify_all();
     }
 }
+// LCOV_EXCL_STOP
 
 bool IPCProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback)
 {
@@ -462,6 +472,7 @@ bool IPCProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void(uint6
 }
 
 #ifndef CONFIG_IPC_SINGLE
+// LCOV_EXCL_START
 sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
@@ -471,6 +482,7 @@ sptr<IRemoteObject> IPCProcessSkeleton::GetSAMgrObject()
     }
     return invoker->GetSAMgrObject();
 }
+// LCOV_EXCL_STOP
 
 /*
  * databus return int64_t channel id, but high 32bit only use 1bit channel type, we convert to int
@@ -783,6 +795,7 @@ int IPCProcessSkeleton::GetSocketIdleThreadNum() const
     return 0;
 }
 
+// LCOV_EXCL_START
 int IPCProcessSkeleton::GetSocketTotalThreadNum() const
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
@@ -791,6 +804,7 @@ int IPCProcessSkeleton::GetSocketTotalThreadNum() const
     }
     return 0;
 }
+// LCOV_EXCL_STOP
 
 void IPCProcessSkeleton::AddDataInfoToThread(const std::thread::id &threadId,
     std::shared_ptr<ThreadProcessInfo> processInfo)

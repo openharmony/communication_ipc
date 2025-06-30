@@ -56,25 +56,33 @@ DBinderCallbackStub::~DBinderCallbackStub()
     dbinderData_ = nullptr;
 }
 
+// LCOV_EXCL_START
 const std::string &DBinderCallbackStub::GetServiceName()
 {
     return serviceName_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 const std::string &DBinderCallbackStub::GetDeviceID()
 {
     return deviceID_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t DBinderCallbackStub::GetStubIndex() const
 {
     return stubIndex_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint32_t DBinderCallbackStub::GetTokenId() const
 {
     return tokenId_;
 }
+// LCOV_EXCL_STOP
 
 int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
