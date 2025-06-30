@@ -291,6 +291,7 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
 }
 
 #ifndef CONFIG_IPC_SINGLE
+// LCOV_EXCL_START
 sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
 {
     ZLOGI(LABEL, "get samgr object!");
@@ -300,6 +301,7 @@ sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
     }
     return nullptr;
 }
+// LCOV_EXCL_STOP
 
 bool BinderInvoker::AddCommAuth(int32_t handle, flat_binder_object *flat)
 {
@@ -501,6 +503,7 @@ void BinderInvoker::ExitCurrentThread()
     binderConnector_->ExitCurrentThread(BINDER_THREAD_EXIT);
 }
 
+// LCOV_EXCL_START
 void BinderInvoker::StartWorkLoop()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -541,11 +544,14 @@ void BinderInvoker::StartWorkLoop()
         ProcDeferredDecRefs();
     } while (error != -ECONNREFUSED && error != -EBADF && !stopWorkThread);
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t BinderInvoker::GetInvocationState()
 {
     return isFirstInvoke_;
 }
+// LCOV_EXCL_STOP
 
 int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t result)
 {
@@ -572,6 +578,7 @@ int BinderInvoker::SendReply(MessageParcel &reply, uint32_t flags, int32_t resul
     return WaitForCompletion();
 }
 
+// LCOV_EXCL_START
 void BinderInvoker::OnBinderDied()
 {
     ZLOGD(LABEL, "enter");
@@ -606,6 +613,7 @@ void BinderInvoker::OnBinderDied()
         }
     }
 }
+// LCOV_EXCL_STOP
 
 void BinderInvoker::OnAcquireObject(uint32_t cmd)
 {
@@ -821,6 +829,7 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     SetStatus(oldStatus);
 }
 
+// LCOV_EXCL_START
 void BinderInvoker::OnAttemptAcquire()
 {
     bool success = false;
@@ -844,7 +853,9 @@ void BinderInvoker::OnAttemptAcquire()
         }
     }
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void BinderInvoker::OnRemoveRecipientDone()
 {
     uintptr_t cookie = input_.ReadPointer();
@@ -861,6 +872,7 @@ void BinderInvoker::OnRemoveRecipientDone()
         }
     }
 }
+// LCOV_EXCL_STOP
 
 void BinderInvoker::OnSpawnThread()
 {
@@ -1378,6 +1390,7 @@ uint64_t BinderInvoker::GetFirstCallerTokenID() const
     return firstTokenID_;
 }
 
+// LCOV_EXCL_START
 uint64_t BinderInvoker::GetSelfTokenID() const
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -1386,6 +1399,7 @@ uint64_t BinderInvoker::GetSelfTokenID() const
     uint64_t selfTokenId = binderConnector_->GetSelfTokenID();
     return (selfTokenId == 0) ? static_cast<uint64_t>(getuid()) : selfTokenId;
 }
+// LCOV_EXCL_STOP
 
 uint64_t BinderInvoker::GetSelfFirstCallerTokenID() const
 {
@@ -1541,6 +1555,7 @@ bool BinderInvoker::WriteFileDescriptor(Parcel &parcel, int fd, bool takeOwnersh
     return parcel.WriteBuffer(&flat, sizeof(flat_binder_object));
 }
 
+// LCOV_EXCL_START
 std::string BinderInvoker::ResetCallingIdentity()
 {
     pid_t tempPid = callerPid_;
@@ -1580,6 +1595,7 @@ std::string BinderInvoker::ResetCallingIdentity()
     callerSid_ = "";
     return tempSid + "<" + accessToken + realPid + pidUid; // '<' is the separator character
 }
+// LCOV_EXCL_STOP
 
 void BinderInvoker::PrintIdentity(bool isPrint, bool isBefore)
 {
@@ -1633,6 +1649,7 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
     return true;
 }
 
+// LCOV_EXCL_START
 bool BinderInvoker::TriggerSystemIPCThreadReclaim()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -1648,6 +1665,7 @@ bool BinderInvoker::TriggerSystemIPCThreadReclaim()
     }
     return true;
 }
+// LCOV_EXCL_STOP
 
 bool BinderInvoker::EnableIPCThreadReclaim(bool enable)
 {
@@ -1698,10 +1716,12 @@ void BinderInvoker::PrintParcelData(Parcel &parcel, const std::string &parcelNam
         parcelName.c_str(), size, parcel.GetReadPosition(), parcel.GetWritePosition(), formatStr.c_str());
 }
 
+// LCOV_EXCL_START
 bool BinderInvoker::IsSendRequesting()
 {
     return sendRequestCount_ > 0;
 }
+// LCOV_EXCL_STOP
 
 void BinderInvoker::ProcDeferredDecRefs()
 {

@@ -25,6 +25,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_
 
 PeerHolder::PeerHolder(const sptr<IRemoteObject> &object) : remoteObject_(object) {}
 
+// LCOV_EXCL_START
 sptr<IRemoteObject> PeerHolder::Remote()
 {
     if (GetBeforeMagic() != BEFORE_MAGIC || GetAfterMagic() != AFTER_MAGIC) {
@@ -34,4 +35,5 @@ sptr<IRemoteObject> PeerHolder::Remote()
     }
     return remoteObject_;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

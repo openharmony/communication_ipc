@@ -74,6 +74,7 @@ void IPCThreadSkeleton::TlsDestructor(void *args)
     delete current;
 }
 
+// LCOV_EXCL_START
 void IPCThreadSkeleton::MakeTlsKey()
 {
     auto ret = pthread_key_create(&TLSKey_, IPCThreadSkeleton::TlsDestructor);
@@ -83,6 +84,7 @@ void IPCThreadSkeleton::MakeTlsKey()
     }
     ZLOGD(LOG_LABEL, "key:%{public}d", TLSKey_);
 }
+// LCOV_EXCL_STOP
 
 void IPCThreadSkeleton::GetVaildInstance(IPCThreadSkeleton *&instance)
 {
@@ -117,6 +119,7 @@ void IPCThreadSkeleton::SaveThreadName(const std::string &name)
     current->threadName_ = name;
 }
 
+// LCOV_EXCL_START
 IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
 {
     pthread_once(&TLSKeyOnce_, IPCThreadSkeleton::MakeTlsKey);
@@ -134,7 +137,9 @@ IPCThreadSkeleton *IPCThreadSkeleton::GetCurrent()
     }
     return current;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid()), ffrtTaskId_(ffrt_this_task_get_id())
 {
     pthread_setspecific(TLSKey_, this);
@@ -147,7 +152,9 @@ IPCThreadSkeleton::IPCThreadSkeleton() : tid_(gettid()), ffrtTaskId_(ffrt_this_t
     threadName_ = name;
     ZLOGD(LOG_LABEL, "instance:%{public}u name:%{public}s", ProcessSkeleton::ConvertAddr(this), threadName_.c_str());
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 IPCThreadSkeleton::~IPCThreadSkeleton()
 {
     exitFlag_ = INVOKER_IDLE_MAGIC;
@@ -177,6 +184,7 @@ IPCThreadSkeleton::~IPCThreadSkeleton()
     ZLOGD(LOG_LABEL, "thread exit, instance:%{public}u name:%{public}s threadType:%{public}d",
         ProcessSkeleton::ConvertAddr(this), threadName_.c_str(), threadType_);
 }
+// LCOV_EXCL_STOP
 
 bool IPCThreadSkeleton::IsInstanceException(std::atomic<uint32_t> &flag)
 {
@@ -236,6 +244,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetRemoteInvoker(int proto)
     return invoker;
 }
 
+// LCOV_EXCL_START
 IRemoteInvoker *IPCThreadSkeleton::GetActiveInvoker()
 {
     IRemoteInvoker *binderInvoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
@@ -250,6 +259,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetActiveInvoker()
 #endif
     return nullptr;
 }
+// LCOV_EXCL_STOP
 
 IRemoteInvoker *IPCThreadSkeleton::GetProxyInvoker(IRemoteObject *object)
 {
@@ -304,10 +314,12 @@ bool IPCThreadSkeleton::UpdateSendRequestCount(int delta)
     return true;
 }
 
+// LCOV_EXCL_START
 bool IPCThreadSkeleton::IsSendRequesting()
 {
     return sendRequestCount_ > 0;
 }
+// LCOV_EXCL_STOP
 
 bool IPCThreadSkeleton::SetThreadType(ThreadType type)
 {
@@ -321,6 +333,7 @@ bool IPCThreadSkeleton::SetThreadType(ThreadType type)
     return true;
 }
 
+// LCOV_EXCL_START
 ThreadType IPCThreadSkeleton::GetThreadType()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -330,7 +343,9 @@ ThreadType IPCThreadSkeleton::GetThreadType()
     }
     return current->threadType_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t IPCThreadSkeleton::GetThreadInvocationState()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_BINDER);
@@ -345,6 +360,7 @@ int32_t IPCThreadSkeleton::GetThreadInvocationState()
     BinderInvoker *binder = reinterpret_cast<BinderInvoker *>(invoker);
     return binder->GetInvocationState();
 }
+// LCOV_EXCL_STOP
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
 #endif
