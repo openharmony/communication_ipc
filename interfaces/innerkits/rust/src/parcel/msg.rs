@@ -15,7 +15,7 @@ use std::borrow::Borrow;
 use std::fs::File;
 use std::mem;
 use std::ops::Deref;
-use std::os::fd::{FromRawFd, IntoRawFd};
+use std::os::fd::{FromRawFd, IntoRawFd, RawFd};
 use std::pin::Pin;
 
 use cxx::UniquePtr;
@@ -230,9 +230,49 @@ impl MsgParcel {
     /// f.read_to_string(&mut buf).unwrap();
     /// assert_eq!("hello world", buf);
     /// ```
+    #[deprecated(note = "This method is unsafe; use `read_raw_fd()` instead")]
     pub fn read_file(&mut self) -> IpcResult<File> {
         let fd = self.as_msg_parcel_mut().ReadFileDescriptor();
         unsafe { Ok(File::from_raw_fd(fd)) }
+    }
+
+    /// Reads a raw file descriptor (fd) previously written to the `MsgParcel`.
+    ///
+    /// # Safety
+    /// This function is `unsafe` because it returns a raw file descriptor (`RawFd`).
+    /// The caller must ensure:
+    /// - The returned `RawFd` is valid (i.e., ≥0) and owned by the caller.
+    /// - The descriptor is properly closed (e.g., via `File::from_raw_fd` + `drop`) 
+    ///   to avoid resource leaks.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// use std::fs::File;
+    /// use std::io::{Read, Seek, Write};
+    /// use std::os::fd::FromRawFd;
+    ///
+    /// use ipc::parcel::MsgParcel;
+    /// let mut msg = MsgParcel::new();
+    /// let mut file = std::fs::OpenOptions::new()
+    ///     .read(true)
+    ///     .write(true)
+    ///     .truncate(true)
+    ///     .open("foo")
+    ///     .unwrap();
+    /// file.write_all(b"hello world").unwrap();
+    /// msg.write_file(file).unwrap();
+    ///
+    /// let raw_fd = unsafe { msg.read_raw_fd() };
+    /// assert!(raw_fd >= 0, "Invalid fd: {}", raw_fd);
+    /// let mut f = unsafe { File::from_raw_fd(raw_fd) };
+    /// let mut buf = String::new();
+    /// f.rewind().unwrap();
+    /// f.read_to_string(&mut buf).unwrap();
+    /// assert_eq!("hello world", buf);
+    /// drop(f);
+    /// ```
+    pub unsafe fn read_raw_fd(&mut self) -> RawFd {
+        self.as_msg_parcel_mut().ReadFileDescriptor()
     }
 
     /// Writes a data region (buffer) to this parcel
