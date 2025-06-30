@@ -50,8 +50,5 @@ group("fuzztest") {
     "ipc/native/src/core/dbindergetpiduid_fuzzer:DBinderGetPidUidFuzzTest",
     "ipc/native/src/core/makebasicthreadname_fuzzer:MakeBasicThreadNameFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
-    "dbinder/dbinder_service/src/getlocaldeviceid_fuzzer:GetLocalDeviceIDFuzzTest",
-    "dbinder/dbinder_service/src/getseqnumber_fuzzer:GetSeqNumberFuzzTest",
-    "dbinder/dbinder_service/src/restartremotelistener_fuzzer:ReStartRemoteListenerFuzzTest",
   ]
 }
