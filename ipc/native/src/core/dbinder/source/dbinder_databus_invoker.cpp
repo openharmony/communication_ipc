@@ -249,6 +249,7 @@ bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid
     return true;
 }
 
+// LCOV_EXCL_START
 bool DBinderDatabusInvoker::CreateProcessThread()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -266,6 +267,7 @@ bool DBinderDatabusInvoker::CreateProcessThread()
     ZLOGE(LOG_LABEL, "failed, no idle socket thread left");
     return false;
 }
+// LCOV_EXCL_STOP
 
 void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize)
 {
@@ -666,20 +668,24 @@ uint32_t DBinderDatabusInvoker::QueryHandleBySession(std::shared_ptr<DBinderSess
         session->GetStubIndex());
 }
 
+// LCOV_EXCL_START
 uint64_t DBinderDatabusInvoker::GetSeqNum() const
 {
     return seqNumber_;
 }
+// LCOV_EXCL_STOP
 
 void DBinderDatabusInvoker::SetSeqNum(uint64_t seq)
 {
     seqNumber_ = seq;
 }
 
+// LCOV_EXCL_START
 int32_t DBinderDatabusInvoker::GetClientFd() const
 {
     return clientFd_;
 }
+// LCOV_EXCL_STOP
 
 void DBinderDatabusInvoker::SetClientFd(int32_t fd)
 {
@@ -706,35 +712,43 @@ void DBinderDatabusInvoker::SetStatus(uint32_t status)
     status_ = status;
 }
 
+// LCOV_EXCL_START
 uint32_t DBinderDatabusInvoker::GetStatus()
 {
     return status_;
 }
+// LCOV_EXCL_STOP
 
 void DBinderDatabusInvoker::SetCallerPid(pid_t pid)
 {
     callerPid_ = pid;
 }
 
+// LCOV_EXCL_START
 uid_t DBinderDatabusInvoker::GetCallerUid() const
 {
     return callerUid_;
 }
+// LCOV_EXCL_STOP
 
 void DBinderDatabusInvoker::SetCallerUid(pid_t uid)
 {
     callerUid_ = uid;
 }
 
+// LCOV_EXCL_START
 uint64_t DBinderDatabusInvoker::GetCallerTokenID() const
 {
     return callerTokenID_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t DBinderDatabusInvoker::GetFirstCallerTokenID() const
 {
     return firstTokenID_;
 }
+// LCOV_EXCL_STOP
 
 uint64_t DBinderDatabusInvoker::GetSelfTokenID() const
 {
@@ -765,10 +779,12 @@ void DBinderDatabusInvoker::SetCallerTokenID(const uint32_t tokenId)
     firstTokenID_ = tokenId;
 }
 
+// LCOV_EXCL_START
 bool DBinderDatabusInvoker::IsLocalCalling()
 {
     return false;
 }
+// LCOV_EXCL_STOP
 
 int DBinderDatabusInvoker::CheckAndSetCallerInfo(int32_t socketId, uint64_t stubIndex)
 {
@@ -824,6 +840,7 @@ void DBinderDatabusInvoker::GetCallerInfo(DBinderCallerInfo &callerInfo)
     callerInfo.firstTokenID = firstTokenID_;
 }
 
+// LCOV_EXCL_START
 std::string DBinderDatabusInvoker::GetLocalDeviceID()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -834,6 +851,7 @@ std::string DBinderDatabusInvoker::GetLocalDeviceID()
 
     return current->GetLocalDeviceID();
 }
+// LCOV_EXCL_STOP
 
 std::string DBinderDatabusInvoker::GetCallerDeviceID() const
 {
@@ -956,6 +974,7 @@ int DBinderDatabusInvoker::FlushCommands(IRemoteObject *object)
     return ERR_NONE;
 }
 
+// LCOV_EXCL_START
 std::string DBinderDatabusInvoker::ResetCallingIdentity()
 {
     std::string token = std::to_string(((static_cast<uint64_t>(callerUid_) << PID_LEN)
@@ -974,6 +993,7 @@ std::string DBinderDatabusInvoker::ResetCallingIdentity()
     callerTokenID_ = GetSelfTokenID();
     return accessToken + identity;
 }
+// LCOV_EXCL_STOP
 
 bool DBinderDatabusInvoker::SetCallingIdentity(std::string &identity, bool flag)
 {

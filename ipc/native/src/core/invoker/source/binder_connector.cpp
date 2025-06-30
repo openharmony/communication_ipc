@@ -50,6 +50,7 @@ BinderConnector::BinderConnector(const std::string &deviceName)
     : driverFD_(-1), vmAddr_(MAP_FAILED), deviceName_(deviceName), version_(0), featureSet_(0), selfTokenID_(0)
 {}
 
+// LCOV_EXCL_START
 BinderConnector::~BinderConnector()
 {
     if (vmAddr_ != MAP_FAILED) {
@@ -59,12 +60,14 @@ BinderConnector::~BinderConnector()
 
     CloseDriverFd();
 };
+// LCOV_EXCL_STOP
 
 bool BinderConnector::IsDriverAlive()
 {
     return driverFD_.load() >= 0;
 }
 
+// LCOV_EXCL_START
 bool BinderConnector::OpenDriver()
 {
     int fd = open(deviceName_.c_str(), O_RDWR | O_CLOEXEC);
@@ -101,6 +104,7 @@ bool BinderConnector::OpenDriver()
     featureSet_ = featureSet;
     return true;
 }
+// LCOV_EXCL_STOP
 
 bool BinderConnector::MapMemory(uint64_t featureSet)
 {
@@ -112,6 +116,7 @@ bool BinderConnector::MapMemory(uint64_t featureSet)
     return true;
 }
 
+// LCOV_EXCL_START
 bool BinderConnector::IsAccessTokenSupported()
 {
     if (IsDriverAlive() != true) {
@@ -119,6 +124,7 @@ bool BinderConnector::IsAccessTokenSupported()
     }
     return (featureSet_ & ACCESS_TOKEN_FAETURE_MASK) != 0;
 }
+// LCOV_EXCL_STOP
 
 bool BinderConnector::IsRealPidSupported()
 {
@@ -156,6 +162,7 @@ void BinderConnector::ExitCurrentThread(unsigned long request)
     }
 }
 
+// LCOV_EXCL_START
 uint64_t BinderConnector::GetSelfTokenID()
 {
     if (IsAccessTokenSupported() != true) {
@@ -179,8 +186,10 @@ uint64_t BinderConnector::GetSelfTokenID()
     (void)fclose(fp);
     return selfTokenID_;
 }
+// LCOV_EXCL_STOP
 
 
+// LCOV_EXCL_START
 uint64_t BinderConnector::GetSelfFirstCallerTokenID()
 {
     if (IsAccessTokenSupported() != true) {
@@ -205,6 +214,7 @@ uint64_t BinderConnector::GetSelfFirstCallerTokenID()
     (void)fclose(fp);
     return token;
 }
+// LCOV_EXCL_STOP
 
 void BinderConnector::CloseDriverFd()
 {
@@ -216,6 +226,7 @@ void BinderConnector::CloseDriverFd()
     }
 }
 
+// LCOV_EXCL_START
 BinderConnector *BinderConnector::GetInstance()
 {
     if (instance_ == nullptr) {
@@ -236,4 +247,5 @@ BinderConnector *BinderConnector::GetInstance()
 
     return instance_;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

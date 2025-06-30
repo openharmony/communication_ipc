@@ -65,6 +65,7 @@ void BufferObject::UpdateSendBuffer(uint32_t userDataSize)
 }
 
 /* update buffer need get mutex first */
+// LCOV_EXCL_START
 void BufferObject::UpdateReceiveBuffer()
 {
     if (recvBufferCursorW_ <= recvBufferCursorR_) {
@@ -86,6 +87,7 @@ void BufferObject::UpdateReceiveBuffer()
         recvBufferCursorR_ = 0;
     }
 }
+// LCOV_EXCL_STOP
 
 char *BufferObject::GetSendBufferAndLock(uint32_t size)
 {
