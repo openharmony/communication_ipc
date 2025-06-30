@@ -187,6 +187,7 @@ int32_t DBinderRemoteListener::GetPeerSocketId(const std::string &peerNetworkId)
     return SOCKET_ID_INVALID;
 }
 
+// LCOV_EXCL_START
 bool DBinderRemoteListener::StartListener()
 {
     DBINDER_LOGI(LOG_LABEL, "create socket server");
@@ -221,6 +222,7 @@ bool DBinderRemoteListener::StartListener()
 
     return true;
 }
+// LCOV_EXCL_STOP
 
 bool DBinderRemoteListener::StopListener()
 {

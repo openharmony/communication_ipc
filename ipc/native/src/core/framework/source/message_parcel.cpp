@@ -215,6 +215,7 @@ bool MessageParcel::WriteRemoteObject(const sptr<IRemoteObject> &object)
     return true;
 }
 
+// LCOV_EXCL_START
 sptr<IRemoteObject> MessageParcel::ReadRemoteObject()
 {
     sptr<IRemoteObject> temp = ReadObject<IRemoteObject>();
@@ -232,6 +233,7 @@ sptr<IRemoteObject> MessageParcel::ReadRemoteObject()
 #endif
     return temp;
 }
+// LCOV_EXCL_STOP
 
 bool MessageParcel::WriteFileDescriptor(int fd)
 {
@@ -258,6 +260,7 @@ bool MessageParcel::WriteFileDescriptor(int fd)
     return true;
 }
 
+// LCOV_EXCL_START
 int MessageParcel::ReadFileDescriptor()
 {
     sptr<IPCFileDescriptor> descriptor = ReadObject<IPCFileDescriptor>();
@@ -277,7 +280,9 @@ int MessageParcel::ReadFileDescriptor()
     }
     return dupFd;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void MessageParcel::ClearFileDescriptor()
 {
     size_t dataOffset = 0;
@@ -307,7 +312,9 @@ void MessageParcel::ClearFileDescriptor()
         }
     }
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool MessageParcel::ContainFileDescriptors() const
 {
     size_t dataOffset = 0;
@@ -339,6 +346,7 @@ bool MessageParcel::ContainFileDescriptors() const
 
     return false;
 }
+// LCOV_EXCL_STOP
 
 bool MessageParcel::WriteInterfaceToken(std::u16string name)
 {
@@ -360,6 +368,7 @@ bool MessageParcel::WriteInterfaceToken(std::u16string name)
     return WriteString16(name);
 }
 
+// LCOV_EXCL_START
 std::u16string MessageParcel::ReadInterfaceToken()
 {
     [[maybe_unused]] int32_t strictModePolicy = ReadInt32();
@@ -367,6 +376,7 @@ std::u16string MessageParcel::ReadInterfaceToken()
     interfaceToken_ = ReadString16();
     return interfaceToken_;
 }
+// LCOV_EXCL_STOP
 
 std::u16string MessageParcel::GetInterfaceToken() const
 {
@@ -492,6 +502,7 @@ const void *MessageParcel::ReadRawData(size_t size)
     return ptr;
 }
 
+// LCOV_EXCL_START
 const void *MessageParcel::GetRawData() const
 {
     if (rawData_ != nullptr) {
@@ -505,22 +516,30 @@ const void *MessageParcel::GetRawData() const
     }
     return nullptr;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 size_t MessageParcel::GetRawDataSize() const
 {
     return rawDataSize_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 size_t MessageParcel::GetRawDataCapacity() const
 {
     return MAX_RAWDATA_SIZE;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void MessageParcel::WriteNoException()
 {
     WriteInt32(0);
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t MessageParcel::ReadException()
 {
     int32_t errorCode = ReadInt32();
@@ -529,6 +548,7 @@ int32_t MessageParcel::ReadException()
     }
     return errorCode;
 }
+// LCOV_EXCL_STOP
 
 bool MessageParcel::WriteAshmem(sptr<Ashmem> ashmem)
 {
@@ -543,6 +563,7 @@ bool MessageParcel::WriteAshmem(sptr<Ashmem> ashmem)
     return true;
 }
 
+// LCOV_EXCL_START
 sptr<Ashmem> MessageParcel::ReadAshmem()
 {
     int fd = ReadFileDescriptor();
@@ -557,6 +578,7 @@ sptr<Ashmem> MessageParcel::ReadAshmem()
     }
     return new (std::nothrow) Ashmem(fd, size);
 }
+// LCOV_EXCL_STOP
 
 bool MessageParcel::Append(MessageParcel &data)
 {

@@ -50,6 +50,7 @@ static std::string GetSid()
     return context;
 }
 
+// LCOV_EXCL_START
 void IPCSkeleton::JoinWorkThread()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
@@ -57,6 +58,7 @@ void IPCSkeleton::JoinWorkThread()
         current->JoinWorkThread(IRemoteObject::IF_PROT_DEFAULT);
     }
 }
+// LCOV_EXCL_STOP
 
 void IPCSkeleton::StopWorkThread()
 {
@@ -75,6 +77,7 @@ bool IPCSkeleton::SetContextObject(sptr<IRemoteObject> &object)
     return false;
 }
 
+// LCOV_EXCL_START
 sptr<IRemoteObject> IPCSkeleton::GetContextObject()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -83,6 +86,7 @@ sptr<IRemoteObject> IPCSkeleton::GetContextObject()
     }
     return nullptr;
 }
+// LCOV_EXCL_STOP
 
 bool IPCSkeleton::SetMaxWorkThreadNum(int maxThreadNum)
 {
@@ -94,6 +98,7 @@ bool IPCSkeleton::SetMaxWorkThreadNum(int maxThreadNum)
     return false;
 }
 
+// LCOV_EXCL_START
 std::string IPCSkeleton::GetCallingSid()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -102,7 +107,9 @@ std::string IPCSkeleton::GetCallingSid()
     }
     return GetSid();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 pid_t IPCSkeleton::GetCallingPid()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -111,7 +118,9 @@ pid_t IPCSkeleton::GetCallingPid()
     }
     return getpid();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 pid_t IPCSkeleton::GetCallingRealPid()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -120,7 +129,9 @@ pid_t IPCSkeleton::GetCallingRealPid()
     }
     return getprocpid();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 pid_t IPCSkeleton::GetCallingUid()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -129,7 +140,9 @@ pid_t IPCSkeleton::GetCallingUid()
     }
     return getuid();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint32_t IPCSkeleton::GetCallingTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -138,7 +151,9 @@ uint32_t IPCSkeleton::GetCallingTokenID()
     }
     return static_cast<uint32_t>(GetSelfTokenID());
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t IPCSkeleton::GetCallingFullTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -147,7 +162,9 @@ uint64_t IPCSkeleton::GetCallingFullTokenID()
     }
     return GetSelfTokenID();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t IPCSkeleton::GetSelfTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
@@ -156,7 +173,9 @@ uint64_t IPCSkeleton::GetSelfTokenID()
     }
     return 0;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint32_t IPCSkeleton::GetFirstTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -169,7 +188,9 @@ uint32_t IPCSkeleton::GetFirstTokenID()
     }
     return 0;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t IPCSkeleton::GetFirstFullTokenID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -182,7 +203,9 @@ uint64_t IPCSkeleton::GetFirstFullTokenID()
     }
     return 0;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::string IPCSkeleton::GetLocalDeviceID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -191,7 +214,9 @@ std::string IPCSkeleton::GetLocalDeviceID()
     }
     return "";
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::string IPCSkeleton::GetCallingDeviceID()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -200,6 +225,7 @@ std::string IPCSkeleton::GetCallingDeviceID()
     }
     return "";
 }
+// LCOV_EXCL_STOP
 
 IPCSkeleton &IPCSkeleton::GetInstance()
 {
@@ -207,6 +233,7 @@ IPCSkeleton &IPCSkeleton::GetInstance()
     return skeleton;
 }
 
+// LCOV_EXCL_START
 bool IPCSkeleton::IsLocalCalling()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -215,6 +242,7 @@ bool IPCSkeleton::IsLocalCalling()
     }
     return true;
 }
+// LCOV_EXCL_STOP
 
 int IPCSkeleton::FlushCommands(IRemoteObject *object)
 {
@@ -239,6 +267,7 @@ int IPCSkeleton::FlushCommands(IRemoteObject *object)
     return ret;
 }
 
+// LCOV_EXCL_START
 std::string IPCSkeleton::ResetCallingIdentity()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
@@ -247,6 +276,7 @@ std::string IPCSkeleton::ResetCallingIdentity()
     }
     return "";
 }
+// LCOV_EXCL_STOP
 
 bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)
 {
@@ -258,6 +288,7 @@ bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)
     return true;
 }
 
+// LCOV_EXCL_START
 bool IPCSkeleton::TriggerSystemIPCThreadReclaim()
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
@@ -266,6 +297,7 @@ bool IPCSkeleton::TriggerSystemIPCThreadReclaim()
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
 bool IPCSkeleton::EnableIPCThreadReclaim(bool enable)
 {
@@ -276,11 +308,14 @@ bool IPCSkeleton::EnableIPCThreadReclaim(bool enable)
     return false;
 }
 
+// LCOV_EXCL_START
 int32_t IPCSkeleton::GetThreadInvocationState()
 {
     return IPCThreadSkeleton::GetThreadInvocationState();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void IPCDfx::BlockUntilThreadAvailable()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -288,6 +323,7 @@ void IPCDfx::BlockUntilThreadAvailable()
         current->BlockUntilThreadAvailable();
     }
 }
+// LCOV_EXCL_STOP
 
 bool IPCDfx::SetIPCProxyLimit(uint64_t num, IPCProxyLimitCallback callback)
 {

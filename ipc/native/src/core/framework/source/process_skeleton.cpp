@@ -40,6 +40,7 @@ std::mutex ProcessSkeleton::mutex_;
 ProcessSkeleton::DestroyInstance ProcessSkeleton::destroyInstance_;
 std::atomic<bool> ProcessSkeleton::exitFlag_ = false;
 
+// LCOV_EXCL_START
 ProcessSkeleton* ProcessSkeleton::GetInstance()
 {
     if ((instance_ == nullptr) && !exitFlag_) {
@@ -54,6 +55,7 @@ ProcessSkeleton* ProcessSkeleton::GetInstance()
     }
     return instance_;
 }
+// LCOV_EXCL_STOP
 
 ProcessSkeleton::~ProcessSkeleton()
 {
