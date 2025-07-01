@@ -234,7 +234,7 @@ RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr)
     return { ret, code, data, reply };
 }
 
-void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags)
+void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags)
 {
     OHOS::sptr<DeathRecipientImpl> nativeDeathRecipient = new (std::nothrow) DeathRecipientImpl(recipient);
     if (!cachedObject_->AddDeathRecipient(nativeDeathRecipient)) {
@@ -242,17 +242,17 @@ void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipi
         return;
     }
 
-    deathRecipientMap_.emplace(recipient, nativeDeathRecipient);
+    deathRecipientMap_.emplace(&recipient, nativeDeathRecipient);
 }
 
-void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags)
+void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags)
 {
-    auto* recipientImpl = deathRecipientMap_.find_item(recipient);
-    if (recipientImpl != nullptr) {
-        if (!cachedObject_->RemoveDeathRecipient(recipientImpl->second)) {
+    auto it = deathRecipientMap_.find(&recipient);
+    if (it != deathRecipientMap_.end()) {
+        if (!cachedObject_->RemoveDeathRecipient(it->second)) {
             ZLOGE(LOG_LABEL, "RemoveDeathRecipient failed");
         }
-        deathRecipientMap_.erase(recipient);
+        deathRecipientMap_.erase(&recipient);
     } else {
         ZLOGE(LOG_LABEL, "DeathRecipient not found");
     }
