@@ -1183,6 +1183,9 @@ HWTEST_F(IPCObjectStubTest, GetGrantedSessionNameTest001, TestSize.Level1)
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
     EXPECT_CALL(*invoker, GetCallerPid())
         .WillRepeatedly(testing::Return(1111));
 
@@ -1223,6 +1226,9 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest001, TestSize.Level1)
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
     EXPECT_CALL(*invoker, GetCallerPid())
         .WillRepeatedly(testing::Return(1111));
 
@@ -1262,6 +1268,9 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest002, TestSize.Level1)
 
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
 
     EXPECT_CALL(*invoker, GetCallerPid())
         .WillRepeatedly(testing::Return(1113));
@@ -1309,6 +1318,9 @@ HWTEST_F(IPCObjectStubTest, GetCallingTokenIDTest001, TestSize.Level1)
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
     EXPECT_CALL(*invoker, GetCallerTokenID())
         .WillRepeatedly(testing::Return(1));
 
@@ -1333,6 +1345,9 @@ HWTEST_F(IPCObjectStubTest, GetCallingFullTokenIDTest001, TestSize.Level1)
 
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
 
     EXPECT_CALL(*invoker, GetCallerTokenID())
         .WillRepeatedly(testing::Return(1));

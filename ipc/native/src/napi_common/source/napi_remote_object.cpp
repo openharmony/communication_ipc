@@ -698,9 +698,16 @@ void NAPIRemoteObject::ResetJsEnv()
 
 void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
 {
-    newCallingInfoParam.callingPid = IPCSkeleton::GetCallingPid();
-    newCallingInfoParam.callingUid = IPCSkeleton::GetCallingUid();
-    newCallingInfoParam.callingTokenId = IPCSkeleton::GetCallingTokenID();
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        newCallingInfoParam.callingPid = invoker->GetCallerPid();
+        newCallingInfoParam.callingUid = invoker->GetCallerUid();
+        newCallingInfoParam.callingTokenId = static_cast<uint32_t>(invoker->GetCallerTokenID());
+    } else {
+        newCallingInfoParam.callingPid = getpid();
+        newCallingInfoParam.callingUid = getuid();
+        newCallingInfoParam.callingTokenId = static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID());
+    }
     newCallingInfoParam.callingDeviceID = IPCSkeleton::GetCallingDeviceID();
     newCallingInfoParam.localDeviceID = IPCSkeleton::GetLocalDeviceID();
     newCallingInfoParam.isLocalCalling = IPCSkeleton::IsLocalCalling();
