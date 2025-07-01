@@ -1102,18 +1102,14 @@ int64_t MessageSequenceImpl::GetNativePtr()
 
 void MessageSequenceImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageSequence obj)
 {
-    std::cout << "into AddJsObjWeakRef" << std::endl;
     jsObjRef_ = std::optional<::ohos::rpc::rpc::weak::MessageSequence>(std::in_place, obj);
 }
 
 ::ohos::rpc::rpc::MessageSequence MessageSequenceImpl::CreateMessageSequence()
 {
-    std::cout << "into CreateMessageSequence" << std::endl;
     ::ohos::rpc::rpc::MessageSequence obj =
         taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
-    std::cout << "before AddJsObjWeakRef" << std::endl;
     obj->AddJsObjWeakRef(obj);
-    std::cout << "after AddJsObjWeakRef" << std::endl;
     return obj;
 }
 
