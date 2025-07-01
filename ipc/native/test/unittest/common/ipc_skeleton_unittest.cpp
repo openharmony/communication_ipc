@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -148,6 +148,9 @@ HWTEST_F(IPCSkeletonTest, GetCallingTokenIDTest001, TestSize.Level1)
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
     EXPECT_CALL(*invoker, GetCallerTokenID())
         .WillRepeatedly(testing::Return(1));
 
@@ -173,6 +176,9 @@ HWTEST_F(IPCSkeletonTest, GetCallingFullTokenIDTest001, TestSize.Level1)
 
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
 
     EXPECT_CALL(*invoker, GetCallerTokenID())
         .WillRepeatedly(testing::Return(1));
@@ -240,6 +246,9 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDTest002, TestSize.Level1)
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
     EXPECT_CALL(*invoker, GetCallerTokenID())
         .WillRepeatedly(testing::Return(1));
     EXPECT_CALL(*invoker, GetFirstCallerTokenID())
@@ -269,6 +278,9 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDTest003, TestSize.Level1)
 
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
 
     EXPECT_CALL(*invoker, GetFirstCallerTokenID())
         .WillRepeatedly(testing::Return(123));
@@ -543,4 +555,319 @@ HWTEST_F(IPCSkeletonTest, EnableIPCThreadReclaim001, TestSize.Level1)
     delete invoker;
 }
 
+/**
+ * @tc.name: GetCallingUidInRPC
+ * @tc.desc: Verify the GetCallingUid function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingUidInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    pid_t uid = IPCSkeleton::GetCallingUid();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(uid, -1);
+}
+
+/**
+ * @tc.name: GetCallingPidInRPC
+ * @tc.desc: Verify the GetCallingPid function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingPidInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    pid_t pid = IPCSkeleton::GetCallingPid();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: GetCallingRealPidInRPC
+ * @tc.desc: Verify the GetCallingRealPid function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingRealPidInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    pid_t pid = IPCSkeleton::GetCallingRealPid();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: GetCallingTokenIDInRPC
+ * @tc.desc: Verify the GetCallingTokenID function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingTokenIDInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(tokenId, 0);
+}
+
+/**
+ * @tc.name: GetCallingFullTokenIDInRPC
+ * @tc.desc: Verify the GetCallingFullTokenID function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingFullTokenIDInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    uint64_t tokenId = IPCSkeleton::GetCallingFullTokenID();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(tokenId, 0);
+}
+
+/**
+ * @tc.name: GetFirstTokenIDInRPC
+ * @tc.desc: Verify the GetFirstTokenID function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetFirstTokenIDInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    uint32_t tokenId = IPCSkeleton::GetFirstTokenID();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(tokenId, 0);
+}
+
+/**
+ * @tc.name: GetFirstFullTokenIDInRPC
+ * @tc.desc: Verify the GetFirstFullTokenID function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+    
+    uint64_t tokenId = IPCSkeleton::GetFirstFullTokenID();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(tokenId, 0);
+}
+
+/**
+ * @tc.name: GetDCallingTokenIDInIPC
+ * @tc.desc: Verify the GetDCallingTokenID function in IPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetDCallingTokenIDInIPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*binderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
+    uint32_t tokenId = IPCSkeleton::GetDCallingTokenID();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(tokenId, 0);
+}
+
+/**
+ * @tc.name: GetDCallingTokenIDInRPC
+ * @tc.desc: Verify the GetDCallingTokenID function in RPC context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetDCallingTokenIDInRPC, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+    ASSERT_NE(dbinderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+    current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::IDLE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, GetStatus())
+        .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
+
+    EXPECT_CALL(*dbinderInvoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(false));
+
+    // The initial value of DBinderDatabusInvoker's callerTokenID_ is 0
+    uint32_t tokenId = IPCSkeleton::GetDCallingTokenID();
+
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete binderInvoker;
+    delete dbinderInvoker;
+
+    ASSERT_EQ(tokenId, 0);
+}
 } // namespace OHOS

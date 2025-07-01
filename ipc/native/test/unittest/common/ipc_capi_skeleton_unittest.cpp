@@ -135,6 +135,9 @@ HWTEST_F(IpcCApiSkeletonUnitTest, Skeleton_GetCallingTokenId_001, TestSize.Level
     EXPECT_CALL(*invoker, GetStatus())
         .WillRepeatedly(testing::Return(IRemoteInvoker::ACTIVE_INVOKER));
 
+    EXPECT_CALL(*invoker, IsLocalCalling())
+        .WillRepeatedly(testing::Return(true));
+
     EXPECT_CALL(*invoker, GetCallerTokenID())
         .WillRepeatedly(testing::Return(tokenId));
     auto result = OH_IPCSkeleton_GetCallingTokenId();

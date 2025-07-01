@@ -55,56 +55,56 @@ public:
 
     /**
      * @brief Get calling process id of caller.
-     * @return Returns the PID of caller.
+     * @return Returns the PID of caller; Returns a invalid value -1 in the rpc context.
      * @since 9
      */
     static pid_t GetCallingPid();
 
     /**
      * @brief Get calling process id of caller.
-     * @return Returns the same init namespace PID of caller.
+     * @return Returns the same init namespace PID of caller; Returns a invalid value -1 in the rpc context.
      * @since 9
      */
     static pid_t GetCallingRealPid();
 
     /**
      * @brief Get calling user id of caller.
-     * @return Returns the UID of the caller.
+     * @return Returns the UID of the caller; Returns a invalid value -1 in the rpc context.
      * @since 9
      */
     static pid_t GetCallingUid();
 
     /**
      * @brief Get calling token ID of caller.
-     * @return Returns the TokenId of caller.
+     * @return Returns the token ID of caller; Returns a invalid value 0 in the rpc context.
      * @since 9
      */
     static uint32_t GetCallingTokenID();
 
     /**
      * @brief Get full calling token ID of caller.
-     * @return Returns the full TokenId of caller.
+     * @return Returns the full token ID of caller; Returns a invalid value 0 in the rpc context.
      * @since 9
      */
     static uint64_t GetCallingFullTokenID();
 
     /**
      * @brief Get the first token ID.
-     * @return Returns the first TokenId.
+     * @return Returns the first token ID; Returns a invalid value 0 in the rpc context.
      * @since 9
      */
     static uint32_t GetFirstTokenID();
 
     /**
      * @brief Get the first full token ID.
-     * @return Returns the first full TokenId.
+     * @return Returns the first full token ID; Returns a invalid value 0 in the rpc context.
      * @since 9
      */
     static uint64_t GetFirstFullTokenID();
 
     /**
      * @brief Get the token ID of the self.
-     * @return Returns the TokenId.
+     * @return Returns the token ID.
      * @since 9
      */
     static uint64_t GetSelfTokenID();
@@ -199,6 +199,14 @@ public:
      * @since 20
      */
     static int32_t GetThreadInvocationState();
+
+    /**
+     * @brief Get calling token ID of caller on the peer device.
+     * @return Returns the token ID of caller in the rpc context, Token ID can not be used for permission verification;
+     * Returns a invalid value 0 in the ipc context.
+     * @since 20
+     */
+    static uint32_t GetDCallingTokenID();
 };
 
 class IPCDfx {
