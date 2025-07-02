@@ -126,7 +126,7 @@
             "OHOS::IPCSkeleton::SetCallingIdentity(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, bool)";
             "OHOS::IPCSkeleton::TriggerSystemIPCThreadReclaim()";
             "OHOS::IPCSkeleton::GetThreadInvocationState()";
-            
+            "OHOS::IPCSkeleton::GetDCallingTokenID()";
             "OHOS::IPCPayloadStatistics::StartStatistics()";
             "OHOS::IPCPayloadStatistics::StopStatistics()";
             "OHOS::IPCPayloadStatistics::GetTotalCount()";

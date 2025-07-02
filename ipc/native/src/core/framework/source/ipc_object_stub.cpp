@@ -234,20 +234,23 @@ int IPCObjectStub::DBinderIncRefsTransaction(uint32_t code, MessageParcel &data,
         ZLOGE(LABEL, "dbinder incref in the same device is invalid");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    pid_t callerPid = IPCSkeleton::GetCallingPid();
-    pid_t callerUid = IPCSkeleton::GetCallingUid();
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
-    uint64_t stubIndex = current->QueryStubIndex(this);
     DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
         IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
+        ZLOGE(LABEL, "get dbinder databus invoker fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
+
+    pid_t callerPid = invoker->GetCallerPid();
+    pid_t callerUid = invoker->GetCallerUid();
+    uint32_t tokenId = static_cast<uint32_t>(invoker->GetCallerTokenID());
+    std::string callerDevId = invoker->GetCallerDeviceID();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "IPCProcessSkeleton is nullptr");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    uint64_t stubIndex = current->QueryStubIndex(this);
     int32_t listenFd = invoker->GetClientFd();
     // update listenFd
     ZLOGW(LABEL, "update app info, listenFd:%{public}d stubIndex:%{public}" PRIu64 " tokenId:%{public}u", listenFd,
@@ -266,20 +269,22 @@ int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code, MessageParcel &data,
     }
     // stub's refcount will be decreased either in this case or OnSessionClosed callback
     // we may race with OnSessionClosed callback, thus dec refcount only when removing appInfo sucessfully
-    pid_t callerPid = IPCSkeleton::GetCallingPid();
-    pid_t callerUid = IPCSkeleton::GetCallingUid();
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    std::string callerDevId = IPCSkeleton::GetCallingDeviceID();
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
-    uint64_t stubIndex = current->QueryStubIndex(this);
     DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
         IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
     if (invoker == nullptr) {
+        ZLOGE(LABEL, "get dbinder databus invoker fail");
         return IPC_STUB_INVALID_DATA_ERR;
     }
+    pid_t callerPid = invoker->GetCallerPid();
+    pid_t callerUid = invoker->GetCallerUid();
+    uint32_t tokenId = static_cast<uint32_t>(invoker->GetCallerTokenID());
+    std::string callerDevId = invoker->GetCallerDeviceID();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LABEL, "get dbinder databus invoker failed");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    uint64_t stubIndex = current->QueryStubIndex(this);
     int32_t listenFd = invoker->GetClientFd();
     // detach info whose listen fd equals the given one
     AppAuthInfo appAuthInfo = { callerPid, callerUid, tokenId, listenFd, stubIndex, this, callerDevId };
@@ -291,8 +296,21 @@ int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code, MessageParcel &data,
 
 int IPCObjectStub::DBinderAddCommAuth(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    pid_t uid = IPCSkeleton::GetCallingUid();
-    if (IPCSkeleton::IsLocalCalling() || uid >= ALLOWED_UID) {
+    if (IPCSkeleton::IsLocalCalling()) {
+        ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH is not supported in ipc communication, desc:%{public}s",
+            remoteDescriptor_.c_str());
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    DBinderDatabusInvoker *invoker = reinterpret_cast<DBinderDatabusInvoker *>(
+        IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DATABUS));
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "get dbinder databus invoker failed");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    pid_t uid = invoker->GetCallerUid();
+    if (uid >= ALLOWED_UID) {
         ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH unauthenticated user, desc:%{public}s, uid:%{public}u",
             remoteDescriptor_.c_str(), uid);
         return IPC_STUB_INVALID_DATA_ERR;
