@@ -19,10 +19,10 @@
 #include "ohos.rpc.rpc.proj.hpp"
 #include "ohos.rpc.rpc.impl.hpp"
 #include "taihe/runtime.hpp"
-#include "taihe/map.hpp"
 #include "stdexcept"
 
 #include <cinttypes>
+#include <map>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -40,9 +40,9 @@ public:
     ::ohos::rpc::rpc::RequestResult SendMessageRequestSync(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
         ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
 
-    void RegisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags);
+    void RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags);
 
-    void UnregisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags);
+    void UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags);
 
     ::taihe::string GetDescriptor();
 
@@ -58,7 +58,7 @@ private:
     OHOS::sptr<OHOS::IPCObjectProxy> cachedObject_;
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;
-    ::taihe::map<::ohos::rpc::rpc::DeathRecipient, OHOS::sptr<DeathRecipientImpl>> deathRecipientMap_;
+    std::map<::ohos::rpc::rpc::DeathRecipient*, OHOS::sptr<DeathRecipientImpl>> deathRecipientMap_;
 };
 
 } // namespace
