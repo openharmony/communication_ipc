@@ -31,7 +31,7 @@ namespace OHOS {
 namespace {
     constexpr binder_uintptr_t BINDER_OBJECT = 11;
     constexpr uint32_t PROCESS_PROTO_CODE = 11;
-    const std::string SERVICE_TEST = "serviceTest";
+    const std::u16string SERVICE_TEST = u"serviceTest";
     const std::string DEVICE_TEST = "deviceTest";
     const std::string LOCAL_BUS_NAME_TEST = "localBusNameTest";
     const std::u16string DESCRIPTOR_TEST = u"localBusNameTest";

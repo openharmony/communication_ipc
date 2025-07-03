@@ -207,7 +207,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenSend(std::shared_ptr<dbind
 /* if translate any object failed, should translate next object flush it */
 template<class T>
 bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(unsigned char *dataBuffer, binder_size_t bufferSize,
-    binder_uintptr_t offsets, binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId)
+    binder_uintptr_t offsets, binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId, uint64_t seqNumber)
 {
     binder_size_t *binderObjectsOffsets = reinterpret_cast<binder_size_t *>(dataBuffer + offsets);
     uint32_t offsetOfSession = bufferSize + offsetsSize;
@@ -245,7 +245,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(unsigned char *dataBuf
                 return false;
             }
             case BINDER_TYPE_FDR: {
-                if (!TranslateRawData(dataBuffer, data, socketId)) {
+                if (!TranslateRawData(dataBuffer, data, socketId, seqNumber)) {
                     ZLOGE(LOG_LABEL, "fail to translate big raw data");
                     // do nothing
                 }
@@ -264,7 +264,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(unsigned char *dataBuf
 
 template<class T>
 bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(dbinder_transaction_data *transData, MessageParcel &data,
-    uint32_t socketId)
+    uint32_t socketId, uint64_t seqNumber)
 {
     if (transData == nullptr || transData->buffer_size == 0) {
         ZLOGE(LOG_LABEL, "transData or buffer is nullptr");
@@ -272,7 +272,7 @@ bool DBinderBaseInvoker<T>::IRemoteObjectTranslateWhenRcv(dbinder_transaction_da
     }
 
     return IRemoteObjectTranslateWhenRcv(transData->buffer, transData->buffer_size, transData->offsets,
-        transData->offsets_size, data, socketId);
+        transData->offsets_size, data, socketId, seqNumber);
 }
 
 template <class T> std::shared_ptr<T> DBinderBaseInvoker<T>::GetSessionObject(uint32_t handle, uint32_t socketId)
@@ -321,7 +321,8 @@ void DBinderBaseInvoker<T>::ConstructTransData(MessageParcel &data, dbinder_tran
 }
 
 template <class T>
-bool DBinderBaseInvoker<T>::TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId)
+bool DBinderBaseInvoker<T>::TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId,
+    uint64_t seqNumber)
 {
     if (socketId == 0) {
         ZLOGI(LOG_LABEL, "no raw data to translate.");
@@ -333,14 +334,14 @@ bool DBinderBaseInvoker<T>::TranslateRawData(unsigned char *dataBuffer, MessageP
         ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
         return false;
     }
-    std::shared_ptr<InvokerRawData> receivedRawData = current->QueryRawData(socketId);
+    std::shared_ptr<InvokerRawData> receivedRawData = current->QueryRawData(socketId, seqNumber);
     if (receivedRawData == nullptr) {
         ZLOGE(LOG_LABEL, "cannot found rawData according to the socketId:%{public}u", socketId);
         return false;
     }
     std::shared_ptr<char> rawData = receivedRawData->GetData();
     size_t rawSize = receivedRawData->GetSize();
-    current->DetachRawData(socketId);
+    current->DetachRawData(socketId, seqNumber);
     if (!data.RestoreRawData(rawData, rawSize)) {
         ZLOGE(LOG_LABEL, "found rawData, but cannot restore them, socketId:%{public}u", socketId);
         return false;
@@ -418,7 +419,7 @@ int DBinderBaseInvoker<T>::HandleReply(uint64_t seqNumber, MessageParcel *reply,
     }
 
     if (!IRemoteObjectTranslateWhenRcv(reinterpret_cast<unsigned char *>(messageInfo->buffer), messageInfo->bufferSize,
-        messageInfo->offsets, messageInfo->offsetsSize, *reply, messageInfo->socketId)) {
+        messageInfo->offsets, messageInfo->offsetsSize, *reply, messageInfo->socketId, seqNumber)) {
         ZLOGE(LOG_LABEL, "translate object failed, socketId:%{public}u", messageInfo->socketId);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_TRANSLATE_OBJECT_FAIL, __FUNCTION__);
         return RPC_BASE_INVOKER_INVALID_REPLY_ERR;

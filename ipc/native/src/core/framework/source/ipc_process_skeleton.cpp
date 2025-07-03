@@ -93,9 +93,13 @@ IPCProcessSkeleton::~IPCProcessSkeleton()
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
-    if (listenSocketId_ > 0) {
-        DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
-        listenSocketId_ = 0;
+    {
+        std::unique_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
+        if (listenSocketId_ > 0) {
+            DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
+            listenSocketId_ = 0;
+            sessionName_.clear();
+        }
     }
 #endif
 }
@@ -1265,6 +1269,13 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
         ZLOGE(LOG_LABEL, "server name is empty");
         return false;
     }
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
+        if ((name == sessionName_) && (listenSocketId_ > 0)) {
+            ZLOGI(LOG_LABEL, "SoftbusServer:%{public}s already exists", name.c_str());
+            return true;
+        }
+    }
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
         ZLOGE(LOG_LABEL, "fail to get socket listener");
@@ -1273,40 +1284,69 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
 
     int32_t socketId = listener->StartServerListener(name);
     if (socketId <= 0) {
-        ZLOGE(LOG_LABEL, "fail to start server listener");
+        ZLOGE(LOG_LABEL, "fail to start server listener, sessionName:%{public}s", name.c_str());
         return false;
     }
-    listenSocketId_ = socketId;
+
     std::unique_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
     if (name != sessionName_) {
+        if (!sessionName_.empty()) {
+            ZLOGW(LOG_LABEL, "SoftbusServer changed from %{public}s to %{public}s", sessionName_.c_str(), name.c_str());
+        }
         SpawnThread(IPCWorkThread::PROCESS_ACTIVE, IRemoteObject::IF_PROT_DATABUS);
     }
+    listenSocketId_ = socketId;
     sessionName_ = name;
     return true;
 }
 
-bool IPCProcessSkeleton::AttachRawData(int32_t socketId, std::shared_ptr<InvokerRawData> rawData)
+bool IPCProcessSkeleton::RemoveSoftbusServer()
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::string sessionName;
+    {
+        std::unique_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
+        listenSocketId_ = 0;
+        sessionName = sessionName_;
+        sessionName_.clear();
+    }
+
+    sptr<IRemoteObject> object = GetSAMgrObject();
+    if (object == nullptr) {
+        ZLOGE(LOG_LABEL, "get object is null");
+        return false;
+    }
+
+    IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
+    samgr->RemoveSessionName(sessionName);
+    ZLOGI(LOG_LABEL, "%{public}s", sessionName.c_str());
+    return true;
+}
+
+bool IPCProcessSkeleton::AttachRawData(int32_t socketId, uint64_t seqNumber, std::shared_ptr<InvokerRawData> rawData)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(rawDataMutex_);
+    auto rawDataKey = std::to_string(socketId) + "_" + std::to_string(seqNumber);
     /* always discard the old one if exists */
-    rawData_.erase(socketId);
-    auto result = rawData_.insert(std::pair<uint32_t, std::shared_ptr<InvokerRawData>>(socketId, rawData));
-    return result.second;
+    rawData_.insert_or_assign(rawDataKey, rawData);
+    return true;
 }
 
-bool IPCProcessSkeleton::DetachRawData(int32_t socketId)
+bool IPCProcessSkeleton::DetachRawData(int32_t socketId, uint64_t seqNumber)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::unique_lock<std::shared_mutex> lockGuard(rawDataMutex_);
-    return (rawData_.erase(socketId) > 0);
+    auto rawDataKey = std::to_string(socketId) + "_" + std::to_string(seqNumber);
+    return (rawData_.erase(rawDataKey) > 0);
 }
 
-std::shared_ptr<InvokerRawData> IPCProcessSkeleton::QueryRawData(int32_t socketId)
+std::shared_ptr<InvokerRawData> IPCProcessSkeleton::QueryRawData(int32_t socketId, uint64_t seqNumber)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, nullptr);
     std::shared_lock<std::shared_mutex> lockGuard(rawDataMutex_);
-    auto it = rawData_.find(socketId);
+    auto rawDataKey = std::to_string(socketId) + "_" + std::to_string(seqNumber);
+    auto it = rawData_.find(rawDataKey);
     if (it != rawData_.end()) {
         return it->second;
     }

@@ -330,7 +330,7 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest001, TestSize.Level1)
 {
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
-        RANDOM_DEVICEID, ZERO_DEVICEID, BINDER_OBJECT);
+        RANDOM_SERVICENAME, ZERO_DEVICEID, BINDER_OBJECT);
     bool result = dBinderService.SendEntryToRemote(dBinderServiceStub, PID, PID, PID);
     EXPECT_FALSE(result);
 }
@@ -344,7 +344,7 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest002, TestSize.Level1)
 {
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
-        RANDOM_DEVICEID, RANDOM_DEVICEID, BINDER_OBJECT);
+        RANDOM_SERVICENAME, RANDOM_DEVICEID, BINDER_OBJECT);
     NiceMock<DBinderServiceInterfaceMock> mock;
     dBinderService.remoteListener_ = nullptr;
     EXPECT_CALL(mock, GetLocalNodeDeviceId).WillOnce(testing::Return(SOFTBUS_CLIENT_SUCCESS));
@@ -363,7 +363,7 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest003, TestSize.Level1)
 {
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
-        RANDOM_DEVICEID, RANDOM_DEVICEID, BINDER_OBJECT);
+        RANDOM_SERVICENAME, RANDOM_DEVICEID, BINDER_OBJECT);
     NiceMock<DBinderServiceInterfaceMock> mock;
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(false));
@@ -382,7 +382,7 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest004, TestSize.Level1)
 {
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
-        RANDOM_DEVICEID, RANDOM_DEVICEID, BINDER_OBJECT);
+        RANDOM_SERVICENAME, RANDOM_DEVICEID, BINDER_OBJECT);
     NiceMock<DBinderServiceInterfaceMock> mock;
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(true));
@@ -413,7 +413,7 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest002, TestSize.Level1)
 {
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
-        RANDOM_DEVICEID, ZERO_DEVICEID, BINDER_OBJECT);
+        RANDOM_SERVICENAME, ZERO_DEVICEID, BINDER_OBJECT);
     int32_t result = dBinderService.InvokerRemoteDBinder(dBinderServiceStub, PID, PID, PID);
     EXPECT_EQ(result, DBinderErrorCode::SEND_MESSAGE_FAILED);
 }
@@ -427,7 +427,7 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest003, TestSize.Level1)
 {
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
-        RANDOM_DEVICEID, RANDOM_DEVICEID, BINDER_OBJECT);
+        RANDOM_SERVICENAME, RANDOM_DEVICEID, BINDER_OBJECT);
     NiceMock<DBinderServiceInterfaceMock> mock;
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();

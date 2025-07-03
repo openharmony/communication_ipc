@@ -68,7 +68,7 @@ void DBinderServiceStubUnitTest::TearDownTestCase()
  */
 HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -83,7 +83,7 @@ HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub002, TestSize.Level1)
 {
-    const std::string service = "";
+    const std::u16string service = u"";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -98,7 +98,7 @@ HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub003, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -113,7 +113,7 @@ HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub003, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub004, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = UINT_MAX;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -129,12 +129,12 @@ HWTEST_F(DBinderServiceStubUnitTest, DBinderServiceStub004, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetServiceName001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
-    std::string ret = dBinderServiceStub.GetServiceName();
-    EXPECT_EQ(ret, "serviceTest");
+    std::u16string ret = dBinderServiceStub.GetServiceName();
+    EXPECT_EQ(ret, u"serviceTest");
 }
 
 /**
@@ -144,12 +144,12 @@ HWTEST_F(DBinderServiceStubUnitTest, GetServiceName001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetServiceName002, TestSize.Level1)
 {
-    const std::string service;
+    const std::u16string service;
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
-    std::string ret = dBinderServiceStub.GetServiceName();
-    EXPECT_EQ(ret, "");
+    std::u16string ret = dBinderServiceStub.GetServiceName();
+    EXPECT_EQ(ret, u"");
 }
 
 /**
@@ -159,7 +159,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetServiceName002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetDeviceID001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -174,7 +174,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetDeviceID001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetDeviceID002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device;
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -189,7 +189,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetDeviceID002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetBinderObject001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -204,7 +204,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetBinderObject001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetBinderObject002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = UINT_MAX;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -219,7 +219,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetBinderObject002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessProto001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -238,7 +238,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessProto001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessProto002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -263,7 +263,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessProto002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessProto003, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -282,7 +282,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessProto003, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessProto004, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -311,7 +311,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessProto004, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessProto005, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -330,7 +330,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessProto005, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, OnRemoteRequest001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -350,7 +350,7 @@ HWTEST_F(DBinderServiceStubUnitTest, OnRemoteRequest001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, OnRemoteRequest002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -370,7 +370,7 @@ HWTEST_F(DBinderServiceStubUnitTest, OnRemoteRequest002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, OnRemoteRequest003, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -390,7 +390,7 @@ HWTEST_F(DBinderServiceStubUnitTest, OnRemoteRequest003, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -408,7 +408,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -426,7 +426,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient003, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -445,7 +445,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient003, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient004, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -464,7 +464,7 @@ HWTEST_F(DBinderServiceStubUnitTest, ProcessDeathRecipient004, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -480,7 +480,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient001, TestSize.Level
  */
 HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -501,7 +501,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient002, TestSize.Level
  */
 HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient003, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -522,7 +522,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient003, TestSize.Level
  */
 HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient004, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -543,7 +543,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient004, TestSize.Level
  */
 HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient005, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -564,7 +564,7 @@ HWTEST_F(DBinderServiceStubUnitTest, AddDbinderDeathRecipient005, TestSize.Level
  */
 HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -581,7 +581,7 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient001, TestSize.Le
  */
 HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -602,7 +602,7 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient002, TestSize.Le
  */
 HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient003, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -623,7 +623,7 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient003, TestSize.Le
  */
 HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient004, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -644,7 +644,7 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient004, TestSize.Le
  */
 HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient005, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -665,7 +665,7 @@ HWTEST_F(DBinderServiceStubUnitTest, RemoveDbinderDeathRecipient005, TestSize.Le
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetAndSaveDBinderData001, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -684,7 +684,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetAndSaveDBinderData001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, GetAndSaveDBinderData002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -703,7 +703,7 @@ HWTEST_F(DBinderServiceStubUnitTest, GetAndSaveDBinderData002, TestSize.Level1)
 HWTEST_F(DBinderServiceStubUnitTest, Marshalling001, TestSize.Level1)
 {
     sptr<IRemoteObject> nullObject = nullptr;
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
@@ -720,12 +720,12 @@ HWTEST_F(DBinderServiceStubUnitTest, Marshalling001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, Marshalling002, TestSize.Level1)
 {
-    const std::string service = "serviceTest";
+    const std::u16string service = u"serviceTest";
     const std::string device = "deviceTest";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub(service, device, object);
 
-    const std::string service2 = "serviceTest2";
+    const std::u16string service2 = u"serviceTest2";
     const std::string device2 = "deviceTest2";
     sptr<IRemoteObject> stubObject = new DBinderServiceStub(service2, device2, object);
     EXPECT_TRUE(stubObject != nullptr);
@@ -741,12 +741,12 @@ HWTEST_F(DBinderServiceStubUnitTest, Marshalling002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, Marshalling003, TestSize.Level1)
 {
-    const std::string service1 = "serviceTest1";
+    const std::u16string service1 = u"serviceTest1";
     const std::string device1 = "deviceTest1";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dBinderServiceStub1(service1, device1, object);
 
-    const std::string service2 = "serviceTest2";
+    const std::u16string service2 = u"serviceTest2";
     const std::string device2 = "deviceTest2";
     DBinderServiceStub* dBinderServiceStub2 =  new DBinderServiceStub(service2, device2, object);
     dBinderServiceStub2->dbinderData_ = nullptr;
@@ -765,7 +765,7 @@ HWTEST_F(DBinderServiceStubUnitTest, Marshalling003, TestSize.Level1)
 HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData001, TestSize.Level1)
 {
     DBinderService::GetInstance()->instance_ = nullptr;
-    const std::string service1 = "serviceTest1";
+    const std::u16string service1 = u"serviceTest1";
     const std::string device1 = "deviceTest1";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dbinderServiceStub(service1, device1, object);
@@ -781,7 +781,7 @@ HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData001, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData002, TestSize.Level1)
 {
-    const std::string service1 = "serviceTest1";
+    const std::u16string service1 = u"serviceTest1";
     const std::string device1 = "deviceTest1";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dbinderServiceStub(service1, device1, object);
@@ -799,7 +799,7 @@ HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData002, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData003, TestSize.Level1)
 {
-    const std::string service1 = "serviceTest1";
+    const std::u16string service1 = u"serviceTest1";
     const std::string device1 = "deviceTest1";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dbinderServiceStub(service1, device1, object);
@@ -825,7 +825,7 @@ HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData003, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData004, TestSize.Level1)
 {
-    const std::string service1 = "serviceTest1";
+    const std::u16string service1 = u"serviceTest1";
     const std::string device1 = "deviceTest1";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dbinderServiceStub(service1, device1, object);
@@ -852,7 +852,7 @@ HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData004, TestSize.Level1)
  */
 HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData005, TestSize.Level1)
 {
-    const std::string service1 = "serviceTest1";
+    const std::u16string service1 = u"serviceTest1";
     const std::string device1 = "deviceTest1";
     binder_uintptr_t object = BINDER_OBJECT;
     DBinderServiceStub dbinderServiceStub(service1, device1, object);
