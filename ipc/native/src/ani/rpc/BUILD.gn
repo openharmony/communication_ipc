@@ -18,6 +18,7 @@ group("rpc_ani_package") {
   deps = [
     ":rpc_abc_etc",
     ":rpc_ani",
+    ":rpc_native_ani"
   ]
 }
 
@@ -25,9 +26,10 @@ config("ani_rpc_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("rpc_ani") {
+ohos_shared_library("rpc_native_ani") {
   sources = [
     "src/rpc_ani.cpp",
+    "src/rpc_ani_class.cpp",
     "src/ani_rpc_error.cpp"
    ]
   include_dirs = [
@@ -47,6 +49,30 @@ ohos_shared_library("rpc_ani") {
   part_name = "ipc"
   output_extension = "so"
 }
+
+  ohos_shared_library("rpc_ani") {
+    sources = [
+      "src/ani_rpc_error.cpp",
+      "src/rpc_ani_class.cpp",
+      "src/ani_remote_object.cpp"
+    ]
+    include_dirs = [
+      "include",
+      "../../../../../utils/include",
+      "../../../../../interfaces/innerkits/ipc_core/include",
+    ]
+    public_configs = [ ":ani_rpc_public_config" ]
+
+    deps = [ "../../../../../interfaces/innerkits/ipc_core:ipc_core" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "runtime_core:ani",
+    ]
+    subsystem_name = "communication"
+    part_name = "ipc"
+    output_extension = "so"
+  }
 
 generate_static_abc("rpc_abc") {
   base_url = "./ets"
