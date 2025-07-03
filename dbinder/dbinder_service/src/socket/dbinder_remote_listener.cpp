@@ -120,10 +120,8 @@ void DBinderRemoteListener::OnBytesReceived(int32_t socket, const void *data, ui
         DBINDER_LOGE(LOG_LABEL, "msg head len error, len:%{public}u", message->head.len);
         return;
     }
-    DBINDER_LOGI(LOG_LABEL, "service:%{public}llu seq:%{public}u,"
-        " stubIndex:%{public}" PRIu64 " code:%{public}u", message->binderObject,
-        message->seqNumber, message->stubIndex, message->dBinderCode);
-
+    DBINDER_LOGI(LOG_LABEL, "service:%{public}llu seq:%{public}u pid:%{public}u code:%{public}u",
+        message->binderObject, message->seqNumber, message->pid, message->dBinderCode);
     DBinderService::GetInstance()->AddAsynMessageTask(message);
     return;
 }
@@ -269,44 +267,50 @@ void DBinderRemoteListener::EraseDeviceLock(const std::string &networkId)
 
 bool DBinderRemoteListener::SendDataToRemote(const std::string &networkId, const struct DHandleEntryTxRx *msg)
 {
-    DBINDER_LOGI(LOG_LABEL, "device:%{public}s",
-        DBinderService::ConvertToSecureDeviceID(networkId).c_str());
     if (msg == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "msg is null");
+        DBINDER_LOGE(LOG_LABEL, "msg is null, networkId:%{public}s",
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str());
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
     int32_t socketId = CreateClientSocket(networkId);
     if (socketId <= 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to creat client Socket");
+        DBINDER_LOGE(LOG_LABEL, "CreateClientSocket fail, networkId:%{public}s service:%{public}llu "
+            "seq:%{public}u pid:%{public}u", DBinderService::ConvertToSecureDeviceID(networkId).c_str(),
+            msg->binderObject, msg->seqNumber, msg->pid);
         return false;
     }
 
     int32_t ret = DBinderSoftbusClient::GetInstance().SendBytes(socketId, msg, msg->head.len);
     if (ret != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to send bytes, ret:%{public}d socketId:%{public}d, networkId:%{public}s",
-            ret, socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
+        DBINDER_LOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d socketId:%{public}d networkId:%{public}s "
+            "service:%{public}llu seq:%{public}u pid:%{public}u", ret, socketId,
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str(), msg->binderObject,
+            msg->seqNumber, msg->pid);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         return false;
     }
-    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d device:%{public}s succ",
-        socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
+    DBINDER_LOGI(LOG_LABEL, "succ, socketId:%{public}d device:%{public}s service:%{public}llu seq:%{public}u"
+        " pid:%{public}u", socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str(),
+        msg->binderObject, msg->seqNumber, msg->pid);
     return true;
 }
 
 bool DBinderRemoteListener::SendDataReply(const std::string &networkId, const struct DHandleEntryTxRx *msg)
 {
     if (msg == nullptr) {
-        DBINDER_LOGE(LOG_LABEL, "msg is null");
+        DBINDER_LOGE(LOG_LABEL, "msg is null, networkId:%{public}s",
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str());
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ERR_INVALID_DATA, __FUNCTION__);
         return false;
     }
 
     int32_t socketId = GetPeerSocketId(networkId);
     if (socketId == SOCKET_ID_INVALID) {
-        DBINDER_LOGE(LOG_LABEL, "failed to get peer SocketId, device:%{public}s",
-            DBinderService::ConvertToSecureDeviceID(networkId).c_str());
+        DBINDER_LOGE(LOG_LABEL, "GetPeerSocketId fail, device:%{public}s service:%{public}llu seq:%{public}u"
+            " pid:%{public}u", DBinderService::ConvertToSecureDeviceID(networkId).c_str(), msg->binderObject,
+            msg->seqNumber, msg->pid);
         DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
             DBinderService::ConvertToSecureDeviceID(networkId).c_str(), RADAR_GET_PEER_SESSION_FAIL, __FUNCTION__);
         return false;
@@ -314,14 +318,17 @@ bool DBinderRemoteListener::SendDataReply(const std::string &networkId, const st
 
     int32_t result = DBinderSoftbusClient::GetInstance().SendBytes(socketId, msg, msg->head.len);
     if (result != 0) {
-        DBINDER_LOGE(LOG_LABEL, "fail to send bytes of reply, result:%{public}d device:%{public}s"
-            " socketId:%{public}d", result, DBinderService::ConvertToSecureDeviceID(networkId).c_str(), socketId);
+        DBINDER_LOGE(LOG_LABEL, "SendBytes fail, result:%{public}d device:%{public}s"
+            " socketId:%{public}d service:%{public}llu seq:%{public}u pid:%{public}u", result,
+            DBinderService::ConvertToSecureDeviceID(networkId).c_str(), socketId,
+            msg->binderObject, msg->seqNumber, msg->pid);
         DfxReportFailDeviceEvent(DbinderErrorCode::RPC_DRIVER,
             DBinderService::ConvertToSecureDeviceID(networkId).c_str(), RADAR_SEND_BYTES_FAIL, __FUNCTION__);
         return false;
     }
-    DBINDER_LOGI(LOG_LABEL, "socketId:%{public}d, networkId:%{public}s",
-        socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str());
+    DBINDER_LOGI(LOG_LABEL, "succ, socketId:%{public}d networkId:%{public}s service:%{public}llu seq:%{public}u"
+        " pid:%{public}u", socketId, DBinderService::ConvertToSecureDeviceID(networkId).c_str(),
+        msg->binderObject, msg->seqNumber, msg->pid);
     return true;
 }
 
@@ -331,7 +338,7 @@ bool DBinderRemoteListener::ShutdownSocket(const std::string &networkId)
     std::lock_guard<std::mutex> lockGuard(clientSocketMutex_);
     auto it = clientSocketInfos_.find(networkId);
     if (it != clientSocketInfos_.end()) {
-        DBINDER_LOGI(LOG_LABEL, "networkId:%{public}s offline, Shutdown socketId:%{public}d ",
+        DBINDER_LOGI(LOG_LABEL, "networkId:%{public}s offline, Shutdown socketId:%{public}d",
             DBinderService::ConvertToSecureDeviceID(networkId).c_str(), it->second);
         DBinderSoftbusClient::GetInstance().Shutdown(it->second);
         clientSocketInfos_.erase(it);

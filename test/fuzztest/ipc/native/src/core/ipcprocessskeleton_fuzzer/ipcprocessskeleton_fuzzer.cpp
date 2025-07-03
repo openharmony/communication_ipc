@@ -330,13 +330,14 @@ bool AttachToDetachRawDataTest()
     }
     int32_t socketId;
     uint32_t rawDataSize;
-    if (!GenerateUint32(rawDataSize) || !GenerateInt32(socketId)) {
+    uint64_t seqNumber;
+    if (!GenerateUint32(rawDataSize) || !GenerateInt32(socketId) || !GenerateUint64(seqNumber)) {
         return false;
     }
     std::shared_ptr<InvokerRawData> rawData = std::make_shared<InvokerRawData>(rawDataSize);
-    current->AttachRawData(socketId, rawData);
-    current->QueryRawData(socketId);
-    current->DetachRawData(socketId);
+    current->AttachRawData(socketId, seqNumber, rawData);
+    current->QueryRawData(socketId, seqNumber);
+    current->DetachRawData(socketId, seqNumber);
     return true;
 }
 

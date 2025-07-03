@@ -1324,11 +1324,13 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryRawDataTest001, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
 
-    uint32_t fd = 1;
+    int32_t socketId = 1;
+    uint64_t seqNumber = 1;
     skeleton->rawData_.clear();
-    skeleton->rawData_[fd] = std::make_shared<InvokerRawData>(1);
+    auto rawDataKey = std::to_string(socketId) + "_" + std::to_string(seqNumber);
+    skeleton->rawData_[rawDataKey] = std::make_shared<InvokerRawData>(1);
 
-    auto ret = skeleton->QueryRawData(fd);
+    auto ret = skeleton->QueryRawData(socketId, seqNumber);
     EXPECT_NE(ret, nullptr);
 }
 
@@ -1342,9 +1344,10 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryRawDataTest002, TestSize.Level1)
     IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
     ASSERT_TRUE(skeleton != nullptr);
 
-    uint32_t fd = 1;
+    int32_t socketId = 1;
+    uint64_t seqNumber = 1;
     skeleton->rawData_.clear();
-    auto ret = skeleton->QueryRawData(fd);
+    auto ret = skeleton->QueryRawData(socketId, seqNumber);
     EXPECT_EQ(ret, nullptr);
 }
 
@@ -1936,17 +1939,18 @@ HWTEST_F(IPCProcessSkeletonUnitTest, AttachRawDataTest, TestSize.Level1)
     ASSERT_TRUE(skeleton != nullptr);
 
     int32_t socketId = 1;
+    uint64_t seqNumber = 1;
     std::shared_ptr<InvokerRawData> data = std::make_shared<InvokerRawData>(1);
-    bool ret = skeleton->DetachRawData(socketId);
+    bool ret = skeleton->DetachRawData(socketId, seqNumber);
     EXPECT_FALSE(ret);
 
-    ret = skeleton->AttachRawData(socketId, data);
+    ret = skeleton->AttachRawData(socketId, seqNumber, data);
     EXPECT_TRUE(ret);
     // test for the old key will be removed first
-    ret = skeleton->AttachRawData(socketId, data);
+    ret = skeleton->AttachRawData(socketId, seqNumber, data);
     EXPECT_TRUE(ret);
 
-    ret = skeleton->DetachRawData(socketId);
+    ret = skeleton->DetachRawData(socketId, seqNumber);
     EXPECT_TRUE(ret);
 }
 

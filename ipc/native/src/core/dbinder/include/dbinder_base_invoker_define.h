@@ -131,10 +131,11 @@ private:
         size_t offsetIdx, binder_size_t &preOffset, binder_size_t &preObjectSize);
     bool IRemoteObjectTranslateWhenSend(std::shared_ptr<dbinder_transaction_data> transData, uint32_t socketId,
         std::shared_ptr<T> sessionObject);
-    bool IRemoteObjectTranslateWhenRcv(dbinder_transaction_data *transData, MessageParcel &data, uint32_t socketId);
+    bool IRemoteObjectTranslateWhenRcv(dbinder_transaction_data *transData, MessageParcel &data, uint32_t socketId,
+        uint64_t seqNumber);
     bool IRemoteObjectTranslateWhenRcv(unsigned char *dataBuffer, binder_size_t bufferSize, binder_uintptr_t offsets,
-        binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId);
-    bool TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId);
+        binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId, uint64_t seqNumber);
+    bool TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId, uint64_t seqNumber);
     std::shared_ptr<T> GetSessionObject(uint32_t handle, uint32_t socketId);
     uint64_t GetUniqueSeqNumber(int cmd);
     void ConstructTransData(MessageParcel &data, dbinder_transaction_data &transData, size_t totalSize,

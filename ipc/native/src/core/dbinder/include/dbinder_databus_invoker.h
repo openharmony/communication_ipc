@@ -99,7 +99,7 @@ private:
     virtual void GetCallerInfo(DBinderCallerInfo &callerInfo) override;
     uint32_t HasRawDataPackage(const char *data, ssize_t len);
     uint32_t HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len);
-    void OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize);
+    void OnRawDataAvailable(int32_t socketId, uint64_t seqNumber, const char *data, uint32_t dataSize);
     uint64_t MakeStubIndexByRemoteObject(IRemoteObject *stubObject);
     std::shared_ptr<DBinderSessionObject> MakeDefaultServerSessionObject(uint64_t stubIndex,
         const std::shared_ptr<DBinderSessionObject> sessionObject);
