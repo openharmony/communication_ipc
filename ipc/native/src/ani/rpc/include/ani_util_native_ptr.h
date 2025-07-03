@@ -75,13 +75,9 @@ public:
     {
         ani_object nullobj {};
 
-        ani_namespace ns;
-        if (ANI_OK != env->FindNamespace(nsName, &ns)) {
-            return nullobj;
-        }
-
+        const std::string fullClsName = std::string(nsName).append(".").append(clsName);
         ani_class cls;
-        if (ANI_OK != env->Namespace_FindClass(ns, clsName, &cls)) {
+        if (ANI_OK != env->FindClass(fullClsName.c_str(), &cls)) {
             return nullobj;
         }
 
