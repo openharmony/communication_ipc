@@ -20,5 +20,6 @@
 #include "ani_util_common.h"
 #include "ani_util_conversion.h"
 #include "ani_util_native_ptr.h"
+#include "rpc_ani_class.h"
 
 #endif
