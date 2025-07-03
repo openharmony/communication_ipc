@@ -15,5 +15,5 @@ import("//build/ohos.gni")
 import("//foundation/communication/ipc/config.gni")
 
 group("rpc_ani_packages") {
-  deps = [ "${rpc_ani_path}/rpc:rpc_ani_package" ]
+    deps = [ "${rpc_ani_path}/rpc:rpc_ani_package" ]
 }
