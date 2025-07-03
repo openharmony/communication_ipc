@@ -19,7 +19,7 @@ import hilog from '@ohos.hilog';
 
 export namespace rpc {
     export class Cleaner {
-        static { loadLibrary("rpc_ani") }
+        static { loadLibrary("rpc_native_ani") }
         static callback(cleaner: Cleaner): void {
             console.println("[Cleaner] enter Cleaner.callback");
             cleaner.clean()
@@ -63,7 +63,7 @@ export namespace rpc {
     }
 
     export class MessageOption {
-        static { loadLibrary("rpc_ani") }
+        static { loadLibrary("rpc_native_ani") }
 
         constructor(asyncFlag: boolean) {
             hilog.info(0x0000, 'rpc', '[ETS] Enter MessageOption.constructor(asyncFlag)');
@@ -118,7 +118,7 @@ export namespace rpc {
     }
 
     export class RemoteObject extends IRemoteObject {
-        static { loadLibrary("rpc_ani") }
+        static { loadLibrary("rpc_native_ani") }
 
         constructor(descriptor: string) {
             this.init(descriptor);
