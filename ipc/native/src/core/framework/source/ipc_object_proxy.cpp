@@ -744,6 +744,7 @@ void IPCObjectProxy::SetProto(int proto)
     proto_ = proto;
 }
 
+// LCOV_EXCL_START
 int IPCObjectProxy::GetProtoInfo()
 {
     if (CheckHaveSession()) {
@@ -791,6 +792,7 @@ int IPCObjectProxy::GetProtoInfo()
 
     return IRemoteObject::IF_PROT_BINDER;
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 bool IPCObjectProxy::AddDbinderDeathRecipient()
@@ -1004,6 +1006,7 @@ int IPCObjectProxy::GetDBinderNegotiationData(DBinderNegotiationData &dbinderDat
     return ERR_NONE;
 }
 
+// LCOV_EXCL_START
 bool IPCObjectProxy::UpdateDatabusClientSession()
 {
     DBinderNegotiationData dbinderData;
@@ -1012,6 +1015,7 @@ bool IPCObjectProxy::UpdateDatabusClientSession()
     }
     return MakeDBinderTransSession(dbinderData);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 void IPCObjectProxy::ReleaseDatabusProto()

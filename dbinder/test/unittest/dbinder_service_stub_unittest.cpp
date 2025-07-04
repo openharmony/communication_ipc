@@ -38,6 +38,9 @@ namespace {
     constexpr uint32_t PROCESS_PROTO_CODE = 11;
     constexpr uint32_t SESSION_TYPE_UNKNOWN = 99;
     constexpr int32_t UNKNOWN_TRANSACTION_CODE = 999;
+    constexpr uint32_t TEST_PID = 111;
+    constexpr uint32_t TEST_UID = 222;
+    constexpr uint32_t TEST_SEQ_NUM = 333;
 }
 
 typedef unsigned long long binder_uintptr_t;
@@ -879,4 +882,73 @@ HWTEST_F(DBinderServiceStubUnitTest, SaveDBinderData005, TestSize.Level1)
     ASSERT_EQ(ret, ERR_NONE);
     bool result = dBinderService->DetachSessionObject(objectAddress);
     ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: GetPeerPid001
+ * @tc.desc: Verify the GetPeerPid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, GetPeerPid001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string deviceId = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service, deviceId, object);
+    EXPECT_EQ(dbinderServiceStub.GetPeerPid(), 0);
+
+    DBinderServiceStub dbinderServiceStub2(service, deviceId, object, TEST_PID, TEST_UID);
+    EXPECT_EQ(dbinderServiceStub2.GetPeerPid(), TEST_PID);
+}
+
+/**
+ * @tc.name: GetPeerUid001
+ * @tc.desc: Verify the GetPeerUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, GetPeerUid001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string deviceId = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service, deviceId, object);
+    EXPECT_EQ(dbinderServiceStub.GetPeerUid(), 0);
+
+    DBinderServiceStub dbinderServiceStub2(service, deviceId, object, TEST_PID, TEST_UID);
+    EXPECT_EQ(dbinderServiceStub2.GetPeerUid(), TEST_UID);
+}
+
+/**
+ * @tc.name: SetSeqNumber001
+ * @tc.desc: Verify the SetSeqNumber function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SetSeqNumber001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string deviceId = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service, deviceId, object);
+    dbinderServiceStub.SetSeqNumber(TEST_SEQ_NUM);
+    EXPECT_EQ(dbinderServiceStub.GetSeqNumber(), TEST_SEQ_NUM);
+}
+
+/**
+ * @tc.name: SetNegoStatusAndTime001
+ * @tc.desc: Verify the SetNegoStatusAndTime function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubUnitTest, SetNegoStatusAndTime001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string deviceId = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service, deviceId, object);
+    dbinderServiceStub.SetNegoStatusAndTime(NegotiationStatus::NEGO_DOING, 1);
+
+    NegotiationStatus status = NegotiationStatus::NEGO_INIT;
+    uint64_t time = 0;
+    dbinderServiceStub.GetNegoStatusAndTime(status, time);
+    EXPECT_EQ(status, NegotiationStatus::NEGO_DOING);
+    EXPECT_EQ(time, 1);
 }

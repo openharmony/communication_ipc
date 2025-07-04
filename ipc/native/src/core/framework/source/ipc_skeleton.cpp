@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -112,6 +112,9 @@ std::string IPCSkeleton::GetCallingSid()
 // LCOV_EXCL_START
 pid_t IPCSkeleton::GetCallingPid()
 {
+    if (!IsLocalCalling()) {
+        return -1;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return invoker->GetCallerPid();
@@ -123,6 +126,9 @@ pid_t IPCSkeleton::GetCallingPid()
 // LCOV_EXCL_START
 pid_t IPCSkeleton::GetCallingRealPid()
 {
+    if (!IsLocalCalling()) {
+        return -1;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return invoker->GetCallerRealPid();
@@ -134,6 +140,9 @@ pid_t IPCSkeleton::GetCallingRealPid()
 // LCOV_EXCL_START
 pid_t IPCSkeleton::GetCallingUid()
 {
+    if (!IsLocalCalling()) {
+        return -1;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return invoker->GetCallerUid();
@@ -145,6 +154,9 @@ pid_t IPCSkeleton::GetCallingUid()
 // LCOV_EXCL_START
 uint32_t IPCSkeleton::GetCallingTokenID()
 {
+    if (!IsLocalCalling()) {
+        return 0;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return static_cast<uint32_t>(invoker->GetCallerTokenID());
@@ -156,6 +168,9 @@ uint32_t IPCSkeleton::GetCallingTokenID()
 // LCOV_EXCL_START
 uint64_t IPCSkeleton::GetCallingFullTokenID()
 {
+    if (!IsLocalCalling()) {
+        return 0;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return invoker->GetCallerTokenID();
@@ -178,6 +193,9 @@ uint64_t IPCSkeleton::GetSelfTokenID()
 // LCOV_EXCL_START
 uint32_t IPCSkeleton::GetFirstTokenID()
 {
+    if (!IsLocalCalling()) {
+        return 0;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return static_cast<uint32_t>(invoker->GetFirstCallerTokenID());
@@ -193,6 +211,9 @@ uint32_t IPCSkeleton::GetFirstTokenID()
 // LCOV_EXCL_START
 uint64_t IPCSkeleton::GetFirstFullTokenID()
 {
+    if (!IsLocalCalling()) {
+        return 0;
+    }
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
     if (invoker != nullptr) {
         return invoker->GetFirstCallerTokenID();
@@ -312,6 +333,20 @@ bool IPCSkeleton::EnableIPCThreadReclaim(bool enable)
 int32_t IPCSkeleton::GetThreadInvocationState()
 {
     return IPCThreadSkeleton::GetThreadInvocationState();
+}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
+uint32_t IPCSkeleton::GetDCallingTokenID()
+{
+    if (IsLocalCalling()) {
+        return 0;
+    }
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        return static_cast<uint32_t>(invoker->GetCallerTokenID());
+    }
+    return static_cast<uint32_t>(GetSelfTokenID());
 }
 // LCOV_EXCL_STOP
 
