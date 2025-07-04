@@ -35,5 +35,6 @@ ohos_fuzztest("BinderInvokerNewFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
