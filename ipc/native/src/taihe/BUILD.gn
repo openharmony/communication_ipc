@@ -15,68 +15,74 @@ import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 import("//build/ohos/taihe_idl/taihe.gni")
 
-SUBSYSTEM_NAME = "communication"
-PART_NAME = "ipc"
-TAIHE_FILE_PATH = "$taihe_file_path/out/$SUBSYSTEM_NAME/$PART_NAME"
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+if (support_jsapi) {
+  SUBSYSTEM_NAME = "communication"
+  PART_NAME = "ipc"
+  TAIHE_FILE_PATH = "$taihe_file_path/out/$SUBSYSTEM_NAME/$PART_NAME"
+  SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
-copy_taihe_idl("rpc_taihe_idl") {
-  sources = [ "idl/ohos.rpc.rpc.taihe" ]
-}
+  copy_taihe_idl("rpc_taihe_idl") {
+    sources = [ "idl/ohos.rpc.rpc.taihe" ]
+  }
 
-ohos_taihe("rpc_taihe_generate") {
-  taihe_generated_file_path = "$TAIHE_FILE_PATH"
-  deps = [ ":rpc_taihe_idl" ]
-  outputs = [
-    "$TAIHE_FILE_PATH/src/ohos.rpc.rpc.ani.cpp",
-    "$TAIHE_FILE_PATH/src/ohos.rpc.rpc.abi.c",
-  ]
-}
+  ohos_taihe("rpc_taihe_generate") {
+    taihe_generated_file_path = "$TAIHE_FILE_PATH"
+    deps = [ ":rpc_taihe_idl" ]
+    outputs = [
+      "$TAIHE_FILE_PATH/src/ohos.rpc.rpc.ani.cpp",
+      "$TAIHE_FILE_PATH/src/ohos.rpc.rpc.abi.c",
+    ]
+  }
 
-taihe_shared_library("rpc_taihe") {
-  taihe_generated_file_path = "$TAIHE_FILE_PATH"
-  part_name = "$PART_NAME"
-  subsystem_name = "$SUBSYSTEM_NAME"
-  sources = get_target_outputs(":rpc_taihe_generate")
-  include_dirs = [
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-    "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
-    "$SUBSYSTEM_DIR/utils/include",
-  ]
-  sources += [
-    "src/ani_constructor.cpp",
-    "src/ohos.rpc.rpc.impl.cpp",
-    "src/rpc_taihe_error.cpp",
-  ]
-  deps = [
-    ":rpc_taihe_generate",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core"
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
+  taihe_shared_library("rpc_taihe") {
+    taihe_generated_file_path = "$TAIHE_FILE_PATH"
+    part_name = "$PART_NAME"
+    subsystem_name = "$SUBSYSTEM_NAME"
+    sources = get_target_outputs(":rpc_taihe_generate")
+    include_dirs = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
+      "$SUBSYSTEM_DIR/utils/include",
+    ]
+    sources += [
+      "src/ani_constructor.cpp",
+      "src/ohos.rpc.rpc.impl.cpp",
+      "src/rpc_taihe_error.cpp",
+    ]
+    deps = [
+      ":rpc_taihe_generate",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core"
+    ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
+  }
 
-generate_static_abc("rpc_taihe_abc") {
-  base_url = "$TAIHE_FILE_PATH"
-  files = [ "$TAIHE_FILE_PATH/@ohos.rpc.ets" ]
-  is_boot_abc = "True"
-  device_dst_file = "/system/framework/rpc_taihe_abc.abc"
-  dependencies = [ ":rpc_taihe_generate" ]
-}
+  generate_static_abc("rpc_taihe_abc") {
+    base_url = "$TAIHE_FILE_PATH"
+    files = [ "$TAIHE_FILE_PATH/@ohos.rpc.ets" ]
+    is_boot_abc = "True"
+    device_dst_file = "/system/framework/rpc_taihe_abc.abc"
+    dependencies = [ ":rpc_taihe_generate" ]
+  }
 
-ohos_prebuilt_etc("rpc_taihe_etc") {
-  source = "$target_out_dir/rpc_taihe_abc.abc"
-  module_install_dir = "framework"
-  part_name = "$PART_NAME"
-  subsystem_name = "$SUBSYSTEM_NAME"
-  deps = [ ":rpc_taihe_abc" ]
-}
+  ohos_prebuilt_etc("rpc_taihe_etc") {
+    source = "$target_out_dir/rpc_taihe_abc.abc"
+    module_install_dir = "framework"
+    part_name = "$PART_NAME"
+    subsystem_name = "$SUBSYSTEM_NAME"
+    deps = [ ":rpc_taihe_abc" ]
+  }
 
-group("rpc_taihe_components") {
-  deps = [
-    ":rpc_taihe_etc",
-    ":rpc_taihe",
-  ]
+  group("rpc_taihe_components") {
+    deps = [
+      ":rpc_taihe_etc",
+      ":rpc_taihe",
+    ]
+  }
+} else {
+  group("rpc_taihe_components") {
+    deps = []
+  }
 }
