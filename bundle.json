@@ -60,7 +60,7 @@
         ],
         "inner_kits": [
           {
-              "name": "//foundation/communication/ipc/ipc/native/src/ani/taihe:rpc_taihe_idl"
+              "name": "//foundation/communication/ipc/ipc/native/src/taihe:rpc_taihe_idl"
           },
           {
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
