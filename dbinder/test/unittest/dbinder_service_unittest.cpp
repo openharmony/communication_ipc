@@ -774,6 +774,31 @@ HWTEST_F(DBinderServiceUnitTest, DeleteDBinderStub001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DeleteDBinderStub002
+ * @tc.desc: Verify the DeleteDBinderStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, DeleteDBinderStub002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_TRUE(dBinderService != nullptr);
+
+    dBinderService->DBinderStubRegisted_.clear();
+    dBinderService->mapDBinderStubRegisters_.clear();
+    const std::u16string serviceName = u"abc";
+    const std::string deviceID = "bcd";
+    bool ret = dBinderService->DeleteDBinderStub(serviceName, deviceID, 0, 0);
+    ASSERT_FALSE(ret);
+
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
+    EXPECT_TRUE(stub != nullptr);
+    dBinderService->DBinderStubRegisted_.push_back(stub);
+    ret = dBinderService->DeleteDBinderStub(serviceName, deviceID, 0, 0);
+    ASSERT_TRUE(ret);
+}
+
+/**
  * @tc.name: IsSameStubObject001
  * @tc.desc: Verify the IsSameStubObject function
  * @tc.type: FUNC
@@ -2336,4 +2361,90 @@ HWTEST_F(DBinderServiceUnitTest, IsValidSessionName001, TestSize.Level1)
     replyMessage->serviceNameLength = testName.size();
     ret = dBinderService->IsValidSessionName(replyMessage);
     ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: InvokerRemoteDBinderWhenRequest001
+ * @tc.desc: Verify the InvokerRemoteDBinderWhenRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderWhenRequest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_NE(dBinderService, nullptr);
+
+    std::u16string serviceName(u"abcd");
+    std::string deviceID("001");
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    uint32_t pid = TEST_PID;
+    uint32_t uid = TEST_UID;
+    uint32_t seqNumber = 0;
+    std::shared_ptr<struct ThreadLockInfo> threadLockInfo;
+
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject, pid, uid);
+    EXPECT_NE(stub, nullptr);
+    dBinderService->threadLockInfo_[seqNumber] = threadLockInfo;
+    int32_t ret = dBinderService->InvokerRemoteDBinderWhenRequest(stub, seqNumber, pid, uid, threadLockInfo);
+    EXPECT_EQ(ret, MAKE_THREADLOCK_FAILED);
+    dBinderService->threadLockInfo_.clear();
+
+    ret = dBinderService->InvokerRemoteDBinderWhenRequest(stub, seqNumber, pid, uid, threadLockInfo);
+    EXPECT_EQ(ret, SEND_MESSAGE_FAILED);
+}
+
+/**
+ * @tc.name: InvokerRemoteDBinderWhenWaitRsp001
+ * @tc.desc: Verify the InvokerRemoteDBinderWhenWaitRsp function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderWhenWaitRsp001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_NE(dBinderService, nullptr);
+
+    std::u16string serviceName(u"abcd");
+    std::string deviceID("001");
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    uint32_t pid = TEST_PID;
+    uint32_t uid = TEST_UID;
+    uint32_t seqNumber = 0;
+    std::shared_ptr<struct ThreadLockInfo> threadLockInfo;
+
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject, pid, uid);
+    EXPECT_NE(stub, nullptr);
+    int32_t ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
+    EXPECT_EQ(ret, MAKE_THREADLOCK_FAILED);
+
+    dBinderService->threadLockInfo_[seqNumber] = threadLockInfo;
+    ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
+    EXPECT_EQ(ret, DBINDER_OK);
+}
+
+/**
+ * @tc.name: ProcessCallbackProxyInner001
+ * @tc.desc: Verify the ProcessCallbackProxyInner function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceUnitTest, ProcessCallbackProxyInner001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    EXPECT_NE(dBinderService, nullptr);
+
+    dBinderService->ProcessCallbackProxyInner(nullptr, nullptr);
+
+    std::u16string serviceName(u"abcd");
+    std::string deviceID("001");
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    uint32_t pid = TEST_PID;
+    uint32_t uid = TEST_UID;
+    std::shared_ptr<struct ThreadLockInfo> threadLockInfo;
+
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID,
+        binderObject, pid, uid);
+    EXPECT_NE(stub, nullptr);
+    sptr<IRemoteObject> proxy = new (std::nothrow) IPCObjectProxy(0);
+    EXPECT_NE(proxy, nullptr);
+    dBinderService->ProcessCallbackProxyInner(stub, proxy);
 }

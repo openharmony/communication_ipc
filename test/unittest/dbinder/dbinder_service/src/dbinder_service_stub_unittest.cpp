@@ -39,6 +39,7 @@ namespace {
     const uid_t VALID_UID_TEST = 1001;
     const pid_t INVALID_PID_TEST = -1;
     const uid_t INVALID_UID_TEST = -1;
+    const uint32_t TEST_SEQ_NUM = 1;
 }
 
 class DBinderServiceStubInterface {
@@ -727,5 +728,62 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData006, TestSize.Level1)
     EXPECT_EQ(ret, ERR_NONE);
     dBinderService->DetachSessionObject(stub);
     dBinderServiceStub.dbinderData_ = nullptr;;
+}
+
+/**
+ * @tc.name: GetPeerPid001
+ * @tc.desc: Verify the GetPeerPid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetPeerPid001, TestSize.Level1)
+{
+    DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    EXPECT_EQ(dbinderServiceStub.GetPeerPid(), 0);
+
+    DBinderServiceStub dbinderServiceStub2(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT, VALID_PID_TEST, VALID_UID_TEST);
+    EXPECT_EQ(dbinderServiceStub2.GetPeerPid(), VALID_PID_TEST);
+}
+
+/**
+ * @tc.name: GetPeerUid001
+ * @tc.desc: Verify the GetPeerUid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetPeerUid001, TestSize.Level1)
+{
+    DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    EXPECT_EQ(dbinderServiceStub.GetPeerUid(), 0);
+
+    DBinderServiceStub dbinderServiceStub2(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT, VALID_PID_TEST, VALID_UID_TEST);
+    EXPECT_EQ(dbinderServiceStub2.GetPeerUid(), VALID_UID_TEST);
+}
+
+/**
+ * @tc.name: SetSeqNumber001
+ * @tc.desc: Verify the SetSeqNumber function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SetSeqNumber001, TestSize.Level1)
+{
+    DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    dbinderServiceStub.SetSeqNumber(TEST_SEQ_NUM);
+    EXPECT_EQ(dbinderServiceStub.GetSeqNumber(), TEST_SEQ_NUM);
+}
+
+/**
+ * @tc.name: SetNegoStatusAndTime001
+ * @tc.desc: Verify the SetNegoStatusAndTime function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SetNegoStatusAndTime001, TestSize.Level1)
+{
+    DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    dbinderServiceStub.SetNegoStatusAndTime(NegotiationStatus::NEGO_DOING, 1);
+
+    NegotiationStatus status = NegotiationStatus::NEGO_INIT;
+    uint64_t time = 0;
+    dbinderServiceStub.GetNegoStatusAndTime(status, time);
+    EXPECT_EQ(status, NegotiationStatus::NEGO_DOING);
+    EXPECT_EQ(time, 1);
 }
 } // namespace OHOS
