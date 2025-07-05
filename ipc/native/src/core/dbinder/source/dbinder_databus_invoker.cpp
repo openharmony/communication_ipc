@@ -1069,6 +1069,7 @@ uint32_t DBinderDatabusInvoker::HasCompletePackage(const char *data, uint32_t re
         (readCursor + tr->sizeOfSelf <= static_cast<uint32_t>(len)) && CheckTransactionData(tr)) {
         return tr->sizeOfSelf;
     }
+    PrintDBinderTransData(tr);
     return 0;
 }
 } // namespace OHOS

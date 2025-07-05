@@ -25,9 +25,10 @@ template <class T>
 void DBinderBaseInvoker<T>::SendReplyWithSeqNum(uint64_t seqNum, MessageParcel &reply, uint32_t flags, int32_t result)
 {
     if (!(flags & MessageOption::TF_ASYNC)) {
+        auto seqNumber = GetSeqNum();
         SetSeqNum(seqNum);
         SendReply(reply, 0, result);
-        SetSeqNum(0);
+        SetSeqNum(seqNumber);
     }
 }
 

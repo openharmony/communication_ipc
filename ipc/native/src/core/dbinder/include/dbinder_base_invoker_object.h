@@ -128,7 +128,7 @@ bool DBinderBaseInvoker<T>::IsValidRemoteObjectOffset(unsigned char *dataBuffer,
 }
 
 template<class T>
-void DBinderBaseInvoker<T>::PrintDBinderTransData(dbinder_transaction_data *transData)
+void DBinderBaseInvoker<T>::PrintDBinderTransData(const dbinder_transaction_data *transData)
 {
     ZLOGI(LOG_LABEL, "sizeOfSelf:%{public}u, sizeof(dbinder_transaction_data):%{public}zu "
         "bufSize:%{public}llu offsetsSize:%{public}llu flag:%{public}u",
@@ -294,7 +294,9 @@ template <class T> uint64_t DBinderBaseInvoker<T>::GetUniqueSeqNumber(int cmd)
     }
 
     if (cmd == BC_TRANSACTION) {
-        return current->GetSeqNumber();
+        auto seqNumber = current->GetSeqNumber();
+        SetSeqNum(seqNumber);
+        return seqNumber;
     } else if (cmd == BC_REPLY) {
         /* use sender sequence number */
         return GetSeqNum();

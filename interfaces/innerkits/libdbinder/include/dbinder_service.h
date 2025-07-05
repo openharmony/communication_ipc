@@ -16,12 +16,12 @@
 #ifndef OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
 #define OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
 
-#include <string>
 #include <map>
-#include <mutex>
-#include <shared_mutex>
 #include <memory>
-#include <list>
+#include <mutex>
+#include <set>
+#include <shared_mutex>
+#include <string>
 #include <thread>
 
 #include "dbinder_service_stub.h"
@@ -351,7 +351,7 @@ private:
     void ProcessCallbackProxy(const std::vector<sptr<DBinderServiceStub>> &dbStubs);
     void ProcessCallbackProxyInner(sptr<DBinderServiceStub> dbStub, sptr<IRemoteObject> proxy);
     bool NoticeCallbackProxy(const std::u16string &serviceName, const std::string &deviceID);
-    std::list<std::u16string> FindServicesByDeviceID(const std::string &deviceID);
+    std::set<std::u16string> FindServicesByDeviceID(const std::string &deviceID);
     int32_t NoticeServiceDieInner(const std::u16string &serviceName, const std::string &deviceID);
     uint32_t GetRemoteTransType();
     bool CheckDeviceIdIllegal(const std::string &remoteDeviceId);

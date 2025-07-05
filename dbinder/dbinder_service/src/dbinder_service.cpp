@@ -42,6 +42,7 @@ constexpr unsigned int BINDER_MASK = 0xffff;
 // DBinderServiceStub's reference count in a MakeRemoteBinder call.
 constexpr int32_t DBINDER_STUB_REF_COUNT = 2;
 constexpr int32_t DBINDER_WAIT_SLEEP_TIME = 1000;
+constexpr int32_t THREAD_LOCK_RETRY_TIMES = 10;
 
 DBinderService::DBinderService()
 {
@@ -390,9 +391,6 @@ sptr<DBinderServiceStub> DBinderService::MakeRemoteBinder(const std::u16string &
         dBinderServiceStub->SetSeqNumber(seqNum);
     }
 
-    /* if not found dBinderServiceStub, should send msg to toDeviceID
-     * to invoker socket thread and add authentication info for create softbus session
-     */
     int32_t retryTimes = 0;
     int32_t ret = -1;
     do {
@@ -538,14 +536,14 @@ int32_t DBinderService::InvokerRemoteDBinderWhenWaitRsp(const sptr<DBinderServic
 {
     NegotiationStatus negoStatus;
     uint64_t negoTime;
-    stub->GetNegoStatusAndTime(negoStatus, negoTime);
-    if (negoStatus == NegotiationStatus::NEGO_FINISHED) {
-        DBINDER_LOGI(LOG_LABEL, "Negotiation has been finished, seq:%{public}u pid:%{public}u", seqNumber, pid);
-        return DBINDER_OK;
-    }
-    constexpr int32_t THREAD_LOCK_RETRY_TIMES = 10;
     int32_t count = 0;
     do {
+        stub->GetNegoStatusAndTime(negoStatus, negoTime);
+        if (negoStatus == NegotiationStatus::NEGO_FINISHED) {
+            DBINDER_LOGI(LOG_LABEL, "Negotiation has been finished, seq:%{public}u pid:%{public}u", seqNumber, pid);
+            return DBINDER_OK;
+        }
+
         threadLockInfo = QueryThreadLockInfo(seqNumber);
         if (threadLockInfo == nullptr) {
             usleep(DBINDER_WAIT_SLEEP_TIME);
@@ -574,11 +572,15 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = nullptr;
     if (isNew) {
         result = InvokerRemoteDBinderWhenRequest(stub, seqNumber, pid, uid, threadLockInfo);
+        if (result != DBINDER_OK) {
+            return result;
+        }
     } else {
         result = InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
-    }
-    if (result != DBINDER_OK) {
-        return result;
+        // When NEGO_FINISHED, threadLockInfo has been removed.
+        if ((result != DBINDER_OK) || threadLockInfo == nullptr) {
+            return result;
+        }
     }
 
     /* pend to wait reply */
@@ -1419,7 +1421,7 @@ int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
         // do nothing
     }
 
-    std::list<std::u16string> serviceNames = FindServicesByDeviceID(deviceID);
+    std::set<std::u16string> serviceNames = FindServicesByDeviceID(deviceID);
     if (serviceNames.empty()) {
         DBINDER_LOGE(LOG_LABEL, "the device does not have any registered service");
         return ERR_NONE;
@@ -1435,13 +1437,13 @@ int32_t DBinderService::NoticeDeviceDie(const std::string &deviceID)
     return status;
 }
 
-std::list<std::u16string> DBinderService::FindServicesByDeviceID(const std::string &deviceID)
+std::set<std::u16string> DBinderService::FindServicesByDeviceID(const std::string &deviceID)
 {
     std::lock_guard<std::mutex> lockGuard(handleEntryMutex_);
-    std::list<std::u16string> serviceNames;
+    std::set<std::u16string> serviceNames;
     for (auto it = DBinderStubRegisted_.begin(); it != DBinderStubRegisted_.end(); it++) {
         if ((*it)->GetDeviceID() == deviceID) {
-            serviceNames.push_back((*it)->GetServiceName());
+            serviceNames.emplace((*it)->GetServiceName());
         }
     }
 

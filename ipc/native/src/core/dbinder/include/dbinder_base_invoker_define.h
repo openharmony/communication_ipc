@@ -110,6 +110,7 @@ public:
     std::mutex &GetObjectMutex();
     void PrintDBinderTransaction(const char *funcName, const char *titleName, const dbinder_transaction_data *tr);
     void PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data, size_t length);
+    void PrintDBinderTransData(const dbinder_transaction_data *transData);
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,
@@ -151,7 +152,6 @@ private:
     std::shared_ptr<ThreadProcessInfo> MakeThreadProcessInfo(int32_t socketId, const char *buffer, uint32_t size);
     std::shared_ptr<ThreadMessageInfo> MakeThreadMessageInfo(int32_t socketId);
     uint32_t MakeRemoteHandle(std::shared_ptr<T> session);
-    void PrintDBinderTransData(dbinder_transaction_data *transData);
     void StartLoopFailSendReply(const char *buffer, uint32_t size, int32_t result);
 
 private:

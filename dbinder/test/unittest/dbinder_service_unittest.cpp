@@ -1305,8 +1305,8 @@ HWTEST_F(DBinderServiceUnitTest, FindServicesByDeviceIDTest001, TestSize.Level1)
         binderObject);
     EXPECT_TRUE(dBinderServiceStub != nullptr);
     dBinderService->DBinderStubRegisted_.push_back(dBinderServiceStub);
-    std::list<std::u16string> serviceNames;
-    serviceNames.push_back(serviceName);
+    std::set<std::u16string> serviceNames;
+    serviceNames.emplace(serviceName);
     EXPECT_EQ(dBinderService->FindServicesByDeviceID(deviceID), serviceNames);
 }
 
