@@ -565,9 +565,13 @@ HWTEST_F(IPCSkeletonTest, GetCallingUidInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -600,9 +604,13 @@ HWTEST_F(IPCSkeletonTest, GetCallingPidInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -635,9 +643,13 @@ HWTEST_F(IPCSkeletonTest, GetCallingRealPidInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -670,9 +682,13 @@ HWTEST_F(IPCSkeletonTest, GetCallingTokenIDInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -705,9 +721,13 @@ HWTEST_F(IPCSkeletonTest, GetCallingFullTokenIDInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -740,9 +760,13 @@ HWTEST_F(IPCSkeletonTest, GetFirstTokenIDInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -775,9 +799,13 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenIDInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -810,9 +838,13 @@ HWTEST_F(IPCSkeletonTest, GetDCallingTokenIDInIPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
@@ -845,9 +877,13 @@ HWTEST_F(IPCSkeletonTest, GetDCallingTokenIDInRPC, TestSize.Level1)
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     ASSERT_NE(current, nullptr);
     MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
-    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
     ASSERT_NE(binderInvoker, nullptr);
-    ASSERT_NE(dbinderInvoker, nullptr);
+    MockIRemoteInvoker *dbinderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    if (dbinderInvoker == nullptr) {
+        delete binderInvoker;
+        binderInvoker = nullptr;
+        FAIL() << "dbinderInvoker new fail";
+    }
 
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
     current->invokers_[IRemoteObject::IF_PROT_DATABUS] = dbinderInvoker;
