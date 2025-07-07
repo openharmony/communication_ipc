@@ -32,7 +32,7 @@ void TranslateDBinderProxyFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     int32_t handle = provider.ConsumeIntegral<int32_t>();
 
     BinderInvoker invoker;
@@ -65,7 +65,7 @@ void TranslateDBinderStubFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     int32_t handle = provider.ConsumeIntegral<int32_t>();
     bool isReply = provider.ConsumeBool();
     size_t totalDBinderBufSize;
@@ -114,7 +114,7 @@ void SamgrServiceSendRequestFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     binder_transaction_data transData;
     MessageParcel reply;
     MessageOption option;
@@ -128,7 +128,7 @@ void GeneralServiceSendRequestFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     binder_transaction_data transData;
     transData.target.ptr = 0;
     transData.code = provider.ConsumeIntegral<uint32_t>();
@@ -168,7 +168,7 @@ void HandleReplyFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     bool isStubRet;
 
     BinderInvoker invoker;
@@ -207,7 +207,7 @@ void WriteTransactionFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     int cmd = provider.ConsumeIntegral<int32_t>();
     uint32_t flags = provider.ConsumeIntegral<uint32_t>();
     int32_t handle = provider.ConsumeIntegral<int32_t>();
@@ -226,7 +226,7 @@ void OnReplyFuzzTest(FuzzedDataProvider &provider)
     MessageParcel reply;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    reply.WriteBuffer(bytes.data(), bytesSize);
+    reply.WriteBuffer(bytes.data(), bytes.size());
     uint32_t cmd = provider.ConsumeIntegral<uint32_t>();
     bool continueLoop;
     int32_t error;
@@ -251,7 +251,7 @@ void SetRegistryObjectFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     sptr<OHOS::IRemoteObject> object = dataParcel.ReadRemoteObject();
 
     BinderInvoker invoker;
@@ -271,7 +271,7 @@ void PrintParcelDataFuzzTest(FuzzedDataProvider &provider)
     MessageParcel dataParcel;
     size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
-    dataParcel.WriteBuffer(bytes.data(), bytesSize);
+    dataParcel.WriteBuffer(bytes.data(), bytes.size());
     std::string parcelName = provider.ConsumeRandomLengthString();
 
     BinderInvoker invoker;
