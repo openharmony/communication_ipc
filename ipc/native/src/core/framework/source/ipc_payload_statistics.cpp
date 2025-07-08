@@ -17,26 +17,20 @@
 
 namespace OHOS {
 
-// LCOV_EXCL_START
 uint64_t IPCPayloadStatistics::GetTotalCount()
 {
     return IPCPayloadStatisticsImpl::GetInstance().GetTotalCount();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint64_t IPCPayloadStatistics::GetTotalCost()
 {
     return IPCPayloadStatisticsImpl::GetInstance().GetTotalCost();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::vector<int32_t> IPCPayloadStatistics::GetPids()
 {
     return IPCPayloadStatisticsImpl::GetInstance().GetPids();
 }
-// LCOV_EXCL_STOP
 
 uint64_t IPCPayloadStatistics::GetCount(const int32_t pid)
 {
@@ -64,31 +58,23 @@ IPCPayloadCost IPCPayloadStatistics::GetDescriptorCodeCost(const int32_t pid, co
     return IPCPayloadStatisticsImpl::GetInstance().GetDescriptorCodeCost(pid, desc, code);
 }
 
-// LCOV_EXCL_START
 bool IPCPayloadStatistics::StartStatistics()
 {
     return IPCPayloadStatisticsImpl::GetInstance().StartStatistics();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool IPCPayloadStatistics::StopStatistics()
 {
     return IPCPayloadStatisticsImpl::GetInstance().StopStatistics();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool IPCPayloadStatistics::GetStatisticsStatus()
 {
     return IPCPayloadStatisticsImpl::GetInstance().GetStatisticsStatus();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool IPCPayloadStatistics::ClearStatisticsData()
 {
     return IPCPayloadStatisticsImpl::GetInstance().ClearStatisticsData();
 }
-// LCOV_EXCL_STOP
 } // namespace OHOS
