@@ -42,6 +42,13 @@ namespace OHOS {
         bool isLoad_ = true;
     };
 
+    class TestDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        TestDeathRecipient() {}
+        virtual ~TestDeathRecipient() {}
+        void OnRemoteDied(const wptr<IRemoteObject>& object) override {}
+    };
+
     void OnRemoteMessageTaskTest(FuzzedDataProvider &provider)
     {
         std::shared_ptr<struct DHandleEntryTxRx> handleEntry = std::make_shared<struct DHandleEntryTxRx>();
@@ -579,6 +586,209 @@ namespace OHOS {
         OHOS::DBinderService dBinderService;
         dBinderService.WakeupThreadByStub(seqNumber);
     }
+
+    void WakeupConcurrentWaitingThreadTest(FuzzedDataProvider &provider)
+    {
+        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString();
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        sptr<DBinderServiceStub> dBinderServiceStub
+            = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
+        if (dBinderServiceStub == nullptr) {
+            return;
+        }
+        bool isNew;
+        OHOS::DBinderService dBinderService;
+        auto lockInfo = dBinderService.FindOrNewConcurrentLockInfo(dBinderServiceStub, isNew);
+        bool isNegotiationSuccessful = provider.ConsumeBool();
+        dBinderService.WakeupConcurrentWaitingThread(stub, lockInfo, isNegotiationSuccessful);
+    }
+
+    void DetachThreadLockInfoTest(FuzzedDataProvider &provider)
+    {
+        uint32_t seqNumber = provider.ConsumeIntegral<uint32_t>();
+        OHOS::DBinderService dBinderService;
+        dBinderService.DetachThreadLockInfo(seqNumber);
+    }
+
+    void DetachProxyObjectTest(FuzzedDataProvider &provider)
+    {
+        binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        OHOS::DBinderService dBinderService;
+        dBinderService.DetachProxyObject(binderObject);
+    }
+
+    void AttachThreadLockInfoTest(FuzzedDataProvider &provider)
+    {
+        uint32_t seqNumber = provider.ConsumeIntegral<uint32_t>();
+        std::string networkId = provider.ConsumeRandomLengthString();
+        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString();
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        sptr<DBinderServiceStub> dBinderServiceStub
+            = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
+        if (dBinderServiceStub == nullptr) {
+            return;
+        }
+        bool isNew;
+        OHOS::DBinderService dBinderService;
+        auto object = dBinderService.FindOrNewConcurrentLockInfo(dBinderServiceStub, isNew);
+        dBinderService.AttachThreadLockInfo(seqNumber, networkId, object);
+    }
+
+    void AttachProxyObjectTest(FuzzedDataProvider &provider)
+    {
+        int handle = provider.ConsumeIntegral<int>();
+        sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(handle);
+        if (object == nullptr) {
+            return;
+        }
+        binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        OHOS::DBinderService dBinderService;
+        dBinderService.AttachProxyObject(object, binderObject);
+    }
+
+    void QueryProxyObjectTest(FuzzedDataProvider &provider)
+    {
+        binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        OHOS::DBinderService dBinderService;
+        dBinderService.QueryProxyObject(binderObject);
+    }
+
+    void DetachSessionObjectTest(FuzzedDataProvider &provider)
+    {
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        OHOS::DBinderService dBinderService;
+        dBinderService.DetachSessionObject(stub);
+    }
+
+    void QuerySessionObjectTest(FuzzedDataProvider &provider)
+    {
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        OHOS::DBinderService dBinderService;
+        dBinderService.QuerySessionObject(stub);
+    }
+
+    void DetachDeathRecipientTest(FuzzedDataProvider &provider)
+    {
+        int handle = provider.ConsumeIntegral<int>();
+        sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(handle);
+        if (object == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.DetachDeathRecipient(object);
+    }
+
+    void AttachDeathRecipientTest(FuzzedDataProvider &provider)
+    {
+        int handle = provider.ConsumeIntegral<int>();
+        sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(handle);
+        if (object == nullptr) {
+            return;
+        }
+        sptr<IRemoteObject::DeathRecipient> deathRecipient = new (std::nothrow) TestDeathRecipient();
+        if (deathRecipient == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.AttachDeathRecipient(object, deathRecipient);
+    }
+
+    void QueryDeathRecipientTest(FuzzedDataProvider &provider)
+    {
+        int handle = provider.ConsumeIntegral<int>();
+        sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(handle);
+        if (object == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.QueryDeathRecipient(object);
+    }
+
+    void DetachCallbackProxyTest(FuzzedDataProvider &provider)
+    {
+        int handle = provider.ConsumeIntegral<int>();
+        sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(handle);
+        if (object == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.DetachCallbackProxy(object);
+    }
+
+    void AttachCallbackProxyTest(FuzzedDataProvider &provider)
+    {
+        int handle = provider.ConsumeIntegral<int>();
+        sptr<IRemoteObject> object = new (std::nothrow) IPCObjectProxy(handle);
+        if (object == nullptr) {
+            return;
+        }
+        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString();
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        sptr<DBinderServiceStub> dBinderServiceStub
+            = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
+        if (dBinderServiceStub == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.AttachCallbackProxy(object, dBinderServiceStub.GetRefPtr());
+    }
+
+    void NoticeCallbackProxyTest(FuzzedDataProvider &provider)
+    {
+        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString();
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        sptr<DBinderServiceStub> dbStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
+        if (dbStub == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.NoticeCallbackProxy(dbStub);
+    }
+
+    void ProcessCallbackProxyTest(FuzzedDataProvider &provider)
+    {
+        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString();
+        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+        sptr<DBinderServiceStub> dbStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
+        if (dbStub == nullptr) {
+            return;
+        }
+        OHOS::DBinderService dBinderService;
+        dBinderService.ProcessCallbackProxy(dbStub);
+    }
+
+    void NoticeServiceDieInnerTest(FuzzedDataProvider &provider)
+    {
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
+        std::string deviceID = provider.ConsumeRandomLengthString();
+        OHOS::DBinderService dBinderService;
+        dBinderService.NoticeServiceDieInner(serviceName, deviceID);
+    }
+
+    void FuzzTest(FuzzedDataProvider &provider)
+    {
+        OHOS::WakeupConcurrentWaitingThreadTest(provider);
+        OHOS::DetachThreadLockInfoTest(provider);
+        OHOS::DetachProxyObjectTest(provider);
+        OHOS::AttachThreadLockInfoTest(provider);
+        OHOS::AttachProxyObjectTest(provider);
+        OHOS::QueryProxyObjectTest(provider);
+        OHOS::DetachSessionObjectTest(provider);
+        OHOS::QuerySessionObjectTest(provider);
+        OHOS::DetachDeathRecipientTest(provider);
+        OHOS::AttachDeathRecipientTest(provider);
+        OHOS::QueryDeathRecipientTest(provider);
+        OHOS::DetachCallbackProxyTest(provider);
+        OHOS::AttachCallbackProxyTest(provider);
+        OHOS::NoticeCallbackProxyTest(provider);
+        OHOS::ProcessCallbackProxyTest(provider);
+        OHOS::NoticeServiceDieInnerTest(provider);
+    }
 }
 
 /* Fuzzer entry point */
@@ -631,5 +841,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::InitializeSessionTest(provider);
     OHOS::MakeSessionByReplyMessageTest(provider);
     OHOS::WakeupThreadByStubTest(provider);
+    OHOS::FuzzTest(provider);
     return 0;
 }
