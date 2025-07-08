@@ -27,12 +27,10 @@ namespace OHOS {
 #ifdef CONFIG_IPC_SINGLE
 using namespace IPC_SINGLE;
 #endif
-// LCOV_EXCL_START
 bool IRemoteObject::CheckObjectLegality() const
 {
     return false;
 }
-// LCOV_EXCL_STOP
 
 bool IRemoteObject::Marshalling(Parcel &parcel) const
 {

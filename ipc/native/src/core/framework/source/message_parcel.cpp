@@ -282,7 +282,6 @@ int MessageParcel::ReadFileDescriptor()
 }
 // LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 void MessageParcel::ClearFileDescriptor()
 {
     size_t dataOffset = 0;
@@ -312,9 +311,7 @@ void MessageParcel::ClearFileDescriptor()
         }
     }
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool MessageParcel::ContainFileDescriptors() const
 {
     size_t dataOffset = 0;
@@ -346,7 +343,6 @@ bool MessageParcel::ContainFileDescriptors() const
 
     return false;
 }
-// LCOV_EXCL_STOP
 
 bool MessageParcel::WriteInterfaceToken(std::u16string name)
 {
@@ -525,21 +521,16 @@ size_t MessageParcel::GetRawDataSize() const
 }
 // LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 size_t MessageParcel::GetRawDataCapacity() const
 {
     return MAX_RAWDATA_SIZE;
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 void MessageParcel::WriteNoException()
 {
     WriteInt32(0);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int32_t MessageParcel::ReadException()
 {
     int32_t errorCode = ReadInt32();
@@ -548,7 +539,6 @@ int32_t MessageParcel::ReadException()
     }
     return errorCode;
 }
-// LCOV_EXCL_STOP
 
 bool MessageParcel::WriteAshmem(sptr<Ashmem> ashmem)
 {
@@ -563,7 +553,6 @@ bool MessageParcel::WriteAshmem(sptr<Ashmem> ashmem)
     return true;
 }
 
-// LCOV_EXCL_START
 sptr<Ashmem> MessageParcel::ReadAshmem()
 {
     int fd = ReadFileDescriptor();
@@ -578,7 +567,6 @@ sptr<Ashmem> MessageParcel::ReadAshmem()
     }
     return new (std::nothrow) Ashmem(fd, size);
 }
-// LCOV_EXCL_STOP
 
 bool MessageParcel::Append(MessageParcel &data)
 {

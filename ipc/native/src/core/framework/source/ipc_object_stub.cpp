@@ -518,40 +518,30 @@ pid_t IPCObjectStub::GetCallingUid()
 }
 // LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint32_t IPCObjectStub::GetCallingTokenID()
 {
     return IPCSkeleton::GetCallingTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetCallingFullTokenID()
 {
     return IPCSkeleton::GetCallingFullTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint32_t IPCObjectStub::GetFirstTokenID()
 {
     return IPCSkeleton::GetFirstTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetFirstFullTokenID()
 {
     return IPCSkeleton::GetFirstFullTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int IPCObjectStub::GetObjectType() const
 {
     return OBJECT_TYPE_NATIVE;
 }
-// LCOV_EXCL_STOP
 
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -564,12 +554,10 @@ int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageP
     return result;
 }
 
-// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetLastRequestTime()
 {
     return lastRequestTime_;
 }
-// LCOV_EXCL_STOP
 
 #ifndef CONFIG_IPC_SINGLE
 int32_t IPCObjectStub::InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
