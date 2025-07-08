@@ -646,7 +646,6 @@ int IPCObjectProxy::InvokeListenThread(MessageParcel &data, MessageParcel &reply
     return SendRequestInner(false, INVOKE_LISTEN_THREAD, data, reply, option);
 }
 
-// LCOV_EXCL_START
 uint32_t IPCObjectProxy::GetStrongRefCountForStub()
 {
     BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(IPCThreadSkeleton::GetDefaultInvoker());
@@ -656,7 +655,6 @@ uint32_t IPCObjectProxy::GetStrongRefCountForStub()
     }
     return invoker->GetStrongRefCountForStub(handle_);
 }
-// LCOV_EXCL_STOP
 
 #ifdef OHOS_PLATFORM
 bool IPCObjectProxy::CanPromote()
@@ -1128,7 +1126,6 @@ std::string IPCObjectProxy::DeathRecipientAddrInfo::GetNewSoPath()
     return info.dli_fname;
 }
 
-// LCOV_EXCL_START
 bool IPCObjectProxy::DeathRecipientAddrInfo::IsDlclosed()
 {
     std::string newSoPath = GetNewSoPath();
@@ -1137,7 +1134,6 @@ bool IPCObjectProxy::DeathRecipientAddrInfo::IsDlclosed()
     }
     return false;
 }
-// LCOV_EXCL_STOP
 
 #ifdef ENABLE_IPC_TRACE
 // LCOV_EXCL_START
