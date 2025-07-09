@@ -20,12 +20,12 @@ ohos_rust_unittest("rust_ipc_ut_test") {
   sources = [ "../src/lib.rs" ]
   deps = [
     "../../rust:ipc_rust_cxx",
-    "//third_party/rust/crates/cxx:lib",
   ]
 
   external_deps = [
     "hilog:hilog_rust",
     "ylong_runtime:ylong_runtime",
+    "rust_cxx:lib"
   ]
 
   subsystem_name = "communication"
