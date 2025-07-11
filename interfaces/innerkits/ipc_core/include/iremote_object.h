@@ -22,13 +22,12 @@
 #include "ipc_types.h"
 #include "message_parcel.h"
 #include "message_option.h"
-#include "string_ex.h"
 
 namespace OHOS {
 class IRemoteBroker;
 inline std::u16string to_utf16(const std::string &str)
 {
-    return Str8ToStr16(str);
+    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
 }
 
 class IRemoteObject : public virtual Parcelable, public virtual RefBase {
