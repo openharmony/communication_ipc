@@ -242,7 +242,7 @@ function GetCallingPid(): i32;
 function GetCallingUid(): i32;
 
 @static("IPCSkeleton")
-function GetCallingTokenId(): u32;
+function GetCallingTokenId(): i64;
 
 @static("IPCSkeleton")
 function GetContextObject(): IRemoteObjectUnion;

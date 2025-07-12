@@ -35,7 +35,7 @@ class IPCSkeletonImpl {
 public:
     static int32_t GetCallingPid();
     static int32_t GetCallingUid();
-    static uint32_t GetCallingTokenId();
+    static int64_t GetCallingTokenId();
 
     static ::ohos::rpc::rpc::IRemoteObjectUnion GetContextObject();
 };
