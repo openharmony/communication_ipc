@@ -58,12 +58,12 @@ group("fuzztest") {
     "ipc/native/src/core/ipcobjectstubnew_fuzzer:IPCObjectStubNewFuzzTest",
     "ipc/native/src/core/ipcpayloadstatisticsimpl_fuzzer:IPCPayloadStatisticsImplFuzzTest",
     "ipc/native/src/core/ipcpayloadstatisticsnew_fuzzer:IPCPayloadStatisticsNewFuzzTest",
+    "ipc/native/src/core/dbindercallbackstubnew_fuzzer:DBinderCallBackStubNewFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
     "dbinder/dbinder_service/src/getlocaldeviceid_fuzzer:GetLocalDeviceIDFuzzTest",
     "dbinder/dbinder_service/src/getseqnumber_fuzzer:GetSeqNumberFuzzTest",
     "dbinder/dbinder_service/src/restartremotelistener_fuzzer:ReStartRemoteListenerFuzzTest",
     "dbinder/dbinder_service/src/dbinderservicenew_fuzzer:DBinderServiceNewFuzzTest",
     "dbinder/dbinder_service/src/socket/dbinderremotelistener_fuzzer:DBinderRemoteListenerFuzzTest",
-    "ipc/native/src/core/dbindercallbackstubnew_fuzzer:DBinderCallBackStubNewFuzzTest",
   ]
 }
