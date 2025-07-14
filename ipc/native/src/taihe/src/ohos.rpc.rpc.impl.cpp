@@ -1189,9 +1189,9 @@ int32_t IPCSkeletonImpl::GetCallingUid()
     return OHOS::IPCSkeleton::GetCallingUid();
 }
 
-uint32_t IPCSkeletonImpl::GetCallingTokenId()
+int64_t IPCSkeletonImpl::GetCallingTokenId()
 {
-    return OHOS::IPCSkeleton::GetCallingTokenID();
+    return static_cast<int64_t>(OHOS::IPCSkeleton::GetCallingTokenID());
 }
 
 ::ohos::rpc::rpc::IRemoteObjectUnion IPCSkeletonImpl::GetContextObject()
