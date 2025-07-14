@@ -1188,7 +1188,12 @@ bool BinderInvoker::GetDetailedErrorInfo(uint32_t &errorCode, std::string &errDe
         return false;
     }
     errorCode = errInfo.err_code;
-    errDesc = errInfo.err_str;
+    size_t len = strnlen(errInfo.err_str, sizeof(errInfo.err_str));
+    if (len == sizeof(errInfo.err_str)) {
+        ZLOGE(LABEL, "errInfo.err_str is not null-terminated or exceeds the buffer size");
+        return false;
+    }
+    errDesc = std::string(errInfo.err_str, len);
     return true;
 }
 #endif

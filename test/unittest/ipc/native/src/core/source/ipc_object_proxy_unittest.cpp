@@ -711,4 +711,25 @@ HWTEST_F(IPCObjectProxyTest, DeathRecipientAddrInfoTest002, TestSize.Level1)
     IPCObjectProxy::DeathRecipientAddrInfo info(recipient);
     EXPECT_NE(info.recipient_, nullptr);
 }
+
+#ifndef __linux__
+/**
+ * @tc.name: PrintErrorDetailedInfoTest001
+ * @tc.desc: Verify the PrintErrorDetailedInfo function when invoker is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, PrintErrorDetailedInfoTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_BINDER;
+
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = nullptr;
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+
+    int err = BR_FAILED_REPLY;
+    std::string desc = "desc";
+    ASSERT_NO_FATAL_FAILURE(object.PrintErrorDetailedInfo(err, desc));
+}
+#endif
 } // namespace OHOS
