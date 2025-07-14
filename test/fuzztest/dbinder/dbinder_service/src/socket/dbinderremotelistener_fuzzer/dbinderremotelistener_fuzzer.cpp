@@ -25,7 +25,10 @@ namespace OHOS {
     {
         int32_t socket = provider.ConsumeIntegral<int32_t>();
         PeerSocketInfo info;
-        info.networkId = const_cast<char *>(provider.ConsumeRandomLengthString().c_str());
+        std::string networkId = provider.ConsumeRandomLengthString();
+        std::string name = provider.ConsumeRandomLengthString();
+        info.networkId = const_cast<char *>(networkId.c_str());
+        info.name = const_cast<char *>(name.c_str());
         auto dBinderRemoteListener = std::make_shared<DBinderRemoteListener>();
         if (dBinderRemoteListener == nullptr) {
             return ;
@@ -66,8 +69,6 @@ namespace OHOS {
     void CreateClientSocketTest(FuzzedDataProvider &provider)
     {
         std::string peerNetworkId = provider.ConsumeRandomLengthString();
-        PeerSocketInfo info;
-        info.networkId = const_cast<char *>(provider.ConsumeRandomLengthString().c_str());
         auto dBinderRemoteListener = std::make_shared<DBinderRemoteListener>();
         if (dBinderRemoteListener == nullptr) {
             return ;
