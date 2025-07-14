@@ -2080,4 +2080,66 @@ HWTEST_F(BinderInvokerTest, UpdateConsumedDataTest002, TestSize.Level1)
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.UpdateConsumedData(bwr, outAvail));
 }
+
+#ifndef __linux__
+/**
+ * @tc.name: GetDetailedErrorInfoTest001
+ * @tc.desc: Verify the GetDetailedErrorInfo function when WriteBinder return ERR_NONE
+ * @tc.type: FUNCw
+ */
+HWTEST_F(BinderInvokerTest, GetDetailedErrorInfoTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t errorCode = BR_FAILED_REPLY;
+    std::string errDesc = "errDesc";
+
+    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_NONE));
+
+    bool result = binderInvoker.GetDetailedErrorInfo(errorCode, errDesc);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: GetDetailedErrorInfoTest002
+ * @tc.desc: Verify the GetDetailedErrorInfo function when WriteBinder return ERR_INVALID_DATA
+ */
+HWTEST_F(BinderInvokerTest, GetDetailedErrorInfoTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t errorCode = BR_FAILED_REPLY;
+    std::string errDesc = "errDesc";
+
+    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_INVALID_DATA));
+
+    bool result = binderInvoker.GetDetailedErrorInfo(errorCode, errDesc);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetDetailedErrorInfoTest003
+ * @tc.desc: Verify the GetDetailedErrorInfo function when str is not end with '\0'
+ * @tc.type: FUNCw
+ */
+HWTEST_F(BinderInvokerTest, GetDetailedErrorInfoTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    uint32_t errorCode = BR_FAILED_REPLY;
+    std::string errDesc = "errDesc";
+
+    auto mockFunc = [](unsigned long request, void* data) -> bool {
+        auto* errInfo = static_cast<hmb_detailed_err*>(data);
+        errInfo->err_code = BR_FAILED_REPLY;
+        memset_s(errInfo->err_str, sizeof(errInfo->err_str), 'x', sizeof(errInfo->err_str));
+        return ERR_NONE;
+    };
+    EXPECT_CALL(mock, WriteBinder(::testing::_, ::testing::_)).WillOnce(Invoke(mockFunc));
+
+    bool result = binderInvoker.GetDetailedErrorInfo(errorCode, errDesc);
+    EXPECT_FALSE(result);
+}
+#endif
+
 } // namespace OHOS

@@ -143,7 +143,7 @@ public:
     uint32_t GetStrongRefCountForStub(uint32_t handle);
 
     bool IsSendRequesting();
-#ifndef __linux
+#ifndef __linux__
     bool GetDetailedErrorInfo(uint32_t &errorCode, std::string &errorDesc);
 #endif
 #ifndef CONFIG_IPC_SINGLE
