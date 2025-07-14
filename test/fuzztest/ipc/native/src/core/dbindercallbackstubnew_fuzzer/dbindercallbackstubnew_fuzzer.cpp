@@ -24,10 +24,6 @@
 namespace OHOS {
     void ProcessProtoFuzzTest(FuzzedDataProvider &provider)
     {
-        uint32_t code = provider.ConsumeIntegral<uint32_t>();
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
         uint32_t handle = provider.ConsumeIntegral<uint32_t>();
         uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
@@ -38,32 +34,35 @@ namespace OHOS {
         if (stub == nullptr) {
             return;
         }
+        uint32_t code = provider.ConsumeIntegral<uint32_t>();
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
         stub->ProcessProto(code, data, reply, option);
     }
 
     void ProcessDataFuzzTest(FuzzedDataProvider &provider)
     {
+        uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
+        uint32_t handle = provider.ConsumeIntegral<uint32_t>();
+        uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
+        std::string service = provider.ConsumeRandomLengthString();
+        std::string device = provider.ConsumeRandomLengthString();
+        std::string localDevice = provider.ConsumeRandomLengthString();
+        auto stub = new (std::nothrow) DBinderCallbackStub(service, device, localDevice, stubIndex, handle, tokenId);
+        if (stub == nullptr) {
+            return;
+        }
         int uid = provider.ConsumeIntegral<int>();
         int pid = provider.ConsumeIntegral<int>();
         MessageParcel data;
         MessageParcel reply;
         std::string sessionName = provider.ConsumeRandomLengthString();
-        uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-        uint32_t handle = provider.ConsumeIntegral<uint32_t>();
-        uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-        std::string service = provider.ConsumeRandomLengthString();
-        std::string device = provider.ConsumeRandomLengthString();
-        std::string localDevice = provider.ConsumeRandomLengthString();
-        auto stub = new (std::nothrow) DBinderCallbackStub(service, device, localDevice, stubIndex, handle, tokenId);
-        if (stub == nullptr) {
-            return;
-        }
         stub->ProcessData(uid, pid, sessionName, data, reply);
     }
 
     void MarshallingFuzzTest(FuzzedDataProvider &provider)
     {
-        Parcel parcel;
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
         uint32_t handle = provider.ConsumeIntegral<uint32_t>();
         uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
@@ -74,14 +73,12 @@ namespace OHOS {
         if (stub == nullptr) {
             return;
         }
+        Parcel parcel;
         stub->Marshalling(parcel);
     }
 
     void AddDBinderCommAuthFuzzTest(FuzzedDataProvider &provider)
     {
-        pid_t pid = static_cast<pid_t>(provider.ConsumeIntegral<int32_t>());
-        uid_t uid = static_cast<uid_t>(provider.ConsumeIntegral<int32_t>());
-        std::string sessionName = provider.ConsumeRandomLengthString();
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
         uint32_t handle = provider.ConsumeIntegral<uint32_t>();
         uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
@@ -92,12 +89,14 @@ namespace OHOS {
         if (stub == nullptr) {
             return;
         }
+        pid_t pid = provider.ConsumeIntegral<pid_t>();
+        uid_t uid = provider.ConsumeIntegral<uid_t>();
+        std::string sessionName = provider.ConsumeRandomLengthString();
         stub->AddDBinderCommAuth(pid, uid, sessionName);
     }
 
     void SaveDBinderDataFuzzTest(FuzzedDataProvider &provider)
     {
-        std::string sessionName = provider.ConsumeRandomLengthString();
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
         uint32_t handle = provider.ConsumeIntegral<uint32_t>();
         uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
@@ -108,13 +107,12 @@ namespace OHOS {
         if (stub == nullptr) {
             return;
         }
+        std::string sessionName = provider.ConsumeRandomLengthString();
         stub->SaveDBinderData(sessionName);
     }
 
     void GetAndSaveDBinderDataFuzzTest(FuzzedDataProvider &provider)
     {
-        pid_t pid = static_cast<pid_t>(provider.ConsumeIntegral<int32_t>());
-        uid_t uid = static_cast<uid_t>(provider.ConsumeIntegral<int32_t>());
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
         uint32_t handle = provider.ConsumeIntegral<uint32_t>();
         uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
@@ -125,6 +123,8 @@ namespace OHOS {
         if (stub == nullptr) {
             return;
         }
+        pid_t pid = provider.ConsumeIntegral<pid_t>();
+        uid_t uid = provider.ConsumeIntegral<uid_t>();
         stub->GetAndSaveDBinderData(pid, uid);
     }
 }
