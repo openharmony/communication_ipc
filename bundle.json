@@ -56,9 +56,13 @@
       "build": {
         "sub_component": [
           "//foundation/communication/ipc:ipc_components",
-          "//foundation/communication/ipc/ipc/native/src/ani:rpc_ani_packages"
+          "//foundation/communication/ipc/ipc/native/src/ani:rpc_ani_packages",
+          "//foundation/communication/ipc/ipc/native/src/taihe/:rpc_taihe_components"
         ],
         "inner_kits": [
+          {
+              "name": "//foundation/communication/ipc/ipc/native/src/taihe:rpc_taihe_idl"
+          },
           {
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
               "header": {
