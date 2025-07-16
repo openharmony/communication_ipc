@@ -28,6 +28,11 @@ ohos_fuzztest("DBinderCallBackStubFuzzTest") {
 
   deps = [ "../../../../../../../test:ipc_single_test_static" ]
 
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
+
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
