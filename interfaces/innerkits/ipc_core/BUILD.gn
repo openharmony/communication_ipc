@@ -42,7 +42,7 @@ ohos_prebuilt_shared_library("ipc_core") {
 
   install_enable = true
   innerapi_tags = [
-    "chipsetsdk",
+    "chipsetsdk_sp",
     "platformsdk",
     "sasdk",
   ]
