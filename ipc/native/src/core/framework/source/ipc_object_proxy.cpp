@@ -206,19 +206,6 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
         ZLOGW(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
             timeInterval, code, desc.c_str());
     }
-    if (err != ERR_NONE && ProcessSkeleton::IsPrint(err, lastErr_, lastErrCnt_)) {
-        PrintErrorDetailedInfo(err, desc);
-#ifdef ENABLE_IPC_PROXY_DFX_BACKTRACE
-        if (err == BR_FAILED_REPLY) {
-            std::string backtrace;
-            if (!GetBacktrace(backtrace, false)) {
-                ZLOGE(LABEL, "GetBacktrace fail");
-            } else {
-                ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
-            }
-        }
-#endif
-    }
     return err;
 }
 
@@ -253,6 +240,21 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
         SetObjectDied(true);
     }
     IPCThreadSkeleton::UpdateSendRequestCount(-1);
+
+    std::string desc = GetDescriptor(data);
+    if (status != ERR_NONE && ProcessSkeleton::IsPrint(status, lastErr_, lastErrCnt_)) {
+        PrintErrorDetailedInfo(status, desc);
+#ifdef ENABLE_IPC_PROXY_DFX_BACKTRACE
+        if (status == BR_FAILED_REPLY) {
+            std::string backtrace;
+            if (!GetBacktrace(backtrace, false)) {
+                ZLOGE(LABEL, "GetBacktrace fail");
+            } else {
+                ZLOGW(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
+            }
+        }
+#endif
+    }
     return status;
 }
 
