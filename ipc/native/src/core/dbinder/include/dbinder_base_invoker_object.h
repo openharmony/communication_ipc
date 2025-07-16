@@ -127,24 +127,6 @@ bool DBinderBaseInvoker<T>::IsValidRemoteObjectOffset(unsigned char *dataBuffer,
     return true;
 }
 
-template<class T>
-void DBinderBaseInvoker<T>::PrintDBinderTransData(const dbinder_transaction_data *transData)
-{
-    ZLOGI(LOG_LABEL, "sizeOfSelf:%{public}u, sizeof(dbinder_transaction_data):%{public}zu "
-        "bufSize:%{public}llu offsetsSize:%{public}llu flag:%{public}u",
-        transData->sizeOfSelf, sizeof(dbinder_transaction_data), transData->buffer_size,
-        transData->offsets_size, transData->flags);
-    std::string formatStr;
-    size_t size = (transData->sizeOfSelf - sizeof(dbinder_transaction_data)) / sizeof(int32_t);
-    auto data = reinterpret_cast<const int32_t *>(transData->buffer);
-    size_t idx = 0;
-    while (idx < size) {
-        formatStr += std::to_string(data[idx]) + ',';
-        ++idx;
-    }
-    ZLOGI(LOG_LABEL, "buffer:%{public}s", formatStr.c_str());
-}
-
 /* check data parcel contains object, if yes, get its session as payload of socket packet
  * if translate any object failed, discard this parcel and do NOT send this parcel to remote
  */
@@ -375,17 +357,18 @@ bool DBinderBaseInvoker<T>::MoveTransData2Buffer(std::shared_ptr<T> sessionObjec
     sessionBuff->UpdateSendBuffer(sendSize);
     ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
-    if (writeCursor < 0 || readCursor < 0 || static_cast<uint32_t>(writeCursor) > sessionBuff->GetSendBufferSize() ||
-        sendSize > sessionBuff->GetSendBufferSize() - static_cast<uint32_t>(writeCursor)) {
+    uint32_t bufferSize = sessionBuff->GetSendBufferSize();
+    if (writeCursor < 0 || readCursor < 0 || static_cast<uint32_t>(writeCursor) > bufferSize ||
+        sendSize > bufferSize - static_cast<uint32_t>(writeCursor)) {
         sessionBuff->ReleaseSendBufferLock();
-        ZLOGE(LOG_LABEL, "sender's data is large than idle buffer, writecursor:%{public}zd readcursor:%{public}zd,\
-            sendSize:%{public}u bufferSize:%{public}u",
-            writeCursor, readCursor, sendSize, sessionBuff->GetSendBufferSize());
+        ZLOGE(LOG_LABEL, "sender's data is large than idle buffer, writecursor:%{public}zd readcursor:%{public}zd, "
+            "sendSize:%{public}u bufferSize:%{public}u", writeCursor, readCursor, sendSize, bufferSize);
         return false;
     }
-    if (memcpy_s(sendBuffer + writeCursor, sendSize, transData.get(), sendSize)) {
+    if (memcpy_s(sendBuffer + writeCursor, bufferSize - writeCursor, transData.get(), sendSize)) {
         sessionBuff->ReleaseSendBufferLock();
-        ZLOGE(LOG_LABEL, "fail to copy from tr to sendBuffer, parcelSize:%{public}u", sendSize);
+        ZLOGE(LOG_LABEL, "fail to copy tr to sendBuffer, writecursor:%{public}zd readcursor:%{public}zd, "
+            "sendSize:%{public}u bufferSize:%{public}u", writeCursor, readCursor, sendSize, bufferSize);
         return false;
     }
 

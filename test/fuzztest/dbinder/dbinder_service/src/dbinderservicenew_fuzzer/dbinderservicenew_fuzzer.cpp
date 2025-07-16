@@ -554,23 +554,6 @@ namespace OHOS {
         dBinderService.WakeupThreadByStub(seqNumber);
     }
 
-    void WakeupConcurrentWaitingThreadTest(FuzzedDataProvider &provider)
-    {
-        std::string serviceName = provider.ConsumeRandomLengthString();
-        std::string deviceID = provider.ConsumeRandomLengthString();
-        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
-        sptr<DBinderServiceStub> dBinderServiceStub
-            = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
-        if (dBinderServiceStub == nullptr) {
-            return;
-        }
-        bool isNew;
-        OHOS::DBinderService dBinderService;
-        auto lockInfo = dBinderService.FindOrNewConcurrentLockInfo(dBinderServiceStub, isNew);
-        bool isNegotiationSuccessful = provider.ConsumeBool();
-        dBinderService.WakeupConcurrentWaitingThread(stub, lockInfo, isNegotiationSuccessful);
-    }
-
     void DetachThreadLockInfoTest(FuzzedDataProvider &provider)
     {
         uint32_t seqNumber = provider.ConsumeIntegral<uint32_t>();
@@ -589,18 +572,9 @@ namespace OHOS {
     {
         uint32_t seqNumber = provider.ConsumeIntegral<uint32_t>();
         std::string networkId = provider.ConsumeRandomLengthString();
-        std::string serviceName = provider.ConsumeRandomLengthString();
-        std::string deviceID = provider.ConsumeRandomLengthString();
-        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
-        sptr<DBinderServiceStub> dBinderServiceStub
-            = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
-        if (dBinderServiceStub == nullptr) {
-            return;
-        }
-        bool isNew;
         OHOS::DBinderService dBinderService;
-        auto object = dBinderService.FindOrNewConcurrentLockInfo(dBinderServiceStub, isNew);
-        dBinderService.AttachThreadLockInfo(seqNumber, networkId, object);
+        auto threadLockInfo = std::make_shared<struct ThreadLockInfo>();
+        dBinderService.AttachThreadLockInfo(seqNumber, networkId, threadLockInfo);
     }
 
     void AttachProxyObjectTest(FuzzedDataProvider &provider)
@@ -691,7 +665,7 @@ namespace OHOS {
         if (object == nullptr) {
             return;
         }
-        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
         std::string deviceID = provider.ConsumeRandomLengthString();
         binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> dBinderServiceStub
@@ -705,28 +679,25 @@ namespace OHOS {
 
     void NoticeCallbackProxyTest(FuzzedDataProvider &provider)
     {
-        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
         std::string deviceID = provider.ConsumeRandomLengthString();
-        binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
-        sptr<DBinderServiceStub> dbStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
-        if (dbStub == nullptr) {
-            return;
-        }
         OHOS::DBinderService dBinderService;
-        dBinderService.NoticeCallbackProxy(dbStub);
+        dBinderService.NoticeCallbackProxy(serviceName, deviceID);
     }
 
     void ProcessCallbackProxyTest(FuzzedDataProvider &provider)
     {
-        std::string serviceName = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
         std::string deviceID = provider.ConsumeRandomLengthString();
         binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> dbStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
         if (dbStub == nullptr) {
             return;
         }
+        std::vector<sptr<DBinderServiceStub>> dbStubs;
+        dbStubs.emplace_back(dbStub);
         OHOS::DBinderService dBinderService;
-        dBinderService.ProcessCallbackProxy(dbStub);
+        dBinderService.ProcessCallbackProxy(dbStubs);
     }
 
     void NoticeServiceDieInnerTest(FuzzedDataProvider &provider)
@@ -739,10 +710,8 @@ namespace OHOS {
 
     void FuzzTest(FuzzedDataProvider &provider)
     {
-        OHOS::WakeupConcurrentWaitingThreadTest(provider);
         OHOS::DetachThreadLockInfoTest(provider);
         OHOS::DetachProxyObjectTest(provider);
-        OHOS::AttachThreadLockInfoTest(provider);
         OHOS::AttachProxyObjectTest(provider);
         OHOS::QueryProxyObjectTest(provider);
         OHOS::DetachSessionObjectTest(provider);
