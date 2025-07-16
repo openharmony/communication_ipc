@@ -22,7 +22,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, LOG_ID_IPC_N
 
 static void ThrowBusinessError(ani_env *env, int errCode, const std::string &errMsg)
 {
-    static const char *errorClsName = "L@ohos/base/BusinessError;";
+    static const char *errorClsName = "@ohos.base.BusinessError";
     ZLOGD(LOG_LABEL, "Begin ThrowBusinessError.");
 
     ani_class cls {};
@@ -32,7 +32,7 @@ static void ThrowBusinessError(ani_env *env, int errCode, const std::string &err
     }
 
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":V", &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":", &ctor)) {
         ZLOGE(LOG_LABEL, "find method BusinessError.constructor failed");
         return;
     }
