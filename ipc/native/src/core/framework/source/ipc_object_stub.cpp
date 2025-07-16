@@ -276,12 +276,12 @@ int IPCObjectStub::DBinderDecRefsTransaction(uint32_t code, MessageParcel &data,
         return IPC_STUB_INVALID_DATA_ERR;
     }
     pid_t callerPid = invoker->GetCallerPid();
-    pid_t callerUid = invoker->GetCallerUid();
+    uid_t callerUid = invoker->GetCallerUid();
     uint32_t tokenId = static_cast<uint32_t>(invoker->GetCallerTokenID());
     std::string callerDevId = invoker->GetCallerDeviceID();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
-        ZLOGE(LABEL, "get dbinder databus invoker failed");
+        ZLOGE(LABEL, "get IPCProcessSkeleton failed");
         return IPC_STUB_INVALID_DATA_ERR;
     }
     uint64_t stubIndex = current->QueryStubIndex(this);
@@ -309,7 +309,7 @@ int IPCObjectStub::DBinderAddCommAuth(uint32_t code, MessageParcel &data, Messag
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
-    pid_t uid = invoker->GetCallerUid();
+    uid_t uid = invoker->GetCallerUid();
     if (uid >= ALLOWED_UID) {
         ZLOGE(LABEL, "DBINDER_ADD_COMMAUTH unauthenticated user, desc:%{public}s, uid:%{public}u",
             remoteDescriptor_.c_str(), uid);
@@ -518,40 +518,30 @@ pid_t IPCObjectStub::GetCallingUid()
 }
 // LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint32_t IPCObjectStub::GetCallingTokenID()
 {
     return IPCSkeleton::GetCallingTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetCallingFullTokenID()
 {
     return IPCSkeleton::GetCallingFullTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint32_t IPCObjectStub::GetFirstTokenID()
 {
     return IPCSkeleton::GetFirstTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetFirstFullTokenID()
 {
     return IPCSkeleton::GetFirstFullTokenID();
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int IPCObjectStub::GetObjectType() const
 {
     return OBJECT_TYPE_NATIVE;
 }
-// LCOV_EXCL_STOP
 
 int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -564,12 +554,10 @@ int32_t IPCObjectStub::ProcessProto(uint32_t code, MessageParcel &data, MessageP
     return result;
 }
 
-// LCOV_EXCL_START
 uint64_t IPCObjectStub::GetLastRequestTime()
 {
     return lastRequestTime_;
 }
-// LCOV_EXCL_STOP
 
 #ifndef CONFIG_IPC_SINGLE
 int32_t IPCObjectStub::InvokerThread(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
