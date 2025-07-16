@@ -450,7 +450,7 @@ bool BinderInvoker::UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_d
 bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver died");
+        ZLOGE(LABEL, "died");
         return false;
     }
 
@@ -466,7 +466,7 @@ bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
 int BinderInvoker::FlushCommands(IRemoteObject *object)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver is died");
+        ZLOGE(LABEL, "died");
         return IPC_INVOKER_CONNECT_ERR;
     }
     int error = TransactWithDriver(false);
@@ -497,7 +497,7 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
 void BinderInvoker::ExitCurrentThread()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver died when exit current thread");
+        ZLOGE(LABEL, "died");
         return;
     }
     binderConnector_->ExitCurrentThread(BINDER_THREAD_EXIT);
@@ -507,7 +507,7 @@ void BinderInvoker::ExitCurrentThread()
 void BinderInvoker::StartWorkLoop()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver is died");
+        ZLOGE(LABEL, "died");
         return;
     }
     int error;
@@ -538,7 +538,7 @@ void BinderInvoker::StartWorkLoop()
             isFirstInvoke_ = STATUS_NOT_FIRST_INVOKE;
         }
         if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
-            ZLOGW(LABEL, "exit, userError:%{public}d", userError);
+            ZLOGW(LABEL, "exit, error:%{public}d", userError);
             break;
         }
         ProcDeferredDecRefs();
@@ -1188,7 +1188,12 @@ bool BinderInvoker::GetDetailedErrorInfo(uint32_t &errorCode, std::string &errDe
         return false;
     }
     errorCode = errInfo.err_code;
-    errDesc = errInfo.err_str;
+    size_t len = strnlen(errInfo.err_str, sizeof(errInfo.err_str));
+    if (len == sizeof(errInfo.err_str)) {
+        ZLOGE(LABEL, "errInfo.err_str is not null-terminated or exceeds the buffer size");
+        return false;
+    }
+    errDesc = std::string(errInfo.err_str, len);
     return true;
 }
 #endif
@@ -1240,7 +1245,7 @@ void BinderInvoker::DealWithCmd(MessageParcel *reply, bool &continueLoop, int32_
 int BinderInvoker::WaitForCompletion(MessageParcel *reply)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver is died");
+        ZLOGE(LABEL, "died");
         return IPC_INVOKER_CONNECT_ERR;
     }
     uint32_t cmd;
@@ -1653,7 +1658,7 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
 bool BinderInvoker::TriggerSystemIPCThreadReclaim()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver died");
+        ZLOGE(LABEL, "died");
         return false;
     }
 
@@ -1670,7 +1675,7 @@ bool BinderInvoker::TriggerSystemIPCThreadReclaim()
 bool BinderInvoker::EnableIPCThreadReclaim(bool enable)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "driver died");
+        ZLOGE(LABEL, "died");
         return false;
     }
 
