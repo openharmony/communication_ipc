@@ -46,8 +46,16 @@ static void InitMessageOption([[maybe_unused]] ani_env *env,
         waitTime = waitTimeValue;
     }
 
-    auto messageOptionHolder = new StdSharedPtrHolder(std::make_shared<MessageOption>(flags, waitTime));
-    AniObjectUtils::Wrap<StdSharedPtrHolder<MessageOption>>(env, obj, messageOptionHolder);
+    auto messageOptionHolder = new (std::nothrow) StdSharedPtrHolder(std::make_shared<MessageOption>(flags, waitTime));
+    if (messageOptionHolder == nullptr) {
+        ZLOGE(LOG_LABEL, "[ANI] new StdSharedPtrHolder failed");
+        return;
+    }
+    if (ANI_OK != AniObjectUtils::Wrap<StdSharedPtrHolder<MessageOption>>(env, obj, messageOptionHolder)) {
+        ZLOGE(LOG_LABEL, "[ANI] Wrap StdSharedPtrHolder failed");
+        delete messageOptionHolder;
+        return;
+    }
     ZLOGI(LOG_LABEL, "[ANI] InitMessageOption end");
 }
 
@@ -94,8 +102,16 @@ static void RemoteObjectInit([[maybe_unused]] ani_env *env, [[maybe_unused]] ani
 {
     ZLOGI(LOG_LABEL, "[ANI] enter RemoteObjectInit func");
     auto descriptorStr = AniStringUtils::ToStd(env, static_cast<ani_string>(descriptor));
-    auto objectRemoteHolder = new IPCObjectRemoteHolder(env, object, OHOS::Str8ToStr16(descriptorStr));
-    AniObjectUtils::Wrap<IPCObjectRemoteHolder>(env, object, objectRemoteHolder);
+    auto objectRemoteHolder = new (std::nothrow) IPCObjectRemoteHolder(env, object, OHOS::Str8ToStr16(descriptorStr));
+    if (objectRemoteHolder == nullptr) {
+        ZLOGE(LOG_LABEL, "[ANI] new IPCObjectRemoteHolder failed");
+        return;
+    }
+    if (ANI_OK != AniObjectUtils::Wrap<IPCObjectRemoteHolder>(env, object, objectRemoteHolder)) {
+        ZLOGE(LOG_LABEL, "[ANI] Wrap IPCObjectRemoteHolder failed");
+        delete objectRemoteHolder;
+        return;
+    }
 }
 
 static ani_string GetRemoteObjectDescriptor([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
