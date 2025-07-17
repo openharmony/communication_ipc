@@ -165,7 +165,7 @@ ohos_shared_library("ipc_single_test") {
     defines += [ "HIVIEWDFX_HISYSEVENT_SUPPORT" ]
   }
   innerapi_tags = [
-    "chipsetsdk",
+    "chipsetsdk_sp",
     "platformsdk",
     "sasdk",
   ]
