@@ -186,7 +186,7 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::QueryClientSessionO
     }
     std::shared_ptr<DBinderSessionObject> sessionOfPeer = current->StubQueryDBinderSession(databusHandle);
     if (sessionOfPeer == nullptr) {
-        ZLOGE(LOG_LABEL, "no session attach to this proxy:%{public}u", databusHandle);
+        ZLOGE(LOG_LABEL, "no session attach to the socketId:%{public}u", databusHandle);
         return nullptr;
     }
     ZLOGI(LOG_LABEL, "socketId:%{public}d", sessionOfPeer->GetSocketId());
@@ -269,7 +269,8 @@ bool DBinderDatabusInvoker::CreateProcessThread()
 }
 // LCOV_EXCL_STOP
 
-void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, const char *data, uint32_t dataSize)
+void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, uint64_t seqNumber, const char *data,
+    uint32_t dataSize)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
@@ -286,7 +287,7 @@ void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, const char *dat
             ZLOGE(LOG_LABEL, "memcpy_s failed, socketId:%{public}d size:%{public}u", socketId, rawDataSize);
             return;
         }
-        if (!current->AttachRawData(socketId, invokerRawData)) {
+        if (!current->AttachRawData(socketId, seqNumber, invokerRawData)) {
             ZLOGE(LOG_LABEL, "AttachRawData failed, socketId:%{public}d size:%{public}u", socketId, rawDataSize);
             return;
         }
@@ -318,7 +319,8 @@ void DBinderDatabusInvoker::OnMessageAvailable(int32_t socketId, const char *dat
     uint32_t packageSize = HasRawDataPackage(data, len);
     if (packageSize > 0) {
         // Only one set of big data can be transferred at a time.
-        return OnRawDataAvailable(socketId, data, packageSize);
+        const dbinder_transaction_data *tr = reinterpret_cast<const dbinder_transaction_data *>(data);
+        return OnRawDataAvailable(socketId, tr->seqNumber, data, packageSize);
     }
 
     uint32_t readSize = 0;
@@ -1067,6 +1069,7 @@ uint32_t DBinderDatabusInvoker::HasCompletePackage(const char *data, uint32_t re
         (readCursor + tr->sizeOfSelf <= static_cast<uint32_t>(len)) && CheckTransactionData(tr)) {
         return tr->sizeOfSelf;
     }
+    PrintDBinderTransData(tr);
     return 0;
 }
 } // namespace OHOS

@@ -110,6 +110,7 @@ public:
     std::mutex &GetObjectMutex();
     void PrintDBinderTransaction(const char *funcName, const char *titleName, const dbinder_transaction_data *tr);
     void PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data, size_t length);
+    void PrintDBinderTransData(const dbinder_transaction_data *transData);
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,
@@ -131,10 +132,11 @@ private:
         size_t offsetIdx, binder_size_t &preOffset, binder_size_t &preObjectSize);
     bool IRemoteObjectTranslateWhenSend(std::shared_ptr<dbinder_transaction_data> transData, uint32_t socketId,
         std::shared_ptr<T> sessionObject);
-    bool IRemoteObjectTranslateWhenRcv(dbinder_transaction_data *transData, MessageParcel &data, uint32_t socketId);
+    bool IRemoteObjectTranslateWhenRcv(dbinder_transaction_data *transData, MessageParcel &data, uint32_t socketId,
+        uint64_t seqNumber);
     bool IRemoteObjectTranslateWhenRcv(unsigned char *dataBuffer, binder_size_t bufferSize, binder_uintptr_t offsets,
-        binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId);
-    bool TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId);
+        binder_size_t offsetsSize, MessageParcel &data, uint32_t socketId, uint64_t seqNumber);
+    bool TranslateRawData(unsigned char *dataBuffer, MessageParcel &data, uint32_t socketId, uint64_t seqNumber);
     std::shared_ptr<T> GetSessionObject(uint32_t handle, uint32_t socketId);
     uint64_t GetUniqueSeqNumber(int cmd);
     void ConstructTransData(MessageParcel &data, dbinder_transaction_data &transData, size_t totalSize,
@@ -150,7 +152,6 @@ private:
     std::shared_ptr<ThreadProcessInfo> MakeThreadProcessInfo(int32_t socketId, const char *buffer, uint32_t size);
     std::shared_ptr<ThreadMessageInfo> MakeThreadMessageInfo(int32_t socketId);
     uint32_t MakeRemoteHandle(std::shared_ptr<T> session);
-    void PrintDBinderTransData(dbinder_transaction_data *transData);
     void StartLoopFailSendReply(const char *buffer, uint32_t size, int32_t result);
 
 private:

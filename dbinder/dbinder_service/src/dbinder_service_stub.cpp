@@ -32,12 +32,14 @@ namespace OHOS {
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_RPC_DBINDER_SER_STUB,
     "DBinderServiceStub" };
 
-DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::string &device, binder_uintptr_t object)
-    : IPCObjectStub(Str8ToStr16(DBinderService::ConvertToSecureDeviceID(device) + service)),
-    serviceName_(service), deviceID_(device), binderObject_(object)
+DBinderServiceStub::DBinderServiceStub(const std::u16string &service, const std::string &device,
+    binder_uintptr_t object, uint32_t pid, uint32_t uid)
+    : IPCObjectStub(Str8ToStr16(std::to_string(object) + "_" + DBinderService::ConvertToSecureDeviceID(device) +
+        "_" + std::to_string(pid))),
+    serviceName_(service), deviceID_(device), binderObject_(object), peerPid_(pid), peerUid_(uid)
 {
-    DBINDER_LOGD(LOG_LABEL, "created, service:%{public}s device:%{public}s",
-        serviceName_.c_str(), DBinderService::ConvertToSecureDeviceID(deviceID_).c_str());
+    DBINDER_LOGD(LOG_LABEL, "created, service:%{public}llu device:%{public}s pid:%{public}u",
+        binderObject_, DBinderService::ConvertToSecureDeviceID(deviceID_).c_str(), peerPid_);
     dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
     if (dbinderData_ == nullptr) {
         DBINDER_LOGW(LOG_LABEL, "malloc dbinderData_ fail");
@@ -48,12 +50,12 @@ DBinderServiceStub::DBinderServiceStub(const std::string &service, const std::st
 
 DBinderServiceStub::~DBinderServiceStub()
 {
-    DBINDER_LOGD(LOG_LABEL, "destroyed, service:%{public}s device:%{public}s",
-        serviceName_.c_str(), DBinderService::ConvertToSecureDeviceID(deviceID_).c_str());
+    DBINDER_LOGD(LOG_LABEL, "destroyed, service:%{public}llu device:%{public}s pid:%{public}u",
+        binderObject_, DBinderService::ConvertToSecureDeviceID(deviceID_).c_str(), peerPid_);
     dbinderData_ = nullptr;
 }
 
-const std::string &DBinderServiceStub::GetServiceName()
+const std::u16string &DBinderServiceStub::GetServiceName()
 {
     return serviceName_;
 }
@@ -66,6 +68,38 @@ const std::string &DBinderServiceStub::GetDeviceID()
 binder_uintptr_t DBinderServiceStub::GetBinderObject() const
 {
     return binderObject_;
+}
+
+uint32_t DBinderServiceStub::GetPeerPid()
+{
+    return peerPid_;
+}
+
+uint32_t DBinderServiceStub::GetPeerUid()
+{
+    return peerUid_;
+}
+
+void DBinderServiceStub::SetSeqNumber(uint32_t seqNum)
+{
+    seqNum_ = seqNum;
+}
+
+uint32_t DBinderServiceStub::GetSeqNumber()
+{
+    return seqNum_;
+}
+
+void DBinderServiceStub::SetNegoStatusAndTime(NegotiationStatus status, uint64_t time)
+{
+    negoStatus_ = status;
+    negoTime_ = time;
+}
+
+void DBinderServiceStub::GetNegoStatusAndTime(NegotiationStatus &status, uint64_t &time)
+{
+    status = negoStatus_;
+    time = negoTime_;
 }
 
 int32_t DBinderServiceStub::ProcessProto(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -323,6 +357,7 @@ int DBinderServiceStub::SaveDBinderData(const std::string &localBusName)
         "targetName:%{public}s localName:%{public}s",
         dbinderData->proto, dbinderData->stub_index, dbinderData->tokenid, dbinderData->target_name,
         dbinderData->local_name);
+    isInited_ = true;
     return ERR_NONE;
 }
 
@@ -351,6 +386,10 @@ bool DBinderServiceStub::CheckSessionObjectValidity()
 
 int DBinderServiceStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
 {
+    if (isInited_) {
+        DBINDER_LOGI(LOG_LABEL, "has been inited, uid:%{public}d pid:%{public}d", uid, pid);
+        return ERR_NONE;
+    }
     if (uid < 0 || pid < 0) {
         DBINDER_LOGE(LOG_LABEL, "uid(%{public}d) or pid(%{public}d) is invalid", uid, pid);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_UID_OR_PID_FAIL, __FUNCTION__);

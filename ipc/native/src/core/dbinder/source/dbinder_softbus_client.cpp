@@ -59,7 +59,7 @@ bool DBinderSoftbusClient::OpenSoftbusClientSo()
     }
 
     isLoaded_ = true;
-    ZLOGI(LOG_LABEL, "dlopen %{public}s SOFTBUS_CLIENT_SUCCESS", SOFTBUS_PATH_NAME);
+    ZLOGI(LOG_LABEL, "dlopen %{public}s succ", SOFTBUS_PATH_NAME);
 
     return true;
 }

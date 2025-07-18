@@ -16,12 +16,12 @@
 #ifndef OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
 #define OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H
 
-#include <string>
 #include <map>
-#include <mutex>
-#include <shared_mutex>
 #include <memory>
-#include <list>
+#include <mutex>
+#include <set>
+#include <shared_mutex>
+#include <string>
 #include <thread>
 
 #include "dbinder_service_stub.h"
@@ -306,7 +306,8 @@ private:
     static bool StartRemoteListener();
     static void StopRemoteListener();
     std::u16string GetRegisterService(binder_uintptr_t binderObject);
-    int32_t InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber, uint32_t pid, uint32_t uid);
+    int32_t InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub, uint32_t seqNumber,
+        uint32_t pid, uint32_t uid, bool isNew = false);
     bool CheckAndAmendSaId(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     bool OnRemoteReplyMessage(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
     bool OnRemoteErrorMessage(std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
@@ -341,14 +342,16 @@ private:
     bool CheckBinderObject(const sptr<DBinderServiceStub> &stub, binder_uintptr_t binderObject);
     bool HasDBinderStub(binder_uintptr_t binderObject);
     bool IsSameStubObject(const sptr<DBinderServiceStub> &stub, const std::u16string &service,
-        const std::string &device);
-    sptr<DBinderServiceStub> FindDBinderStub(const std::u16string &service, const std::string &device);
+        const std::string &device, uint32_t pid = 0, uint32_t uid = 0);
+    std::vector<sptr<DBinderServiceStub>> FindDBinderStub(const std::u16string &service, const std::string &device);
+    bool DeleteDBinderStub(const std::u16string &service, const std::string &device, uint32_t pid, uint32_t uid);
     bool DeleteDBinderStub(const std::u16string &service, const std::string &device);
     sptr<DBinderServiceStub> FindOrNewDBinderStub(const std::u16string &service,
-        const std::string &device, binder_uintptr_t binderObject);
-    void ProcessCallbackProxy(sptr<DBinderServiceStub> dbStub);
-    bool NoticeCallbackProxy(sptr<DBinderServiceStub> dbStub);
-    std::list<std::u16string> FindServicesByDeviceID(const std::string &deviceID);
+        const std::string &device, binder_uintptr_t binderObject, uint32_t pid, uint32_t uid, bool &isNew);
+    void ProcessCallbackProxy(const std::vector<sptr<DBinderServiceStub>> &dbStubs);
+    void ProcessCallbackProxyInner(sptr<DBinderServiceStub> dbStub, sptr<IRemoteObject> proxy);
+    bool NoticeCallbackProxy(const std::u16string &serviceName, const std::string &deviceID);
+    std::set<std::u16string> FindServicesByDeviceID(const std::string &deviceID);
     int32_t NoticeServiceDieInner(const std::u16string &serviceName, const std::string &deviceID);
     uint32_t GetRemoteTransType();
     bool CheckDeviceIdIllegal(const std::string &remoteDeviceId);
@@ -374,12 +377,10 @@ private:
     std::shared_ptr<struct DHandleEntryTxRx> PopLoadSaItem(const std::string &srcNetworkId, int32_t systemAbilityId);
     void SendReplyMessageToRemote(uint32_t dBinderCode, uint32_t reason,
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage);
-    sptr<DBinderServiceStub> MakeRemoteBinderInner(const sptr<DBinderServiceStub> &dBinderServiceStub,
-        const std::u16string &serviceName, const std::string &deviceID, const uint32_t pid, const uint32_t uid);
-    std::shared_ptr<struct ThreadLockInfo> FindOrNewConcurrentLockInfo(
-        const sptr<DBinderServiceStub> &dBinderServiceStub, bool &isNew);
-    void WakeupConcurrentWaitingThread(const binder_uintptr_t stub,
-        std::shared_ptr<struct ThreadLockInfo> &lockInfo, bool isNegotiationSuccessful);
+    int32_t InvokerRemoteDBinderWhenRequest(const sptr<DBinderServiceStub> stub, uint32_t seqNumber,
+        uint32_t pid, uint32_t uid, std::shared_ptr<struct ThreadLockInfo> &threadLockInfo);
+    int32_t InvokerRemoteDBinderWhenWaitRsp(const sptr<DBinderServiceStub> stub, uint32_t seqNumber,
+        uint32_t pid, uint32_t uid, std::shared_ptr<struct ThreadLockInfo> &threadLockInfo);
 private:
     DISALLOW_COPY_AND_MOVE(DBinderService);
     static std::mutex instanceMutex_;
@@ -417,8 +418,6 @@ private:
     static constexpr int32_t LAST_SYS_ABILITY_ID = 0x00ffffff;
 
     std::shared_ptr<RpcSystemAbilityCallback> dbinderCallback_;
-    std::map<binder_uintptr_t, std::shared_ptr<struct ThreadLockInfo>> concurrentLockInfo_;
-    std::mutex concurrentLockInfoMutex_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDER_SERVICE_H

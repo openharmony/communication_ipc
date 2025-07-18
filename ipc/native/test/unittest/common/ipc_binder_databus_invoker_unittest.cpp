@@ -808,6 +808,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnRawDataAvailable001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     int32_t socketId = 1;
+    uint64_t seqNumber = 1;
     uint32_t size = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     dbinder_transaction_data *tmp = (dbinder_transaction_data *)malloc(size);
     ASSERT_TRUE(tmp != nullptr);
@@ -818,15 +819,15 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnRawDataAvailable001, TestSize.Level1)
     tmp->sizeOfSelf = sizeof(dbinder_transaction_data) + SOCKET_MAX_BUFF_SIZE;
     const char *data = reinterpret_cast<const char *>(tmp);
     uint32_t dataSize = sizeof(dbinder_transaction_data);
-    testInvoker.OnRawDataAvailable(socketId, data, dataSize);
+    testInvoker.OnRawDataAvailable(socketId, seqNumber, data, dataSize);
     EXPECT_FALSE(dataSize - sizeof(dbinder_transaction_data) > 0);
 
     dataSize = MAX_RAWDATA_SIZE + 1;
-    testInvoker.OnRawDataAvailable(socketId, data, dataSize);
+    testInvoker.OnRawDataAvailable(socketId, seqNumber, data, dataSize);
     EXPECT_FALSE(dataSize <= MAX_RAWDATA_SIZE);
 
     dataSize = SOCKET_MAX_BUFF_SIZE;
-    testInvoker.OnRawDataAvailable(socketId, data, dataSize);
+    testInvoker.OnRawDataAvailable(socketId, seqNumber, data, dataSize);
     EXPECT_TRUE(dataSize > sizeof(dbinder_transaction_data) && dataSize <= MAX_RAWDATA_SIZE);
     free(tmp);
 }

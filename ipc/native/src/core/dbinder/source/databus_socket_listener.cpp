@@ -95,6 +95,7 @@ void DatabusSocketListener::ServerOnShutdown(int32_t socket, ShutdownReason reas
         ZLOGE(LABEL, "fail to get invoker");
         return;
     }
+    RemoveSessionName();
     invoker->OnDatabusSessionServerSideClosed(socket);
 }
 
@@ -126,6 +127,7 @@ void DatabusSocketListener::ClientOnShutdown(int32_t socket, ShutdownReason reas
         }
     }
     EraseDeviceLock(socketInfo);
+    RemoveSessionName();
     invoker->OnDatabusSessionClientSideClosed(socket);
 }
 
@@ -268,16 +270,7 @@ void DatabusSocketListener::RemoveSessionName(void)
         ZLOGE(LABEL, "get current is null");
         return;
     }
-    sptr<IRemoteObject> object = current->GetSAMgrObject();
-    if (object == nullptr) {
-        ZLOGE(LABEL, "get object is null");
-        return;
-    }
-
-    IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
-    const std::string sessionName = current->GetDatabusName();
-    samgr->RemoveSessionName(sessionName);
-    ZLOGI(LABEL, "%{public}s", sessionName.c_str());
+    current->RemoveSoftbusServer();
 }
 
 bool DatabusSocketListener::GetPidAndUidFromServiceName(const std::string &serviceName, int32_t &pid, int32_t &uid)

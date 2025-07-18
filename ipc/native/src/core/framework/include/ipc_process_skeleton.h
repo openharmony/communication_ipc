@@ -123,9 +123,9 @@ public:
     void UnlockForNumExecuting();
 
 #ifndef CONFIG_IPC_SINGLE
-    bool AttachRawData(int32_t socketId, std::shared_ptr<InvokerRawData> rawData);
-    bool DetachRawData(int32_t socketId);
-    std::shared_ptr<InvokerRawData> QueryRawData(int32_t socketId);
+    bool AttachRawData(int32_t socketId, uint64_t seqNumber, std::shared_ptr<InvokerRawData> rawData);
+    bool DetachRawData(int32_t socketId, uint64_t seqNumber);
+    std::shared_ptr<InvokerRawData> QueryRawData(int32_t socketId, uint64_t seqNumber);
 
     sptr<IRemoteObject> GetSAMgrObject();
     std::shared_ptr<DBinderSessionObject> ProxyDetachDBinderSession(uint32_t handle, IPCObjectProxy *proxy);
@@ -166,6 +166,7 @@ public:
     bool StubAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object);
     std::string GetDatabusName();
     bool CreateSoftbusServer(const std::string &name);
+    bool RemoveSoftbusServer();
 
     bool AttachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId);
     bool DetachCommAuthInfo(IRemoteObject *stub, int pid, int uid, uint32_t tokenId, const std::string &deviceId);
@@ -264,7 +265,7 @@ private:
     std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> proxyToSession_;
 
     std::shared_mutex rawDataMutex_;
-    std::map<uint32_t, std::shared_ptr<InvokerRawData>> rawData_;
+    std::map<std::string, std::shared_ptr<InvokerRawData>> rawData_;
 
     std::shared_mutex databusSessionMutex_;
     std::map<uint32_t, std::shared_ptr<DBinderSessionObject>> dbinderSessionObjects_;
@@ -293,9 +294,9 @@ private:
 
     std::shared_mutex sessionNameMutex_;
     std::string sessionName_;
+    std::atomic<int32_t> listenSocketId_ = 0;
 
     uint32_t dBinderHandle_ = DBINDER_HANDLE_BASE; /* dbinder handle start at 687200000 */
-    std::atomic<int32_t> listenSocketId_ = 0;
     uint64_t randNum_;
 #endif
 };

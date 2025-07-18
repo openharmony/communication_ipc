@@ -216,5 +216,32 @@ template <class T> std::mutex &DBinderBaseInvoker<T>::GetObjectMutex()
 {
     return objectMutex_;
 }
+
+template<class T>
+void DBinderBaseInvoker<T>::PrintDBinderTransData(const dbinder_transaction_data *transData)
+{
+    if (transData == nullptr) {
+        ZLOGW(LOG_LABEL, "transData is nullptr");
+        return;
+    }
+    if (transData->sizeOfSelf < sizeof(dbinder_transaction_data)) {
+        ZLOGW(LOG_LABEL, "invalid transData sizeOfSelf:%{public}u, at least:sizeOfSelf:%{public}zu",
+            transData->sizeOfSelf, sizeof(dbinder_transaction_data));
+        return;
+    }
+    ZLOGI(LOG_LABEL, "sizeOfSelf:%{public}u, dbinder_transaction_data:%{public}zu "
+        "bufSize:%{public}llu offsetsSize:%{public}llu flag:%{public}u",
+        transData->sizeOfSelf, sizeof(dbinder_transaction_data), transData->buffer_size,
+        transData->offsets_size, transData->flags);
+    std::string formatStr;
+    size_t size = (transData->sizeOfSelf - sizeof(dbinder_transaction_data)) / sizeof(int32_t);
+    auto data = reinterpret_cast<const int32_t *>(transData->buffer);
+    size_t idx = 0;
+    while (idx < size) {
+        formatStr += std::to_string(data[idx]) + ',';
+        ++idx;
+    }
+    ZLOGI(LOG_LABEL, "buffer:%{public}s", formatStr.c_str());
+}
 } // namespace OHOS
 #endif // OHOS_IPC_DBINDER_BASE_INVOKER_INTERFACE_H
