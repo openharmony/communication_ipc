@@ -20,6 +20,7 @@
 #undef private
 #include "fuzz_data_generator.h"
 #include "message_parcel.h"
+#include "string_ex.h"
 
 namespace OHOS {
 bool AttachToDetachAppInfoToStubIndexTest001()
@@ -1264,14 +1265,12 @@ void SetRegistryObjectFuzzTest(const uint8_t *data, size_t size)
 void WakeUpDataThreadFuzzTest(FuzzedDataProvider &provider)
 {
     std::thread::id threadId = std::this_thread::get_id();
-    std::thread([threadId]() {
-        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-        if (current == nullptr) {
-            return;
-        }
-        current->AttachThreadLockInfo(std::make_shared<SocketThreadLockInfo>(), threadId);
-        current->WakeUpDataThread(threadId);
-    }).detach();
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return;
+    }
+    current->AttachThreadLockInfo(std::make_shared<SocketThreadLockInfo>(), threadId);
+    current->WakeUpDataThread(threadId);
 }
 
 void UIntToStringFuzzTest(FuzzedDataProvider &provider)
@@ -1477,7 +1476,7 @@ void DetachDBinderCallbackStubFuzzTest(FuzzedDataProvider &provider)
     }
     int handle = provider.ConsumeIntegral<int>();
     std::string descriptor = provider.ConsumeRandomLengthString();
-    std::u16string descriptor16(descriptor.begin(), descriptor.end());
+    std::u16string descriptor16 = Str8ToStr16(descriptor);
     std::string service = provider.ConsumeRandomLengthString();
     std::string device = provider.ConsumeRandomLengthString();
     std::string localDevice = provider.ConsumeRandomLengthString();
@@ -1502,7 +1501,7 @@ void QueryDBinderCallbackStubFuzzTest(FuzzedDataProvider &provider)
     }
     int handle = provider.ConsumeIntegral<int>();
     std::string descriptor = provider.ConsumeRandomLengthString();
-    std::u16string descriptor16(descriptor.begin(), descriptor.end());
+    std::u16string descriptor16 = Str8ToStr16(descriptor);
     uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
     std::string service = provider.ConsumeRandomLengthString();
     std::string device = provider.ConsumeRandomLengthString();
@@ -1528,7 +1527,7 @@ void QueryDBinderCallbackProxyFuzzTest(FuzzedDataProvider &provider)
     }
     int handle = provider.ConsumeIntegral<int>();
     std::string descriptor = provider.ConsumeRandomLengthString();
-    std::u16string descriptor16(descriptor.begin(), descriptor.end());
+    std::u16string descriptor16 = Str8ToStr16(descriptor);
     uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
     std::string service = provider.ConsumeRandomLengthString();
     std::string device = provider.ConsumeRandomLengthString();
