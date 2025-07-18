@@ -59,6 +59,7 @@ group("fuzztest") {
     "ipc/native/src/core/ipcobjectstubnew_fuzzer:IPCObjectStubNewFuzzTest",
     "ipc/native/src/core/ipcpayloadstatisticsimpl_fuzzer:IPCPayloadStatisticsImplFuzzTest",
     "ipc/native/src/core/ipcpayloadstatisticsnew_fuzzer:IPCPayloadStatisticsNewFuzzTest",
+    "ipc/native/src/core/iremotebroker_fuzzer:IRemoteBrokerFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
     "dbinder/dbinder_service/src/getlocaldeviceid_fuzzer:GetLocalDeviceIDFuzzTest",
     "dbinder/dbinder_service/src/getseqnumber_fuzzer:GetSeqNumberFuzzTest",
