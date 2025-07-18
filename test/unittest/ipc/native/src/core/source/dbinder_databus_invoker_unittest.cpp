@@ -95,7 +95,7 @@ public:
     virtual bool StrToUint64(const std::string &str, uint64_t &value) = 0;
     virtual std::string GetSessionName() = 0;
     virtual int InvokeListenThread(MessageParcel &data, MessageParcel &reply) = 0;
-    virtual bool AttachRawData(int32_t socketId, std::shared_ptr<InvokerRawData> rawData) = 0;
+    virtual bool AttachRawData(int32_t socketId, uint64_t seqNumber, std::shared_ptr<InvokerRawData> rawData) = 0;
     virtual sptr<IRemoteObject> QueryObject(const std::u16string &descriptor, bool lockFlag) = 0;
     virtual IRemoteInvoker *GetDefaultInvoker() = 0;
     virtual bool IsDriverAlive() = 0;
@@ -138,7 +138,7 @@ public:
     MOCK_METHOD2(StrToUint64, bool(const std::string &str, uint64_t &value));
     MOCK_METHOD0(GetSessionName, std::string());
     MOCK_METHOD2(InvokeListenThread, int(MessageParcel &data, MessageParcel &reply));
-    MOCK_METHOD2(AttachRawData, bool(int32_t socketId, std::shared_ptr<InvokerRawData> rawData));
+    MOCK_METHOD3(AttachRawData, bool(int32_t socketId, uint64_t seqNumber, std::shared_ptr<InvokerRawData> rawData));
     MOCK_METHOD2(QueryObject, sptr<IRemoteObject>(const std::u16string &descriptor, bool lockFlag));
     MOCK_METHOD0(GetDefaultInvoker, IRemoteInvoker *());
     MOCK_METHOD0(IsDriverAlive, bool());
@@ -387,12 +387,13 @@ extern "C" {
         }
         return GetDbinderDataBusInvokerInterface()->InvokeListenThread(data, reply);
     }
-    bool IPCProcessSkeleton::AttachRawData(int32_t socketId, std::shared_ptr<InvokerRawData> rawData)
+    bool IPCProcessSkeleton::AttachRawData(int32_t socketId, uint64_t seqNumber,
+        std::shared_ptr<InvokerRawData> rawData)
     {
         if (GetDbinderDataBusInvokerInterface() == nullptr) {
             return false;
         }
-        return GetDbinderDataBusInvokerInterface()->AttachRawData(socketId, rawData);
+        return GetDbinderDataBusInvokerInterface()->AttachRawData(socketId, seqNumber, rawData);
     }
     sptr<IRemoteObject> IPCProcessSkeleton::QueryObject(const std::u16string &descriptor, bool lockFlag)
     {
@@ -1109,8 +1110,9 @@ HWTEST_F(DbinderDataBusInvokerTest, OnRawDataAvailableTest001, TestSize.Level1)
     current->exitFlag_ = true;
     
     int32_t socketId = SOCKET_ID_TEST;
+    uint64_t seqNumber = SOCKET_ID_TEST;
     uint32_t dataSize = sizeof(DATA_TEST);
-    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, DATA_TEST, dataSize));
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, seqNumber, DATA_TEST, dataSize));
     current->instance_ = nullptr;
     current->exitFlag_ = false;
 }
@@ -1124,8 +1126,9 @@ HWTEST_F(DbinderDataBusInvokerTest, OnRawDataAvailableTest002, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     int32_t socketId = SOCKET_ID_TEST;
+    uint64_t seqNumber = SOCKET_ID_TEST;
     uint32_t dataSize = sizeof(dbinder_transaction_data);
-    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, DATA_TEST, dataSize));
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, seqNumber, DATA_TEST, dataSize));
 }
 
 /**
@@ -1137,12 +1140,13 @@ HWTEST_F(DbinderDataBusInvokerTest, OnRawDataAvailableTest003, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
     int32_t socketId = SOCKET_ID_TEST;
+    uint64_t seqNumber = SOCKET_ID_TEST;
     uint32_t dataSize = sizeof(dbinder_transaction_data) + 2;
     NiceMock<DbinderDataBusInvokerMock> mock;
 
     EXPECT_CALL(mock, AttachRawData).WillOnce(testing::Return(false));
 
-    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, DATA_TEST, dataSize));
+    ASSERT_NO_FATAL_FAILURE(testInvoker.OnRawDataAvailable(socketId, seqNumber, DATA_TEST, dataSize));
 }
 
 /**

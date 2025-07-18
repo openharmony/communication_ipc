@@ -27,10 +27,16 @@ typedef unsigned int binder_uintptr_t;
 typedef unsigned long long binder_uintptr_t;
 #endif
 
+enum NegotiationStatus {
+    NEGO_INIT,
+    NEGO_DOING,
+    NEGO_FINISHED
+};
+
 class DBinderServiceStub : public IPCObjectStub {
 public:
-    explicit DBinderServiceStub(const std::string &serviceName, const std::string &deviceID,
-        binder_uintptr_t binderObject);
+    explicit DBinderServiceStub(const std::u16string &serviceName, const std::string &deviceID,
+        binder_uintptr_t binderObject, uint32_t pid = 0, uint32_t uid = 0);
     ~DBinderServiceStub();
 
     /**
@@ -87,7 +93,7 @@ public:
      * @return Returns the service name.
      * @since 9
      */
-    const std::string &GetServiceName();
+    const std::u16string &GetServiceName();
 
     /**
      * @brief Obtain the device ID.
@@ -103,6 +109,18 @@ public:
      */
     binder_uintptr_t GetBinderObject() const;
 
+    uint32_t GetPeerPid();
+
+    uint32_t GetPeerUid();
+
+    void SetSeqNumber(uint32_t seqNum);
+
+    uint32_t GetSeqNumber();
+
+    void SetNegoStatusAndTime(NegotiationStatus status, uint64_t time);
+
+    void GetNegoStatusAndTime(NegotiationStatus &status, uint64_t &time);
+
 private:
     int32_t ProcessDeathRecipient(MessageParcel &data);
     int32_t AddDbinderDeathRecipient(MessageParcel &data);
@@ -110,10 +128,16 @@ private:
     bool CheckSessionObjectValidity();
     int SaveDBinderData(const std::string &localBusName);
 
-    const std::string serviceName_;
+    const std::u16string serviceName_;
     const std::string deviceID_;
     binder_uintptr_t binderObject_;
     std::unique_ptr<uint8_t[]> dbinderData_ {nullptr};
+    uint32_t seqNum_ = 0;
+    uint32_t peerPid_ = 0;
+    uint32_t peerUid_ = 0;
+    uint64_t negoTime_ = 0;
+    std::atomic<bool> isInited_ = false;
+    std::atomic<NegotiationStatus> negoStatus_ = NegotiationStatus::NEGO_INIT;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_SERVICES_DBINDER_DBINDER_STUB_H

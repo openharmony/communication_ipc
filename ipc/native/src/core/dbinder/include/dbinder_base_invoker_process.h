@@ -25,9 +25,10 @@ template <class T>
 void DBinderBaseInvoker<T>::SendReplyWithSeqNum(uint64_t seqNum, MessageParcel &reply, uint32_t flags, int32_t result)
 {
     if (!(flags & MessageOption::TF_ASYNC)) {
+        auto seqNumber = GetSeqNum();
         SetSeqNum(seqNum);
         SendReply(reply, 0, result);
-        SetSeqNum(0);
+        SetSeqNum(seqNumber);
     }
 }
 
@@ -74,7 +75,7 @@ int DBinderBaseInvoker<T>::TargetStubSendRequest(dbinder_transaction_data *tr, i
     if (data.GetRawData() != nullptr) {
         ZLOGW(LOG_LABEL, "delete raw data in process skeleton, listenFd:%{public}d seq:%{public}" PRIu64,
             listenFd, seqNum);
-        current->DetachRawData(listenFd);
+        current->DetachRawData(listenFd, seqNum);
     }
     return error;
 }
@@ -83,7 +84,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
 {
     uint64_t senderSeqNumber = tr->seqNumber;
     MessageParcel data, reply;
-    if (!IRemoteObjectTranslateWhenRcv(tr, data, listenFd)) {
+    if (!IRemoteObjectTranslateWhenRcv(tr, data, listenFd, senderSeqNumber)) {
         ZLOGE(LOG_LABEL, "translate object failed, listenFd:%{public}d seq:%{public}" PRIu64,
             listenFd, senderSeqNumber);
         DfxReportFailListenEvent(DbinderErrorCode::RPC_DRIVER, listenFd, RADAR_TRANSLATE_FAIL, __FUNCTION__);
