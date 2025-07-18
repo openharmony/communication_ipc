@@ -24,6 +24,12 @@ ohos_fuzztest("MessageParcelFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+
+  include_dirs = [
+    "../../../../../../utils/include",
+    "../../../../../../ipc/native/src/core/framework/source/",
+  ]
+
   sources = [ "messageparcel_fuzzer.cpp" ]
 
   deps = [ "../../../../../../test:ipc_single_test_static" ]
@@ -31,5 +37,10 @@ ohos_fuzztest("MessageParcelFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+  ]
+
+  defines = [
+    "private = public",
+    "protected = public",
   ]
 }
