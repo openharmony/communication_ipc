@@ -1040,11 +1040,18 @@ void IPCObjectProxy::ReleaseDatabusProto()
         return;
     }
     std::shared_ptr<DBinderSessionObject> toBeDelete = current->ProxyDetachDBinderSession(handle_, this);
-    if (toBeDelete != nullptr &&
+    if (toBeDelete != nullptr) {
         // make sure session corresponding to this sessionName and deviceId is no longer used by other proxy
-        current->QuerySessionByInfo(toBeDelete->GetServiceName(), toBeDelete->GetDeviceId()) == nullptr) {
-        // close session in lock
-        toBeDelete->CloseDatabusSession();
+        std::shared_ptr<DBinderSessionObject> sessionObj
+            = current->QuerySessionByInfo(toBeDelete->GetServiceName(), toBeDelete->GetDeviceId());
+        if (sessionObj == nullptr) {
+            // close session in lock
+            toBeDelete->CloseDatabusSession();
+        } else {
+            ZLOGI(LOG_LABEL, "the session is using by others, can't close it, handle:%{public}u socketId:%{public}d"
+                "sessionName:%{public}s deviceId:%{public}s", handle_, toBeDelete->GetSocketId(),
+                toBeDelete->GetServiceName().c_str(), toBeDelete->GetDeviceId().c_str());
+        }
     }
 }
 // LCOV_EXCL_STOP
