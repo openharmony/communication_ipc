@@ -27,6 +27,7 @@ group("fuzztest") {
     "ipc/native/src/core/dbinderremovepermission_fuzzer:DBinderRemovePermissionFuzzTest",
     "ipc/native/src/core/dbindersessionobject_fuzzer:DBinderSessionObjectFuzzTest",
     "ipc/native/src/core/dbindersoftbusclient_fuzzer:DBinderSoftbusClientFuzzTest",
+    "ipc/native/src/core/dbinderservicestub_fuzzer:DBinderServiceStubFuzzTest",
     "ipc/native/src/core/getlocalnodedeviceid_fuzzer:GetLocalNodeDeviceIdFuzzTest",
     "ipc/native/src/core/invokerfactory_fuzzer:InvokerFactoryFuzzTest",
     "ipc/native/src/core/ipcfiledescriptor_fuzzer:IPCFileDescriptorFuzzTest",
