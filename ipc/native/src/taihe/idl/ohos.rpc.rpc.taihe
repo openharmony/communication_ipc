@@ -212,7 +212,7 @@ interface RemoteProxy : IRemoteObject {
 }
 
 @ctor("RemoteProxy")
-function CreateRemoteProxyFromNative(nativePtr: Opaque): RemoteProxy;
+function CreateRemoteProxyFromNative(nativePtr: i64): RemoteProxy;
 
 @class
 interface MessageOption {
