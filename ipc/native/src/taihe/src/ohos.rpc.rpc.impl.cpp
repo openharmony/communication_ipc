@@ -170,14 +170,12 @@ int ANIRemoteObject::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, O
     OHOS::MessageOption &option)
 {
     auto jsData = taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>(&data);
+    jsData->AddJsObjWeakRef(jsData);
     auto jsReply = taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>(&reply);
+    jsReply->AddJsObjWeakRef(jsReply);
     auto jsOption = taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(option.GetFlags(),
         option.GetWaitTime());
     auto ret = jsObjRef_.value()->OnRemoteMessageRequest(code, jsData, jsReply, jsOption);
-    if (taihe::has_error()) {
-        ZLOGE(LOG_LABEL, "call onRemoteMessageRequest failed");
-        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::CALL_JS_METHOD_ERROR, OHOS::ERR_UNKNOWN_TRANSACTION);
-    }
     return ret ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
 }
 
@@ -694,7 +692,7 @@ void MessageSequenceImpl::WriteString(::taihe::string_view val)
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::CHECK_PARAM_ERROR);
     }
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
-    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 * val.size(), nativeParcel_, (nativeParcel_->GetDataCapacity()));
+    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 * val.size(), nativeParcel_, (nativeParcel_->GetMaxCapacity()));
     std::u16string str(val.begin(), val.end());
     bool result = nativeParcel_->WriteString16(str);
     if (!result) {
@@ -724,7 +722,7 @@ void MessageSequenceImpl::WriteByteArray(::taihe::array_view<int8_t> byteArray)
         ZLOGE(LOG_LABEL, "arrayLength is 0");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::CHECK_PARAM_ERROR);
     }
-    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + (BYTE_SIZE_8 * arrayLength), nativeParcel_, nativeParcel_->GetDataCapacity());
+    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + (BYTE_SIZE_8 * arrayLength), nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
     bool result = false;
@@ -746,7 +744,7 @@ void MessageSequenceImpl::WriteIntArray(::taihe::array_view<int32_t> intArray)
         ZLOGE(LOG_LABEL, "arrayLength is 0");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::CHECK_PARAM_ERROR);
     }
-    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 * (arrayLength + 1), nativeParcel_, nativeParcel_->GetDataCapacity());
+    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 * (arrayLength + 1), nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
     bool result = false;
@@ -768,7 +766,7 @@ void MessageSequenceImpl::WriteDoubleArray(::taihe::array_view<double> doubleArr
         ZLOGE(LOG_LABEL, "arrayLength is 0");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::CHECK_PARAM_ERROR);
     }
-    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(double) * arrayLength, nativeParcel_, nativeParcel_->GetDataCapacity());
+    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(double) * arrayLength, nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
     bool result = false;
@@ -790,7 +788,7 @@ void MessageSequenceImpl::WriteBooleanArray(::taihe::array_view<bool> booleanArr
         ZLOGE(LOG_LABEL, "arrayLength is 0");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::CHECK_PARAM_ERROR);
     }
-    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + (BYTE_SIZE_8 * arrayLength), nativeParcel_, nativeParcel_->GetDataCapacity());
+    CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + (BYTE_SIZE_8 * arrayLength), nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
     bool result = false;
@@ -822,7 +820,7 @@ void MessageSequenceImpl::WriteStringArray(::taihe::array_view<::taihe::string> 
             RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::CHECK_PARAM_ERROR);
         }
         REWIND_IF_WRITE_CHECK_FAIL(BYTE_SIZE_32 + (BYTE_SIZE_16 * stringArray[i].size()), pos, nativeParcel_,
-            (nativeParcel_->GetDataCapacity()));
+            (nativeParcel_->GetMaxCapacity()));
         std::u16string str(stringArray[i].begin(), stringArray[i].end());
         result = nativeParcel_->WriteString16(str);
         if (!result) {
