@@ -55,9 +55,9 @@ export namespace rpc {
     let finalizer = new FinalizationRegistry<Cleaner>(Cleaner.callback)
     export class MessageSequence {
         constructor() {}
-        native function readString(): string;
-        native function writeString(val: string): void;
-        native function readInterfaceToken(): string;
+        native readString(): string;
+        native writeString(val: string): void;
+        native readInterfaceToken(): string;
 
         private nativePtr: long = 0;
     }
