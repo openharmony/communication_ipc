@@ -274,6 +274,17 @@ public:
     int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code);
 #endif
 
+protected:
+#ifndef CONFIG_IPC_SINGLE
+    /**
+     * @brief IPC framework internal interface, used for cleaning up the initialization state of DBinderServiceStub.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * @since 20
+     */
+    virtual int DBinderClearServiceState(uint32_t code, MessageParcel &data, MessageParcel &reply,
+        MessageOption &option);
+#endif
+
 private:
 #ifndef CONFIG_IPC_SINGLE
     std::string GetSessionName();

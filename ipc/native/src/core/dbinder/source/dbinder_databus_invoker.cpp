@@ -627,11 +627,12 @@ void DBinderDatabusInvoker::OnDatabusSessionClientSideClosed(int32_t socketId)
                 remoteProxy->SetObjectDied(true);
                 ZLOGW(LOG_LABEL, "desc:%{public}s does not subscribe death notice", descStr8.c_str());
             }
+            remoteProxy->ClearDBinderServiceState();
         } else {
             ZLOGE(LOG_LABEL, "cannot find proxy with desc:%{public}s", descStr8.c_str());
         }
     }
-    ZLOGI(LOG_LABEL, "close:%{public}d sussess", socketId);
+    ZLOGI(LOG_LABEL, "close:%{public}d success", socketId);
     return;
 }
 
