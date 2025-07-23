@@ -190,6 +190,8 @@
             "OHOS::IPCObjectStub::GetInterfaceDescriptor()";
             "OHOS::IPCObjectStub::GetAndSaveDBinderData(int, unsigned int)";
             "virtual thunk to OHOS::IPCObjectStub::GetAndSaveDBinderData(int, unsigned int)";
+            "OHOS::IPCObjectStub::DBinderClearServiceState(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+            "virtual thunk to OHOS::IPCObjectStub::DBinderClearServiceState(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         };
     local:
         *;

@@ -1297,6 +1297,7 @@ bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
     }
     listenSocketId_ = socketId;
     sessionName_ = name;
+    ZLOGI(LOG_LABEL, "sessionName:%{public}s socketId:%{public}d", name.c_str(), socketId);
     return true;
 }
 
@@ -1308,7 +1309,6 @@ bool IPCProcessSkeleton::RemoveSoftbusServer()
         std::unique_lock<std::shared_mutex> lockGuard(sessionNameMutex_);
         listenSocketId_ = 0;
         sessionName = sessionName_;
-        sessionName_.clear();
     }
 
     sptr<IRemoteObject> object = GetSAMgrObject();
@@ -1319,7 +1319,7 @@ bool IPCProcessSkeleton::RemoveSoftbusServer()
 
     IPCObjectProxy *samgr = reinterpret_cast<IPCObjectProxy *>(object.GetRefPtr());
     samgr->RemoveSessionName(sessionName);
-    ZLOGI(LOG_LABEL, "%{public}s", sessionName.c_str());
+    ZLOGI(LOG_LABEL, "sessionName:%{public}s", sessionName.c_str());
     return true;
 }
 

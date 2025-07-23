@@ -233,6 +233,15 @@ public:
 
     void SetObjectDied(bool isDied);
 
+#ifndef CONFIG_IPC_SINGLE
+    /**
+     * @brief IPC framework internal interface, used for cleaning up the initialization state of DBinderServiceStub.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * @since 20
+     */
+    int ClearDBinderServiceState();
+#endif
+
 #ifdef OHOS_PLATFORM
     bool CanPromote() override;
 #endif
