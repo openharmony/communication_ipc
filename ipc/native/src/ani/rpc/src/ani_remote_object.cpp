@@ -53,9 +53,14 @@ static ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObje
     ani_object jsRemoteProxy = AniObjectUtils::Create(env, "L@ohos/rpc/rpc;", "LRemoteProxy;");
     if (jsRemoteProxy == nullptr) {
         ZLOGE(LOG_LABEL, "[ANI] Create jsRemoteProxy failed");
+        delete holder;
         return nullptr;
     }
-    AniObjectUtils::Wrap<OhSharedPtrHolder<IRemoteObject>>(env, jsRemoteProxy, holder);
+    if (ANI_OK != AniObjectUtils::Wrap<OhSharedPtrHolder<IRemoteObject>>(env, jsRemoteProxy, holder)) {
+        ZLOGE(LOG_LABEL, "[ANI] Wrap jsRemoteProxy failed");
+        delete holder;
+        return nullptr;
+    }
     return jsRemoteProxy;
 }
  
