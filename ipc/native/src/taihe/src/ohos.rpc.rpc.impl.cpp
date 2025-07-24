@@ -45,7 +45,6 @@ namespace OHOS {
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_OTHER, "RpcTaiheImpl" };
 constexpr size_t MAX_BYTES_LENGTH = 40960;
-constexpr size_t MAX_CAPACITY_TO_WRITE = 200 * 1024;
 constexpr size_t BYTE_SIZE_32 = 4;
 constexpr size_t BYTE_SIZE_16 = 2;
 constexpr size_t BYTE_SIZE_8 = 1;
@@ -512,7 +511,6 @@ MessageSequenceImpl::MessageSequenceImpl()
         taihe::set_error("create MessageParcel failed");
     }
     isOwner_ = true;
-    nativeParcel_->SetDataCapacity(MAX_CAPACITY_TO_WRITE);
 }
 
 MessageSequenceImpl::MessageSequenceImpl(OHOS::MessageParcel* messageparcel)
