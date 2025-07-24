@@ -1542,7 +1542,11 @@ napi_value NAPI_MessageSequence::JS_DupFileDescriptor(napi_env env, napi_callbac
         return napiErr.ThrowError(env, errorDesc::OS_DUP_ERROR);
     }
     napi_value napiValue;
-    napi_create_int32(env, dupResult, &napiValue);
+    if (napi_ok != napi_create_int32(env, dupResult, &napiValue)) {
+        close(dupResult);
+        ZLOGE(LOG_LABEL, "napi_create_int32 failed");
+        return napiErr.ThrowError(env, errorDesc::CALL_JS_METHOD_ERROR);
+    }
     return napiValue;
 }
 
