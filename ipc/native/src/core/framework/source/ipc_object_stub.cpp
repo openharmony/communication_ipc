@@ -380,6 +380,12 @@ int IPCObjectStub::DBinderRemoveSessionName(uint32_t code, MessageParcel &data, 
     }
     return RemoveSessionName(data);
 }
+
+int IPCObjectStub::DBinderClearServiceState(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
+{
+    return ERR_NONE;
+}
 #endif
 
 int IPCObjectStub::SendRequestInner(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -460,6 +466,8 @@ int IPCObjectStub::SendRequest(uint32_t code, MessageParcel &data, MessageParcel
             return DBinderGetPidUid(code, data, reply, option);
         case REMOVE_SESSION_NAME:
             return DBinderRemoveSessionName(code, data, reply, option);
+        case CLEAR_DBINDER_SERVICE_STATE:
+            return DBinderClearServiceState(code, data, reply, option);
 #endif
         default:
             return SendRequestInner(code, data, reply, option);
