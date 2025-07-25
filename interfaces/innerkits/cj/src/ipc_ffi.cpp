@@ -1610,9 +1610,9 @@ int32_t FfiRpcGetRemoteType(int64_t id)
     auto remoteObject  = FFIData::GetData<CjIRemoteObjectImpl>(id);
     if (!remoteObject) {
         ZLOGE(LOG_LABEL, "[RPC] get construct failed");
-        return -1;
+        return INVALID_REMOTE_TYPE;
     }
-    return remoteObject->IsProxyObject() ? 1 : 0;
+    return remoteObject->IsProxyObject() ? REMOTE_PROXY : REMOTE_OBJECT;
 }
 
 NAPIRemoteProxyHolder *GetRemoteProxyHolder(napi_env env, napi_value jsRemoteProxy)
