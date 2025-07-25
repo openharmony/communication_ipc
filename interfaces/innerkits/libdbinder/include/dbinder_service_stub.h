@@ -127,6 +127,8 @@ private:
     int32_t RemoveDbinderDeathRecipient(MessageParcel &data);
     bool CheckSessionObjectValidity();
     int SaveDBinderData(const std::string &localBusName);
+    int DBinderClearServiceState(uint32_t code, MessageParcel &data, MessageParcel &reply,
+        MessageOption &option) override;
 
     const std::u16string serviceName_;
     const std::string deviceID_;

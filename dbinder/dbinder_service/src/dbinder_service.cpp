@@ -513,21 +513,24 @@ bool DBinderService::SendEntryToRemote(const sptr<DBinderServiceStub> stub, uint
 int32_t DBinderService::InvokerRemoteDBinderWhenRequest(const sptr<DBinderServiceStub> stub, uint32_t seqNumber,
     uint32_t pid, uint32_t uid, std::shared_ptr<struct ThreadLockInfo> &threadLockInfo)
 {
+    auto time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_DOING, time);
     threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     if (!AttachThreadLockInfo(seqNumber, stub->GetDeviceID(), threadLockInfo)) {
         DBINDER_LOGE(LOG_LABEL, "AttachThreadLockInfo fail, seq:%{public}u pid:%{public}u", seqNumber, pid);
+        stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_INIT, 0);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_ATTACH_THREADLOCK_FAIL, __FUNCTION__);
         return MAKE_THREADLOCK_FAILED;
     }
     if (!SendEntryToRemote(stub, seqNumber, pid, uid)) {
         DBINDER_LOGE(LOG_LABEL, "SendEntryToRemote fail, seq:%{public}u pid:%{public}u", seqNumber, pid);
+        stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_INIT, 0);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_ENTRY_TO_REMOTE_FAIL, __FUNCTION__);
         DetachThreadLockInfo(seqNumber);
         return SEND_MESSAGE_FAILED;
     }
-    auto time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_DOING, time);
+
     return DBINDER_OK;
 }
 
@@ -570,7 +573,10 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
 
     int32_t result = DBINDER_OK;
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = nullptr;
-    if (isNew) {
+    NegotiationStatus negoStatus;
+    uint64_t negoTime;
+    stub->GetNegoStatusAndTime(negoStatus, negoTime);
+    if (isNew || negoStatus == NegotiationStatus::NEGO_INIT) {
         result = InvokerRemoteDBinderWhenRequest(stub, seqNumber, pid, uid, threadLockInfo);
         if (result != DBINDER_OK) {
             return result;
@@ -589,6 +595,7 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
         [&threadLockInfo] { return threadLockInfo->ready; }) == false) {
         DBINDER_LOGE(LOG_LABEL, "get remote data timeout or session is closed, seq:%{public}u pid:%{public}u",
             seqNumber, pid);
+        stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_INIT, 0);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_WAIT_REPLY_TIMEOUT, __FUNCTION__);
         DetachThreadLockInfo(seqNumber);
         threadLockInfo->ready = false;
@@ -598,14 +605,13 @@ int32_t DBinderService::InvokerRemoteDBinder(const sptr<DBinderServiceStub> stub
     auto session = QuerySessionObject(reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
     if (session == nullptr) {
         DBINDER_LOGE(LOG_LABEL, "client find session is null, seq:%{public}u pid:%{public}u", seqNumber, pid);
+        stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_INIT, 0);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_QUERY_REPLY_SESSION_FAIL, __FUNCTION__);
         return QUERY_REPLY_SESSION_FAILED;
     }
-    if (isNew) {
-        auto time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_FINISHED, time);
-    }
+    auto time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    stub->SetNegoStatusAndTime(NegotiationStatus::NEGO_FINISHED, time);
     return DBINDER_OK;
 }
 

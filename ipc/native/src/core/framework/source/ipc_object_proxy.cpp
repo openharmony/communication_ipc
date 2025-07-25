@@ -1048,11 +1048,13 @@ void IPCObjectProxy::ReleaseDatabusProto()
             // close session in lock
             toBeDelete->CloseDatabusSession();
         } else {
-            ZLOGI(LOG_LABEL, "the session is using by others, can't close it, handle:%{public}u socketId:%{public}d"
+            ZLOGI(LOG_LABEL, "the session is using by others, can't close it, handle:%{public}u socketId:%{public}d "
                 "sessionName:%{public}s deviceId:%{public}s", handle_, toBeDelete->GetSocketId(),
-                toBeDelete->GetServiceName().c_str(), toBeDelete->GetDeviceId().c_str());
+                toBeDelete->GetServiceName().c_str(),
+                IPCProcessSkeleton::ConvertToSecureString(toBeDelete->GetDeviceId()).c_str());
         }
     }
+    ClearDBinderServiceState();
 }
 // LCOV_EXCL_STOP
 
@@ -1060,6 +1062,20 @@ void IPCObjectProxy::ReleaseDatabusProto()
 void IPCObjectProxy::ReleaseBinderProto()
 {
     // do nothing
+}
+
+int IPCObjectProxy::ClearDBinderServiceState()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int err = SendRequestInner(true, CLEAR_DBINDER_SERVICE_STATE, data, reply, option);
+    if (err != ERR_NONE) {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, remoteDescriptor_, ProcessSkeleton::ConvertAddr(this));
+    }
+    ZLOGI(LABEL, "result:%{public}d", err);
+    return err;
 }
 // LCOV_EXCL_STOP
 #endif

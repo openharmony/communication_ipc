@@ -413,4 +413,17 @@ int DBinderServiceStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
     }
     return SaveDBinderData(localBusName);
 }
+
+int DBinderServiceStub::DBinderClearServiceState(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
+{
+    if (!IPCSkeleton::IsLocalCalling()) {
+        DBINDER_LOGE(LOG_LABEL, "invalid request in dbinder mode");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    SetNegoStatusAndTime(NegotiationStatus::NEGO_INIT, 0);
+    isInited_ = false;
+    DBINDER_LOGI(LOG_LABEL, "succ");
+    return ERR_NONE;
+}
 } // namespace OHOS
