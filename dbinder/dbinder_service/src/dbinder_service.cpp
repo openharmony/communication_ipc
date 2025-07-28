@@ -946,7 +946,7 @@ bool DBinderService::RegisterRemoteProxy(std::u16string serviceName, sptr<IRemot
         return false;
     }
 
-    DBINDER_LOGI(LOG_LABEL, "service name:%{public}s", Str16ToStr8(serviceName).c_str());
+    DBINDER_LOGD(LOG_LABEL, "service name:%{public}s", Str16ToStr8(serviceName).c_str());
     binder_uintptr_t binder = (binder_uintptr_t)binderObject.GetRefPtr();
     return RegisterRemoteProxyInner(serviceName, binder);
 }
@@ -957,7 +957,7 @@ bool DBinderService::RegisterRemoteProxy(std::u16string serviceName, int32_t sys
         DBINDER_LOGE(LOG_LABEL, "serviceName length:%{public}zu", serviceName.length());
         return false;
     }
-    DBINDER_LOGI(LOG_LABEL, "service name:%{public}s saId:%{public}d",
+    DBINDER_LOGD(LOG_LABEL, "service name:%{public}s saId:%{public}d",
         Str16ToStr8(serviceName).c_str(), systemAbilityId);
     binder_uintptr_t binder = (binder_uintptr_t)systemAbilityId;
     return RegisterRemoteProxyInner(serviceName, binder);

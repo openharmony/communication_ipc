@@ -425,7 +425,7 @@ napi_value NAPI_MessageSequence::JS_readByteArray(napi_env env, napi_callback_in
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiSequence);
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         int8_t val = napiSequence->nativeParcel_->ReadInt8();
         napi_value num = nullptr;
         napi_create_int32(env, val, &num);
@@ -447,7 +447,7 @@ napi_value NAPI_MessageSequence::JS_readShortArray(napi_env env, napi_callback_i
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
@@ -457,7 +457,7 @@ napi_value NAPI_MessageSequence::JS_readShortArray(napi_env env, napi_callback_i
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             int16_t val = napiSequence->nativeParcel_->ReadInt16();
             napi_value num = nullptr;
             napi_create_int32(env, val, &num);
@@ -477,7 +477,7 @@ napi_value NAPI_MessageSequence::JS_readShortArray(napi_env env, napi_callback_i
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         int16_t val = napiSequence->nativeParcel_->ReadInt16();
         napi_value num = nullptr;
         napi_create_int32(env, val, &num);
@@ -499,7 +499,7 @@ napi_value NAPI_MessageSequence::JS_readIntArray(napi_env env, napi_callback_inf
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
@@ -509,7 +509,7 @@ napi_value NAPI_MessageSequence::JS_readIntArray(napi_env env, napi_callback_inf
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             int32_t val = napiSequence->nativeParcel_->ReadInt32();
             napi_value num = nullptr;
             napi_create_int32(env, val, &num);
@@ -529,7 +529,7 @@ napi_value NAPI_MessageSequence::JS_readIntArray(napi_env env, napi_callback_inf
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         int32_t val = napiSequence->nativeParcel_->ReadInt32();
         napi_value num = nullptr;
         napi_create_int32(env, val, &num);
@@ -551,7 +551,7 @@ napi_value NAPI_MessageSequence::JS_readLongArray(napi_env env, napi_callback_in
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
@@ -561,7 +561,7 @@ napi_value NAPI_MessageSequence::JS_readLongArray(napi_env env, napi_callback_in
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             int64_t val = napiSequence->nativeParcel_->ReadInt64();
             napi_value num = nullptr;
             napi_create_int64(env, val, &num);
@@ -581,7 +581,7 @@ napi_value NAPI_MessageSequence::JS_readLongArray(napi_env env, napi_callback_in
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         int64_t val = napiSequence->nativeParcel_->ReadInt64();
         napi_value num = nullptr;
         napi_create_int64(env, val, &num);
@@ -603,7 +603,7 @@ napi_value NAPI_MessageSequence::JS_readFloatArray(napi_env env, napi_callback_i
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
@@ -613,7 +613,7 @@ napi_value NAPI_MessageSequence::JS_readFloatArray(napi_env env, napi_callback_i
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             double val = napiSequence->nativeParcel_->ReadDouble();
             napi_value num = nullptr;
             napi_create_double(env, val, &num);
@@ -633,7 +633,7 @@ napi_value NAPI_MessageSequence::JS_readFloatArray(napi_env env, napi_callback_i
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         double val = napiSequence->nativeParcel_->ReadDouble();
         napi_value num = nullptr;
         napi_create_double(env, val, &num);
@@ -662,7 +662,7 @@ napi_value NAPI_MessageSequence::JS_readBooleanArray(napi_env env, napi_callback
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
@@ -672,7 +672,7 @@ napi_value NAPI_MessageSequence::JS_readBooleanArray(napi_env env, napi_callback
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             int8_t val = napiSequence->nativeParcel_->ReadInt8();
             napi_value boolean = nullptr;
             napi_get_boolean(env, val, &boolean);
@@ -693,7 +693,7 @@ napi_value NAPI_MessageSequence::JS_readBooleanArray(napi_env env, napi_callback
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         int8_t val = napiSequence->nativeParcel_->ReadInt8();
         napi_value boolean = nullptr;
         napi_get_boolean(env, val, &boolean);
@@ -726,7 +726,7 @@ napi_value NAPI_MessageSequence::JS_readCharArray(napi_env env, napi_callback_in
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             uint8_t val = napiSequence->nativeParcel_->ReadUint8();
             napi_value num = nullptr;
             napi_create_uint32(env, static_cast<uint32_t>(val), &num);
@@ -746,7 +746,7 @@ napi_value NAPI_MessageSequence::JS_readCharArray(napi_env env, napi_callback_in
     napi_value result = nullptr;
     napi_create_array_with_length(env, (size_t)arrayLength, &result);
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         uint8_t val = napiSequence->nativeParcel_->ReadUint8();
         napi_value num = nullptr;
         napi_create_uint32(env, static_cast<uint32_t>(val), &num);
@@ -768,7 +768,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
         napi_value argv[ARGV_LENGTH_1] = {0};
@@ -778,7 +778,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
             return checkArgsResult;
         }
 
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < arrayLength; i++) {
             if (napiSequence->nativeParcel_->GetReadableBytes() <= 0) {
                 break;
             }
@@ -795,7 +795,7 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
     napi_value result = nullptr;
     napi_create_array(env, &result);
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         if (napiSequence->nativeParcel_->GetReadableBytes() <= 0) {
             break;
         }
@@ -825,7 +825,7 @@ napi_value NAPI_MessageSequence::JS_readParcelableArray(napi_env env, napi_callb
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
-    int32_t arrayLength = napiSequence->nativeParcel_->ReadInt32();
+    uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     // checking here is not accurate, but we can defend some extreme attacking case.
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_8, napiSequence);
 
@@ -836,7 +836,7 @@ napi_value NAPI_MessageSequence::JS_readParcelableArray(napi_env env, napi_callb
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
-    for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+    for (uint32_t i = 0; i < arrayLength; i++) {
         int32_t len = napiSequence->nativeParcel_->ReadInt32();
         if (len > 0) {
             bool hasElement = false;
