@@ -1174,14 +1174,14 @@ RetDataI64 MessageSequenceImpl::CJ_ReadRemoteObject(int32_t* errCode)
 {
     if (nativeParcel_ == nullptr) {
         *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
-        return RetDataI64 { 0, 0 };
+        return RetDataI64 { INVALID_REMOTE_TYPE, INVALID_ID };
     }
     sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
     if (value == nullptr) {
-        *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
-        return RetDataI64 { 0, 0 };
+        *errCode = errorDesc::PROXY_OR_REMOTE_OBJECT_INVALID_ERROR;
+        return RetDataI64 { INVALID_REMOTE_TYPE, INVALID_ID };
     }
-    int32_t type = value->IsProxyObject() ? 1 : 0;
+    int32_t type = value->IsProxyObject() ? REMOTE_PROXY : REMOTE_OBJECT;
     return RetDataI64{type, CJ_rpc_CreateRemoteObject(value)};
 }
 
@@ -1197,22 +1197,28 @@ RemoteObjectArray MessageSequenceImpl::CJ_ReadRemoteObjectArray(int32_t* errCode
         return res;
     }
     if (CheckReadLength(static_cast<size_t>(arrayLength), BYTE_SIZE_32)) {
-        int32_t* type = static_cast<int32_t*>(malloc(arrayLength));
+        int32_t* type = static_cast<int32_t*>(malloc(sizeof(int32_t) * arrayLength));
         if (type == nullptr) {
             *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
             return res;
         }
-        int64_t* id = static_cast<int64_t*>(malloc(arrayLength));
+        int64_t* id = static_cast<int64_t*>(malloc(sizeof(int64_t) * arrayLength));
         if (id == nullptr) {
             *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
             free(type);
             return res;
         }
-        for (uint32_t i = 0; i < (uint32_t)arrayLength; i++) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
             sptr<IRemoteObject> value = nativeParcel_->ReadRemoteObject();
-            type[i] = value->IsProxyObject() ? 1 : 0;
+            if (value == nullptr) {
+                type[i] = INVALID_REMOTE_TYPE;
+                id[i] = INVALID_ID;
+                continue;
+            }
+            type[i] = value->IsProxyObject() ? REMOTE_PROXY : REMOTE_OBJECT;
             id[i] = CJ_rpc_CreateRemoteObject(value);
         }
+        res.len = static_cast<uint32_t>(arrayLength);
         res.type = type;
         res.id = id;
         return res;
