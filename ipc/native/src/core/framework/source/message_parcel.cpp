@@ -441,30 +441,16 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
     return true;
 }
 
-const void *MessageParcel::ReadRawData(size_t size)
+const void *MessageParcel::HandleRawData(size_t size)
 {
-    if (size == 0) {
-        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        ZLOGE(LOG_LABEL, "the parameter size is 0, time:%{public}" PRIu64, curTime);
-        return nullptr;
-    }
-    size_t bufferSize = static_cast<size_t>(ReadInt32());
-    if (bufferSize != size) {
-        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize:%{public}zu not equal the parameter size:%{public}zu",
-            bufferSize, size);
-        return nullptr;
-    }
-    if (bufferSize <= MIN_RAWDATA_SIZE) {
-        rawDataSize_ = size;
-        return ReadUnpadBuffer(size);
-    }
-
     /* if rawDataFd_ == 0 means rawData is received from remote */
     if (rawData_ != nullptr && writeRawDataFd_ == 0) {
         /* should read fd for move readCursor of parcel */
-        if (ReadFileDescriptor()) {
-            // do nothing
+        int32_t tmpfd = ReadFileDescriptor();
+        if (tmpfd >= 0) {
+            ZLOGE(LOG_LABEL, "unexpected fileDescriptor:%{public}d", tmpfd);
+            close(tmpfd);
+            return nullptr;
         }
         if (rawDataSize_ != size) {
             ZLOGE(LOG_LABEL, "rawData is received from remote, the rawDataSize:%{public}zu not equal size:%{public}zu",
@@ -496,6 +482,27 @@ const void *MessageParcel::ReadRawData(size_t size)
     kernelMappedRead_ = ptr;
     rawDataSize_ = size;
     return ptr;
+}
+
+const void *MessageParcel::ReadRawData(size_t size)
+{
+    if (size == 0) {
+        uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        ZLOGE(LOG_LABEL, "the parameter size is 0, time:%{public}" PRIu64, curTime);
+        return nullptr;
+    }
+    size_t bufferSize = static_cast<size_t>(ReadInt32());
+    if (bufferSize != size) {
+        ZLOGE(LOG_LABEL, "ReadRawData: the buffersize:%{public}zu not equal the parameter size:%{public}zu",
+            bufferSize, size);
+        return nullptr;
+    }
+    if (bufferSize <= MIN_RAWDATA_SIZE) {
+        rawDataSize_ = size;
+        return ReadUnpadBuffer(size);
+    }
+    return HandleRawData(size);
 }
 
 // LCOV_EXCL_START

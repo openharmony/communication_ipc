@@ -91,6 +91,14 @@ public:
     bool WriteRawData(const void *data, size_t size);
 
     /**
+     * @brief Handle raw data from the object.
+     * @param size Indicates the size of the raw data to read.
+     * @return void
+     * @since 9
+     */
+    const void *HandleRawData(size_t size);
+
+    /**
      * @brief Reads raw data from the object.
      * @param size Indicates the size of the raw data to read.
      * @return void
