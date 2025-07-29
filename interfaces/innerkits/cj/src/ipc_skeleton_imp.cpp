@@ -36,9 +36,9 @@ RetDataI64 GetContextObject()
     sptr<IRemoteObject> object = IPCSkeleton::GetContextObject();
     if (object == nullptr) {
         ZLOGE(LOG_LABEL, "fatal error, could not get registry object");
-        return RetDataI64 { 0, 0 };
+        return RetDataI64 { INVALID_REMOTE_TYPE, INVALID_ID };
     }
-    int32_t type = object->IsProxyObject() ? 1 : 0;
+    int32_t type = object->IsProxyObject() ? REMOTE_PROXY : REMOTE_OBJECT;
     return RetDataI64{type, CJ_rpc_CreateRemoteObject(object)};
 }
 

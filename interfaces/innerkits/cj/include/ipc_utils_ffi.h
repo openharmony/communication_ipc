@@ -25,6 +25,10 @@
 namespace OHOS {
 const unsigned int LOG_ID_IPC_BASE = 0xD0057C0;
 const unsigned int LOG_ID_IPC_FFI = LOG_ID_IPC_BASE | 0x08;
+const int64_t INVALID_ID = 0;
+const int32_t INVALID_REMOTE_TYPE = -1;
+const int32_t REMOTE_OBJECT = 0;
+const int32_t REMOTE_PROXY = 1;
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_FFI, "RPC_FFI" };
 
 constexpr size_t MAX_CAPACITY_TO_WRITE = 200 * 1024;
