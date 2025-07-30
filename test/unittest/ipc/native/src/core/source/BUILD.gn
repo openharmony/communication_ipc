@@ -27,6 +27,7 @@ template("ipc_unittest") {
       "$IPC_CORE_ROOT/src/core/dbinder/include",
       "$IPC_CORE_ROOT/src/core/framework/include",
       "$IPC_CORE_ROOT/src/core/invoker/include",
+      "$IPC_CORE_ROOT/src/core/framework/source",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
       "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder/include",
       "$IPC_ROOT_PATH/utils/include",
