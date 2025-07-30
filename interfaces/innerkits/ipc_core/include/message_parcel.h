@@ -245,7 +245,7 @@ private:
     size_t rawDataSize_;
     std::u16string interfaceToken_;
     // Determine whether the data source is from the business (true) or the kernel (false).
-    bool isOwner_;
+    bool isOwner_ = true;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_MESSAGE_PARCEL_H
