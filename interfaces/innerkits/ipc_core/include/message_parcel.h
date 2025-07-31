@@ -29,7 +29,7 @@ public:
     ~MessageParcel();
 
     /**
-     * @brief the interface is used internally within the IPC framework to associate kernel buffer release.
+     * @Brief the interface is used internally within the IPC framework to associate kernel buffer release.
      * @param allocator Indicates the memory allocator.
      * @since 9
      */
