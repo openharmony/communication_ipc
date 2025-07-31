@@ -17,22 +17,12 @@ import("../../../../../../../config.gni")
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
 MODULE_OUTPUT_PATH = "ipc/ipc"
 
-template("c_api_unittest") {
+template("c_unittest") {
   ohos_unittest(target_name) {
     module_out_path = MODULE_OUTPUT_PATH
 
     include_dirs = [
-      "$IPC_CORE_ROOT/c/rpc/include",
-      "$IPC_CORE_ROOT/c/ipc_adapter/include",
-      "$IPC_CORE_ROOT/src/core/dbinder/include",
-      "$IPC_CORE_ROOT/src/core/framework/include",
-      "$IPC_CORE_ROOT/src/core/invoker/include",
-      "$IPC_CORE_ROOT/src/c_api/include",
-      "$IPC_ROOT_PATH/interfaces/innerkits/c_api/include",
-      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
-      "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder/include",
-      "$IPC_ROOT_PATH/utils/include",
-      "$IPC_UNITTEST_ROOT_PATH/mock",
+      "$IPC_CORE_ROOT/c/adapter/access_token/include",
     ]
 
     if (defined(invoker.include_dirs)) {
@@ -48,11 +38,6 @@ template("c_api_unittest") {
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
     ]
 
-    defines = [
-      "private = public",
-      "protected = public",
-    ]
-
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
@@ -61,15 +46,11 @@ template("c_api_unittest") {
       "c_utils:utils",
       "googletest:gmock",
       "hilog:libhilog",
-      "hitrace:libhitracechain",
-      "samgr:samgr_proxy",
     ]
 
     if (defined(invoker.external_deps)) {
       external_deps += invoker.external_deps
     }
-
-    symlink_target_name = [ "libipc_capi.so" ]
 
     sources = invoker.sources
     ldflags = [ "-lpthread" ]
@@ -77,46 +58,15 @@ template("c_api_unittest") {
   }
 }
 
-c_api_unittest("IPCInternalUtilsTest") {
-  sources = [
-    "$IPC_CORE_ROOT/src/c_api/source/ipc_internal_utils.cpp",
-    "ipc_internal_utils_unittest.cpp",
-  ]
-}
-
-c_api_unittest("IPCCskeletonTest") {
-  sources = [
-    "$IPC_CORE_ROOT/src/c_api/source/ipc_cskeleton.cpp",
-    "ipc_cskeleton_unittest.cpp",
-  ]
-}
-
-c_api_unittest("IPCCremoteObjectTest") {
-  sources = [ "ipc_cremote_object_unittest.cpp" ]
-}
-
-c_api_unittest("IPCInnerObjectTest") {
-  sources = [ "ipc_inner_object_unittest.cpp" ]
-}
-
-c_api_unittest("IPCCparcelTest") {
-  sources = [ "ipc_cparcel_unittest.cpp" ]
-}
-
-c_api_unittest("IPCRemoteObjectInternalTest") {
-  sources = [ "ipc_remote_object_internal_unittest.cpp" ]
+c_unittest("AccessTokenAdapterTest") {
+  sources = [ "access_token_adapter_unittest.cpp" ]
 }
 
 ###############################################################################
 group("unittest") {
   testonly = true
   deps = [
-    ":IPCCparcelTest",
-    ":IPCCremoteObjectTest",
-    ":IPCCskeletonTest",
-    ":IPCInnerObjectTest",
-    ":IPCInternalUtilsTest",
-    ":IPCRemoteObjectInternalTest",
+    ":AccessTokenAdapterTest"
   ]
 }
 ###############################################################################
