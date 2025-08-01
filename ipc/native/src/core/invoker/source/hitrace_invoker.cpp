@@ -44,7 +44,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Message
 {
     HiTraceId childId = traceId;
     bool isClientTraced = IsClientTraced(handle, flags, traceId);
-    if (isClientTraced) {
+    if (isClientTraced && data.IsOwner()) {
         childId = HiTraceChain::CreateSpan();
         // add childid to parcel data
         uint8_t idBytes[HITRACE_ID_LEN];

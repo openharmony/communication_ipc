@@ -27,6 +27,12 @@ class MessageParcel : public Parcel {
 public:
     MessageParcel();
     ~MessageParcel();
+
+    /**
+     * @brief The interface is used internally within the IPC framework to associate kernel buffer release.
+     * @param allocator Indicates the memory allocator.
+     * @since 9
+     */
     explicit MessageParcel(Allocator *allocator);
 
     /**
@@ -199,6 +205,13 @@ public:
      */
     std::u16string GetInterfaceToken() const;
 
+    /**
+     * @brief Get the data source is from the business or the kernel.
+     * @return Returns <b>true</b> when data source is from the business; returns <b>false</b> otherwise.
+     * @since 20
+     */
+    bool IsOwner();
+
 private:
 #ifndef CONFIG_IPC_SINGLE
     /**
@@ -231,6 +244,8 @@ private:
     std::shared_ptr<char> rawData_;
     size_t rawDataSize_;
     std::u16string interfaceToken_;
+    // Determine whether the data source is from the business (true) or the kernel (false).
+    bool isOwner_ = true;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_MESSAGE_PARCEL_H
