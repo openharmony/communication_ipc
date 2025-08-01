@@ -15,6 +15,7 @@
 
 #include "ipcthreadpoolnew_fuzzer.h"
 #include "ipc_thread_pool.h"
+#include "process_skeleton.h"
 #include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
@@ -24,6 +25,11 @@ void SpawnThreadFuzzTest(FuzzedDataProvider &provider)
     int proto = provider.ConsumeIntegral<int>();
     int32_t maxThreadNum = provider.ConsumeIntegral<int32_t>() % (INT_MAX >> 1);
     IPCWorkThreadPool threadPool(maxThreadNum);
+    ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+    if (process == nullptr) {
+        return;
+    }
+    process->NotifyChildThreadStop();
     threadPool.SpawnThread(policy, proto);
 }
 } // namespace OHOS
