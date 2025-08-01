@@ -91,7 +91,7 @@ MessageParcel::MessageParcel()
 
 MessageParcel::MessageParcel(Allocator *allocator)
     : Parcel(allocator), writeRawDataFd_(-1), readRawDataFd_(-1), kernelMappedWrite_(nullptr),
-      kernelMappedRead_(nullptr), rawData_(nullptr), rawDataSize_(0)
+      kernelMappedRead_(nullptr), rawData_(nullptr), rawDataSize_(0), isOwner_(false)
 {
 }
 
@@ -636,5 +636,10 @@ void MessageParcel::PrintBuffer(const char *funcName, const size_t lineNum)
     }
     ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: data:%{public}s", funcName, lineNum,
         ProcessSkeleton::ConvertAddr(this), format.c_str());
+}
+
+bool MessageParcel::IsOwner()
+{
+    return isOwner_;
 }
 } // namespace OHOS
