@@ -831,7 +831,7 @@ napi_value NAPI_MessageSequence::JS_readParcelableArray(napi_env env, napi_callb
 
     uint32_t length = 0;
     napi_get_array_length(env, argv[ARGV_INDEX_0], &length);
-    if (static_cast<int32_t>(length) != arrayLength) {
+    if (length != arrayLength) {
         ZLOGE(LOG_LABEL, "Bad length while reading Sequenceable array");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
