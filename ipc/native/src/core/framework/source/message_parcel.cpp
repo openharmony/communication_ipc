@@ -441,7 +441,7 @@ bool MessageParcel::RestoreRawData(std::shared_ptr<char> rawData, size_t size)
     return true;
 }
 
-const void *MessageParcel::HandleRawData(size_t size)
+const void *MessageParcel::ReadRawDataInner(size_t size)
 {
     /* if rawDataFd_ == 0 means rawData is received from remote */
     if (rawData_ != nullptr && writeRawDataFd_ == 0) {
@@ -502,7 +502,7 @@ const void *MessageParcel::ReadRawData(size_t size)
         rawDataSize_ = size;
         return ReadUnpadBuffer(size);
     }
-    return HandleRawData(size);
+    return ReadRawDataInner(size);
 }
 
 // LCOV_EXCL_START
