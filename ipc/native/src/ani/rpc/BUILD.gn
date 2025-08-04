@@ -53,8 +53,6 @@ generate_static_abc("rpc_abc") {
   files = [ "./ets/@ohos.rpc.ets" ]
   dst_file = "$target_out_dir/rpc.abc"
   out_puts = [ "$target_out_dir/rpc.abc" ]
-  is_boot_abc = "True"
-  device_dst_file = "/system/framework/rpc.abc"
 }
 
 ohos_prebuilt_etc("rpc_abc_etc") {
