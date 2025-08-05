@@ -93,7 +93,7 @@ public:
     /**
      * @brief Reads raw data from the object.
      * @param size Indicates the size of the raw data to read.
-     * @return void
+     * @return void pointer
      * @since 9
      */
     const void *ReadRawData(size_t size);
@@ -109,7 +109,7 @@ public:
 
     /**
      * @brief Obtains raw data from the object.
-     * @return void
+     * @return void pointer
      * @since 9
      */
     const void *GetRawData() const;
@@ -221,9 +221,9 @@ private:
 #endif
 
     /**
-     * @brief Read raw data inner from the object.
+     * @brief IPC framework internal interface, read internal raw data
      * @param size Indicates the size of the raw data to read.
-     * @return void
+     * @return void pointer
      * @since 9
      */
     const void *ReadRawDataInner(size_t size);
