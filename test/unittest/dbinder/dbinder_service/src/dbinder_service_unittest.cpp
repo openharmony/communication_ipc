@@ -399,6 +399,34 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SendEntryToRemoteTest005
+ * @tc.desc: Verify the SendEntryToRemote function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest005, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(false));
+    std::shared_ptr<struct DHandleEntryTxRx> entry = std::make_shared<struct DHandleEntryTxRx>();
+    ASSERT_NE(entry, nullptr);
+    EXPECT_CALL(mock, CreateMessage).WillOnce(testing::Return(entry));
+    EXPECT_CALL(mock, GetLocalNodeDeviceId).WillOnce(testing::Return(SOFTBUS_CLIENT_SUCCESS));
+
+    sptr<DBinderServiceStub> dBinderServiceStub =
+        sptr<DBinderServiceStub>::MakeSptr(RANDOM_SERVICENAME, RANDOM_DEVICEID, BINDER_OBJECT);
+    ASSERT_NE(dBinderServiceStub, nullptr);
+    uint32_t seqNumber = 1;
+    uint32_t pid = PID;
+    uint32_t uid = UID;
+    bool result = dBinderService->SendEntryToRemote(dBinderServiceStub, seqNumber, pid, uid);
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: InvokerRemoteDBinderTest001
  * @tc.desc: Verify the InvokerRemoteDBinder function when dBinderServiceStub is nullptr
  * @tc.type: FUNC
@@ -434,15 +462,11 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest003, TestSize.Level1)
     DBinderService dBinderService;
     sptr<DBinderServiceStub> dBinderServiceStub = new DBinderServiceStub(
         RANDOM_SERVICENAME, RANDOM_DEVICEID, BINDER_OBJECT);
-    NiceMock<DBinderServiceInterfaceMock> mock;
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     dBinderService.AttachThreadLockInfo(PID, RANDOM_DEVICEID, threadLockInfo);
-    EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(true));
     std::shared_ptr<struct DHandleEntryTxRx> entry = std::make_shared<struct DHandleEntryTxRx>();
     ASSERT_NE(entry, nullptr);
-    EXPECT_CALL(mock, CreateMessage(_, _, _, _)).WillOnce(testing::Return(entry));
-    EXPECT_CALL(mock, GetLocalNodeDeviceId).WillOnce(testing::Return(SOFTBUS_CLIENT_SUCCESS));
 
     int32_t result = dBinderService.InvokerRemoteDBinder(dBinderServiceStub, PID, PID, PID);
     EXPECT_EQ(result, DBinderErrorCode::MAKE_THREADLOCK_FAILED);
@@ -693,7 +717,7 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderWhenWaitRsp001, TestSize.Level1
     int32_t ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
     EXPECT_EQ(ret, MAKE_THREADLOCK_FAILED);
 
-    dBinderService->threadLockInfo_[seqNumber] = threadLockInfo;
+    dBinderService->threadLockInfo_[seqNumber] = std::make_shared<struct ThreadLockInfo>();
     ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
     EXPECT_EQ(ret, DBINDER_OK);
 }
@@ -723,5 +747,150 @@ HWTEST_F(DBinderServiceTest, ProcessCallbackProxyInner001, TestSize.Level1)
     sptr<IRemoteObject> proxy = new (std::nothrow) IPCObjectProxy(0);
     EXPECT_NE(proxy, nullptr);
     dBinderService->ProcessCallbackProxyInner(stub, proxy);
+}
+
+/**
+ * @tc.name: GetRemoteListenerTest001
+ * @tc.desc: Verify the GetRemoteListener function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, GetRemoteListenerTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    dBinderService->remoteListener_ = nullptr;
+    std::shared_ptr<DBinderRemoteListener> remoteListener = dBinderService->GetRemoteListener();
+    EXPECT_EQ(remoteListener, nullptr);
+}
+
+/**
+ * @tc.name: GetInstanceTest001
+ * @tc.desc: Verify the GetInstance function return not nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, GetInstanceTest001, TestSize.Level1)
+{
+    DBinderService::instance_ = nullptr;
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+}
+
+/**
+ * @tc.name: CheckAndAmendSaIdTest001
+ * @tc.desc: Verify the CheckAndAmendSaId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, CheckAndAmendSaIdTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    std::shared_ptr<struct DHandleEntryTxRx> message = std::make_shared<struct DHandleEntryTxRx>();
+    ASSERT_NE(message, nullptr);
+
+    int32_t vaildId = DBinderService::FIRST_SYS_ABILITY_ID + 1;
+    int32_t invaildId = DBinderService::LAST_SYS_ABILITY_ID + 1;
+    message->stubIndex = vaildId;
+    message->binderObject = invaildId;
+    int ret = dBinderService->CheckAndAmendSaId(message);
+    EXPECT_EQ(message->binderObject, vaildId);
+    EXPECT_TRUE(ret);
+    message->stubIndex = invaildId;
+    message->binderObject = vaildId;
+    ret = dBinderService->CheckAndAmendSaId(message);
+    EXPECT_EQ(message->stubIndex, vaildId);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: CreateDatabusNameTest001
+ * @tc.desc: Verify the CreateDatabusName function return not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, CreateDatabusNameTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    DBinderSoftbusClient &softbusClient = DBinderSoftbusClient::GetInstance();
+    softbusClient.grantPermissionFunc_ = [](int32_t uid, int32_t pid, const char *permission) -> int32_t {
+        return ERR_NONE;
+    };
+    std::string databusName = dBinderService->CreateDatabusName(UID, PID);
+    EXPECT_FALSE(databusName.empty());
+}
+
+/**
+ * @tc.name: CheckStubIndexAndSessionNameIllegalTest001
+ * @tc.desc: Verify the CheckStubIndexAndSessionNameIllegal function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, CheckStubIndexAndSessionNameIllegalTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    uint64_t stubIndex = 0;
+    std::string serverSessionName = SERVICE_NAME_TEST;
+    std::string deviceId = RANDOM_DEVICEID;
+    sptr<IPCObjectProxy> proxy = sptr<IPCObjectProxy>::MakeSptr(REGISTRY_HANDLE);
+    ASSERT_NE(proxy, nullptr);
+    bool ret =
+        dBinderService->CheckStubIndexAndSessionNameIllegal(stubIndex, serverSessionName, deviceId, proxy.GetRefPtr());
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: IsSameSessionTest001
+ * @tc.desc: Verify the IsSameSession function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, IsSameSessionTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    std::shared_ptr<struct SessionInfo> oldSession = std::make_shared<struct SessionInfo>();
+    std::shared_ptr<struct SessionInfo> newSession = std::make_shared<struct SessionInfo>();
+    ASSERT_NE(oldSession, nullptr);
+    ASSERT_NE(newSession, nullptr);
+
+    oldSession->stubIndex = 0;
+    newSession->stubIndex = 1;
+    bool ret = dBinderService->IsSameSession(oldSession, newSession);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: NoticeDeviceDieTest001
+ * @tc.desc: Verify the NoticeDeviceDie function return ERR_NONE
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, NoticeDeviceDieTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    dBinderService->remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    std::string deviceId = RANDOM_DEVICEID;
+    int ret = dBinderService->NoticeDeviceDie(deviceId);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: NoticeServiceDieInnerTest001
+ * @tc.desc: Verify the NoticeServiceDieInner function return DBINDER_SERVICE_INVALID_DATA_ERR
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceTest, NoticeServiceDieInnerTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_NE(dBinderService, nullptr);
+
+    std::u16string serviceName;
+    std::string deviceId = RANDOM_DEVICEID;
+    int ret = dBinderService->NoticeServiceDieInner(serviceName, deviceId);
+    EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
 }
 }

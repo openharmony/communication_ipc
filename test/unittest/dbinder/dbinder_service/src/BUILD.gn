@@ -88,6 +88,14 @@ ipc_dbinder_unittest("DBinderServiceTest") {
   sources = [ "dbinder_service_unittest.cpp" ]
 }
 
+ipc_dbinder_unittest("DBinderDeathRecipientTest") {
+  sources = [ "dbinder_death_recipient_unittest.cpp" ]
+}
+
+ipc_dbinder_unittest("DBinderSaDeathRecipientTest") {
+  sources = [ "dbinder_sa_death_recipient_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -95,6 +103,8 @@ group("unittest") {
     ":DBinderRemoteListenerTest",
     ":DBinderServiceStubTest",
     ":DBinderServiceTest",
+    ":DBinderDeathRecipientTest",
+    ":DBinderSaDeathRecipientTest",
   ]
 }
 ###############################################################################
