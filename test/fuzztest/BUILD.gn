@@ -67,5 +67,6 @@ group("fuzztest") {
     "dbinder/dbinder_service/src/restartremotelistener_fuzzer:ReStartRemoteListenerFuzzTest",
     "dbinder/dbinder_service/src/dbinderservicenew_fuzzer:DBinderServiceNewFuzzTest",
     "dbinder/dbinder_service/src/socket/dbinderremotelistener_fuzzer:DBinderRemoteListenerFuzzTest",
+    "dbinder/dbinder_service/src/mock/dbinderservicemock_fuzzer:DBinderServiceMockFuzzTest",
   ]
 }
