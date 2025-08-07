@@ -23,6 +23,7 @@
 #include "string_ex.h"
 
 namespace OHOS {
+    const static size_t MAX_STRING_PARAM_LEN = 100;
     class TestRpcSystemAbilityCallback : public RpcSystemAbilityCallback {
     public:
         sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) override
@@ -83,8 +84,8 @@ namespace OHOS {
 
     void AddStubByTagTest(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -97,8 +98,8 @@ namespace OHOS {
 
     void CheckBinderObject1Test(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -111,8 +112,8 @@ namespace OHOS {
 
     void CheckBinderObject2Test(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -124,8 +125,8 @@ namespace OHOS {
 
     void HasDBinderStubTest(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -138,8 +139,8 @@ namespace OHOS {
 
     void IsSameStubObject1Test(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -151,8 +152,8 @@ namespace OHOS {
 
     void IsSameStubObject2Test(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string deviceID = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         sptr<DBinderServiceStub> stub = nullptr;
         OHOS::DBinderService dBinderService;
         dBinderService.IsSameStubObject(stub, serviceName, deviceID);
@@ -160,24 +161,24 @@ namespace OHOS {
 
     void FindDBinderStubTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string device = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string device = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.FindDBinderStub(serviceName, device);
     }
 
     void DeleteDBinderStubTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string device = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string device = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.DeleteDBinderStub(serviceName, device);
     }
 
     void FindOrNewDBinderStubTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string device = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string device = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         uint32_t pid = provider.ConsumeIntegral<uint32_t>();
         uint32_t uid = provider.ConsumeIntegral<uint32_t>();
@@ -188,8 +189,8 @@ namespace OHOS {
 
     void MakeRemoteBinderTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string deviceID = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         uint32_t pid = provider.ConsumeIntegral<uint32_t>();
         uint32_t uid = provider.ConsumeIntegral<uint32_t>();
@@ -199,16 +200,16 @@ namespace OHOS {
 
     void CheckDeviceIDsInvalidTest(FuzzedDataProvider &provider)
     {
-        std::string deviceID = provider.ConsumeRandomLengthString();
-        std::string localDevID = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
+        std::string localDevID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.CheckDeviceIDsInvalid(deviceID, localDevID);
     }
 
     void CopyDeviceIDsToMessageTest(FuzzedDataProvider &provider)
     {
-        std::string deviceID = provider.ConsumeRandomLengthString();
-        std::string localDevID = provider.ConsumeRandomLengthString();
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
+        std::string localDevID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         auto message = std::make_shared<struct DHandleEntryTxRx>();
         if (message == nullptr) {
             return;
@@ -219,8 +220,8 @@ namespace OHOS {
 
     void CreateMessageTest(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -236,8 +237,8 @@ namespace OHOS {
     void SendEntryToRemoteTest(FuzzedDataProvider &provider)
     {
         OHOS::DBinderService dBinderService;
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -251,8 +252,8 @@ namespace OHOS {
 
     void InvokerRemoteDBinderTest(FuzzedDataProvider &provider)
     {
-        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        const std::string deviceID = provider.ConsumeRandomLengthString();
+        const std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        const std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
         if (stub == nullptr) {
@@ -274,7 +275,7 @@ namespace OHOS {
 
     void IsSameLoadSaItemTest(FuzzedDataProvider &provider)
     {
-        std::string srcNetworkId = provider.ConsumeRandomLengthString();
+        std::string srcNetworkId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         int32_t systemAbilityId = provider.ConsumeIntegral<int32_t>();
         std::shared_ptr<DHandleEntryTxRx> loadSaItem = std::make_shared<DHandleEntryTxRx>();
         if (loadSaItem == nullptr) {
@@ -286,7 +287,7 @@ namespace OHOS {
 
     void PopLoadSaItemTest(FuzzedDataProvider &provider)
     {
-        std::string srcNetworkId = provider.ConsumeRandomLengthString();
+        std::string srcNetworkId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         int32_t systemAbilityId = provider.ConsumeIntegral<int32_t>();
         OHOS::DBinderService dBinderService;
         dBinderService.PopLoadSaItem(srcNetworkId, systemAbilityId);
@@ -294,7 +295,7 @@ namespace OHOS {
 
     void LoadSystemAbilityComplete1Test(FuzzedDataProvider &provider)
     {
-        std::string srcNetworkId = provider.ConsumeRandomLengthString();
+        std::string srcNetworkId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         int handle = provider.ConsumeIntegral<int>();
         sptr<IRemoteObject> remoteObject = new (std::nothrow) IPCObjectProxy(handle);
         if (remoteObject == nullptr) {
@@ -307,7 +308,7 @@ namespace OHOS {
 
     void LoadSystemAbilityComplete2Test(FuzzedDataProvider &provider)
     {
-        std::string srcNetworkId = provider.ConsumeRandomLengthString();
+        std::string srcNetworkId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         sptr<IRemoteObject> remoteObject = nullptr;
         int32_t systemAbilityId = provider.ConsumeIntegral<int32_t>();
         OHOS::DBinderService dBinderService;
@@ -346,21 +347,21 @@ namespace OHOS {
 
     void CheckDeviceIdIllegalTest(FuzzedDataProvider &provider)
     {
-        std::string remoteDeviceId = provider.ConsumeRandomLengthString();
+        std::string remoteDeviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.CheckDeviceIdIllegal(remoteDeviceId);
     }
 
     void CheckSessionNameIsEmptyTest(FuzzedDataProvider &provider)
     {
-        std::string sessionName = provider.ConsumeRandomLengthString();
+        std::string sessionName = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.CheckSessionNameIsEmpty(sessionName);
     }
 
     void CheckInvokeListenThreadIllegalTest(FuzzedDataProvider &provider)
     {
-        std::string sessionName = provider.ConsumeRandomLengthString();
+        std::string sessionName = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         int handle = provider.ConsumeIntegral<int>();
         sptr<IPCObjectProxy> proxy = new (std::nothrow) IPCObjectProxy(handle);
         if (proxy == nullptr) {
@@ -375,8 +376,8 @@ namespace OHOS {
     void CheckStubIndexAndSessionNameIllegalTest(FuzzedDataProvider &provider)
     {
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-        std::string serverSessionName = provider.ConsumeRandomLengthString();
-        std::string deviceId = provider.ConsumeRandomLengthString();
+        std::string serverSessionName = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
+        std::string deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         int handle = provider.ConsumeIntegral<int>();
         sptr<IPCObjectProxy> proxy = new (std::nothrow) IPCObjectProxy(handle);
         if (proxy == nullptr) {
@@ -394,7 +395,7 @@ namespace OHOS {
         }
         replyMessage->transType = provider.ConsumeIntegral<uint32_t>();
         uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-        std::string serverSessionName = provider.ConsumeRandomLengthString();
+        std::string serverSessionName = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         uint32_t selfTokenId = provider.ConsumeIntegral<uint32_t>();
         int handle = provider.ConsumeIntegral<int>();
         sptr<IPCObjectProxy> proxy = new (std::nothrow) IPCObjectProxy(handle);
@@ -417,7 +418,7 @@ namespace OHOS {
             return;
         }
         replyMessage->transType = provider.ConsumeIntegral<uint32_t>();
-        std::string remoteDeviceId = provider.ConsumeRandomLengthString();
+        std::string remoteDeviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         int pid = provider.ConsumeIntegral<int>();
         int uid = provider.ConsumeIntegral<int>();
         uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
@@ -435,7 +436,7 @@ namespace OHOS {
 
     void RegisterRemoteProxyTest(FuzzedDataProvider &provider)
     {
-        std::string service = provider.ConsumeRandomLengthString();
+        std::string service = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         std::u16string serviceName = Str8ToStr16(service);
         int handle = provider.ConsumeIntegral<int>();
         sptr<IRemoteObject> binderObject = new (std::nothrow) IPCObjectProxy(handle);
@@ -448,7 +449,7 @@ namespace OHOS {
 
     void ProcessOnSessionClosedTest(FuzzedDataProvider &provider)
     {
-        std::string networkId = provider.ConsumeRandomLengthString();
+        std::string networkId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.ProcessOnSessionClosed(networkId);
     }
@@ -571,7 +572,7 @@ namespace OHOS {
     void AttachThreadLockInfoTest(FuzzedDataProvider &provider)
     {
         uint32_t seqNumber = provider.ConsumeIntegral<uint32_t>();
-        std::string networkId = provider.ConsumeRandomLengthString();
+        std::string networkId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         auto threadLockInfo = std::make_shared<struct ThreadLockInfo>();
         dBinderService.AttachThreadLockInfo(seqNumber, networkId, threadLockInfo);
@@ -665,8 +666,8 @@ namespace OHOS {
         if (object == nullptr) {
             return;
         }
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string deviceID = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> dBinderServiceStub
             = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
@@ -679,16 +680,16 @@ namespace OHOS {
 
     void NoticeCallbackProxyTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string deviceID = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.NoticeCallbackProxy(serviceName, deviceID);
     }
 
     void ProcessCallbackProxyTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string deviceID = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         binder_uintptr_t stub = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
         sptr<DBinderServiceStub> dbStub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, stub);
         if (dbStub == nullptr) {
@@ -702,8 +703,8 @@ namespace OHOS {
 
     void NoticeServiceDieInnerTest(FuzzedDataProvider &provider)
     {
-        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString());
-        std::string deviceID = provider.ConsumeRandomLengthString();
+        std::u16string serviceName = Str8ToStr16(provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN));
+        std::string deviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
         OHOS::DBinderService dBinderService;
         dBinderService.NoticeServiceDieInner(serviceName, deviceID);
     }
