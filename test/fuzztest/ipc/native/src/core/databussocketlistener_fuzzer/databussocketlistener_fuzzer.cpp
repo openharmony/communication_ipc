@@ -14,7 +14,7 @@
  */
 
 #include "databussocketlistener_fuzzer.h"
-
+#include <fuzzer/FuzzedDataProvider.h>
 #define private public
 #define protected public
 #include "databus_socket_listener.h"
@@ -25,6 +25,7 @@
 using OHOS::DatabusSocketListener;
 
 namespace OHOS {
+static constexpr size_t STR_MAX_LEN = 100;
 static std::string TEST_SOCKET_NAME = "DBinder1_1";
 static std::string TEST_SOCKET_PEER_NAME = "DBinderService";
 static std::string TEST_SOCKET_PEER_NETWORKID = "wad213hkad213jh123jk213j1h2312h3jk12dadadeawd721hledhjlad22djhla";
@@ -240,6 +241,38 @@ static void EraseDeviceLockFuzzTest(const uint8_t *data, size_t size)
     listener->EraseDeviceLock(info3);
     listener->RemoveSessionName();
 }
+
+static void ClientOnBindFuzzTest(FuzzedDataProvider &provider)
+{
+    std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
+    if (listener == nullptr) {
+        return;
+    }
+    int32_t socketId = provider.ConsumeIntegral<int32_t>();
+    std::string name = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string networkId = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string pkgName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    int32_t dataType = provider.ConsumeIntegral<int32_t>();
+    PeerSocketInfo info = {
+        .name = const_cast<char *>(name.c_str()),
+        .networkId = const_cast<char *>(networkId.c_str()),
+        .pkgName = const_cast<char *>(pkgName.c_str()),
+        .dataType = static_cast<TransDataType>(dataType),
+    };
+    listener->ClientOnBind(socketId, info);
+}
+
+static void GetPidAndUidFromServiceNameFuzzTest(FuzzedDataProvider &provider)
+{
+    std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
+    if (listener == nullptr) {
+        return;
+    }
+    std::string serviceName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    int32_t pid = provider.ConsumeIntegral<int32_t>();
+    int32_t uid = provider.ConsumeIntegral<int32_t>();
+    listener->GetPidAndUidFromServiceName(serviceName, pid, uid);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -256,5 +289,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::CreateClientSocketFuzzTest(data, size);
     OHOS::ShutdownSocketFuzzTest(data, size);
     OHOS::EraseDeviceLockFuzzTest(data, size);
+
+    FuzzedDataProvider provider(data, size);
+    OHOS::ClientOnBindFuzzTest(provider);
+    OHOS::GetPidAndUidFromServiceNameFuzzTest(provider);
     return 0;
 }
