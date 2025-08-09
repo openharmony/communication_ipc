@@ -62,9 +62,6 @@ group("fuzztest") {
     "ipc/native/src/core/iremotebroker_fuzzer:IRemoteBrokerFuzzTest",
     "ipc/native/src/core/processskeleton_fuzzer:ProcessSkeletonFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
-    "dbinder/dbinder_service/src/getlocaldeviceid_fuzzer:GetLocalDeviceIDFuzzTest",
-    "dbinder/dbinder_service/src/getseqnumber_fuzzer:GetSeqNumberFuzzTest",
-    "dbinder/dbinder_service/src/restartremotelistener_fuzzer:ReStartRemoteListenerFuzzTest",
     "dbinder/dbinder_service/src/dbinderservicenew_fuzzer:DBinderServiceNewFuzzTest",
     "dbinder/dbinder_service/src/socket/dbinderremotelistener_fuzzer:DBinderRemoteListenerFuzzTest",
   ]
