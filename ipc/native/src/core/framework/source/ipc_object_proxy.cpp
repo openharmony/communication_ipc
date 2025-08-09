@@ -304,7 +304,6 @@ std::string IPCObjectProxy::GetSessionName()
 }
 // LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::string IPCObjectProxy::GetGrantedSessionName()
 {
     MessageParcel data, reply;
@@ -324,7 +323,6 @@ std::string IPCObjectProxy::GetGrantedSessionName()
 
     return reply.ReadString();
 }
-// LCOV_EXCL_STOP
 
 std::string IPCObjectProxy::GetSessionNameForPidUid(uint32_t uid, uint32_t pid)
 {
