@@ -106,7 +106,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
     }
 
     if (process->GetThreadStopFlag()) {
-        ZLOGW(LOG_LABEL, "the stop flag is true, thread start exit");
+        ZLOGD(LOG_LABEL, "the stop flag is true, thread start exit");
         delete param;
         return nullptr;
     }
@@ -118,7 +118,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d", threadName.c_str(), ret);
     } else {
-        ZLOGI(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u", param->proto,
+        ZLOGD(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u", param->proto,
             param->policy, threadName.c_str(), ProcessSkeleton::ConvertAddr(invoker));
     }
     IPCThreadSkeleton::SaveThreadName(threadName);
@@ -154,7 +154,7 @@ bool IPCWorkThread::Start(int policy, int proto, int threadIndex)
     }
 
     if (process->GetThreadStopFlag()) {
-        ZLOGW(LOG_LABEL, "the stop flag is true, can not create other thread");
+        ZLOGD(LOG_LABEL, "the stop flag is true, can not create other thread");
         return false;
     }
 
