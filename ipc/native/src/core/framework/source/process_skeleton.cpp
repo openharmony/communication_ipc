@@ -490,7 +490,7 @@ void ProcessSkeleton::NotifyChildThreadStop()
     if (connector != nullptr) {
         connector->CloseDriverFd();
     }
-    ZLOGI(LOG_LABEL, "start waiting for child thread to exit, child thread num:%{public}zu",
+    ZLOGD(LOG_LABEL, "start waiting for child thread to exit, child thread num:%{public}zu",
         runningChildThreadNum_.load());
     std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
     threadCountCon_.wait_for(lockGuard, std::chrono::seconds(MAIN_THREAD_MAX_WAIT_TIME),

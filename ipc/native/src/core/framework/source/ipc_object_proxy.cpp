@@ -203,7 +203,7 @@ int IPCObjectProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParce
 #endif
     auto timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime).count();
     if (timeInterval > SEND_REQUEST_TIMEOUT) {
-        ZLOGW(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
+        ZLOGD(LABEL, "DFX_BlockMonitor IPC cost %{public}lld ms, interface code:%{public}u, desc:%{public}s",
             timeInterval, code, desc.c_str());
     }
     return err;
@@ -507,7 +507,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
     if (recipient == nullptr) {
-        ZLOGE(LABEL, "recipient is null");
+        ZLOGD(LABEL, "recipient is null");
         return false;
     }
     std::string desc;
@@ -549,7 +549,7 @@ void IPCObjectProxy::SendObituary()
 {
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
-        ZLOGW(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
+        ZLOGD(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
             remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this));
     }
 
