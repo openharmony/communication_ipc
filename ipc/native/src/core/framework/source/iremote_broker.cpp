@@ -94,7 +94,7 @@ void BrokerRegistration::Unregister(const std::u16string &descriptor)
     for (auto iter = objects_.begin(); iter != objects_.end();) {
         std::string soPath = GetObjectSoPath(iter->first);
         if (soPath.empty() || (soPath != iter->second)) {
-            ZLOGW(LABEL, "path:%{public}s is dlclosed", iter->second.c_str());
+            ZLOGD(LABEL, "path:%{public}s is dlclosed", iter->second.c_str());
             iter = objects_.erase(iter);
             continue;
         }
