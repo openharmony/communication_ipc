@@ -903,7 +903,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteStringArrayElement(napi_env env,
     napi_valuetype valuetype;
     napi_typeof(env, element, &valuetype);
     if (valuetype != napi_string) {
-        ZLOGE(LOG_LABEL, "Parameter type error");
+        ZLOGD(LOG_LABEL, "Parameter type error");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
 
