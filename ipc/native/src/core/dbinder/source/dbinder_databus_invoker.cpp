@@ -278,6 +278,10 @@ void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, uint64_t seqNum
         return;
     }
 
+    if (dataSize < sizeof(dbinder_transaction_data)) {
+        ZLOGE(LOG_LABEL, "dataSize:%{public}u is invalid", dataSize);
+        return;
+    }
     bool isSucc = false;
     uint32_t rawDataSize = dataSize - sizeof(dbinder_transaction_data);
     if (rawDataSize > 0 && rawDataSize <= MAX_RAWDATA_SIZE - sizeof(dbinder_transaction_data)) {
