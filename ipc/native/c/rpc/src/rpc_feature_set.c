@@ -40,10 +40,12 @@ static uint32_t GetFeatureATTag(void)
     return RPC_ACCESS_TOKEN_TAG;
 }
 
+// LCOV_EXCL_START
 uint32_t GetLocalRpcFeature(void)
 {
     return RPC_FEATURE_FLAG;
 }
+// LCOV_EXCL_STOP
 
 uint32_t GetRpcFeatureAck(void)
 {
@@ -60,10 +62,12 @@ bool IsFeatureAck(uint32_t featureSet)
     return (featureSet & RPC_FEATURE_ACK) > 0;
 }
 
+// LCOV_EXCL_START
 uint32_t GetTokenIdSize(void)
 {
     return TOKEN_ID_SIZE;
 }
+// LCOV_EXCL_STOP
 
 uint32_t GetFeatureSize(void)
 {

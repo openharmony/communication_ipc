@@ -646,6 +646,7 @@ int IPCObjectProxy::InvokeListenThread(MessageParcel &data, MessageParcel &reply
     return SendRequestInner(false, INVOKE_LISTEN_THREAD, data, reply, option);
 }
 
+// LCOV_EXCL_START
 uint32_t IPCObjectProxy::GetStrongRefCountForStub()
 {
     BinderInvoker *invoker = reinterpret_cast<BinderInvoker *>(IPCThreadSkeleton::GetDefaultInvoker());
@@ -655,21 +656,26 @@ uint32_t IPCObjectProxy::GetStrongRefCountForStub()
     }
     return invoker->GetStrongRefCountForStub(handle_);
 }
+// LCOV_EXCL_STOP
 
 #ifdef OHOS_PLATFORM
+// LCOV_EXCL_START
 bool IPCObjectProxy::CanPromote()
 {
     return (GetSptrRefCount() > 0);
 }
+// LCOV_EXCL_STOP
 #endif
 
 #ifndef CONFIG_IPC_SINGLE
+// LCOV_EXCL_START
 int IPCObjectProxy::UpdateProto()
 {
     int proto = GetProtoInfo();
     SetProto(proto);
     return proto;
 }
+// LCOV_EXCL_STOP
 
 bool IPCObjectProxy::UpdateProto(const void *dbinderData)
 {
@@ -967,7 +973,6 @@ int IPCObjectProxy::GetDBinderNegotiationData(int handle, MessageParcel &reply, 
     return ERR_NONE;
 }
 
-// LCOV_EXCL_START
 bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply)
 {
     DBinderNegotiationData dbinderData;
@@ -976,7 +981,6 @@ bool IPCObjectProxy::UpdateDatabusClientSession(int handle, MessageParcel &reply
     }
     return MakeDBinderTransSession(dbinderData);
 }
-// LCOV_EXCL_STOP
 
 int IPCObjectProxy::GetDBinderNegotiationData(DBinderNegotiationData &dbinderData)
 {
@@ -1133,6 +1137,7 @@ IPCObjectProxy::DeathRecipientAddrInfo::DeathRecipientAddrInfo(const sptr<DeathR
     soPath_ = GetNewSoPath();
 }
 
+// LCOV_EXCL_START
 std::string IPCObjectProxy::DeathRecipientAddrInfo::GetNewSoPath()
 {
     if (soFuncAddr_ == nullptr) {
@@ -1148,6 +1153,7 @@ std::string IPCObjectProxy::DeathRecipientAddrInfo::GetNewSoPath()
     }
     return info.dli_fname;
 }
+// LCOV_EXCL_STOP
 
 bool IPCObjectProxy::DeathRecipientAddrInfo::IsDlclosed()
 {
