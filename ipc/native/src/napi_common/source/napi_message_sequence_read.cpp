@@ -240,7 +240,7 @@ napi_value NAPI_MessageSequence::JS_readInt(napi_env env, napi_callback_info inf
     NAPI_MessageSequence *napiSequence = nullptr;
     napi_unwrap(env, thisVar, (void **)&napiSequence);
     if (napiSequence == nullptr) {
-        ZLOGE(LOG_LABEL, "napiSequence is null");
+        ZLOGD(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
 
@@ -999,7 +999,7 @@ static int32_t GetArraySize(napi_env env, napi_callback_info info, napi_value &t
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
     if (arraySize <= 0) {
-        ZLOGE(LOG_LABEL, "arraySize is %{public}d, error", arraySize);
+        ZLOGD(LOG_LABEL, "arraySize is %{public}d, error", arraySize);
         napi_create_array(env, &result);
     }
     return arraySize;

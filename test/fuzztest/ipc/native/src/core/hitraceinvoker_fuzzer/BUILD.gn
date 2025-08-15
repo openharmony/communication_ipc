@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,23 +14,25 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("../../../../../../../config.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("GetSeqNumberFuzzTest") {
+ohos_fuzztest("HitraceInvokerFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../getseqnumber_fuzzer"
+  fuzz_config_file = "../hitraceinvoker_fuzzer"
 
-  cflags = [
-    "-fno-omit-frame-pointer",
+  sources = [ "hitraceinvoker_fuzzer.cpp" ]
+
+  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+
+  defines = [
+    "private = public",
+    "protected = public",
   ]
-  sources = [ "getseqnumber_fuzzer.cpp" ]
-
-  deps = [ "../../../../../../interfaces/innerkits/libdbinder:libdbinder" ]
-
-  defines = [ "private=public" ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
   ]
 }

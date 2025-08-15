@@ -745,18 +745,50 @@ void FlushCommandsFuzzTest(FuzzedDataProvider &provider)
     invoker.FlushCommands(object.GetRefPtr());
 }
 
-void HasRawDataPackageFuzzTest(FuzzedDataProvider &provider)
+void HasRawDataPackageFuzzTest001(FuzzedDataProvider &provider)
 {
     dbinder_transaction_data data = CreateDbinderTransactionData(provider);
     DBinderDatabusInvoker invoker;
     invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
 }
 
-void HasCompletePackageFuzzTest(FuzzedDataProvider &provider)
+void HasRawDataPackageFuzzTest002(FuzzedDataProvider &provider)
+{
+    dbinder_transaction_data data;
+    data.magic = DBINDER_MAGICWORD;
+    data.cmd = BC_SEND_RAWDATA;
+    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
+    ssize_t len = provider.ConsumeIntegral<ssize_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), len);
+
+    data.sizeOfSelf = sizeof(dbinder_transaction_data);
+    invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
+}
+
+void HasCompletePackageFuzzTest001(FuzzedDataProvider &provider)
 {
     dbinder_transaction_data data = CreateDbinderTransactionData(provider);
     uint32_t readCursor = 0;
     DBinderDatabusInvoker invoker;
+    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
+}
+
+void HasCompletePackageFuzzTest002(FuzzedDataProvider &provider)
+{
+    dbinder_transaction_data data;
+    data.magic = DBINDER_MAGICWORD;
+    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
+    data.buffer_size = provider.ConsumeIntegral<binder_size_t>();
+    data.offsets = provider.ConsumeIntegral<binder_uintptr_t>();
+    data.flags = provider.ConsumeIntegral<uint32_t>();
+    data.offsets_size = provider.ConsumeIntegral<binder_size_t>();
+    uint32_t readCursor = 0;
+    ssize_t len = provider.ConsumeIntegral<ssize_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, len);
+
+    data.sizeOfSelf = sizeof(dbinder_transaction_data);
     invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
 }
 
@@ -906,40 +938,14 @@ void OnMessageAvailableFuzzTest(FuzzedDataProvider &provider)
     invoker.OnMessageAvailable(socketId, reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
 }
 
-void HasRawDataPackageFuzzTest001(FuzzedDataProvider &provider)
-{
-    dbinder_transaction_data data;
-    data.magic = DBINDER_MAGICWORD;
-    data.cmd = BC_SEND_RAWDATA;
-    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
-    ssize_t len = provider.ConsumeIntegral<ssize_t>();
-    DBinderDatabusInvoker invoker;
-    invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), len);
-
-    data.sizeOfSelf = sizeof(dbinder_transaction_data);
-    invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
-}
-
-void HasCompletePackageFuzzTest001(FuzzedDataProvider &provider)
-{
-    dbinder_transaction_data data;
-    data.magic = DBINDER_MAGICWORD;
-    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
-    data.buffer_size = provider.ConsumeIntegral<binder_size_t>();
-    data.offsets = provider.ConsumeIntegral<binder_uintptr_t>();
-    data.flags = provider.ConsumeIntegral<uint32_t>();
-    data.offsets_size = provider.ConsumeIntegral<binder_size_t>();
-    uint32_t readCursor = 0;
-    ssize_t len = provider.ConsumeIntegral<ssize_t>();
-    DBinderDatabusInvoker invoker;
-    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(len));
-
-    data.sizeOfSelf = sizeof(dbinder_transaction_data);
-    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
-}
-
 void DBinderDatabusInvokerTwoFuzzTest(FuzzedDataProvider &provider)
 {
+    OHOS::HasRawDataPackageFuzzTest001(provider);
+    OHOS::HasRawDataPackageFuzzTest002(provider);
+    OHOS::HasCompletePackageFuzzTest001(provider);
+    OHOS::HasCompletePackageFuzzTest002(provider);
+    OHOS::NewSessionOfBinderProxyFuzzTest(provider);
+    OHOS::MakeDefaultServerSessionObjectFuzzTest(provider);
     OHOS::SetCallingIdentityFuzzTest(provider);
     OHOS::CreateServerSessionObjectFuzzTest(provider);
     OHOS::MakeStubIndexByRemoteObjectFuzzTest(provider);
@@ -951,8 +957,6 @@ void DBinderDatabusInvokerTwoFuzzTest(FuzzedDataProvider &provider)
     OHOS::QuerySessionOfBinderProxyFuzzTest(provider);
     OHOS::AuthSession2ProxyFuzzTest(provider);
     OHOS::OnMessageAvailableFuzzTest(provider);
-    OHOS::HasRawDataPackageFuzzTest001(provider);
-    OHOS::HasCompletePackageFuzzTest001(provider);
 }
 } // namespace OHOS
 
@@ -1002,10 +1006,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::SetCallerInfoFuzzTest(provider);
     OHOS::ConnectRemoteObject2SessionFuzzTest(provider);
     OHOS::FlushCommandsFuzzTest(provider);
-    OHOS::HasRawDataPackageFuzzTest(provider);
-    OHOS::HasCompletePackageFuzzTest(provider);
-    OHOS::NewSessionOfBinderProxyFuzzTest(provider);
-    OHOS::MakeDefaultServerSessionObjectFuzzTest(provider);
     OHOS::DBinderDatabusInvokerTwoFuzzTest(provider);
     return 0;
 }

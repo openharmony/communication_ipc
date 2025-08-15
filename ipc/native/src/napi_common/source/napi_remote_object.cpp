@@ -258,7 +258,7 @@ static bool CreateThenCallback(CallbackParam *param, napi_value &thenValue)
 
 static napi_value CatchCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGI(LOG_LABEL, "call js onRemoteRequest got exception");
+    ZLOGD(LOG_LABEL, "call js onRemoteRequest got exception");
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
@@ -321,7 +321,7 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
 
     do {
         if (ret != napi_ok) {
-            ZLOGE(LOG_LABEL, "OnRemoteRequest got exception. ret:%{public}d", ret);
+            ZLOGD(LOG_LABEL, "OnRemoteRequest got exception. ret:%{public}d", ret);
             param->result = ERR_UNKNOWN_TRANSACTION;
             break;
         }
@@ -364,7 +364,7 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
 
-    ZLOGI(LOG_LABEL, "enter thread pool desc:%{public}s, time:%{public}" PRIu64, desc.c_str(), curTime);
+    ZLOGD(LOG_LABEL, "enter thread pool desc:%{public}s, time:%{public}" PRIu64, desc.c_str(), curTime);
 
     NapiScope napiScope(param->env);
     if (!napiScope.IsValid()) {
