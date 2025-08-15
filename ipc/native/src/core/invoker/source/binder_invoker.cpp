@@ -294,7 +294,7 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
 // LCOV_EXCL_START
 sptr<IRemoteObject> BinderInvoker::GetSAMgrObject()
 {
-    ZLOGI(LABEL, "get samgr object!");
+    ZLOGD(LABEL, "get samgr object!");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current != nullptr) {
         return current->GetRegistryObject();
@@ -538,7 +538,7 @@ void BinderInvoker::StartWorkLoop()
             isFirstInvoke_ = STATUS_NOT_FIRST_INVOKE;
         }
         if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
-            ZLOGW(LABEL, "exit, error:%{public}d", userError);
+            ZLOGD(LABEL, "exit, error:%{public}d", userError);
             break;
         }
         ProcDeferredDecRefs();
@@ -1038,7 +1038,7 @@ void BinderInvoker::JoinThread(bool initiative)
     output_.WriteUint32(BC_EXIT_LOOPER);
     // pass in nullptr directly
     FlushCommands(nullptr);
-    ZLOGE(LABEL, "Current Thread:%{public}d is leaving", getpid());
+    ZLOGD(LABEL, "Current Thread:%{public}d is leaving", getpid());
 }
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
@@ -1245,7 +1245,7 @@ void BinderInvoker::DealWithCmd(MessageParcel *reply, bool &continueLoop, int32_
 int BinderInvoker::WaitForCompletion(MessageParcel *reply)
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+        ZLOGD(LABEL, "died");
         return IPC_INVOKER_CONNECT_ERR;
     }
     uint32_t cmd;

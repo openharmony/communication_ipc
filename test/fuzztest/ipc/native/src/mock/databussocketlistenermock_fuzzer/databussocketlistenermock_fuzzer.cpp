@@ -202,7 +202,6 @@ static void ShutdownSocketFuzzTest(FuzzedDataProvider &provider)
     EXPECT_CALL(mockClient, Bind).WillRepeatedly(testing::Return(0));
     listener->CreateClientSocket(ownName, peerName, networkId);
     int32_t socketId = provider.ConsumeIntegral<int32_t>();
-    socketId = socketId == 1 ? 0 : socketId;
     listener->ShutdownSocket(socketId);
     socketId = 1;
     listener->ShutdownSocket(socketId);
@@ -223,7 +222,6 @@ static void ClientOnShutdownFuzzTest(FuzzedDataProvider &provider)
     EXPECT_CALL(mockClient, Bind).WillRepeatedly(testing::Return(0));
     listener->CreateClientSocket(ownName, peerName, networkId);
     int32_t socketId = provider.ConsumeIntegral<int32_t>();
-    socketId = socketId == 1 ? 0 : socketId;
     listener->ClientOnShutdown(socketId, static_cast<ShutdownReason>(reason));
     socketId = 1;
     listener->ClientOnShutdown(socketId, static_cast<ShutdownReason>(reason));

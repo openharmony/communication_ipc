@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,21 +16,20 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("GetLocalDeviceIDFuzzTest") {
+ohos_fuzztest("DBinderServiceMockFuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../getlocaldeviceid_fuzzer"
-
-  cflags = [
-    "-fno-omit-frame-pointer",
+  fuzz_config_file = "../dbinderservicemock_fuzzer"
+  defines = [
+    "private = public",
+    "protected = public",
   ]
-  sources = [ "getlocaldeviceid_fuzzer.cpp" ]
-
-  deps = [ "../../../../../../interfaces/innerkits/libdbinder:libdbinder" ]
-
-  defines = [ "private=public" ]
-  
+  sources = [ "dbinderservicemock_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest",
     "hilog:libhilog",
+    "ipc:libdbinder",
+    "ipc:ipc_core",
   ]
 }

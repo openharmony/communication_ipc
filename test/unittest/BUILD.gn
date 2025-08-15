@@ -22,6 +22,7 @@ group("unittest") {
       "dbinder/dbinder_service/src:unittest",
       "ipc/native/src/c_api/source:unittest",
       "ipc/native/src/core/source:unittest",
+      "ipc/native/c/adapter/source:unittest"
     ]
   }
 }
