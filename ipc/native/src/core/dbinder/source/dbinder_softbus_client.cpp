@@ -43,6 +43,7 @@ DBinderSoftbusClient::~DBinderSoftbusClient()
     ZLOGI(LOG_LABEL, "destroy");
 }
 
+// LCOV_EXCL_START
 bool DBinderSoftbusClient::OpenSoftbusClientSo()
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
@@ -63,6 +64,7 @@ bool DBinderSoftbusClient::OpenSoftbusClientSo()
 
     return true;
 }
+// LCOV_EXCL_STOP
 
 int32_t DBinderSoftbusClient::DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName)
 {

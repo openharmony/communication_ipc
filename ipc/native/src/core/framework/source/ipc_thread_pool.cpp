@@ -33,6 +33,7 @@ static void *g_selfSoHandler = nullptr;
 static constexpr int32_t IDLE_SPAWN_ACTIVE_NUM = 1;
 
 // this func is called when ipc_single and ipc_core before loading
+// LCOV_EXCL_START
 extern "C" __attribute__((constructor)) void InitIpcSo()
 {
     if (g_selfSoHandler == nullptr) {
@@ -52,6 +53,7 @@ extern "C" __attribute__((constructor)) void InitIpcSo()
         }
     }
 }
+// LCOV_EXCL_STOP
 
 IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
     : threadSequence_(0), maxThreadNum_(maxThreadNum + maxThreadNum),

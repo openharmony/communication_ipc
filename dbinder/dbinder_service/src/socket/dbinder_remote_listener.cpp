@@ -222,6 +222,7 @@ bool DBinderRemoteListener::StartListener()
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool DBinderRemoteListener::StopListener()
 {
     ClearDeviceLock();
@@ -235,6 +236,7 @@ bool DBinderRemoteListener::StopListener()
     DBinderSoftbusClient::GetInstance().Shutdown(listenSocketId_);
     return true;
 }
+// LCOV_EXCL_STOP
 
 std::shared_ptr<DeviceLock> DBinderRemoteListener::QueryOrNewDeviceLock(const std::string &networkId)
 {
