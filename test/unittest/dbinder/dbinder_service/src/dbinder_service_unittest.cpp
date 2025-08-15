@@ -366,10 +366,10 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest003, TestSize.Level1)
         RANDOM_DEVICEID, RANDOM_DEVICEID, BINDER_OBJECT);
     NiceMock<DBinderServiceInterfaceMock> mock;
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(false));
     std::shared_ptr<struct DHandleEntryTxRx> entry = std::make_shared<DHandleEntryTxRx>();
     ASSERT_NE(entry, nullptr);
-    EXPECT_CALL(mock, CreatMessage(_,_,_,_)).WillOnce(testing::Return(entry));
-    EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, CreateMessage(_, _, _, _)).WillOnce(testing::Return(entry));
     EXPECT_CALL(mock, GetLocalNodeDeviceId).WillOnce(testing::Return(SOFTBUS_CLIENT_SUCCESS));
 
     bool result = dBinderService.SendEntryToRemote(dBinderServiceStub, PID, PID, PID);
@@ -388,10 +388,10 @@ HWTEST_F(DBinderServiceTest, SendEntryToRemoteTest004, TestSize.Level1)
         RANDOM_DEVICEID, RANDOM_DEVICEID, BINDER_OBJECT);
     NiceMock<DBinderServiceInterfaceMock> mock;
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
+    EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(true));
     std::shared_ptr<struct DHandleEntryTxRx> entry = std::make_shared<DHandleEntryTxRx>();
     ASSERT_NE(entry, nullptr);
-    EXPECT_CALL(mock, CreatMessage(_,_,_,_)).WillOnce(testing::Return(entry));
-    EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, CreateMessage(_, _, _, _)).WillOnce(testing::Return(entry));
     EXPECT_CALL(mock, GetLocalNodeDeviceId).WillOnce(testing::Return(SOFTBUS_CLIENT_SUCCESS));
 
     bool result = dBinderService.SendEntryToRemote(dBinderServiceStub, PID, PID, PID);
@@ -438,10 +438,10 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest003, TestSize.Level1)
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     dBinderService.AttachThreadLockInfo(PID, RANDOM_DEVICEID, threadLockInfo);
-    std::shared_ptr<struct DHandleEntryTxRx> entry = std::make_shared<DHandleEntryTxRx>();
-    ASSERT_NE(entry, nullptr);
-    EXPECT_CALL(mock, CreatMessage(_,_,_,_)).WillOnce(testing::Return(entry));    
     EXPECT_CALL(mock, SendDataToRemote).WillOnce(testing::Return(true));
+    std::shared_ptr<struct DHandleEntryTxRx> entry = std::make_shared<struct DHandleEntryTxRx>();
+    ASSERT_NE(entry, nullptr);
+    EXPECT_CALL(mock, CreateMessage(_, _, _, _)).WillOnce(testing::Return(entry));
     EXPECT_CALL(mock, GetLocalNodeDeviceId).WillOnce(testing::Return(SOFTBUS_CLIENT_SUCCESS));
 
     int32_t result = dBinderService.InvokerRemoteDBinder(dBinderServiceStub, PID, PID, PID);
