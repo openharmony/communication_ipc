@@ -69,6 +69,7 @@ group("fuzztest") {
     "ipc/native/src/mock/dbinderservicestubmock:DBinderServiceStubMockFuzzTest",
     "ipc/native/src/mock/dbinderremotelistenermock_fuzzer:DBinderRemoteListenerMockFuzzTest",
     "ipc/native/src/mock/dbinderservicemock:dbinderservicemockfuzz",
+    "ipc/native/src/mock/ipcobjectproxymock:ipcobjectproxymockfuzz",
     "ipc/native/src/mock/dbindercallbackstubmock:dbindercallbackstubmockfuzz",
     "ipc/native/src/mock/hitraceinvokermock:hitraceinvokermockfuzz",
     "ipc/native/c/rpc/rpcfeatureset:rpcfeaturesetfuzz",
