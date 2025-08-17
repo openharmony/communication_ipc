@@ -218,15 +218,17 @@ template <class T> std::mutex &DBinderBaseInvoker<T>::GetObjectMutex()
 }
 
 template<class T>
-void DBinderBaseInvoker<T>::PrintDBinderTransData(const dbinder_transaction_data *transData)
+void DBinderBaseInvoker<T>::PrintDBinderTransData(const dbinder_transaction_data *transData, uint32_t dataLen)
 {
     if (transData == nullptr) {
         ZLOGW(LOG_LABEL, "transData is nullptr");
         return;
     }
-    if (transData->sizeOfSelf < sizeof(dbinder_transaction_data)) {
-        ZLOGW(LOG_LABEL, "invalid transData sizeOfSelf:%{public}u, at least:sizeOfSelf:%{public}zu",
-            transData->sizeOfSelf, sizeof(dbinder_transaction_data));
+
+    // sizeof(dbinder_transaction_data) <= sizeOfSelf <= dataLen
+    if (transData->sizeOfSelf < sizeof(dbinder_transaction_data) || transData->sizeOfSelf > dataLen) {
+        ZLOGW(LOG_LABEL, "invalid transData sizeOfSelf:%{public}u, at least:%{public}zu, at most:%{public}u",
+            transData->sizeOfSelf, sizeof(dbinder_transaction_data), dataLen);
         return;
     }
     ZLOGI(LOG_LABEL, "sizeOfSelf:%{public}u, dbinder_transaction_data:%{public}zu "

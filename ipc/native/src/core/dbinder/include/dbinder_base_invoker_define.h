@@ -110,7 +110,7 @@ public:
     std::mutex &GetObjectMutex();
     void PrintDBinderTransaction(const char *funcName, const char *titleName, const dbinder_transaction_data *tr);
     void PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data, size_t length);
-    void PrintDBinderTransData(const dbinder_transaction_data *transData);
+    void PrintDBinderTransData(const dbinder_transaction_data *transData, uint32_t dataLen);
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,

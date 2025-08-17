@@ -46,7 +46,7 @@ public:
         std::string peerName, std::string networkId) = 0;
     virtual void OnDatabusSessionServerSideClosed(int32_t socketId) = 0;
     virtual void OnDatabusSessionClientSideClosed(int32_t socketId) = 0;
-    virtual void OnMessageAvailable(int32_t socketId, const char *data, ssize_t len) = 0;
+    virtual void OnMessageAvailable(int32_t socketId, const char *data, uint32_t len) = 0;
     virtual IPCProcessSkeleton *GetCurrent() = 0;
     virtual sptr<IRemoteObject> GetSAMgrObject() = 0;
     virtual std::string GetDatabusName() = 0;
@@ -63,7 +63,7 @@ public:
     MOCK_METHOD5(OnReceiveNewConnection, bool(int32_t, int, int, std::string, std::string));
     MOCK_METHOD1(OnDatabusSessionServerSideClosed, void(int32_t));
     MOCK_METHOD1(OnDatabusSessionClientSideClosed, void(int32_t));
-    MOCK_METHOD3(OnMessageAvailable, void(int32_t, const char *, ssize_t));
+    MOCK_METHOD3(OnMessageAvailable, void(int32_t, const char *, uint32_t));
     MOCK_METHOD0(GetCurrent, IPCProcessSkeleton *());
     MOCK_METHOD0(GetSAMgrObject, sptr<IRemoteObject>());
     MOCK_METHOD0(GetDatabusName, std::string());
@@ -121,7 +121,7 @@ extern "C" {
     {
         return GetDatabusSocketListenerInterface()->OnDatabusSessionClientSideClosed(socketId);
     }
-    void DBinderDatabusInvoker::OnMessageAvailable(int32_t socketId, const char *data, ssize_t len)
+    void DBinderDatabusInvoker::OnMessageAvailable(int32_t socketId, const char *data, uint32_t len)
     {
         return GetDatabusSocketListenerInterface()->OnMessageAvailable(socketId, data, len);
     }
