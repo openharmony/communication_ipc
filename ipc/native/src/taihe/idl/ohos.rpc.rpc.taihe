@@ -64,6 +64,17 @@ function CreateAshmem_WithOneParam(ashmem: Ashmem): Ashmem;
 
 @class
 interface MessageSequence {
+    @!sts_inject_into_class("""
+        static TransferStatic(input: Any): Object {
+            return MessageSequence.rpcTransferStaicImpl(ESValue.wrap(input));
+        }
+
+        static TransferDynamic(input: Object): Any {
+            return MessageSequence.rpcTransferDynamicImpl(input as MessageSequence);
+        }
+    """)
+
+    GetMessageSequenceImpl(): i64;
     Reclaim(): void;
 
     WriteRemoteObject(object: IRemoteObjectUnion): void;
@@ -155,6 +166,12 @@ interface MessageSequence {
     GetNativePtr(): i64;
     AddJsObjWeakRef(obj: MessageSequence): void;
 }
+
+@static("MessageSequence")
+function RpcTransferStaicImpl(input: @sts_type("ESValue") Opaque): MessageSequence;
+
+@static("MessageSequence")
+function RpcTransferDynamicImpl(obj: MessageSequence): @sts_type("Any") Opaque;
 
 @static("MessageSequence")
 @overload("create")
