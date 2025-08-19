@@ -105,19 +105,6 @@ void GetSessionNameForPidUidFuzzTest001(FuzzedDataProvider &provider)
     int uid = provider.ConsumeIntegral<int>();
     NiceMock<IPCObjectProxyInterfaceMock> mock;
     EXPECT_CALL(mock, WriteUint32(_)).WillRepeatedly(Return(true));
-    proxy->GetSessionNameForPidUid(pid, uid);
-}
-
-void GetSessionNameForPidUidFuzzTest002(FuzzedDataProvider &provider)
-{
-    sptr<IPCObjectProxy> proxy = CreateIPCObjectProxy(provider);
-    if (proxy == nullptr) {
-        return;
-    }
-    int pid = provider.ConsumeIntegral<int>();
-    int uid = provider.ConsumeIntegral<int>();
-    NiceMock<IPCObjectProxyInterfaceMock> mock;
-    EXPECT_CALL(mock, WriteUint32(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, SendRequestInner(_, _, _, _, _)).WillOnce(Return(ERR_NONE));
     EXPECT_CALL(mock, ReadUint32()).WillRepeatedly(Return(IRemoteObject::IF_PROT_DEFAULT));
     proxy->GetSessionNameForPidUid(pid, uid);
@@ -153,7 +140,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
     OHOS::GetSessionNameForPidUidFuzzTest001(provider);
-    OHOS::GetSessionNameForPidUidFuzzTest002(provider);
     OHOS::RemoveSessionNameFuzzTest(provider);
     OHOS::WaitForInitFuzzTest(provider);
     return 0;
