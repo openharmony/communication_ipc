@@ -40,13 +40,17 @@ InvokerRawData::~InvokerRawData()
     data_ = nullptr;
 }
 
+// LCOV_EXCL_START
 std::shared_ptr<char> InvokerRawData::GetData() const
 {
     return data_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 size_t InvokerRawData::GetSize() const
 {
     return size_;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

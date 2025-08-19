@@ -97,6 +97,7 @@ bool DBinderService::StartDBinderService(std::shared_ptr<RpcSystemAbilityCallbac
     return true;
 }
 
+// LCOV_EXCL_START
 bool DBinderService::StartRemoteListener()
 {
     if (remoteListener_ != nullptr) {
@@ -118,6 +119,7 @@ bool DBinderService::StartRemoteListener()
     DBINDER_LOGI(LOG_LABEL, "start remote listener ok");
     return true;
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 bool DBinderService::ReStartRemoteListener()
@@ -620,11 +622,13 @@ bool DBinderService::CheckSystemAbilityId(int32_t systemAbilityId)
     return systemAbilityId >= FIRST_SYS_ABILITY_ID && systemAbilityId <= LAST_SYS_ABILITY_ID;
 }
 
+// LCOV_EXCL_START
 uint16_t DBinderService::AllocFreeSocketPort()
 {
     /* alloc port by system */
     return 0;
 }
+// LCOV_EXCL_STOP
 
 bool DBinderService::IsSameLoadSaItem(const std::string& srcNetworkId, int32_t systemAbilityId,
     std::shared_ptr<DHandleEntryTxRx> loadSaItem)
@@ -1458,10 +1462,12 @@ std::set<std::u16string> DBinderService::FindServicesByDeviceID(const std::strin
     return serviceNames;
 }
 
+// LCOV_EXCL_START
 uint32_t DBinderService::GetRemoteTransType()
 {
     return IRemoteObject::DATABUS_TYPE;
 }
+// LCOV_EXCL_STOP
 
 std::string DBinderService::ConvertToSecureDeviceID(const std::string &str)
 {

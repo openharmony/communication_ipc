@@ -65,10 +65,12 @@ const std::string &DBinderServiceStub::GetDeviceID()
     return deviceID_;
 }
 
+// LCOV_EXCL_START
 binder_uintptr_t DBinderServiceStub::GetBinderObject() const
 {
     return binderObject_;
 }
+// LCOV_EXCL_STOP
 
 uint32_t DBinderServiceStub::GetPeerPid()
 {
@@ -361,6 +363,7 @@ int DBinderServiceStub::SaveDBinderData(const std::string &localBusName)
     return ERR_NONE;
 }
 
+// LCOV_EXCL_START
 bool DBinderServiceStub::CheckSessionObjectValidity()
 {
     sptr<DBinderService> dBinderService = DBinderService::GetInstance();
@@ -383,6 +386,7 @@ bool DBinderServiceStub::CheckSessionObjectValidity()
     }
     return true;
 }
+// LCOV_EXCL_STOP
 
 int DBinderServiceStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
 {

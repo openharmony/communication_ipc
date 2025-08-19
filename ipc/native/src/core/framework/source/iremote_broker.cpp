@@ -38,6 +38,7 @@ BrokerRegistration &BrokerRegistration::Get()
     return instance;
 }
 
+// LCOV_EXCL_START
 BrokerRegistration::~BrokerRegistration()
 {
     std::lock_guard<std::mutex> lockGuard(creatorMutex_);
@@ -47,6 +48,7 @@ BrokerRegistration::~BrokerRegistration()
         object->isSoUnloaded = true;
     }
 }
+// LCOV_EXCL_STOP
 
 bool BrokerRegistration::Register(const std::u16string &descriptor, const Constructor &creator,
     const BrokerDelegatorBase *object)

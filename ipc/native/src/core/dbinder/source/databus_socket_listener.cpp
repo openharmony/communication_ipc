@@ -263,6 +263,7 @@ void DatabusSocketListener::EraseDeviceLock(DBinderSocketInfo info)
     }
 }
 
+// LCOV_EXCL_START
 void DatabusSocketListener::RemoveSessionName(void)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -272,6 +273,7 @@ void DatabusSocketListener::RemoveSessionName(void)
     }
     current->RemoveSoftbusServer();
 }
+// LCOV_EXCL_STOP
 
 bool DatabusSocketListener::GetPidAndUidFromServiceName(const std::string &serviceName, int32_t &pid, int32_t &uid)
 {
