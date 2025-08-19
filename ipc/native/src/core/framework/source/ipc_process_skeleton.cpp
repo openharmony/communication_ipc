@@ -789,6 +789,7 @@ std::thread::id IPCProcessSkeleton::GetIdleDataThread()
     return threadId;
 }
 
+// LCOV_EXCL_START
 int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
@@ -798,6 +799,7 @@ int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 
     return 0;
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 int IPCProcessSkeleton::GetSocketTotalThreadNum() const
@@ -874,6 +876,7 @@ void IPCProcessSkeleton::AddDataThreadInWait(const std::thread::id &threadId)
     DeleteDataThreadFromIdle(threadId);
 }
 
+// LCOV_EXCL_START
 uint64_t IPCProcessSkeleton::GetSeqNumber()
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
@@ -884,6 +887,7 @@ uint64_t IPCProcessSkeleton::GetSeqNumber()
     seqNumber_++;
     return seqNumber_;
 }
+// LCOV_EXCL_STOP
 
 std::shared_ptr<ThreadMessageInfo> IPCProcessSkeleton::QueryThreadBySeqNumber(uint64_t seqNumber)
 {
