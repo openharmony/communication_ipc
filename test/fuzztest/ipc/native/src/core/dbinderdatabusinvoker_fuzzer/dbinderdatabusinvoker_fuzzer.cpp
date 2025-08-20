@@ -745,18 +745,50 @@ void FlushCommandsFuzzTest(FuzzedDataProvider &provider)
     invoker.FlushCommands(object.GetRefPtr());
 }
 
-void HasRawDataPackageFuzzTest(FuzzedDataProvider &provider)
+void HasRawDataPackageFuzzTest001(FuzzedDataProvider &provider)
 {
     dbinder_transaction_data data = CreateDbinderTransactionData(provider);
     DBinderDatabusInvoker invoker;
     invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
 }
 
-void HasCompletePackageFuzzTest(FuzzedDataProvider &provider)
+void HasRawDataPackageFuzzTest002(FuzzedDataProvider &provider)
+{
+    dbinder_transaction_data data;
+    data.magic = DBINDER_MAGICWORD;
+    data.cmd = BC_SEND_RAWDATA;
+    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
+    ssize_t len = provider.ConsumeIntegral<ssize_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), len);
+
+    data.sizeOfSelf = sizeof(dbinder_transaction_data);
+    invoker.HasRawDataPackage(reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
+}
+
+void HasCompletePackageFuzzTest001(FuzzedDataProvider &provider)
 {
     dbinder_transaction_data data = CreateDbinderTransactionData(provider);
     uint32_t readCursor = 0;
     DBinderDatabusInvoker invoker;
+    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
+}
+
+void HasCompletePackageFuzzTest002(FuzzedDataProvider &provider)
+{
+    dbinder_transaction_data data;
+    data.magic = DBINDER_MAGICWORD;
+    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
+    data.buffer_size = provider.ConsumeIntegral<binder_size_t>();
+    data.offsets = provider.ConsumeIntegral<binder_uintptr_t>();
+    data.flags = provider.ConsumeIntegral<uint32_t>();
+    data.offsets_size = provider.ConsumeIntegral<binder_size_t>();
+    uint32_t readCursor = 0;
+    ssize_t len = provider.ConsumeIntegral<ssize_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, len);
+
+    data.sizeOfSelf = sizeof(dbinder_transaction_data);
     invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
 }
 
@@ -781,6 +813,150 @@ void MakeDefaultServerSessionObjectFuzzTest(FuzzedDataProvider &provider)
     uint64_t stubIndex = sessionObject->GetStubIndex();
     DBinderDatabusInvoker invoker;
     invoker.MakeDefaultServerSessionObject(stubIndex, sessionObject);
+}
+
+void SetCallingIdentityFuzzTest(FuzzedDataProvider &provider)
+{
+    std::string identity = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    bool flag = provider.ConsumeBool();
+    DBinderDatabusInvoker invoker;
+    invoker.SetCallingIdentity(identity, flag);
+}
+
+void CreateServerSessionObjectFuzzTest(FuzzedDataProvider &provider)
+{
+    std::string serviceName = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    std::string serverDeviceId = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
+    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
+    std::shared_ptr<DBinderSessionObject> dbinderSession =
+        std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
+    if (dbinderSession == nullptr) {
+        return;
+    }
+    binder_uintptr_t binder = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
+    DBinderDatabusInvoker invoker;
+    invoker.CreateServerSessionObject(binder, dbinderSession);
+}
+
+void MakeStubIndexByRemoteObjectFuzzTest(FuzzedDataProvider &provider)
+{
+    int handle = provider.ConsumeIntegral<int>();
+    int proto = provider.ConsumeIntegral<int>();
+    sptr<IRemoteObject> obj = new (std::nothrow) IPCObjectProxy(handle, u"proxyTest", proto);
+    if (obj == nullptr) {
+        return;
+    }
+    DBinderDatabusInvoker invoker;
+    invoker.MakeStubIndexByRemoteObject(obj.GetRefPtr());
+}
+
+void GetCallerInfoFuzzTest(FuzzedDataProvider &provider)
+{
+    DBinderDatabusInvoker::DBinderBaseInvoker::DBinderCallerInfo callerInfo;
+    callerInfo.callerPid = provider.ConsumeIntegral<pid_t>();
+    callerInfo.callerUid = provider.ConsumeIntegral<pid_t>();
+    callerInfo.clientFd = provider.ConsumeIntegral<int32_t>();
+    callerInfo.callerTokenID = provider.ConsumeIntegral<uint64_t>();
+    callerInfo.firstTokenID = provider.ConsumeIntegral<uint64_t>();
+    callerInfo.callerDeviceID = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    DBinderDatabusInvoker invoker;
+    invoker.GetCallerInfo(callerInfo);
+}
+
+void SetCallerPidFuzzTest(FuzzedDataProvider &provider)
+{
+    pid_t pid = provider.ConsumeIntegral<pid_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.SetCallerPid(pid);
+}
+
+void SetCallerUidFuzzTest(FuzzedDataProvider &provider)
+{
+    pid_t uid = provider.ConsumeIntegral<pid_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.SetCallerUid(uid);
+}
+
+void SetStatusFuzzTest(FuzzedDataProvider &provider)
+{
+    uint32_t status = provider.ConsumeIntegral<uint32_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.SetStatus(status);
+}
+
+void WriteFileDescriptorFuzzTest(FuzzedDataProvider &provider)
+{
+    Parcel parcel;
+    int fd = provider.ConsumeIntegral<int>();
+    bool takeOwnership = provider.ConsumeBool();
+    DBinderDatabusInvoker invoker;
+    invoker.WriteFileDescriptor(parcel, fd, takeOwnership);
+}
+
+void QuerySessionOfBinderProxyFuzzTest(FuzzedDataProvider &provider)
+{
+    std::string serviceName = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    std::string serverDeviceId = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
+    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
+    std::shared_ptr<DBinderSessionObject> dbinderSession =
+        std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
+    if (dbinderSession == nullptr) {
+        return;
+    }
+    uint32_t handle = provider.ConsumeIntegral<uint32_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.QuerySessionOfBinderProxy(handle, dbinderSession);
+}
+
+void AuthSession2ProxyFuzzTest(FuzzedDataProvider &provider)
+{
+    std::string serviceName = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    std::string serverDeviceId = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
+    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
+    std::shared_ptr<DBinderSessionObject> dbinderSession =
+        std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
+    if (dbinderSession == nullptr) {
+        return;
+    }
+    uint32_t handle = provider.ConsumeIntegral<uint32_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.AuthSession2Proxy(handle, nullptr);
+    invoker.AuthSession2Proxy(handle, dbinderSession);
+}
+
+void OnMessageAvailableFuzzTest(FuzzedDataProvider &provider)
+{
+    dbinder_transaction_data data;
+    data.magic = provider.ConsumeIntegral<uint32_t>();
+    data.cmd = provider.ConsumeIntegral<int>();
+    data.sizeOfSelf = sizeof(dbinder_transaction_data);
+    int32_t socketId = provider.ConsumeIntegral<int32_t>();
+    DBinderDatabusInvoker invoker;
+    invoker.OnMessageAvailable(socketId, reinterpret_cast<const char *>(&data), sizeof(dbinder_transaction_data));
+}
+
+void DBinderDatabusInvokerTwoFuzzTest(FuzzedDataProvider &provider)
+{
+    OHOS::HasRawDataPackageFuzzTest001(provider);
+    OHOS::HasRawDataPackageFuzzTest002(provider);
+    OHOS::HasCompletePackageFuzzTest001(provider);
+    OHOS::HasCompletePackageFuzzTest002(provider);
+    OHOS::NewSessionOfBinderProxyFuzzTest(provider);
+    OHOS::MakeDefaultServerSessionObjectFuzzTest(provider);
+    OHOS::SetCallingIdentityFuzzTest(provider);
+    OHOS::CreateServerSessionObjectFuzzTest(provider);
+    OHOS::MakeStubIndexByRemoteObjectFuzzTest(provider);
+    OHOS::GetCallerInfoFuzzTest(provider);
+    OHOS::SetCallerPidFuzzTest(provider);
+    OHOS::SetCallerUidFuzzTest(provider);
+    OHOS::SetStatusFuzzTest(provider);
+    OHOS::WriteFileDescriptorFuzzTest(provider);
+    OHOS::QuerySessionOfBinderProxyFuzzTest(provider);
+    OHOS::AuthSession2ProxyFuzzTest(provider);
+    OHOS::OnMessageAvailableFuzzTest(provider);
 }
 } // namespace OHOS
 
@@ -830,9 +1006,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::SetCallerInfoFuzzTest(provider);
     OHOS::ConnectRemoteObject2SessionFuzzTest(provider);
     OHOS::FlushCommandsFuzzTest(provider);
-    OHOS::HasRawDataPackageFuzzTest(provider);
-    OHOS::HasCompletePackageFuzzTest(provider);
-    OHOS::NewSessionOfBinderProxyFuzzTest(provider);
-    OHOS::MakeDefaultServerSessionObjectFuzzTest(provider);
+    OHOS::DBinderDatabusInvokerTwoFuzzTest(provider);
     return 0;
 }
