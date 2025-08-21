@@ -51,11 +51,14 @@ if (support_jsapi) {
     ]
     deps = [
       ":rpc_taihe_generate",
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core"
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi",
     ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
+      "napi:ace_napi",
+      "runtime_core:ani_helpers",
     ]
   }
 
