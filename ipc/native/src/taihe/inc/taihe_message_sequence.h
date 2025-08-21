@@ -29,6 +29,7 @@
 
 #include "ipc_skeleton.h"
 #include "message_parcel.h"
+#include "napi/native_api.h"
 
 namespace OHOS {
 class MessageSequenceImpl {
@@ -36,6 +37,8 @@ public:
     MessageSequenceImpl();
 
     MessageSequenceImpl(OHOS::MessageParcel* messageparcel);
+
+    explicit MessageSequenceImpl(std::shared_ptr<OHOS::MessageParcel> messageparcel);
 
     ~MessageSequenceImpl();
 
@@ -118,8 +121,25 @@ public:
     static ::ohos::rpc::rpc::MessageSequence CreateMessageSequence();
     static void CloseFileDescriptor(int32_t fd);
 
+    int64_t GetMessageSequenceImpl();
+    static ::ohos::rpc::rpc::MessageSequence RpcTransferStaicImpl(uintptr_t input);
+    static uintptr_t RpcTransferDynamicImpl(::ohos::rpc::rpc::MessageSequence obj);
+    static void CreateJsMessageSequence(napi_env jsenv, napi_status status,
+            napi_value global, napi_value* jsMessageSequence);
+
+    MessageParcel* GetNativeParcel() const
+    {
+        return sharedNativeParcel_.get();
+    }
+
+    std::shared_ptr<OHOS::MessageParcel> GetSharedNativeParcel() const
+    {
+        return sharedNativeParcel_;
+    }
+
 private:
     OHOS::MessageParcel* nativeParcel_ = nullptr;
+    std::shared_ptr<OHOS::MessageParcel> sharedNativeParcel_ = nullptr;
     std::optional<::ohos::rpc::rpc::weak::MessageSequence> jsObjRef_;
     bool isOwner_ = false;
 };
