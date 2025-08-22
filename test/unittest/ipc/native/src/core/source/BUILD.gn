@@ -137,6 +137,17 @@ ipc_unittest("IPCFileDescriptorTest") {
   sources = [ "ipc_file_descriptor_unittest.cpp" ]
 }
 
+ipc_unittest("IPCTraceTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_trace.cpp",
+    "ipc_trace_unittest.cpp",
+  ]
+}
+
+ipc_unittest("IPCWorkThreadTest") {
+  sources = [ "ipc_workthread_unittest.cpp" ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
@@ -156,6 +167,8 @@ group("unittest") {
     ":IremoteObjectTest",
     ":MessageParcelAddTest",
     ":ProcessSkeletonTest",
+    ":IPCTraceTest",
+    ":IPCWorkThreadTest",
   ]
 }
 ###############################################################################

@@ -107,6 +107,18 @@
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
+    <target name="IPCTraceTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCWorkThreadTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
     <target name="DBinderServiceStubTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
