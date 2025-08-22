@@ -1229,6 +1229,7 @@ typedef struct {
     bool (*OnNegotiate)(int32_t socket, PeerSocketInfo info);
     void (*OnBytesSent)(int32_t socket, uint32_t dataSeq, int32_t errCode);
     bool (*OnNegotiate2)(int32_t socket, PeerSocketInfo info, SocketAccessInfo *peerInfo, SocketAccessInfo *localInfo);
+    void (*OnMessageSent)(int32_t socket, uint16_t dataSeq, int32_t errCode);
 } ISocketListener;
 
 #ifdef __cplusplus
