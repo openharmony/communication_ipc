@@ -78,7 +78,7 @@ group("fuzztest") {
     "ipc/native/src/mock/ipcthreadskeletonmock:ipcthreadskeletonmockfuzz",
     "ipc/native/src/mock/iremoteobjectmock:iremoteobjectmockfuzz",
     "ipc/native/src/mock/ipcworkthreadmock_fuzzer:IPCWorkThreadMockFuzzTest",
-    "dbinder/dbinder_service/src/dbinderservicenew_fuzzer:DBinderServiceNewFuzzTest",
+    "dbinder/dbinder_service/src/dbinderservicenew:dbinderservicenewfuzz",
     "dbinder/dbinder_service/src/socket/dbinderremotelistener:dbinderremotelistenerfuzz",
   ]
 }
