@@ -18,9 +18,11 @@
 
 #include "buffer_object.h"
 #include "dbinder_session_object.h"
+#include "ipc_file_descriptor.h"
 #include "ipc_object_proxy.h"
 #include "ipc_process_skeleton.h"
 #include "message_option.h"
+#include "message_parcel.cpp"
 #include "message_parcel.h"
 #include "mock_ipc_process_skeleton.h"
 
@@ -67,6 +69,8 @@ public:
     MessageParcelInterface() {};
     virtual ~MessageParcelInterface() {};
     virtual bool WriteInt32(int32_t value) = 0;
+    virtual bool AttachDBinderCallbackStub(sptr<IRemoteObject> proxy, sptr<DBinderCallbackStub> stub) = 0;
+    virtual std::shared_ptr<DBinderSessionObject> ProxyQueryDBinderSession(uint32_t handle) = 0;
 };
 
 class MessageParcelInterfaceMock : public MessageParcelInterface {
@@ -74,6 +78,8 @@ public:
     MessageParcelInterfaceMock();
     ~MessageParcelInterfaceMock() override;
     MOCK_METHOD1(WriteInt32, bool(int32_t value));
+    MOCK_METHOD2(AttachDBinderCallbackStub, bool(sptr<IRemoteObject> proxy, sptr<DBinderCallbackStub> stub));
+    MOCK_METHOD1(ProxyQueryDBinderSession, std::shared_ptr<DBinderSessionObject>(uint32_t handle));
 };
 
 static void *g_interface = nullptr;
@@ -100,6 +106,22 @@ extern "C" {
         return false;
         }
         return interface->WriteInt32(value);
+    }
+    bool IPCProcessSkeleton::AttachDBinderCallbackStub(sptr<IRemoteObject> proxy, sptr<DBinderCallbackStub> stub)
+    {
+        MessageParcelInterface *interface = GetMessageParcelInterface();
+        if (interface == nullptr) {
+            return false;
+        }
+        return interface->AttachDBinderCallbackStub(proxy, stub);
+    }
+    std::shared_ptr<DBinderSessionObject> IPCProcessSkeleton::ProxyQueryDBinderSession(uint32_t handle)
+    {
+        MessageParcelInterface *interface = GetMessageParcelInterface();
+        if (interface == nullptr) {
+            return nullptr;
+        }
+        return interface->ProxyQueryDBinderSession(handle);
     }
 }
 
@@ -144,6 +166,28 @@ HWTEST_F(MessageParcelTest, WriteDBinderProxyTest002, TestSize.Level1)
     EXPECT_EQ(ret, false);
     current->proxyToSession_.erase(HANDLE_TEST);
     delete instance;
+}
+
+/**
+ * @tc.name: WriteDBinderProxyTest003
+ * @tc.desc: Verify the MessageParcel::WriteDBinderProxy function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteDBinderProxyTest003, TestSize.Level1)
+{
+    MessageParcel parcel;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    EXPECT_NE(current, nullptr);
+    sptr<IRemoteObject> object = new IPCObjectStub();
+    uint32_t handle = 3;
+    auto dbinderSessionObject =
+        std::make_shared<DBinderSessionObject>(NAME_TEST, DEVICE_TEST, NUMBER_TEST, nullptr, NUMBER_TEST);
+    EXPECT_NE(dbinderSessionObject, nullptr);
+    NiceMock<MessageParcelInterfaceMock> mock;
+    EXPECT_CALL(mock, ProxyQueryDBinderSession(handle)).WillOnce(Return(dbinderSessionObject));
+    EXPECT_CALL(mock, AttachDBinderCallbackStub(object, _)).WillOnce(Return(false));
+    auto ret = parcel.WriteDBinderProxy(object, handle, STUBINDEX_TEST);
+    EXPECT_EQ(ret, false);
 }
 
 /**
@@ -258,5 +302,216 @@ HWTEST_F(MessageParcelTest, AppendTest002, TestSize.Level1)
     MessageParcel data;
     auto ret = parcel.Append(data);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: AppendTest003
+ * @tc.desc: Verify the MessageParcel::Append function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, AppendTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    uint8_t bytes[BNUMBER_TEST] = {0};
+    data.WriteBuffer(bytes, BNUMBER_TEST);
+    data.objectCursor_ = 1;
+    binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
+    if (objectOffsets == nullptr) {
+        return;
+    }
+    data.objectOffsets_ = objectOffsets;
+    MessageParcel parcel;
+    parcel.writeCursor_ = 10;
+    auto ret = parcel.Append(data);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AcquireObjectTest001
+ * @tc.desc: Verify the AcquireObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, AcquireObjectTest001, TestSize.Level1)
+{
+    flat_binder_object flat;
+    flat.hdr.type = BINDER_TYPE_BINDER;
+    flat.binder = 1;
+    sptr<IPCObjectStub> object = sptr<IPCObjectStub>::MakeSptr();
+    EXPECT_NE(object, nullptr);
+    flat.cookie = reinterpret_cast<binder_uintptr_t>(object.GetRefPtr());
+    AcquireObject(&flat, nullptr);
+    EXPECT_TRUE((flat.binder && flat.cookie != 0));
+}
+
+/**
+ * @tc.name: AcquireObjectTest002
+ * @tc.desc: Verify the AcquireObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, AcquireObjectTest002, TestSize.Level1)
+{
+    flat_binder_object flat;
+    flat.hdr.type = BINDER_TYPE_HANDLE;
+    flat.binder = 1;
+    flat.handle = 123;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    EXPECT_NE(current, nullptr);
+    std::u16string descriptor = current->MakeHandleDescriptor(flat.handle);
+    sptr<IRemoteObject> object = sptr<IPCObjectStub>::MakeSptr(descriptor);
+    EXPECT_NE(object, nullptr);
+    current->AttachObject(object.GetRefPtr(), false);
+    AcquireObject(&flat, nullptr);
+}
+
+/**
+ * @tc.name: UpdateDBinderDataOffsetTest001
+ * @tc.desc: Verify the MessageParcel::UpdateDBinderDataOffset function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, UpdateDBinderDataOffset001, TestSize.Level1)
+{
+    binder_buffer_object obj;
+    obj.hdr.type = BINDER_TYPE_PTR;
+    obj.length = sizeof(dbinder_negotiation_data);
+    MessageParcel parcel;
+    parcel.WriteBuffer(&obj, sizeof(obj));
+    parcel.dataSize_ = 0;
+    size_t offset = 0;
+    bool ret = parcel.UpdateDBinderDataOffset(offset);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: WriteRemoteObjectTest001
+ * @tc.desc: Verify the MessageParcel::WriteRemoteObject function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteRemoteObjectTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> object = sptr<IPCObjectStub>::MakeSptr();
+    EXPECT_NE(object, nullptr);
+    object->refs_ = nullptr;
+    bool ret = parcel.WriteRemoteObject(object);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ReadRawDataTest001
+ * @tc.desc: Verify the MessageParcel::ReadRawData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ReadRawDataTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    char data[NUMBER_TEST] = {0};
+    parcel.WriteRawData(data, NUMBER_TEST);
+    auto ret = parcel.ReadRawData(NUMBER_TEST);
+    EXPECT_EQ(ret, parcel.rawData_.get());
+}
+
+/**
+ * @tc.name: WriteAshmemTest001
+ * @tc.desc: Verify the MessageParcel::WriteAshmem function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, WriteAshmemTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<Ashmem> ashmem = new Ashmem(-1, 1024);
+    EXPECT_NE(ashmem, nullptr);
+    bool ret = parcel.WriteAshmem(ashmem);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ClearFileDescriptorTest001
+ * @tc.desc: Verify the MessageParcel::ClearFileDescriptor function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ClearFileDescriptorTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.objectCursor_ = 1;
+    binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
+    if (objectOffsets == nullptr) {
+        return;
+    }
+    parcel.objectOffsets_ = objectOffsets;
+    parcel.dataSize_ = objectOffsets[0] + sizeof(flat_binder_object);
+    parcel.data_ = 0;
+    parcel.ClearFileDescriptor();
+}
+
+/**
+ * @tc.name: ContainFileDescriptorsTest001
+ * @tc.desc: Verify the MessageParcel::ContainFileDescriptors function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ContainFileDescriptorsTest001, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.objectCursor_ = 1;
+    parcel.objectOffsets_ = nullptr;
+    bool ret = parcel.ContainFileDescriptors();
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ContainFileDescriptorsTest002
+ * @tc.desc: Verify the MessageParcel::ContainFileDescriptors function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ContainFileDescriptorsTest002, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.objectCursor_ = 1;
+    binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
+    if (objectOffsets == nullptr) {
+        return;
+    }
+    parcel.objectOffsets_ = objectOffsets;
+    parcel.dataSize_ = 0;
+    bool ret = parcel.ContainFileDescriptors();
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ContainFileDescriptorsTest003
+ * @tc.desc: Verify the MessageParcel::ContainFileDescriptors function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, ContainFileDescriptorsTest003, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.objectCursor_ = 1;
+    binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
+    if (objectOffsets == nullptr) {
+        return;
+    }
+    parcel.objectOffsets_ = objectOffsets;
+    parcel.dataSize_ = objectOffsets[0] + sizeof(flat_binder_object);
+    parcel.data_ = 0;
+    bool ret = parcel.ContainFileDescriptors();
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: PrintBufferTest001
+ * @tc.desc: Verify the MessageParcel::PrintBuffer function
+ * @tc.type: FUNC
+ */
+HWTEST_F(MessageParcelTest, PrintBufferTest001, TestSize.Level1)
+{
+    std::string funcName;
+    size_t lineNum = 100;
+    MessageParcel parcel;
+    parcel.PrintBuffer(funcName.c_str(), lineNum);
+    funcName = "PrintBufferTest001";
+    MessageParcel data;
+    uint8_t bytes[NUMBER_TEST] = {0};
+    data.WriteBuffer(bytes, NUMBER_TEST);
+    parcel.Append(data);
+    parcel.PrintBuffer(funcName.c_str(), lineNum);
 }
 }
