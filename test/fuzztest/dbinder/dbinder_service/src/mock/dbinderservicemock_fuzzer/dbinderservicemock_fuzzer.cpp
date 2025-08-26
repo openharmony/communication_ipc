@@ -169,6 +169,7 @@ void StartDBinderServiceTest(FuzzedDataProvider &provider)
     dBinderService->StartDBinderService(callbackImpl);
     dBinderService->StartDBinderService(callbackImpl);
     dBinderService->StartRemoteListener();
+    dBinderService->StopRemoteListener();
 }
 
 void AddStubByTagTest(FuzzedDataProvider &provider)
