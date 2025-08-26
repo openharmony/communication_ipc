@@ -791,6 +791,10 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     auto data = std::make_unique<MessageParcel>(binderAllocator);
     data->ParseFrom(tr.data.ptr.buffer, tr.data_size);
     if (tr.offsets_size > 0) {
+        if (tr.data.ptr.offsets == 0) {
+            ZLOGE(LABEL, "Invalid offsets pointer null");
+            return;
+        }
         data->InjectOffsets(tr.data.ptr.offsets, tr.offsets_size / sizeof(binder_size_t));
     }
 
