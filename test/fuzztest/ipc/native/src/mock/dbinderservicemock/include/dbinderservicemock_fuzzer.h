@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DBINDERSERVICENEW_FUZZER_H
-#define DBINDERSERVICENEW_FUZZER_H
+#ifndef DBINDERSERVICEMOCK_FUZZER_H
+#define DBINDERSERVICEMOCK_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -22,6 +22,6 @@
 #include <cstdlib>
 #include <fcntl.h>
 
-#define FUZZ_PROJECT_NAME "dbinderservicenew_fuzzer"
+#define FUZZ_PROJECT_NAME "dbinderservicemock_fuzzer"
 
 #endif
