@@ -246,6 +246,25 @@ HWTEST_F(DBinderSoftbusClientTest, ListenTest002, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: ListenTest003
+ * @tc.desc: Verify the Listen function when listenFunc_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSoftbusClientTest, ListenTest003, TestSize.Level1)
+{
+    DBinderSoftbusClient client;
+    int32_t socket = TEST_SOCKET_ID;
+    QosTV qos[1];
+    uint32_t qosCount = TEST_QOS_COUNT;
+    ISocketListener listener;
+    EXPECT_EQ(client.listenFunc_, nullptr);
+    int32_t result = client.Listen(socket, qos, qosCount, &listener);
+    EXPECT_NE(client.listenFunc_, nullptr);
+    int32_t funcResult = client.listenFunc_(socket, qos, qosCount, &listener);
+    EXPECT_EQ(result, funcResult);
+}
+
+/**
  * @tc.name: BindTest001
  * @tc.desc: Verify the Bind function when exitFlag_ is true
  * @tc.type: FUNC
@@ -275,6 +294,24 @@ HWTEST_F(DBinderSoftbusClientTest, BindTest002, TestSize.Level1) {
     client.bindFunc_ = [](int32_t, const QosTV[], uint32_t, const ISocketListener*) { return 0; };
     int32_t result = client.Bind(socket, qos, qosCount, &listener);
     EXPECT_EQ(result, SOFTBUS_CLIENT_SUCCESS);
+}
+
+/**
+ * @tc.name: BindTest003
+ * @tc.desc: Verify the Bind function when bindFunc_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSoftbusClientTest, BindTest003, TestSize.Level1) {
+    DBinderSoftbusClient client;
+    int32_t socket = TEST_SOCKET_ID;
+    QosTV qos[1];
+    uint32_t qosCount = TEST_QOS_COUNT;
+    ISocketListener listener;
+    EXPECT_EQ(client.bindFunc_, nullptr);
+    int32_t result = client.Bind(socket, qos, qosCount, &listener);
+    EXPECT_NE(client.bindFunc_, nullptr);
+    int32_t funcResult = client.bindFunc_(socket, qos, qosCount, &listener);
+    EXPECT_EQ(result, funcResult);
 }
 
 /**
@@ -308,6 +345,23 @@ HWTEST_F(DBinderSoftbusClientTest, SendBytesTest002, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: SendBytesTest003
+ * @tc.desc: Verify the SendBytes function when sendBytesFunc_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSoftbusClientTest, SendBytesTest003, TestSize.Level1) {
+    DBinderSoftbusClient client;
+    int32_t socket = TEST_SOCKET_ID;
+    void *data = nullptr;
+    uint32_t len = TEST_LEN;
+    EXPECT_EQ(client.sendBytesFunc_, nullptr);
+    int32_t result = client.SendBytes(socket, data, len);
+    EXPECT_NE(client.sendBytesFunc_, nullptr);
+    int32_t funcResult = client.sendBytesFunc_(socket, data, len);
+    EXPECT_EQ(result, funcResult);
+}
+
+/**
  * @tc.name: SendMessageTest001
  * @tc.desc: Verify the SendMessage function when exitFlag_ is true
  * @tc.type: FUNC
@@ -335,6 +389,23 @@ HWTEST_F(DBinderSoftbusClientTest, SendMessageTest002, TestSize.Level1) {
     client.sendMessageFunc_ = [](int32_t, const void*, uint32_t) { return 0; };
     int32_t result = client.SendMessage(socket, data, len);
     EXPECT_EQ(result, SOFTBUS_CLIENT_SUCCESS);
+}
+
+/**
+ * @tc.name: SendMessageTest003
+ * @tc.desc: Verify the SendMessage function when sendMessageFunc_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSoftbusClientTest, SendMessageTest003, TestSize.Level1) {
+    DBinderSoftbusClient client;
+    int32_t socket = TEST_SOCKET_ID;
+    void *data = nullptr;
+    uint32_t len = TEST_LEN;
+    EXPECT_EQ(client.sendMessageFunc_, nullptr);
+    int32_t result = client.SendMessage(socket, data, len);
+    EXPECT_NE(client.sendMessageFunc_, nullptr);
+    int32_t funcResult = client.sendMessageFunc_(socket, data, len);
+    EXPECT_EQ(result, funcResult);
 }
 
 /**
