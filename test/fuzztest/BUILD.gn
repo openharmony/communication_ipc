@@ -17,7 +17,7 @@ group("fuzztest") {
     "interfaces/innerkits/ipc_core/messageparcel_fuzzer:MessageParcelFuzzTest",
     "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
     "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
-    "ipc/native/src/core/binderinvoker_fuzzer:BinderInvokerFuzzTest",
+    "ipc/native/src/core/binderinvoker:binderinvokerfuzz",
     "ipc/native/src/core/binderinvokernew:binderinvokernewfuzz",
     "ipc/native/src/core/bufferobject_fuzzer:BufferObjectFuzzTest",
     "ipc/native/src/core/databussocketlistener_fuzzer:DataBusSocketListenerFuzzTest",

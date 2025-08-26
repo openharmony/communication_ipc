@@ -16,17 +16,23 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("BinderInvokerFuzzTest") {
+ohos_fuzztest("BinderInvoker001FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../binderinvoker_fuzzer"
+  fuzz_config_file = "../binderinvoker001_fuzzer"
 
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "binderinvoker_fuzzer.cpp" ]
+  include_dirs = [ "../include" ]
+  sources = [ "binderinvoker001_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
+
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
 
   external_deps = [
     "c_utils:utils",
