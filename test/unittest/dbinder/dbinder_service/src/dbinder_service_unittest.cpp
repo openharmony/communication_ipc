@@ -51,7 +51,6 @@ public:
     virtual bool StartListener() = 0;
     virtual std::shared_ptr<struct DHandleEntryTxRx> CreateMessage(const sptr<DBinderServiceStub> &stub,
         uint32_t seqNumber, uint32_t pid, uint32_t uid) = 0;
-    virtual std::shared_ptr<DBinderRemoteListener> GetRemoteListener() = 0;
     virtual bool SendDataToRemote(const std::string &networkId, const struct DHandleEntryTxRx *msg) = 0;
     virtual int32_t GetLocalNodeDeviceId(const std::string &pkgName, std::string &devId) = 0;
     virtual std::string GetSessionName() = 0;
@@ -69,7 +68,6 @@ public:
     MOCK_METHOD0(StartListener, bool());
     MOCK_METHOD4(CreateMessage, std::shared_ptr<struct DHandleEntryTxRx>(const sptr<DBinderServiceStub> &stub,
         uint32_t seqNumber, uint32_t pid, uint32_t uid));
-    MOCK_METHOD0(GetRemoteListener, std::shared_ptr<DBinderRemoteListener>());
     MOCK_METHOD2(SendDataToRemote, bool(const std::string &networkId, const struct DHandleEntryTxRx *msg));
     MOCK_METHOD2(GetLocalNodeDeviceId, int32_t(const std::string &pkgName, std::string &devId));
     MOCK_METHOD0(GetSessionName, std::string());
@@ -113,14 +111,6 @@ extern "C" {
             return nullptr;
         }
         return GetDBinderServiceInterfaceMock()->CreateMessage(stub, seqNumber, pid, uid);
-    }
-
-    std::shared_ptr<DBinderRemoteListener> DBinderService::GetRemoteListener()
-    {
-        if (g_interface == nullptr) {
-            return nullptr;
-        }
-        return GetDBinderServiceInterfaceMock()->GetRemoteListener();
     }
 
     bool DBinderRemoteListener::SendDataToRemote(const std::string &networkId, const struct DHandleEntryTxRx *msg)
@@ -465,6 +455,7 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest003, TestSize.Level1)
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     dBinderService.AttachThreadLockInfo(PID, RANDOM_DEVICEID, threadLockInfo);
+    
     int32_t result = dBinderService.InvokerRemoteDBinder(dBinderServiceStub, PID, PID, PID);
     EXPECT_EQ(result, DBinderErrorCode::MAKE_THREADLOCK_FAILED);
 }
