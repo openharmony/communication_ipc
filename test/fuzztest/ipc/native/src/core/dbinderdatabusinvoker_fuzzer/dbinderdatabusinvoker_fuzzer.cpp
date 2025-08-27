@@ -625,7 +625,7 @@ void UpdateClientSessionFuzzTest(FuzzedDataProvider &provider)
     if (current == nullptr) {
         return;
     }
-    current->sessionName_ = provider.ConsumeRandomLengthString();
+    current->sessionName_ = provider.ConsumeRandomLengthString(MAX_STR_LEN);
     std::shared_ptr<DBinderSessionObject> sessionObject = CreateDBinderSessionObject(provider);
     if (sessionObject == nullptr) {
         return;
