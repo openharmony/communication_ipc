@@ -693,7 +693,7 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderWhenWaitRsp001, TestSize.Level1
     int32_t ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
     EXPECT_EQ(ret, MAKE_THREADLOCK_FAILED);
 
-    dBinderService->threadLockInfo_[seqNumber] = threadLockInfo;
+    dBinderService->threadLockInfo_[seqNumber] = std::make_shared<struct ThreadLockInfo>();
     ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
     EXPECT_EQ(ret, DBINDER_OK);
 }
