@@ -14,7 +14,7 @@
 group("fuzztest") {
   testonly = true
   deps = [
-    "interfaces/innerkits/ipc_core/messageparcel_fuzzer:MessageParcelFuzzTest",
+    "interfaces/innerkits/ipc_core/messageparcel:messageparcelfuzz",
     "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
     "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
     "ipc/native/src/core/binderinvoker:binderinvokerfuzz",
@@ -22,7 +22,7 @@ group("fuzztest") {
     "ipc/native/src/core/bufferobject_fuzzer:BufferObjectFuzzTest",
     "ipc/native/src/core/databussocketlistener_fuzzer:DataBusSocketListenerFuzzTest",
     "ipc/native/src/mock/databussocketlistenermock_fuzzer:DataBusSocketListenerMockFuzzTest",
-    "ipc/native/src/core/dbindercallbackstub_fuzzer:DBinderCallBackStubFuzzTest",
+    "ipc/native/src/core/dbindercallbackstub:dbindercallbackstubfuzz",
     "ipc/native/src/core/dbinderdatabusinvoker_fuzzer:DBinderDatabusInvokerFuzzTest",
     "ipc/native/src/core/dbindergrantpermission_fuzzer:DBinderGrantPermissionFuzzTest",
     "ipc/native/src/core/dbinderremovepermission_fuzzer:DBinderRemovePermissionFuzzTest",
@@ -32,7 +32,7 @@ group("fuzztest") {
     "ipc/native/src/core/dbinderservicestub:dbinderservicestubfuzz",
     "ipc/native/src/core/getlocalnodedeviceid_fuzzer:GetLocalNodeDeviceIdFuzzTest",
     "ipc/native/src/core/invokerfactory_fuzzer:InvokerFactoryFuzzTest",
-    "ipc/native/src/core/ipcfiledescriptor_fuzzer:IPCFileDescriptorFuzzTest",
+    "ipc/native/src/core/ipcfiledescriptor:ipcfiledescriptorfuzz",
     "ipc/native/src/core/ipcfiledescriptormarshalling_fuzzer:IPCFileDescriptorMarshallingFuzzTest",
     "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
     "ipc/native/src/core/ipcobjectproxy_fuzzer:IPCObjectProxyFuzzTest",
@@ -55,7 +55,6 @@ group("fuzztest") {
     "ipc/native/src/core/dbindergetpiduid_fuzzer:DBinderGetPidUidFuzzTest",
     "ipc/native/src/core/makebasicthreadname_fuzzer:MakeBasicThreadNameFuzzTest",
     "ipc/native/src/core/bufferobjectnew_fuzzer:BufferObjectNewFuzzTest",
-    "ipc/native/src/core/ipcfiledescriptornew_fuzzer:IPCFileDescriptorNewFuzzTest",
     "ipc/native/src/core/ipcthreadpoolnew_fuzzer:IPCThreadPoolNewFuzzTest",
     "ipc/native/src/core/binderconnector_fuzzer:BinderConnectorFuzzTest",
     "ipc/native/src/core/ipcobjectproxynew_fuzzer:IPCObjectProxyNewFuzzTest",
@@ -78,6 +77,6 @@ group("fuzztest") {
     "ipc/native/src/mock/ipcthreadskeletonmock:ipcthreadskeletonmockfuzz",
     "ipc/native/src/mock/iremoteobjectmock:iremoteobjectmockfuzz",
     "dbinder/dbinder_service/src/dbinderservicenew_fuzzer:DBinderServiceNewFuzzTest",
-    "dbinder/dbinder_service/src/socket/dbinderremotelistener_fuzzer:DBinderRemoteListenerFuzzTest",
+    "dbinder/dbinder_service/src/socket/dbinderremotelistener:dbinderremotelistenerfuzz",
   ]
 }
