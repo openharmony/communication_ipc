@@ -455,6 +455,7 @@ HWTEST_F(DBinderServiceTest, InvokerRemoteDBinderTest003, TestSize.Level1)
     std::shared_ptr<struct ThreadLockInfo> threadLockInfo = std::make_shared<struct ThreadLockInfo>();
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     dBinderService.AttachThreadLockInfo(PID, RANDOM_DEVICEID, threadLockInfo);
+
     int32_t result = dBinderService.InvokerRemoteDBinder(dBinderServiceStub, PID, PID, PID);
     EXPECT_EQ(result, DBinderErrorCode::MAKE_THREADLOCK_FAILED);
 }
