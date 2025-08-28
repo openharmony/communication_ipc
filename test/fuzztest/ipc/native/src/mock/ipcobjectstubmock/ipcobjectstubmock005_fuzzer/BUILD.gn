@@ -14,19 +14,20 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IPCObjectStubMockFuzzTest") {
+ohos_fuzztest("IPCObjectStubMock005FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../ipcobjectstubmock_fuzzer"
+  fuzz_config_file = "../ipcobjectstubmock005_fuzzer"
   defines = [
     "private = public",
     "protected = public",
   ]
+  include_dirs = [ "../include" ]
+  sources = [ "ipcobjectstubmock005_fuzzer.cpp" ]
 
-  sources = [ "ipcobjectstubmock_fuzzer.cpp" ]
-
-  deps = [ "../../../../../../../interfaces/innerkits/ipc_single:ipc_single_test" ]
+  deps = [ "../../../../../../../../interfaces/innerkits/ipc_single:ipc_single_test" ]
 
   external_deps = [
     "c_utils:utils",
@@ -34,4 +35,5 @@ ohos_fuzztest("IPCObjectStubMockFuzzTest") {
     "googletest:gmock",
     "googletest:gtest",
   ]
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
