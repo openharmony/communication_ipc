@@ -509,7 +509,6 @@ HWTEST_F(DatabusSocketListenerTest, RemoveSessionNameTest002, TestSize.Level1)  
     NiceMock<DatabusSocketListenerInterfaceMock> mock;
 
     EXPECT_CALL(mock, GetCurrent).WillOnce(Return(current));
-    EXPECT_CALL(mock, GetSAMgrObject).WillOnce(Return(nullptr));
 
     listener.RemoveSessionName();
     EXPECT_NE(current, nullptr);
