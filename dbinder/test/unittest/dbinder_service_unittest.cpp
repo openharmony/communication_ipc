@@ -2422,7 +2422,7 @@ HWTEST_F(DBinderServiceUnitTest, InvokerRemoteDBinderWhenWaitRsp001, TestSize.Le
     dBinderService->threadLockInfo_[seqNumber] = threadLockInfo;
     ret = dBinderService->InvokerRemoteDBinderWhenWaitRsp(stub, seqNumber, pid, uid, threadLockInfo);
     EXPECT_EQ(ret, DBINDER_OK);
-    dBinderService->threadLockInfo_.clear();    
+    dBinderService->threadLockInfo_.clear();
 }
 
 /**
