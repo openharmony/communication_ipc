@@ -1394,7 +1394,7 @@ int32_t DBinderService::NoticeServiceDieInner(const std::u16string &serviceName,
 
     DBINDER_LOGI(LOG_LABEL, "service:%{public}s deviceId:%{public}s",
         Str16ToStr8(serviceName).c_str(), DBinderService::ConvertToSecureDeviceID(deviceID).c_str());
-    return NoticeCallbackProxy(serviceName, deviceID);
+    return NoticeCallbackProxy(serviceName, deviceID) ? ERR_NONE : DBINDER_SERVICE_NOTICE_DIE_ERR;
 }
 
 int32_t DBinderService::NoticeServiceDie(const std::u16string &serviceName, const std::string &deviceID)
