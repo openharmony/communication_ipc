@@ -421,6 +421,9 @@ void IPCProcessSkeleton::BlockUntilThreadAvailable()
     if (numExecuting_ > maxIPCThreadNum) {
         ZLOGE(LOG_LABEL, "numExecuting_++ is %{public}d", numExecuting_);
     }
+    if (threadPool_ == nullptr) {
+        return;
+    }
     while (numExecuting_ >= threadPool_->GetMaxThreadNum()) {
         cv_.wait(lock);
     }
@@ -433,7 +436,9 @@ void IPCProcessSkeleton::LockForNumExecuting()
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     numExecuting_++;
-
+    if (threadPool_ == nullptr) {
+        return;
+    }
     if (numExecuting_ == threadPool_->GetMaxThreadNum()) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -447,7 +452,9 @@ void IPCProcessSkeleton::UnlockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
-
+    if (threadPool_ == nullptr) {
+        return;
+    }
     if (numExecuting_ == threadPool_->GetMaxThreadNum()) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
