@@ -17,18 +17,19 @@ import("//build/test.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DBinderServiceStubFuzzTest") {
+ohos_fuzztest("DBinderServiceStub002FuzzTest") {
   module_out_path = "ipc/ipc"
   include_dirs = [ 
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+    "../include",
   ]
-  fuzz_config_file = "../dbinderservicestub_fuzzer"
+  fuzz_config_file = "../dbinderservicestub002_fuzzer"
   defines = [
     "private = public",
     "protected = public",
   ]
-  sources = [ "dbinderservicestub_fuzzer.cpp" ]
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+  sources = [ "dbinderservicestub002_fuzzer.cpp" ]
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

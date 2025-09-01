@@ -16,13 +16,13 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IPCObjectStubNewFuzzTest") {
+ohos_fuzztest("IPCObjectStubNew002FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../ipcobjectstubnew_fuzzer"
+  fuzz_config_file = "../ipcobjectstubnew002_fuzzer"
+  include_dirs = [ "../include" ]
+  sources = [ "ipcobjectstubnew002_fuzzer.cpp" ]
 
-  sources = [ "ipcobjectstubnew_fuzzer.cpp" ]
-
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
 
   defines = [
     "private = public",
