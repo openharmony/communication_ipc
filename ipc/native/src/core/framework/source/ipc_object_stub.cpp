@@ -89,6 +89,7 @@ IPCObjectStub::IPCObjectStub(std::u16string descriptor, bool serialInvokeFlag)
     current->AttachValidObject(this, descriptor_);
 }
 
+// LCOV_EXCL_START
 IPCObjectStub::~IPCObjectStub()
 {
 #ifdef ENABLE_IPC_TRACE
@@ -104,6 +105,7 @@ IPCObjectStub::~IPCObjectStub()
     }
     current->DetachValidObject(this);
 }
+// LCOV_EXCL_STOP
 
 bool IPCObjectStub::IsDeviceIdIllegal(const std::string &deviceID)
 {

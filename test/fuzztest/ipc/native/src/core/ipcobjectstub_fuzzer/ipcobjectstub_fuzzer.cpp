@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <fuzzer/FuzzedDataProvider.h>
 #include "ipcobjectstub_fuzzer.h"
 #include "ipc_object_stub.h"
 #include "message_parcel.h"
@@ -182,6 +183,20 @@ void AddAuthInfoFuzzTest(const uint8_t *data, size_t size)
     IPCObjectStub ipcObjectStub;
     ipcObjectStub.AddAuthInfo(parcel, reply, code);
 }
+
+void OnRemoteDumpFuzzTest(FuzzedDataProvider &provider)
+{
+    uint32_t code = provider.ConsumeIntegral<uint32_t>();
+    MessageParcel parcel;
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
+    parcel.WriteFileDescriptor(-1);
+    MessageParcel reply;
+    MessageOption option;
+    IPCObjectStub ipcObjectStub;
+    ipcObjectStub.OnRemoteDump(code, parcel, reply, option);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -199,5 +214,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NoticeServiceDieFuzzTest(data, size);
     OHOS::InvokerDataBusThreadFuzzTest(data, size);
     OHOS::AddAuthInfoFuzzTest(data, size);
+
+    FuzzedDataProvider provider(data, size);
+    OHOS::OnRemoteDumpFuzzTest(provider);
     return 0;
 }

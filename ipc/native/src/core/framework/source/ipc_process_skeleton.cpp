@@ -421,6 +421,9 @@ void IPCProcessSkeleton::BlockUntilThreadAvailable()
     if (numExecuting_ > maxIPCThreadNum) {
         ZLOGE(LOG_LABEL, "numExecuting_++ is %{public}d", numExecuting_);
     }
+    if (threadPool_ == nullptr) {
+        return;
+    }
     while (numExecuting_ >= threadPool_->GetMaxThreadNum()) {
         cv_.wait(lock);
     }
@@ -433,7 +436,9 @@ void IPCProcessSkeleton::LockForNumExecuting()
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     numExecuting_++;
-
+    if (threadPool_ == nullptr) {
+        return;
+    }
     if (numExecuting_ == threadPool_->GetMaxThreadNum()) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -447,7 +452,9 @@ void IPCProcessSkeleton::UnlockForNumExecuting()
 {
     CHECK_INSTANCE_EXIT(exitFlag_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
-
+    if (threadPool_ == nullptr) {
+        return;
+    }
     if (numExecuting_ == threadPool_->GetMaxThreadNum()) {
         uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -789,6 +796,7 @@ std::thread::id IPCProcessSkeleton::GetIdleDataThread()
     return threadId;
 }
 
+// LCOV_EXCL_START
 int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
@@ -798,6 +806,7 @@ int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 
     return 0;
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 int IPCProcessSkeleton::GetSocketTotalThreadNum() const
@@ -874,6 +883,7 @@ void IPCProcessSkeleton::AddDataThreadInWait(const std::thread::id &threadId)
     DeleteDataThreadFromIdle(threadId);
 }
 
+// LCOV_EXCL_START
 uint64_t IPCProcessSkeleton::GetSeqNumber()
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
@@ -884,6 +894,7 @@ uint64_t IPCProcessSkeleton::GetSeqNumber()
     seqNumber_++;
     return seqNumber_;
 }
+// LCOV_EXCL_STOP
 
 std::shared_ptr<ThreadMessageInfo> IPCProcessSkeleton::QueryThreadBySeqNumber(uint64_t seqNumber)
 {

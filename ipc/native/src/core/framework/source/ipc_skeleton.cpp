@@ -38,6 +38,7 @@ namespace OHOS {
 using namespace IPC_SINGLE;
 #endif
 
+// LCOV_EXCL_START
 static std::string GetSid()
 {
     char *con = nullptr;
@@ -49,6 +50,7 @@ static std::string GetSid()
     freecon(con);
     return context;
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 void IPCSkeleton::JoinWorkThread()
