@@ -96,7 +96,7 @@ static void DBinderPingTransactionFuzzTest(FuzzedDataProvider &provider)
     uint32_t code = provider.ConsumeIntegral<uint32_t>();
     MessageParcel data;
     MessageParcel reply;
-    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(MIN_BYTE_SIZE, MAX_BYTE_SIZE);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
     reply.WriteBuffer(bytes.data(), bytes.size());
     MessageOption option;
@@ -111,12 +111,12 @@ static void DBinderSearchDescriptorFuzzTest(FuzzedDataProvider &provider)
     uint32_t code = provider.ConsumeIntegral<uint32_t>();
     MessageParcel data;
     MessageParcel reply;
-    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(MIN_BYTE_SIZE, MAX_BYTE_SIZE);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
     reply.WriteBuffer(bytes.data(), bytes.size());
     MessageOption option;
     NiceMock<IPCObjectStubInterfaceMock> mockClient;
-    EXPECT_CALL(mockClient, WriteString16).WillRepeatedly(Return(0));
+    EXPECT_CALL(mockClient, WriteString16).WillRepeatedly(Return(false));
     IPCObjectStub ipcObjectStub;
     ipcObjectStub.DBinderSearchDescriptor(code, data, reply, option);
 }

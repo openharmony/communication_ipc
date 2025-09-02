@@ -21,6 +21,11 @@
 
 #include "hitrace_invoker.h"
 
+namespace OHOS {
+static constexpr size_t VALID_SIZE = HITRACE_ID_LEN + 8;
+static constexpr uint8_t VALID_LEN = HITRACE_ID_LEN + 2;
+} // namespace OHOS
+
 #define FUZZ_PROJECT_NAME "hitraceinvokermock_fuzzer"
 
 #endif

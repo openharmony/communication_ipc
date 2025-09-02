@@ -26,12 +26,12 @@ public:
     static HiviewDFX::HiTraceId TraceClientSend(int32_t handle, uint32_t code, MessageParcel &data, uint32_t &flags,
         const HiviewDFX::HiTraceId &traceId);
 
-    static void TraceClientReceieve(int32_t handle, uint32_t code, uint32_t flags, const HiviewDFX::HiTraceId &traceId,
+    static void TraceClientReceive(int32_t handle, uint32_t code, uint32_t flags, const HiviewDFX::HiTraceId &traceId,
         const HiviewDFX::HiTraceId &childId);
 
     static void RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t oldReadPosition, uint8_t idLen);
 
-    static bool TraceServerReceieve(uint64_t handle, uint32_t code, MessageParcel &data, uint32_t &flags);
+    static bool TraceServerReceive(uint64_t handle, uint32_t code, MessageParcel &data, uint32_t &flags);
 
     static void TraceServerSend(uint64_t handle, uint32_t code, bool isServerTraced, uint32_t flags);
 

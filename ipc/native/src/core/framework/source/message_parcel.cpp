@@ -593,6 +593,10 @@ bool MessageParcel::Append(MessageParcel &data)
     }
     binder_size_t objectOffsets = data.GetObjectOffsets();
     auto *newObjectOffsets = reinterpret_cast<binder_size_t *>(objectOffsets);
+    if (newObjectOffsets == nullptr) {
+        ZLOGE(LOG_LABEL, "newObjectOffsets is nullptr");
+        return false;
+    }
     for (size_t index = 0; index < objectSize; index++) {
         if (EnsureObjectsCapacity()) {
             size_t offset = writeCursorOld + newObjectOffsets[index];
