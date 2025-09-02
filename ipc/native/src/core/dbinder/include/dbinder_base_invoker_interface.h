@@ -114,7 +114,7 @@ int DBinderBaseInvoker<T>::SendRequest(int32_t handle, uint32_t code, MessagePar
     } else {
         ret = SendOrWaitForCompletion(userWaitTime, seqNumber, session, &reply);
     }
-    HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
+    HitraceInvoker::TraceClientReceive(handle, code, flags, traceId, childId);
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
     return ret;

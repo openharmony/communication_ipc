@@ -122,19 +122,17 @@ bool Parcel::WriteUint8(uint8_t value)
 }
 }
 
-void TraceServerReceieveFuzzTest(FuzzedDataProvider &provider)
+void TraceServerReceiveFuzzTest(FuzzedDataProvider &provider)
 {
     uint64_t handle = provider.ConsumeIntegral<uint64_t>();
     uint32_t code = provider.ConsumeIntegral<uint32_t>();
     uint32_t flags = 129;
     MessageParcel data;
     NiceMock<HitraceInvokerInterfaceMock> mock;
-    size_t dataSize = HITRACE_ID_LEN + 8;
-    uint8_t idLen = HITRACE_ID_LEN + 2;
-    EXPECT_CALL(mock, GetDataSize).WillRepeatedly(Return(dataSize));
-    EXPECT_CALL(mock, ReadUint8).WillOnce(Return(idLen));
+    EXPECT_CALL(mock, GetDataSize).WillRepeatedly(Return(VALID_SIZE));
+    EXPECT_CALL(mock, ReadUint8).WillOnce(Return(VALID_LEN));
     EXPECT_CALL(mock, ReadUnpadBuffer).WillOnce(Return(nullptr));
-    HitraceInvoker::TraceServerReceieve(handle, code, data, flags);
+    HitraceInvoker::TraceServerReceive(handle, code, data, flags);
 }
 
 void TraceClientSendFuzzTest(FuzzedDataProvider &provider)
@@ -165,7 +163,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
-    OHOS::TraceServerReceieveFuzzTest(provider);
+    OHOS::TraceServerReceiveFuzzTest(provider);
     OHOS::TraceClientSendFuzzTest(provider);
     return 0;
 }

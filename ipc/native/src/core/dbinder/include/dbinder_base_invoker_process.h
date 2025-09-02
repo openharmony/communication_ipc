@@ -126,7 +126,7 @@ template <class T> void DBinderBaseInvoker<T>::ProcessTransaction(dbinder_transa
     }
 
     uint32_t &newflags = const_cast<uint32_t &>(tr->flags);
-    int isServerTraced = HitraceInvoker::TraceServerReceieve(tr->cookie, tr->code, data, newflags);
+    int isServerTraced = HitraceInvoker::TraceServerReceive(tr->cookie, tr->code, data, newflags);
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int error = TargetStubSendRequest(tr, listenFd, senderSeqNumber, data, reply);
     HitraceInvoker::TraceServerSend(tr->cookie, tr->code, isServerTraced, newflags);

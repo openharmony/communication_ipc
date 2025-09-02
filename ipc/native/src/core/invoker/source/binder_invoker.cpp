@@ -179,7 +179,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
         newData.RewindWrite(oldWritePosition);
-        HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
+        HitraceInvoker::TraceClientReceive(handle, code, flags, traceId, childId);
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -195,7 +195,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
         ffrt_this_task_set_legacy_mode(false);
 #endif
     }
-    HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
+    HitraceInvoker::TraceClientReceive(handle, code, flags, traceId, childId);
     // restore Parcel data
     newData.RewindWrite(oldWritePosition);
     --sendRequestCount_;
@@ -841,7 +841,7 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     }
 
     uint32_t &newFlags = const_cast<uint32_t&>(tr.flags);
-    int isServerTraced = HitraceInvoker::TraceServerReceieve(static_cast<uint64_t>(tr.target.handle),
+    int isServerTraced = HitraceInvoker::TraceServerReceive(static_cast<uint64_t>(tr.target.handle),
         tr.code, *data, newFlags);
 
     InvokerProcInfo oldInvokerProcInfo = {
