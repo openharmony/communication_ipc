@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("DataBusSocketListenerMockFuzzTest") {
@@ -32,4 +33,5 @@ ohos_fuzztest("DataBusSocketListenerMockFuzzTest") {
     "googletest:gmock",
     "googletest:gtest",
   ]
+  resource_config_file = "$SUBSYSTEM_DIR/test/resource/ipc/ohos_test.xml"
 }
