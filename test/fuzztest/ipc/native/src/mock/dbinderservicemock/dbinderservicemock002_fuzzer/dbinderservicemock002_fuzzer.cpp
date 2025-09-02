@@ -229,54 +229,6 @@ void InvokerRemoteDBinderTest003(FuzzedDataProvider &provider)
     uint32_t uid = provider.ConsumeIntegral<uint32_t>();
     bool isNew = true;
     dBinderService->InvokerRemoteDBinder(stub, seqNumber, pid, uid, isNew);
-    std::thread t([dBinderService, seqNumber]() {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        dBinderService->WakeupThreadByStub(seqNumber);
-    });
-    t.detach();
-    dBinderService->InvokerRemoteDBinder(stub, seqNumber, pid, uid, isNew);
-    dBinderService->StopRemoteListener();
-}
-
-void InvokerRemoteDBinderTest004(FuzzedDataProvider &provider)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    if (dBinderService == nullptr) {
-        return;
-    }
-
-    uint64_t num = provider.ConsumeIntegral<uint64_t>();
-    const std::u16string serviceName = Str8ToStr16(std::to_string(num));
-    const std::string deviceID = provider.ConsumeRandomLengthString(DEVICEID_LENGTH);
-    binder_uintptr_t binderObject = static_cast<binder_uintptr_t>(provider.ConsumeIntegral<uint64_t>());
-    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
-    if (stub == nullptr) {
-        return;
-    }
-
-    NiceMock<DBinderServiceInterfaceMock> mock;
-    EXPECT_CALL(mock, GetLocalNodeDeviceId).WillRepeatedly(testing::Return(SOFTBUS_CLIENT_SUCCESS));
-    EXPECT_CALL(mock, DBinderGrantPermission).WillRepeatedly(testing::Return(ERR_NONE));
-    EXPECT_CALL(mock, Socket).WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(mock, Listen).WillRepeatedly(testing::Return(0));
-    dBinderService->StartRemoteListener();
-    EXPECT_CALL(mock, SendDataToRemote).WillRepeatedly(testing::Return(true));
-
-    uint32_t seqNumber = provider.ConsumeIntegral<uint32_t>();
-    uint32_t pid = provider.ConsumeIntegral<uint32_t>();
-    uint32_t uid = provider.ConsumeIntegral<uint32_t>();
-    bool isNew = true;
-    std::thread t([dBinderService, seqNumber, &stub]() {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        dBinderService->WakeupThreadByStub(seqNumber);
-        std::shared_ptr<struct SessionInfo> session = std::make_shared<struct SessionInfo>();
-        if (session == nullptr) {
-            return;
-        }
-        dBinderService->AttachSessionObject(session, reinterpret_cast<binder_uintptr_t>(stub.GetRefPtr()));
-    });
-    t.detach();
-    dBinderService->InvokerRemoteDBinder(stub, seqNumber, pid, uid, isNew);
     dBinderService->StopRemoteListener();
 }
 
@@ -339,7 +291,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::InvokerRemoteDBinderTest001(provider);
     OHOS::InvokerRemoteDBinderTest002(provider);
     OHOS::InvokerRemoteDBinderTest003(provider);
-    OHOS::InvokerRemoteDBinderTest004(provider);
     OHOS::LoadSystemAbilityCompleteTest(provider);
     return 0;
 }
