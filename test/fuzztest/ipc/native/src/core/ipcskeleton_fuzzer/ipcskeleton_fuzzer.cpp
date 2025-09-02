@@ -65,6 +65,7 @@ void EnableIPCThreadreClaimFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     MessageParcel parcel;
+    parcel.WriteBuffer(data, size);
     bool enable = parcel.ReadBool();
 
     IPCSkeleton::EnableIPCThreadReclaim(enable);
