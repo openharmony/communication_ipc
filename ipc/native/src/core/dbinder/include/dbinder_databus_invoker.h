@@ -66,7 +66,7 @@ public:
         std::string peerName, std::string networkId);
     std::string ResetCallingIdentity() override;
     bool SetCallingIdentity(std::string &identity, bool flag) override;
-    void OnMessageAvailable(int32_t socketId, const char *data, ssize_t len);
+    void OnMessageAvailable(int32_t socketId, const char *data, uint32_t len);
     bool TriggerSystemIPCThreadReclaim() override;
     bool EnableIPCThreadReclaim(bool enable) override;
 
@@ -97,8 +97,8 @@ private:
     virtual int CheckAndSetCallerInfo(int32_t socketId, uint64_t stubIndex) override;
     virtual void SetCallerInfo(DBinderCallerInfo &callerInfo) override;
     virtual void GetCallerInfo(DBinderCallerInfo &callerInfo) override;
-    uint32_t HasRawDataPackage(const char *data, ssize_t len);
-    uint32_t HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len);
+    uint32_t HasRawDataPackage(const char *data, uint32_t len);
+    uint32_t HasCompletePackage(const char *data, uint32_t readCursor, uint32_t len);
     void OnRawDataAvailable(int32_t socketId, uint64_t seqNumber, const char *data, uint32_t dataSize);
     uint64_t MakeStubIndexByRemoteObject(IRemoteObject *stubObject);
     std::shared_ptr<DBinderSessionObject> MakeDefaultServerSessionObject(uint64_t stubIndex,

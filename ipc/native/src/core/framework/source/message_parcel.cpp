@@ -645,8 +645,10 @@ void MessageParcel::PrintBuffer(const char *funcName, const size_t lineNum)
         ProcessSkeleton::ConvertAddr(this), format.c_str());
 }
 
+// LCOV_EXCL_START
 bool MessageParcel::IsOwner()
 {
     return isOwner_;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

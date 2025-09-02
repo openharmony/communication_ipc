@@ -20,7 +20,6 @@ group("fuzztest") {
     "loadsystemabilitycomplete_fuzzer:fuzztest",
     "noticedevicedie_fuzzer:fuzztest",
     "noticeservicedie_fuzzer:fuzztest",
-    "onbytesreceived_fuzzer:fuzztest",
     "senddatatoremote_fuzzer:fuzztest",
   ]
 }

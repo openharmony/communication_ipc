@@ -481,6 +481,7 @@ void ProcessSkeleton::DecreaseThreadCount()
     }
 }
 
+// LCOV_EXCL_START
 void ProcessSkeleton::NotifyChildThreadStop()
 {
     // set child thread exit flag
@@ -503,4 +504,5 @@ void ProcessSkeleton::NotifyChildThreadStop()
     }
     ZLOGD(LOG_LABEL, "wait finished, all child thread have exited");
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

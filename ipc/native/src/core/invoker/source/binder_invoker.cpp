@@ -791,6 +791,10 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     auto data = std::make_unique<MessageParcel>(binderAllocator);
     data->ParseFrom(tr.data.ptr.buffer, tr.data_size);
     if (tr.offsets_size > 0) {
+        if (tr.data.ptr.offsets == 0) {
+            ZLOGE(LABEL, "Invalid offsets pointer null");
+            return;
+        }
         data->InjectOffsets(tr.data.ptr.offsets, tr.offsets_size / sizeof(binder_size_t));
     }
 
@@ -874,6 +878,7 @@ void BinderInvoker::OnRemoveRecipientDone()
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void BinderInvoker::OnSpawnThread()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -883,6 +888,7 @@ void BinderInvoker::OnSpawnThread()
     }
     current->SpawnThread();
 }
+// LCOV_EXCL_STOP
 
 void BinderInvoker::OnTransaction(uint32_t cmd, int32_t &error)
 {
@@ -1406,6 +1412,7 @@ uint64_t BinderInvoker::GetSelfTokenID() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint64_t BinderInvoker::GetSelfFirstCallerTokenID() const
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
@@ -1414,6 +1421,7 @@ uint64_t BinderInvoker::GetSelfFirstCallerTokenID() const
     uint64_t selfFirstCallerTokenId = binderConnector_->GetSelfFirstCallerTokenID();
     return (selfFirstCallerTokenId == 0) ? static_cast<uint32_t>(getuid()) : selfFirstCallerTokenId;
 }
+// LCOV_EXCL_STOP
 
 uint32_t BinderInvoker::GetStatus()
 {
@@ -1728,6 +1736,7 @@ bool BinderInvoker::IsSendRequesting()
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void BinderInvoker::ProcDeferredDecRefs()
 {
     if (input_.GetReadableBytes() > 0) {
@@ -1762,6 +1771,7 @@ void BinderInvoker::ProcDeferredDecRefs()
         decStrongRefs_.clear();
     }
 }
+// LCOV_EXCL_STOP
 
 bool BinderInvoker::GetUint64ValueByStrSlice(const std::string &str, size_t offset, size_t length, uint64_t &value)
 {

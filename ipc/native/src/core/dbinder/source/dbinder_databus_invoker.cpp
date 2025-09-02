@@ -278,6 +278,10 @@ void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, uint64_t seqNum
         return;
     }
 
+    if (dataSize < sizeof(dbinder_transaction_data)) {
+        ZLOGE(LOG_LABEL, "dataSize:%{public}u is invalid", dataSize);
+        return;
+    }
     bool isSucc = false;
     uint32_t rawDataSize = dataSize - sizeof(dbinder_transaction_data);
     if (rawDataSize > 0 && rawDataSize <= MAX_RAWDATA_SIZE - sizeof(dbinder_transaction_data)) {
@@ -307,11 +311,11 @@ void DBinderDatabusInvoker::OnRawDataAvailable(int32_t socketId, uint64_t seqNum
  * when idle buffer less 1k, move need process to buffer head, then update R/W cursor
  * when idle buffer can not put a full package, also move need process package to buffer head
  */
-void DBinderDatabusInvoker::OnMessageAvailable(int32_t socketId, const char *data, ssize_t len)
+void DBinderDatabusInvoker::OnMessageAvailable(int32_t socketId, const char *data, uint32_t len)
 {
-    if (socketId <= 0 || data == nullptr || len > static_cast<ssize_t>(MAX_RAWDATA_SIZE) ||
-        len < static_cast<ssize_t>(sizeof(dbinder_transaction_data))) {
-        ZLOGE(LOG_LABEL, "wrong inputs, data length:%{public}zd(expected size:%{public}zu) "
+    if (socketId <= 0 || data == nullptr || len > static_cast<uint32_t>(MAX_RAWDATA_SIZE) ||
+        len < static_cast<uint32_t>(sizeof(dbinder_transaction_data))) {
+        ZLOGE(LOG_LABEL, "wrong inputs, data length:%{public}u(expected size:%{public}zu) "
             " socketId:%{public}d", len, sizeof(dbinder_transaction_data), socketId);
         return;
     }
@@ -1049,11 +1053,21 @@ bool DBinderDatabusInvoker::EnableIPCThreadReclaim(bool enable)
     return false;
 }
 
-uint32_t DBinderDatabusInvoker::HasRawDataPackage(const char *data, ssize_t len)
+uint32_t DBinderDatabusInvoker::HasRawDataPackage(const char *data, uint32_t len)
 {
+    if (data == nullptr) {
+        ZLOGI(LOG_LABEL, "data is null");
+        return 0;
+    }
+
+    if (len < sizeof(dbinder_transaction_data)) {
+        ZLOGI(LOG_LABEL, "invalid len:%{public}u", len);
+        return 0;
+    }
+
     const dbinder_transaction_data *tr = reinterpret_cast<const dbinder_transaction_data *>(data);
     if ((tr->magic == DBINDER_MAGICWORD) && (tr->cmd == BC_SEND_RAWDATA) &&
-        (tr->sizeOfSelf == static_cast<uint32_t>(len))) {
+        (tr->sizeOfSelf == len)) {
         if (tr->sizeOfSelf > MAX_RAWDATA_SIZE) {
             return MAX_RAWDATA_SIZE;
         }
@@ -1062,15 +1076,25 @@ uint32_t DBinderDatabusInvoker::HasRawDataPackage(const char *data, ssize_t len)
     return 0;
 }
 
-uint32_t DBinderDatabusInvoker::HasCompletePackage(const char *data, uint32_t readCursor, ssize_t len)
+uint32_t DBinderDatabusInvoker::HasCompletePackage(const char *data, uint32_t readCursor, uint32_t len)
 {
+    if (data == nullptr) {
+        ZLOGI(LOG_LABEL, "data is null");
+        return 0;
+    }
+
+    if (len <= readCursor || len - readCursor < sizeof(dbinder_transaction_data)) {
+        ZLOGI(LOG_LABEL, "invalid param, readCursor=%{public}u, len=%{public}u", readCursor, len);
+        return 0;
+    }
+
     const dbinder_transaction_data *tr = reinterpret_cast<const dbinder_transaction_data *>(data + readCursor);
     if ((tr->magic == DBINDER_MAGICWORD) &&
         (tr->sizeOfSelf <= SOCKET_MAX_BUFF_SIZE + sizeof(dbinder_transaction_data)) &&
-        (readCursor + tr->sizeOfSelf <= static_cast<uint32_t>(len)) && CheckTransactionData(tr)) {
+        (len - readCursor >= tr->sizeOfSelf) && CheckTransactionData(tr)) {
         return tr->sizeOfSelf;
     }
-    PrintDBinderTransData(tr);
+    PrintDBinderTransData(tr, len - readCursor);
     return 0;
 }
 } // namespace OHOS

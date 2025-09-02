@@ -107,6 +107,18 @@
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
+    <target name="IPCTraceTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCWorkThreadTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
     <target name="DBinderServiceStubTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
@@ -245,6 +257,18 @@
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
+    <target name="DBinderDeathRecipientTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderSaDeathRecipientTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
     <target name="RPCDbinderTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
@@ -282,6 +306,42 @@
         </preparer>
     </target>
     <target name="IPCRemoteObjectInternalTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCSkeletonMock001FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCSkeletonMock002FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCThreadSkeletonMock001FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IRemoteObjectMock001FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DataBusSocketListenerMockFuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderSoftbusClientMockFuzzTest">
         <preparer>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
