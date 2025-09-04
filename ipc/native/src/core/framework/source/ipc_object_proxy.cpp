@@ -545,12 +545,16 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 // LCOV_EXCL_START
 void IPCObjectProxy::SendObituary()
 {
+    std::vector<sptr<DeathRecipientAddrInfo>> toBeReport;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        toBeReport.swap(recipients_);
+    }
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
-        ZLOGD(LABEL, "handle:%{public}d desc:%{public}s %{public}u", handle_,
-            remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this));
+        ZLOGI(LABEL, "handle:%{public}d desc:%{public}s %{public}u count:%{public}zu", handle_,
+            remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this), toBeReport.size());
     }
-
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         if (proto_ == IRemoteObject::IF_PROT_DATABUS || proto_ == IRemoteObject::IF_PROT_ERROR) {
@@ -559,12 +563,6 @@ void IPCObjectProxy::SendObituary()
     }
 #endif
     SetObjectDied(true);
-    std::vector<sptr<DeathRecipientAddrInfo>> toBeReport;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-        toBeReport.swap(recipients_);
-    }
-
     if (toBeReport.size() > 0 && handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
         if (invoker != nullptr) {
