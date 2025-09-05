@@ -66,6 +66,7 @@ group("fuzztest") {
     "ipc/native/src/core/processskeleton_fuzzer:ProcessSkeletonFuzzTest",
     "ipc/native/src/core/hitraceinvoker_fuzzer:HitraceInvokerFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
+    "ipc/native/src/mock/dbinderservicestubmock:DBinderServiceStubMockFuzzTest",
     "ipc/native/src/mock/dbinderremotelistenermock_fuzzer:DBinderRemoteListenerMockFuzzTest",
     "ipc/native/src/mock/dbinderservicemock:dbinderservicemockfuzz",
     "ipc/native/src/mock/ipcskeletonmock:ipcskeletonmockfuzz",
