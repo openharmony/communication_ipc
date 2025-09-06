@@ -769,7 +769,7 @@ void MessageSequenceImpl::ReadException()
     int32_t code = nativeParcel_->ReadInt32();
     if (code == 0) {
         ZLOGE(LOG_LABEL, "ReadException failed, no exception");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+        return;
     }
     std::u16string result = nativeParcel_->ReadString16();
     taihe::set_business_error(code, OHOS::Str16ToStr8(result));
