@@ -92,12 +92,11 @@ void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t
     }
     bool isClientTraced = IsClientTraced(handle, flags, traceId);
     if (isClientTraced) {
-        if (!(flags & TF_ONE_WAY)) {
-            // restore thread trace id
-            HiTraceChain::SetId(traceId);
-            // tracepoint: CR(Client Receive)
-            HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "SYNC handle=%d,code=%u", handle, code);
-        }
+        // restore thread trace id
+        HiTraceChain::SetId(traceId);
+        // tracepoint: CR(Client Receive)
+        HiTraceChain::Tracepoint(HITRACE_TP_CR, childId, "%s handle=%d,code=%u",
+            (flags & TF_ONE_WAY) ? "ASYNC" : "SYNC", handle, code);
     }
 }
 
