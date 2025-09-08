@@ -37,7 +37,7 @@ group("fuzztest") {
     "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
     "ipc/native/src/core/ipcobjectproxy_fuzzer:IPCObjectProxyFuzzTest",
     "ipc/native/src/core/ipcobjectstub_fuzzer:IPCObjectStubFuzzTest",
-    "ipc/native/src/mock/ipcobjectstubmock_fuzzer:IPCObjectStubMockFuzzTest",
+    "ipc/native/src/mock/ipcobjectstubmock:ipcobjectstubmockfuzz",
     "ipc/native/src/core/ipcpayloadstatistics_fuzzer:IPCPayloadStatisticsFuzzTest",
     "ipc/native/src/core/ipcprocessskeleton_fuzzer:IPCProcessSkeletonFuzzTest",
     "ipc/native/src/core/ipcskeleton_fuzzer:IPCSkeletonFuzzTest",
