@@ -442,6 +442,11 @@ bool BinderInvoker::UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_d
         parcel.RewindRead(offset);
         return false;
     }
+    if (obj->buffer == 0) {
+        ZLOGE(LABEL, "null dbinder buffer");
+        parcel.RewindRead(offset);
+        return false;
+    }
     dbinderData = *reinterpret_cast<dbinder_negotiation_data *>(obj->buffer);
     return true;
 }
