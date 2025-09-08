@@ -431,4 +431,34 @@
             <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
         </preparer>
     </target>
+    <target name="IPCObjectStubMock001FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCObjectStubMock002FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCObjectStubMock003FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCObjectStubMock004FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCObjectStubMock005FuzzTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
 </configuration>
