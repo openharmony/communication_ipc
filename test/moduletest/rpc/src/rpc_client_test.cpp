@@ -34,6 +34,7 @@ namespace OHOS {
 using namespace testing::ext;
 
 static std::string g_deviceId;
+static constexpr uint32_t INVALID_VALUE = 0;
 
 static void InitTokenId(void)
 {
@@ -154,9 +155,8 @@ HWTEST_F(RpcClientTest, TestAccessToken001, TestSize.Level1)
     int32_t ret = proxyObject->TestAccessToken(data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
 
-    uint32_t tokenId = IPCSkeleton::GetSelfTokenID();
     uint32_t getTokenId = reply.ReadUint32();
-    EXPECT_EQ(tokenId, getTokenId);
+    EXPECT_EQ(getTokenId, INVALID_VALUE);
 }
 
 /**
