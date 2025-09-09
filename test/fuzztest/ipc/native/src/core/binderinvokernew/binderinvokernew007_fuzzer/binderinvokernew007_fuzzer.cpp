@@ -49,6 +49,7 @@ void UnFlattenDBinderObjectFuzzTest001(FuzzedDataProvider &provider)
     obj.flags = provider.ConsumeIntegral<uint32_t>();
     obj.length = provider.ConsumeIntegral<binder_size_t>();
     obj.parent = provider.ConsumeIntegral<binder_size_t>();
+    obj.buffer = 0;
     obj.parent_offset = provider.ConsumeIntegral<binder_size_t>();
     dataParcel.WriteBuffer(&obj, sizeof(binder_buffer_object));
     dbinder_negotiation_data dbinderData;
