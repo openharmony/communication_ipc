@@ -179,6 +179,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
         newData.RewindWrite(oldWritePosition);
+        HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
