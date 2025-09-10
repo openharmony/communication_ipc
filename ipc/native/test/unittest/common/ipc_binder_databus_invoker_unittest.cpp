@@ -649,14 +649,19 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, MakeDefaultServerSessionObjectTest001, Te
     DBinderDatabusInvoker testInvoker;
     std::string serviceName = "testserviceName";
     std::string serverDeviceId = "testserverDeviceId";
-    auto object = std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, 1, nullptr, 1);
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
+    std::shared_ptr<DBinderSessionObject> object =
+        std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, 1, nullptr, 1);
     std::shared_ptr<DBinderSessionObject> ret = testInvoker.MakeDefaultServerSessionObject(1, object);
     EXPECT_EQ(ret, nullptr);
 
-    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->sessionName_ = SERVICE_NAME_TEST;
     ret = testInvoker.MakeDefaultServerSessionObject(1, object);
     EXPECT_EQ(ret, nullptr);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -738,10 +743,15 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnReceiveNewConnectionTest002, TestSize.L
 HWTEST_F(IPCDbinderDataBusInvokerTest, ResetCallingIdentityTest001, TestSize.Level1)
 {
     DBinderDatabusInvoker testInvoker;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    current->instance_ = nullptr;
+    current->exitFlag_ = true;
     std::string token = testInvoker.ResetCallingIdentity();
     EXPECT_FALSE(token.empty());
     bool ret = testInvoker.SetCallingIdentity(token, false);
     EXPECT_FALSE(ret);
+    current->instance_ = nullptr;
+    current->exitFlag_ = false;
 }
 
 /**
@@ -1596,11 +1606,14 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, JoinProcessThread001, TestSize.Level1)
     std::thread::id threadId = std::this_thread::get_id();
 
     std::thread([&testInvoker, threadId]() {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-            testInvoker.StopWorkThread();
-            IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
-            current->WakeUpDataThread(threadId);
-            current->dataInfoQueue_.clear();
+        IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+        if (current == nullptr) {
+            return;
+        }
+        current->SetMaxWorkThread(3);
+        testInvoker.StopWorkThread();
+        current->WakeUpDataThread(threadId);
+        current->dataInfoQueue_.clear();
     }).detach();
 
     testInvoker.JoinProcessThread(true);
