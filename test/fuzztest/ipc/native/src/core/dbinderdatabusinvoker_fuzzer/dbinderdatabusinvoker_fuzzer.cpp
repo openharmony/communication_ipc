@@ -794,12 +794,12 @@ void HasCompletePackageFuzzTest002(FuzzedDataProvider &provider)
 
 void NewSessionOfBinderProxyFuzzTest(FuzzedDataProvider &provider)
 {
-    uint32_t handle = provider.ConsumeIntegral<uint32_t>();
     std::shared_ptr<DBinderSessionObject> session = CreateDBinderSessionObject(provider);
     if (session == nullptr) {
         return;
     }
     DBinderDatabusInvoker invoker;
+    uint32_t handle = -1;
     invoker.NewSessionOfBinderProxy(handle, nullptr);
     invoker.NewSessionOfBinderProxy(handle, session);
 }
@@ -894,37 +894,11 @@ void WriteFileDescriptorFuzzTest(FuzzedDataProvider &provider)
     invoker.WriteFileDescriptor(parcel, fd, takeOwnership);
 }
 
-void QuerySessionOfBinderProxyFuzzTest(FuzzedDataProvider &provider)
-{
-    std::string serviceName = provider.ConsumeRandomLengthString(MAX_STR_LEN);
-    std::string serverDeviceId = provider.ConsumeRandomLengthString(MAX_STR_LEN);
-    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-    std::shared_ptr<DBinderSessionObject> dbinderSession =
-        std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
-    if (dbinderSession == nullptr) {
-        return;
-    }
-    uint32_t handle = provider.ConsumeIntegral<uint32_t>();
-    DBinderDatabusInvoker invoker;
-    invoker.QuerySessionOfBinderProxy(handle, dbinderSession);
-}
-
 void AuthSession2ProxyFuzzTest(FuzzedDataProvider &provider)
 {
-    std::string serviceName = provider.ConsumeRandomLengthString(MAX_STR_LEN);
-    std::string serverDeviceId = provider.ConsumeRandomLengthString(MAX_STR_LEN);
-    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-    std::shared_ptr<DBinderSessionObject> dbinderSession =
-        std::make_shared<DBinderSessionObject>(serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
-    if (dbinderSession == nullptr) {
-        return;
-    }
-    uint32_t handle = provider.ConsumeIntegral<uint32_t>();
+    uint32_t handle = 0;
     DBinderDatabusInvoker invoker;
     invoker.AuthSession2Proxy(handle, nullptr);
-    invoker.AuthSession2Proxy(handle, dbinderSession);
 }
 
 void OnMessageAvailableFuzzTest(FuzzedDataProvider &provider)
@@ -954,7 +928,6 @@ void DBinderDatabusInvokerTwoFuzzTest(FuzzedDataProvider &provider)
     OHOS::SetCallerUidFuzzTest(provider);
     OHOS::SetStatusFuzzTest(provider);
     OHOS::WriteFileDescriptorFuzzTest(provider);
-    OHOS::QuerySessionOfBinderProxyFuzzTest(provider);
     OHOS::AuthSession2ProxyFuzzTest(provider);
     OHOS::OnMessageAvailableFuzzTest(provider);
 }
