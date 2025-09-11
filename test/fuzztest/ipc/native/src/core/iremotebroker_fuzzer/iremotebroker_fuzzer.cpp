@@ -18,12 +18,16 @@
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "iremote_broker.h"
+#include "string_ex.h"
 
 namespace OHOS {
+
+static constexpr size_t MAX_STR_LEN = 100;
+
 std::u16string CreateDescriptor(FuzzedDataProvider &provider)
 {
-    std::string descriptor = provider.ConsumeRandomLengthString();
-    return std::u16string(descriptor.begin(), descriptor.end());
+    std::string descriptor = provider.ConsumeRandomLengthString(MAX_STR_LEN);
+    return Str8ToStr16(descriptor);
 }
 
 void RegisterFuzzTest(FuzzedDataProvider &provider)
@@ -35,6 +39,8 @@ void RegisterFuzzTest(FuzzedDataProvider &provider)
     registration.Register(descriptor, creator, &obj);
     descriptor = CreateDescriptor(provider);
     registration.Register(descriptor, creator, &obj);
+    registration.isUnloading = true;
+    registration.Register(descriptor, creator, &obj);
 }
 
 void UnregisterFuzzTest(FuzzedDataProvider &provider)
@@ -45,6 +51,8 @@ void UnregisterFuzzTest(FuzzedDataProvider &provider)
     BrokerRegistration registration;
     registration.Register(descriptor, creator, &obj);
     registration.Unregister(std::u16string());
+    registration.Unregister(descriptor);
+    registration.isUnloading = true;
     registration.Unregister(descriptor);
 }
 
