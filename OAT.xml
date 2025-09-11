@@ -54,6 +54,11 @@ Note:If the text contains special characters, please escape them according to th
 <configuration>
     <oatconfig>
         <licensefile></licensefile>
+        <policylist>
+            <policy name="projectPolicy" desc="">
+                <policyitem type="copyright" name="Huawei Device Co., Ltd." path=".*" rule="may" group="defaultGroup" filefilter="copyrightPolicyFilter" desc=""/>
+            </policy>
+        </policylist>
         <filefilterlist>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
                 <filteritem type="filename" name="*.png" desc="Describes the architecture of the IPC"/>
