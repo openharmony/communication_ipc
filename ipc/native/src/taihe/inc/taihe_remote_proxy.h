@@ -28,12 +28,13 @@
 #include <vector>
 
 #include "ipc_object_proxy.h"
+#include "taihe_deathrecipient.h"
 
 namespace OHOS {
 
 class RemoteProxyImpl {
 public:
-    RemoteProxyImpl(uintptr_t nativePtr);
+    RemoteProxyImpl(uintptr_t nativePtr, bool bRemoteObj = false);
 
     ::ohos::rpc::rpc::IRemoteBroker GetLocalInterface(::taihe::string_view descriptor);
 
@@ -53,8 +54,8 @@ public:
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteProxy obj);
 
     static ::ohos::rpc::rpc::RemoteProxy CreateRemoteProxyFromNative(uintptr_t nativePtr);
-
 private:
+    OHOS::sptr<OHOS::IRemoteObject> remoteObject_;
     OHOS::sptr<OHOS::IPCObjectProxy> cachedObject_;
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;
