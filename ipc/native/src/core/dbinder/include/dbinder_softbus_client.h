@@ -19,6 +19,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <map>
 
 #include "dsoftbus_interface.h"
 #include "nocopyable.h"
@@ -75,7 +76,9 @@ private:
     ShutdownFunc shutdownFunc_ = nullptr;
 
     std::mutex loadSoMutex_;
+    std::mutex permissionMutex_;
     std::atomic<bool> exitFlag_ = false;
+    std::map<std::string, int32_t> mapSessionRefCount_;
     bool isLoaded_ = false;
     void *soHandle_ = nullptr;
 };
