@@ -179,6 +179,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     if (!WriteTransaction(cmd, flags, handle, code, data, nullptr, totalDBinderBufSize)) {
         ZLOGE(LABEL, "WriteTransaction ERROR");
         newData.RewindWrite(oldWritePosition);
+        HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
         return IPC_INVOKER_WRITE_TRANS_ERR;
     }
 
@@ -439,6 +440,11 @@ bool BinderInvoker::UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_d
     auto *obj = reinterpret_cast<const binder_buffer_object *>(buffer);
     if (((obj->flags & BINDER_BUFFER_FLAG_HAS_DBINDER) == 0) || (obj->length != sizeof(dbinder_negotiation_data))) {
         ZLOGW(LABEL, "no dbinder buffer flag");
+        parcel.RewindRead(offset);
+        return false;
+    }
+    if (obj->buffer == 0) {
+        ZLOGE(LABEL, "null dbinder buffer");
         parcel.RewindRead(offset);
         return false;
     }

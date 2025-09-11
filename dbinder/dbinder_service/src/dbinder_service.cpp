@@ -1171,7 +1171,7 @@ void DBinderService::MakeSessionByReplyMessage(std::shared_ptr<struct DHandleEnt
             return;
         }
         // ignore seqNumber overflow here, greater seqNumber means later request
-        if (oldSession->seqNumber < session->seqNumber) {
+        if (oldSession->seqNumber <= session->seqNumber) {
             // remote old session
             if (!DetachSessionObject(QueryStubPtr(replyMessage->stub))) {
                 DBINDER_LOGE(LOG_LABEL, "failed to detach session object");
