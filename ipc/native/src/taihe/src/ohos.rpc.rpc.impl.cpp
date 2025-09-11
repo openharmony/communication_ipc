@@ -29,6 +29,7 @@
 #include "message_option.h"
 #include "refbase.h"
 #include "rpc_taihe_error.h"
+#include "remote_object_taihe_ani.h"
 
 #include "taihe_ani_remote_object.h"
 #include "taihe_ashmem.h"
@@ -199,11 +200,21 @@ int ANIRemoteObject::GetObjectType() const
 }
 
 // RemoteProxyImpl
-RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr)
+RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool bRemoteObj)
 {
     if (reinterpret_cast<void*>(nativePtr) == nullptr) {
         ZLOGE(LOG_LABEL, "nativePtr is null");
         TH_THROW(std::runtime_error, "RemoteProxyImpl nativePtr is nullptr");
+        return;
+    }
+    if (bRemoteObj) {
+        auto proxy = reinterpret_cast<RemoteObjectTaiheAni *>(nativePtr);
+        if (proxy == nullptr) {
+            ZLOGE(LOG_LABEL, "reinterpret_cast nativePtr failed");
+            TH_THROW(std::runtime_error, "RemoteProxyImpl reinterpret_cast nativePtr failed");
+            return;
+        }
+        remoteObject_ = proxy->nativeObject_;
         return;
     }
     auto proxy = reinterpret_cast<OHOS::IPCObjectProxy *>(nativePtr);
@@ -725,6 +736,34 @@ void MessageSequenceImpl::WriteInterfaceToken(::taihe::string_view token)
         ZLOGE(LOG_LABEL, "write interface token failed");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     }
+}
+
+int64_t unwrapRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& obj)
+{
+    if (obj.get_tag() == ::ohos::rpc::rpc::IRemoteObjectUnion::tag_t::remoteObject) {
+        auto &remoteStub = obj.get_remoteObject_ref();
+        int64_t objectptr = remoteStub->GetNativePtr();
+        return objectptr;
+    }
+    if (obj.get_tag() == ::ohos::rpc::rpc::IRemoteObjectUnion::tag_t::remoteProxy) {
+        auto &remoteProxy = obj.get_remoteProxy_ref();
+        int64_t proxyptr = remoteProxy->GetNativePtr();
+        return proxyptr;
+    }
+    return 0;
+}
+
+::ohos::rpc::rpc::IRemoteObjectUnion wrapRemoteObject(int64_t nativePtr)
+{
+    if (reinterpret_cast<void*>(nativePtr) == nullptr) {
+        ZLOGE(LOG_LABEL, "nativePtr is nullptr");
+        TH_THROW(std::runtime_error, "nativePtr is null");
+        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
+            ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet());
+    }
+    ::ohos::rpc::rpc::RemoteProxy obj = taihe::make_holder<RemoteProxyImpl,
+        ::ohos::rpc::rpc::RemoteProxy>(nativePtr, true);
+    return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteProxy(obj);
 }
 
 ::taihe::string MessageSequenceImpl::ReadInterfaceToken()
@@ -1277,7 +1316,8 @@ void MessageOptionImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption ob
     jsObjRef_ = std::optional<::ohos::rpc::rpc::MessageOption>(std::in_place, obj);
 }
 
-::ohos::rpc::rpc::MessageOption MessageOptionImpl::CreateMessageOption_WithTwoParam(int32_t syncFlags, int32_t waitTime)
+::ohos::rpc::rpc::MessageOption MessageOptionImpl::CreateMessageOption_WithTwoParam(int32_t syncFlags,
+    int32_t waitTime)
 {
     return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(syncFlags, waitTime);
 }
@@ -1339,4 +1379,6 @@ TH_EXPORT_CPP_API_GetCallingPid(OHOS::IPCSkeletonImpl::GetCallingPid);
 TH_EXPORT_CPP_API_GetCallingUid(OHOS::IPCSkeletonImpl::GetCallingUid);
 TH_EXPORT_CPP_API_GetCallingTokenId(OHOS::IPCSkeletonImpl::GetCallingTokenId);
 TH_EXPORT_CPP_API_GetContextObject(OHOS::IPCSkeletonImpl::GetContextObject);
+TH_EXPORT_CPP_API_unwrapRemoteObject(OHOS::unwrapRemoteObject);
+TH_EXPORT_CPP_API_wrapRemoteObject(OHOS::wrapRemoteObject);
 // NOLINTEND
