@@ -21,6 +21,15 @@ if (support_jsapi) {
   TAIHE_FILE_PATH = "$taihe_file_path/out/$SUBSYSTEM_NAME/$PART_NAME"
   SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
+config("taihe_inc_config") {
+  include_dirs = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
+      "$SUBSYSTEM_DIR/utils/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/napi_common/include",
+    ]
+}
+
   copy_taihe_idl("rpc_taihe_idl") {
     sources = [ "idl/ohos.rpc.rpc.taihe" ]
   }
@@ -39,15 +48,12 @@ if (support_jsapi) {
     part_name = "$PART_NAME"
     subsystem_name = "$SUBSYSTEM_NAME"
     sources = get_target_outputs(":rpc_taihe_generate")
-    include_dirs = [
-      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
-      "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
-      "$SUBSYSTEM_DIR/utils/include",
-    ]
+    public_configs = [ ":taihe_inc_config" ]
     sources += [
       "src/ani_constructor.cpp",
       "src/ohos.rpc.rpc.impl.cpp",
       "src/rpc_taihe_error.cpp",
+      "src/remote_object_taihe_ani.cpp",
     ]
     deps = [
       ":rpc_taihe_generate",
@@ -85,7 +91,17 @@ if (support_jsapi) {
     ]
   }
 } else {
+  SUBSYSTEM_DIR = "//foundation/communication/ipc"
+  ohos_shared_library("rpc_taihe") {
+     include_dirs = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
+      "$SUBSYSTEM_DIR/utils/include",
+    ]
+  }
   group("rpc_taihe_components") {
-    deps = []
+    deps = [
+      ":rpc_taihe"
+    ]
   }
 }

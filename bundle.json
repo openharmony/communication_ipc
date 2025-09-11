@@ -61,7 +61,16 @@
         ],
         "inner_kits": [
           {
-              "name": "//foundation/communication/ipc/ipc/native/src/taihe:rpc_taihe_idl"
+            "name": "//foundation/communication/ipc/ipc/native/src/taihe:rpc_taihe_idl"
+          },
+          {
+            "name": "//foundation/communication/ipc/ipc/native/src/taihe:rpc_taihe",
+            "header": {
+              "header_files": [
+                "remote_object_taihe_ani.h"
+              ],
+              "header_base": "//foundation/communication/ipc/ipc/native/src/taihe/inc"
+            }
           },
           {
               "name": "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
