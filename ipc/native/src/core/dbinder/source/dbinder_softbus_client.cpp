@@ -19,6 +19,7 @@
 
 #include "check_instance_exit.h"
 #include "ipc_debug.h"
+#include "ipc_types.h"
 #include "log_tags.h"
 
 namespace OHOS {
@@ -69,8 +70,9 @@ bool DBinderSoftbusClient::OpenSoftbusClientSo()
 int32_t DBinderSoftbusClient::DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
+    std::lock_guard<std::mutex> lockGuard(permissionMutex_);
     if (grantPermissionFunc_ != nullptr) {
-        return grantPermissionFunc_(uid, pid, socketName.c_str());
+        goto DO_GRANT;
     }
 
     if (!OpenSoftbusClientSo()) {
@@ -82,7 +84,17 @@ int32_t DBinderSoftbusClient::DBinderGrantPermission(int32_t uid, int32_t pid, c
         ZLOGE(LOG_LABEL, "dlsym DBinderGrantPermission fail, err msg:%{public}s", dlerror());
         return SOFTBUS_CLIENT_DLSYM_FAILED;
     }
+    goto DO_GRANT;
 
+DO_GRANT:
+    auto it = mapSessionRefCount_.find(socketName);
+    if (it != mapSessionRefCount_.end()) {
+        it->second++;
+        ZLOGI(LOG_LABEL, "had permission socName:%{public}s refCount:%{public}d", socketName.c_str(), it->second);
+        return ERR_NONE;
+    }
+    mapSessionRefCount_.insert(std::pair<std::string, int32_t>(socketName, 1));
+    ZLOGI(LOG_LABEL, "refCount +1  socketName:%{public}s", socketName.c_str());
     return grantPermissionFunc_(uid, pid, socketName.c_str());
 }
 
@@ -90,7 +102,7 @@ int32_t DBinderSoftbusClient::DBinderRemovePermission(const std::string &socketN
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
     if (removePermissionFunc_ != nullptr) {
-        return removePermissionFunc_(socketName.c_str());
+        goto DO_REMOVE;
     }
 
     if (!OpenSoftbusClientSo()) {
@@ -103,6 +115,19 @@ int32_t DBinderSoftbusClient::DBinderRemovePermission(const std::string &socketN
         return SOFTBUS_CLIENT_DLSYM_FAILED;
     }
 
+    goto DO_REMOVE;
+
+DO_REMOVE:
+    auto it = mapSessionRefCount_.find(socketName);
+    if (it != mapSessionRefCount_.end()) {
+        it->second--;
+        if (it->second <= 0) {
+            mapSessionRefCount_.erase(socketName);
+            return removePermissionFunc_(socketName.c_str());
+        }
+        ZLOGI(LOG_LABEL, "need permission socketName:%{public}s refCount:%{public}d", socketName.c_str(), it->second);
+        return ERR_NONE;
+    }
     return removePermissionFunc_(socketName.c_str());
 }
 
