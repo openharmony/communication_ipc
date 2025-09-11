@@ -180,6 +180,10 @@ function CreateMessageSequence(): MessageSequence;
 @static("MessageSequence")
 function CloseFileDescriptor(fd: i32): void;
 
+function unwrapRemoteObject(obj: IRemoteObjectUnion): i64;
+
+function wrapRemoteObject(nativePtr: i64): IRemoteObjectUnion;
+
 interface IRemoteObject {
     GetLocalInterface(descriptor: String): IRemoteBroker;
 
