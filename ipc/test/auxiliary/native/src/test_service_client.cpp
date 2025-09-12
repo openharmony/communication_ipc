@@ -74,6 +74,23 @@ bool TestServiceClient::StartSyncTransaction()
     return true;
 }
 
+#ifdef FREEZE_PROCESS_ENABLED
+bool TestServiceClient::TestFreezeProcess()
+{
+    if (testService_ == nullptr) {
+        ZLOGE(LABEL, "The testService_ object is an empty object");
+        return false;
+    }
+
+    int ret = testService_->TestFreezeProcess();
+    if (ret != 0) {
+        ZLOGE(LABEL, "TestFreezeProcess function call failed");
+        return false;
+    }
+    return true;
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 bool TestServiceClient::StartPingService()
 {
     if (testService_ == nullptr) {

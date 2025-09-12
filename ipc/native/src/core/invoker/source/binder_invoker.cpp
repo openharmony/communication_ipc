@@ -743,6 +743,42 @@ int32_t BinderInvoker::SamgrServiceSendRequest(
     return error;
 }
 
+#ifdef FREEZE_PROCESS_ENABLED
+int32_t BinderInvoker::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return IPC_INVOKER_CONNECT_ERR;
+    }
+    binder_freeze_info info;
+    info.pid = pid;
+    info.enable = freeze;
+    info.timeout_ms = timeout;
+    int error = binderConnector_->WriteBinder(BINDER_FREEZE, &info);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "failed, error:%{public}d", error);
+        return error;
+    }
+    return ERR_NONE;
+}
+
+int32_t BinderInvoker::GetProcessFreezeInfo(uint32_t pid, bool &isFrozen)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return IPC_INVOKER_CONNECT_ERR;
+    }
+    binder_proc_frozen_state info;
+    info.pid = pid;
+    info.has_not_frozen = false;
+    int error = binderConnector_->WriteBinder(BINDER_GET_FROZEN_STATE, &info);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "error:%{public}d", error);
+        return error;
+    }
+    isFrozen = !info.has_not_frozen;
+    return ERR_NONE;
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 int32_t BinderInvoker::GeneralServiceSendRequest(
     const binder_transaction_data &tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -1190,6 +1226,19 @@ void BinderInvoker::OnTransactionComplete(MessageParcel *reply, bool &continueLo
         continueLoop = false;
     }
 }
+
+#ifdef FREEZE_PROCESS_ENABLED
+void BinderInvoker::OnTransactionPendingFrozen(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd)
+{
+    (void)error;
+    (void)cmd;
+
+    if (reply == nullptr) {
+        continueLoop = false;
+    }
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 #ifndef __linux__
 bool BinderInvoker::GetDetailedErrorInfo(uint32_t &errorCode, std::string &errDesc)
 {
@@ -1238,8 +1287,16 @@ void BinderInvoker::DealWithCmd(MessageParcel *reply, bool &continueLoop, int32_
         case BR_TRANSACTION_COMPLETE:
             OnTransactionComplete(reply, continueLoop, error, cmd);
             break;
+#ifdef FREEZE_PROCESS_ENABLED
+        case BR_TRANSACTION_PENDING_FROZEN:
+            OnTransactionPendingFrozen(reply, continueLoop, error, cmd);
+            break;
+#endif // FREEZE_PROCESS_ENABLED
         case BR_DEAD_REPLY:
         case BR_FAILED_REPLY:
+#ifdef FREEZE_PROCESS_ENABLED
+        case BR_FROZEN_REPLY:
+#endif // FREEZE_PROCESS_ENABLED
             OnDeadOrFailedReply(reply, continueLoop, error, cmd);
             break;
         case BR_REPLY:

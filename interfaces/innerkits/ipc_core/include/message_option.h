@@ -26,6 +26,9 @@ public:
         TF_STATUS_CODE = 0x08,
         TF_ACCEPT_FDS = 0x10,
         TF_WAIT_TIME = 0x8,
+#ifdef FREEZE_PROCESS_ENABLED
+        TF_UPDATE_TXN = 0x40,
+#endif // FREEZE_PROCESS_ENABLED
         TF_ASYNC_WAKEUP_LATER = 0x100000,
     };
     MessageOption(int flags = TF_SYNC, int waitTime = TF_WAIT_TIME);

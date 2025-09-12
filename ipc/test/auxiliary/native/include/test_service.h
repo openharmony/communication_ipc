@@ -56,6 +56,9 @@ public:
     int TestSendTooManyRequest(int data, int &reply) override;
     int TestMultiThreadSendRequest(int data, int &reply) override;
     int TestQueryThreadInvocationState() override;
+#ifdef FREEZE_PROCESS_ENABLED
+    int TestFreezeProcess() override;
+#endif // FREEZE_PROCESS_ENABLED
 private:
     int testFd_;
     std::mutex remoteObjectsMutex_;

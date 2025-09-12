@@ -345,4 +345,11 @@ int TestService::TestQueryThreadInvocationState()
 
     return state;
 }
+
+#ifdef FREEZE_PROCESS_ENABLED
+int TestService::TestFreezeProcess()
+{
+    return 0;
+}
+#endif // FREEZE_PROCESS_ENABLED
 } // namespace OHOS

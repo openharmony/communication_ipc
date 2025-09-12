@@ -207,6 +207,33 @@ public:
      * @since 20
      */
     static uint32_t GetDCallingTokenID();
+
+#ifdef FREEZE_PROCESS_ENABLED
+    /**
+     * @brief Freeze binder transaction of the specific process.
+     * @note This function can only be used for local device processes.
+     * @param pid Process ID to freeze or unfreeze.
+     * @param freeze True to freeze the process, false to unfreeze it.
+     * @param timeout Timeout value in milliseconds to wait for the stub to finish processing requests before freezing.
+     * If the timeout is reached and processing is not completed, the freeze operation will be abandoned.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * defined in {@link ipc_types.h} otherwise.
+     * @since 20
+     */
+    static int32_t Freeze(uint32_t pid, bool freeze, uint32_t timeout);
+
+    /**
+     * @brief Get binder transaction freeze status of the specific process.
+     * @note This function can only be used for local device processes.
+     * @param pid Process ID to check.
+     * @param isFrozen Reference to a boolean variable that will store the freeze status of the process.
+     * True if the process is frozen, false otherwise.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * defined in {@link ipc_types.h} otherwise.
+     * @since 20
+     */
+    static int32_t GetProcessFreezeInfo(uint32_t pid, bool &isFrozen);
+#endif // FREEZE_PROCESS_ENABLED
 };
 
 class IPCDfx {

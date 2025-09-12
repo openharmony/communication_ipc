@@ -77,6 +77,10 @@ public:
     virtual sptr<IRemoteObject> GetSAMgrObject() override;
     virtual bool SetRegistryObject(sptr<IRemoteObject> &object) override;
     virtual void FreeBuffer(void *data) override;
+#ifdef FREEZE_PROCESS_ENABLED
+    virtual int32_t Freeze(uint32_t pid, bool freeze, uint32_t timeout) override;
+    virtual int32_t GetProcessFreezeInfo(uint32_t pid, bool &isFrozen) override;
+#endif // FREEZE_PROCESS_ENABLED
     virtual std::shared_ptr<T> WriteTransaction(int cmd, uint32_t flags, int32_t handle, int32_t socketId,
         uint32_t code, MessageParcel &data, uint64_t &seqNumber, int status);
     virtual int SendOrWaitForCompletion(int userWaitTime, uint64_t seqNumber, std::shared_ptr<T> sessionOfPeer,

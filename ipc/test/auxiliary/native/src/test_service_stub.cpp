@@ -72,6 +72,9 @@ void TestServiceStub::InitMessageProcessMap()
     funcMap_[static_cast<uint32_t>(TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT)] = &TestServiceStub::UnRegisterRemoteStub;
     funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_REMOTE_PROXY_OBJECT)] = &TestServiceStub::QueryRemoteProxy;
     funcMap_[static_cast<uint32_t>(TRANS_ID_QUERY_THREAD_INVOCATION_STATE)] = &TestServiceStub::ServerThreadInvocationState;
+#ifdef FREEZE_PROCESS_ENABLED
+    funcMap_[static_cast<uint32_t>(TRANS_ID_TEST_FREEZE_PROCESS)] = &TestServiceStub::ServerTestFreezeProcess;
+#endif // FREEZE_PROCESS_ENABLED
 }
 
 int32_t TestServiceStub::ServerSyncTransaction(MessageParcel &data, MessageParcel &reply)
@@ -483,4 +486,12 @@ int32_t TestServiceStub::ServerThreadInvocationState(MessageParcel &data, Messag
     reply.WriteInt32(ret);
     return ret;
 }
+
+#ifdef FREEZE_PROCESS_ENABLED
+int32_t TestServiceStub::ServerTestFreezeProcess(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteInt32(getpid());
+    return 0;
+}
+#endif // FREEZE_PROCESS_ENABLED
 }  // namespace OHOS

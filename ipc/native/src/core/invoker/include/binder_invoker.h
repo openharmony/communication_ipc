@@ -90,6 +90,12 @@ public:
     int SendRequest(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
         MessageOption &option) override;
 
+#ifdef FREEZE_PROCESS_ENABLED
+    int32_t Freeze(uint32_t pid, bool freeze, uint32_t timeout) override;
+
+    int32_t GetProcessFreezeInfo(uint32_t pid, bool &isFrozen) override;
+#endif // FREEZE_PROCESS_ENABLED
+
     int SendReply(MessageParcel &reply, uint32_t flags, int32_t result) override;
 
     bool FlattenObject(Parcel &parcel, const IRemoteObject *object) const override;
@@ -199,6 +205,10 @@ private:
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
 
     void OnTransactionComplete(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
+
+#ifdef FREEZE_PROCESS_ENABLED
+    void OnTransactionPendingFrozen(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
+#endif // FREEZE_PROCESS_ENABLED
 
     void OnDeadOrFailedReply(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
 
