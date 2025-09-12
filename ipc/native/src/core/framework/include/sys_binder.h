@@ -62,6 +62,21 @@ struct flat_binder_object {
     };
     binder_uintptr_t cookie;
 };
+
+#ifdef FREEZE_PROCESS_ENABLED
+struct binder_freeze_info {
+    __u32 pid;
+    __u32 enable;
+    __u32 timeout_ms;
+};
+
+struct binder_proc_frozen_state {
+    __u32 pid;
+    // false: process is fully frozen, true: process is not fully frozen
+    bool has_not_frozen;
+};
+#endif // FREEZE_PROCESS_ENABLED
+
 #ifndef __linux__
 #define HMB_ERROR_INFO_LEN 64
 struct hmb_detailed_err {
@@ -160,6 +175,10 @@ struct binder_sender_info {
 #define BINDER_GET_NODE_DEBUG_INFO _IOWR('b', 11, struct binder_node_debug_info)
 #define BINDER_GET_NODE_INFO_FOR_REF _IOWR('b', 12, struct binder_node_info_for_ref)
 #define BINDER_SET_CONTEXT_MGR_EXT _IOW('b', 13, struct flat_binder_object)
+#ifdef FREEZE_PROCESS_ENABLED
+#define BINDER_FREEZE _IOW('b', 14, struct binder_freeze_info)
+#define BINDER_GET_FROZEN_STATE _IOWR('b', 15, struct binder_proc_frozen_state)
+#endif // FREEZE_PROCESS_ENABLED
 #define BINDER_FEATURE_SET _IOWR('b', 30, struct binder_feature_set)
 #define BINDER_GET_ACCESS_TOKEN _IOWR('b', 31, struct access_token)
 #define BINDER_GET_SENDER_INFO _IOWR('b', 32, struct binder_sender_info)
@@ -241,7 +260,10 @@ enum binder_driver_return_protocol {
     BR_DEAD_BINDER = _IOR('r', 15, binder_uintptr_t),
     BR_CLEAR_DEATH_NOTIFICATION_DONE = _IOR('r', 16, binder_uintptr_t),
     BR_FAILED_REPLY = _IO('r', 17),
-    BR_RELEASE_NODE = _IO('r', 18),
+#ifdef FREEZE_PROCESS_ENABLED
+    BR_FROZEN_REPLY = _IO('r', 18),
+    BR_TRANSACTION_PENDING_FROZEN = _IO('r', 20),
+#endif // FREEZE_PROCESS_ENABLED
 };
 enum binder_driver_command_protocol {
     BC_TRANSACTION = _IOW('c', 0, struct binder_transaction_data),

@@ -51,6 +51,12 @@ public:
     virtual int SendRequest(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
         MessageOption &option) = 0;
 
+#ifdef FREEZE_PROCESS_ENABLED
+    virtual int32_t Freeze(uint32_t pid, bool freeze, uint32_t timeout) = 0;
+
+    virtual int32_t GetProcessFreezeInfo(uint32_t pid, bool &isFrozen) = 0;
+#endif // FREEZE_PROCESS_ENABLED
+
     virtual bool AddDeathRecipient(int32_t handle, void *cookie) = 0;
 
     virtual bool RemoveDeathRecipient(int32_t handle, void *cookie) = 0;

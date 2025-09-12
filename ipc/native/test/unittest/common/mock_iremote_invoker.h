@@ -41,6 +41,10 @@ public:
     MOCK_METHOD3(SendReply, int(MessageParcel &reply, uint32_t flags, int32_t result));
     MOCK_METHOD5(SendRequest, int(int handle, uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option));
+#ifdef FREEZE_PROCESS_ENABLED
+    MOCK_METHOD3(Freeze, int32_t(uint32_t pid, bool freeze, uint32_t timeout));
+    MOCK_METHOD2(GetProcessFreezeInfo, int32_t(uint32_t pid, bool &isFrozen));
+#endif // FREEZE_PROCESS_ENABLED
     MOCK_METHOD2(AddDeathRecipient, bool(int32_t handle, void *cookie));
     MOCK_METHOD2(RemoveDeathRecipient, bool(int32_t handle, void *cookie));
     MOCK_METHOD1(SetMaxWorkThread, bool(int maxThreadNum));

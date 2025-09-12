@@ -82,6 +82,15 @@ void TestCaseSyncTrans(std::shared_ptr<TestServiceClient> &testClient)
     }
 }
 
+#ifdef FREEZE_PROCESS_ENABLED
+void TestCaseFreezeProcess(std::shared_ptr<TestServiceClient> &testClient)
+{
+    bool ret = testClient->TestFreezeProcess();
+    std::cout << (ret ? "[PASS] Execution of TestFreezeProcess case Successful" :
+        "[FAILED] Execution of TestFreezeProcess case failed") << std::endl;
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 void TestCasePingService(std::shared_ptr<TestServiceClient> &testClient)
 {
     bool ret = testClient->StartPingService();
@@ -229,6 +238,9 @@ void ExecuteAllTestCase()
     TestCaseRegisterRemoteStub(testClient);
     TestCaseTooManyRequests(testClient);
     TestCaseMultiThreadSendRequest(testClient);
+#ifdef FREEZE_PROCESS_ENABLED
+    TestCaseFreezeProcess(testClient);
+#endif // FREEZE_PROCESS_ENABLED
     ZLOGI(LABEL, "All test cases have been executed");
 }
 

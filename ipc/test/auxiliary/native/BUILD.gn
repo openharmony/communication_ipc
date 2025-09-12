@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import("//build/ohos.gni")
+import("//foundation/communication/ipc/config.gni")
 
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
@@ -30,6 +31,10 @@ ohos_shared_library("ipc_test_helper") {
     "./src/test_service_proxy.cpp",
     "./src/test_service_stub.cpp",
   ]
+
+  if (ipc_feature_freeze_enabled) {
+    defines = [ "FREEZE_PROCESS_ENABLED" ]
+  }
 
   configs = [
     "$IPC_TEST_ROOT:ipc_test_config",
@@ -90,6 +95,10 @@ ohos_executable("ipc_client_test") {
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
   ]
 
+  if (ipc_feature_freeze_enabled) {
+    defines = [ "FREEZE_PROCESS_ENABLED" ]
+  }
+
   external_deps = [
     "access_token:libnativetoken_shared",
     "access_token:libtokensetproc_shared",
@@ -124,6 +133,10 @@ ohos_shared_library("ipc_test_helper_extra") {
     "$IPC_TEST_ROOT:ipc_test_config",
     "$SUBSYSTEM_DIR/config:ipc_util_config",
   ]
+
+  if (ipc_feature_freeze_enabled) {
+    defines = [ "FREEZE_PROCESS_ENABLED" ]
+  }
 
   deps = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/c_api:ipc_capi",
