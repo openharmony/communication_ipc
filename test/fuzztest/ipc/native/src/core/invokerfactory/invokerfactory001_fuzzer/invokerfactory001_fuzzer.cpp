@@ -14,6 +14,7 @@
  */
 
 #include "invokerfactory_fuzzer.h"
+#include <fuzzer/FuzzedDataProvider.h>
 #include "binder_invoker.h"
 #include "invoker_factory.h"
 #include "message_parcel.h"

@@ -93,7 +93,6 @@ void OnDatabusSessionServerSideClosedFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t socketId = provider.ConsumeIntegral<int32_t>();
     DBinderDatabusInvoker invoker;
-    invoker.OnDatabusSessionServerSideClosed(socketId);
 
     IPCProcessSkeleton *current = new (std::nothrow) IPCProcessSkeleton();
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
@@ -101,9 +100,9 @@ void OnDatabusSessionServerSideClosedFuzzTest(FuzzedDataProvider &provider)
         return;
     }
     current->exitFlag_ = false;
+    current->AddStubByIndex(stubObject.GetRefPtr());
     uint64_t stubIndex = current->randNum_;
     std::list<uint64_t> stubIndexs = {stubIndex};
-    current->AddStubByIndex(stubObject.GetRefPtr());
     NiceMock<DBinderDataBusInvokerInterfaceMock> mock;
     EXPECT_CALL(mock, GetCurrent()).WillRepeatedly(Return(current));
     EXPECT_CALL(mock, DetachAppAuthInfoBySocketId(socketId)).WillOnce(Return(stubIndexs));
