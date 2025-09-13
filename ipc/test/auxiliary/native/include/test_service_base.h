@@ -56,6 +56,9 @@ public:
         TRANS_ID_UNREGISTER_REMOTE_STUB_OBJECT = 24,
         TRANS_ID_QUERY_REMOTE_PROXY_OBJECT = 25,
         TRANS_ID_QUERY_THREAD_INVOCATION_STATE = 26,
+#ifdef FREEZE_PROCESS_ENABLED
+        TRANS_ID_TEST_FREEZE_PROCESS = 27,
+#endif // FREEZE_PROCESS_ENABLED
     };
 public:
     virtual int TestSyncTransaction(int value, int &reply, int delayTime = 0) = 0;
@@ -87,6 +90,9 @@ public:
     virtual int TestSendTooManyRequest(int data, int &reply) = 0;
     virtual int TestMultiThreadSendRequest(int data, int &reply) = 0;
     virtual int TestQueryThreadInvocationState() = 0;
+#ifdef FREEZE_PROCESS_ENABLED
+    virtual int TestFreezeProcess() = 0;
+#endif // FREEZE_PROCESS_ENABLED
 
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"test.ipc.ITestService");

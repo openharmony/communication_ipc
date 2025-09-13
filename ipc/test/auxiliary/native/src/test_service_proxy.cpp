@@ -95,6 +95,64 @@ int TestServiceProxy::TestSyncTransaction(int value, int &reply, int delayTime)
     return ret;
 }
 
+#ifdef FREEZE_PROCESS_ENABLED
+int TestServiceProxy::TestFreezeProcess()
+{
+    ZLOGI(LABEL, "TestFreezeProcess");
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ZLOGI(LABEL, "The obtained proxy is a null pointer");
+        return -1;
+    }
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    int ret = remote->SendRequest(TRANS_ID_TEST_FREEZE_PROCESS, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        return ret;
+    }
+    int pid = replyParcel.ReadInt32();
+    ZLOGI(LABEL, "Get pid from server, server pid = %{public}d", pid);
+
+    int timeout = 1000;
+    auto res = IPCSkeleton::Freeze(pid, true, timeout);
+    if (res != ERR_NONE) {
+        ZLOGI(LABEL, "Freeze failed, error code = %{public}d", res);
+        return res;
+    }
+
+    bool isFrozen = false;
+    res = IPCSkeleton::GetProcessFreezeInfo(pid, isFrozen);
+    if (res != ERR_NONE || !isFrozen) {
+        ZLOGI(LABEL, "GetProcessFreezeInfo failed, error code = %{public}d isFrozen = %{public}d ", res, isFrozen);
+        return -1;
+    }
+
+    ret = remote->SendRequest(TRANS_ID_TEST_FREEZE_PROCESS, dataParcel, replyParcel, option);
+    if (ret == ERR_NONE) {
+        ZLOGI(LABEL, "SendRequest success, so freeze process fail");
+        return -1;
+    }
+
+    res = IPCSkeleton::Freeze(pid, false, timeout);
+    if (res != ERR_NONE) {
+        ZLOGI(LABEL, "Unfreeze failed, error code = %{public}d", res);
+        return -1;
+    }
+
+    ret = remote->SendRequest(TRANS_ID_TEST_FREEZE_PROCESS, dataParcel, replyParcel, option);
+    if (ret != ERR_NONE) {
+        ZLOGI(LABEL, "SendRequest failed, error code = %{public}d", ret);
+        return -1;
+    }
+
+    ZLOGI(LABEL, "TestFreezeProcess success");
+    return 0;
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 int TestServiceProxy::TestSendTooManyRequest(int data, int &reply)
 {
     int ret = 0;

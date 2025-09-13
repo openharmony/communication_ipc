@@ -42,7 +42,6 @@ static const std::vector<uint32_t> cmdList = {
     binder_driver_return_protocol::BR_DEAD_BINDER,
     binder_driver_return_protocol::BR_CLEAR_DEATH_NOTIFICATION_DONE,
     binder_driver_return_protocol::BR_FAILED_REPLY,
-    binder_driver_return_protocol::BR_RELEASE_NODE,
 };
 
 void HandleReplyFuzzTest(FuzzedDataProvider &provider)

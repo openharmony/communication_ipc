@@ -122,6 +122,9 @@ ohos_shared_library("ipc_single") {
   if (hiviewdfx_hisysevent_support) {
     defines += [ "HIVIEWDFX_HISYSEVENT_SUPPORT" ]
   }
+  if (ipc_feature_freeze_enabled) {
+    defines += [ "FREEZE_PROCESS_ENABLED" ]
+  }
   innerapi_tags = [
     "chipsetsdk",
     "platformsdk",
@@ -163,6 +166,9 @@ ohos_shared_library("ipc_single_test") {
   }
   if (hiviewdfx_hisysevent_support) {
     defines += [ "HIVIEWDFX_HISYSEVENT_SUPPORT" ]
+  }
+  if (ipc_feature_freeze_enabled) {
+    defines += [ "FREEZE_PROCESS_ENABLED" ]
   }
   innerapi_tags = [
     "chipsetsdk_sp",

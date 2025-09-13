@@ -23,7 +23,8 @@
       "features": [
         "ipc_feature_rpc_enabled",
         "ipc_feature_test_enabled",
-        "ipc_feature_trace_enabled"
+        "ipc_feature_trace_enabled",
+        "ipc_feature_freeze_enabled"
       ],
       "syscap":[
         "SystemCapability.Communication.IPC.Core"

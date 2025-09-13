@@ -188,6 +188,20 @@ template <class T> void DBinderBaseInvoker<T>::FreeBuffer(void *data)
     return;
 }
 
+#ifdef FREEZE_PROCESS_ENABLED
+template <class T>
+int32_t DBinderBaseInvoker<T>::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
+{
+    return RPC_BASE_INVOKER_NOT_SUPPORT_ERR;
+}
+
+template <class T>
+int32_t DBinderBaseInvoker<T>::GetProcessFreezeInfo(uint32_t pid, bool &isFreeze)
+{
+    return RPC_BASE_INVOKER_NOT_SUPPORT_ERR;
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 template <class T> bool DBinderBaseInvoker<T>::CheckTransactionData(const dbinder_transaction_data *tr) const
 {
     if (tr->sizeOfSelf == 0 || tr->sizeOfSelf > SOCKET_MAX_BUFF_SIZE || tr->buffer_size > SOCKET_MAX_BUFF_SIZE ||

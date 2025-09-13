@@ -35,6 +35,7 @@
 #undef protected
 #undef private
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
@@ -906,4 +907,51 @@ HWTEST_F(IPCSkeletonTest, GetDCallingTokenIDInRPC, TestSize.Level1)
 
     ASSERT_EQ(tokenId, 0);
 }
+
+#ifdef FREEZE_PROCESS_ENABLED
+/**
+ * @tc.name: FreezeProcessTest
+ * @tc.desc: Verify the Freeze function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, FreezeProcessTest, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+
+    EXPECT_CALL(*binderInvoker, Freeze(_, _, _))
+        .WillRepeatedly(testing::Return(ERR_NONE));
+
+    ASSERT_EQ(IPCSkeleton::Freeze(0, true, 0), ERR_NONE);
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+    delete binderInvoker;
+}
+
+/**
+ * @tc.name: CheckFreezeTest
+ * @tc.desc: Verify the GetProcessFreezeInfo function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, CheckFreezeTest, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetProcessFreezeInfo(_, _))
+        .WillRepeatedly(testing::Return(ERR_NONE));
+
+    bool isFrozen = false;
+    ASSERT_EQ(IPCSkeleton::GetProcessFreezeInfo(0, isFrozen), ERR_NONE);
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+    delete binderInvoker;
+}
+#endif // FREEZE_PROCESS_ENABLED
 } // namespace OHOS

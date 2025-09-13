@@ -330,6 +330,26 @@ uint32_t IPCSkeleton::GetDCallingTokenID()
     return static_cast<uint32_t>(GetSelfTokenID());
 }
 
+#ifdef FREEZE_PROCESS_ENABLED
+int32_t IPCSkeleton::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker == nullptr) {
+        return IPC_SKELETON_NULL_OBJECT_ERR;
+    }
+    return invoker->Freeze(pid, freeze, timeout);
+}
+
+int32_t IPCSkeleton::GetProcessFreezeInfo(uint32_t pid, bool &isFrozen)
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker == nullptr) {
+        return IPC_SKELETON_NULL_OBJECT_ERR;
+    }
+    return invoker->GetProcessFreezeInfo(pid, isFrozen);
+}
+#endif // FREEZE_PROCESS_ENABLED
+
 void IPCDfx::BlockUntilThreadAvailable()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();

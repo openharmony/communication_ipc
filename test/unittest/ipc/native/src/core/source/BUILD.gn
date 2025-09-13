@@ -64,6 +64,10 @@ template("ipc_unittest") {
       "samgr:samgr_proxy",
     ]
 
+    if (ipc_feature_freeze_enabled) {
+      defines += [ "FREEZE_PROCESS_ENABLED" ]
+    }
+
     if (hiviewdfx_hisysevent_support) {
       external_deps += [ "hisysevent:libhisysevent" ]
     }
