@@ -25,6 +25,7 @@
 #include "ipc_process_skeleton.h"
 #include "sys_binder.h"
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 
@@ -830,4 +831,57 @@ HWTEST_F(BinderInvokerUnitTest, GetInvocationStateTest001, TestSize.Level1)
     binderInvoker.isFirstInvoke_ = STATUS_FIRST_INVOKE;
     EXPECT_EQ(binderInvoker.GetInvocationState(), STATUS_FIRST_INVOKE);
 }
+
+#ifdef FREEZE_PROCESS_ENABLED
+/**
+* @tc.name: FreezeProcessTest
+* @tc.desc: cover Freeze branch
+* @tc.type: FUNC
+*/
+HWTEST_F(BinderInvokerUnitTest, FreezeProcessTest, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    BinderConnector::instance_ = nullptr;
+    binderInvoker.binderConnector_ = BinderConnector::GetInstance();
+    EXPECT_EQ(binderInvoker.Freeze(getpid(), false, 1), ERR_NONE);
+
+    bool isFrozen = false;
+    EXPECT_EQ(binderInvoker.GetProcessFreezeInfo(1, isFrozen), ERR_NONE);
+}
+
+/**
+* @tc.name: FreezeProcessTest001
+* @tc.desc: cover Freeze branch
+* @tc.type: FUNC
+*/
+HWTEST_F(BinderInvokerUnitTest, FreezeProcessTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    binderInvoker.binderConnector_ = nullptr;
+    EXPECT_EQ(binderInvoker.Freeze(1, true, 1), IPC_INVOKER_CONNECT_ERR);
+
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    binderInvoker.binderConnector_ = binderConnector;
+    EXPECT_EQ(binderInvoker.Freeze(1, true, 1), IPC_INVOKER_CONNECT_ERR);
+}
+
+/**
+* @tc.name: GetProcessFreezeInfoTest
+* @tc.desc: cover GetProcessFreezeInfo branch
+* @tc.type: FUNC
+*/
+HWTEST_F(BinderInvokerUnitTest, GetProcessFreezeInfoTest, TestSize.Level1)
+{
+    bool isFrozen = false;
+    BinderInvoker binderInvoker;
+    binderInvoker.binderConnector_ = nullptr;
+    EXPECT_EQ(binderInvoker.GetProcessFreezeInfo(1, isFrozen), IPC_INVOKER_CONNECT_ERR);
+
+    BinderConnector *binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    binderInvoker.binderConnector_ = binderConnector;
+    EXPECT_EQ(binderInvoker.GetProcessFreezeInfo(1, isFrozen), IPC_INVOKER_CONNECT_ERR);
+}
+#endif // FREEZE_PROCESS_ENABLED
 } // namespace OHOS

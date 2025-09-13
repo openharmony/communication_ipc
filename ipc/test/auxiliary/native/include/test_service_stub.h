@@ -50,6 +50,9 @@ private:
     int32_t QueryRemoteProxy(MessageParcel &data, MessageParcel &reply);
     int32_t ServerFlushAsyncCalls(MessageParcel &data, MessageParcel &reply);
     int32_t ServerThreadInvocationState(MessageParcel &data, MessageParcel &reply);
+#ifdef FREEZE_PROCESS_ENABLED
+    int32_t ServerTestFreezeProcess(MessageParcel &data, MessageParcel &reply);
+#endif // FREEZE_PROCESS_ENABLED
     void InitMessageProcessMap();
 
     using TestServiceStubFunc = int32_t(TestServiceStub::*)(MessageParcel &data, MessageParcel &reply);

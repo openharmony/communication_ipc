@@ -45,6 +45,9 @@ public:
     bool TestUnRegisterRemoteStub();
     bool TestSendTooManyRequest();
     bool TestMultiThreadSendRequest();
+#ifdef FREEZE_PROCESS_ENABLED
+    bool TestFreezeProcess();
+#endif // FREEZE_PROCESS_ENABLED
     bool TestQueryThreadInvocationState();
 
 private:
