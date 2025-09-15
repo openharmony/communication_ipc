@@ -106,6 +106,7 @@ void NoticeDeviceDieTest(FuzzedDataProvider &provider)
     remoteListener->clientSocketInfos_[deviceID] = socketId;
     dBinderService->remoteListener_ = remoteListener;
     dBinderService->NoticeDeviceDie(deviceID);
+    dBinderService->StopRemoteListener();
 }
 
 void MakeSessionByReplyMessageTest(FuzzedDataProvider &provider)
