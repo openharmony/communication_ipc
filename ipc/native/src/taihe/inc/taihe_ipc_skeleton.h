@@ -36,6 +36,12 @@ public:
     static int32_t GetCallingPid();
     static int32_t GetCallingUid();
     static int64_t GetCallingTokenId();
+    static ::taihe::string ResetCallingIdentity();
+    static void RestoreCallingIdentity(::taihe::string_view identity);
+    static void FlushCmdBuffer(::ohos::rpc::rpc::IRemoteObjectUnion const& object);
+    static ::taihe::string GetCallingDeviceID();
+    static ::taihe::string GetLocalDeviceID();
+    static bool IsLocalCalling();
 
     static ::ohos::rpc::rpc::IRemoteObjectUnion GetContextObject();
 };

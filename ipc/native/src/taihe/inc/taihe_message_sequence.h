@@ -64,6 +64,10 @@ public:
 
     void WriteLong(int64_t val);
 
+    void WriteDouble(double val);
+
+    void WriteChar(int16_t val);
+
     void WriteBoolean(bool val);
 
     void WriteString(::taihe::string_view val);
@@ -72,15 +76,25 @@ public:
 
     void WriteByteArray(::taihe::array_view<int8_t> byteArray);
 
+    void WriteShortArray(::taihe::array_view<int16_t> shortArray);
+
     void WriteIntArray(::taihe::array_view<int32_t> intArray);
+
+    void WriteLongArray(::taihe::array_view<int64_t> longArray);
+
+    void WriteFloatArray(::taihe::array_view<float> floatArray);
 
     void WriteDoubleArray(::taihe::array_view<double> doubleArray);
 
     void WriteBooleanArray(::taihe::array_view<bool> booleanArray);
 
+    void WriteCharArray(::taihe::array_view<int16_t> charArray);
+
     void WriteStringArray(::taihe::array_view<::taihe::string> stringArray);
 
     void WriteParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray);
+
+    void WriteRemoteObjectArray(::taihe::array_view<::ohos::rpc::rpc::IRemoteObjectUnion> objectArray);
 
     int32_t ReadInt();
 
@@ -99,6 +113,24 @@ public:
     ::taihe::array<bool> ReadBooleanArrayImpl();
 
     ::taihe::array<::taihe::string> ReadStringArrayImpl();
+
+    ::taihe::array<int16_t> ReadCharArrayImpl();
+
+    ::taihe::array<double> ReadFloatArrayImpl();
+
+    ::taihe::array<int64_t> ReadLongArrayImpl();
+
+    ::taihe::array<int16_t> ReadShortArrayImpl();
+
+    int16_t ReadChar();
+
+    double ReadFloat();
+
+    double ReadDouble();
+
+    int16_t ReadShort();
+
+    int8_t ReadByte();
 
     void ReadParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray);
 
@@ -122,8 +154,71 @@ public:
     static void CloseFileDescriptor(int32_t fd);
 
     int64_t GetMessageSequenceImpl();
+
+    void WriteArrayBuffer(::taihe::array_view<uint8_t> buf, ::ohos::rpc::rpc::TypeCode typeCode);
+
+    bool WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::TypeCode typeCode, int32_t byteLength);
+
+    ::taihe::array<uint8_t> ReadArrayBuffer(::ohos::rpc::rpc::TypeCode typeCode);
+
+    ::taihe::array<uint8_t> ReadInt8ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadUInt8ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadInt16ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadUInt16ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadInt32ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadUInt32ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadFloatArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadDoubleArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadInt64ArrayBuffer();
+
+    ::taihe::array<uint8_t> ReadUInt64ArrayBuffer();
+
+    int64_t GetSize();
+
+    int64_t GetWritableBytes();
+
+    int64_t GetReadableBytes();
+
+    int64_t GetReadPosition();
+
+    int64_t GetWritePosition();
+
+    bool ContainFileDescriptors();
+
+    int64_t GetRawDataCapacity();
+
+    void RewindRead(int64_t pos);
+
+    void RewindWrite(int64_t pos);
+
+    void SetSize(int64_t size);
+
+    ::taihe::array<::ohos::rpc::rpc::IRemoteObjectUnion> ReadRemoteObjectArrayImpl();
+
+    ::taihe::array<int8_t> ReadByteArrayGet();
+
+    void ReadByteArrayIn(::taihe::array_view<int8_t> dataIn);
+
+    void WriteByte(int8_t val);
+
+    void WriteShort(int16_t val);
+
+    void WriteFloat(double val);
+
+    static int32_t DupFileDescriptor(int32_t fd);
+
     static ::ohos::rpc::rpc::MessageSequence RpcTransferStaicImpl(uintptr_t input);
+
     static uintptr_t RpcTransferDynamicImpl(::ohos::rpc::rpc::MessageSequence obj);
+
     static void CreateJsMessageSequence(napi_env jsenv, napi_status status,
             napi_value global, napi_value* jsMessageSequence);
 
