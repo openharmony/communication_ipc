@@ -131,11 +131,11 @@ static void SendRequestFuzzTest001(FuzzedDataProvider &provider)
 {
     uint32_t code = provider.ConsumeIntegral<uint32_t>();
     MessageParcel data;
-    size_t dataBytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    size_t dataBytesSize = provider.ConsumeIntegralInRange<size_t>(MIN_BYTE_SIZE, MAX_BYTE_SIZE);
     std::vector<uint8_t> dataBytes = provider.ConsumeBytes<uint8_t>(dataBytesSize);
     data.WriteBuffer(dataBytes.data(), dataBytes.size());
     MessageParcel reply;
-    size_t replyBytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    size_t replyBytesSize = provider.ConsumeIntegralInRange<size_t>(MIN_BYTE_SIZE, MAX_BYTE_SIZE);
     std::vector<uint8_t> replyBytes = provider.ConsumeBytes<uint8_t>(replyBytesSize);
     reply.WriteBuffer(replyBytes.data(), replyBytes.size());
     MessageOption option;
@@ -146,11 +146,11 @@ static void SendRequestFuzzTest001(FuzzedDataProvider &provider)
 static void SendRequestFuzzTest002(FuzzedDataProvider &provider)
 {
     MessageParcel data;
-    size_t dataBytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    size_t dataBytesSize = provider.ConsumeIntegralInRange<size_t>(MIN_BYTE_SIZE, MAX_BYTE_SIZE);
     std::vector<uint8_t> dataBytes = provider.ConsumeBytes<uint8_t>(dataBytesSize);
     data.WriteBuffer(dataBytes.data(), dataBytes.size());
     MessageParcel reply;
-    size_t replyBytesSize = provider.ConsumeIntegralInRange<size_t>(1, 50);
+    size_t replyBytesSize = provider.ConsumeIntegralInRange<size_t>(MIN_BYTE_SIZE, MAX_BYTE_SIZE);
     std::vector<uint8_t> replyBytes = provider.ConsumeBytes<uint8_t>(replyBytesSize);
     reply.WriteBuffer(replyBytes.data(), replyBytes.size());
     MessageOption option;

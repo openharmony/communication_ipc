@@ -84,7 +84,7 @@ HiTraceId HitraceInvoker::TraceClientSend(int32_t handle, uint32_t code, Message
     return childId;
 }
 
-void HitraceInvoker::TraceClientReceieve(int32_t handle, uint32_t code, uint32_t flags, const HiTraceId &traceId,
+void HitraceInvoker::TraceClientReceive(int32_t handle, uint32_t code, uint32_t flags, const HiTraceId &traceId,
     const HiTraceId &childId)
 {
     if (!(flags & TF_HITRACE)) {
@@ -112,7 +112,7 @@ void HitraceInvoker::RecoveryDataAndFlag(Parcel &data, uint32_t &flags, size_t o
     flags &= ~(uint32_t)TF_HITRACE;
 }
 
-bool HitraceInvoker::TraceServerReceieve(uint64_t handle, uint32_t code, MessageParcel &data, uint32_t &flags)
+bool HitraceInvoker::TraceServerReceive(uint64_t handle, uint32_t code, MessageParcel &data, uint32_t &flags)
 {
     bool isServerTraced = (flags & TF_HITRACE) != 0;
     if (!isServerTraced) {
