@@ -101,6 +101,7 @@ DO_GRANT:
 int32_t DBinderSoftbusClient::DBinderRemovePermission(const std::string &socketName)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
+    std::lock_guard<std::mutex> lockGuard(permissionMutex_);
     if (removePermissionFunc_ != nullptr) {
         goto DO_REMOVE;
     }
