@@ -66,7 +66,7 @@ public:
 
     void WriteDouble(double val);
 
-    void WriteChar(int16_t val);
+    void WriteChar(int32_t val);
 
     void WriteBoolean(bool val);
 
@@ -76,19 +76,19 @@ public:
 
     void WriteByteArray(::taihe::array_view<int8_t> byteArray);
 
-    void WriteShortArray(::taihe::array_view<int16_t> shortArray);
+    void WriteShortArray(::taihe::array_view<int32_t> shortArray);
 
     void WriteIntArray(::taihe::array_view<int32_t> intArray);
 
     void WriteLongArray(::taihe::array_view<int64_t> longArray);
 
-    void WriteFloatArray(::taihe::array_view<float> floatArray);
+    void WriteFloatArray(::taihe::array_view<double> floatArray);
 
     void WriteDoubleArray(::taihe::array_view<double> doubleArray);
 
     void WriteBooleanArray(::taihe::array_view<bool> booleanArray);
 
-    void WriteCharArray(::taihe::array_view<int16_t> charArray);
+    void WriteCharArray(::taihe::array_view<int32_t> charArray);
 
     void WriteStringArray(::taihe::array_view<::taihe::string> stringArray);
 
@@ -114,23 +114,23 @@ public:
 
     ::taihe::array<::taihe::string> ReadStringArrayImpl();
 
-    ::taihe::array<int16_t> ReadCharArrayImpl();
+    ::taihe::array<int32_t> ReadCharArrayImpl();
 
     ::taihe::array<double> ReadFloatArrayImpl();
 
     ::taihe::array<int64_t> ReadLongArrayImpl();
 
-    ::taihe::array<int16_t> ReadShortArrayImpl();
+    ::taihe::array<int32_t> ReadShortArrayImpl();
 
-    int16_t ReadChar();
+    int32_t ReadChar();
 
     double ReadFloat();
 
     double ReadDouble();
 
-    int16_t ReadShort();
+    int32_t ReadShort();
 
-    int8_t ReadByte();
+    int32_t ReadByte();
 
     void ReadParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray);
 
@@ -181,35 +181,35 @@ public:
 
     ::taihe::array<uint8_t> ReadUInt64ArrayBuffer();
 
-    int64_t GetSize();
+    int32_t GetSize();
 
-    int64_t GetWritableBytes();
+    int32_t GetWritableBytes();
 
-    int64_t GetReadableBytes();
+    int32_t GetReadableBytes();
 
-    int64_t GetReadPosition();
+    int32_t GetReadPosition();
 
-    int64_t GetWritePosition();
+    int32_t GetWritePosition();
 
     bool ContainFileDescriptors();
 
-    int64_t GetRawDataCapacity();
+    int32_t GetRawDataCapacity();
 
-    void RewindRead(int64_t pos);
+    void RewindRead(int32_t pos);
 
-    void RewindWrite(int64_t pos);
+    void RewindWrite(int32_t pos);
 
-    void SetSize(int64_t size);
+    void SetSize(int32_t size);
 
     ::taihe::array<::ohos::rpc::rpc::IRemoteObjectUnion> ReadRemoteObjectArrayImpl();
 
-    ::taihe::array<int8_t> ReadByteArrayGet();
+    ::taihe::array<int32_t> ReadByteArrayGet();
 
-    void ReadByteArrayIn(::taihe::array_view<int8_t> dataIn);
+    void ReadByteArrayIn(::taihe::array_view<int32_t> dataIn);
 
-    void WriteByte(int8_t val);
+    void WriteByte(int32_t val);
 
-    void WriteShort(int16_t val);
+    void WriteShort(int32_t val);
 
     void WriteFloat(double val);
 
