@@ -1120,7 +1120,7 @@ function testMessageSequence_GetSize() {
     let data = rpc.MessageSequence.create();
     console.println(`data gen`);
     try {
-        let size: long = 123;
+        let size: int = 123;
         data.setSize(size);
         console.println(`setSize success`);
         let res: long = data.getSize();
@@ -1624,7 +1624,7 @@ function testMessageSequence_writeCharArray() {
     try {
         let data = rpc.MessageSequence.create();
         console.println(`data gen`);
-        let a: Array<byte> = [97, 98];
+        let a: Array<int> = [97, 98];
         data.writeCharArray(a);
         console.println(`writeRemoteObject success`);
         let res = data.readCharArray();
@@ -1658,7 +1658,7 @@ function testMessageSequence_writeShortArray() {
     try {
         let data = rpc.MessageSequence.create();
         console.println(`data gen`);
-        let a: Array<byte> = [100, 101];
+        let a: Array<int> = [100, 101];
         data.writeShortArray(a);
         console.println(`writeRemoteObject success`);
         let res = data.readShortArray();

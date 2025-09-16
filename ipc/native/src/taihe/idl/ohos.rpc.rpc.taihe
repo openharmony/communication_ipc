@@ -130,18 +130,18 @@ interface MessageSequence {
     WriteLong(val: i64): void;
     WriteDouble(val: f64): void;
     WriteBoolean(val: bool): void;
-    WriteChar(val: i16): void;
+    WriteChar(val: i32): void;
     WriteString(val: String): void;
     WriteParcelable(val: Parcelable): void;
 
     WriteByteArray(byteArray: Array<i8>): void;
-    WriteShortArray(shortArray: Array<i16>): void;
+    WriteShortArray(shortArray: Array<i32>): void;
     WriteIntArray(intArray: Array<i32>): void;
     WriteLongArray(longArray: Array<i64>): void;
-    WriteFloatArray(floatArray: Array<f32>): void;
+    WriteFloatArray(floatArray: Array<f64>): void;
     WriteDoubleArray(doubleArray: Array<f64>): void;
     WriteBooleanArray(booleanArray: Array<bool>): void;
-    WriteCharArray(charArray: Array<i16>): void;
+    WriteCharArray(charArray: Array<i32>): void;
     WriteStringArray(stringArray: Array<String>): void;
     WriteParcelableArray(parcelableArray: Array<Parcelable>): void;
     WriteRemoteObjectArray(objectArray: Array<IRemoteObjectUnion>): void;
@@ -208,10 +208,10 @@ interface MessageSequence {
     """)
 
     @overload("readCharArray")
-    ReadCharArrayImpl(): Array<i16>;
+    ReadCharArrayImpl(): Array<i32>;
     @!sts_inject_into_class("""
-        readCharArray(dataIn: Array<short>): void {
-            let res: Array<short> = this.readCharArray();
+        readCharArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readCharArray();
             for (let i = 0; i < res.length; i++) {
                 dataIn[i] = res[i];
             }
@@ -241,10 +241,10 @@ interface MessageSequence {
     """)
 
     @overload("readShortArray")
-    ReadShortArrayImpl(): Array<i16>;
+    ReadShortArrayImpl(): Array<i32>;
     @!sts_inject_into_class("""
-        readShortArray(dataIn: Array<short>): void {
-            let res: Array<short> = this.readShortArray();
+        readShortArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readShortArray();
             for (let i = 0; i < res.length; i++) {
                 dataIn[i] = res[i];
             }
@@ -252,18 +252,18 @@ interface MessageSequence {
     """)
 
     @overload("readByteArray")
-    ReadByteArrayGet(): Array<i8>;
+    ReadByteArrayGet(): Array<i32>;
     @overload("readByteArray")
-    ReadByteArrayIn(dataIn: Array<i8>);
+    ReadByteArrayIn(dataIn: Array<i32>);
 
-    ReadChar(): i16;
+    ReadChar(): i32;
     ReadFloat(): f64;
     ReadDouble(): f64;
-    ReadShort(): i16;
-    ReadByte(): i8;
-    RewindRead(pos: i64): void;
-    RewindWrite(pos: i64): void;
-    SetSize(size: i64): void;
+    ReadShort(): i32;
+    ReadByte(): i32;
+    RewindRead(pos: i32): void;
+    RewindWrite(pos: i32): void;
+    SetSize(size: i32): void;
 
     ReadParcelableArray(parcelableArray: Array<Parcelable>): void;
 
@@ -283,19 +283,19 @@ interface MessageSequence {
 
     ReadArrayBuffer(typeCode: TypeCode): @arraybuffer Array<u8>;
 
-    GetSize(): i64;
+    GetSize(): i32;
 
-    GetWritableBytes(): i64;
+    GetWritableBytes(): i32;
 
-    GetReadableBytes(): i64;
+    GetReadableBytes(): i32;
 
-    GetReadPosition(): i64;
+    GetReadPosition(): i32;
 
-    GetWritePosition(): i64;
+    GetWritePosition(): i32;
 
     ContainFileDescriptors(): bool;
 
-    GetRawDataCapacity(): i64;
+    GetRawDataCapacity(): i32;
 
     WriteByte(val: i8): void;
 
