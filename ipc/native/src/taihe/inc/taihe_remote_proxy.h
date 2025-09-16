@@ -34,7 +34,7 @@ namespace OHOS {
 
 class RemoteProxyImpl {
 public:
-    RemoteProxyImpl(uintptr_t nativePtr, bool bRemoteObj = false);
+    RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj = false);
 
     ::ohos::rpc::rpc::IRemoteBroker GetLocalInterface(::taihe::string_view descriptor);
 
