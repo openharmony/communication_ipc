@@ -196,21 +196,27 @@ int ANIRemoteObject::GetObjectType() const
 }
 
 // RemoteProxyImpl
-RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool bRemoteObj)
+RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj)
 {
     if (reinterpret_cast<void*>(nativePtr) == nullptr) {
         ZLOGE(LOG_LABEL, "nativePtr is null");
         TH_THROW(std::runtime_error, "RemoteProxyImpl nativePtr is nullptr");
         return;
     }
-    if (bRemoteObj) {
+    if (isCreateJsRemoteObj) {
         auto proxy = reinterpret_cast<RemoteObjectTaiheAni *>(nativePtr);
         if (proxy == nullptr) {
             ZLOGE(LOG_LABEL, "reinterpret_cast nativePtr failed");
             TH_THROW(std::runtime_error, "RemoteProxyImpl reinterpret_cast nativePtr failed");
             return;
         }
-        remoteObject_ = proxy->nativeObject_;
+        auto ipcObjectProxy = reinterpret_cast<OHOS::IPCObjectProxy *>((proxy->nativeObject_).GetRefPtr());
+        if (ipcObjectProxy == nullptr) {
+            ZLOGE(LOG_LABEL, "reinterpret_cast nativeObject failed");
+            TH_THROW(std::runtime_error, "RemoteProxyImpl reinterpret_cast nativeObject failed");
+            return;
+        }
+        cachedObject_ = ipcObjectProxy;
         return;
     }
     auto proxy = reinterpret_cast<OHOS::IPCObjectProxy *>(nativePtr);
