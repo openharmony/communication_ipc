@@ -239,11 +239,11 @@ HWTEST_F(HitraceInvokerTest, RecoveryDataAndFlagTest001, TestSize.Level1)  // li
 }
 
 /**
- * @tc.name: TraceServerReceieveTest001
- * @tc.desc: TraceServerReceieve
+ * @tc.name: TraceServerReceiveTest001
+ * @tc.desc: TraceServerReceive
  * @tc.type: FUNC
  */
-HWTEST_F(HitraceInvokerTest, TraceServerReceieveTest001, TestSize.Level1)  // line: 150
+HWTEST_F(HitraceInvokerTest, TraceServerReceiveTest001, TestSize.Level1)  // line: 150
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     int handle = 1;
@@ -256,16 +256,16 @@ HWTEST_F(HitraceInvokerTest, TraceServerReceieveTest001, TestSize.Level1)  // li
     EXPECT_CALL(mock, GetDataSize).WillRepeatedly(Return(num + 8));
     EXPECT_CALL(mock, ReadUint8).WillOnce(Return(num + 2));
     EXPECT_CALL(mock, ReadUnpadBuffer).WillOnce(Return(&readUnpadBuffer));
-    bool ret = HitraceInvoker::TraceServerReceieve(handle, code, data, flags);
+    bool ret = HitraceInvoker::TraceServerReceive(handle, code, data, flags);
     EXPECT_EQ(ret, true);
 }
 
 /**
- * @tc.name: TraceServerReceieveTest002
- * @tc.desc: TraceServerReceieve
+ * @tc.name: TraceServerReceiveTest002
+ * @tc.desc: TraceServerReceive
  * @tc.type: FUNC
  */
-HWTEST_F(HitraceInvokerTest, TraceServerReceieveTest002, TestSize.Level1)  // line: 136
+HWTEST_F(HitraceInvokerTest, TraceServerReceiveTest002, TestSize.Level1)  // line: 136
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     int handle = 1;
@@ -277,16 +277,16 @@ HWTEST_F(HitraceInvokerTest, TraceServerReceieveTest002, TestSize.Level1)  // li
     EXPECT_CALL(mock, GetDataSize).WillRepeatedly(Return(num + 8));
     EXPECT_CALL(mock, ReadUint8).WillOnce(Return(num + 2));
     EXPECT_CALL(mock, ReadUnpadBuffer).WillOnce(Return(nullptr));
-    bool ret = HitraceInvoker::TraceServerReceieve(handle, code, data, flags);
+    bool ret = HitraceInvoker::TraceServerReceive(handle, code, data, flags);
     EXPECT_EQ(ret, false);
 }
 
 /**
- * @tc.name: TraceServerReceieveTest003
- * @tc.desc: TraceServerReceieve
+ * @tc.name: TraceServerReceiveTest003
+ * @tc.desc: TraceServerReceive
  * @tc.type: FUNC
  */
-HWTEST_F(HitraceInvokerTest, TraceServerReceieveTest003, TestSize.Level1)  // line: 154
+HWTEST_F(HitraceInvokerTest, TraceServerReceiveTest003, TestSize.Level1)  // line: 154
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     int handle = 1;
@@ -297,7 +297,7 @@ HWTEST_F(HitraceInvokerTest, TraceServerReceieveTest003, TestSize.Level1)  // li
 
     EXPECT_CALL(mock, GetDataSize).WillRepeatedly(Return(num + 8));
     EXPECT_CALL(mock, ReadUint8).WillOnce(Return(num - 1));
-    bool ret = HitraceInvoker::TraceServerReceieve(handle, code, data, flags);
+    bool ret = HitraceInvoker::TraceServerReceive(handle, code, data, flags);
     EXPECT_EQ(ret, true);
 }
 

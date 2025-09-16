@@ -35,7 +35,7 @@ void TraceClientSendFuzzTest(FuzzedDataProvider &provider)
     HitraceInvoker::TraceClientSend(handle, code, data, flags, traceId);
 }
 
-void TraceClientReceieveFuzzTest(FuzzedDataProvider &provider)
+void TraceClientReceiveFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t handle = provider.ConsumeIntegral<int32_t>();
     uint32_t code = provider.ConsumeIntegral<uint32_t>();
@@ -49,7 +49,7 @@ void TraceClientReceieveFuzzTest(FuzzedDataProvider &provider)
     id.parentSpanId = provider.ConsumeIntegral<uint64_t>();
     HiviewDFX::HiTraceId traceId(id);
     HiviewDFX::HiTraceId childId;
-    HitraceInvoker::TraceClientReceieve(handle, code, flags, traceId, childId);
+    HitraceInvoker::TraceClientReceive(handle, code, flags, traceId, childId);
 }
 
 void RecoveryDataAndFlagFuzzTest(FuzzedDataProvider &provider)
@@ -64,7 +64,7 @@ void RecoveryDataAndFlagFuzzTest(FuzzedDataProvider &provider)
     HitraceInvoker::RecoveryDataAndFlag(data, flags, oldReadPosition, idLen);
 }
 
-void TraceServerReceieveFuzzTest(FuzzedDataProvider &provider)
+void TraceServerReceiveFuzzTest(FuzzedDataProvider &provider)
 {
     uint64_t handle = provider.ConsumeIntegral<uint64_t>();
     uint32_t code = provider.ConsumeIntegral<uint32_t>();
@@ -73,7 +73,7 @@ void TraceServerReceieveFuzzTest(FuzzedDataProvider &provider)
     size_t size = provider.ConsumeIntegralInRange<size_t>(1, 50);
     std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(size);
     data.WriteBuffer(bytes.data(), bytes.size());
-    HitraceInvoker::TraceServerReceieve(handle, code, data, flags);
+    HitraceInvoker::TraceServerReceive(handle, code, data, flags);
 }
 
 void TraceServerSendFuzzTest(FuzzedDataProvider &provider)
@@ -93,9 +93,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
     OHOS::TraceClientSendFuzzTest(provider);
-    OHOS::TraceClientReceieveFuzzTest(provider);
+    OHOS::TraceClientReceiveFuzzTest(provider);
     OHOS::RecoveryDataAndFlagFuzzTest(provider);
-    OHOS::TraceServerReceieveFuzzTest(provider);
+    OHOS::TraceServerReceiveFuzzTest(provider);
     OHOS::TraceServerSendFuzzTest(provider);
     return 0;
 }

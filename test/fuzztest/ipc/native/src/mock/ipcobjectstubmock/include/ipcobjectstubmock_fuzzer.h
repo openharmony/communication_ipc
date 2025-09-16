@@ -16,6 +16,11 @@
 #ifndef IPCOBJECTSTUBMOCK_FUZZER_H
 #define IPCOBJECTSTUBMOCK_FUZZER_H
 
+namespace OHOS {
+static constexpr uint32_t MIN_BYTE_SIZE = 1;
+static constexpr uint32_t MAX_BYTE_SIZE = 50;
+} // namespace OHOS
+
 #define FUZZ_PROJECT_NAME "ipcobjectstubmock_fuzzer"
 
 #endif // IPCOBJECTSTUBMOCK_FUZZER_H

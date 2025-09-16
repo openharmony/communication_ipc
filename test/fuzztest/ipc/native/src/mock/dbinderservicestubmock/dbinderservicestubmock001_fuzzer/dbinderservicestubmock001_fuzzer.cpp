@@ -33,6 +33,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 static constexpr uint32_t DBINDER_HANDLE_BASE = 100000 * 6872;
+static constexpr pid_t VALID_PID = 1;
+static constexpr pid_t INVALID_PID = -1;
 const static size_t MAX_STRING_PARAM_LEN = 100;
 
 class DbinderServiceStub {
@@ -275,13 +277,13 @@ void ProcessProtoFuzzTest001(FuzzedDataProvider &provider)
     binder_uintptr_t stub = reinterpret_cast<binder_uintptr_t>(&dBinderServiceStub);
     dBinderService->AttachSessionObject(sessionInfo, stub);
     EXPECT_CALL(mock, GetInstance).WillOnce(Return(dBinderService));
-    EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(-1));
-    EXPECT_CALL(mock, GetCallingPid).WillOnce(Return(-1));
+    EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(INVALID_PID));
+    EXPECT_CALL(mock, GetCallingPid).WillOnce(Return(INVALID_PID));
     dBinderServiceStub.ProcessProto(code, data, reply, option);
 
     EXPECT_CALL(mock, GetInstance).WillOnce(Return(dBinderService));
-    EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(1));
-    EXPECT_CALL(mock, GetCallingPid).WillOnce(Return(1));
+    EXPECT_CALL(mock, GetCallingUid).WillOnce(Return(VALID_PID));
+    EXPECT_CALL(mock, GetCallingPid).WillOnce(Return(VALID_PID));
     EXPECT_CALL(mock, CreateDatabusName).WillOnce(Return("DatabusName"));
     dBinderServiceStub.ProcessProto(code, data, reply, option);
 }
@@ -309,8 +311,8 @@ void ProcessProtoFuzzTest002(FuzzedDataProvider &provider)
     MessageOption option;
     NiceMock<DbinderServiceStubMock> mock;
     EXPECT_CALL(mock, GetInstance).WillRepeatedly(testing::Return(dBinderService));
-    EXPECT_CALL(mock, GetCallingUid).WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(mock, GetCallingPid).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, GetCallingUid).WillRepeatedly(testing::Return(VALID_PID));
+    EXPECT_CALL(mock, GetCallingPid).WillRepeatedly(testing::Return(VALID_PID));
     EXPECT_CALL(mock, CreateDatabusName).WillRepeatedly(testing::Return("DatabusName"));
     EXPECT_CALL(mock, WriteUint32).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(mock, WriteUint64).WillRepeatedly(testing::Return(true));

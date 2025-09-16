@@ -148,7 +148,7 @@ static void DBinderGetSessionNameFuzzTest003(FuzzedDataProvider &provider)
     MessageOption option;
     NiceMock<IPCObjectStubInterfaceMock> mockClient;
     EXPECT_CALL(mockClient, IsLocalCalling).WillRepeatedly(Return(true));
-    EXPECT_CALL(mockClient, GetSessionName).WillRepeatedly(Return("sessionname"));
+    EXPECT_CALL(mockClient, GetSessionName).WillRepeatedly(Return("sessionName"));
     EXPECT_CALL(mockClient, WriteString).WillRepeatedly(Return(false));
     IPCObjectStub ipcObjectStub;
     ipcObjectStub.DBinderGetSessionName(code, data, reply, option);
