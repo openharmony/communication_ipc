@@ -31,6 +31,10 @@ public:
     virtual ~NAPI_MessageSequence();
     std::shared_ptr<MessageParcel> GetMessageParcel();
     static napi_value Export(napi_env env, napi_value exports);
+    MessageParcel* GetNativeParcel() const
+    {
+        return nativeParcel_.get();
+    }
 private:
     // Napi methods and properties
     static napi_value JS_create(napi_env env, napi_callback_info info);
