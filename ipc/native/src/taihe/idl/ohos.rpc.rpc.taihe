@@ -297,9 +297,9 @@ interface MessageSequence {
 
     GetRawDataCapacity(): i32;
 
-    WriteByte(val: i8): void;
+    WriteByte(val: i32): void;
 
-    WriteShort(val: i16): void;
+    WriteShort(val: i32): void;
 
     WriteFloat(val: f64): void;
 }
