@@ -32,6 +32,7 @@ if (support_jsapi) {
       "../../../utils/include",
       "../../../ipc/native/src/napi_common/include",
     ]
+    all_dependent_configs = [ ":napi_common_deps_config" ]
     public_configs = [ ":napi_common_deps_config" ]
 
     sources = [
