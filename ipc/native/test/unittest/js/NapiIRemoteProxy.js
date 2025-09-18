@@ -2063,6 +2063,1065 @@ export default function ActsRpcClientEtsTest() {
         }
         console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0310---------------------------");
     });
+	  /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0320
+         * @tc.name    : test writeStringArray Interface for length verification of input parameters
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0320", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0320---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                let wStringArryData = [];
+                for (let i = 0; i < 10 * K; i++) {
+                    wStringArryData[i] = "heddSDF";
+                };
+                data.writeStringArray(wStringArryData);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0320---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0330
+         * @tc.name    : test Call the writebytearray interface, write the array to the MessageSequence instance,
+         *             and call readbytearray to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0330", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0330---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let ByteArraylet = [1, 2, 3, 4, 5];
+                data.writeByteArray(ByteArraylet);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_BYTEARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    assertArrayElementEqual(result.reply.readByteArray(), ByteArraylet);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0330---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0340
+         * @tc.name    : test Call the writebytearray interface, write the array to the MessageSequence instance,
+         *             and call readbytearray (datain: number []) to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0340", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0340---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let ByteArraylet = [-128, 0, 1, 2, 127];
+                data.writeByteArray(ByteArraylet);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_BYTEARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let newArr = new Array(5);
+                    result.reply.readByteArray(newArr);
+                    assertArrayElementEqual(newArr, ByteArraylet);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0340---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0350
+         * @tc.name    : test Writebytearray interface, boundary value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0350", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0350---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let ByteArraylet = [];
+                for (let i = 0; i < (40 * K - 1); i++) {
+                    ByteArraylet[i] = 1;
+                };
+                data.writeByteArray(ByteArraylet);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_BYTEARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let newArr = new Array(5)
+                    result.reply.readByteArray(newArr);
+                    assertArrayElementEqual(newArr, ByteArraylet);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0350---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0360
+         * @tc.name    : test Writebytearray interface, illegal value validation
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0360", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0360---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let ByteArraylet = [-129, 0, 1, 2, 128];
+                data.writeByteArray(ByteArraylet);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_BYTEARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let shortArryDataReply = result.reply.readByteArray();
+                    expect(shortArryDataReply[0] == 127).assertTrue();
+                    expect(shortArryDataReply[1] == ByteArraylet[1]).assertTrue();
+                    expect(shortArryDataReply[2] == ByteArraylet[2]).assertTrue();
+                    expect(shortArryDataReply[3] == ByteArraylet[3]).assertTrue();
+                    expect(shortArryDataReply[4] == -128).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0360---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0370
+         * @tc.name    : test Writebytearray Interface，input parameter length verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0370", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0370---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                let ByteArraylet = [];
+                for (let i = 0; i < 40 * K; i++) {
+                    ByteArraylet[i] = 1;
+                };
+                data.writeByteArray(ByteArraylet);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                let errCode = `${rpc.ErrorCode.WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR}`;
+                expect(error.code != errCode).assertTrue();
+                expect(error.message != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0370---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0380
+         * @tc.name    : test Call the writeintarray interface, write the array to the MessageSequence instance,
+         *             and call readintarray to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0380", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0380---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let intArryData = [100, 111, 112];
+                data.writeIntArray(intArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_INTARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    assertArrayElementEqual(result.reply.readIntArray(), intArryData);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0380---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0390
+         * @tc.name    : test Call the writeintarray interface, write the array to the MessageSequence instance,
+         *             and call readintarray (datain: number []) to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0390", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0390---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let intArryData = [];
+                for (let i = 0; i < (50 * K - 1); i++) {
+                    intArryData[i] = 1;
+                };
+                data.writeIntArray(intArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_INTARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let newArr = new Array(3);
+                    result.reply.readIntArray(newArr);
+                    assertArrayElementEqual(newArr, intArryData);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0390---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0400
+         * @tc.name    : test Writeintarray interface, boundary value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0400", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0400---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let intArryData = [-2147483648, 0, 1, 2, 2147483647];
+                data.writeIntArray(intArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_INTARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    assertArrayElementEqual(result.reply.readIntArray(), intArryData);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0400---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0410
+         * @tc.name    : test Writeintarray interface, illegal value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0410", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0410---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let intArryData = [-2147483649, 0, 1, 2, 2147483648];
+                data.writeIntArray(intArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_INTARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let shortArryDataReply = result.reply.readIntArray();
+                    expect(shortArryDataReply[0] == 2147483647).assertTrue();
+                    expect(shortArryDataReply[1] == intArryData[1]).assertTrue();
+                    expect(shortArryDataReply[2] == intArryData[2]).assertTrue();
+                    expect(shortArryDataReply[3] == intArryData[3]).assertTrue();
+                    expect(shortArryDataReply[4] == -2147483648).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0410---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0420
+         * @tc.name    : test Writeintarray interface, input parameter length verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0420", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0420---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                let intArryData = [];
+                for (let i = 0; i < 50 * K; i++) {
+                    intArryData[i] = 1;
+                };
+                data.writeIntArray(intArryData);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                let errCode = `${rpc.ErrorCode.WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR}`;
+                expect(error.code != errCode).assertTrue();
+                expect(error.message != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0420---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0430
+         * @tc.name    : test Call the writefloatarray interface, write the array to the MessageSequence instance,
+         *             and call readfloatarray to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0430", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0430---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let floatArryData = [1.2, 1.3, 1.4];
+                data.writeFloatArray(floatArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_FLOATARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    assertArrayElementEqual(result.reply.readFloatArray(), floatArryData)
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0430---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0440
+         * @tc.name    : test Call the writefloatarray interface, write the array to the MessageSequence instance,
+         *             and call readfloatarray (datain: number []) to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0440", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0440---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let floatArryData = [1.4E-45, 1.3, 3.4028235E38];
+                data.writeFloatArray(floatArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_FLOATARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let newArr = new Array(3);
+                    result.reply.readFloatArray(newArr);
+                    assertArrayElementEqual(newArr, floatArryData);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0440---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0450
+         * @tc.name    : test Writefloatarray interface, boundary value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0450", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0450---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let floatArryData = [(1.4E-45) - 1, 1.3, (3.4028235E38) + 1];
+                data.writeFloatArray(floatArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_FLOATARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let newArr = result.reply.readFloatArray();
+                    expect(newArr[0]).assertEqual(-1);
+                    expect(newArr[1]).assertEqual(1.3);
+                    expect(newArr[2]).assertEqual(3.4028235e+38);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0450---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0460
+         * @tc.name    : test Writefloatarray interface, boundary value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0460", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0460---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let floatArryData = [];
+                for (let i = 0; i < (25 * K - 1); i++) {
+                    floatArryData[i] = 1.1;
+                };
+                data.writeFloatArray(floatArryData);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_FLOATARRAY, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    assertArrayElementEqual(result.reply.readFloatArray(), floatArryData);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0460---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0470
+         * @tc.name    : test Writefloatarray interface, Longest array verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0470", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0470---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                let floatArryData = [];
+                for (let i = 0; i < (25 * K); i++) {
+                    floatArryData[i] = 1.1;
+                };
+                data.writeFloatArray(floatArryData);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                let errCode = `${rpc.ErrorCode.WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR}`;
+                expect(error.code != errCode).assertTrue();
+                expect(error.message != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0470---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0480
+         * @tc.name    : test Call the writeShort interface to write the short integer data to the MessageSequence instance,
+         *             and call readshort to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0480", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0480---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let short = 8;
+                data.writeShort(short);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_SHORT, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    assertArrayElementEqual(result.reply.readShort(), short);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0480---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0490
+         * @tc.name    : test WriteShort interface, boundary value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0490", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0490---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                data.writeShort(-32768);
+                data.writeShort(0);
+                data.writeShort(1);
+                data.writeShort(2);
+                data.writeShort(32767);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_SHORT_MULTI, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readShort() == -32768).assertTrue();
+                    expect(result.reply.readShort() == 0).assertTrue();
+                    expect(result.reply.readShort() == 1).assertTrue();
+                    expect(result.reply.readShort() == 2).assertTrue();
+                    expect(result.reply.readShort() == 32767).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0490---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0500
+         * @tc.name    : test WriteShort interface, Boundary value minimum value out of bounds verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0500", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0500---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                data.writeShort(-32769);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_SHORT_MULTI, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readShort() == 32767).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0500---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0510
+         * @tc.name    : test WriteShort interface, Boundary value maximum value out of bounds verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0510", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0510---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                data.writeShort(32768);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_SHORT_MULTI, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readShort() == -32768).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0510---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0520
+         * @tc.name    : test Call writelong interface to write long integer data to MessageSequence instance
+         *             and call readlong to read data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0520", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0520---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let long = 9007199254740991;
+                data.writeLong(long);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_LONG, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readLong()).assertEqual(long);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0520---------------------------");
+        });
+
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0530
+         * @tc.name    : test Writelong interface, Verification of maximum accuracy value
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0530", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0530---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let long = -9007199254740992;
+                data.writeLong(long);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_LONG, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readLong() == long).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0530---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0540
+         * @tc.name    : test Writelong interface, Minimum loss accuracy verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0540", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0540---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let long = -9223372036854775300;
+                data.writeLong(long);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_LONG, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readLong()).assertEqual(-9223372036854776000);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0540---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0550
+         * @tc.name    : test Writelong interface, Maximum loss accuracy verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0550", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0550---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let short = 9223372036854775300;
+                data.writeLong(short);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_LONG, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    let readlong = result.reply.readLong();
+                    expect(readlong != 0).assertTrue();
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0550---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0560
+         * @tc.name    : test Call the parallel interface to read and write data to the double instance
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0560", TestType.FUNCTION | Size.MEDIUMST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0560---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let token = 4.9E-324;
+                data.writeDouble(token);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_DOUBLE, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readDouble()).assertEqual(token);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0560---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0570
+         * @tc.name    : test Writedouble interface, boundary value verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         *tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0570", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0570---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let token = 1.79E+308;
+                data.writeDouble(token);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_DOUBLE, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readDouble()).assertEqual(token);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0570---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0580
+         * @tc.name    : test Writedouble interface, Minimum boundary value out of bounds verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0580", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0580---------------------------");
+            try {
+              var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let token = (4.9E-324) - 1;
+                data.writeDouble(token);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_DOUBLE, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readDouble()).assertEqual(-1);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0580---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0590
+         * @tc.name    : test Writedouble interface, illegal value validation
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0590", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            nsole.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0590---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                let token = "1.79E+465312156";
+                data.writeDouble(token);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                let errCode = `${rpc.ErrorCode.WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR}`;
+                expect(error.code != errCode).assertTrue();
+                expect(error.message != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0590---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0600
+         * @tc.name    : test Call the writeboolean interface to write the data to the MessageSequence instance,
+         *             and call readboolean to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0600", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0600-------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let token = true;
+                data.writeBoolean(token);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_BOOLEAN, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readBoolean()).assertEqual(token);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0600---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0610
+         * @tc.name    : test Call the writeboolean interface to write the data to the MessageSequence instance,
+         *             and call readboolean to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.siz   : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0610", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0610---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let token = false;
+                data.writeBoolean(token);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_BOOLEAN, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readBoolean()).assertEqual(token);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0610---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0620
+         * @tc.name    : test Writeboolean interface, illegal value number type verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0620", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0620---------------------------");
+            try {
+                var data = rpc.MesseSequence.create();
+                data.writeBoolean(9);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                let errCode = `${rpc.ErrorCode.WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR}`;
+                expect(error.code != errCode).assertTrue();
+                expect(error.message != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0620---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0630
+         * @tc.name    : test Writeboolean interface, illegal value string type verification
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 3
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it(UB_DSoftbus_IPC_API_MessageSequence_0630", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0630---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                let token = "true";
+                data.writeBoolean(token);
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                let errCode = `${rpc.ErrorCode.WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR}`;
+                expect(error.code != errCode).assertTrue();
+                expect(error.message != null).assertTrue();
+            } finally {
+                data.reclaim();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0630---------------------------");
+        });
+
+        /*
+         * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0640
+         * @tc.name    : test Call the writechar interface to write the minimum data to the MessageSequence instance,
+         *               and call readchar to read the data
+         * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
+         * @tc.level   : Level 1
+         * @tc.type    : Compatibility
+         * @tc.size    : MediumTest
+         */
+        it("SUB_DSoftbus_IPC_API_MessageSequence_0640", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEV1, async function (done) {
+            console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0640---------------------------");
+            try {
+                var data = rpc.MessageSequence.create();
+                var reply = rpc.MessageSequence.create();
+                let option = new rpc.MessageOption();
+                let token = 0;
+                data.writeChar(token);
+                expect(gIRemoteObject != undefined).assertTrue();
+                await gIRemoteObject.sendMessageRequest(CODE_WRITE_CHAR, data, reply, option).then((result) => {
+                    expect(result.errCode).assertEqual(0);
+                    expect(result.reply.readChar()).assertEqual(token);
+                });
+            } catch (error) {
+                console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
+                expect(error == null).assertTrue();
+            } finally {
+                data.reclaim();
+                reply.reclaim();
+                done();
+            }
+            console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0640---------------------------");
+        });
     console.info("-----------------------SUB_DSoftbus_IPC_API_Stage_MessageSequence_Test is end-----------------------");
   })
 }
