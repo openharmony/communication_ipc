@@ -1,0 +1,105 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//build/ohos/taihe_idl/taihe.gni")
+
+if (support_jsapi) {
+  SUBSYSTEM_NAME = "communication"
+  PART_NAME = "ipc"
+  TAIHE_FILE_PATH = "$taihe_file_path/out/$SUBSYSTEM_NAME/$PART_NAME"
+  SUBSYSTEM_DIR = "//foundation/communication/ipc"
+
+  config("taihe_inc_config") {
+    include_dirs = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
+      "$SUBSYSTEM_DIR/utils/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/napi_common/include",
+    ]
+  }
+
+  copy_taihe_idl("rpc_taihe_idl") {
+    sources = [ "idl/ohos.rpc.rpc.taihe" ]
+  }
+
+  ohos_taihe("rpc_taihe_generate") {
+    taihe_generated_file_path = "$TAIHE_FILE_PATH"
+    deps = [ ":rpc_taihe_idl" ]
+    outputs = [
+      "$TAIHE_FILE_PATH/src/ohos.rpc.rpc.ani.cpp",
+      "$TAIHE_FILE_PATH/src/ohos.rpc.rpc.abi.c",
+    ]
+  }
+
+  taihe_shared_library("rpc_taihe") {
+    taihe_generated_file_path = "$TAIHE_FILE_PATH"
+    part_name = "$PART_NAME"
+    subsystem_name = "$SUBSYSTEM_NAME"
+    sources = get_target_outputs(":rpc_taihe_generate")
+    public_configs = [ ":taihe_inc_config" ]
+    sources += [
+      "src/ani_constructor.cpp",
+      "src/ohos.rpc.rpc.impl.cpp",
+      "src/remote_object_taihe_ani.cpp",
+      "src/rpc_taihe_error.cpp",
+    ]
+    deps = [
+      ":rpc_taihe_generate",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi",
+    ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "napi:ace_napi",
+      "runtime_core:ani_helpers",
+    ]
+  }
+
+  generate_static_abc("rpc_taihe_abc") {
+    base_url = "$TAIHE_FILE_PATH"
+    files = [ "$TAIHE_FILE_PATH/@ohos.rpc.ets" ]
+    is_boot_abc = "True"
+    device_dst_file = "/system/framework/rpc_taihe_abc.abc"
+    dependencies = [ ":rpc_taihe_generate" ]
+  }
+
+  ohos_prebuilt_etc("rpc_taihe_etc") {
+    source = "$target_out_dir/rpc_taihe_abc.abc"
+    module_install_dir = "framework"
+    part_name = "$PART_NAME"
+    subsystem_name = "$SUBSYSTEM_NAME"
+    deps = [ ":rpc_taihe_abc" ]
+  }
+
+  group("rpc_taihe_components") {
+    deps = [
+      ":rpc_taihe",
+      ":rpc_taihe_etc",
+    ]
+  }
+} else {
+  SUBSYSTEM_DIR = "//foundation/communication/ipc"
+  ohos_shared_library("rpc_taihe") {
+    include_dirs = [
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
+      "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
+      "$SUBSYSTEM_DIR/utils/include",
+    ]
+  }
+  group("rpc_taihe_components") {
+    deps = [ ":rpc_taihe" ]
+  }
+}
