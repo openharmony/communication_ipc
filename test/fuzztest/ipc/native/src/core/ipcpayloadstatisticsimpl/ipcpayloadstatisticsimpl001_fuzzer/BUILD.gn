@@ -16,18 +16,19 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IPCPayloadStatisticsImplFuzzTest") {
+ohos_fuzztest("IPCPayloadStatisticsImpl001FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../ipcpayloadstatisticsimpl_fuzzer"
+  fuzz_config_file = "../ipcpayloadstatisticsimpl001_fuzzer"
 
-  sources = [ "ipcpayloadstatisticsimpl_fuzzer.cpp" ]
+  include_dirs = [ "../include", ]
+  sources = [ "ipcpayloadstatisticsimpl001_fuzzer.cpp" ]
 
   defines = [
     "private = public",
     "protected = public",
   ]
 
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
 
   external_deps = [
     "c_utils:utils",
