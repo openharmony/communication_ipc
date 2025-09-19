@@ -23,5 +23,8 @@ group("dbinderdatabusinvokerfuzz") {
     "dbinderdatabusinvoker006_fuzzer:DBinderDatabusInvoker006FuzzTest",
     "dbinderdatabusinvoker007_fuzzer:DBinderDatabusInvoker007FuzzTest",
     "dbinderdatabusinvoker008_fuzzer:DBinderDatabusInvoker008FuzzTest",
+    "dbinderdatabusinvoker009_fuzzer:DBinderDatabusInvoker009FuzzTest",
+    "dbinderdatabusinvoker010_fuzzer:DBinderDatabusInvoker010FuzzTest",
+    "dbinderdatabusinvoker011_fuzzer:DBinderDatabusInvoker011FuzzTest",
   ]
 }
