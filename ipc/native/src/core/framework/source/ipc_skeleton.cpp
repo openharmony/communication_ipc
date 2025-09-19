@@ -331,6 +331,7 @@ uint32_t IPCSkeleton::GetDCallingTokenID()
 }
 
 #ifdef FREEZE_PROCESS_ENABLED
+// LCOV_EXCL_START
 int32_t IPCSkeleton::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
@@ -339,7 +340,9 @@ int32_t IPCSkeleton::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
     }
     return invoker->Freeze(pid, freeze, timeout);
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t IPCSkeleton::GetProcessFreezeInfo(uint32_t pid, bool &isFrozen)
 {
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
@@ -348,6 +351,7 @@ int32_t IPCSkeleton::GetProcessFreezeInfo(uint32_t pid, bool &isFrozen)
     }
     return invoker->GetProcessFreezeInfo(pid, isFrozen);
 }
+// LCOV_EXCL_STOP
 #endif // FREEZE_PROCESS_ENABLED
 
 void IPCDfx::BlockUntilThreadAvailable()
