@@ -72,6 +72,9 @@ public:
         ::taihe::string_view descriptor);
     static ::ohos::rpc::rpc::RemoteObject CreateRemoteObjectFromNative(uintptr_t nativePtr);
     
+    static ::ohos::rpc::rpc::RemoteObject RpcTransferStaticObject(uintptr_t input);
+    static uintptr_t RpcTransferDynamicObject(::ohos::rpc::rpc::RemoteObject obj);
+    static uintptr_t TransferDynamicObject(IRemoteObject* remoteObject, napi_env jsenv, napi_value constructor);
 private:
     std::mutex mutex_;
     OHOS::wptr<OHOS::IPCObjectStub> wptrCachedObject_;
