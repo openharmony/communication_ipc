@@ -13,17 +13,4 @@
  * limitations under the License.
  */
 
-#ifndef DATABUSSOCKETLISTENERMOCK_FUZZER_H
-#define DATABUSSOCKETLISTENERMOCK_FUZZER_H
-
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstddef>
-
-#define FUZZ_PROJECT_NAME "databussocketlistenermock_fuzzer"
-
-#endif // DATABUSSOCKETLISTENERMOCK_FUZZER_H
+FUZZ

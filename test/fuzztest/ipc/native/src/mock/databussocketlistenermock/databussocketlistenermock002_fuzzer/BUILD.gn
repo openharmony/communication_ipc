@@ -17,15 +17,18 @@ import("//build/test.gni")
 SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DataBusSocketListenerMockFuzzTest") {
+ohos_fuzztest("DataBusSocketListenerMock002FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../databussocketlistenermock_fuzzer"
+  fuzz_config_file = "../databussocketlistenermock002_fuzzer"
 
-  include_dirs = [ "../../../../../../../utils/include" ]
+  include_dirs = [
+    "../include",
+    "$SUBSYSTEM_DIR/utils/include",
+  ]
 
-  sources = [ "databussocketlistenermock_fuzzer.cpp" ]
+  sources = [ "databussocketlistenermock002_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../interfaces/innerkits/ipc_single:ipc_single_test" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single_test" ]
 
   external_deps = [
     "c_utils:utils",
