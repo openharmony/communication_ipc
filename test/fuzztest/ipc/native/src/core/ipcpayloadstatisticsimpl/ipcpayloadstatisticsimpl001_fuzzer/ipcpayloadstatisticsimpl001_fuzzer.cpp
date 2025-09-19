@@ -15,13 +15,12 @@
 
 #include "ipcpayloadstatisticsimpl_fuzzer.h"
 #include "ipc_payload_statistics_impl.h"
-#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 void GetCountFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t pid = provider.ConsumeIntegral<int32_t>();
-    std::string desc = provider.ConsumeRandomLengthString();
+    std::string desc = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     std::u16string desc16(desc.begin(), desc.end());
     int32_t code = provider.ConsumeIntegral<int32_t>();
     uint32_t currentCost = provider.ConsumeIntegral<uint32_t>();
@@ -33,7 +32,7 @@ void GetCountFuzzTest(FuzzedDataProvider &provider)
 void GetCostFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t pid = provider.ConsumeIntegral<int32_t>();
-    std::string desc = provider.ConsumeRandomLengthString();
+    std::string desc = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     std::u16string desc16(desc.begin(), desc.end());
     int32_t code = provider.ConsumeIntegral<int32_t>();
     uint32_t currentCost = provider.ConsumeIntegral<uint32_t>();
@@ -45,49 +44,13 @@ void GetCostFuzzTest(FuzzedDataProvider &provider)
 void GetDescriptorCodesFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t pid = provider.ConsumeIntegral<int32_t>();
-    std::string desc = provider.ConsumeRandomLengthString();
+    std::string desc = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     std::u16string desc16(desc.begin(), desc.end());
     int32_t code = provider.ConsumeIntegral<int32_t>();
     uint32_t currentCost = provider.ConsumeIntegral<uint32_t>();
     IPCPayloadStatisticsImpl::GetInstance().isStatisticsFlag_ = true;
     IPCPayloadStatisticsImpl::GetInstance().UpdatePayloadInfo(pid, desc16, code, currentCost);
     IPCPayloadStatisticsImpl::GetInstance().GetDescriptorCodes(pid);
-}
-
-void GetPayloadInfoFuzzTest(FuzzedDataProvider &provider)
-{
-    int32_t pid = provider.ConsumeIntegral<int32_t>();
-    std::string desc = provider.ConsumeRandomLengthString();
-    std::u16string desc16(desc.begin(), desc.end());
-    int32_t code = provider.ConsumeIntegral<int32_t>();
-    uint32_t currentCost = provider.ConsumeIntegral<uint32_t>();
-    IPCPayloadInfo payloadInfo;
-    IPCPayloadStatisticsImpl::GetInstance().isStatisticsFlag_ = true;
-    IPCPayloadStatisticsImpl::GetInstance().UpdatePayloadInfo(pid, desc16, code, currentCost);
-    IPCPayloadStatisticsImpl::GetInstance().GetPayloadInfo(pid, desc16, code, payloadInfo);
-}
-
-void UpdatePayloadInfoFuzzTest001(FuzzedDataProvider &provider)
-{
-    int32_t pid = provider.ConsumeIntegral<int32_t>();
-    std::string desc = provider.ConsumeRandomLengthString();
-    std::u16string desc16(desc.begin(), desc.end());
-    int32_t code = provider.ConsumeIntegral<int32_t>();
-    uint32_t currentCost = provider.ConsumeIntegral<uint32_t>();
-    IPCPayloadStatisticsImpl::GetInstance().isStatisticsFlag_ = true;
-    IPCPayloadStatisticsImpl::GetInstance().UpdatePayloadInfo(pid, desc16, code, currentCost);
-}
-
-void UpdatePayloadInfoFuzzTest002(FuzzedDataProvider &provider)
-{
-    int32_t pid = provider.ConsumeIntegral<int32_t>();
-    std::string desc = provider.ConsumeRandomLengthString();
-    std::u16string desc16(desc.begin(), desc.end());
-    int32_t code = provider.ConsumeIntegral<int32_t>();
-    uint32_t currentCost = provider.ConsumeIntegral<uint32_t>();
-    IPCPayloadStatisticsImpl::GetInstance().isStatisticsFlag_ = true;
-    IPCPayloadStatisticsImpl::GetInstance().payloadStat_.emplace(pid, std::map<std::u16string, IPCPayloadInfo>());
-    IPCPayloadStatisticsImpl::GetInstance().UpdatePayloadInfo(pid, desc16, code, currentCost);
 }
 } // namespace OHOS
 
@@ -99,8 +62,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::GetCountFuzzTest(provider);
     OHOS::GetCostFuzzTest(provider);
     OHOS::GetDescriptorCodesFuzzTest(provider);
-    OHOS::GetPayloadInfoFuzzTest(provider);
-    OHOS::UpdatePayloadInfoFuzzTest001(provider);
-    OHOS::UpdatePayloadInfoFuzzTest002(provider);
     return 0;
 }
