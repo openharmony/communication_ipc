@@ -21,7 +21,7 @@ group("fuzztest") {
     "ipc/native/src/core/binderinvoker:binderinvokerfuzz",
     "ipc/native/src/core/binderinvokernew:binderinvokernewfuzz",
     "ipc/native/src/core/bufferobject_fuzzer:BufferObjectFuzzTest",
-    "ipc/native/src/core/databussocketlistener_fuzzer:DataBusSocketListenerFuzzTest",
+    "ipc/native/src/core/databussocketlistener:databussocketlistenerfuzz",
     "ipc/native/src/mock/databussocketlistenermock_fuzzer:DataBusSocketListenerMockFuzzTest",
     "ipc/native/src/core/dbindercallbackstub:dbindercallbackstubfuzz",
     "ipc/native/src/core/dbinderdatabusinvoker_fuzzer:DBinderDatabusInvokerFuzzTest",
