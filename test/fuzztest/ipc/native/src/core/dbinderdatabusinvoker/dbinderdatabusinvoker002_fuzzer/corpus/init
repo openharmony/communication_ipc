@@ -13,16 +13,4 @@
  * limitations under the License.
  */
 
-#ifndef DBINDERDATABUSINVOKER_FUZZER_H
-#define DBINDERDATABUSINVOKER_FUZZER_H
-
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-
-#define FUZZ_PROJECT_NAME "dbinderdatabusinvoker_fuzzer"
-
-#endif // DBINDERDATABUSINVOKER_FUZZER_H
+FUZZ
