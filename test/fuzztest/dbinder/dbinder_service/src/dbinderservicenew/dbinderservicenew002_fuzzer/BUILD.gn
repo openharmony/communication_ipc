@@ -16,14 +16,17 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DBinderServiceNewFuzzTest") {
+ohos_fuzztest("DBinderServiceNew002FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../dbinderservicenew_fuzzer"
+  fuzz_config_file = "../dbinderservicenew002_fuzzer"
   defines = [
     "private = public",
     "protected = public",
   ]
-  sources = [ "dbinderservicenew_fuzzer.cpp" ]
+  include_dirs = [
+    "../include",
+  ]
+  sources = [ "dbinderservicenew002_fuzzer.cpp" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
