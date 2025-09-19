@@ -19,6 +19,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
+static constexpr int32_t ERRORMOCKCODE = -1;
 class BinderInvokerInterface {
 public:
     BinderInvokerInterface() {};
@@ -92,7 +93,7 @@ bool Parcel::WritePointer(uintptr_t value)
 int BinderInvoker::FlushCommands(IRemoteObject *object)
 {
     if (g_interface == nullptr) {
-        return false;
+        return ERRORMOCKCODE;
     }
     return GetBinderInvokerInterfaceMock()->FlushCommands(object);
 }
@@ -101,7 +102,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
     MessageOption &option)
 {
     if (g_interface == nullptr) {
-        return false;
+        return ERRORMOCKCODE;
     }
     return GetBinderInvokerInterfaceMock()->SendRequest(handle, code, data, reply, option);
 }
@@ -109,7 +110,7 @@ int BinderInvoker::SendRequest(int handle, uint32_t code, MessageParcel &data, M
 bool Parcel::SetAllocator(Allocator *allocator)
 {
     if (g_interface == nullptr) {
-        return true;
+        return false;
     }
     return GetBinderInvokerInterfaceMock()->SetAllocator(allocator);
 }

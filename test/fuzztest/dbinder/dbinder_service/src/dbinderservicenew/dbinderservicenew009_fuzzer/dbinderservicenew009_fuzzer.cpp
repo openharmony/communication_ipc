@@ -28,7 +28,7 @@ namespace OHOS {
     {
         std::shared_ptr<struct SessionInfo> session = std::make_shared<struct SessionInfo>();
         std::shared_ptr<struct DHandleEntryTxRx> replyMessage = std::make_shared<struct DHandleEntryTxRx>();
-        if (session == nullptr && replyMessage == nullptr) {
+        if (session == nullptr || replyMessage == nullptr) {
             return;
         }
         session->type = provider.ConsumeIntegral<uint32_t>();

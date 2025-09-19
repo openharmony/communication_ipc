@@ -100,6 +100,9 @@ void FlushCommandsFuzzTest(FuzzedDataProvider &provider)
     int handle = provider.ConsumeIntegral<int>();
     sptr<IPCObjectProxy> object =
         new (std::nothrow) IPCObjectProxy(handle, descriptor16, IRemoteObject::IF_PROT_BINDER);
+    if (object == nullptr) {
+        return;
+    }
     DBinderDatabusInvoker *invoker = new (std::nothrow) DBinderDatabusInvoker();
     if (invoker == nullptr) {
         return;
