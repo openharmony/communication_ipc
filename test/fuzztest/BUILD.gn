@@ -58,7 +58,7 @@ group("fuzztest") {
     "ipc/native/src/core/bufferobjectnew_fuzzer:BufferObjectNewFuzzTest",
     "ipc/native/src/core/ipcthreadpoolnew_fuzzer:IPCThreadPoolNewFuzzTest",
     "ipc/native/src/core/binderconnector_fuzzer:BinderConnectorFuzzTest",
-    "ipc/native/src/core/ipcpayloadstatisticsimpl_fuzzer:IPCPayloadStatisticsImplFuzzTest",
+    "ipc/native/src/core/ipcpayloadstatisticsimpl:ipcpayloadstatisticsimplfuzz",
     "ipc/native/src/core/ipcpayloadstatisticsnew_fuzzer:IPCPayloadStatisticsNewFuzzTest",
     "ipc/native/src/core/iremotebroker_fuzzer:IRemoteBrokerFuzzTest",
     "ipc/native/src/core/processskeleton_fuzzer:ProcessSkeletonFuzzTest",

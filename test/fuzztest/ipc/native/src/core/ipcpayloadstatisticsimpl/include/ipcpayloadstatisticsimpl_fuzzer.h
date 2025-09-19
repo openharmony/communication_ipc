@@ -18,4 +18,7 @@
 
 #define FUZZ_PROJECT_NAME "ipcpayloadstatisticsimpl_fuzzer"
 
+#include <fuzzer/FuzzedDataProvider.h>
+const static int32_t MAX_STRING_PARAM_LEN = 100;
+
 #endif // IPCPAYLOADSTATISTICSIMPL_FUZZER_H
