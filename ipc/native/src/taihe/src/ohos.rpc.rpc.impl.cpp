@@ -363,7 +363,7 @@ int32_t AshmemImpl::GetAshmemSize()
 
 void AshmemImpl::SetProtectionType(int32_t protectionType)
 {
-    CHECK_NATIVE_OBJECT(ashmem_, OHOS::RpcTaiheErrorCode::TAIHE_OS_MMAP_ERROR);
+    CHECK_NATIVE_OBJECT(ashmem_, OHOS::RpcTaiheErrorCode::TAIHE_OS_IOCTL_ERROR);
     ashmem_->SetProtection(protectionType);
 }
 
