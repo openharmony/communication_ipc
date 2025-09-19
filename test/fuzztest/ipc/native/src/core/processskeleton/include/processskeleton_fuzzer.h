@@ -17,5 +17,6 @@
 #define PROCESSSKELETON_FUZZER_H
 
 #define FUZZ_PROJECT_NAME "processskeleton_fuzzer"
-
+#include <fuzzer/FuzzedDataProvider.h>
+const static size_t MAX_STRING_PARAM_LEN = 100;
 #endif // PROCESSSKELETON_FUZZER_H
