@@ -14,22 +14,30 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-import("../../../../../../../config.gni")
+import("../../../../../../../../config.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DBinderDatabusInvokerFuzzTest") {
+ohos_fuzztest("DBinderDatabusInvoker007FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../dbinderdatabusinvoker_fuzzer"
+  fuzz_config_file = "../dbinderdatabusinvoker007_fuzzer"
 
-  include_dirs = [ "../../../../../../../utils/include" ]
+  include_dirs = [
+    "../include",
+    "../../../../../../../../utils/include",
+    "$IPC_ROOT_PATH/ipc/native/src/core/framework/include",
+  ]
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "dbinderdatabusinvoker_fuzzer.cpp" ]
+  sources = [ "dbinderdatabusinvoker007_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
 
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
