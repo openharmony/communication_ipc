@@ -16,19 +16,25 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DataBusSocketListenerFuzzTest") {
+ohos_fuzztest("DataBusSocketListener003FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../databussocketlistener_fuzzer"
+  fuzz_config_file = "../databussocketlistener003_fuzzer"
 
-  include_dirs = [ "../../../../../../../utils/include" ]
+  include_dirs = [
+    "../include",
+    "../../../../../../../../utils/include",
+  ]
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "databussocketlistener_fuzzer.cpp" ]
+  sources = [ "databussocketlistener003_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
-
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
