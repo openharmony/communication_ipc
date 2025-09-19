@@ -61,7 +61,7 @@ group("fuzztest") {
     "ipc/native/src/core/ipcpayloadstatisticsimpl_fuzzer:IPCPayloadStatisticsImplFuzzTest",
     "ipc/native/src/core/ipcpayloadstatisticsnew_fuzzer:IPCPayloadStatisticsNewFuzzTest",
     "ipc/native/src/core/iremotebroker_fuzzer:IRemoteBrokerFuzzTest",
-    "ipc/native/src/core/processskeleton_fuzzer:ProcessSkeletonFuzzTest",
+    "ipc/native/src/core/processskeleton:processskeletonfuzz",
     "ipc/native/src/core/hitraceinvoker_fuzzer:HitraceInvokerFuzzTest",
     "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
     "ipc/native/src/mock/dbinderservicestubmock:DBinderServiceStubMockFuzzTest",
