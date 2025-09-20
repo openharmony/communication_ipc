@@ -22,7 +22,6 @@ group("fuzztest") {
     "ipc/native/src/core/binderinvokernew:binderinvokernewfuzz",
     "ipc/native/src/core/bufferobject_fuzzer:BufferObjectFuzzTest",
     "ipc/native/src/core/databussocketlistener:databussocketlistenerfuzz",
-    "ipc/native/src/mock/databussocketlistenermock_fuzzer:DataBusSocketListenerMockFuzzTest",
     "ipc/native/src/core/dbindercallbackstub:dbindercallbackstubfuzz",
     "ipc/native/src/core/dbinderdatabusinvoker_fuzzer:DBinderDatabusInvokerFuzzTest",
     "ipc/native/src/core/dbindergrantpermission_fuzzer:DBinderGrantPermissionFuzzTest",
@@ -78,6 +77,7 @@ group("fuzztest") {
     "ipc/native/src/mock/ipcthreadskeletonmock:ipcthreadskeletonmockfuzz",
     "ipc/native/src/mock/iremoteobjectmock:iremoteobjectmockfuzz",
     "ipc/native/src/mock/ipcworkthreadmock_fuzzer:IPCWorkThreadMockFuzzTest",
+    "ipc/native/src/mock/databussocketlistenermock:databussocketlistenermockfuzz",
     "dbinder/dbinder_service/src/dbinderservicenew:dbinderservicenewfuzz",
     "dbinder/dbinder_service/src/socket/dbinderremotelistener:dbinderremotelistenerfuzz",
   ]
