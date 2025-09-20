@@ -101,7 +101,6 @@ ohos_shared_library("ipc_single") {
 
   configs = common_configs
   public_configs = common_public_configs
-  all_dependent_configs = [ ":ipc_all_deps_config" ]
 
   deps = [ "$IPC_CORE_ROOT/src/core:ipc_common" ]
 
