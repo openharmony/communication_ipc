@@ -35,6 +35,13 @@ namespace OHOS {
 class AshmemImpl {
 public:
     // only be used for returning invalid Ashmem.
+    enum {
+        PROT_EXEC = 4,
+        PROT_NONE = 0,
+        PROT_READ = 1,
+        PROT_WRITE = 2,
+    };
+
     explicit AshmemImpl();
 
     explicit AshmemImpl(const char *name, int32_t size);
@@ -48,6 +55,20 @@ public:
     int32_t GetAshmemSize();
 
     OHOS::sptr<OHOS::Ashmem> GetAshmem();
+
+    void SetProtectionType(int32_t protectionType);
+
+    void MapReadonlyAshmem();
+
+    void MapTypedAshmem(int32_t mapType);
+
+    void CloseAshmem();
+
+    void UnmapAshmem();
+
+    ::taihe::array<uint8_t> ReadDataFromAshmem(int32_t size, int32_t offset);
+
+    void WriteDataToAshmem(::taihe::array_view<uint8_t> buf, int32_t size, int32_t offset);
 
     static ::ohos::rpc::rpc::Ashmem CreateAshmem_WithTwoParam(::taihe::string_view name, int32_t size);
     static ::ohos::rpc::rpc::Ashmem CreateAshmem_WithOneParam(::ohos::rpc::rpc::weak::Ashmem ashmem);
