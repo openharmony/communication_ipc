@@ -26,6 +26,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include "napi/native_api.h"
 
 #include "ashmem.h"
 
@@ -72,6 +73,9 @@ public:
     static ::ohos::rpc::rpc::Ashmem CreateAshmem_WithTwoParam(::taihe::string_view name, int32_t size);
     static ::ohos::rpc::rpc::Ashmem CreateAshmem_WithOneParam(::ohos::rpc::rpc::weak::Ashmem ashmem);
 
+    static ::ohos::rpc::rpc::Ashmem RpcTransferStaticAshmem(uintptr_t input);
+    static uintptr_t RpcTransferDynamicAshmem(::ohos::rpc::rpc::Ashmem obj);
+    static uintptr_t TransferDynamicAshmem(Ashmem* ashmem, napi_env jsenv, napi_value constructor);
 private:
     OHOS::sptr<OHOS::Ashmem> ashmem_ = nullptr;
 };

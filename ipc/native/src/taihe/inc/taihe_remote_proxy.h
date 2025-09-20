@@ -34,7 +34,7 @@ namespace OHOS {
 
 class RemoteProxyImpl {
 public:
-    RemoteProxyImpl(uintptr_t nativePtr, bool bRemoteObj = false);
+    RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj = false);
 
     ::ohos::rpc::rpc::IRemoteBroker GetLocalInterface(::taihe::string_view descriptor);
 
@@ -54,8 +54,9 @@ public:
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteProxy obj);
 
     static ::ohos::rpc::rpc::RemoteProxy CreateRemoteProxyFromNative(uintptr_t nativePtr);
+    static ::ohos::rpc::rpc::RemoteProxy RpcTransferStaticProxy(uintptr_t input);
+    static uintptr_t RpcTransferDynamicProxy(::ohos::rpc::rpc::RemoteProxy obj);
 private:
-    OHOS::sptr<OHOS::IRemoteObject> remoteObject_;
     OHOS::sptr<OHOS::IPCObjectProxy> cachedObject_;
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;

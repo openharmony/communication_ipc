@@ -78,6 +78,16 @@ enum TypeCode : i32{
 
 @class
 interface Ashmem {
+    @!sts_inject_into_class("""
+        static TransferStatic(input: Any): Object {
+            return Ashmem.rpcTransferStaticAshmem(ESValue.wrap(input));
+        }
+ 
+        static TransferDynamic(input: Object): Any {
+            return Ashmem.rpcTransferDynamicAshmem(input as Ashmem);
+        }
+    """)
+ 
     MapReadWriteAshmem(): void;
     GetNativePtr(): i64;
     GetAshmemSize(): i32;
@@ -89,6 +99,12 @@ interface Ashmem {
     ReadDataFromAshmem(size: i32, offset: i32): @arraybuffer Array<u8>;
     WriteDataToAshmem(buf: @arraybuffer Array<u8>, size: i32, offset: i32): void;
 }
+
+@static("Ashmem")
+function RpcTransferStaticAshmem(input: @sts_type("ESValue") Opaque): Ashmem;
+
+@static("Ashmem")
+function RpcTransferDynamicAshmem(obj: Ashmem): @sts_type("Any") Opaque;
 
 @static("Ashmem")
 @overload("create")
@@ -341,6 +357,15 @@ interface IRemoteObject {
 
 @class
 interface RemoteObject : IRemoteObject {
+@!sts_inject_into_class("""
+        static TransferStatic(input: Any): Object {
+            return RemoteObject.rpcTransferStaticObject(ESValue.wrap(input));
+        }
+
+        static TransferDynamic(input: Object): Any {
+            return RemoteObject.rpcTransferDynamicObject(input as RemoteObject);
+        }
+    """)
 
     @!sts_inject_into_class("""
     constructor(descriptor: String) {
@@ -360,6 +385,12 @@ interface RemoteObject : IRemoteObject {
     AddJsObjWeakRef(obj: RemoteObject, isNative: bool): void;
 }
 
+@static("RemoteObject")
+function RpcTransferStaticObject(input: @sts_type("ESValue") Opaque): RemoteObject;
+
+@static("RemoteObject")
+function RpcTransferDynamicObject(obj: RemoteObject): @sts_type("Any") Opaque;
+
 @ctor("RemoteObject")
 function CreateRemoteObject(self: RemoteObject, descriptor: String): RemoteObject;
 
@@ -368,15 +399,41 @@ function CreateRemoteObjectFromNative(nativePtr: i64): RemoteObject;
 
 @class
 interface RemoteProxy : IRemoteObject {
+   @!sts_inject_into_class("""
+        static TransferStatic(input: Any): Object {
+            return RemoteProxy.rpcTransferStaticProxy(ESValue.wrap(input));
+        }
+
+        static TransferDynamic(input: Object): Any {
+            return RemoteProxy.rpcTransferDynamicProxy(input as RemoteProxy);
+        }
+    """)
+
     GetNativePtr(): i64;
     AddJsObjWeakRef(obj: RemoteProxy): void;
 }
+
+@static("RemoteProxy")
+function RpcTransferStaticProxy(input: @sts_type("ESValue") Opaque): RemoteProxy;
+
+@static("RemoteProxy")
+function RpcTransferDynamicProxy(obj: RemoteProxy): @sts_type("Any") Opaque;
 
 @ctor("RemoteProxy")
 function CreateRemoteProxyFromNative(nativePtr: i64): RemoteProxy;
 
 @class
 interface MessageOption {
+ @!sts_inject_into_class("""
+        static TransferStatic(input: Any): Object {
+            return MessageOption.rpcTransferStaticOption(ESValue.wrap(input));
+        }
+
+        static TransferDynamic(input: Object): Any {
+            return MessageOption.rpcTransferDynamicOption(input as MessageOption);
+        }
+    """)
+
     IsAsync(): bool;
     SetAsync(isAsync: bool): void;
     GetNativePtr(): i64;
@@ -385,6 +442,12 @@ interface MessageOption {
     GetWaitTime(): i32;
     SetWaitTime(waitTime: i32): void;
 }
+
+@static("MessageOption")
+function RpcTransferStaticOption(input: @sts_type("ESValue") Opaque): MessageOption;
+
+@static("MessageOption")
+function RpcTransferDynamicOption(obj: MessageOption): @sts_type("Any") Opaque;
 
 @ctor("MessageOption")
 function CreateMessageOption_WithTwoParam(syncFlags: i32, waitTime: i32): MessageOption;
