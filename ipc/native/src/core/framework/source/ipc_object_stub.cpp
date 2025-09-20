@@ -416,8 +416,8 @@ int IPCObjectStub::SendRequestInner(uint32_t code, MessageParcel &data, MessageP
     uint32_t duration = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(
         finish - start).count());
     if (duration >= IPC_CMD_PROCESS_WARN_TIME) {
-        ZLOGD(LABEL, "stub:%{public}s deal request code:%{public}u cost time:%{public}ums",
-            remoteDescriptor_.c_str(), code, duration / COEFF_MILLI_TO_MICRO);
+        ZLOGW(LABEL, "Stub(desc:%{public}s) code:%{public}u cost:%{public}ums", remoteDescriptor_.c_str(), code,
+            duration / COEFF_MILLI_TO_MICRO);
         if (duration >= IPC_CMD_PROCESS_DFX_REPORT_TIME) {
             DfxReportRequestProcEvent(remoteDescriptor_.c_str(), static_cast<int32_t>(duration / COEFF_MILLI_TO_MICRO),
                 static_cast<int32_t>(code), __FUNCTION__);
@@ -591,7 +591,7 @@ int32_t IPCObjectStub::InvokerThread(uint32_t code, MessageParcel &data, Message
 
 int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &reply)
 {
-    ZLOGD(LABEL, "enter");
+    ZLOGI(LABEL, "enter");
     std::string deviceId = data.ReadString();
     uint32_t remotePid = data.ReadUint32();
     uint32_t remoteUid = data.ReadUint32();
@@ -621,7 +621,7 @@ int32_t IPCObjectStub::InvokerDataBusThread(MessageParcel &data, MessageParcel &
     }
 
     uint32_t selfTokenId = static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID());
-    ZLOGI(LABEL, "invoke databus thread, local deviceId:%{public}s remote deviceId:%{public}s "
+    ZLOGI(LABEL, "local deviceId:%{public}s remote deviceId:%{public}s "
         "stubIndex:%{public}" PRIu64 " sessionName:%{public}s",
         IPCProcessSkeleton::ConvertToSecureString(deviceId).c_str(),
         IPCProcessSkeleton::ConvertToSecureString(remoteDeviceId).c_str(), stubIndex, sessionName.c_str());
@@ -698,7 +698,7 @@ int32_t IPCObjectStub::AddAuthInfo(MessageParcel &data, MessageParcel &reply, ui
 // LCOV_EXCL_START
 std::string IPCObjectStub::GetSessionName()
 {
-    ZLOGD(LABEL, "enter");
+    ZLOGI(LABEL, "enter");
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     if (current == nullptr) {
         ZLOGE(LABEL, "get current is null");
@@ -722,7 +722,7 @@ std::string IPCObjectStub::GetSessionName()
 int32_t IPCObjectStub::GetGrantedSessionName(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    ZLOGD(LABEL, "enter");
+    ZLOGI(LABEL, "enter");
     int pid = IPCSkeleton::GetCallingPid();
     int uid = IPCSkeleton::GetCallingUid();
     std::string sessionName = CreateSessionName(uid, pid);

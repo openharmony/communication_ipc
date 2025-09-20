@@ -999,7 +999,7 @@ static int32_t GetArraySize(napi_env env, napi_callback_info info, napi_value &t
     int32_t arraySize = 0;
     napi_get_value_int32(env, argv[ARGV_INDEX_0], &arraySize);
     if (arraySize <= 0) {
-        ZLOGD(LOG_LABEL, "arraySize is %{public}d, error", arraySize);
+        ZLOGE(LOG_LABEL, "arraySize is %{public}d, error", arraySize);
         napi_create_array(env, &result);
     }
     return arraySize;
