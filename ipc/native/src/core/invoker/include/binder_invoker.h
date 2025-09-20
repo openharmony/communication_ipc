@@ -237,6 +237,10 @@ private:
 
     void ProcDeferredDecRefs();
 
+    bool IsVaildDriver();
+
+    bool IsProcessExiting();
+
 #ifndef CONFIG_IPC_SINGLE
     bool AddCommAuth(int32_t handle, flat_binder_object *flat);
 
