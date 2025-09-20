@@ -258,7 +258,7 @@ static bool CreateThenCallback(CallbackParam *param, napi_value &thenValue)
 
 static napi_value CatchCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGD(LOG_LABEL, "call js onRemoteRequest got exception");
+    ZLOGW(LOG_LABEL, "call js onRemoteRequest got exception");
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
@@ -321,7 +321,7 @@ static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRe
 
     do {
         if (ret != napi_ok) {
-            ZLOGD(LOG_LABEL, "OnRemoteRequest got exception. ret:%{public}d", ret);
+            ZLOGW(LOG_LABEL, "OnRemoteRequest got exception. ret:%{public}d", ret);
             param->result = ERR_UNKNOWN_TRANSACTION;
             break;
         }
@@ -364,7 +364,7 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
     uint64_t curTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
 
-    ZLOGD(LOG_LABEL, "enter thread pool desc:%{public}s, time:%{public}" PRIu64, desc.c_str(), curTime);
+    ZLOGI(LOG_LABEL, "%{public}s time:%{public}" PRIu64, desc.c_str(), curTime);
 
     NapiScope napiScope(param->env);
     if (!napiScope.IsValid()) {
@@ -973,7 +973,6 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             return holder != nullptr ? holder->object_ : nullptr;
         }
     }
-    ZLOGW(LOG_LABEL, "napi object is nullptr");
     return nullptr;
 }
 
