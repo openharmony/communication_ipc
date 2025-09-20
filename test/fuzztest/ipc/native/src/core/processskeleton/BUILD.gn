@@ -11,30 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#####################hydra-fuzz###################
-import("//build/config/features.gni")
-import("//build/test.gni")
-
 ##############################fuzztest##########################################
-ohos_fuzztest("ProcessSkeletonFuzzTest") {
-  module_out_path = "ipc/ipc"
-  fuzz_config_file = "../processskeleton_fuzzer"
-
-  include_dirs = [
-    "../../../../../../../utils/include"
-  ]
-
-  sources = [ "processskeleton_fuzzer.cpp" ]
-
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-
-  defines = [
-    "private = public",
-    "protected = public",
+group("processskeletonfuzz") {
+  testonly = true
+  deps = [
+    "processskeleton001_fuzzer:ProcessSkeleton001FuzzTest",
+    "processskeleton002_fuzzer:ProcessSkeleton002FuzzTest",
   ]
 }
