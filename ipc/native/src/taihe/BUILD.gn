@@ -52,6 +52,7 @@ config("taihe_inc_config") {
     sources += [
       "src/ani_constructor.cpp",
       "src/ohos.rpc.rpc.impl.cpp",
+      "src/ohos.rpc.rpc.message_sequence.impl.cpp",
       "src/rpc_taihe_error.cpp",
       "src/remote_object_taihe_ani.cpp",
     ]
