@@ -40,6 +40,14 @@ public:
 
     void SetAsync(bool isAsync);
 
+    int32_t GetFlags();
+
+    void SetFlags(int32_t flags);
+
+    int32_t GetWaitTime();
+
+    void SetWaitTime(int32_t waitTime);
+
     int64_t GetNativePtr();
 
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption obj);
