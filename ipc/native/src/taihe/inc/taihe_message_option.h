@@ -26,6 +26,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include "napi/native_api.h"
 
 #include "message_option.h"
 
@@ -55,6 +56,9 @@ public:
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithOneParam(bool isAsync);
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption();
 
+    static ::ohos::rpc::rpc::MessageOption RpcTransferStaticOption(uintptr_t input);
+    static uintptr_t RpcTransferDynamicOption(::ohos::rpc::rpc::MessageOption obj);
+    static uintptr_t TransferDynamicOption(MessageOption* messageOption, napi_env jsenv, napi_value jsMessageOption);
 private:
     std::shared_ptr<OHOS::MessageOption> messageOption_ = nullptr;
     std::optional<::ohos::rpc::rpc::weak::MessageOption> jsObjRef_;

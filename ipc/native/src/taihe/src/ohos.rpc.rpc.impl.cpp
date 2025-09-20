@@ -47,6 +47,10 @@
 #include "napi/native_api.h"
 #include "napi_message_sequence.h"
 
+#include "napi_ashmem.h"
+#include "napi_remote_object_holder.h"
+#include "napi_remote_proxy_holder.h"
+#include "message_option.h"
 namespace OHOS {
 
 static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_OTHER, "RpcTaiheImpl" };
@@ -203,21 +207,27 @@ int ANIRemoteObject::GetObjectType() const
 }
 
 // RemoteProxyImpl
-RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool bRemoteObj)
+RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj)
 {
     if (reinterpret_cast<void*>(nativePtr) == nullptr) {
         ZLOGE(LOG_LABEL, "nativePtr is null");
         TH_THROW(std::runtime_error, "RemoteProxyImpl nativePtr is nullptr");
         return;
     }
-    if (bRemoteObj) {
+    if (isCreateJsRemoteObj) {
         auto proxy = reinterpret_cast<RemoteObjectTaiheAni *>(nativePtr);
         if (proxy == nullptr) {
             ZLOGE(LOG_LABEL, "reinterpret_cast nativePtr failed");
             TH_THROW(std::runtime_error, "RemoteProxyImpl reinterpret_cast nativePtr failed");
             return;
         }
-        remoteObject_ = proxy->nativeObject_;
+        auto ipcObjectProxy = reinterpret_cast<OHOS::IPCObjectProxy *>((proxy->nativeObject_).GetRefPtr());
+        if (ipcObjectProxy == nullptr) {
+            ZLOGE(LOG_LABEL, "reinterpret_cast nativeObject failed");
+            TH_THROW(std::runtime_error, "RemoteProxyImpl reinterpret_cast nativeObject failed");
+            return;
+        }
+        cachedObject_ = ipcObjectProxy;
         return;
     }
     auto proxy = reinterpret_cast<OHOS::IPCObjectProxy *>(nativePtr);
@@ -289,6 +299,79 @@ int64_t RemoteProxyImpl::GetNativePtr()
     return reinterpret_cast<int64_t>(cachedObject_.GetRefPtr());
 }
 
+::ohos::rpc::rpc::RemoteProxy RemoteProxyImpl::RpcTransferStaticProxy(uintptr_t input)
+{
+    void *nativePtr = nullptr;
+    if (!arkts_esvalue_unwrap(taihe::get_env(), reinterpret_cast<ani_object>(input), &nativePtr) ||
+        !nativePtr) {
+        ZLOGE(LOG_LABEL, "arkts_esvalue_unwrap failed");
+        return taihe::make_holder<RemoteProxyImpl, ::ohos::rpc::rpc::RemoteProxy>(0);
+    }
+    auto *napiRemoteProxy = reinterpret_cast<NAPIRemoteObjectHolder *>(nativePtr);
+    if (!napiRemoteProxy) {
+        ZLOGE(LOG_LABEL, "napiRemoteProxy is nullptr");
+        return taihe::make_holder<RemoteProxyImpl, ::ohos::rpc::rpc::RemoteProxy>(0);
+    }
+    auto remoteProxyptr = napiRemoteProxy->Get();
+    auto jsref = taihe::make_holder<RemoteProxyImpl,
+        ::ohos::rpc::rpc::RemoteProxy>(reinterpret_cast<uintptr_t>(remoteProxyptr.GetRefPtr()));
+    jsref->AddJsObjWeakRef(jsref);
+    return jsref;
+}
+
+uintptr_t RemoteProxyImpl::RpcTransferDynamicProxy(::ohos::rpc::rpc::RemoteProxy obj)
+{
+    int64_t impRawPtr = obj->GetNativePtr();
+    auto *proxy = reinterpret_cast<OHOS::IPCObjectProxy *>(impRawPtr);
+    if (!proxy) {
+        ZLOGE(LOG_LABEL, "impl or objectProxy is nullptr");
+        return 0;
+    }
+    napi_env jsenv;
+    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
+        ZLOGE(LOG_LABEL, "arkts_napi_scope_open failed");
+        return 0;
+    }
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(jsenv, &global);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_get_global failed");
+        return 0;
+    }
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(jsenv, global, "IPCProxyConstructor_", &constructor);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "Get constructor failed");
+        return 0;
+    }
+ 
+    napi_value jsRemoteProxy = nullptr;
+    status = napi_new_instance(jsenv, constructor, 0, nullptr, &jsRemoteProxy);
+ 
+    auto proxyHolder = new (std::nothrow) NAPIRemoteProxyHolder();
+    if (!proxyHolder) {
+        return 0;
+    }
+    proxyHolder->object_ = proxy;
+    // connect native object to js thisVar
+    status = napi_wrap(
+        jsenv, jsRemoteProxy, proxyHolder,
+        [](napi_env env, void *data, void *hint) {
+            NAPIRemoteProxyHolder *remoteproxy = reinterpret_cast<NAPIRemoteProxyHolder *>(data);
+            if (remoteproxy) {
+                delete remoteproxy;
+            }
+        }, nullptr, nullptr);
+    uintptr_t result = 0;
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_wrap js RemoteProxy and native option failed");
+        delete proxyHolder;
+    } else {
+        arkts_napi_scope_close_n(jsenv, 1, &jsRemoteProxy, reinterpret_cast<ani_ref *>(&result));
+    }
+    return result;
+}
+
 void RemoteProxyImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteProxy obj)
 {
     jsObjRef_ = std::optional<::ohos::rpc::rpc::weak::RemoteProxy>(std::in_place, obj);
@@ -347,6 +430,108 @@ AshmemImpl::AshmemImpl(OHOS::sptr<OHOS::Ashmem> ashmem)
 int64_t AshmemImpl::GetNativePtr()
 {
     return reinterpret_cast<int64_t>(ashmem_.GetRefPtr());
+}
+
+::ohos::rpc::rpc::Ashmem AshmemImpl::RpcTransferStaticAshmem(uintptr_t input)
+{
+    ZLOGE(LOG_LABEL, "RpcTransferStaticImpl start");
+    void *nativePtr = nullptr;
+    if (!arkts_esvalue_unwrap(taihe::get_env(), reinterpret_cast<ani_object>(input), &nativePtr) ||
+        !nativePtr) {
+        ZLOGE(LOG_LABEL, "arkts_esvalue_unwrap failed");
+        return taihe::make_holder<AshmemImpl, ::ohos::rpc::rpc::Ashmem>();
+    }
+ 
+    auto *napiAshmem = reinterpret_cast<NAPIAshmem *>(nativePtr);
+    if (!napiAshmem) {
+        ZLOGE(LOG_LABEL, "napiAshmem is nullptr");
+        return taihe::make_holder<AshmemImpl, ::ohos::rpc::rpc::Ashmem>();
+    }
+ 
+    OHOS::sptr<OHOS::Ashmem> ashmemImpl = napiAshmem->GetAshmem();
+    if (!ashmemImpl) {
+        ZLOGE(LOG_LABEL, "ashmemImpl is nullptr");
+        return taihe::make_holder<AshmemImpl, ::ohos::rpc::rpc::Ashmem>();
+    }
+ 
+    auto jsref = taihe::make_holder<AshmemImpl, ::ohos::rpc::rpc::Ashmem>(ashmemImpl);
+    return jsref;
+}
+
+uintptr_t AshmemImpl::RpcTransferDynamicAshmem(::ohos::rpc::rpc::Ashmem obj)
+{
+    int64_t impRawPtr = obj->GetNativePtr();
+    auto *ashmem = reinterpret_cast<Ashmem *>(impRawPtr);
+    if (!ashmem) {
+        ZLOGE(LOG_LABEL, "ashmem is nullptr");
+        return 0;
+    }
+    napi_env jsenv;
+    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
+        ZLOGE(LOG_LABEL, "arkts_napi_scope_open failed");
+        return 0;
+    }
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(jsenv, &global);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_get_global failed");
+        return 0;
+    }
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(jsenv, global, "AshmemConstructor_", &constructor);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "Get Ashmem constructor failed");
+        return 0;
+    }
+    return TransferDynamicAshmem(ashmem, jsenv, constructor);
+}
+
+uintptr_t AshmemImpl::TransferDynamicAshmem(Ashmem* ashmem, napi_env jsenv, napi_value constructor)
+{
+    if (!ashmem) {
+        ZLOGE(LOG_LABEL, "ashmem is nullptr");
+        return 0;
+    }
+    int fd = ashmem->GetAshmemFd();
+    int32_t size = ashmem->GetAshmemSize();
+    if (fd <= 0 || size == 0) {
+        ZLOGE(LOG_LABEL, "fd <= 0 or size == 0");
+        return 0;
+    }
+    int dupFd = dup(fd);
+    if (dupFd < 0) {
+        ZLOGE(LOG_LABEL, "Fail to dup fd:%{public}d", dupFd);
+        close(dupFd);
+        return 0;
+    }
+    napi_value jsAshmem = nullptr;
+    napi_status status = napi_new_instance(jsenv, constructor, 0, nullptr, &jsAshmem);
+    if (status != napi_ok) {
+        close(dupFd);
+        ZLOGE(LOG_LABEL, "Failed to  construct js Ashmem");
+        return 0;
+    }
+    auto newAshmem = new (std::nothrow) Ashmem(dupFd, size);
+    if (newAshmem == nullptr) {
+        close(dupFd);
+        ZLOGE(LOG_LABEL, "newAshmem is null");
+        return 0;
+    }
+    status = napi_wrap(
+        jsenv, jsAshmem, newAshmem,
+        [](napi_env env, void *data, void *hint) {
+            Ashmem *ashmem = reinterpret_cast<Ashmem *>(data);
+            delete ashmem;
+        },
+        nullptr, nullptr);
+    uintptr_t result = 0;
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "wrap js AshmemImpl and native option failed");
+        delete newAshmem;
+    } else {
+        arkts_napi_scope_close_n(jsenv, 1, &jsAshmem, reinterpret_cast<ani_ref *>(&result));
+    }
+    return result;
 }
 
 void AshmemImpl::MapReadWriteAshmem()
@@ -559,6 +744,101 @@ OHOS::sptr<OHOS::IPCObjectStub> RemoteObjectImpl::GetNativeObject()
         wptrCachedObject_ = tmp;
     }
     return tmp;
+}
+
+::ohos::rpc::rpc::RemoteObject RemoteObjectImpl::RpcTransferStaticObject(uintptr_t input)
+{
+    ZLOGE(LOG_LABEL, "RpcTransferStaticImpl start");
+    void *nativePtr = nullptr;
+    if (!arkts_esvalue_unwrap(taihe::get_env(), reinterpret_cast<ani_object>(input), &nativePtr)) {
+        ZLOGE(LOG_LABEL, "arkts_esvalue_unwrap failed");
+        return taihe::make_holder<RemoteObjectImpl, ::ohos::rpc::rpc::RemoteObject>(0);
+    }
+ 
+    auto *napiRemoteObjectHolder = reinterpret_cast<NAPIRemoteObjectHolder *>(nativePtr);
+ 
+    if (!napiRemoteObjectHolder) {
+        ZLOGE(LOG_LABEL, "napiRemoteObjectHolder is nullptr");
+        return taihe::make_holder<RemoteObjectImpl, ::ohos::rpc::rpc::RemoteObject>(0);
+    }
+    
+    auto remoteObjectptr = napiRemoteObjectHolder->Get();
+    auto jsref = taihe::make_holder<RemoteObjectImpl,
+        ::ohos::rpc::rpc::RemoteObject>(reinterpret_cast<uintptr_t>(remoteObjectptr.GetRefPtr()));
+    return jsref;
+}
+
+uintptr_t RemoteObjectImpl::RpcTransferDynamicObject(::ohos::rpc::rpc::RemoteObject obj)
+{
+    int64_t impRawPtr = obj->GetNativePtr();
+    auto *remoteObject = reinterpret_cast<IRemoteObject *>(impRawPtr);
+    if (!remoteObject) {
+        ZLOGE(LOG_LABEL, "remoteObject is nullptr");
+        return 0;
+    }
+ 
+    napi_env jsenv;
+    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
+        ZLOGE(LOG_LABEL, "arkts_napi_scope_open failed");
+        return 0;
+    }
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(jsenv, &global);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_get_global failed");
+        return 0;
+    }
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(jsenv, global, "IPCStubConstructor_", &constructor);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "Get constructor failed");
+        return 0;
+    }
+    return TransferDynamicObject(remoteObject, jsenv, constructor);
+}
+
+uintptr_t RemoteObjectImpl::TransferDynamicObject(IRemoteObject* remoteObject, napi_env jsenv, napi_value constructor)
+{
+    if (!remoteObject) {
+        ZLOGE(LOG_LABEL, "remoteObject is nullptr");
+        return 0;
+    }
+    auto descriptor = remoteObject->GetInterfaceDescriptor();
+    std::u16string descStr16(descriptor.begin(), descriptor.end());
+    const std::string descStr8 = Str16ToStr8(descStr16);
+ 
+    napi_value jsRemoteObject = nullptr;
+    napi_value jsDesc = nullptr;
+    napi_create_string_utf8(jsenv, descStr8.c_str(), descStr8.length(), &jsDesc);
+    napi_value argv[1] = {jsDesc};
+    napi_status status = napi_new_instance(jsenv, constructor, 1, argv, &jsRemoteObject);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_new_instance failed");
+        return 0;
+    }
+ 
+    auto holder = new (std::nothrow) NAPIRemoteObjectHolder(jsenv, OHOS::Str8ToStr16(descStr8), jsRemoteObject);
+    if (holder == nullptr) {
+        ZLOGE(LOG_LABEL, "new NAPIRemoteObjectHolder failed");
+        return 0;
+    }
+ 
+    status = napi_wrap(
+        jsenv, jsRemoteObject, holder,
+        [](napi_env env, void *data, void *hint) {
+            NAPIRemoteObjectHolder *remoteObject = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
+            delete remoteObject;
+        },
+        nullptr, nullptr);
+    uintptr_t result = 0;
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_wrap failed");
+        delete holder;
+        return 0;
+    } else {
+        arkts_napi_scope_close_n(jsenv, 1, &jsRemoteObject, reinterpret_cast<ani_ref *>(&result));
+    }
+    return result;
 }
 
 int64_t RemoteObjectImpl::GetNativePtr()
@@ -2015,6 +2295,90 @@ void MessageOptionImpl::SetWaitTime(int32_t waitTime)
     CHECK_NATIVE_OBJECT(messageOption_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     messageOption_->SetWaitTime(waitTime);
+
+::ohos::rpc::rpc::MessageOption MessageOptionImpl::RpcTransferStaticOption(uintptr_t input)
+{
+    ZLOGE(LOG_LABEL, "RpcTransferStaticImpl start");
+    void *nativePtr = nullptr;
+    if (!arkts_esvalue_unwrap(taihe::get_env(), reinterpret_cast<ani_object>(input), &nativePtr) ||
+        !nativePtr) {
+        ZLOGE(LOG_LABEL, "arkts_esvalue_unwrap failed");
+        return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(OHOS::MessageOption::TF_SYNC,
+            OHOS::MessageOption::TF_WAIT_TIME);
+    }
+ 
+    auto *tempMessageOption = reinterpret_cast<MessageOption *>(nativePtr);
+    if (!tempMessageOption) {
+        ZLOGE(LOG_LABEL, "tempMessageOption is nullptr");
+        return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(OHOS::MessageOption::TF_SYNC,
+            OHOS::MessageOption::TF_WAIT_TIME);
+    }
+    auto jsref = taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(tempMessageOption->GetFlags(),
+        tempMessageOption->GetWaitTime());
+    jsref->AddJsObjWeakRef(jsref);
+    return jsref;
+}
+
+uintptr_t MessageOptionImpl::RpcTransferDynamicOption(::ohos::rpc::rpc::MessageOption obj)
+{
+    int64_t impRawPtr = obj->GetNativePtr();
+    auto *messageOption = reinterpret_cast<MessageOption *>(impRawPtr);
+    if (!messageOption) {
+        ZLOGE(LOG_LABEL, "messageOptionTemp is nullptr");
+        return 0;
+    }
+ 
+    napi_env jsenv;
+    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
+        ZLOGE(LOG_LABEL, "arkts_napi_scope_open failed");
+        return 0;
+    }
+    napi_value global = nullptr;
+    napi_status status = napi_get_global(jsenv, &global);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_get_global failed");
+        return 0;
+    }
+    napi_value constructor = nullptr;
+    status = napi_get_named_property(jsenv, global, "IPCOptionConstructor_", &constructor);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "get constructor failed");
+        return 0;
+    }
+    napi_value jsMessageOption = nullptr;
+    status = napi_new_instance(jsenv, constructor, 0, nullptr, &jsMessageOption);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "napi_new_instance failed");
+        return 0;
+    }
+    return TransferDynamicOption(messageOption, jsenv, jsMessageOption);
+}
+
+uintptr_t MessageOptionImpl::TransferDynamicOption(MessageOption* messageOpt, napi_env jsenv,
+    napi_value jsMessageOption)
+{
+    if (!messageOpt) {
+        ZLOGE(LOG_LABEL, "messageOpt is nullptr");
+        return 0;
+    }
+    int flag = messageOpt->GetFlags();
+    int waitTime = messageOpt->GetWaitTime();
+    auto messageOption = new (std::nothrow) MessageOption(flag, waitTime);
+    napi_status status = napi_wrap(
+        jsenv, jsMessageOption, messageOption,
+        [](napi_env env, void *data, void *hint) {
+            ZLOGD(LOG_LABEL, "NAPIMessageOption destructed by js callback");
+            delete (reinterpret_cast<MessageOption *>(data));
+        },
+        nullptr, nullptr);
+    uintptr_t result = 0;
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "wrap js MessageOption and native option failed");
+        delete messageOption;
+    } else {
+        arkts_napi_scope_close_n(jsenv, 1, &jsMessageOption, reinterpret_cast<ani_ref *>(&result));
+    }
+    return result;
 }
 
 void MessageOptionImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption obj)
@@ -2219,7 +2583,11 @@ void MessageSequenceImpl::ReadByteArrayIn(::taihe::array_view<int32_t> dataIn)
 // NOLINTBEGIN
 TH_EXPORT_CPP_API_CreateRemoteObject(OHOS::RemoteObjectImpl::CreateRemoteObject);
 TH_EXPORT_CPP_API_CreateRemoteObjectFromNative(OHOS::RemoteObjectImpl::CreateRemoteObjectFromNative);
+TH_EXPORT_CPP_API_RpcTransferStaticObject(OHOS::RemoteObjectImpl::RpcTransferStaticObject);
+TH_EXPORT_CPP_API_RpcTransferDynamicObject(OHOS::RemoteObjectImpl::RpcTransferDynamicObject);
 TH_EXPORT_CPP_API_CreateRemoteProxyFromNative(OHOS::RemoteProxyImpl::CreateRemoteProxyFromNative);
+TH_EXPORT_CPP_API_RpcTransferStaticProxy(OHOS::RemoteProxyImpl::RpcTransferStaticProxy);
+TH_EXPORT_CPP_API_RpcTransferDynamicProxy(OHOS::RemoteProxyImpl::RpcTransferDynamicProxy);
 TH_EXPORT_CPP_API_CreateMessageSequence(OHOS::MessageSequenceImpl::CreateMessageSequence);
 TH_EXPORT_CPP_API_CloseFileDescriptor(OHOS::MessageSequenceImpl::CloseFileDescriptor);
 TH_EXPORT_CPP_API_RpcTransferStaicImpl(OHOS::MessageSequenceImpl::RpcTransferStaicImpl);
@@ -2228,8 +2596,12 @@ TH_EXPORT_CPP_API_CreateMessageOption_WithTwoParam(OHOS::MessageOptionImpl::Crea
 TH_EXPORT_CPP_API_CreateMessageOption_WithOneParam(OHOS::MessageOptionImpl::CreateMessageOption_WithOneParam);
 TH_EXPORT_CPP_API_DupFileDescriptor(OHOS::MessageSequenceImpl::DupFileDescriptor);
 TH_EXPORT_CPP_API_CreateMessageOption(OHOS::MessageOptionImpl::CreateMessageOption);
+TH_EXPORT_CPP_API_RpcTransferStaticOption(OHOS::MessageOptionImpl::RpcTransferStaticOption);
+TH_EXPORT_CPP_API_RpcTransferDynamicOption(OHOS::MessageOptionImpl::RpcTransferDynamicOption);
 TH_EXPORT_CPP_API_CreateAshmem_WithTwoParam(OHOS::AshmemImpl::CreateAshmem_WithTwoParam);
 TH_EXPORT_CPP_API_CreateAshmem_WithOneParam(OHOS::AshmemImpl::CreateAshmem_WithOneParam);
+TH_EXPORT_CPP_API_RpcTransferStaticAshmem(OHOS::AshmemImpl::RpcTransferStaticAshmem);
+TH_EXPORT_CPP_API_RpcTransferDynamicAshmem(OHOS::AshmemImpl::RpcTransferDynamicAshmem);
 TH_EXPORT_CPP_API_GetCallingPid(OHOS::IPCSkeletonImpl::GetCallingPid);
 TH_EXPORT_CPP_API_GetCallingUid(OHOS::IPCSkeletonImpl::GetCallingUid);
 TH_EXPORT_CPP_API_GetCallingTokenId(OHOS::IPCSkeletonImpl::GetCallingTokenId);
