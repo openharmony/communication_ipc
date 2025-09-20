@@ -632,7 +632,7 @@ napi_value NAPI_RemoteProxy_getDescriptor(napi_env env, napi_callback_info info)
     }
     std::u16string remoteDescriptor = target->GetInterfaceDescriptor();
     if (remoteDescriptor == std::u16string()) {
-        ZLOGD(LOG_LABEL, "failed to get interface descriptor");
+        ZLOGE(LOG_LABEL, "failed to get interface descriptor");
         return napiErr.ThrowError(env, errorDesc::COMMUNICATION_ERROR);
     }
     napi_create_string_utf8(env, Str16ToStr8(remoteDescriptor).c_str(), NAPI_AUTO_LENGTH, &result);

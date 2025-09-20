@@ -157,7 +157,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     (void)isContainStub_.insert(std::pair<IRemoteObject *, bool>(object, true));
 
     if (descriptor.empty()) {
-        ZLOGE(LOG_LABEL, "descriptor is null %{public}u", ConvertAddr(object));
+        ZLOGD(LOG_LABEL, "descriptor is null %{public}u", ConvertAddr(object));
         return false;
     }
     // If attemptIncStrong failed, old proxy might still exist, replace it with the new proxy.
@@ -166,7 +166,7 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
     if (object->IsProxyObject()) {
         uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
         if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
-            ZLOGW(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64, proxyObjectCountNum,
+            ZLOGD(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64, proxyObjectCountNum,
                 ipcProxyLimitNum_);
             ipcProxyCallback_(proxyObjectCountNum);
         }
@@ -491,8 +491,7 @@ void ProcessSkeleton::NotifyChildThreadStop()
     if (connector != nullptr) {
         connector->CloseDriverFd();
     }
-    ZLOGD(LOG_LABEL, "start waiting for child thread to exit, child thread num:%{public}zu",
-        runningChildThreadNum_.load());
+    ZLOGI(LOG_LABEL, "waiting %{public}zu child threads to exit", runningChildThreadNum_.load());
     std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
     threadCountCon_.wait_for(lockGuard, std::chrono::seconds(MAIN_THREAD_MAX_WAIT_TIME),
         [&threadNum = this->runningChildThreadNum_] {

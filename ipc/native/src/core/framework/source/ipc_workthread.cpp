@@ -106,7 +106,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
     }
 
     if (process->GetThreadStopFlag()) {
-        ZLOGD(LOG_LABEL, "the stop flag is true, thread start exit");
+        ZLOGD(LOG_LABEL, "process is exiting");
         delete param;
         return nullptr;
     }
@@ -154,7 +154,7 @@ bool IPCWorkThread::Start(int policy, int proto, int threadIndex)
     }
 
     if (process->GetThreadStopFlag()) {
-        ZLOGD(LOG_LABEL, "the stop flag is true, can not create other thread");
+        ZLOGD(LOG_LABEL, "process is exiting");
         return false;
     }
 

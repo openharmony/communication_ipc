@@ -453,10 +453,20 @@ bool BinderInvoker::UnFlattenDBinderObject(Parcel &parcel, dbinder_negotiation_d
 }
 #endif
 
-bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
+bool BinderInvoker::IsVaildDriver()
 {
     if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+        return false;
+    }
+    return true;
+}
+
+bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
+{
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return false;
     }
 
@@ -471,8 +481,10 @@ bool BinderInvoker::SetMaxWorkThread(int maxThreadNum)
 
 int BinderInvoker::FlushCommands(IRemoteObject *object)
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return IPC_INVOKER_CONNECT_ERR;
     }
     int error = TransactWithDriver(false);
@@ -502,25 +514,36 @@ int BinderInvoker::FlushCommands(IRemoteObject *object)
 
 void BinderInvoker::ExitCurrentThread()
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return;
     }
     binderConnector_->ExitCurrentThread(BINDER_THREAD_EXIT);
 }
 
+bool BinderInvoker::IsProcessExiting()
+{
+    ProcessSkeleton *process = ProcessSkeleton::GetInstance();
+    if (process == nullptr || process->GetThreadStopFlag()) {
+        return true;
+    }
+    return false;
+}
 // LCOV_EXCL_START
 void BinderInvoker::StartWorkLoop()
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return;
     }
     int error;
     isFirstInvoke_ = STATUS_FIRST_INVOKE;
     do {
-        ProcessSkeleton *process = ProcessSkeleton::GetInstance();
-        if (process == nullptr || process->GetThreadStopFlag()) {
+        if (IsProcessExiting()) {
             break;
         }
         error = TransactWithDriver();
@@ -543,8 +566,11 @@ void BinderInvoker::StartWorkLoop()
         if ((cmd == BR_TRANSACTION) || (cmd == BR_TRANSACTION_SEC_CTX)) {
             isFirstInvoke_ = STATUS_NOT_FIRST_INVOKE;
         }
-        if ((userError == -ERR_TIMED_OUT || userError == IPC_INVOKER_INVALID_DATA_ERR) && !isMainWorkThread) {
-            ZLOGD(LABEL, "exit, error:%{public}d", userError);
+        if (userError == -ERR_TIMED_OUT && !isMainWorkThread) {
+            break;
+        }
+        if (userError == IPC_INVOKER_INVALID_DATA_ERR && !isMainWorkThread) {
+            ZLOGW(LABEL, "exit, error:%{public}d", userError);
             break;
         }
         ProcDeferredDecRefs();
@@ -1055,7 +1081,7 @@ int BinderInvoker::HandleCommands(uint32_t cmd)
     int error = HandleCommandsInner(cmd);
     if (error != ERR_NONE && error != -ERR_TIMED_OUT) {
         if (ProcessSkeleton::IsPrint(error, lastErr_, lastErrCnt_)) {
-            ZLOGE(LABEL, "HandleCommands cmd:%{public}u error:%{public}d", cmd, error);
+            ZLOGE(LABEL, "cmd:%{public}u error:%{public}d", cmd, error);
             PrintParcelData(input_, "input_");
             PrintParcelData(output_, "output_");
             std::string backtrace;
@@ -1086,7 +1112,7 @@ void BinderInvoker::JoinThread(bool initiative)
     output_.WriteUint32(BC_EXIT_LOOPER);
     // pass in nullptr directly
     FlushCommands(nullptr);
-    ZLOGD(LABEL, "Current Thread:%{public}d is leaving", getpid());
+    ZLOGD(LABEL, "Current Thread is leaving");
 }
 
 void BinderInvoker::JoinProcessThread(bool initiative) {}
@@ -1313,8 +1339,10 @@ void BinderInvoker::DealWithCmd(MessageParcel *reply, bool &continueLoop, int32_
 
 int BinderInvoker::WaitForCompletion(MessageParcel *reply)
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGD(LABEL, "died");
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return IPC_INVOKER_CONNECT_ERR;
     }
     uint32_t cmd;
@@ -1728,8 +1756,10 @@ bool BinderInvoker::SetCallingIdentity(std::string &identity, bool flag)
 // LCOV_EXCL_START
 bool BinderInvoker::TriggerSystemIPCThreadReclaim()
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return false;
     }
 
@@ -1745,8 +1775,10 @@ bool BinderInvoker::TriggerSystemIPCThreadReclaim()
 
 bool BinderInvoker::EnableIPCThreadReclaim(bool enable)
 {
-    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
-        ZLOGE(LABEL, "died");
+    if (!IsVaildDriver()) {
+        if (ProcessSkeleton::IsPrint(IPC_INVOKER_CONNECT_ERR, lastErr_, lastErrCnt_)) {
+            ZLOGE(LABEL, "died");
+        }
         return false;
     }
 
