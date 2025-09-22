@@ -149,7 +149,9 @@ napi_value NAPI_IPCSkeleton_flushCommands(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, valueType == napi_object, "type mismatch for parameter 1");
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
-    NAPI_ASSERT(env, target != nullptr, "remote object is null");
+    if (target == nullptr) {
+        ZLOGE(LOG_LABEL, "remote object is null");
+    }
     int32_t result = IPCSkeleton::FlushCommands(target);
     napi_value napiValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, result, &napiValue));
@@ -176,7 +178,9 @@ napi_value NAPI_IPCSkeleton_flushCmdBuffer(napi_env env, napi_callback_info info
     }
 
     sptr<IRemoteObject> target = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[ARGV_INDEX_0]);
-    NAPI_ASSERT(env, target != nullptr, "remote object is null");
+    if (target == nullptr) {
+        ZLOGE(LOG_LABEL, "remote object is null");
+    }
     IPCSkeleton::FlushCommands(target);
     napi_value napiValue = nullptr;
     napi_get_undefined(env, &napiValue);
