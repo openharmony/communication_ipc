@@ -56,6 +56,11 @@ public:
     static ::ohos::rpc::rpc::RemoteProxy CreateRemoteProxyFromNative(uintptr_t nativePtr);
     static ::ohos::rpc::rpc::RemoteProxy RpcTransferStaticProxy(uintptr_t input);
     static uintptr_t RpcTransferDynamicProxy(::ohos::rpc::rpc::RemoteProxy obj);
+    static int32_t GetPingTransaction();
+    static int32_t GetDumpTransaction();
+    static int32_t GetInterfaceTransaction();
+    static int32_t GetMinTransactionId();
+    static int32_t GetMaxTransactionId();
 private:
     OHOS::sptr<OHOS::IPCObjectProxy> cachedObject_;
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
