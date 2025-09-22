@@ -16,23 +16,28 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("IPCProcessSkeletonFuzzTest") {
+ohos_fuzztest("IPCProcessSkeleton004FuzzTest") {
   module_out_path = "ipc/ipc"
-  fuzz_config_file = "../ipcprocessskeleton_fuzzer"
+  fuzz_config_file = "../ipcprocessskeleton004_fuzzer"
 
   include_dirs = [
-    "../../../include",
-    "../../../../../../../utils/include",
+    "../include",
+    "../../../../include",
+    "../../../../../../../../utils/include",
   ]
 
   cflags = [
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "ipcprocessskeleton_fuzzer.cpp" ]
+  sources = [ "ipcprocessskeleton004_fuzzer.cpp" ]
 
-  deps = [ "../../../../../../../test:ipc_single_test_static" ]
+  deps = [ "../../../../../../../../test:ipc_single_test_static" ]
 
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

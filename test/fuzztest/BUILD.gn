@@ -39,7 +39,7 @@ group("fuzztest") {
     "ipc/native/src/core/ipcobjectstub:ipcobjectstubfuzz",
     "ipc/native/src/mock/ipcobjectstubmock:ipcobjectstubmockfuzz",
     "ipc/native/src/core/ipcpayloadstatistics_fuzzer:IPCPayloadStatisticsFuzzTest",
-    "ipc/native/src/core/ipcprocessskeleton_fuzzer:IPCProcessSkeletonFuzzTest",
+    "ipc/native/src/core/ipcprocessskeleton:ipcprocessskeletonfuzz",
     "ipc/native/src/core/ipcskeleton_fuzzer:IPCSkeletonFuzzTest",
     "ipc/native/src/core/ipcthreadpool_fuzzer:IPCThreadPoolFuzzTest",
     "ipc/native/src/core/ipcthreadskeleton_fuzzer:IPCThreadSkeletonFuzzTest",

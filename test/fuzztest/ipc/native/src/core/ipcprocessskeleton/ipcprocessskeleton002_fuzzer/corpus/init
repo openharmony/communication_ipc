@@ -13,9 +13,4 @@
  * limitations under the License.
  */
 
-#ifndef IPCPROCESSSKELETON_FUZZER_H
-#define IPCPROCESSSKELETON_FUZZER_H
-
-#define FUZZ_PROJECT_NAME "ipcprocessskeleton_fuzzer"
-
-#endif // IPCPROCESSSKELETON_FUZZER_H
+FUZZ
