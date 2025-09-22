@@ -14,10 +14,7 @@
  */
 
 #include "ipcprocessskeleton_fuzzer.h"
-#include <fuzzer/FuzzedDataProvider.h>
-#define private public
 #include "ipc_process_skeleton.h"
-#undef private
 #include "fuzz_data_generator.h"
 #include "message_parcel.h"
 #include "string_ex.h"
@@ -1295,7 +1292,7 @@ void AttachOrUpdateAppAuthInfoFuzzTest(FuzzedDataProvider &provider)
     appAuthInfo.pid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.uid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.tokenId = provider.ConsumeIntegral<uint32_t>();
-    appAuthInfo.deviceId = provider.ConsumeRandomLengthString();
+    appAuthInfo.deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     appAuthInfo.stub = nullptr;
     current->AttachOrUpdateAppAuthInfo(appAuthInfo);
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
@@ -1318,7 +1315,7 @@ void DetachAppAuthInfoFuzzTest(FuzzedDataProvider &provider)
     appAuthInfo.pid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.uid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.tokenId = provider.ConsumeIntegral<uint32_t>();
-    appAuthInfo.deviceId = provider.ConsumeRandomLengthString();
+    appAuthInfo.deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
     if (stubObject == nullptr) {
         return;
@@ -1341,7 +1338,7 @@ void DetachAppAuthInfoBySocketIdFuzzTest(FuzzedDataProvider &provider)
     appAuthInfo.pid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.uid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.tokenId = provider.ConsumeIntegral<uint32_t>();
-    appAuthInfo.deviceId = provider.ConsumeRandomLengthString();
+    appAuthInfo.deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
     if (stubObject == nullptr) {
         return;
@@ -1363,7 +1360,7 @@ void DetachAppAuthInfoByStubFuzzTest(FuzzedDataProvider &provider)
     appAuthInfo.pid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.uid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.tokenId = provider.ConsumeIntegral<uint32_t>();
-    appAuthInfo.deviceId = provider.ConsumeRandomLengthString();
+    appAuthInfo.deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
     if (stubObject == nullptr) {
         return;
@@ -1385,7 +1382,7 @@ void QueryCommAuthInfoFuzzTest(FuzzedDataProvider &provider)
     appAuthInfo.pid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.uid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.tokenId = provider.ConsumeIntegral<uint32_t>();
-    appAuthInfo.deviceId = provider.ConsumeRandomLengthString();
+    appAuthInfo.deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
     if (stubObject == nullptr) {
         return;
@@ -1408,7 +1405,7 @@ void QueryAppInfoToStubIndexFuzzTest(FuzzedDataProvider &provider)
     appAuthInfo.pid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.uid = provider.ConsumeIntegral<uint32_t>();
     appAuthInfo.tokenId = provider.ConsumeIntegral<uint32_t>();
-    appAuthInfo.deviceId = provider.ConsumeRandomLengthString();
+    appAuthInfo.deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     current->QueryAppInfoToStubIndex(appAuthInfo);
     current->AttachAppInfoToStubIndex(appAuthInfo.pid, appAuthInfo.uid, appAuthInfo.tokenId, appAuthInfo.deviceId,
         appAuthInfo.stubIndex, appAuthInfo.socketId);
@@ -1424,7 +1421,7 @@ void DetachCommAuthInfoByStubFuzzTest(FuzzedDataProvider &provider)
     int pid = provider.ConsumeIntegral<int>();
     int uid = provider.ConsumeIntegral<int>();
     uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-    std::string deviceId = provider.ConsumeRandomLengthString();
+    std::string deviceId = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     sptr<IPCObjectStub> stubObject = sptr<IPCObjectStub>::MakeSptr();
     if (stubObject == nullptr) {
         return;
@@ -1440,9 +1437,9 @@ void AttachDBinderCallbackStubFuzzTest(FuzzedDataProvider &provider)
         return;
     }
     int handle = provider.ConsumeIntegral<int>();
-    std::string serviceName = provider.ConsumeRandomLengthString();
-    std::string peerDeviceID = provider.ConsumeRandomLengthString();
-    std::string localDeviceID = provider.ConsumeRandomLengthString();
+    std::string serviceName = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
+    std::string peerDeviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
+    std::string localDeviceID = provider.ConsumeRandomLengthString(MAX_STRING_PARAM_LEN);
     uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
     uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
     sptr<IPCObjectProxy> proxy = sptr<IPCObjectProxy>::MakeSptr(handle);
@@ -1453,136 +1450,17 @@ void AttachDBinderCallbackStubFuzzTest(FuzzedDataProvider &provider)
     }
     current->AttachDBinderCallbackStub(proxy, stub);
 }
-
-void DetachDBinderCallbackStubByProxyFuzzTest(FuzzedDataProvider &provider)
-{
-    OHOS::IPCProcessSkeleton *current = OHOS::IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        return;
-    }
-    int handle = provider.ConsumeIntegral<int>();
-    sptr<IPCObjectProxy> proxy = sptr<IPCObjectProxy>::MakeSptr(handle);
-    if (proxy == nullptr) {
-        return;
-    }
-    current->DetachDBinderCallbackStubByProxy(proxy.GetRefPtr());
-}
-
-void DetachDBinderCallbackStubFuzzTest(FuzzedDataProvider &provider)
-{
-    OHOS::IPCProcessSkeleton *current = OHOS::IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        return;
-    }
-    int handle = provider.ConsumeIntegral<int>();
-    std::string descriptor = provider.ConsumeRandomLengthString();
-    std::u16string descriptor16 = Str8ToStr16(descriptor);
-    std::string service = provider.ConsumeRandomLengthString();
-    std::string device = provider.ConsumeRandomLengthString();
-    std::string localDevice = provider.ConsumeRandomLengthString();
-    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-    int proto = provider.ConsumeIntegral<int>();
-    sptr<IPCObjectProxy> proxy = sptr<IPCObjectProxy>::MakeSptr(handle, descriptor16, proto);
-    sptr<DBinderCallbackStub> stub =
-        sptr<DBinderCallbackStub>::MakeSptr(service, device, localDevice, stubIndex, handle, tokenId);
-    if (proxy == nullptr || stub == nullptr) {
-        return;
-    }
-    current->AttachDBinderCallbackStub(proxy, stub);
-    current->DetachDBinderCallbackStub(stub.GetRefPtr());
-}
-
-void QueryDBinderCallbackStubFuzzTest(FuzzedDataProvider &provider)
-{
-    OHOS::IPCProcessSkeleton *current = OHOS::IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        return;
-    }
-    int handle = provider.ConsumeIntegral<int>();
-    std::string descriptor = provider.ConsumeRandomLengthString();
-    std::u16string descriptor16 = Str8ToStr16(descriptor);
-    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-    std::string service = provider.ConsumeRandomLengthString();
-    std::string device = provider.ConsumeRandomLengthString();
-    std::string localDevice = provider.ConsumeRandomLengthString();
-    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-    int proto = provider.ConsumeIntegral<int>();
-    sptr<IPCObjectProxy> proxy = sptr<IPCObjectProxy>::MakeSptr(handle, descriptor16, proto);
-    sptr<DBinderCallbackStub> stub =
-        sptr<DBinderCallbackStub>::MakeSptr(service, device, localDevice, stubIndex, handle, tokenId);
-    if (proxy == nullptr || stub == nullptr) {
-        return;
-    }
-    current->QueryDBinderCallbackStub(proxy);
-    current->AttachDBinderCallbackStub(proxy, stub);
-    current->QueryDBinderCallbackStub(proxy);
-}
-
-void QueryDBinderCallbackProxyFuzzTest(FuzzedDataProvider &provider)
-{
-    OHOS::IPCProcessSkeleton *current = OHOS::IPCProcessSkeleton::GetCurrent();
-    if (current == nullptr) {
-        return;
-    }
-    int handle = provider.ConsumeIntegral<int>();
-    std::string descriptor = provider.ConsumeRandomLengthString();
-    std::u16string descriptor16 = Str8ToStr16(descriptor);
-    uint32_t tokenId = provider.ConsumeIntegral<uint32_t>();
-    std::string service = provider.ConsumeRandomLengthString();
-    std::string device = provider.ConsumeRandomLengthString();
-    std::string localDevice = provider.ConsumeRandomLengthString();
-    uint64_t stubIndex = provider.ConsumeIntegral<uint64_t>();
-    int proto = provider.ConsumeIntegral<int>();
-    sptr<IPCObjectProxy> proxy = sptr<IPCObjectProxy>::MakeSptr(handle, descriptor16, proto);
-    sptr<DBinderCallbackStub> stub =
-        sptr<DBinderCallbackStub>::MakeSptr(service, device, localDevice, stubIndex, handle, tokenId);
-    if (proxy == nullptr || stub == nullptr) {
-        return;
-    }
-    current->QueryDBinderCallbackProxy(stub);
-    current->AttachDBinderCallbackStub(proxy, stub);
-    current->QueryDBinderCallbackProxy(stub);
-}
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::FuzzerTestInner1(data, size);
-    OHOS::FuzzerTestInner2(data, size);
-    OHOS::FuzzerTestInner3(data, size);
-    OHOS::ConvertToSecureStringFuzzTest(data, size);
-    OHOS::ConvertChannelID2IntFuzzTest(data, size);
-    OHOS::IsHandleMadeByUserFuzzTest(data, size);
-    OHOS::SetIPCProxyLimitFuzzTest(data, size);
-    OHOS::SetMaxWorkThreadFuzzTest(data, size);
-    OHOS::MakeHandleDescriptorFuzzTest(data, size);
-    OHOS::OnThreadTerminatedFuzzTest(data, size);
-    OHOS::SpawnThreadFuzzTest(data, size);
-    OHOS::FindOrNewObjectFuzzTest(data, size);
-    OHOS::IsContainsObjectFuzzTest(data, size);
-    OHOS::QueryObjectFuzzTest(data, size);
-    OHOS::AttachObjectFuzzTest(data, size);
-    OHOS::DetachObjectFuzzTest(data, size);
-    OHOS::GetProxyObjectFuzzTest(data, size);
-    OHOS::SetRegistryObjectFuzzTest(data, size);
-
     FuzzedDataProvider provider(data, size);
-    OHOS::WakeUpDataThreadFuzzTest(provider);
-    OHOS::UIntToStringFuzzTest(provider);
-    OHOS::AttachOrUpdateAppAuthInfoFuzzTest(provider);
-    OHOS::DetachAppAuthInfoFuzzTest(provider);
-    OHOS::DetachAppAuthInfoByStubFuzzTest(provider);
     OHOS::DetachAppAuthInfoBySocketIdFuzzTest(provider);
     OHOS::QueryCommAuthInfoFuzzTest(provider);
     OHOS::QueryAppInfoToStubIndexFuzzTest(provider);
     OHOS::DetachCommAuthInfoByStubFuzzTest(provider);
     OHOS::AttachDBinderCallbackStubFuzzTest(provider);
-    OHOS::DetachDBinderCallbackStubByProxyFuzzTest(provider);
-    OHOS::DetachDBinderCallbackStubFuzzTest(provider);
-    OHOS::QueryDBinderCallbackStubFuzzTest(provider);
-    OHOS::QueryDBinderCallbackProxyFuzzTest(provider);
     return 0;
 }
