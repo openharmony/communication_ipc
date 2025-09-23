@@ -92,6 +92,327 @@ bool SetMaxWorkThreadTest()
     return true;
 }
 
+bool MakeHandleDescriptorTest()
+{
+    int handle;
+    if (!GenerateInt32(handle)) {
+        return false;
+    }
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->MakeHandleDescriptor(handle);
+    return true;
+}
+
+bool OnThreadTerminatedTest()
+{
+    std::string threadName;
+    if (!GenerateString(threadName)) {
+        return false;
+    }
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->OnThreadTerminated(threadName);
+    return true;
+}
+
+bool SpawnThreadTest()
+{
+    int32_t policy;
+    int32_t proto;
+    if (!GenerateInt32(policy) || !GenerateInt32(proto)) {
+        return false;
+    }
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->SpawnThread(policy, proto);
+    return true;
+}
+
+bool FindOrNewObjectTest()
+{
+    int handle;
+    if (!GenerateInt32(handle)) {
+        return false;
+    }
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->FindOrNewObject(handle);
+    return true;
+}
+
+bool IsContainsObjectTest001()
+{
+    sptr<IRemoteObject> object = new IPCObjectProxy(0, u"proxyTest", 0);
+
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->IsContainsObject(object);
+    return true;
+}
+
+bool IsContainsObjectTest002()
+{
+    sptr<IRemoteObject> object = nullptr;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->IsContainsObject(object);
+    return true;
+}
+
+bool AttachObjectTest001()
+{
+    sptr<IRemoteObject> object = nullptr;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->AttachObject(object);
+    return true;
+}
+
+bool AttachObjectTest002()
+{
+    sptr<IRemoteObject> object = new IPCObjectProxy(0, u"proxyTest", 0);
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->AttachObject(object);
+    current->DetachObject(object);
+    return true;
+}
+
+bool QueryObjectTest001()
+{
+    int handle;
+    if (!GenerateInt32(handle)) {
+        return false;
+    }
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    std::u16string descriptor = current->MakeHandleDescriptor(handle);
+    current->QueryObject(descriptor);
+    return true;
+}
+
+bool QueryObjectTest002()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->QueryObject(u"");
+    return true;
+}
+bool DetachObjectTest001()
+{
+    sptr<IRemoteObject> object = nullptr;
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->DetachObject(object);
+    return true;
+}
+
+bool DetachObjectTest002()
+{
+    sptr<IRemoteObject> object = new IPCObjectProxy(0, u"proxyTest", 0);
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->DetachObject(object);
+    return true;
+}
+
+bool GetProxyObjectTest()
+{
+    int handle;
+    bool newFlag;
+    if (!GenerateInt32(handle) || !GenerateBool(newFlag)) {
+        return false;
+    }
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> object = current->GetProxyObject(handle, newFlag);
+    current->DetachObject(object);
+    return true;
+}
+
+bool SetRegistryObjectTest001()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> object = nullptr;
+    current->SetRegistryObject(object);
+    return true;
+}
+
+bool SetRegistryObjectTest002()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> proxy = new IPCObjectProxy(0, u"", 0);
+    current->SetRegistryObject(proxy);
+    return true;
+}
+
+bool GetRegistryObjectTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->GetRegistryObject();
+    return true;
+}
+
+bool BlockUntilThreadAvailableTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->BlockUntilThreadAvailable();
+    return true;
+}
+
+bool LockForNumExecutingTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->LockForNumExecuting();
+    return true;
+}
+
+bool UnlockForNumExecutingTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->UnlockForNumExecuting();
+    return true;
+}
+
+bool AttachToDetachRawDataTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    int32_t socketId;
+    uint32_t rawDataSize;
+    uint64_t seqNumber;
+    if (!GenerateUint32(rawDataSize) || !GenerateInt32(socketId) || !GenerateUint64(seqNumber)) {
+        return false;
+    }
+    std::shared_ptr<InvokerRawData> rawData = std::make_shared<InvokerRawData>(rawDataSize);
+    current->AttachRawData(socketId, seqNumber, rawData);
+    current->QueryRawData(socketId, seqNumber);
+    current->DetachRawData(socketId, seqNumber);
+    return true;
+}
+
+bool GetSAMgrObjectTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    current->GetSAMgrObject();
+    return true;
+}
+
+bool ProxyAttachToDetachDBinderSessionTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    uint32_t handle;
+    std::string serviceName;
+    uint64_t stubIndex;
+    uint32_t tokenId;
+    std::string serverDeviceId;
+
+    if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
+        !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
+        return false;
+    }
+    std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
+        serviceName, serverDeviceId, stubIndex, nullptr, tokenId);
+    current->ProxyAttachDBinderSession(handle, object);
+    current->ProxyQueryDBinderSession(handle);
+    current->ProxyDetachDBinderSession(handle, object->GetProxy());
+    return true;
+}
+
+bool ProxyQueryDBinderSessionTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    uint32_t handle;
+    if (!GenerateUint32(handle)) {
+        return false;
+    }
+    current->ProxyQueryDBinderSession(handle);
+    return true;
+}
+
+bool ProxyMoveDBinderSessionTest()
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return false;
+    }
+    uint32_t handle;
+    std::string serviceName;
+    uint64_t stubIndex;
+    uint32_t tokenId;
+    std::string serverDeviceId;
+    if (!GenerateUint32(handle) || !GenerateUint64(stubIndex) || !GenerateUint32(tokenId) ||
+        !GenerateString(serviceName) || !GenerateString(serverDeviceId)) {
+        return false;
+    }
+    sptr<IPCObjectProxy> remoteObj = new IPCObjectProxy(0, u"proxyTest", 0);
+    IPCObjectProxy* proxy = remoteObj.GetRefPtr();
+    std::shared_ptr<DBinderSessionObject> object = std::make_shared<DBinderSessionObject>(
+        serviceName, serverDeviceId, stubIndex, proxy, tokenId);
+    current->ProxyAttachDBinderSession(handle, object);
+    current->ProxyMoveDBinderSession(handle, proxy);
+    current->ProxyDetachDBinderSession(handle, object->GetProxy());
+    return true;
+}
+
 bool QueryProxyBySocketIdTest001()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -634,12 +955,36 @@ void FuzzerTestInner1(const uint8_t* data, size_t size)
     AttachToDetachAppInfoToStubIndexTest002();
     SetIPCProxyLimitTest();
     SetMaxWorkThreadTest();
+    MakeHandleDescriptorTest();
+    OnThreadTerminatedTest();
+    SpawnThreadTest();
+    FindOrNewObjectTest();
+    IsContainsObjectTest001();
+    IsContainsObjectTest002();
+    QueryObjectTest001();
+    QueryObjectTest002();
+    AttachObjectTest001();
+    AttachObjectTest002();
+    DetachObjectTest001();
+    DetachObjectTest002();
+    GetProxyObjectTest();
+    GetRegistryObjectTest();
+    SetRegistryObjectTest001();
+    SetRegistryObjectTest002();
     DataGenerator::Clear();
 }
 
 void FuzzerTestInner2(const uint8_t* data, size_t size)
 {
     DataGenerator::Write(data, size);
+    BlockUntilThreadAvailableTest();
+    LockForNumExecutingTest();
+    UnlockForNumExecutingTest();
+    AttachToDetachRawDataTest();
+    GetSAMgrObjectTest();
+    ProxyAttachToDetachDBinderSessionTest();
+    ProxyQueryDBinderSessionTest();
+    ProxyMoveDBinderSessionTest();
     QueryProxyBySocketIdTest001();
     QueryProxyBySocketIdTest002();
     QuerySessionByInfoTest();
