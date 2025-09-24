@@ -89,6 +89,71 @@ void TestCaseFreezeProcess(std::shared_ptr<TestServiceClient> &testClient)
     std::cout << (ret ? "[PASS] Execution of TestFreezeProcess case Successful" :
         "[FAILED] Execution of TestFreezeProcess case failed") << std::endl;
 }
+
+int GetPidOfTestProcess()
+{
+    std::string command = "pidof com.samples.ipc_service";
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        return -1;
+    }
+
+    char buffer[128];
+    std::string result;
+
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+
+    pclose(pipe);
+    if (!result.empty()) {
+        return std::stoi(result);
+    }
+    return -1;
+}
+
+int TestFreezeAsyncProcess()
+{
+    int pid = GetPidOfTestProcess();
+    if (pid <= 0) {
+        ZLOGE(LABEL, "get test process pid fail!");
+        return -1;
+    }
+
+    int timeout = 1000;
+    auto res = IPCSkeleton::Freeze(pid, true, timeout);
+    if (res != ERR_NONE) {
+        ZLOGE(LABEL, "Freeze binder fail, err code = %{public}d", res);
+        return res;
+    }
+
+    bool isFrozen = false;
+    res = IPCSkeleton::GetProcessFreezeInfo(pid, isFrozen);
+    if (res != ERR_NONE || !isFrozen) {
+        ZLOGE(LABEL, "GetProcessFreezeInfo failed, err code = %{public}d, isFrozen = %{public}d", res, isFrozen);
+        return -1;
+    }
+    ZLOGI(LABEL, "Freeze binder success");
+
+    int  waitTime = 20;
+    sleep(waitTime);
+
+    res = IPCSkeleton::Freeze(pid, false, timeout);
+    if (res != ERR_NONE) {
+        ZLOGE(LABEL, "Unfreeze binder fail, err code = %{public}d", res);
+        return res;
+    }
+    ZLOGI(LABEL, "Unfreeze binder success");
+
+    return 0;
+}
+
+void TestCaseFreezeAsyncProcess()
+{
+    bool ret = TestFreezeAsyncProcess();
+    std::cout << (ret ? "[PASS] Execution of TestFreezeAsyncProcess case Successful" :
+        "[FAILED] Execution of TestFreezeAsyncProcess case failed") << std::endl;
+}
 #endif // FREEZE_PROCESS_ENABLED
 
 void TestCasePingService(std::shared_ptr<TestServiceClient> &testClient)
@@ -240,6 +305,7 @@ void ExecuteAllTestCase()
     TestCaseMultiThreadSendRequest(testClient);
 #ifdef FREEZE_PROCESS_ENABLED
     TestCaseFreezeProcess(testClient);
+    TestCaseFreezeAsyncProcess();
 #endif // FREEZE_PROCESS_ENABLED
     ZLOGI(LABEL, "All test cases have been executed");
 }
