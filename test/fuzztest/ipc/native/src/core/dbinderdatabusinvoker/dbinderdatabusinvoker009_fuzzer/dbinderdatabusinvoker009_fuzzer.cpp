@@ -32,19 +32,24 @@ void HasCompletePackageFuzzTest001(FuzzedDataProvider &provider)
 
 void HasCompletePackageFuzzTest002(FuzzedDataProvider &provider)
 {
-    dbinder_transaction_data data;
-    data.magic = DBINDER_MAGICWORD;
-    data.sizeOfSelf = provider.ConsumeIntegral<uint32_t>();
-    data.buffer_size = provider.ConsumeIntegral<binder_size_t>();
-    data.offsets = provider.ConsumeIntegral<binder_uintptr_t>();
-    data.flags = provider.ConsumeIntegral<uint32_t>();
-    data.offsets_size = provider.ConsumeIntegral<binder_size_t>();
+    int32_t maxProviderSize = 10;
+    uint32_t buffer_size = provider.ConsumeIntegralInRange<uint32_t>(0, maxProviderSize);
+    uint32_t offsets_size = provider.ConsumeIntegralInRange<uint32_t>(0, maxProviderSize);
+    size_t total_size = sizeof(dbinder_transaction_data) + buffer_size + offsets_size;
+    std::vector<uint8_t> buffer(total_size);
+    dbinder_transaction_data* data = reinterpret_cast<dbinder_transaction_data*>(buffer.data());
+    data->magic = DBINDER_MAGICWORD;
+    data->sizeOfSelf = total_size;
+    data->buffer_size = buffer_size;
+    data->offsets = provider.ConsumeIntegral<binder_uintptr_t>();
+    data->flags = provider.ConsumeIntegral<uint32_t>();
+    data->offsets_size = offsets_size;
     uint32_t readCursor = 0;
     ssize_t len = provider.ConsumeIntegral<ssize_t>();
     DBinderDatabusInvoker invoker;
     invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, len);
 
-    data.sizeOfSelf = sizeof(dbinder_transaction_data);
+    data->sizeOfSelf = sizeof(dbinder_transaction_data);
     invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
 }
 
