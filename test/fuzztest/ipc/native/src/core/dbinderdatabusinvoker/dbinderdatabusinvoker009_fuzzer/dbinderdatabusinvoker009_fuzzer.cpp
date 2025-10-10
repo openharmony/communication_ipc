@@ -47,10 +47,10 @@ void HasCompletePackageFuzzTest002(FuzzedDataProvider &provider)
     uint32_t readCursor = 0;
     ssize_t len = provider.ConsumeIntegral<ssize_t>();
     DBinderDatabusInvoker invoker;
-    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, len);
+    invoker.HasCompletePackage(reinterpret_cast<const char *>(data), readCursor, len);
 
     data->sizeOfSelf = sizeof(dbinder_transaction_data);
-    invoker.HasCompletePackage(reinterpret_cast<const char *>(&data), readCursor, sizeof(dbinder_transaction_data));
+    invoker.HasCompletePackage(reinterpret_cast<const char *>(data), readCursor, sizeof(dbinder_transaction_data));
 }
 
 void NewSessionOfBinderProxyFuzzTest(FuzzedDataProvider &provider)
