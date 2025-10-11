@@ -38,7 +38,7 @@ public:
 
     int64_t GetNativePtr();
 
-    void AddJsObjWeakRef(::ohos::rpc::rpc::weak::DeathRecipient obj);
+    void AddJsObjWeakRef(::ohos::rpc::rpc::DeathRecipient obj);
 
     static ::ohos::rpc::rpc::DeathRecipient CreateDeathRecipient();
 
