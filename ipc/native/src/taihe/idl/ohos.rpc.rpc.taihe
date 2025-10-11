@@ -35,8 +35,8 @@ interface Parcelable {
     Unmarshalling(dataIn: MessageSequence): bool;
 }
 
-interface DeathRecipient {
-    OnRemoteDied(): void;
+struct DeathRecipient {
+    onRemoteDied: () => void;
 }
 
 struct RequestResult {

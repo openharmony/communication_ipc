@@ -160,7 +160,7 @@ DeathRecipientImpl::DeathRecipientImpl(::ohos::rpc::rpc::DeathRecipient jsObjRef
 
 void DeathRecipientImpl::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &object)
 {
-    jsObjRef_->OnRemoteDied();
+    jsObjRef_.onRemoteDied();
     if (taihe::has_error()) {
         ZLOGE(LOG_LABEL, "call onRemoteDied failed");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CALL_JS_METHOD_ERROR);
@@ -259,7 +259,7 @@ RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj)
     return { ret, code, data, reply };
 }
 
-void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags)
+void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
     OHOS::sptr<DeathRecipientImpl> nativeDeathRecipient = new (std::nothrow) DeathRecipientImpl(recipient);
     if (!cachedObject_->AddDeathRecipient(nativeDeathRecipient)) {
@@ -267,17 +267,17 @@ void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient re
         return;
     }
 
-    deathRecipientMap_.emplace(&recipient, nativeDeathRecipient);
+    deathRecipientMap_.emplace(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient), nativeDeathRecipient);
 }
 
-void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags)
+void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
-    auto it = deathRecipientMap_.find(&recipient);
+    auto it = deathRecipientMap_.find(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient));
     if (it != deathRecipientMap_.end()) {
         if (!cachedObject_->RemoveDeathRecipient(it->second)) {
             ZLOGE(LOG_LABEL, "RemoveDeathRecipient failed");
         }
-        deathRecipientMap_.erase(&recipient);
+        deathRecipientMap_.erase(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient));
     } else {
         ZLOGE(LOG_LABEL, "DeathRecipient not found");
     }
@@ -705,12 +705,12 @@ bool RemoteObjectImpl::OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::we
     TH_THROW(std::runtime_error, "OnRemoteMessageRequest should be implemented int ets");
 }
 
-void RemoteObjectImpl::RegisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags)
+void RemoteObjectImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
     ZLOGI(LOG_LABEL, "only RemoteProxy needed");
 }
 
-void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags)
+void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
     ZLOGI(LOG_LABEL, "only RemoteProxy needed");
 }
