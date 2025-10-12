@@ -440,7 +440,7 @@ HWTEST_F(MessageParcelTest, ClearFileDescriptorTest001, TestSize.Level1)
     parcel.objectOffsets_ = objectOffsets;
     parcel.dataSize_ = objectOffsets[0] + sizeof(flat_binder_object);
     parcel.data_ = 0;
-    parcel.ClearFileDescriptor();
+    ASSERT_NO_FATAL_FAILURE(parcel.ClearFileDescriptor());
 }
 
 /**
@@ -506,12 +506,12 @@ HWTEST_F(MessageParcelTest, PrintBufferTest001, TestSize.Level1)
     std::string funcName;
     size_t lineNum = 100;
     MessageParcel parcel;
-    parcel.PrintBuffer(funcName.c_str(), lineNum);
+    ASSERT_NO_FATAL_FAILURE(parcel.PrintBuffer(funcName.c_str(), lineNum));
     funcName = "PrintBufferTest001";
     MessageParcel data;
     uint8_t bytes[NUMBER_TEST] = {0};
     data.WriteBuffer(bytes, NUMBER_TEST);
     parcel.Append(data);
-    parcel.PrintBuffer(funcName.c_str(), lineNum);
+    ASSERT_NO_FATAL_FAILURE(parcel.PrintBuffer(funcName.c_str(), lineNum));
 }
 }
