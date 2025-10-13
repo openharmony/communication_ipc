@@ -54,6 +54,7 @@ public:
 
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithTwoParam(int32_t syncFlags, int32_t waitTime);
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithOneParam(bool isAsync);
+    static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithOneIntParam(int32_t syncFlags);
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption();
 
     static ::ohos::rpc::rpc::MessageOption RpcTransferStaticOption(uintptr_t input);

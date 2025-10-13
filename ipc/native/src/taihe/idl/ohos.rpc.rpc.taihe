@@ -456,6 +456,9 @@ function CreateMessageOption_WithTwoParam(syncFlags: i32, waitTime: i32): Messag
 function CreateMessageOption_WithOneParam(isAsync: bool): MessageOption;
 
 @ctor("MessageOption")
+function CreateMessageOption_WithOneIntParam(syncFlags: i32): MessageOption;
+
+@ctor("MessageOption")
 function CreateMessageOption(): MessageOption;
 
 
