@@ -2581,7 +2581,7 @@ void MessageSequenceImpl::RewindRead(int32_t pos)
 
 void MessageSequenceImpl::RewindWrite(int32_t pos)
 {
-    CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     nativeParcel_->RewindWrite(static_cast<size_t>(pos));
 }
 
