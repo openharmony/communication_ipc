@@ -151,7 +151,7 @@ int TestFreezeAsyncProcess()
 void TestCaseFreezeAsyncProcess()
 {
     bool ret = TestFreezeAsyncProcess();
-    std::cout << (ret ? "[PASS] Execution of TestFreezeAsyncProcess case Successful" :
+    std::cout << ((ret == 0) ? "[PASS] Execution of TestFreezeAsyncProcess case Successful" :
         "[FAILED] Execution of TestFreezeAsyncProcess case failed") << std::endl;
 }
 #endif // FREEZE_PROCESS_ENABLED
