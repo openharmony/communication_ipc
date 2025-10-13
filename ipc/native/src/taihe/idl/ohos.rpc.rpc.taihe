@@ -114,6 +114,18 @@ function CreateAshmem_WithTwoParam(name: String, size: i32): Ashmem;
 @overload("create")
 function CreateAshmem_WithOneParam(ashmem: Ashmem): Ashmem;
 
+@static("Ashmem")
+@get("PROT_EXEC") function GetProtExec(): i32;
+
+@static("Ashmem")
+@get("PROT_NONE") function GetProtNone(): i32;
+
+@static("Ashmem")
+@get("PROT_READ") function GetProtRead(): i32;
+
+@static("Ashmem")
+@get("PROT_WRITE") function GetProtWrite(): i32;
+
 
 @class
 interface MessageSequence {
@@ -419,6 +431,21 @@ function RpcTransferStaticProxy(input: @sts_type("ESValue") Opaque): RemoteProxy
 @static("RemoteProxy")
 function RpcTransferDynamicProxy(obj: RemoteProxy): @sts_type("Any") Opaque;
 
+@static("RemoteProxy")
+@get("PING_TRANSACTION") function GetPingTransaction(): i32;
+
+@static("RemoteProxy")
+@get("DUMP_TRANSACTION") function GetDumpTransaction(): i32;
+
+@static("RemoteProxy")
+@get("INTERFACE_TRANSACTION") function GetInterfaceTransaction(): i32;
+
+@static("RemoteProxy")
+@get("MIN_TRANSACTION_ID") function GetMinTransactionId(): i32;
+
+@static("RemoteProxy")
+@get("MAX_TRANSACTION_ID") function GetMaxTransactionId(): i32;
+
 @ctor("RemoteProxy")
 function CreateRemoteProxyFromNative(nativePtr: i64): RemoteProxy;
 
@@ -458,6 +485,17 @@ function CreateMessageOption_WithOneParam(isAsync: bool): MessageOption;
 @ctor("MessageOption")
 function CreateMessageOption(): MessageOption;
 
+@static("MessageOption") 
+@get("TF_SYNC") function GetTfSync(): i32;
+
+@static("MessageOption")
+@get("TF_ASYNC") function GetTfAsync(): i32;
+
+@static("MessageOption")
+@get("TF_ACCEPT_FDS") function GetTfAcceptFds(): i32;
+
+@static("MessageOption")
+@get("TF_WAIT_TIME") function GetTfWaitTime(): i32;
 
 @class
 interface IPCSkeleton {

@@ -384,6 +384,31 @@ void RemoteProxyImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteProxy obj)
     return obj;
 }
 
+int32_t RemoteProxyImpl::GetPingTransaction()
+{
+    return static_cast<int32_t>(PING_TRANSACTION);
+}
+
+int32_t RemoteProxyImpl::GetDumpTransaction()
+{
+    return static_cast<int32_t>(DUMP_TRANSACTION);
+}
+
+int32_t RemoteProxyImpl::GetInterfaceTransaction()
+{
+    return static_cast<int32_t>(INTERFACE_TRANSACTION);
+}
+
+int32_t RemoteProxyImpl::GetMinTransactionId()
+{
+    return static_cast<int32_t>(MIN_TRANSACTION_ID);
+}
+
+int32_t RemoteProxyImpl::GetMaxTransactionId()
+{
+    return static_cast<int32_t>(MAX_TRANSACTION_ID);
+}
+
 // ParcelableImpl
 bool ParcelableImpl::Marshalling(::ohos::rpc::rpc::weak::MessageSequence dataOut)
 {
@@ -635,6 +660,26 @@ OHOS::sptr<OHOS::Ashmem> AshmemImpl::GetAshmem()
 {
     OHOS::sptr<OHOS::Ashmem> nativeAshmem = reinterpret_cast<OHOS::Ashmem *>(ashmem->GetNativePtr());
     return taihe::make_holder<AshmemImpl, ::ohos::rpc::rpc::Ashmem>(nativeAshmem);
+}
+
+int32_t AshmemImpl::GetProtExec()
+{
+    return static_cast<int32_t>(PROT_EXEC);
+}
+
+int32_t AshmemImpl::GetProtNone()
+{
+    return static_cast<int32_t>(PROT_NONE);
+}
+
+int32_t AshmemImpl::GetProtRead()
+{
+    return static_cast<int32_t>(PROT_READ);
+}
+
+int32_t AshmemImpl::GetProtWrite()
+{
+    return static_cast<int32_t>(PROT_WRITE);
 }
 
 // RemoteObjectImpl
@@ -2407,6 +2452,26 @@ void MessageOptionImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption ob
     return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(flags, waitTime);
 }
 
+int32_t MessageOptionImpl::GetTfSync()
+{
+    return static_cast<int32_t>(OHOS::MessageOption::TF_SYNC);
+}
+
+int32_t MessageOptionImpl::GetTfAsync()
+{
+    return static_cast<int32_t>(OHOS::MessageOption::TF_ASYNC);
+}
+
+int32_t MessageOptionImpl::GetTfAcceptFds()
+{
+    return static_cast<int32_t>(OHOS::MessageOption::TF_ACCEPT_FDS);
+}
+
+int32_t MessageOptionImpl::GetTfWaitTime()
+{
+    return static_cast<int32_t>(OHOS::MessageOption::TF_WAIT_TIME);
+}
+
 // IPCSkeletonImpl
 int32_t IPCSkeletonImpl::GetCallingPid()
 {
@@ -2516,7 +2581,7 @@ void MessageSequenceImpl::RewindRead(int32_t pos)
 
 void MessageSequenceImpl::RewindWrite(int32_t pos)
 {
-    CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
+    CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     nativeParcel_->RewindWrite(static_cast<size_t>(pos));
 }
 
@@ -2589,6 +2654,11 @@ TH_EXPORT_CPP_API_RpcTransferDynamicObject(OHOS::RemoteObjectImpl::RpcTransferDy
 TH_EXPORT_CPP_API_CreateRemoteProxyFromNative(OHOS::RemoteProxyImpl::CreateRemoteProxyFromNative);
 TH_EXPORT_CPP_API_RpcTransferStaticProxy(OHOS::RemoteProxyImpl::RpcTransferStaticProxy);
 TH_EXPORT_CPP_API_RpcTransferDynamicProxy(OHOS::RemoteProxyImpl::RpcTransferDynamicProxy);
+TH_EXPORT_CPP_API_GetPingTransaction(OHOS::RemoteProxyImpl::GetPingTransaction);
+TH_EXPORT_CPP_API_GetDumpTransaction(OHOS::RemoteProxyImpl::GetDumpTransaction);
+TH_EXPORT_CPP_API_GetInterfaceTransaction(OHOS::RemoteProxyImpl::GetInterfaceTransaction);
+TH_EXPORT_CPP_API_GetMinTransactionId(OHOS::RemoteProxyImpl::GetMinTransactionId);
+TH_EXPORT_CPP_API_GetMaxTransactionId(OHOS::RemoteProxyImpl::GetMaxTransactionId);
 TH_EXPORT_CPP_API_CreateMessageSequence(OHOS::MessageSequenceImpl::CreateMessageSequence);
 TH_EXPORT_CPP_API_CloseFileDescriptor(OHOS::MessageSequenceImpl::CloseFileDescriptor);
 TH_EXPORT_CPP_API_RpcTransferStaicImpl(OHOS::MessageSequenceImpl::RpcTransferStaicImpl);
@@ -2599,10 +2669,18 @@ TH_EXPORT_CPP_API_DupFileDescriptor(OHOS::MessageSequenceImpl::DupFileDescriptor
 TH_EXPORT_CPP_API_CreateMessageOption(OHOS::MessageOptionImpl::CreateMessageOption);
 TH_EXPORT_CPP_API_RpcTransferStaticOption(OHOS::MessageOptionImpl::RpcTransferStaticOption);
 TH_EXPORT_CPP_API_RpcTransferDynamicOption(OHOS::MessageOptionImpl::RpcTransferDynamicOption);
+TH_EXPORT_CPP_API_GetTfSync(OHOS::MessageOptionImpl::GetTfSync);
+TH_EXPORT_CPP_API_GetTfAsync(OHOS::MessageOptionImpl::GetTfAsync);
+TH_EXPORT_CPP_API_GetTfAcceptFds(OHOS::MessageOptionImpl::GetTfAcceptFds);
+TH_EXPORT_CPP_API_GetTfWaitTime(OHOS::MessageOptionImpl::GetTfWaitTime);
 TH_EXPORT_CPP_API_CreateAshmem_WithTwoParam(OHOS::AshmemImpl::CreateAshmem_WithTwoParam);
 TH_EXPORT_CPP_API_CreateAshmem_WithOneParam(OHOS::AshmemImpl::CreateAshmem_WithOneParam);
 TH_EXPORT_CPP_API_RpcTransferStaticAshmem(OHOS::AshmemImpl::RpcTransferStaticAshmem);
 TH_EXPORT_CPP_API_RpcTransferDynamicAshmem(OHOS::AshmemImpl::RpcTransferDynamicAshmem);
+TH_EXPORT_CPP_API_GetProtExec(OHOS::AshmemImpl::GetProtExec);
+TH_EXPORT_CPP_API_GetProtNone(OHOS::AshmemImpl::GetProtNone);
+TH_EXPORT_CPP_API_GetProtRead(OHOS::AshmemImpl::GetProtRead);
+TH_EXPORT_CPP_API_GetProtWrite(OHOS::AshmemImpl::GetProtWrite);
 TH_EXPORT_CPP_API_GetCallingPid(OHOS::IPCSkeletonImpl::GetCallingPid);
 TH_EXPORT_CPP_API_GetCallingUid(OHOS::IPCSkeletonImpl::GetCallingUid);
 TH_EXPORT_CPP_API_GetCallingTokenId(OHOS::IPCSkeletonImpl::GetCallingTokenId);

@@ -76,6 +76,10 @@ public:
     static ::ohos::rpc::rpc::Ashmem RpcTransferStaticAshmem(uintptr_t input);
     static uintptr_t RpcTransferDynamicAshmem(::ohos::rpc::rpc::Ashmem obj);
     static uintptr_t TransferDynamicAshmem(Ashmem* ashmem, napi_env jsenv, napi_value constructor);
+    static int32_t GetProtExec();
+    static int32_t GetProtNone();
+    static int32_t GetProtRead();
+    static int32_t GetProtWrite();
 private:
     OHOS::sptr<OHOS::Ashmem> ashmem_ = nullptr;
 };
