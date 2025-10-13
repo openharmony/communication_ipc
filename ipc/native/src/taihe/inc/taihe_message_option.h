@@ -59,6 +59,10 @@ public:
     static ::ohos::rpc::rpc::MessageOption RpcTransferStaticOption(uintptr_t input);
     static uintptr_t RpcTransferDynamicOption(::ohos::rpc::rpc::MessageOption obj);
     static uintptr_t TransferDynamicOption(MessageOption* messageOption, napi_env jsenv, napi_value jsMessageOption);
+    static int32_t GetTfSync();
+    static int32_t GetTfAsync();
+    static int32_t GetTfAcceptFds();
+    static int32_t GetTfWaitTime();
 private:
     std::shared_ptr<OHOS::MessageOption> messageOption_ = nullptr;
     std::optional<::ohos::rpc::rpc::weak::MessageOption> jsObjRef_;
