@@ -2445,6 +2445,13 @@ void MessageOptionImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption ob
     return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(flags, waitTime);
 }
 
+::ohos::rpc::rpc::MessageOption MessageOptionImpl::CreateMessageOption_WithOneIntParam(int32_t syncFlags)
+{
+    int flags = (syncFlags == 0) ? OHOS::MessageOption::TF_SYNC : OHOS::MessageOption::TF_ASYNC;
+    int waitTime = OHOS::MessageOption::TF_WAIT_TIME;
+    return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(flags, waitTime);
+}
+
 ::ohos::rpc::rpc::MessageOption MessageOptionImpl::CreateMessageOption()
 {
     int flags = OHOS::MessageOption::TF_SYNC;
@@ -2665,6 +2672,7 @@ TH_EXPORT_CPP_API_RpcTransferStaicImpl(OHOS::MessageSequenceImpl::RpcTransferSta
 TH_EXPORT_CPP_API_RpcTransferDynamicImpl(OHOS::MessageSequenceImpl::RpcTransferDynamicImpl);
 TH_EXPORT_CPP_API_CreateMessageOption_WithTwoParam(OHOS::MessageOptionImpl::CreateMessageOption_WithTwoParam);
 TH_EXPORT_CPP_API_CreateMessageOption_WithOneParam(OHOS::MessageOptionImpl::CreateMessageOption_WithOneParam);
+TH_EXPORT_CPP_API_CreateMessageOption_WithOneIntParam(OHOS::MessageOptionImpl::CreateMessageOption_WithOneIntParam);
 TH_EXPORT_CPP_API_DupFileDescriptor(OHOS::MessageSequenceImpl::DupFileDescriptor);
 TH_EXPORT_CPP_API_CreateMessageOption(OHOS::MessageOptionImpl::CreateMessageOption);
 TH_EXPORT_CPP_API_RpcTransferStaticOption(OHOS::MessageOptionImpl::RpcTransferStaticOption);
