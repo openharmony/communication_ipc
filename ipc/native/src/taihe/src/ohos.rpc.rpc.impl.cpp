@@ -447,6 +447,7 @@ AshmemImpl::AshmemImpl(OHOS::sptr<OHOS::Ashmem> ashmem)
     OHOS::sptr<OHOS::Ashmem> newAshmem(new (std::nothrow) OHOS::Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "fail to create new Ashmem");
+        close(dupFd);
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_PARCEL_MEMORY_ALLOC_ERROR);
     }
     ashmem_ = newAshmem;
@@ -609,10 +610,10 @@ void AshmemImpl::UnmapAshmem()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(ashmem_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_FROM_ASHMEM_ERROR, ::taihe::array<uint8_t>(nullptr, 0));
-    uint32_t ashmemSize = (uint32_t)GetAshmemSize();
+    int32_t ashmemSize = GetAshmemSize();
     if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
-        static_cast<uint32_t>(size + offset) > ashmemSize) {
+        (size + offset) > ashmemSize || ashmemSize < 0) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}d offset:%{public}d", size, offset);
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR,
             ::taihe::array<uint8_t>(nullptr, 0));
@@ -632,10 +633,10 @@ void AshmemImpl::UnmapAshmem()
 void AshmemImpl::WriteDataToAshmem(::taihe::array_view<uint8_t> buf, int32_t size, int32_t offset)
 {
     CHECK_NATIVE_OBJECT(ashmem_, OHOS::RpcTaiheErrorCode::TAIHE_OS_MMAP_ERROR);
-    uint32_t ashmemSize = (uint32_t)GetAshmemSize();
+    int32_t ashmemSize = GetAshmemSize();
     if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
-        static_cast<uint32_t>(size + offset) > ashmemSize) {
+        (size + offset) > ashmemSize || ashmemSize < 0) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}d offset:%{public}d", size, offset);
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
         return;
@@ -1722,7 +1723,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
         ::taihe::array<double>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
     CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
-        nativeParcel_, (::taihe::array<::taihe::string>(nullptr, 0)));
+        nativeParcel_, (::taihe::array<double>(nullptr, 0)));
     std::vector<double> res;
     for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
         res.push_back(nativeParcel_->ReadDouble());
