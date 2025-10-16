@@ -118,7 +118,7 @@ void *IPCWorkThread::ThreadHandler(void *args)
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "set thread name:%{public}s fail, ret:%{public}d", threadName.c_str(), ret);
     } else {
-        ZLOGD(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u", param->proto,
+        ZLOGW(LOG_LABEL, "proto:%{public}d policy:%{public}d name:%{public}s invoker:%{public}u", param->proto,
             param->policy, threadName.c_str(), ProcessSkeleton::ConvertAddr(invoker));
     }
     IPCThreadSkeleton::SaveThreadName(threadName);
