@@ -447,6 +447,7 @@ AshmemImpl::AshmemImpl(OHOS::sptr<OHOS::Ashmem> ashmem)
     OHOS::sptr<OHOS::Ashmem> newAshmem(new (std::nothrow) OHOS::Ashmem(dupFd, size));
     if (newAshmem == nullptr) {
         ZLOGE(LOG_LABEL, "fail to create new Ashmem");
+        close(dupFd);
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_PARCEL_MEMORY_ALLOC_ERROR);
     }
     ashmem_ = newAshmem;
@@ -609,10 +610,10 @@ void AshmemImpl::UnmapAshmem()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(ashmem_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_FROM_ASHMEM_ERROR, ::taihe::array<uint8_t>(nullptr, 0));
-    uint32_t ashmemSize = (uint32_t)GetAshmemSize();
+    int32_t ashmemSize = GetAshmemSize();
     if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
-        (size + offset) > ashmemSize) {
+        (size + offset) > ashmemSize || ashmemSize < 0) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}d offset:%{public}d", size, offset);
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR,
             ::taihe::array<uint8_t>(nullptr, 0));
@@ -632,10 +633,10 @@ void AshmemImpl::UnmapAshmem()
 void AshmemImpl::WriteDataToAshmem(::taihe::array_view<uint8_t> buf, int32_t size, int32_t offset)
 {
     CHECK_NATIVE_OBJECT(ashmem_, OHOS::RpcTaiheErrorCode::TAIHE_OS_MMAP_ERROR);
-    uint32_t ashmemSize = (uint32_t)GetAshmemSize();
+    int32_t ashmemSize = GetAshmemSize();
     if (size <= 0 || size > std::numeric_limits<int32_t>::max() ||
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
-        (size + offset) > ashmemSize) {
+        (size + offset) > ashmemSize || ashmemSize < 0) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}d offset:%{public}d", size, offset);
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
         return;
@@ -1706,6 +1707,8 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
     uint32_t arrayLength = nativeParcel_->ReadUint32();
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+        nativeParcel_, (::taihe::array<int32_t>(nullptr, 0)));
     std::vector<int32_t> res;
     for (uint32_t i = 0; i < arrayLength; i++) {
         uint8_t val = nativeParcel_->ReadUint8();
@@ -1719,6 +1722,8 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<double>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+        nativeParcel_, (::taihe::array<double>(nullptr, 0)));
     std::vector<double> res;
     for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
         res.push_back(nativeParcel_->ReadDouble());
@@ -1731,6 +1736,8 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int64_t>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+        nativeParcel_, (::taihe::array<int64_t>(nullptr, 0)));
     std::vector<int64_t> res;
     for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
         res.push_back(nativeParcel_->ReadInt64());
@@ -1743,6 +1750,8 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+        nativeParcel_, (::taihe::array<int32_t>(nullptr, 0)));
     std::vector<int32_t> res;
     for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
         int16_t val = nativeParcel_->ReadInt16();
@@ -1930,7 +1939,7 @@ void MessageSequenceImpl::WriteArrayBuffer(::taihe::array_view<uint8_t> buf, ::o
         ZLOGE(LOG_LABEL, "typeCode is out of range. typeCode:%{public}d", typeCode.get_value());
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
     }
-    int32_t byteLength = buf.size();
+    size_t byteLength = buf.size();
     void *data = nullptr;
     data = static_cast<void*>(buf.data());
     if (!WriteVectorByTypeCode(data, typeCode, byteLength)) {
@@ -2044,7 +2053,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(int8Vector.data());
-    int32_t byteLength = int8Vector.size();
+    size_t byteLength = int8Vector.size();
 
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
@@ -2072,7 +2081,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(int16Vector.data());
-    int32_t byteLength = int16Vector.size() * BYTE_SIZE_16;
+    size_t byteLength = int16Vector.size() * BYTE_SIZE_16;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2088,7 +2097,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(uint16Vector.data());
-    int32_t byteLength = uint16Vector.size() * BYTE_SIZE_16;
+    size_t byteLength = uint16Vector.size() * BYTE_SIZE_16;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2104,7 +2113,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(int32Vector.data());
-    int32_t byteLength = int32Vector.size() * BYTE_SIZE_32;
+    size_t byteLength = int32Vector.size() * BYTE_SIZE_32;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2120,7 +2129,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(uint32Vector.data());
-    int32_t byteLength = uint32Vector.size() * BYTE_SIZE_32;
+    size_t byteLength = uint32Vector.size() * BYTE_SIZE_32;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2136,7 +2145,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(floatVector.data());
-    int32_t byteLength = floatVector.size() * BYTE_SIZE_32;
+    size_t byteLength = floatVector.size() * BYTE_SIZE_32;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2152,7 +2161,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(doubleVector.data());
-    int32_t byteLength = doubleVector.size() * BYTE_SIZE_64;
+    size_t byteLength = doubleVector.size() * BYTE_SIZE_64;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2168,7 +2177,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(int64Vector.data());
-    int32_t byteLength = int64Vector.size() * BYTE_SIZE_64;
+    size_t byteLength = int64Vector.size() * BYTE_SIZE_64;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2184,7 +2193,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
     void *vec = nullptr;
     vec = static_cast<void*>(uint64Vector.data());
-    int32_t byteLength = uint64Vector.size() * BYTE_SIZE_64;
+    size_t byteLength = uint64Vector.size() * BYTE_SIZE_64;
     std::vector<uint8_t> ret;
     ret = BufferToVector<uint8_t>(vec, byteLength);
     return ::taihe::array<uint8_t>(ret);
@@ -2562,6 +2571,8 @@ bool IPCSkeletonImpl::IsLocalCalling()
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR,
             (::taihe::array<::ohos::rpc::rpc::IRemoteObjectUnion>(nullptr, 0)));
     }
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+        nativeParcel_, (::taihe::array<::ohos::rpc::rpc::IRemoteObjectUnion>(nullptr, 0)));
     if (!(nativeParcel_->WriteUint32(arrayLength))) {
         ZLOGE(LOG_LABEL, "write array length failed");
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR,
