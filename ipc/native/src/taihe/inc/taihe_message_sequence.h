@@ -205,8 +205,6 @@ public:
 
     ::taihe::array<int32_t> ReadByteArrayGet();
 
-    void ReadByteArrayIn(::taihe::array_view<int32_t> dataIn);
-
     void WriteByte(int32_t val);
 
     void WriteShort(int32_t val);
