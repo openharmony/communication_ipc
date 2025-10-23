@@ -1707,7 +1707,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
     uint32_t arrayLength = nativeParcel_->ReadUint32();
-    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(uint8_t),
         nativeParcel_, (::taihe::array<int32_t>(nullptr, 0)));
     std::vector<int32_t> res;
     for (uint32_t i = 0; i < arrayLength; i++) {
@@ -1722,7 +1722,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<double>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
-    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(double),
         nativeParcel_, (::taihe::array<double>(nullptr, 0)));
     std::vector<double> res;
     for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
@@ -1736,7 +1736,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int64_t>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
-    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(int32_t),
+    CHECK_READ_LENGTH_RETVAL(static_cast<size_t>(arrayLength), sizeof(long),
         nativeParcel_, (::taihe::array<int64_t>(nullptr, 0)));
     std::vector<int64_t> res;
     for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
