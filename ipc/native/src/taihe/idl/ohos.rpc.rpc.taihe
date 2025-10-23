@@ -281,8 +281,14 @@ interface MessageSequence {
 
     @overload("readByteArray")
     ReadByteArrayGet(): Array<i32>;
-    @overload("readByteArray")
-    ReadByteArrayIn(dataIn: Array<i32>);
+    @!sts_inject_into_class("""
+        readByteArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readByteArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
 
     ReadChar(): i32;
     ReadFloat(): f64;
