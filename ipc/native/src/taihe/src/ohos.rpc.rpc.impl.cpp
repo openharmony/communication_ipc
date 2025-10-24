@@ -727,9 +727,14 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
 
 ::ohos::rpc::rpc::IRemoteBroker RemoteObjectImpl::GetLocalInterface(::taihe::string_view descriptor)
 {
+    auto jsBroker = taihe::make_holder<IRemoteBrokerImpl, ::ohos::rpc::rpc::IRemoteBroker>();
     if (descriptor != desc_) {
         ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc_.data());
-        TH_THROW(std::runtime_error, "descriptor mispatch");
+        return jsBroker;
+    }
+    if (!jsLocalInterface_.has_value()) {
+        ZLOGE(LOG_LABEL, "jsLocalInterface_ is empty!");
+        return jsBroker;
     }
     return jsLocalInterface_.value();
 }
@@ -2617,7 +2622,7 @@ void MessageSequenceImpl::SetSize(int32_t size)
     return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteProxy(jsProxy);
 }
 
-::taihe::array<int32_t> MessageSequenceImpl::ReadByteArrayGet()
+::taihe::array<int32_t> MessageSequenceImpl::ReadByteArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<int32_t>(nullptr, 0));

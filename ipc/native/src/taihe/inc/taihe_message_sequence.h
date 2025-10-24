@@ -203,7 +203,7 @@ public:
 
     ::taihe::array<::ohos::rpc::rpc::IRemoteObjectUnion> ReadRemoteObjectArrayImpl();
 
-    ::taihe::array<int32_t> ReadByteArrayGet();
+    ::taihe::array<int32_t> ReadByteArrayImpl();
 
     void WriteByte(int32_t val);
 
