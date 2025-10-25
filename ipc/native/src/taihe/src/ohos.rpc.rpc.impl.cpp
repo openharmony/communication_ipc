@@ -727,9 +727,14 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
 
 ::ohos::rpc::rpc::IRemoteBroker RemoteObjectImpl::GetLocalInterface(::taihe::string_view descriptor)
 {
+    auto jsBroker = taihe::make_holder<IRemoteBrokerImpl, ::ohos::rpc::rpc::IRemoteBroker>();
     if (descriptor != desc_) {
         ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc_.data());
-        TH_THROW(std::runtime_error, "descriptor mispatch");
+        return jsBroker;
+    }
+    if (!jsLocalInterface_.has_value()) {
+        ZLOGE(LOG_LABEL, "jsLocalInterface_ is empty!");
+        return jsBroker;
     }
     return jsLocalInterface_.value();
 }
@@ -2605,7 +2610,7 @@ void MessageSequenceImpl::SetSize(int32_t size)
     return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteProxy(jsProxy);
 }
 
-::taihe::array<int32_t> MessageSequenceImpl::ReadByteArrayGet()
+::taihe::array<int32_t> MessageSequenceImpl::ReadByteArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<int32_t>(nullptr, 0));
@@ -2628,26 +2633,6 @@ void MessageSequenceImpl::SetSize(int32_t size)
         res[i] = static_cast<int32_t>(value);
     }
     return res;
-}
-
-void MessageSequenceImpl::ReadByteArrayIn(::taihe::array_view<int32_t> dataIn)
-{
-    CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
-    int32_t arrayLength = nativeParcel_->ReadInt32();
-    if (arrayLength <= 0) {
-        ZLOGE(LOG_LABEL, "arrayLength:%{public}d <= 0", arrayLength);
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
-    }
-    CHECK_READ_LENGTH(static_cast<size_t>(arrayLength), sizeof(int8_t), nativeParcel_);
-    int8_t value = 0;
-    for (uint32_t i = 0; i < static_cast<uint32_t>(arrayLength); i++) {
-        if (!nativeParcel_->ReadInt8(value)) {
-            ZLOGE(LOG_LABEL, "read int8 failed");
-            RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
-        }
-        dataIn[i] = static_cast<int32_t>(value);
-    }
-    return;
 }
 }  // namespace
 
