@@ -1257,9 +1257,9 @@ HWTEST_F(IPCObjectStubTest, GetSessionNameForPidUidTest002, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
 
-    uint32_t remotePid =  1111;
+    uint32_t remotePid =  2222;
     data.WriteUint32(remotePid);
-    uint32_t remoteUid =  1112;
+    uint32_t remoteUid =  2223;
     data.WriteUint32(remoteUid);
 
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
