@@ -615,13 +615,13 @@ void AshmemImpl::UnmapAshmem()
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize || ashmemSize < 0) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}d offset:%{public}d", size, offset);
-        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR,
+        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_READ_FROM_ASHMEM_ERROR,
             ::taihe::array<uint8_t>(nullptr, 0));
     }
     const void *rawData = ashmem_->ReadFromAshmem(size, offset);
     if (rawData == nullptr) {
         ZLOGE(LOG_LABEL, "rawData is null");
-        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
+        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_READ_FROM_ASHMEM_ERROR,
             ::taihe::array<uint8_t>(nullptr, 0));
     }
     const uint8_t* bytePtr = static_cast<const uint8_t*>(rawData);
@@ -638,12 +638,12 @@ void AshmemImpl::WriteDataToAshmem(::taihe::array_view<uint8_t> buf, int32_t siz
         offset < 0 || offset > std::numeric_limits<int32_t>::max() ||
         (size + offset) > ashmemSize || ashmemSize < 0) {
         ZLOGE(LOG_LABEL, "invalid parameter, size:%{public}d offset:%{public}d", size, offset);
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
+        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_WRITE_TO_ASHMEM_ERROR);
         return;
     }
     if (!ashmem_->WriteToAshmem(static_cast<const void*>(buf.data()), size, offset)) {
         ZLOGE(LOG_LABEL, "write data failed");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
+        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_WRITE_TO_ASHMEM_ERROR);
     }
 }
 
@@ -721,6 +721,10 @@ int32_t RemoteObjectImpl::GetCallingUid()
 void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroker localInterface,
     ::taihe::string_view descriptor)
 {
+    if (std::string(descriptor).size() >= MAX_BYTES_LENGTH) {
+        ZLOGE(LOG_LABEL, "string length exceeds %{public}d bytes", MAX_BYTES_LENGTH);
+        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
+    }
     jsLocalInterface_ = localInterface;
     desc_ = descriptor;
 }
@@ -728,6 +732,10 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
 ::ohos::rpc::rpc::IRemoteBroker RemoteObjectImpl::GetLocalInterface(::taihe::string_view descriptor)
 {
     auto jsBroker = taihe::make_holder<IRemoteBrokerImpl, ::ohos::rpc::rpc::IRemoteBroker>();
+    if (std::string(descriptor).size() >= MAX_BYTES_LENGTH) {
+        ZLOGE(LOG_LABEL, "string length exceeds %{public}d bytes", MAX_BYTES_LENGTH);
+        return jsBroker;
+    }
     if (descriptor != desc_) {
         ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc_.data());
         return jsBroker;
