@@ -760,6 +760,10 @@ int32_t BinderInvoker::SamgrServiceSendRequest(
 {
     int error = ERR_DEAD_OBJECT;
 
+    if (IPCProcessSkeleton::GetCurrent() == nullptr) {
+        ZLOGE(LABEL, "IPCProcessSkeleton GetCurrent is null");
+        return ERR_NULL_OBJECT;
+    }
     auto targetObject = IPCProcessSkeleton::GetCurrent()->GetRegistryObject();
     if (targetObject == nullptr) {
         ZLOGE(LABEL, "Invalid samgr stub object");
