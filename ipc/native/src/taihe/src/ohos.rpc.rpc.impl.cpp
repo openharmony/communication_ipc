@@ -734,7 +734,7 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
     auto jsBroker = taihe::make_holder<IRemoteBrokerImpl, ::ohos::rpc::rpc::IRemoteBroker>();
     if (std::string(descriptor).size() >= MAX_BYTES_LENGTH) {
         ZLOGE(LOG_LABEL, "string length exceeds %{public}d bytes", MAX_BYTES_LENGTH);
-        return jsBroker;
+        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR, jsBroker);
     }
     if (descriptor != desc_) {
         ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc_.data());
