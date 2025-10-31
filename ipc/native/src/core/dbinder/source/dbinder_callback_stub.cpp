@@ -52,6 +52,10 @@ DBinderCallbackStub::~DBinderCallbackStub()
 {
     ZLOGD(LOG_LABEL, "destroyed, service:%{public}s deviceId:%{public}s handle:%{public}u stubIndex:%{public}" PRIu64,
         serviceName_.c_str(), IPCProcessSkeleton::ConvertToSecureString(deviceID_).c_str(), handle_, stubIndex_);
+    if (IPCProcessSkeleton::GetCurrent() == nullptr) {
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton GetCurrent is null");
+        return;
+    }
     IPCProcessSkeleton::GetCurrent()->DetachDBinderCallbackStub(this);
     dbinderData_ = nullptr;
 }
@@ -93,6 +97,10 @@ int32_t DBinderCallbackStub::ProcessProto(uint32_t code, MessageParcel &data, Me
         ZLOGE(LOG_LABEL, "uid or pid err");
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_UID_OR_PID_FAIL, __FUNCTION__);
         return DBINDER_SERVICE_PROCESS_PROTO_ERR;
+    }
+    if (IPCProcessSkeleton::GetCurrent() == nullptr) {
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton GetCurrent is null");
+        return ERR_NULL_OBJECT;
     }
     sptr<IRemoteObject> object = IPCProcessSkeleton::GetCurrent()->GetSAMgrObject();
     if (object == nullptr) {
@@ -275,7 +283,10 @@ int DBinderCallbackStub::GetAndSaveDBinderData(pid_t pid, uid_t uid)
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_GET_UID_OR_PID_FAIL, __FUNCTION__);
         return DBINDER_CALLBACK_FILL_DATA_ERR;
     }
-
+    if (IPCProcessSkeleton::GetCurrent() == nullptr) {
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton GetCurrent is null");
+        return ERR_NULL_OBJECT;
+    }
     sptr<IRemoteObject> object = IPCProcessSkeleton::GetCurrent()->GetSAMgrObject();
     if (object == nullptr) {
         ZLOGE(LOG_LABEL, "GetSAMgrObject failed");
