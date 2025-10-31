@@ -552,8 +552,8 @@ void IPCObjectProxy::SendObituary()
     }
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
-        ZLOGI(LABEL, "handle:%{public}d desc:%{public}s %{public}u count:%{public}zu", handle_,
-            remoteDescriptor_.c_str(), ProcessSkeleton::ConvertAddr(this), toBeReport.size());
+        // hd is handle, ct is count
+        ZLOGI_SENDOBITUARY(LABEL, "hd:%{public}d ct:%{public}zu", handle_, toBeReport.size());
     }
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
