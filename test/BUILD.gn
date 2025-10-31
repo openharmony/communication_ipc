@@ -92,6 +92,7 @@ ohos_static_library("ipc_single_test_static") {
     "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_databus_invoker.cpp",
     "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_session_object.cpp",
     "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_softbus_client.cpp",
+    "$IPC_CORE_ROOT/src/core/dbinder/source/dbinder_softbus_client_death_recipient.cpp",
     "$IPC_CORE_ROOT/src/core/framework/source/binder_debug.cpp",
     "$IPC_CORE_ROOT/src/core/framework/source/buffer_object.cpp",
     "$IPC_CORE_ROOT/src/core/framework/source/comm_auth_info.cpp",

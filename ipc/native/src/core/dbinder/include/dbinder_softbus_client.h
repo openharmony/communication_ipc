@@ -31,6 +31,8 @@ enum {
     SOFTBUS_CLIENT_DLSYM_FAILED,
     SOFTBUS_CLIENT_INSTANCE_EXIT,
     SOFTBUS_CLIENT_GET_DEVICE_INFO_FAILED,
+    SOFTBUS_CLIENT_DEATH_RECIPIENT_INVALID,
+    SOFTBUS_CLIENT_ADD_DEATH_RECIPIENT_FAILED,
 };
 
 static constexpr int MAX_SEND_MESSAGE_LENGTH = 4 * 1024;
@@ -50,6 +52,7 @@ public:
     int32_t SendBytes(int32_t socket, const void *data, uint32_t len);
     int32_t SendMessage(int32_t socket, const void *data, uint32_t len);
     void Shutdown(int32_t socket);
+    void SoftbusDeathProcTask();
 
 private:
     DISALLOW_COPY_AND_MOVE(DBinderSoftbusClient);
