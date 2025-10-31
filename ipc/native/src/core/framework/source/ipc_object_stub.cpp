@@ -789,6 +789,10 @@ int IPCObjectStub::RemoveSessionName(MessageParcel &data)
 
 bool IPCObjectStub::IsSamgrCall()
 {
+    if (ProcessSkeleton::GetInstance() == nullptr) {
+        ZLOGI(LABEL, "IPCProcessSkeleton GetCurrent is null");
+        return false;
+    }
     return ProcessSkeleton::GetInstance()->GetSamgrFlag();
 }
 #endif
