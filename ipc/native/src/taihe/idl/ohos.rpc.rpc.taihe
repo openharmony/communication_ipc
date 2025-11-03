@@ -16,7 +16,7 @@
 @!namespace("@ohos.rpc", "rpc")
 
 @!sts_inject("""
-static { loadLibrary("rpc_taihe.z"); }
+static { loadLibraryWithPermissionCheck("rpc_taihe.z", "@ohos.rpc"); }
 """)
 
 union IRemoteObjectUnion {
