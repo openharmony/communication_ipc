@@ -18,6 +18,8 @@
 #include <dlfcn.h>
 
 #include "check_instance_exit.h"
+#include "dbinder_softbus_client_death_recipient.h"
+#include "ipc_skeleton.h"
 #include "ipc_debug.h"
 #include "ipc_types.h"
 #include "log_tags.h"
@@ -27,21 +29,114 @@ namespace OHOS {
 using namespace OHOS::HiviewDFX;
 static constexpr HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_DBINDER_SOFTBUS_CLIENT, "DBinderSoftbusClient" };
 static constexpr const char *SOFTBUS_PATH_NAME = "libsoftbus_client.z.so";
+std::mutex g_mutex;
+OHOS::sptr<OHOS::IRemoteObject> g_serverProxy = nullptr;
+OHOS::sptr<OHOS::IRemoteObject> g_oldServerProxy = nullptr;
+OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> g_clientDeath = nullptr;
+constexpr uint32_t PRINT_INTERVAL = 200;
+constexpr int32_t CYCLE_NUMBER_MAX = 100;
+constexpr uint32_t WAIT_SERVER_INTERVAL = 50;
+uint32_t g_getSystemAbilityId = 2;
+uint32_t g_printRequestFailedCount = 0;
+const std::u16string SAMANAGER_INTERFACE_TOKEN = u"ohos.samgr.accessToken";
 
+#define SOFTBUS_SERVER_SA_ID_INNER 4700
 DBinderSoftbusClient& DBinderSoftbusClient::GetInstance()
 {
     static DBinderSoftbusClient instance;
     return instance;
 }
 
+static OHOS::sptr<OHOS::IRemoteObject> GetSystemAbility()
+{
+    OHOS::MessageParcel data;
+    if (!data.WriteInterfaceToken(SAMANAGER_INTERFACE_TOKEN)) {
+        ZLOGE(LOG_LABEL, "write interface token failed!");
+        return nullptr;
+    }
+
+    data.WriteInt32(SOFTBUS_SERVER_SA_ID_INNER);
+    OHOS::MessageParcel reply;
+    OHOS::MessageOption option;
+    OHOS::sptr<OHOS::IRemoteObject> samgr = OHOS::IPCSkeleton::GetContextObject();
+    if (samgr == nullptr) {
+        ZLOGE(LOG_LABEL, "Get samgr failed!");
+        return nullptr;
+    }
+    int32_t err = samgr->SendRequest(g_getSystemAbilityId, data, reply, option);
+    if (err != 0) {
+        if ((++g_printRequestFailedCount) % PRINT_INTERVAL == 0) {
+            ZLOGD(LOG_LABEL, "GetSystemAbility failed!");
+        }
+        return nullptr;
+    }
+    return reply.ReadRemoteObject();
+}
+
+static int32_t SoftbusServerProxyInit(void)
+{
+    std::lock_guard<std::mutex> lockGuard(g_mutex);
+    if (g_serverProxy == nullptr) {
+        g_serverProxy = GetSystemAbility();
+        if (g_serverProxy == nullptr) {
+            return SOFTBUS_IPC_ERR;
+        }
+
+        if (g_serverProxy == g_oldServerProxy) {
+            g_serverProxy = nullptr;
+            ZLOGE(LOG_LABEL, "g_serverProxy not update");
+            return SOFTBUS_IPC_ERR;
+        }
+
+        g_clientDeath =
+        OHOS::sptr<OHOS::IRemoteObject::DeathRecipient>(new (std::nothrow) OHOS::DbinderSoftbusClientDeathRecipient());
+        if (g_clientDeath == nullptr) {
+            ZLOGE(LOG_LABEL, "DeathRecipient object nullptr");
+            return SOFTBUS_CLIENT_DEATH_RECIPIENT_INVALID;
+        }
+        if (!g_serverProxy->AddDeathRecipient(g_clientDeath)) {
+            ZLOGE(LOG_LABEL, "AddDeathRecipient failed");
+            return SOFTBUS_CLIENT_ADD_DEATH_RECIPIENT_FAILED;
+        }
+    }
+    return ERR_NONE;
+}
+
 DBinderSoftbusClient::DBinderSoftbusClient()
 {
+    SoftbusServerProxyInit();
 }
 
 DBinderSoftbusClient::~DBinderSoftbusClient()
 {
     exitFlag_ = true;
     ZLOGI(LOG_LABEL, "destroy");
+}
+
+void DBinderSoftbusClient::SoftbusDeathProcTask()
+{
+    {
+        std::lock_guard<std::mutex> lockGuard(g_mutex);
+        g_oldServerProxy = g_serverProxy;
+        if (g_serverProxy != nullptr && g_clientDeath != nullptr) {
+            g_serverProxy->RemoveDeathRecipient(g_clientDeath);
+        }
+        g_serverProxy.clear();
+    }
+    std::lock_guard<std::mutex> lockGuard(permissionMutex_);
+    mapSessionRefCount_.clear();
+
+    int32_t cnt = 0;
+    for (cnt = 0; cnt < CYCLE_NUMBER_MAX; cnt++) {
+        if (SoftbusServerProxyInit() == ERR_NONE) {
+            break;
+        }
+        usleep(WAIT_SERVER_INTERVAL);
+    }
+    if (cnt == CYCLE_NUMBER_MAX) {
+        ZLOGE(LOG_LABEL, "server proxy init reached the maxnum count= %{public}d", cnt);
+        return;
+    }
 }
 
 // LCOV_EXCL_START
@@ -91,7 +186,7 @@ DO_GRANT:
     if (it != mapSessionRefCount_.end()) {
         it->second++;
         ZLOGI(LOG_LABEL, "had permission socName:%{public}s refCount:%{public}d", socketName.c_str(), it->second);
-        return ERR_NONE;
+        return grantPermissionFunc_(uid, pid, socketName.c_str());
     }
     mapSessionRefCount_.insert(std::pair<std::string, int32_t>(socketName, 1));
     ZLOGI(LOG_LABEL, "refCount +1  socketName:%{public}s", socketName.c_str());
