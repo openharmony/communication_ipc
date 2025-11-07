@@ -129,17 +129,11 @@ public:
 
     MessageParcel* GetNativeParcel() const
     {
-        return sharedNativeParcel_.get();
-    }
-
-    std::shared_ptr<OHOS::MessageParcel> GetSharedNativeParcel() const
-    {
-        return sharedNativeParcel_;
+        return nativeParcel_;
     }
 
 private:
     OHOS::MessageParcel* nativeParcel_ = nullptr;
-    std::shared_ptr<OHOS::MessageParcel> sharedNativeParcel_ = nullptr;
     std::optional<::ohos::rpc::rpc::weak::MessageSequence> jsObjRef_;
     bool isOwner_ = false;
 };
