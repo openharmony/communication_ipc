@@ -533,18 +533,7 @@ MessageSequenceImpl::MessageSequenceImpl()
         ZLOGE(LOG_LABEL, "create MessageParcel failed");
         taihe::set_error("create MessageParcel failed");
     }
-    sharedNativeParcel_ = std::make_shared<OHOS::MessageParcel>();
-    if (sharedNativeParcel_ == nullptr) {
-        ZLOGE(LOG_LABEL, "create MessageParcelShared failed");
-        taihe::set_error("create MessageParcelShared failed");
-    }
     isOwner_ = true;
-}
-
-MessageSequenceImpl::MessageSequenceImpl(std::shared_ptr<OHOS::MessageParcel> messageparcel)
-{
-    sharedNativeParcel_ = messageparcel;
-    isOwner_ = false;
 }
 
 MessageSequenceImpl::MessageSequenceImpl(OHOS::MessageParcel* messageparcel)
@@ -564,7 +553,6 @@ void MessageSequenceImpl::Reclaim()
         delete nativeParcel_;
     }
     nativeParcel_ = nullptr;
-    sharedNativeParcel_ = nullptr;
 }
 
 int64_t MessageSequenceImpl::GetMessageSequenceImpl()
@@ -588,7 +576,7 @@ int64_t MessageSequenceImpl::GetMessageSequenceImpl()
         return taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
     }
 
-    std::shared_ptr<OHOS::MessageParcel> parcel = napiMessageSequence->GetMessageParcel();
+    OHOS::MessageParcel* parcel = napiMessageSequence->GetMessageParcel().get();
     if (!parcel) {
         ZLOGE(LOG_LABEL, "parcel is nullptr");
         return taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
