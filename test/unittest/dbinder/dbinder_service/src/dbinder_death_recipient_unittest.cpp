@@ -49,23 +49,28 @@ void DbinderDeathRecipientTest::TearDown()
 
 /**
  * @tc.name: OnRemoteDiedTest001
- * @tc.desc: Verify the OnRemoteDied function
+ * @tc.desc: Verify the OnRemoteDied function when remote is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(DbinderDeathRecipientTest, OnRemoteDiedTest001, TestSize.Level1)
 {
     DbinderDeathRecipient dbinderDeathRecipient;
+    wptr<IRemoteObject> remote = nullptr;
+    ASSERT_NO_FATAL_FAILURE(dbinderDeathRecipient.OnRemoteDied(remote));
+}
+
+/**
+ * @tc.name: OnRemoteDiedTest002
+ * @tc.desc: Verify the OnRemoteDied function when remote is a valid object
+ * @tc.type: FUNC
+ */
+HWTEST_F(DbinderDeathRecipientTest, OnRemoteDiedTest002, TestSize.Level1)
+{
+    DbinderDeathRecipient dbinderDeathRecipient;
     int handle = 1;
-    std::u16string descriptor = std::u16string();
-    sptr<IPCObjectProxy> object = sptr<IPCObjectProxy>::MakeSptr(handle, descriptor);
-    sptr<IRemoteObject::DeathRecipient> death = sptr<DbinderDeathRecipient>::MakeSptr();
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    ASSERT_NE(object, nullptr);
-    ASSERT_NE(death, nullptr);
-    ASSERT_NE(dBinderService, nullptr);
-    dBinderService->AttachDeathRecipient(object, death);
-    IRemoteObject *remoteObject = object.GetRefPtr();
-    wptr<IRemoteObject> remote = remoteObject;
+    sptr<IRemoteObject> proxy = new (std::nothrow) IPCObjectProxy(handle, std::u16string());
+    ASSERT_TRUE(proxy != nullptr);
+    wptr<IRemoteObject> remote = proxy;
     dbinderDeathRecipient.OnRemoteDied(remote);
 }
 } // namespace OHOS

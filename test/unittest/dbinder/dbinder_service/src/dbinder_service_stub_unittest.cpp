@@ -31,6 +31,8 @@ namespace OHOS {
 namespace {
     constexpr binder_uintptr_t BINDER_OBJECT = 11;
     constexpr uint32_t PROCESS_PROTO_CODE = 11;
+    constexpr uint32_t SESSION_TYPE_UNKNOWN = 99;
+    constexpr int32_t UNKNOWN_TRANSACTION_CODE = 999;
     const std::u16string SERVICE_TEST = u"serviceTest";
     const std::string DEVICE_TEST = "deviceTest";
     const std::string LOCAL_BUS_NAME_TEST = "localBusNameTest";
@@ -178,6 +180,157 @@ void DBinderServiceStubTest::SetUp()
 
 void DBinderServiceStubTest::TearDown()
 {
+}
+
+/**
+ * @tc.name: DBinderServiceStubTest001
+ * @tc.desc: Verify the DBinderServiceStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, DBinderServiceStubTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    int32_t num = dBinderServiceStub.GetObjectRefCount();
+    EXPECT_NE(num, 0);
+}
+
+/**
+ * @tc.name: DBinderServiceStubTest002
+ * @tc.desc: Verify the DBinderServiceStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, DBinderServiceStubTest002, TestSize.Level1)
+{
+    const std::u16string service = u"";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    int32_t num = dBinderServiceStub.GetObjectRefCount();
+    EXPECT_NE(num, 0);
+}
+
+/**
+ * @tc.name: DBinderServiceStubTest003
+ * @tc.desc: Verify the DBinderServiceStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, DBinderServiceStubTest003, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    int32_t num = dBinderServiceStub.GetObjectRefCount();
+    EXPECT_NE(num, 0);
+}
+
+/**
+ * @tc.name: DBinderServiceStubTest004
+ * @tc.desc: Verify the DBinderServiceStub function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, DBinderServiceStubTest004, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = UINT_MAX;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    int32_t num = dBinderServiceStub.GetObjectRefCount();
+    EXPECT_NE(num, 0);
+}
+
+
+/**
+ * @tc.name: GetServiceNameTest001
+ * @tc.desc: Verify the GetServiceName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetServiceNameTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    std::u16string ret = dBinderServiceStub.GetServiceName();
+    EXPECT_EQ(ret, u"serviceTest");
+}
+
+/**
+ * @tc.name: GetServiceNameTest002
+ * @tc.desc: Verify the GetServiceName function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetServiceNameTest002, TestSize.Level1)
+{
+    const std::u16string service;
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    std::u16string ret = dBinderServiceStub.GetServiceName();
+    EXPECT_EQ(ret, u"");
+}
+
+/**
+ * @tc.name: GetDeviceIDTest001
+ * @tc.desc: Verify the GetDeviceID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetDeviceIDTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    std::string ret = dBinderServiceStub.GetDeviceID();
+    EXPECT_EQ(ret, "deviceTest");
+}
+
+/**
+ * @tc.name: GetDeviceIDTest002
+ * @tc.desc: Verify the GetDeviceID function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetDeviceIDTest002, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device;
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    std::string ret = dBinderServiceStub.GetDeviceID();
+    EXPECT_EQ(ret, "");
+}
+
+/**
+ * @tc.name: GetBinderObject001
+ * @tc.desc: Verify the GetBinderObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetBinderObject001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    binder_uintptr_t ret = dBinderServiceStub.GetBinderObject();
+    EXPECT_EQ(ret, BINDER_OBJECT);
+}
+
+/**
+ * @tc.name: GetBinderObject002
+ * @tc.desc: Verify the GetBinderObject function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetBinderObject002, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = UINT_MAX;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    binder_uintptr_t ret = dBinderServiceStub.GetBinderObject();
+    EXPECT_EQ(ret, UINT_MAX);
 }
 
 /**
@@ -451,6 +604,360 @@ HWTEST_F(DBinderServiceStubTest, ProcessProtoTest010, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessProtoTest011
+ * @tc.desc: Verify the ProcessProto function when code is invalid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessProtoTest011, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    uint32_t code = UINT_MAX;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = dBinderServiceStub.ProcessProto(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequestTest001
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, OnRemoteRequestTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    uint32_t code = GET_PROTO_INFO;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = dBinderServiceStub.OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_PROCESS_PROTO_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequestTest002
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, OnRemoteRequestTest002, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    uint32_t code = DBINDER_OBITUARY_TRANSACTION;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = dBinderServiceStub.OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequestTest003
+ * @tc.desc: Verify the OnRemoteRequest function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, OnRemoteRequestTest003, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    uint32_t code = PROCESS_PROTO_CODE;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = dBinderServiceStub.OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, DBINDER_SERVICE_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: ProcessDeathRecipientTest001
+ * @tc.desc: Verify the ProcessDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessDeathRecipientTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    MessageParcel data;
+    data.WriteInt32(IRemoteObject::DeathRecipient::ADD_DEATH_RECIPIENT);
+    int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: ProcessDeathRecipientTest002
+ * @tc.desc: Verify the ProcessDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessDeathRecipientTest002, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    MessageParcel data;
+    data.WriteInt32(IRemoteObject::DeathRecipient::REMOVE_DEATH_RECIPIENT);
+    int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
+}
+
+/**
+ * @tc.name: ProcessDeathRecipientTest003
+ * @tc.desc: Verify the ProcessDeathRecipient function with unknown type
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessDeathRecipientTest003, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    MessageParcel data;
+    data.WriteInt32(UNKNOWN_TRANSACTION_CODE);
+
+    int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: ProcessDeathRecipientTest004
+ * @tc.desc: Verify the ProcessDeathRecipient function with unknown type
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, ProcessDeathRecipientTest004, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    MessageParcel data;
+    data.WriteString("");
+
+    int32_t ret = dBinderServiceStub.ProcessDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: AddDbinderDeathRecipientTest001
+ * @tc.desc: Verify the AddDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+    MessageParcel data;
+    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: AddDbinderDeathRecipientTest002
+ * @tc.desc: Verify the AddDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest002, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
+    EXPECT_TRUE(callbackStub != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackStub);
+    data.WriteString("");
+    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
+}
+
+/**
+ * @tc.name: AddDbinderDeathRecipientTest003
+ * @tc.desc: Verify the AddDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest003, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
+    EXPECT_TRUE(callbackStub != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackStub);
+    data.WriteString("test");
+    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
+}
+
+/**
+ * @tc.name: AddDbinderDeathRecipientTest004
+ * @tc.desc: Verify the AddDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest004, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
+    EXPECT_TRUE(callbackProxy != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackProxy);
+    data.WriteString("test");
+    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AddDbinderDeathRecipientTest005
+ * @tc.desc: Verify the AddDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest005, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
+    EXPECT_TRUE(callbackProxy != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackProxy);
+    data.WriteString("");
+    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
+}
+
+/**
+ * @tc.name: RemoveDbinderDeathRecipientTest001
+ * @tc.desc: Verify the RemoveDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    MessageParcel data;
+    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
+}
+
+/**
+ * @tc.name: RemoveDbinderDeathRecipientTest002
+ * @tc.desc: Verify the RemoveDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest002, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
+    EXPECT_TRUE(callbackProxy != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackProxy);
+    data.WriteString("test");
+    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: RemoveDbinderDeathRecipientTest003
+ * @tc.desc: Verify the RemoveDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest003, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
+    EXPECT_TRUE(callbackProxy != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackProxy);
+    data.WriteString("");
+    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
+}
+
+/**
+ * @tc.name: RemoveDbinderDeathRecipientTest004
+ * @tc.desc: Verify the RemoveDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest004, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
+    EXPECT_TRUE(callbackStub != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackStub);
+    data.WriteString("test");
+    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
+}
+
+/**
+ * @tc.name: RemoveDbinderDeathRecipientTest005
+ * @tc.desc: Verify the RemoveDbinderDeathRecipient function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest005, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
+    EXPECT_TRUE(callbackStub != nullptr);
+    MessageParcel data;
+    data.WriteRemoteObject(callbackStub);
+    data.WriteString("");
+    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
+    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
+}
+
+/**
  * @tc.name: MarshallingTest001
  * @tc.desc: Verify the Marshalling function when dbinderData_ is nullptr
  * @tc.type: FUNC
@@ -556,6 +1063,192 @@ HWTEST_F(DBinderServiceStubTest, MarshallingTest005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarshallingTest006
+ * @tc.desc: Verify the Marshalling function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, MarshallingTest006, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObject = nullptr;
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    Parcel parcel;
+    bool result = dBinderServiceStub.Marshalling(parcel, nullObject);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: MarshallingTest007
+ * @tc.desc: Verify the Marshalling function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, MarshallingTest007, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    const std::u16string service2 = u"serviceTest2";
+    const std::string device2 = "deviceTest2";
+    sptr<IRemoteObject> stubObject = new DBinderServiceStub(service2, device2, object);
+    EXPECT_TRUE(stubObject != nullptr);
+    Parcel parcel;
+    bool result = dBinderServiceStub.Marshalling(parcel, stubObject);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: MarshallingTest008
+ * @tc.desc: Verify the Marshalling function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, MarshallingTest008, TestSize.Level1)
+{
+    const std::u16string service1 = u"serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub1(service1, device1, object);
+
+    const std::u16string service2 = u"serviceTest2";
+    const std::string device2 = "deviceTest2";
+    DBinderServiceStub* dBinderServiceStub2 =  new DBinderServiceStub(service2, device2, object);
+    dBinderServiceStub2->dbinderData_ = nullptr;
+    sptr<IRemoteObject> stubObject = dBinderServiceStub2;
+
+    Parcel parcel;
+    bool result = dBinderServiceStub1.Marshalling(parcel, stubObject);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SaveDBinderDataTest001
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SaveDBinderDataTest001, TestSize.Level1)
+{
+    DBinderService::GetInstance()->instance_ = nullptr;
+    const std::u16string service1 = u"serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    std::string localBusName = "localBusName";
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: SaveDBinderDataTest002
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SaveDBinderDataTest002, TestSize.Level1)
+{
+    const std::u16string service1 = u"serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    std::string localBusName = "localBusName";
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(DBinderNegotiationData));
+    ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: SaveDBinderDataTest003
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SaveDBinderDataTest003, TestSize.Level1)
+{
+    const std::u16string service1 = u"serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    binder_uintptr_t objectAddress = reinterpret_cast<binder_uintptr_t>(&dbinderServiceStub);
+    std::string localBusName = "localBusName";
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::shared_ptr<SessionInfo> sessionInfo = std::make_shared<SessionInfo>();
+    EXPECT_TRUE(sessionInfo != nullptr);
+    sessionInfo->type = SESSION_TYPE_UNKNOWN;
+    bool isInitialized = dBinderService->AttachSessionObject(sessionInfo, objectAddress);
+    ASSERT_TRUE(isInitialized);
+    dbinderServiceStub.dbinderData_ = nullptr;
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_MALLOC_ERR);
+    bool result = dBinderService->DetachSessionObject(objectAddress);
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: SaveDBinderDataTest004
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SaveDBinderDataTest004, TestSize.Level1)
+{
+    const std::u16string service1 = u"serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    std::string localBusName = "localBusName";
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(DBinderNegotiationData));
+    ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
+    DBinderNegotiationData data;
+    data.stubIndex = 1;
+    data.peerTokenId = 1;
+    data.peerServiceName = "target_name";
+    data.peerDeviceId = "target_device";
+    data.localDeviceId = "local_device";
+    data.localServiceName = "local_name";
+    memcpy_s(dbinderServiceStub.dbinderData_.get(), sizeof(DBinderNegotiationData),
+        &data, sizeof(DBinderNegotiationData));
+    int ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: SaveDBinderDataTest005
+ * @tc.desc: Verify the SaveDBinderData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, SaveDBinderDataTest005, TestSize.Level1)
+{
+    const std::u16string service1 = u"serviceTest1";
+    const std::string device1 = "deviceTest1";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dbinderServiceStub(service1, device1, object);
+    binder_uintptr_t objectAddress = reinterpret_cast<binder_uintptr_t>(&dbinderServiceStub);
+    std::string localBusName = "localBusName";
+    dbinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
+    ASSERT_NE(dbinderServiceStub.dbinderData_, nullptr);
+    dbinder_negotiation_data *dbinderData = reinterpret_cast<dbinder_negotiation_data *>(
+        dbinderServiceStub.dbinderData_.get());
+    dbinderData->stub_index = 1;
+    dbinderData->tokenid = 1;
+    auto ret = strcpy_s(dbinderData->target_name, SESSION_NAME_LENGTH, "target_name");
+    ret += strcpy_s(dbinderData->target_device, OHOS::DEVICEID_LENGTH, "target_device");
+    ret += strcpy_s(dbinderData->local_device, OHOS::DEVICEID_LENGTH, "local_device");
+    ret += strcpy_s(dbinderData->local_name, SESSION_NAME_LENGTH, "local_name");
+    ASSERT_EQ(ret, EOK);
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    std::shared_ptr<SessionInfo> sessionInfo = std::make_shared<SessionInfo>();
+    EXPECT_TRUE(sessionInfo != nullptr);
+    sessionInfo->type = SESSION_TYPE_UNKNOWN;
+    bool isInitialized = dBinderService->AttachSessionObject(sessionInfo, objectAddress);
+    ASSERT_TRUE(isInitialized);
+    ret = dbinderServiceStub.SaveDBinderData(localBusName);
+    ASSERT_EQ(ret, ERR_NONE);
+    bool result = dBinderService->DetachSessionObject(objectAddress);
+    ASSERT_TRUE(result);
+}
+
+/**
  * @tc.name: CheckSessionObjectValidityTest001
  * @tc.desc: Verify the CheckSessionObjectValidity function when GetInstance function return nullptr
  * @tc.type: FUNC
@@ -609,11 +1302,30 @@ HWTEST_F(DBinderServiceStubTest, CheckSessionObjectValidityTest003, TestSize.Lev
 }
 
 /**
- * @tc.name: GetAndSaveDBinderData001
+ * @tc.name: GetAndSaveDBinderDataTest001
+ * @tc.desc: Verify the GetAndSaveDBinderData function pid is -1 and uid is -1
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest001, TestSize.Level1)
+{
+    const std::u16string service = u"serviceTest";
+    const std::string device = "deviceTest";
+    binder_uintptr_t object = BINDER_OBJECT;
+    DBinderServiceStub dBinderServiceStub(service, device, object);
+
+    pid_t pid = INVALID_PID_TEST;
+    uid_t uid = INVALID_UID_TEST;
+
+    int ret = dBinderServiceStub.GetAndSaveDBinderData(pid, uid);
+    EXPECT_EQ(ret, DBINDER_SERVICE_FILL_DATA_ERR);
+}
+
+/**
+ * @tc.name: GetAndSaveDBinderDataTest002
  * @tc.desc: Verify the GetAndSaveDBinderData function when pid is -1 and uid is 1
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData001, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest002, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     pid_t pid = INVALID_PID_TEST;
@@ -624,11 +1336,11 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndSaveDBinderData002
+ * @tc.name: GetAndSaveDBinderDataTest003
  * @tc.desc: Verify the GetAndSaveDBinderData function when pid is 1 and uid is -1
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData002, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest003, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     pid_t pid = VALID_PID_TEST;
@@ -639,11 +1351,11 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndSaveDBinderData003
+ * @tc.name: GetAndSaveDBinderDataTest004
  * @tc.desc: Verify the GetAndSaveDBinderData function when pid and uid are valid value
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData003, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest004, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     pid_t pid = VALID_PID_TEST;
@@ -656,11 +1368,11 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData003, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndSaveDBinderData004
+ * @tc.name: GetAndSaveDBinderDataTest005
  * @tc.desc: Verify the GetAndSaveDBinderData function when CreateDatabusName function return ""
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData004, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest005, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     pid_t pid = VALID_PID_TEST;
@@ -680,11 +1392,11 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData004, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndSaveDBinderData005
+ * @tc.name: GetAndSaveDBinderDataTest006
  * @tc.desc: Verify the GetAndSaveDBinderData function when return DBINDER_SERVICE_MALLOC_ERR
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData005, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest006, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     dBinderServiceStub.dbinderData_ = nullptr;
@@ -705,11 +1417,11 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData005, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndSaveDBinderData006
+ * @tc.name: GetAndSaveDBinderDataTest007
  * @tc.desc: Verify the GetAndSaveDBinderData function when return ERR_NONE
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData006, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderDataTest007, TestSize.Level1)
 {
     DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     dBinderServiceStub.dbinderData_ = std::make_unique<uint8_t[]>(sizeof(dbinder_negotiation_data));
@@ -731,11 +1443,11 @@ HWTEST_F(DBinderServiceStubTest, GetAndSaveDBinderData006, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPeerPid001
+ * @tc.name: GetPeerPidTest001
  * @tc.desc: Verify the GetPeerPid function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetPeerPid001, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetPeerPidTest001, TestSize.Level1)
 {
     DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     EXPECT_EQ(dbinderServiceStub.GetPeerPid(), 0);
@@ -745,11 +1457,11 @@ HWTEST_F(DBinderServiceStubTest, GetPeerPid001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPeerUid001
+ * @tc.name: GetPeerUidTest001
  * @tc.desc: Verify the GetPeerUid function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, GetPeerUid001, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, GetPeerUidTest001, TestSize.Level1)
 {
     DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     EXPECT_EQ(dbinderServiceStub.GetPeerUid(), 0);
@@ -759,11 +1471,11 @@ HWTEST_F(DBinderServiceStubTest, GetPeerUid001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSeqNumber001
+ * @tc.name: SetSeqNumberTest001
  * @tc.desc: Verify the SetSeqNumber function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, SetSeqNumber001, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, SetSeqNumberTest001, TestSize.Level1)
 {
     DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     dbinderServiceStub.SetSeqNumber(TEST_SEQ_NUM);
@@ -771,11 +1483,11 @@ HWTEST_F(DBinderServiceStubTest, SetSeqNumber001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNegoStatusAndTime001
+ * @tc.name: SetNegoStatusAndTimeTest001
  * @tc.desc: Verify the SetNegoStatusAndTime function
  * @tc.type: FUNC
  */
-HWTEST_F(DBinderServiceStubTest, SetNegoStatusAndTime001, TestSize.Level1)
+HWTEST_F(DBinderServiceStubTest, SetNegoStatusAndTimeTest001, TestSize.Level1)
 {
     DBinderServiceStub dbinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
     dbinderServiceStub.SetNegoStatusAndTime(NegotiationStatus::NEGO_DOING, 1);

@@ -51,6 +51,7 @@ public:
     static bool IsNumStr(const std::string &str);
     static bool StrToUint64(const std::string &str, uint64_t &value);
     static bool StrToInt32(const std::string &str, int32_t &value);
+    static std::string ConvertBytesToHexString(const uint8_t *data, size_t length);
 
     bool SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback);
     sptr<IRemoteObject> GetRegistryObject();

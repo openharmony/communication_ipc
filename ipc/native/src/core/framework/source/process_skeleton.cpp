@@ -458,6 +458,23 @@ bool ProcessSkeleton::StrToInt32(const std::string &str, int32_t &value)
     return true;
 }
 
+std::string ProcessSkeleton::ConvertBytesToHexString(const uint8_t *data, size_t length)
+{
+    static const char hexTable[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+    };
+    if (data == nullptr) {
+        return std::string();
+    }
+    std::string result;
+    result.reserve(length * 2 + 1);
+    for (size_t i = 0; i < length; ++i) {
+        result.push_back(hexTable[(data[i] >> 4) & 0xF]);
+        result.push_back(hexTable[data[i] & 0xF]);
+    }
+    return result;
+}
+
 bool ProcessSkeleton::GetThreadStopFlag()
 {
     return stopThreadFlag_.load();
