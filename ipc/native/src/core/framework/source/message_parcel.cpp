@@ -637,14 +637,9 @@ void MessageParcel::PrintBuffer(const char *funcName, const size_t lineNum)
     ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: ObjSize:%{public}zu, ObjOffsets:%{public}s", funcName,
         lineNum, ProcessSkeleton::ConvertAddr(this), size, format.c_str());
 
-    format.clear();
-    idx = 0;
     size = GetDataSize();
     auto data = reinterpret_cast<const uint8_t *>(GetData());
-    while (idx < size) {
-        format += std::to_string(data[idx]) + ',';
-        ++idx;
-    }
+    format = ProcessSkeleton::ConvertBytesToHexString(data, size);
     ZLOGI(LOG_LABEL, "[%{public}s %{public}zu %{public}u]: data:%{public}s", funcName, lineNum,
         ProcessSkeleton::ConvertAddr(this), format.c_str());
 }

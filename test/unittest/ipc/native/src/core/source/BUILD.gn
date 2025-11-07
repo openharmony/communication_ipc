@@ -154,7 +154,7 @@ ipc_unittest("IPCWorkThreadTest") {
 }
 
 ###############################################################################
-group("unittest") {
+group("ipc_core_unittest") {
   testonly = true
   deps = [
     ":BinderInvokerTest",

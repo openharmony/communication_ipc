@@ -360,12 +360,7 @@ template <class T>
 void DBinderBaseInvoker<T>::PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data,
     size_t length)
 {
-    std::string format;
-    size_t idx = 0;
-    while (idx < length) {
-        format += std::to_string(data[idx]) + ',';
-        ++idx;
-    }
+    std::string format = ProcessSkeleton::ConvertBytesToHexString(data, length);
     ZLOGI(LOG_LABEL, "[%{public}s %{public}s]: length:%{public}zu, content:%{public}s",
         funcName, titleName, length, format.c_str());
 }

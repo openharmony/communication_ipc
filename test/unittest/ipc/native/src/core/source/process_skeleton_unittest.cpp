@@ -401,4 +401,32 @@ HWTEST_F(ProcessSkeletonTest, IsNumStrTest004, TestSize.Level1)
     bool ret = skeleton->IsNumStr(punctuationStr);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: ConvertBytesToHexString001
+ * @tc.desc: Verify the ConvertBytesToHexString function when data pointer is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonTest, ConvertBytesToHexString001, TestSize.Level1)
+{
+    const uint8_t *data = nullptr;
+    size_t length = 100;
+    std::string result = ProcessSkeleton::ConvertBytesToHexString(data, length);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ConvertBytesToHexString002
+ * @tc.desc: Verify the ConvertBytesToHexString function when data pointer is ok
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonTest, ConvertBytesToHexString002, TestSize.Level1)
+{
+    const uint8_t data[] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
+    };
+    const std::string checkResult = "00112233445566778899AABBCCDDEEFF";
+    std::string result = ProcessSkeleton::ConvertBytesToHexString(data, sizeof(data));
+    EXPECT_TRUE(result == checkResult);
+}
 } // namespace OHOS
