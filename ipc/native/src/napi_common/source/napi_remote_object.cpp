@@ -480,7 +480,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     }
 }
 
-static void *RemoteObjectDetachCb(napi_env engine, void *value, const void *hint)
+static void *RemoteObjectDetachCb(napi_env engine, void *value, void *hint)
 {
     (void)hint;
     napi_env env = engine;
