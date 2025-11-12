@@ -75,7 +75,7 @@ public:
     MOCK_METHOD1(SetCallerTokenID, void(const uint32_t tokerId));
     MOCK_METHOD3(OnSendRawData, int(std::shared_ptr<DBinderSessionObject> session, const void *data, size_t size));
 
-    uint32_t GetStatus() const override;
+    uint32_t GetStatus() override;
     void GetCallerInfo(DBinderCallerInfo &callerInfo) override;
     void SetStatus(uint32_t status) override;
     void SetCallerInfo(DBinderCallerInfo &callerInfo) override;
@@ -101,7 +101,7 @@ MockDBinderBaseInvoker::MockDBinderBaseInvoker()
 }
 
 /* These functions can be overridden if needed by unittest, here just implement them by default */
-uint32_t MockDBinderBaseInvoker::GetStatus() const
+uint32_t MockDBinderBaseInvoker::GetStatus()
 {
     return status_;
 }
