@@ -44,17 +44,17 @@ public:
     void TearDown();
 };
 
-void IPCProcessSkeletonUnitTest::SetUpTestCase()
+void IPCProcessSkeletonUnitTest::SetUpTestCase() const
 {
 }
 
-void IPCProcessSkeletonUnitTest::TearDownTestCase()
+void IPCProcessSkeletonUnitTest::TearDownTestCase() const
 {
 }
 
-void IPCProcessSkeletonUnitTest::SetUp() {}
+void IPCProcessSkeletonUnitTest::SetUp() const {}
 
-void IPCProcessSkeletonUnitTest::TearDown() {}
+void IPCProcessSkeletonUnitTest::TearDown() const {}
 
 /**
  * @tc.name: GetRegistryObjectTest001

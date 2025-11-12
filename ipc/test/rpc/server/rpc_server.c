@@ -78,6 +78,8 @@ static int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, Messag
 
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     RPC_LOG_INFO("Enter System Ability Server .... ");
 
     IpcObjectStub objectStubOne = {

@@ -35,8 +35,8 @@ class IPCObjectProxyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCObjectProxyTest::SetUpTestCase()
@@ -47,11 +47,11 @@ void IPCObjectProxyTest::TearDownTestCase()
 {
 }
 
-void IPCObjectProxyTest::SetUp()
+void IPCObjectProxyTest::SetUp() const
 {
 }
 
-void IPCObjectProxyTest::TearDown()
+void IPCObjectProxyTest::TearDown() const
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
@@ -266,6 +266,8 @@ HWTEST_F(IPCObjectProxyTest, GetInterfaceDescriptorTest006, TestSize.Level1)
 int SendRequestMock(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    (void)handle;
+    (void)code;
     reply.WriteUint32(IRemoteObject::IF_PROT_DEFAULT);
     return ERR_NONE;
 }
@@ -772,6 +774,8 @@ HWTEST_F(IPCObjectProxyTest, GetProtoInfoTest002, TestSize.Level1)
 int SendRequestPortMock(int handle, uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    (void)handle;
+    (void)code;
     reply.WriteUint32(IRemoteObject::IF_PROT_DATABUS);
     reply.WriteUint64(0);
     reply.WriteString("Dbinder0_0");

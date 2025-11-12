@@ -35,9 +35,9 @@ public:
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderRemoteListenerUnitTest" };
 };
 
-void DBinderRemoteListenerUnitTest::SetUp() {}
+void DBinderRemoteListenerUnitTest::SetUp() const {}
 
-void DBinderRemoteListenerUnitTest::TearDown() {}
+void DBinderRemoteListenerUnitTest::TearDown() const {}
 
 void DBinderRemoteListenerUnitTest::SetUpTestCase() {}
 

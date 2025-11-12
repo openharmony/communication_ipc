@@ -43,8 +43,8 @@ class DBinderSoftbusClientTest : public ::testing::Test {
         DBinderSoftbusClient* client = nullptr;
         static void SetUpTestCase(void);
         static void TearDownTestCase(void);
-        void SetUp();
-        void TearDown();
+        void SetUp() const;
+        void TearDown() const;
 };
 
 void DBinderSoftbusClientTest::SetUpTestCase()
@@ -55,11 +55,11 @@ void DBinderSoftbusClientTest::TearDownTestCase()
 {
 }
 
-void DBinderSoftbusClientTest::SetUp()
+void DBinderSoftbusClientTest::SetUp() const
 {
 }
 
-void DBinderSoftbusClientTest::TearDown()
+void DBinderSoftbusClientTest::TearDown() const
 {
 }
 

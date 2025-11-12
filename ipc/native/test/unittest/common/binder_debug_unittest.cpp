@@ -23,8 +23,8 @@ class BinderDebugUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void BinderDebugUnitTest::SetUpTestCase()
@@ -33,10 +33,10 @@ void BinderDebugUnitTest::SetUpTestCase()
 void BinderDebugUnitTest::TearDownTestCase()
 {}
 
-void BinderDebugUnitTest::SetUp()
+void BinderDebugUnitTest::SetUp() const
 {}
 
-void BinderDebugUnitTest::TearDown()
+void BinderDebugUnitTest::TearDown() const
 {}
 
 /**

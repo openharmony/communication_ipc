@@ -74,8 +74,8 @@ class IPCFileDescriptorTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCFileDescriptorTest::SetUpTestCase()
@@ -86,11 +86,11 @@ void IPCFileDescriptorTest::TearDownTestCase()
 {
 }
 
-void IPCFileDescriptorTest::SetUp()
+void IPCFileDescriptorTest::SetUp() const
 {
 }
 
-void IPCFileDescriptorTest::TearDown()
+void IPCFileDescriptorTest::TearDown() const
 {
 }
 

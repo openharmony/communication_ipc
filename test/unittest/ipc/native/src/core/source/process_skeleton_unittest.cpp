@@ -74,8 +74,8 @@ class ProcessSkeletonTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void ProcessSkeletonTest::SetUpTestCase()
@@ -86,11 +86,11 @@ void ProcessSkeletonTest::TearDownTestCase()
 {
 }
 
-void ProcessSkeletonTest::SetUp()
+void ProcessSkeletonTest::SetUp() const
 {
 }
 
-void ProcessSkeletonTest::TearDown()
+void ProcessSkeletonTest::TearDown() const
 {
 }
 

@@ -34,8 +34,8 @@ class IPCInnerObjectTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCInnerObjectTest::SetUpTestCase()
@@ -46,11 +46,11 @@ void IPCInnerObjectTest::TearDownTestCase()
 {
 }
 
-void IPCInnerObjectTest::SetUp()
+void IPCInnerObjectTest::SetUp() const
 {
 }
 
-void IPCInnerObjectTest::TearDown()
+void IPCInnerObjectTest::TearDown() const
 {
 }
 

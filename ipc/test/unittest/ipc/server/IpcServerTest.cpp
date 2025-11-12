@@ -92,6 +92,7 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
 
 void *ThreadHandler(void *args)
 {
+    (void)args;
     sleep(IPC_TEST_TIME_INTERVAL); // sleep 2 min
     const char *str = "server call anonymos service new thread.";
     CallAnonymosFunc(str);
@@ -127,7 +128,7 @@ public:
     }
     static void TearDownTestCase() {}
 
-    void SetUp() {}
+    void SetUp() const {}
     void TearDown()
     {
         sleep(1);

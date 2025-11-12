@@ -161,8 +161,8 @@ class IPCProcessSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCProcessSkeletonUnitTest::SetUpTestCase()
@@ -173,9 +173,9 @@ void IPCProcessSkeletonUnitTest::TearDownTestCase()
 {
 }
 
-void IPCProcessSkeletonUnitTest::SetUp() {}
+void IPCProcessSkeletonUnitTest::SetUp() const {}
 
-void IPCProcessSkeletonUnitTest::TearDown() {}
+void IPCProcessSkeletonUnitTest::TearDown() const {}
 
 /**
  * @tc.name: IsContainsObjectTest001
