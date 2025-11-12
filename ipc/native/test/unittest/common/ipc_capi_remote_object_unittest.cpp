@@ -38,7 +38,7 @@ static constexpr uint32_t ON_CALLBACK_REPLIED_INT = 1598311760;
 class IpcCApiRemoteObjectUnitTest : public testing::Test {
 public:
     void SetUp();
-    void TearDown() const;
+    void TearDown() override;
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IpcCApiUnitTest" };
 
     void ResetCallbackReply();
@@ -48,7 +48,7 @@ public:
     static void OnRemoteObjectDestroy(void *userData);
     static void OnDeathRecipientCallback(void *userData);
     static void OnDeathRecipientDestroyCallback(void *userData);
-    static int OnRemoteRequestStub(uint32_t code, const OHIPCParcel *data, OHIPCParcel *reply, void *userData) const;
+    static int OnRemoteRequestStub(uint32_t code, const OHIPCParcel *data, OHIPCParcel *reply, void *userData);
 
 private:
     int callBackReply_{ 0 };
@@ -59,7 +59,7 @@ void IpcCApiRemoteObjectUnitTest::SetUp()
     callBackReply_ = 0;
 }
 
-void IpcCApiRemoteObjectUnitTest::TearDown() const
+void IpcCApiRemoteObjectUnitTest::TearDown()
 {}
 
 void IpcCApiRemoteObjectUnitTest::ResetCallbackReply()
@@ -98,7 +98,7 @@ void IpcCApiRemoteObjectUnitTest::OnDeathRecipientDestroyCallback(void *userData
 }
 
 int IpcCApiRemoteObjectUnitTest::OnRemoteRequestStub(uint32_t code, const OHIPCParcel *data, OHIPCParcel *reply,
-    void *userData) const
+    void *userData)
 {
     (void)userData;
     (void)code;

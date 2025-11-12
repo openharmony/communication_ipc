@@ -42,7 +42,7 @@ public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
-    void TearDown() const;
+    void TearDown() override;
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IpcCApiModuleTest" };
 
     void ResetCallbackReply();
@@ -82,7 +82,7 @@ void IpcCApiRemoteObjectModuleTest::SetUp()
     callBackReply_ = 0;
 }
 
-void IpcCApiRemoteObjectModuleTest::TearDown() const
+void IpcCApiRemoteObjectModuleTest::TearDown()
 {}
 
 void IpcCApiRemoteObjectModuleTest::ResetCallbackReply()

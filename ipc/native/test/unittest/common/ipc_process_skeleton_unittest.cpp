@@ -40,21 +40,21 @@ class IPCProcessSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() override;
+    void TearDown() override;
 };
 
-void IPCProcessSkeletonUnitTest::SetUpTestCase() const
+void IPCProcessSkeletonUnitTest::SetUpTestCase()
 {
 }
 
-void IPCProcessSkeletonUnitTest::TearDownTestCase() const
+void IPCProcessSkeletonUnitTest::TearDownTestCase()
 {
 }
 
-void IPCProcessSkeletonUnitTest::SetUp() override {}
+void IPCProcessSkeletonUnitTest::SetUp() {}
 
-void IPCProcessSkeletonUnitTest::TearDown() override {}
+void IPCProcessSkeletonUnitTest::TearDown() {}
 
 /**
  * @tc.name: GetRegistryObjectTest001
