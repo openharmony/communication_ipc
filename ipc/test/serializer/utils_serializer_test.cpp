@@ -32,8 +32,8 @@ class UtilsSerializerTest : public testing::Test {
 public:
     static void SetUpTestCase() { }
     static void TearDownTestCase() { }
-    void SetUp() const { }
-    void TearDown() const { }
+    void SetUp() override { }
+    void TearDown() override { }
 };
 struct TestData {
     bool boolTest;

@@ -50,8 +50,8 @@ class IPCObjectStubTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IPCObjectStubTest::SetUpTestCase()
@@ -62,11 +62,11 @@ void IPCObjectStubTest::TearDownTestCase()
 {
 }
 
-void IPCObjectStubTest::SetUp() const
+void IPCObjectStubTest::SetUp()
 {
 }
 
-void IPCObjectStubTest::TearDown() const
+void IPCObjectStubTest::TearDown()
 {
 }
 

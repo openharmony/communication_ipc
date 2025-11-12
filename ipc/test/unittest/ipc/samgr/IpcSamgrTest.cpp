@@ -138,8 +138,8 @@ public:
     {
         RPC_LOG_INFO("----------test case for samgr end -------------\n");
     }
-    void SetUp() const {}
-    void TearDown() const {}
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 HWTEST_F(IpcSamgrTest, IpcSamgrTest001, TestSize.Level0)

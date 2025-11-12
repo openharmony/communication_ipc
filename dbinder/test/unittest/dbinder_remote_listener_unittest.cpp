@@ -29,15 +29,15 @@ class DBinderRemoteListenerUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() override;
+    void TearDown() override;
     const std::string NETWORKID_TEST = "123456789";
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderRemoteListenerUnitTest" };
 };
 
-void DBinderRemoteListenerUnitTest::SetUp() const {}
+void DBinderRemoteListenerUnitTest::SetUp() {}
 
-void DBinderRemoteListenerUnitTest::TearDown() const {}
+void DBinderRemoteListenerUnitTest::TearDown() {}
 
 void DBinderRemoteListenerUnitTest::SetUpTestCase() {}
 

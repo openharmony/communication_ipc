@@ -28,13 +28,13 @@ class InvokerFactoryTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
-void InvokerFactoryTest::SetUp() const {}
+void InvokerFactoryTest::SetUp() {}
 
-void InvokerFactoryTest::TearDown() const {}
+void InvokerFactoryTest::TearDown() {}
 
 void InvokerFactoryTest::SetUpTestCase() {}
 

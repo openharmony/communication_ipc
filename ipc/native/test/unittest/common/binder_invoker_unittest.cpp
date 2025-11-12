@@ -34,8 +34,8 @@ class BinderInvokerUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void BinderInvokerUnitTest::SetUpTestCase()
@@ -44,10 +44,10 @@ void BinderInvokerUnitTest::SetUpTestCase()
 void BinderInvokerUnitTest::TearDownTestCase()
 {}
 
-void BinderInvokerUnitTest::SetUp() const
+void BinderInvokerUnitTest::SetUp()
 {}
 
-void BinderInvokerUnitTest::TearDown() const
+void BinderInvokerUnitTest::TearDown()
 {}
 
 /**

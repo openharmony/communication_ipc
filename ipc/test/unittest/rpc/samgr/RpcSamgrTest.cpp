@@ -215,8 +215,8 @@ public:
     {
         RPC_LOG_INFO("----------test case for rpc samgr end -------------\n");
     }
-    void SetUp() const {}
-    void TearDown() const {}
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 /**

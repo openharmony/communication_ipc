@@ -52,9 +52,9 @@ void IPCProcessSkeletonUnitTest::TearDownTestCase() const
 {
 }
 
-void IPCProcessSkeletonUnitTest::SetUp() const {}
+void IPCProcessSkeletonUnitTest::SetUp() override {}
 
-void IPCProcessSkeletonUnitTest::TearDown() const {}
+void IPCProcessSkeletonUnitTest::TearDown() override {}
 
 /**
  * @tc.name: GetRegistryObjectTest001

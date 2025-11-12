@@ -31,8 +31,8 @@ class ProcessSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void ProcessSkeletonUnitTest::SetUpTestCase()
@@ -43,9 +43,9 @@ void ProcessSkeletonUnitTest::TearDownTestCase()
 {
 }
 
-void ProcessSkeletonUnitTest::SetUp() const {}
+void ProcessSkeletonUnitTest::SetUp() {}
 
-void ProcessSkeletonUnitTest::TearDown() const {}
+void ProcessSkeletonUnitTest::TearDown() {}
 
 /**
  * @tc.name: IsContainsObjectTest001

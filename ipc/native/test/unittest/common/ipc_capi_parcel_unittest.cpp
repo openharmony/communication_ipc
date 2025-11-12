@@ -63,8 +63,8 @@ class IpcCApiParcelUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 
     uint32_t CalcSpendTime(TimePoint &start, TimePoint &end);
     void ReadWriteString(const char *str, uint32_t *writeDuration, uint32_t *readDuration);
@@ -120,9 +120,9 @@ void IpcCApiParcelUnitTest::SetUpTestCase() {}
 
 void IpcCApiParcelUnitTest::TearDownTestCase() {}
 
-void IpcCApiParcelUnitTest::SetUp() const {}
+void IpcCApiParcelUnitTest::SetUp() {}
 
-void IpcCApiParcelUnitTest::TearDown() const {}
+void IpcCApiParcelUnitTest::TearDown() {}
 
 uint32_t IpcCApiParcelUnitTest::CalcSpendTime(TimePoint& start, TimePoint& end)
 {

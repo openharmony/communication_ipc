@@ -128,7 +128,7 @@ public:
     }
     static void TearDownTestCase() {}
 
-    void SetUp() const {}
+    void SetUp() override {}
     void TearDown()
     {
         sleep(1);

@@ -37,16 +37,16 @@ class IPCFileDescOpsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 
 public:
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IPCFdTest" };
 };
 
-void IPCFileDescOpsTest::SetUp() const {}
+void IPCFileDescOpsTest::SetUp() {}
 
-void IPCFileDescOpsTest::TearDown() const {}
+void IPCFileDescOpsTest::TearDown() {}
 
 void IPCFileDescOpsTest::SetUpTestCase() {}
 

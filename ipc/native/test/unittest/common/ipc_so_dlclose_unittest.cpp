@@ -24,8 +24,8 @@ class IpcSoDlcloseTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IpcSoDlcloseTest::SetUpTestCase()
@@ -36,11 +36,11 @@ void IpcSoDlcloseTest::TearDownTestCase()
 {
 }
 
-void IpcSoDlcloseTest::SetUp() const
+void IpcSoDlcloseTest::SetUp()
 {
 }
 
-void IpcSoDlcloseTest::TearDown() const
+void IpcSoDlcloseTest::TearDown()
 {
 }
 

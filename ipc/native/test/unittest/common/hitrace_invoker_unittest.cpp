@@ -30,13 +30,13 @@ class HitraceInvokerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
-void HitraceInvokerTest::SetUp() const {}
+void HitraceInvokerTest::SetUp() {}
 
-void HitraceInvokerTest::TearDown() const {}
+void HitraceInvokerTest::TearDown() {}
 
 void HitraceInvokerTest::SetUpTestCase() {}
 

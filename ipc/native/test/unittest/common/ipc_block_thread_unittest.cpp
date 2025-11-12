@@ -26,8 +26,8 @@ class IpcBlockThreadTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IpcBlockThreadTest::SetUpTestCase()
@@ -38,11 +38,11 @@ void IpcBlockThreadTest::TearDownTestCase()
 {
 }
 
-void IpcBlockThreadTest::SetUp() const
+void IpcBlockThreadTest::SetUp()
 {
 }
 
-void IpcBlockThreadTest::TearDown() const
+void IpcBlockThreadTest::TearDown()
 {
 }
 

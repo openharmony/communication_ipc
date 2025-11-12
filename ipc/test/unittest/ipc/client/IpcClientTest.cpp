@@ -100,8 +100,8 @@ public:
         RPC_LOG_INFO("----------test case for ipc client start-------------\n");
     }
     static void TearDownTestCase() {}
-    void SetUp() const {}
-    void TearDown() const {}
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 HWTEST_F(IpcClientTest, IpcClientTest001, TestSize.Level1)

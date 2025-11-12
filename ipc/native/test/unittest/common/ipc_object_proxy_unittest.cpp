@@ -35,8 +35,8 @@ class IPCObjectProxyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IPCObjectProxyTest::SetUpTestCase()
@@ -47,11 +47,11 @@ void IPCObjectProxyTest::TearDownTestCase()
 {
 }
 
-void IPCObjectProxyTest::SetUp() const
+void IPCObjectProxyTest::SetUp()
 {
 }
 
-void IPCObjectProxyTest::TearDown() const
+void IPCObjectProxyTest::TearDown()
 {
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);

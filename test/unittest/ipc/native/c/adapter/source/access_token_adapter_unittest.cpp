@@ -29,8 +29,8 @@ class AccessTokenAdapterTest : public ::testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void AccessTokenAdapterTest::SetUpTestCase()
@@ -41,11 +41,11 @@ void AccessTokenAdapterTest::TearDownTestCase()
 {
 }
 
-void AccessTokenAdapterTest::SetUp() const
+void AccessTokenAdapterTest::SetUp()
 {
 }
 
-void AccessTokenAdapterTest::TearDown() const
+void AccessTokenAdapterTest::TearDown()
 {
 }
 

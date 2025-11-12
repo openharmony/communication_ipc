@@ -144,8 +144,8 @@ class DatabusSocketListenerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void DatabusSocketListenerTest::SetUpTestCase()
@@ -156,11 +156,11 @@ void DatabusSocketListenerTest::TearDownTestCase()
 {
 }
 
-void DatabusSocketListenerTest::SetUp() const
+void DatabusSocketListenerTest::SetUp()
 {
 }
 
-void DatabusSocketListenerTest::TearDown() const
+void DatabusSocketListenerTest::TearDown()
 {
 }
 
