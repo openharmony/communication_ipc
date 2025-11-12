@@ -28,15 +28,18 @@ namespace OHOS {
     public:
         sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) override
         {
+            (void)systemAbilityId;
             return nullptr;
         }
 
         bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, int32_t systemAbilityId) override
         {
+            (void)systemAbilityId;
             return isLoad_;
         }
-        bool IsDistributedSystemAbility(int32_t systemAbilityId) override
+        bool IsDistributedSystemAbility(int32_t systemAbilityId) const override
         {
+            (void)systemAbilityId;
             return isSystemAbility_;
         }
         bool isSystemAbility_ = true;

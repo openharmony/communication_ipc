@@ -30,8 +30,8 @@ class IPCWorkThreadPoolUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCWorkThreadPoolUnitTest::SetUpTestCase()
@@ -42,9 +42,9 @@ void IPCWorkThreadPoolUnitTest::TearDownTestCase()
 {
 }
 
-void IPCWorkThreadPoolUnitTest::SetUp() {}
+void IPCWorkThreadPoolUnitTest::SetUp() const {}
 
-void IPCWorkThreadPoolUnitTest::TearDown() {}
+void IPCWorkThreadPoolUnitTest::TearDown() const {}
 
 /**
  * @tc.name: RemoveThreadTest001

@@ -61,8 +61,8 @@ class IPCCremoteObjectTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCCremoteObjectTest::SetUpTestCase()
@@ -73,11 +73,11 @@ void IPCCremoteObjectTest::TearDownTestCase()
 {
 }
 
-void IPCCremoteObjectTest::SetUp()
+void IPCCremoteObjectTest::SetUp() const
 {
 }
 
-void IPCCremoteObjectTest::TearDown()
+void IPCCremoteObjectTest::TearDown() const
 {
 }
 

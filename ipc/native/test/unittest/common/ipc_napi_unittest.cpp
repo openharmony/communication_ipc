@@ -25,8 +25,8 @@ class IPCNapiTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCNapiTest::SetUpTestCase(void)
@@ -39,12 +39,12 @@ void IPCNapiTest::TearDownTestCase(void)
     // input testsuit teardown step，teardown invoked after all testcases
 }
 
-void IPCNapiTest::SetUp(void)
+void IPCNapiTest::SetUp(void) const
 {
     // input testcase setup step，setup invoked before each testcases
 }
 
-void IPCNapiTest::TearDown(void)
+void IPCNapiTest::TearDown(void) const
 {
     // input testcase teardown step，teardown invoked after each testcases
 }

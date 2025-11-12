@@ -42,8 +42,8 @@ class RpcFeatureSetTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void RpcFeatureSetTest::SetUpTestCase()
@@ -54,11 +54,11 @@ void RpcFeatureSetTest::TearDownTestCase()
 {
 }
 
-void RpcFeatureSetTest::SetUp()
+void RpcFeatureSetTest::SetUp() const
 {
 }
 
-void RpcFeatureSetTest::TearDown()
+void RpcFeatureSetTest::TearDown() const
 {
 }
 

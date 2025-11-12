@@ -48,14 +48,14 @@ class DBinderServiceStubUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
-void DBinderServiceStubUnitTest::SetUp()
+void DBinderServiceStubUnitTest::SetUp() const
 {}
 
-void DBinderServiceStubUnitTest::TearDown()
+void DBinderServiceStubUnitTest::TearDown() const
 {}
 
 void DBinderServiceStubUnitTest::SetUpTestCase()

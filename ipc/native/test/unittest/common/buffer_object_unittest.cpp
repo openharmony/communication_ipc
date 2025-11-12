@@ -37,8 +37,8 @@ class BufferObjectUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void BufferObjectUnitTest::SetUpTestCase()
@@ -49,9 +49,9 @@ void BufferObjectUnitTest::TearDownTestCase()
 {
 }
 
-void BufferObjectUnitTest::SetUp() {}
+void BufferObjectUnitTest::SetUp() const {}
 
-void BufferObjectUnitTest::TearDown() {}
+void BufferObjectUnitTest::TearDown() const {}
 
 /**
  * @tc.name: UpdateSendBufferTest001

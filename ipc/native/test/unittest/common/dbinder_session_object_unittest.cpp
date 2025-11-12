@@ -35,8 +35,8 @@ class DBinderSessionObjectTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void DBinderSessionObjectTest::SetUpTestCase()
@@ -47,11 +47,11 @@ void DBinderSessionObjectTest::TearDownTestCase()
 {
 }
 
-void DBinderSessionObjectTest::SetUp()
+void DBinderSessionObjectTest::SetUp() const
 {
 }
 
-void DBinderSessionObjectTest::TearDown()
+void DBinderSessionObjectTest::TearDown() const
 {
 }
 

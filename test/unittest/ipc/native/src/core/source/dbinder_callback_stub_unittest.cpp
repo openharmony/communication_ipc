@@ -164,8 +164,8 @@ class DBinderCallbackStubTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void DBinderCallbackStubTest::SetUpTestCase()
@@ -176,11 +176,11 @@ void DBinderCallbackStubTest::TearDownTestCase()
 {
 }
 
-void DBinderCallbackStubTest::SetUp()
+void DBinderCallbackStubTest::SetUp() const
 {
 }
 
-void DBinderCallbackStubTest::TearDown()
+void DBinderCallbackStubTest::TearDown() const
 {
 }
 

@@ -38,8 +38,8 @@ class IPCThreadSkeletonTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCThreadSkeletonTest::SetUpTestCase()
@@ -50,11 +50,11 @@ void IPCThreadSkeletonTest::TearDownTestCase()
 {
 }
 
-void IPCThreadSkeletonTest::SetUp()
+void IPCThreadSkeletonTest::SetUp() const
 {
 }
 
-void IPCThreadSkeletonTest::TearDown()
+void IPCThreadSkeletonTest::TearDown() const
 {
 }
 

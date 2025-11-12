@@ -27,8 +27,8 @@ class BinderConnectorTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void BinderConnectorTest::SetUpTestCase()
@@ -39,11 +39,11 @@ void BinderConnectorTest::TearDownTestCase()
 {
 }
 
-void BinderConnectorTest::SetUp()
+void BinderConnectorTest::SetUp() const
 {
 }
 
-void BinderConnectorTest::TearDown()
+void BinderConnectorTest::TearDown() const
 {
 }
 

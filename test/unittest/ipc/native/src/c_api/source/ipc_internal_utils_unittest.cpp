@@ -36,8 +36,8 @@ class IPCInternalUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCInternalUtilsTest::SetUpTestCase()
@@ -48,11 +48,11 @@ void IPCInternalUtilsTest::TearDownTestCase()
 {
 }
 
-void IPCInternalUtilsTest::SetUp()
+void IPCInternalUtilsTest::SetUp() const
 {
 }
 
-void IPCInternalUtilsTest::TearDown()
+void IPCInternalUtilsTest::TearDown() const
 {
 }
 

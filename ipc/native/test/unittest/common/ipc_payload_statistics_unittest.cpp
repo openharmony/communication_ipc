@@ -33,8 +33,8 @@ class IPCPayloadStatisticsUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 
 void IPCPayloadStatisticsUnitTest::SetUpTestCase()
@@ -45,11 +45,11 @@ void IPCPayloadStatisticsUnitTest::TearDownTestCase()
 {
 }
 
-void IPCPayloadStatisticsUnitTest::SetUp()
+void IPCPayloadStatisticsUnitTest::SetUp() const
 {
 }
 
-void IPCPayloadStatisticsUnitTest::TearDown()
+void IPCPayloadStatisticsUnitTest::TearDown() const
 {
 }
 

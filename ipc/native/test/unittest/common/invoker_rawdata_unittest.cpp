@@ -27,8 +27,8 @@ class InvokerRawDataTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 
     size_t validSize_ = 1024;
     size_t invalidSize_ = 0;
@@ -43,11 +43,11 @@ void InvokerRawDataTest::TearDownTestCase()
 {
 }
 
-void InvokerRawDataTest::SetUp()
+void InvokerRawDataTest::SetUp() const
 {
 }
 
-void InvokerRawDataTest::TearDown()
+void InvokerRawDataTest::TearDown() const
 {
 }
 

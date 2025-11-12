@@ -704,6 +704,7 @@ static ServerInvokeCmd g_serverInvokeCmdTbl[] = {
 
 int32_t DispatchInvoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
+    (void)origin;
     RPC_LOG_INFO("[ipc_test_server] Dispatch recv funcId=%d", funcId);
     for (uint32_t i = 0; i < sizeof(g_serverInvokeCmdTbl) / sizeof(ServerInvokeCmd); i++) {
         if (funcId == g_serverInvokeCmdTbl[i].id) {

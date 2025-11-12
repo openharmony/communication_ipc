@@ -57,7 +57,7 @@ static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
     return ERR_NONE;
 }
 
-static int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
+static int32_t GetSystemAbility(int32_t saId, SvcIdentity *sid)
 {
     SvcInfo* node = NULL;
     SvcInfo* next = NULL;
