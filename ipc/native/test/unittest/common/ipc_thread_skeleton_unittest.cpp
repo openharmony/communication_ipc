@@ -35,8 +35,8 @@ class IPCThreadSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IPCThreadSkeletonUnitTest::SetUpTestCase()
@@ -47,9 +47,9 @@ void IPCThreadSkeletonUnitTest::TearDownTestCase()
 {
 }
 
-void IPCThreadSkeletonUnitTest::SetUp() const {}
+void IPCThreadSkeletonUnitTest::SetUp() {}
 
-void IPCThreadSkeletonUnitTest::TearDown() const {}
+void IPCThreadSkeletonUnitTest::TearDown() {}
 
 /**
  * @tc.name: GetRegistryObjectTest001

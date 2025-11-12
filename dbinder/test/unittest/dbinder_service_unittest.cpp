@@ -44,14 +44,14 @@ class DBinderServiceUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderServiceUnitTest" };
 };
 
-void DBinderServiceUnitTest::SetUp() const {}
+void DBinderServiceUnitTest::SetUp() {}
 
-void DBinderServiceUnitTest::TearDown() const {}
+void DBinderServiceUnitTest::TearDown() {}
 
 void DBinderServiceUnitTest::SetUpTestCase() {}
 

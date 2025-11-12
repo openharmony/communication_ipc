@@ -422,8 +422,8 @@ class DbinderDataBusInvokerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void DbinderDataBusInvokerTest::SetUpTestCase()
@@ -434,11 +434,11 @@ void DbinderDataBusInvokerTest::TearDownTestCase()
 {
 }
 
-void DbinderDataBusInvokerTest::SetUp() const
+void DbinderDataBusInvokerTest::SetUp()
 {
 }
 
-void DbinderDataBusInvokerTest::TearDown() const
+void DbinderDataBusInvokerTest::TearDown()
 {
 }
 

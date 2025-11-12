@@ -58,7 +58,7 @@ public:
         RPC_LOG_INFO("input deviceid is %s", deviceId);
     }
     static void TearDownTestCase() {}
-    void SetUp() const {}
+    void SetUp() override {}
     void TearDown()
     {
         sleep(1);

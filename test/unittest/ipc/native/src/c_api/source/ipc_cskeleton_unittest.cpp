@@ -100,8 +100,8 @@ class IPCCskeletonTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IPCCskeletonTest::SetUpTestCase()
@@ -112,11 +112,11 @@ void IPCCskeletonTest::TearDownTestCase()
 {
 }
 
-void IPCCskeletonTest::SetUp() const
+void IPCCskeletonTest::SetUp()
 {
 }
 
-void IPCCskeletonTest::TearDown() const
+void IPCCskeletonTest::TearDown()
 {
 }
 

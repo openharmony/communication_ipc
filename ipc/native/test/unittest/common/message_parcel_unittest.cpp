@@ -37,8 +37,8 @@ class MessageParcelTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void MessageParcelTest::SetUpTestCase()
@@ -49,11 +49,11 @@ void MessageParcelTest::TearDownTestCase()
 {
 }
 
-void MessageParcelTest::SetUp() const
+void MessageParcelTest::SetUp()
 {
 }
 
-void MessageParcelTest::TearDown() const
+void MessageParcelTest::TearDown()
 {
 }
 

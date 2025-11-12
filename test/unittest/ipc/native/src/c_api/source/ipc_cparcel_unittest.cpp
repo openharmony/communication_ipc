@@ -29,8 +29,8 @@ class IPCCparcelTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IPCCparcelTest::SetUpTestCase()
@@ -41,11 +41,11 @@ void IPCCparcelTest::TearDownTestCase()
 {
 }
 
-void IPCCparcelTest::SetUp() const
+void IPCCparcelTest::SetUp()
 {
 }
 
-void IPCCparcelTest::TearDown() const
+void IPCCparcelTest::TearDown()
 {
 }
 

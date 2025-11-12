@@ -129,8 +129,8 @@ class DBinderRemoteListenerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void DBinderRemoteListenerTest::SetUpTestCase()
@@ -141,11 +141,11 @@ void DBinderRemoteListenerTest::TearDownTestCase()
 {
 }
 
-void DBinderRemoteListenerTest::SetUp() const
+void DBinderRemoteListenerTest::SetUp()
 {
 }
 
-void DBinderRemoteListenerTest::TearDown() const
+void DBinderRemoteListenerTest::TearDown()
 {
 }
 

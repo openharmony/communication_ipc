@@ -28,8 +28,8 @@ class IRemoteObjectTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void IRemoteObjectTest::SetUpTestCase()
@@ -40,11 +40,11 @@ void IRemoteObjectTest::TearDownTestCase()
 {
 }
 
-void IRemoteObjectTest::SetUp() const
+void IRemoteObjectTest::SetUp()
 {
 }
 
-void IRemoteObjectTest::TearDown() const
+void IRemoteObjectTest::TearDown()
 {
 }
 

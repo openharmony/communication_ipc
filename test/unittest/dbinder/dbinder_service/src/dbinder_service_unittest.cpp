@@ -186,8 +186,8 @@ class DBinderServiceTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
 };
 
 void DBinderServiceTest::SetUpTestCase()
@@ -198,11 +198,11 @@ void DBinderServiceTest::TearDownTestCase()
 {
 }
 
-void DBinderServiceTest::SetUp() const
+void DBinderServiceTest::SetUp()
 {
 }
 
-void DBinderServiceTest::TearDown() const
+void DBinderServiceTest::TearDown()
 {
 }
 

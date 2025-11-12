@@ -29,14 +29,14 @@ class DbinderDeathRecipientUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() const;
-    void TearDown() const;
+    void SetUp() override;
+    void TearDown() override;
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "DBinderRemoteListenerUnitTest" };
 };
 
-void DbinderDeathRecipientUnitTest::SetUp() const {}
+void DbinderDeathRecipientUnitTest::SetUp() {}
 
-void DbinderDeathRecipientUnitTest::TearDown() const {}
+void DbinderDeathRecipientUnitTest::TearDown() {}
 
 void DbinderDeathRecipientUnitTest::SetUpTestCase() {}
 
