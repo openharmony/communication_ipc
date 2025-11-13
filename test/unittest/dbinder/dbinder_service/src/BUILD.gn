@@ -42,6 +42,7 @@ template("ipc_dbinder_unittest") {
     deps = [
       "$IPC_CORE_ROOT/src/core:ipc_common",
       "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
+      "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder:libdbinder",
     ]
 
     defines = [
@@ -58,7 +59,6 @@ template("ipc_dbinder_unittest") {
       "googletest:gmock",
       "hilog:libhilog",
       "hitrace:libhitracechain",
-      "ipc:libdbinder",
       "samgr:samgr_proxy",
     ]
 
