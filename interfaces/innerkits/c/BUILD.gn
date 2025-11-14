@@ -35,7 +35,7 @@ lite_component("rpc") {
       IPC_ROOT_PATH = "//foundation/communication/ipc"
       SUBSYSTEM_DIR = "//foundation/communication/ipc/ipc"
       features += [
-        "$SUBSYSTEM_DIR/test/ipc:ipc_test",
+        "$SUBSYSTEM_DIR/test/ipc:ipc_lite_test",
         "$SUBSYSTEM_DIR/test/unittest/ipc:ipc_test_gtest",
         "$SUBSYSTEM_DIR/test/unittest/rpc:rpc_test_gtest",
         "$IPC_ROOT_PATH/test/example/small:ipc_test_small",

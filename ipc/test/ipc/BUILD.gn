@@ -14,7 +14,7 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/config/test.gni")
 
-lite_component("ipc_test") {
+lite_component("ipc_lite_test") {
   features = [
     "client:ipc_test_client",
     "server:ipc_test_server",
