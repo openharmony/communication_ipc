@@ -82,7 +82,7 @@ if (ipc_feature_test_enabled) {
 
 ###############################################################################
 
-group("moduletest") {
+group("ipc_moduletest") {
   testonly = true
   if (ipc_feature_test_enabled) {
     deps = [ ":IPCCpiModuleTest" ]

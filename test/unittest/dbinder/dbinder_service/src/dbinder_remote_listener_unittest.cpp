@@ -181,6 +181,125 @@ HWTEST_F(DBinderRemoteListenerTest, GetPeerSocketIdTest002, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: GetPeerSocketIdTest003
+ * @tc.desc: Verify GetPeerSocketId function when networkId is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, GetPeerSocketIdTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = "";
+    EXPECT_EQ(listener.GetPeerSocketId(networkId), SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: ClientOnBindTest001
+ * @tc.desc: Verify ClientOnBind function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ClientOnBindTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = 1;
+    PeerSocketInfo info = {
+        .networkId = const_cast<char *>(PEER_NETWORK_ID_TEST.c_str()),
+    };
+
+    listener.ClientOnBind(socketId, info);
+    EXPECT_EQ(listener.listenSocketId_, SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: ClientOnBindTest002
+ * @tc.desc: Verify ClientOnBind function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ClientOnBindTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = -1;
+    PeerSocketInfo info = {
+        .networkId = const_cast<char *>(PEER_NETWORK_ID_TEST.c_str()),
+    };
+
+    listener.ClientOnBind(socketId, info);
+    EXPECT_EQ(listener.listenSocketId_, SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: ClientOnBindTest003
+ * @tc.desc: Verify ClientOnBind function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ClientOnBindTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = INT_MAX;
+    PeerSocketInfo info = {
+        .networkId = const_cast<char *>(PEER_NETWORK_ID_TEST.c_str()),
+    };
+
+    listener.ClientOnBind(socketId, info);
+    EXPECT_EQ(listener.listenSocketId_, SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: ClientOnShutdownTest001
+ * @tc.desc: Verify ClientOnShutdown function when shutdown occurs for an existing socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ClientOnShutdownTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = "networkId";
+    int32_t socketId = 1;
+    listener.clientSocketInfos_[networkId] = socketId;
+    listener.ClientOnShutdown(socketId, SHUTDOWN_REASON_PEER);
+
+    EXPECT_EQ(listener.clientSocketInfos_.size(), 0);
+}
+
+/**
+ * @tc.name: ClientOnShutdownTest002
+ * @tc.desc: Verify ClientOnShutdown function when shutdown occurs for a non-existing socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ClientOnShutdownTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = "networkId";
+    int32_t socketId = 1;
+    listener.clientSocketInfos_[networkId] = socketId;
+    listener.ClientOnShutdown(2, SHUTDOWN_REASON_PEER);
+
+    EXPECT_EQ(listener.clientSocketInfos_.size(), 1);
+}
+
+/**
+ * @tc.name: ClientOnShutdownTest003
+ * @tc.desc: Verify ClientOnShutdown function with multiple entries.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ClientOnShutdownTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = "networkId";
+    std::string networkId1 = "networkId1";
+    int32_t socketId = 1;
+    int32_t socketId1 = 2;
+    listener.clientSocketInfos_[networkId] = socketId;
+    EXPECT_EQ(listener.clientSocketInfos_.size(), 1);
+
+    listener.clientSocketInfos_[networkId1] = socketId1;
+    EXPECT_EQ(listener.clientSocketInfos_.size(), 2);
+
+    listener.ClientOnShutdown(socketId, SHUTDOWN_REASON_PEER);
+    EXPECT_EQ(listener.clientSocketInfos_.size(), 1);
+    listener.ClientOnShutdown(socketId1, SHUTDOWN_REASON_PEER);
+    EXPECT_EQ(listener.clientSocketInfos_.size(), 0);
+}
+
+/**
  * @tc.name: StartListenerTest001
  * @tc.desc: Verify the StartListener function return true
  * @tc.type: FUNC
@@ -250,6 +369,97 @@ HWTEST_F(DBinderRemoteListenerTest, StartListenerTest004, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: StartListenerTest005
+ * @tc.desc: Verify StartListener function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, StartListenerTest005, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    EXPECT_EQ(listener.StartListener(), false);
+}
+
+/**
+ * @tc.name: StopListenerTest001
+ * @tc.desc: Verify StopListener function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, StopListenerTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    EXPECT_EQ(listener.StopListener(), true);
+}
+
+/**
+ * @tc.name: ShutdownSocketTest001
+ * @tc.desc: Verify ShutdownSocket function when deviceId is empty.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ShutdownSocketTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string deviceId = "";
+    EXPECT_EQ(listener.ShutdownSocket(deviceId), false);
+}
+
+/**
+ * @tc.name: ShutdownSocketTest002
+ * @tc.desc: Verify ShutdownSocket function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ShutdownSocketTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = PEER_NETWORK_ID_TEST;
+    int32_t socketId = 123;
+    listener.clientSocketInfos_[networkId] = socketId;
+    EXPECT_TRUE(listener.ShutdownSocket(networkId));
+}
+
+/**
+ * @tc.name: ShutdownSocketTest003
+ * @tc.desc: Verify ShutdownSocket function when clientSocketInfo is empty.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ShutdownSocketTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string networkId = PEER_NETWORK_ID_TEST;
+    EXPECT_EQ(listener.ShutdownSocket(networkId), false);
+}
+
+/**
+ * @tc.name: QueryOrNewDeviceLockTest001
+ * @tc.desc: Verify QueryOrNewDeviceLock function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, QueryOrNewDeviceLockTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string deviceId = "";
+    listener.QueryOrNewDeviceLock(deviceId);
+    const std::string deviceId1 = "123456";
+    std::shared_ptr<DeviceLock> lockInfo = nullptr;
+    lockInfo = listener.QueryOrNewDeviceLock(deviceId1);
+    EXPECT_TRUE(lockInfo != nullptr);
+}
+
+/**
+ * @tc.name: QueryOrNewDeviceLockTest002
+ * @tc.desc: Verify QueryOrNewDeviceLock function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, QueryOrNewDeviceLockTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string networkId = PEER_NETWORK_ID_TEST;
+    std::shared_ptr<DeviceLock> lockInfo = std::make_shared<struct DeviceLock>();
+    EXPECT_TRUE(lockInfo != nullptr);
+    listener.deviceLockMap_[networkId] = lockInfo;
+    EXPECT_EQ(listener.QueryOrNewDeviceLock(networkId), lockInfo);
+}
+
+/**
  * @tc.name: SendDataToRemoteTest001
  * @tc.desc: Verify SendDataToRemote function when message is nullptr.
  * @tc.type: FUNC
@@ -313,6 +523,20 @@ HWTEST_F(DBinderRemoteListenerTest, SendDataToRemoteTest004, TestSize.Level1)
     EXPECT_CALL(mockClient, SendBytes).WillRepeatedly(testing::Return(0));
     EXPECT_EQ(listener.SendDataToRemote(networkId, &message), true);
     DBinderRemoteListener::clientSocketInfos_.clear();
+}
+
+/**
+ * @tc.name: SendDataToRemoteTest005
+ * @tc.desc: Verify SendDataToRemote function when deviceId is empty.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, SendDataToRemoteTest005, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string deviceId = "";
+    DHandleEntryTxRx message;
+    message.head.len = sizeof(DHandleEntryTxRx);
+    EXPECT_EQ(listener.SendDataToRemote(deviceId, &message), false);
 }
 
 /**
@@ -384,6 +608,46 @@ HWTEST_F(DBinderRemoteListenerTest, SendDataReplyTest004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SendDataReplyTest005
+ * @tc.desc: Verify SendDataReply function when message is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, SendDataReplyTest005, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string deviceId = "";
+    EXPECT_EQ(listener.SendDataReply(deviceId, nullptr), false);
+}
+
+/**
+ * @tc.name: SendDataReplyTest006
+ * @tc.desc: Verify SendDataReply function when message has valid data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, SendDataReplyTest006, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string deviceId = "";
+    DHandleEntryTxRx message;
+    message.deviceIdInfo.fromDeviceId[0] = 't';
+    EXPECT_EQ(listener.SendDataReply(deviceId, &message), false);
+}
+
+/**
+ * @tc.name: SendDataReplyTest007
+ * @tc.desc: Verify SendDataReply function when deviceId is valid and message has data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, SendDataReplyTest007, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const std::string deviceId = "12345";
+    DHandleEntryTxRx message;
+    message.deviceIdInfo.fromDeviceId[0] = 't';
+    EXPECT_EQ(listener.SendDataReply(deviceId, &message), false);
+}
+
+/**
  * @tc.name: CreateClientSocketTest001
  * @tc.desc: Verify CreateClientSocket function when peerNetworkId is ""
  * @tc.type: FUNC
@@ -449,4 +713,217 @@ HWTEST_F(DBinderRemoteListenerTest, CreateClientSocketTest004, TestSize.Level1)
     EXPECT_EQ(ret, EXPRCTED_SOCKET_ID_TEST);
     DBinderRemoteListener::clientSocketInfos_.clear();
 }
+
+/**
+ * @tc.name: ServerOnBindTest001
+ * @tc.desc: Verify ServerOnBind function when binding a valid socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnBindTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = 1;
+    PeerSocketInfo info = {
+        .networkId = const_cast<char *>(PEER_NETWORK_ID_TEST.c_str()),
+    };
+
+    listener.ServerOnBind(socketId, info);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 1);
+    listener.serverSocketInfos_.clear();
+}
+
+/**
+ * @tc.name: ServerOnBindTest002
+ * @tc.desc: Verify ServerOnBind function when binding a valid socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnBindTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = -1;
+    PeerSocketInfo info = {
+        .networkId = const_cast<char *>(PEER_NETWORK_ID_TEST.c_str()),
+    };
+
+    listener.ServerOnBind(socketId, info);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 1);
+    listener.serverSocketInfos_.clear();
+}
+
+/**
+ * @tc.name: ServerOnBindTest003
+ * @tc.desc: Verify ServerOnBind function when binding a valid socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnBindTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = INT_MAX;
+    PeerSocketInfo info = {
+        .networkId = const_cast<char *>(PEER_NETWORK_ID_TEST.c_str()),
+    };
+
+    listener.ServerOnBind(socketId, info);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 1);
+    listener.serverSocketInfos_.clear();
+}
+
+/**
+ * @tc.name: ServerOnShutdownTest001
+ * @tc.desc: Verify ServerOnShutdown function when shutdown occurs for an existing socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnShutdownTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = PEER_NETWORK_ID_TEST;
+    int32_t socketId = 1;
+    listener.serverSocketInfos_[networkId] = socketId;
+    listener.ServerOnShutdown(socketId, SHUTDOWN_REASON_PEER);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 0);
+}
+
+/**
+ * @tc.name: ServerOnShutdownTest002
+ * @tc.desc: Verify ServerOnShutdown function when shutdown occurs for a non-existing socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnShutdownTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = 1;
+    listener.ServerOnShutdown(socketId, SHUTDOWN_REASON_PEER);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 0);
+}
+
+/**
+ * @tc.name: ServerOnShutdownTest003
+ * @tc.desc: Verify ServerOnShutdown function when shutdown occurs for an existing socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnShutdownTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    std::string networkId = PEER_NETWORK_ID_TEST;
+    int32_t socketId = -1;
+    listener.serverSocketInfos_[networkId] = socketId;
+    listener.ServerOnShutdown(socketId, SHUTDOWN_REASON_PEER);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 0);
+}
+
+/**
+ * @tc.name: ServerOnShutdownTest004
+ * @tc.desc: Verify ServerOnShutdown function when shutdown occurs for a non-existing socket.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, ServerOnShutdownTest004, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    int32_t socketId = -1;
+    listener.ServerOnShutdown(socketId, SHUTDOWN_REASON_PEER);
+    EXPECT_EQ(listener.serverSocketInfos_.size(), 0);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest001
+ * @tc.desc: Verify OnBytesReceived function when data is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest001, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const char* data = nullptr;
+    auto len = sizeof(struct DHandleEntryTxRx);
+    int32_t socketId = 1;
+    listener.OnBytesReceived(socketId, data, len);
+    EXPECT_EQ(data, nullptr);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest002
+ * @tc.desc: Verify OnBytesReceived function when data length is zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest002, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const char *data = "testdatas";
+    ssize_t len = 0;
+    int32_t socketId = 1;
+    listener.OnBytesReceived(socketId, data, len);
+    EXPECT_EQ(len < static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx)), true);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest003
+ * @tc.desc: Verify OnBytesReceived function when data is nullptr and length is valid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest003, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    auto len = sizeof(struct DHandleEntryTxRx);
+    listener.OnBytesReceived(1, nullptr, len);
+    EXPECT_EQ(listener.listenSocketId_, SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest004
+ * @tc.desc: Verify OnBytesReceived function when data length is less than required size.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest004, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const char *data = "testdata";
+    uint32_t len = sizeof(struct DHandleEntryTxRx) - 1;
+    int32_t socketId = 1;
+    listener.OnBytesReceived(socketId, data, len);
+    EXPECT_EQ(len != sizeof(struct DHandleEntryTxRx), true);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest005
+ * @tc.desc: Verify OnBytesReceived function when data length and content are valid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest005, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    DHandleEntryTxRx data;
+    data.head.len = sizeof(DHandleEntryTxRx);
+    uint32_t len = sizeof(DHandleEntryTxRx);
+    int32_t socketId = 1;
+    listener.OnBytesReceived(socketId, &data, len);
+    EXPECT_EQ(listener.listenSocketId_, SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest006
+ * @tc.desc: Verify OnBytesReceived function when data is nullptr and length is Invalid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest006, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    auto len = 0;
+    listener.OnBytesReceived(1, nullptr, len);
+    EXPECT_EQ(listener.listenSocketId_, SOCKET_ID_INVALID);
+}
+
+/**
+ * @tc.name: OnBytesReceivedTest007
+ * @tc.desc: Verify OnBytesReceived function when socketid is invalid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderRemoteListenerTest, OnBytesReceivedTest007, TestSize.Level1)
+{
+    DBinderRemoteListener listener;
+    const char *data = "testdatas";
+    ssize_t len = 10;
+    int32_t socketId = -1;
+    listener.OnBytesReceived(socketId, data, len);
+    EXPECT_EQ(len < static_cast<ssize_t>(sizeof(struct DHandleEntryTxRx)), true);
+}
+
 } // namespace OHOS

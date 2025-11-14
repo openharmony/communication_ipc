@@ -15,14 +15,14 @@ import("//build/test.gni")
 import("../../config.gni")
 
 #################################group#########################################
-group("unittest") {
+group("ipc_unittest") {
   testonly = true
   if (ipc_feature_test_enabled) {
     deps = [
-      "dbinder/dbinder_service/src:unittest",
-      "ipc/native/src/c_api/source:unittest",
-      "ipc/native/src/core/source:unittest",
-      "ipc/native/c/adapter/source:unittest"
+      "dbinder/dbinder_service/src:ipc_dbinder_unittest",
+      "ipc/native/src/c_api/source:ipc_capi_unittest",
+      "ipc/native/src/core/source:ipc_core_unittest",
+      "ipc/native/c/adapter/source:ipc_adapter_unittest"
     ]
   }
 }

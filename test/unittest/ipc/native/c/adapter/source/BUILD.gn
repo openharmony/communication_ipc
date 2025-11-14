@@ -63,7 +63,7 @@ c_unittest("AccessTokenAdapterTest") {
 }
 
 ###############################################################################
-group("unittest") {
+group("ipc_adapter_unittest") {
   testonly = true
   deps = [
     ":AccessTokenAdapterTest"

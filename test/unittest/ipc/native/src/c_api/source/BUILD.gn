@@ -108,7 +108,7 @@ c_api_unittest("IPCRemoteObjectInternalTest") {
 }
 
 ###############################################################################
-group("unittest") {
+group("ipc_capi_unittest") {
   testonly = true
   deps = [
     ":IPCCparcelTest",

@@ -703,15 +703,18 @@ void NAPI_RemoteObject_getCallingInfo(CallingInfo &newCallingInfoParam)
         newCallingInfoParam.callingPid = invoker->GetCallerPid();
         newCallingInfoParam.callingUid = invoker->GetCallerUid();
         newCallingInfoParam.callingTokenId = static_cast<uint32_t>(invoker->GetCallerTokenID());
+        newCallingInfoParam.activeStatus = IRemoteInvoker::ACTIVE_INVOKER;
     } else {
         newCallingInfoParam.callingPid = getpid();
         newCallingInfoParam.callingUid = getuid();
         newCallingInfoParam.callingTokenId = static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID());
+        newCallingInfoParam.activeStatus = IRemoteInvoker::IDLE_INVOKER;
     }
-    newCallingInfoParam.callingDeviceID = IPCSkeleton::GetCallingDeviceID();
-    newCallingInfoParam.localDeviceID = IPCSkeleton::GetLocalDeviceID();
     newCallingInfoParam.isLocalCalling = IPCSkeleton::IsLocalCalling();
-    newCallingInfoParam.activeStatus = IRemoteInvoker::ACTIVE_INVOKER;
+    if (!newCallingInfoParam.isLocalCalling) {
+        newCallingInfoParam.callingDeviceID = IPCSkeleton::GetCallingDeviceID();
+        newCallingInfoParam.localDeviceID = IPCSkeleton::GetLocalDeviceID();
+    }
 };
 
 int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
