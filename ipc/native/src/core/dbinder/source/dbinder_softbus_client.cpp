@@ -258,6 +258,60 @@ int32_t DBinderSoftbusClient::GetLocalNodeDeviceId(const std::string &pkgName, s
     return SOFTBUS_CLIENT_SUCCESS;
 }
 
+int32_t DBinderSoftbusClient::GetAllNodeDeviceId(const std::string &pkgName, std::vector<std::string> &devIds)
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);
+    int32_t devNum = 0;
+    NodeBasicInfo *nodeBasicInfo = nullptr;
+    if (getAllNodeDeviceInfoFunc_ != nullptr) {
+        if (getAllNodeDeviceInfoFunc_(pkgName.c_str(), &nodeBasicInfo, &devNum) != 0) {
+            ZLOGE(LOG_LABEL, "Get local node device info failed");
+            return SOFTBUS_CLIENT_GET_DEVICE_INFO_FAILED;
+        }
+        if (nodeBasicInfo == nullptr) {
+            ZLOGI(LOG_LABEL, "nodeBasicInfo is nullptr, devNum:%{public}d", devNum);
+            return SOFTBUS_CLIENT_SUCCESS;
+        }
+        for (int32_t i = 0; i < devNum; ++i) {
+            devIds.push_back(nodeBasicInfo[i].networkId);
+        }
+        if (freeNodeInfoFunc_ != nullptr) {
+            freeNodeInfoFunc_(nodeBasicInfo);
+        }
+        return SOFTBUS_CLIENT_SUCCESS;
+    }
+
+    if (!OpenSoftbusClientSo()) {
+        return SOFTBUS_CLIENT_DLOPEN_FAILED;
+    }
+
+    getAllNodeDeviceInfoFunc_ = (GetAllNodeDeviceInfoFunc)dlsym(soHandle_, "GetAllNodeDeviceInfo");
+    if (getAllNodeDeviceInfoFunc_ == nullptr) {
+        ZLOGE(LOG_LABEL, "dlsym GetAllNodeDeviceInfo fail, err msg:%{public}s", dlerror());
+        return SOFTBUS_CLIENT_DLSYM_FAILED;
+    }
+    freeNodeInfoFunc_ = (FreeNodeInfoFunc)dlsym(soHandle_, "FreeNodeInfo");
+    if (freeNodeInfoFunc_ == nullptr) {
+        ZLOGE(LOG_LABEL, "dlsym FreeNodeInfo fail, err msg:%{public}s", dlerror());
+    }
+
+    if (getAllNodeDeviceInfoFunc_(pkgName.c_str(), &nodeBasicInfo, &devNum) != 0) {
+        ZLOGE(LOG_LABEL, "Get local node device info failed");
+        return SOFTBUS_CLIENT_GET_DEVICE_INFO_FAILED;
+    }
+    if (nodeBasicInfo == nullptr) {
+        ZLOGI(LOG_LABEL, "nodeBasicInfo is nullptr, devNum:%{public}d", devNum);
+        return SOFTBUS_CLIENT_SUCCESS;
+    }
+    for (int32_t i = 0; i < devNum; ++i) {
+        devIds.push_back(nodeBasicInfo[i].networkId);
+    }
+    if (freeNodeInfoFunc_ != nullptr) {
+        freeNodeInfoFunc_(nodeBasicInfo);
+    }
+    return SOFTBUS_CLIENT_SUCCESS;
+}
+
 int32_t DBinderSoftbusClient::Socket(SocketInfo info)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, SOFTBUS_CLIENT_INSTANCE_EXIT);

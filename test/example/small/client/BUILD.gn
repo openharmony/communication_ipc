@@ -14,21 +14,23 @@
 import("//build/lite/config/component/lite_component.gni")
 import("../../../../config.gni")
 
-IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native/c"
-IPC_DEMO_ROOT_PATH = "$IPC_ROOT_PATH/test/example/small"
+SUBSYSTEM_DIR = "//foundation/communication/ipc"
+IPC_CORE_C_ROOT = "$SUBSYSTEM_DIR/ipc/native/c"
+IPC_C_DEMO_PATH = "$SUBSYSTEM_DIR/test/example/small"
 
 executable("ipc_test_small_client") {
+  output_dir = "$root_out_dir/tests/example/ipc_lite"
   sources = [
-    "$IPC_DEMO_ROOT_PATH/client/client_business_impl.c",
-    "$IPC_DEMO_ROOT_PATH/client/client_callback.c",
-    "$IPC_DEMO_ROOT_PATH/client/client_main.c",
+    "$IPC_C_DEMO_PATH/client/client_business_impl.c",
+    "$IPC_C_DEMO_PATH/client/client_callback.c",
+    "$IPC_C_DEMO_PATH/client/client_main.c",
   ]
   include_dirs = [
-    "$IPC_CORE_ROOT/manager/include",
-    "$IPC_DEMO_ROOT_PATH/common",
-    "$IPC_DEMO_ROOT_PATH/client",
+    "$IPC_CORE_C_ROOT/manager/include",
+    "$IPC_C_DEMO_PATH/common",
+    "$IPC_C_DEMO_PATH/client",
   ]
-  deps = [ "$IPC_ROOT_PATH/interfaces/innerkits/c/ipc:ipc_single" ]
+  deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:ipc_single" ]
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "hilog_lite:hilog_lite",

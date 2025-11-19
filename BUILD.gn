@@ -24,8 +24,15 @@ group("ipc_components") {
       "$SUBSYSTEM_DIR/interfaces/innerkits/cj:cj_ipc_ffi",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core:ipc_core",
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+      "$SUBSYSTEM_DIR/interfaces/kits/ndk:ipc_capi",
       "$SUBSYSTEM_DIR/ipc/native/src/core:ipc_common",
     ]
+    if (support_jsapi) {
+      deps += [
+        "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_napi_common:ipc_napi",
+        "$SUBSYSTEM_DIR/interfaces/kits/js/napi:rpc",
+      ]
+    }
     if (!build_ohos_sdk) {
       deps += [
         "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
@@ -35,4 +42,9 @@ group("ipc_components") {
   } else {
     deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/c:rpc" ]
   }
+}
+
+group("ipc_components_test") {
+  testonly = true
+  deps = [ "test:ipc_test" ]
 }

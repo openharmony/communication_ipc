@@ -23,7 +23,7 @@ ohos_rust_unittest("example_rust_ipc_client") {
     "../service:example_calc_ipc_service",
   ]
 
-  resource_config_file = "../../../test/resource/ipc/ohos_test.xml"
+  resource_config_file = "../../../test/resource/unittest/ohos_test.xml"
 
   subsystem_name = "communication"
   part_name = "ipc"
