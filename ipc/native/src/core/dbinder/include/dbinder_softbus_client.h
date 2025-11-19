@@ -46,6 +46,7 @@ public:
     int32_t DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName);
     int32_t DBinderRemovePermission(const std::string &socketName);
     int32_t GetLocalNodeDeviceId(const std::string &pkgName, std::string &devId);
+    int32_t GetAllNodeDeviceId(const std::string &pkgName, std::vector<std::string> &devIds);
     int32_t Socket(SocketInfo info);
     int32_t Listen(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener);
     int32_t Bind(int32_t socket, const QosTV qos[], uint32_t qosCount, const ISocketListener *listener);
@@ -61,6 +62,8 @@ private:
     using DBinderGrantPermissionFunc = int32_t (*)(int32_t, int32_t, const char*);
     using DBinderRemovePermissionFunc = int32_t (*)(const char*);
     using GetLocalNodeDeviceInfoFunc = int32_t (*)(const char*, NodeBasicInfo*);
+    using GetAllNodeDeviceInfoFunc = int32_t (*)(const char*, NodeBasicInfo**, int32_t*);
+    using FreeNodeInfoFunc = void (*)(NodeBasicInfo*);
     using SocketFunc = int32_t (*)(SocketInfo);
     using ListenFunc = int32_t (*)(int32_t, const QosTV[], uint32_t, const ISocketListener*);
     using BindFunc = int32_t (*)(int32_t, const QosTV[], uint32_t, const ISocketListener*);
@@ -71,6 +74,8 @@ private:
     DBinderGrantPermissionFunc grantPermissionFunc_ = nullptr;
     DBinderRemovePermissionFunc removePermissionFunc_ = nullptr;
     GetLocalNodeDeviceInfoFunc getLocalNodeDeviceInfoFunc_ = nullptr;
+    GetAllNodeDeviceInfoFunc getAllNodeDeviceInfoFunc_ = nullptr;
+    FreeNodeInfoFunc freeNodeInfoFunc_ = nullptr;
     SocketFunc socketFunc_ = nullptr;
     ListenFunc listenFunc_ = nullptr;
     BindFunc bindFunc_ = nullptr;

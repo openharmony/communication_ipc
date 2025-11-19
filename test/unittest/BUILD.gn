@@ -18,12 +18,17 @@ import("../../config.gni")
 group("ipc_unittest") {
   testonly = true
   if (ipc_feature_test_enabled) {
-    deps = [
-      "dbinder/dbinder_service/src:ipc_dbinder_unittest",
-      "ipc/native/src/c_api/source:ipc_capi_unittest",
-      "ipc/native/src/core/source:ipc_core_unittest",
-      "ipc/native/c/adapter/source:ipc_adapter_unittest"
-    ]
+    if (os_level == "standard") {
+      deps = [
+        "common:ipc_common_unittest",
+        "dbinder_service:ipc_dbinder_unittest",
+        "ipc/native:ipc_native_unittest"
+      ]
+    } else {
+      deps = [
+        "c_lite:ipc_lite_unittest",
+      ]
+    }
   }
 }
 ###############################################################################

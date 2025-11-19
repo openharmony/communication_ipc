@@ -1,0 +1,30 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+group("ipc_dbinderservice_fuzztest") {
+  testonly = true
+  deps = [
+    "dbinderservice001_fuzzer:DBinderService001FuzzTest",
+    "dbinderservice002_fuzzer:DBinderService002FuzzTest",
+    "dbinderservice003_fuzzer:DBinderService003FuzzTest",
+    "dbinderservice004_fuzzer:DBinderService004FuzzTest",
+    "dbinderservice005_fuzzer:DBinderService005FuzzTest",
+    "dbinderservice006_fuzzer:DBinderService006FuzzTest",
+    "dbinderservice007_fuzzer:DBinderService007FuzzTest",
+    "dbinderservice008_fuzzer:DBinderService008FuzzTest",
+    "dbinderservice009_fuzzer:DBinderService009FuzzTest",
+    "dbinderservice010_fuzzer:DBinderService010FuzzTest",
+    "dbinderservice011_fuzzer:DBinderService011FuzzTest",
+    "dbinderservice012_fuzzer:DBinderService012FuzzTest",
+  ]
+}

@@ -40,3 +40,10 @@ ohos_ndk_library("libipc_capi") {
     "IPCKit/ipc_kit.h",
   ]
 }
+
+group("ipc_capi") {
+  deps = [
+    ":ipc_capi_header",
+    ":libipc_capi",
+  ]
+}
