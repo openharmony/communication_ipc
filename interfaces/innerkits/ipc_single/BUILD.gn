@@ -130,6 +130,13 @@ ohos_shared_library("ipc_single") {
     "platformsdk",
     "sasdk",
   ]
+  if (is_ohos && is_clang && target_cpu == "arm64") {
+    ldflags = [ 
+      "-Wl,--emit-relocs",
+      "-Wl,--no-relax", 
+      "-mno-fix-cortex-a53-843419" 
+    ]
+  }
 
   install_images = [
     system_base_dir,
