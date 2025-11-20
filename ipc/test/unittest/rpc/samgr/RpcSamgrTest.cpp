@@ -59,6 +59,7 @@ int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 
 int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
+    (void)deviceId;
     SvcInfo* node = nullptr;
     SvcInfo* next = nullptr;
     DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
@@ -214,8 +215,8 @@ public:
     {
         RPC_LOG_INFO("----------test case for rpc samgr end -------------\n");
     }
-    void SetUp() {}
-    void TearDown() {}
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 /**

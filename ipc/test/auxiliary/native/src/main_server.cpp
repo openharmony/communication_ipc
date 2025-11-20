@@ -59,6 +59,7 @@ void TestCaseCheckThreadInvocationState()
 
 int main(int argc, char *argv[])
 {
+    (void)argv;
     std::cout << "Start executing the server" <<std::endl;
     bool isEnableSerialInvokeFlag = false;
     if (argc > 1) {

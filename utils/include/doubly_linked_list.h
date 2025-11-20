@@ -72,7 +72,7 @@ static inline void DLListDelete(DL_LIST *node)
 }
 
 /* Check list is empty. */
-static inline bool DLListEmpty(DL_LIST *list)
+static inline bool DLListEmpty(const DL_LIST *list)
 {
     return (bool)(list->pstNext == list);
 }
