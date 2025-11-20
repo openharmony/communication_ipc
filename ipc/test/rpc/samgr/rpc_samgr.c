@@ -59,6 +59,7 @@ static int32_t AddSystemAbility(int32_t saId, SvcIdentity *sid)
 
 static int32_t GetSystemAbility(int32_t saId, const char* deviceId, SvcIdentity *sid)
 {
+    (void)deviceId;
     SvcInfo* node = NULL;
     SvcInfo* next = NULL;
     DL_LIST_FOR_EACH_ENTRY_SAFE(node, next, g_saList, SvcInfo, list)
