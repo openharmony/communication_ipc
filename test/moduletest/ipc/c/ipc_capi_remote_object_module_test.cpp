@@ -42,7 +42,7 @@ public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
-    void TearDown() override;
+    void TearDown();
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IpcCApiModuleTest" };
 
     void ResetCallbackReply();

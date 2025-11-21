@@ -61,18 +61,15 @@ class TestRpcSystemAbilityCallback : public RpcSystemAbilityCallback {
 public:
     sptr<IRemoteObject> GetSystemAbilityFromRemote(int32_t systemAbilityId) override
     {
-        (void)systemAbilityId;
         return nullptr;
     }
 
     bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, int32_t systemAbilityId) override
     {
-        (void)systemAbilityId;
         return isLoad_;
     }
     bool IsDistributedSystemAbility(int32_t systemAbilityId) override
     {
-        (void)systemAbilityId;
         return isSystemAbility_;
     }
     void SetSystemAbility(bool value)

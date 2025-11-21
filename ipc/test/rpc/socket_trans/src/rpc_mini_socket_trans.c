@@ -102,7 +102,7 @@ static void TcpShutDown(int fd)
     }
 }
 
-static void *HandleAccept(const void *args)
+static void *HandleAccept(void *args)
 {
     pthread_setname_np(pthread_self(), "h_rpc_req");
     if (args == NULL) {
@@ -239,7 +239,6 @@ static int32_t StartListen(const char *saSessionName, void *cb)
 
 static int32_t StopListen(const char *saSessionName)
 {
-    (void)saSessionName;
     return ERR_NONE;
 }
 
@@ -307,7 +306,7 @@ static int32_t HandleConnect(int32_t fd)
     return fd;
 }
 
-static int32_t Connect(const char *saSessionName, const char *peerDeviceId, const void *args)
+static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void *args)
 {
     (void)args;
     if (saSessionName == NULL) {
@@ -369,7 +368,6 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
 
 static int32_t GetSocketLocalDeviceID(const char *saSessionName, char *deviceId)
 {
-    (void)saSessionName;
     extern struct netif if_wifi;
     const ip4_addr_t *ip4Addr = netif_ip4_addr(&if_wifi);
     char *localDeviceId = ip4addr_ntoa(ip4Addr);

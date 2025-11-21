@@ -127,7 +127,7 @@ static void AddRegisterService(RemoteBinderObjects *binderObject)
 }
 
 static int32_t CheckBinderParams(const void *serviceName, uint32_t nameLen, const char *deviceID,
-    uint32_t idLen, const void *remoteObject)
+    uint32_t idLen, void *remoteObject)
 {
     if (serviceName == NULL || deviceID == NULL || remoteObject == NULL) {
         RPC_LOG_ERROR("MakeRemoteBinder null poiter");

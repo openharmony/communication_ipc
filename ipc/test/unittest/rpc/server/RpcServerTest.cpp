@@ -103,8 +103,8 @@ public:
         RPC_LOG_INFO("----------test case for rpc server start-------------\n");
     }
     static void TearDownTestCase() {}
-    void SetUp() override {}
-    void TearDown() override {}
+    void SetUp() {}
+    void TearDown() {}
 };
 
 /**

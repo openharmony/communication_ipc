@@ -38,7 +38,7 @@ static constexpr uint32_t ON_CALLBACK_REPLIED_INT = 1598311760;
 class IpcCApiRemoteObjectUnitTest : public testing::Test {
 public:
     void SetUp();
-    void TearDown() override;
+    void TearDown();
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IpcCApiUnitTest" };
 
     void ResetCallbackReply();
