@@ -33,7 +33,6 @@ static IClientProxy *g_serverProxy = NULL;
 
 static void ServerDeadCallback(void *arg)
 {
-    (void)arg;
     RPC_LOG_INFO("====== server dead ServerDeadCallback called ======");
 }
 
@@ -96,8 +95,6 @@ void ClientSendData()
 
 int main(int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
     RPC_LOG_INFO("[ipc_test_client] Enter System Ability Client");
     HOS_SystemInit();
     RPC_LOG_INFO("[ipc_test_client] SystemInit end");

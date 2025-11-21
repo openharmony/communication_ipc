@@ -63,7 +63,6 @@ static int32_t StopListen(const char *saSessionName)
 
 static int32_t Connect(const char *saSessionName, const char *peerDeviceId, void *args)
 {
-    (void)args;
     if (saSessionName == NULL) {
         RPC_LOG_ERROR("Connect SaSessionName is null");
         return ERR_FAILED;

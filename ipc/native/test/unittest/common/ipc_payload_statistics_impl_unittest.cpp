@@ -42,9 +42,9 @@ class IPCPayloadStatisticsImplUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() override;
-    void TearDown() override;
-    bool InitIPCPayloadStatisticsData() const;
+    void SetUp();
+    void TearDown();
+    bool InitIPCPayloadStatisticsData();
     bool ClearIPCPayloadStatisticsData();
 };
 
@@ -64,7 +64,7 @@ void IPCPayloadStatisticsImplUnitTest::TearDown()
 {
 }
 
-bool IPCPayloadStatisticsImplUnitTest::InitIPCPayloadStatisticsData() const
+bool IPCPayloadStatisticsImplUnitTest::InitIPCPayloadStatisticsData()
 {
     bool ret = true;
     std::u16string descStr = u"string1";
