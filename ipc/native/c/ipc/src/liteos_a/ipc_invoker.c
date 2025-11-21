@@ -114,13 +114,11 @@ static void CloseDriver(void)
 
 static int32_t AcquireHandle(int32_t handle)
 {
-    (void)handle;
     return ERR_NONE;
 }
 
 static int32_t ReleaseHandle(int32_t handle)
 {
-    (void)handle;
     return ERR_NONE;
 }
 
@@ -539,7 +537,6 @@ static void IpcJoinThread(bool initiative)
 
 static int32_t IpcSetMaxWorkThread(int32_t maxThreadNum)
 {
-    (void)maxThreadNum;
     return ERR_NONE;
 }
 
@@ -615,8 +612,6 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
 
 static int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
 {
-    (void)handle;
-    (void)cookie;
     if (!g_ipcCallback.threadWorking) {
         pthread_mutex_lock(&g_ipcCallback.mutex);
         int32_t ret = StartCallbackDispatch();
@@ -632,8 +627,6 @@ static int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
 
 static int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie)
 {
-    (void)handle;
-    (void)cookie;
     return ERR_NONE;
 }
 

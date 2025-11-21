@@ -312,8 +312,6 @@ void ExecuteAllTestCase()
 
 int main(int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
     if (fork() == 0) {
         system("/system/bin/ipc_server_test");
         return 0;

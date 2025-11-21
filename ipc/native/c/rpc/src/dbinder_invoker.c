@@ -793,14 +793,14 @@ static int32_t RpcSetRegistryObject(SvcIdentity target, SvcIdentity *samgr)
     return ERR_NONE;
 }
 
-static int32_t RpcAddDeathRecipient(int32_t handle, const void *cookie)
+static int32_t RpcAddDeathRecipient(int32_t handle, void *cookie)
 {
     (void)handle;
     (void)cookie;
     return ERR_NONE;
 }
 
-static int32_t RpcRemoveDeathRecipient(int32_t handle, const void *cookie)
+static int32_t RpcRemoveDeathRecipient(int32_t handle, void *cookie)
 {
     (void)handle;
     (void)cookie;

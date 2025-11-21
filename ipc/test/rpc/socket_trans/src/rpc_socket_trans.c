@@ -102,7 +102,7 @@ static void TcpShutDown(int fd)
     }
 }
 
-static void HandleAccept(const void *args)
+static void HandleAccept(void *args)
 {
     if (args == NULL) {
         return;
@@ -258,7 +258,6 @@ static void* WrapperHandleSendReply(void* args)
 
 static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void *args)
 {
-    (void)args;
     if (SaSessionName == NULL) {
         RPC_LOG_INFO("SaSessionName is null");
         return ERR_FAILED;
@@ -306,7 +305,6 @@ static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void
 
 static int32_t Disconnect(int32_t sessionId)
 {
-    (void)sessionId;
     return ERR_NONE;
 }
 
@@ -328,7 +326,6 @@ static int32_t Send(int32_t sessionId, const void *data, uint32_t len)
 
 static int32_t GetSocketLocalDeviceID(const char *SaSessionName, char *deviceId)
 {
-    (void)SaSessionName;
     struct ifaddrs *ifaddr;
     struct ifaddrs *ifa;
     int family;

@@ -32,7 +32,6 @@
 namespace {
 void ServerDead1(void *args)
 {
-    (void)args;
     RPC_LOG_INFO("#### rpc server dead callback11 called");
 }
 
@@ -58,7 +57,7 @@ public:
         RPC_LOG_INFO("input deviceid is %s", deviceId);
     }
     static void TearDownTestCase() {}
-    void SetUp() override {}
+    void SetUp() {}
     void TearDown()
     {
         sleep(1);

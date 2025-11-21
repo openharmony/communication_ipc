@@ -27,8 +27,8 @@ class BinderConnectorTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() override;
-    void TearDown() override;
+    void SetUp();
+    void TearDown();
 };
 
 void BinderConnectorTest::SetUpTestCase()
