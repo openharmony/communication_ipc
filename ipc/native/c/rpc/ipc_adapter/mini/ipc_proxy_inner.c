@@ -66,8 +66,6 @@ static int32_t MakeInvokerListenReply(ProxyObject *proxyObject, uint64_t stubInd
 int32_t InvokerListenThread(ProxyObject *proxyObject, const char *localDeviceID, const char *remoteDeviceID,
     uint32_t pid, uint32_t uid, IpcIo *reply, uintptr_t *ptr)
 {
-    (void)localDeviceID;
-    (void)remoteDeviceID;
     if (proxyObject == NULL) {
         RPC_LOG_ERROR("InvokerListenThread proxy is null");
         return ERR_FAILED;

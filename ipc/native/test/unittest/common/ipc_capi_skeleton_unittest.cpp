@@ -61,8 +61,8 @@ class IpcCApiSkeletonUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp() override;
-    void TearDown() override;
+    void SetUp();
+    void TearDown();
     static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, OHOS::LOG_ID_IPC_CAPI, "IpcCApiUnitTest" };
 };
 
@@ -93,7 +93,6 @@ static void* LocalMemAllocator(int32_t len)
 
 static void* LocalMemAllocatorErr(int32_t len)
 {
-    (void)len;
     return nullptr;
 }
 
