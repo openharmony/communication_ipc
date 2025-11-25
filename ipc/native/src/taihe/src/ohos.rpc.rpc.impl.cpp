@@ -1292,10 +1292,6 @@ void MessageSequenceImpl::WriteByteArray(::taihe::array_view<int8_t> byteArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = byteArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + (BYTE_SIZE_8 * arrayLength), nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1314,10 +1310,6 @@ void MessageSequenceImpl::WriteShortArray(::taihe::array_view<int32_t> shortArra
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = shortArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(int16_t) * arrayLength, nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1336,10 +1328,6 @@ void MessageSequenceImpl::WriteIntArray(::taihe::array_view<int32_t> intArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = intArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 * (arrayLength + 1), nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1358,10 +1346,6 @@ void MessageSequenceImpl::WriteLongArray(::taihe::array_view<int64_t> longArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = longArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(int64_t) * arrayLength, nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1380,10 +1364,6 @@ void MessageSequenceImpl::WriteFloatArray(::taihe::array_view<double> floatArray
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = floatArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(double) * arrayLength, nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1402,10 +1382,6 @@ void MessageSequenceImpl::WriteDoubleArray(::taihe::array_view<double> doubleArr
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = doubleArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(double) * arrayLength, nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1424,10 +1400,6 @@ void MessageSequenceImpl::WriteBooleanArray(::taihe::array_view<bool> booleanArr
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = booleanArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + (BYTE_SIZE_8 * arrayLength), nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1446,10 +1418,6 @@ void MessageSequenceImpl::WriteCharArray(::taihe::array_view<int32_t> charArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = charArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(uint8_t) * arrayLength, nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
@@ -1468,10 +1436,6 @@ void MessageSequenceImpl::WriteStringArray(::taihe::array_view<::taihe::string> 
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = stringArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     size_t pos = nativeParcel_->GetWritePosition();
     nativeParcel_->WriteUint32(arrayLength);
     bool result = false;
@@ -1497,10 +1461,6 @@ void MessageSequenceImpl::WriteParcelableArray(::taihe::array_view<::ohos::rpc::
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = parcelableArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     size_t pos = nativeParcel_->GetWritePosition();
     if (!(nativeParcel_->WriteUint32(arrayLength))) {
         ZLOGE(LOG_LABEL, "write array length failed");
@@ -1521,10 +1481,6 @@ void MessageSequenceImpl::WriteRemoteObjectArray(::taihe::array_view<::ohos::rpc
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = objectArray.size();
-    if (arrayLength == 0) {
-        ZLOGE(LOG_LABEL, "arrayLength is 0");
-        RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
-    }
     CHECK_WRITE_CAPACITY(BYTE_SIZE_32 + sizeof(::ohos::rpc::rpc::IRemoteObjectUnion) * arrayLength,
         nativeParcel_, nativeParcel_->GetMaxCapacity());
     size_t pos = nativeParcel_->GetWritePosition();
