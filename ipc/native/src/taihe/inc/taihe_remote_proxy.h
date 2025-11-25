@@ -41,9 +41,9 @@ public:
     ::ohos::rpc::rpc::RequestResult SendMessageRequestSync(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
         ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
 
-    void RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags);
+    void RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags);
 
-    void UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags);
+    void UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags);
 
     ::taihe::string GetDescriptor();
 
