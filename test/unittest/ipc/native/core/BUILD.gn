@@ -1,0 +1,178 @@
+# Copyright (C) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("../../../../../config.gni")
+
+IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
+MODULE_OUTPUT_PATH = "ipc/core"
+
+template("ipc_unittest") {
+  ohos_unittest(target_name) {
+    module_out_path = MODULE_OUTPUT_PATH
+
+    include_dirs = [
+      "$IPC_CORE_ROOT/c/rpc/include",
+      "$IPC_CORE_ROOT/c/ipc_adapter/include",
+      "$IPC_CORE_ROOT/src/core/dbinder/include",
+      "$IPC_CORE_ROOT/src/core/framework/include",
+      "$IPC_CORE_ROOT/src/core/invoker/include",
+      "$IPC_CORE_ROOT/src/core/framework/source",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_core/include",
+      "$IPC_ROOT_PATH/interfaces/innerkits/libdbinder/include",
+      "$IPC_ROOT_PATH/utils/include",
+      "$IPC_UNITTEST_ROOT_PATH/mock",
+    ]
+
+    if (defined(invoker.include_dirs)) {
+      include_dirs += invoker.include_dirs
+    }
+
+    configs = [ "$IPC_ROOT_PATH/config:ipc_util_config" ]
+
+    deps = [
+      "$IPC_CORE_ROOT/src/core:ipc_common",
+      "$IPC_ROOT_PATH/interfaces/innerkits/ipc_single:ipc_single_test",
+    ]
+
+    defines = [
+      "private = public",
+      "protected = public",
+    ]
+
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    external_deps = [
+      "c_utils:utils",
+      "ffrt:libffrt",
+      "googletest:gmock",
+      "hilog:libhilog",
+      "hitrace:libhitracechain",
+      "samgr:samgr_proxy",
+    ]
+
+    if (ipc_feature_freeze_enabled) {
+      defines += [ "FREEZE_PROCESS_ENABLED" ]
+    }
+
+    if (hiviewdfx_hisysevent_support) {
+      external_deps += [ "hisysevent:libhisysevent" ]
+    }
+
+    if (defined(invoker.external_deps)) {
+      external_deps += invoker.external_deps
+    }
+
+    sources = invoker.sources
+    ldflags = [ "-lpthread" ]
+    resource_config_file = "$IPC_ROOT_PATH/test/resource/unittest/ohos_test.xml"
+  }
+}
+
+ipc_unittest("IPCObjectProxyUnitTest") {
+  sources = [ "ipc_object_proxy_unittest.cpp" ]
+}
+
+ipc_unittest("IPCProcessSkeletonUnitTest") {
+  sources = [ "ipc_process_skeleton_unittest.cpp" ]
+}
+
+ipc_unittest("DBinderCallbackStubUnitTest") {
+  sources = [ "dbinder_callback_stub_unittest.cpp" ]
+}
+
+ipc_unittest("BinderInvokerUnitTest") {
+  sources = [ "binder_invoker_unittest.cpp" ]
+}
+
+ipc_unittest("DBinderSoftbusClientUnitTest") {
+  sources = [ "dbinder_softbus_client_unittest.cpp" ]
+}
+
+ipc_unittest("IremoteBrokerUnitTest") {
+  sources = [ "iremote_broker_unittest.cpp" ]
+}
+
+ipc_unittest("DbinderDataBusInvokerUnitTest") {
+  sources = [ "dbinder_databus_invoker_unittest.cpp" ]
+}
+
+ipc_unittest("MessageParcelAddUnitTest") {
+  sources = [ "message_parcel_unittest.cpp" ]
+}
+
+ipc_unittest("IPCSkeletonUnitTest") {
+  sources = [ "ipc_skeleton_unittest.cpp" ]
+}
+
+ipc_unittest("ProcessSkeletonUnitTest") {
+  sources = [ "process_skeleton_unittest.cpp" ]
+}
+
+ipc_unittest("IremoteObjectUnitTest") {
+  sources = [ "iremote_object_unittest.cpp" ]
+}
+
+ipc_unittest("IpcObjectStubUnitTest") {
+  sources = [ "ipc_object_stub_unittest.cpp" ]
+}
+
+ipc_unittest("IPCThreadSkeletonUnitTest") {
+  sources = [ "ipc_thread_skeleton_unittest.cpp" ]
+}
+
+ipc_unittest("DatabusSocketListenerUnitTest") {
+  sources = [ "databus_socket_listener_unittest.cpp" ]
+}
+
+ipc_unittest("IPCFileDescriptorUnitTest") {
+  sources = [ "ipc_file_descriptor_unittest.cpp" ]
+}
+
+ipc_unittest("IPCTraceUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_trace.cpp",
+    "ipc_trace_unittest.cpp",
+  ]
+}
+
+ipc_unittest("IPCWorkThreadUnitTest") {
+  sources = [ "ipc_workthread_unittest.cpp" ]
+}
+
+###############################################################################
+group("ipc_nativecore_unittest") {
+  testonly = true
+  deps = [
+    ":BinderInvokerUnitTest",
+    ":DBinderCallbackStubUnitTest",
+    ":DBinderSoftbusClientUnitTest",
+    ":DatabusSocketListenerUnitTest",
+    ":DbinderDataBusInvokerUnitTest",
+    ":IPCFileDescriptorUnitTest",
+    ":IPCObjectProxyUnitTest",
+    ":IPCProcessSkeletonUnitTest",
+    ":IPCSkeletonUnitTest",
+    ":IPCThreadSkeletonUnitTest",
+    ":IpcObjectStubUnitTest",
+    ":IremoteBrokerUnitTest",
+    ":IremoteObjectUnitTest",
+    ":MessageParcelAddUnitTest",
+    ":ProcessSkeletonUnitTest",
+    ":IPCTraceUnitTest",
+    ":IPCWorkThreadUnitTest",
+  ]
+}
+###############################################################################

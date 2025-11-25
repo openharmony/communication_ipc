@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<configuration ver="2.0">
+    <target name="BinderInvokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DatabusSocketListenerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IremoteBrokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="BinderInvokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IpcCApiUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/auxiliary/ipc_server_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/auxiliary/ipc_client_test -> /system/bin" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCNativeUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/auxiliary/ipc_server_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/auxiliary/ipc_client_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCHiTraceUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/auxiliary/ipc_server_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/auxiliary/ipc_client_test -> /system/bin" src="out"/>
+            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_test_helper.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCFileDescOpsUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCMockUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCInnerObjectUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCCremoteObjectUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCInternalUtilsUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCCskeletonUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCTraceUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCWorkThreadUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderServiceStubUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderRemoteListenerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IremoteObjectUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IpcObjectStubUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCSkeletonUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderCallbackStubUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderSoftbusClientUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DbinderDataBusInvokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCObjectProxyUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCProcessSkeletonUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="ProcessSkeletonUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="BinderConnectorUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="BinderDebugUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DatabusSocketListenerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="HitraceInvokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCBlockThreadUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCSoDlcloseUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCTraceUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="InvokerFactoryUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="InvokerRawDataUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="MessageParcelUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="RPCFeatureUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="RPCDBinderServiceUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderServiceUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderDeathRecipientUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderSaDeathRecipientUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="DBinderBaseInvokerUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="RPCDBinderUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCFileDescriptorUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="MessageParcelAddUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCCparcelUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCThreadSkeletonUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="AccessTokenAdapterUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+    <target name="IPCRemoteObjectInternalUnitTest">
+        <preparer>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib64" src="out"/>
+            <option name="push" value="communication/ipc/libipc_single_test.z.so -> /system/lib" src="out"/>
+        </preparer>
+    </target>
+</configuration>

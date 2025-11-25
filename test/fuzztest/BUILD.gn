@@ -10,76 +10,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import("//build/test.gni")
+import("//build/config/features.gni")
 
 group("ipc_fuzztest") {
   testonly = true
-  deps = [
-    "interfaces/innerkits/ipc_core/messageparcel:messageparcelfuzz",
-    "interfaces/innerkits/ipc_core/messageparcelmock:messageparcelmockfuzztest",
-    "ipc/native/src/core/adddeathrecipient_fuzzer:AddDeathRecipientFuzzTest",
-    "ipc/native/src/core/bind_fuzzer:BindFuzzTest",
-    "ipc/native/src/core/binderinvoker:binderinvokerfuzz",
-    "ipc/native/src/core/binderinvokernew:binderinvokernewfuzz",
-    "ipc/native/src/core/bufferobject_fuzzer:BufferObjectFuzzTest",
-    "ipc/native/src/core/databussocketlistener:databussocketlistenerfuzz",
-    "ipc/native/src/core/dbindercallbackstub:dbindercallbackstubfuzz",
-    "ipc/native/src/core/dbinderdatabusinvoker:dbinderdatabusinvokerfuzz",
-    "ipc/native/src/core/dbindergrantpermission_fuzzer:DBinderGrantPermissionFuzzTest",
-    "ipc/native/src/core/dbinderremovepermission_fuzzer:DBinderRemovePermissionFuzzTest",
-    "ipc/native/src/core/dbindersessionobject_fuzzer:DBinderSessionObjectFuzzTest",
-    "ipc/native/src/core/dbindersoftbusclient_fuzzer:DBinderSoftbusClientFuzzTest",
-    "ipc/native/src/mock/dbindersoftbusclientmock:dbindersoftbusclientmockfuzz",
-    "ipc/native/src/core/dbinderservicestub:dbinderservicestubfuzz",
-    "ipc/native/src/core/getlocalnodedeviceid_fuzzer:GetLocalNodeDeviceIdFuzzTest",
-    "ipc/native/src/core/invokerfactory:invokerfactoryfuzztest",
-    "ipc/native/src/core/ipcfiledescriptor:ipcfiledescriptorfuzz",
-    "ipc/native/src/core/ipcfiledescriptormarshalling_fuzzer:IPCFileDescriptorMarshallingFuzzTest",
-    "ipc/native/src/core/ipcfiledescriptorunmarshalling_fuzzer:IPCFileDescriptorUnmarshallingFuzzTest",
-    "ipc/native/src/core/ipcobjectproxy:ipcobjectproxyfuzz",
-    "ipc/native/src/core/ipcobjectstub:ipcobjectstubfuzz",
-    "ipc/native/src/mock/ipcobjectstubmock:ipcobjectstubmockfuzz",
-    "ipc/native/src/core/ipcpayloadstatistics_fuzzer:IPCPayloadStatisticsFuzzTest",
-    "ipc/native/src/core/ipcprocessskeleton:ipcprocessskeletonfuzz",
-    "ipc/native/src/core/ipcskeleton_fuzzer:IPCSkeletonFuzzTest",
-    "ipc/native/src/core/ipcthreadpool_fuzzer:IPCThreadPoolFuzzTest",
-    "ipc/native/src/core/ipcthreadskeleton_fuzzer:IPCThreadSkeletonFuzzTest",
-    "ipc/native/src/core/listen_fuzzer:ListenFuzzTest",
-    "ipc/native/src/core/messageoption_fuzzer:MessageOptionFuzzTest",
-    "ipc/native/src/core/removedeathrecipient_fuzzer:RemoveDeathRecipientFuzzTest",
-    "ipc/native/src/core/sendbytes_fuzzer:SendBytesFuzzTest",
-    "ipc/native/src/core/sendrequest_fuzzer:SendRequestFuzzTest",
-    "ipc/native/src/core/setcallingidentity_fuzzer:SetCallingIdentityFuzzTest",
-    "ipc/native/src/core/setipcproxylimit_fuzzer:SetIPCProxyLimitFuzzTest",
-    "ipc/native/src/core/socket_fuzzer:SocketFuzzTest",
-    "ipc/native/src/core/append_fuzzer:AppendFuzzTest",
-    "ipc/native/src/core/dbindergetpiduid_fuzzer:DBinderGetPidUidFuzzTest",
-    "ipc/native/src/core/makebasicthreadname_fuzzer:MakeBasicThreadNameFuzzTest",
-    "ipc/native/src/core/bufferobjectnew_fuzzer:BufferObjectNewFuzzTest",
-    "ipc/native/src/core/ipcthreadpoolnew_fuzzer:IPCThreadPoolNewFuzzTest",
-    "ipc/native/src/core/binderconnector_fuzzer:BinderConnectorFuzzTest",
-    "ipc/native/src/core/ipcpayloadstatisticsimpl:ipcpayloadstatisticsimplfuzz",
-    "ipc/native/src/core/ipcpayloadstatisticsnew_fuzzer:IPCPayloadStatisticsNewFuzzTest",
-    "ipc/native/src/core/iremotebroker_fuzzer:IRemoteBrokerFuzzTest",
-    "ipc/native/src/core/processskeleton:processskeletonfuzz",
-    "ipc/native/src/core/hitraceinvoker_fuzzer:HitraceInvokerFuzzTest",
-    "ipc/native/src/core/utf8toutf16_fuzzer:Utf8ToUtf16FuzzTest",
-    "ipc/native/src/mock/acquirehandle_fuzzer:AcquireHandleFuzzTest",
-    "ipc/native/src/mock/dbinderservicestubmock:DBinderServiceStubMockFuzzTest",
-    "ipc/native/src/mock/dbinderremotelistenermock_fuzzer:DBinderRemoteListenerMockFuzzTest",
-    "ipc/native/src/mock/dbinderservicemock:dbinderservicemockfuzz",
-    "ipc/native/src/mock/ipcprocessskeletonmock:ipcprocessskeletonmockfuzz",
-    "ipc/native/src/mock/binderinvokermock:binderinvokermockfuzz",
-    "ipc/native/src/mock/dbinderdatabusinvokermock:dbinderdatabusinvokermockfuzz",
-    "ipc/native/src/mock/ipcobjectproxymock:ipcobjectproxymockfuzz",
-    "ipc/native/src/mock/dbindercallbackstubmock:dbindercallbackstubmockfuzz",
-    "ipc/native/src/mock/hitraceinvokermock:hitraceinvokermockfuzz",
-    "ipc/native/c/rpc/rpcfeatureset:rpcfeaturesetfuzz",
-    "ipc/native/src/mock/ipcskeletonmock:ipcskeletonmockfuzz",
-    "ipc/native/src/mock/ipcthreadskeletonmock:ipcthreadskeletonmockfuzz",
-    "ipc/native/src/mock/iremoteobjectmock:iremoteobjectmockfuzz",
-    "ipc/native/src/mock/ipcworkthreadmock_fuzzer:IPCWorkThreadMockFuzzTest",
-    "ipc/native/src/mock/databussocketlistenermock:databussocketlistenermockfuzz",
-    "dbinder/dbinder_service/src/dbinderservicenew:dbinderservicenewfuzz",
-    "dbinder/dbinder_service/src/socket/dbinderremotelistener:dbinderremotelistenerfuzz",
-  ]
+  if (os_level == "standard") {
+    deps = [
+      "dbinder_service:ipc_dbinder_fuzztest",
+      "interfaces/innerkits:ipc_innerkits_fuzztest",
+      "ipc/native:ipc_native_fuzztest",
+    ]
+  } else {
+    deps = [
+      "c_lite:ipc_lite_fuzztest",
+    ]
+  }
 }

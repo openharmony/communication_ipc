@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/communication/ipc/config.gni")
+import("../../../../config.gni")
 
 declare_args() {
   device_usage_runtime_core_enable = false
@@ -24,6 +24,6 @@ declare_args() {
 
 group("rpc_ani_packages") {
   if (device_usage_runtime_core_enable) {
-    deps = [ "${rpc_ani_path}/rpc:rpc_ani_package" ]
+    deps = [ "${RPC_ANI_PATH}/rpc:rpc_ani_package" ]
   }
 }
