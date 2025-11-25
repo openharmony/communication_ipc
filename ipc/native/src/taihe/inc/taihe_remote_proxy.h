@@ -54,6 +54,12 @@ public:
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteProxy obj);
 
     static ::ohos::rpc::rpc::RemoteProxy CreateRemoteProxyFromNative(uintptr_t nativePtr);
+
+    static int32_t GetPingTransaction();
+    static int32_t GetDumpTransaction();
+    static int32_t GetInterfaceTransaction();
+    static int32_t GetMinTransactionId();
+    static int32_t GetMaxTransactionId();
 private:
     OHOS::sptr<OHOS::IPCObjectProxy> cachedObject_;
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
