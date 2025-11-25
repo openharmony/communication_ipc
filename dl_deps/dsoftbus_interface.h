@@ -46,6 +46,7 @@ typedef struct {
 
 int32_t GetAllNodeDeviceInfo(const char *pkgName, NodeBasicInfo **info, int32_t *infoNum);
 int32_t GetLocalNodeDeviceInfo(const char *pkgName, NodeBasicInfo *info);
+void FreeNodeInfo(NodeBasicInfo *info);
 
 /**
  * from  softbus_error_code.h
