@@ -156,7 +156,7 @@ DeathRecipientImpl::DeathRecipientImpl(::ohos::rpc::rpc::DeathRecipient jsObjRef
 
 void DeathRecipientImpl::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &object)
 {
-    jsObjRef_->OnRemoteDied();
+    jsObjRef_.onRemoteDied();
     if (taihe::has_error()) {
         ZLOGE(LOG_LABEL, "call onRemoteDied failed");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CALL_JS_METHOD_ERROR);
@@ -255,7 +255,7 @@ RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj)
     return { ret, code, data, reply };
 }
 
-void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags)
+void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
     OHOS::sptr<DeathRecipientImpl> nativeDeathRecipient = new (std::nothrow) DeathRecipientImpl(recipient);
     if (!cachedObject_->AddDeathRecipient(nativeDeathRecipient)) {
@@ -263,17 +263,17 @@ void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient re
         return;
     }
 
-    deathRecipientMap_.emplace(&recipient, nativeDeathRecipient);
+    deathRecipientMap_.emplace(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient), nativeDeathRecipient);
 }
 
-void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags)
+void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
-    auto it = deathRecipientMap_.find(&recipient);
+    auto it = deathRecipientMap_.find(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient));
     if (it != deathRecipientMap_.end()) {
         if (!cachedObject_->RemoveDeathRecipient(it->second)) {
             ZLOGE(LOG_LABEL, "RemoveDeathRecipient failed");
         }
-        deathRecipientMap_.erase(&recipient);
+        deathRecipientMap_.erase(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient));
     } else {
         ZLOGE(LOG_LABEL, "DeathRecipient not found");
     }
@@ -585,13 +585,13 @@ bool RemoteObjectImpl::OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::we
     TH_THROW(std::runtime_error, "OnRemoteMessageRequest should be implemented int ets");
 }
 
-void RemoteObjectImpl::RegisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags)
+void RemoteObjectImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
     ZLOGI(LOG_LABEL, "only RemoteProxy needed");
     RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
-void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::weak::DeathRecipient recipient, int32_t flags)
+void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
     ZLOGI(LOG_LABEL, "only RemoteProxy needed");
     RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_ONLY_PROXY_OBJECT_PERMITTED_ERROR);
@@ -2098,6 +2098,13 @@ void MessageOptionImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption ob
     return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(flags, waitTime);
 }
 
+::ohos::rpc::rpc::MessageOption MessageOptionImpl::CreateMessageOption_WithOneIntParam(int32_t syncFlags)
+{
+    int flags = (syncFlags == 0) ? OHOS::MessageOption::TF_SYNC : OHOS::MessageOption::TF_ASYNC;
+    int waitTime = OHOS::MessageOption::TF_WAIT_TIME;
+    return taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(flags, waitTime);
+}
+
 ::ohos::rpc::rpc::MessageOption MessageOptionImpl::CreateMessageOption()
 {
     int flags = OHOS::MessageOption::TF_SYNC;
@@ -2296,6 +2303,8 @@ TH_EXPORT_CPP_API_RpcTransferStaicImpl(OHOS::MessageSequenceImpl::RpcTransferSta
 TH_EXPORT_CPP_API_RpcTransferDynamicImpl(OHOS::MessageSequenceImpl::RpcTransferDynamicImpl);
 TH_EXPORT_CPP_API_CreateMessageOption_WithTwoParam(OHOS::MessageOptionImpl::CreateMessageOption_WithTwoParam);
 TH_EXPORT_CPP_API_CreateMessageOption_WithOneParam(OHOS::MessageOptionImpl::CreateMessageOption_WithOneParam);
+TH_EXPORT_CPP_API_CreateMessageOption_WithOneIntParam(OHOS::MessageOptionImpl::CreateMessageOption_WithOneIntParam);
+TH_EXPORT_CPP_API_DupFileDescriptor(OHOS::MessageSequenceImpl::DupFileDescriptor);
 TH_EXPORT_CPP_API_CreateMessageOption(OHOS::MessageOptionImpl::CreateMessageOption);
 TH_EXPORT_CPP_API_GetTfSync(OHOS::MessageOptionImpl::GetTfSync);
 TH_EXPORT_CPP_API_GetTfAsync(OHOS::MessageOptionImpl::GetTfAsync);
