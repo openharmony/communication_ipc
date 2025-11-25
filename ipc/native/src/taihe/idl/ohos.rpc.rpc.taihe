@@ -46,11 +46,48 @@ struct RequestResult {
     reply: MessageSequence;
 }
 
+enum ErrorCode : i32 {
+    CHECK_PARAM_ERROR = 401,
+    OS_MMAP_ERROR = 1900001,
+    OS_IOCTL_ERROR = 1900002,
+    WRITE_TO_ASHMEM_ERROR = 1900003,
+    READ_FROM_ASHMEM_ERROR = 1900004,
+    ONLY_PROXY_OBJECT_PERMITTED_ERROR = 1900005,
+    ONLY_REMOTE_OBJECT_PERMITTED_ERROR = 1900006,
+    COMMUNICATION_ERROR = 1900007,
+    PROXY_OR_REMOTE_OBJECT_INVALID_ERROR = 1900008,
+    WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR = 1900009,
+    READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR = 1900010,
+    PARCEL_MEMORY_ALLOC_ERROR = 1900011,
+    CALL_JS_METHOD_ERROR = 1900012,
+    OS_DUP_ERROR = 1900013
+}
+
+enum TypeCode : i32{
+    INT8_ARRAY = 0,
+    UINT8_ARRAY = 1,
+    INT16_ARRAY = 2,
+    UINT16_ARRAY = 3,
+    INT32_ARRAY = 4,
+    UINT32_ARRAY = 5,
+    FLOAT32_ARRAY = 6,
+    FLOAT64_ARRAY = 7,
+    BIGINT64_ARRAY = 8,
+    BIGUINT64_ARRAY = 9,
+}
+
 @class
 interface Ashmem {
     MapReadWriteAshmem(): void;
     GetNativePtr(): i64;
     GetAshmemSize(): i32;
+    SetProtectionType(protectionType: i32): void;
+    MapReadonlyAshmem(): void;
+    MapTypedAshmem(mapType: i32): void;
+    CloseAshmem(): void;
+    UnmapAshmem(): void;
+    ReadDataFromAshmem(size: i32, offset: i32): @arraybuffer Array<u8>;
+    WriteDataToAshmem(buf: @arraybuffer Array<u8>, size: i32, offset: i32): void;
 }
 
 @static("Ashmem")
@@ -60,6 +97,18 @@ function CreateAshmem_WithTwoParam(name: String, size: i32): Ashmem;
 @static("Ashmem")
 @overload("create")
 function CreateAshmem_WithOneParam(ashmem: Ashmem): Ashmem;
+
+@static("Ashmem")
+@get("PROT_EXEC") function GetProtExec(): i32;
+
+@static("Ashmem")
+@get("PROT_NONE") function GetProtNone(): i32;
+
+@static("Ashmem")
+@get("PROT_READ") function GetProtRead(): i32;
+
+@static("Ashmem")
+@get("PROT_WRITE") function GetProtWrite(): i32;
 
 
 @class
@@ -91,16 +140,23 @@ interface MessageSequence {
 
     WriteInt(val: i32): void;
     WriteLong(val: i64): void;
+    WriteDouble(val: f64): void;
     WriteBoolean(val: bool): void;
+    WriteChar(val: i32): void;
     WriteString(val: String): void;
     WriteParcelable(val: Parcelable): void;
 
     WriteByteArray(byteArray: Array<i8>): void;
+    WriteShortArray(shortArray: Array<i32>): void;
     WriteIntArray(intArray: Array<i32>): void;
+    WriteLongArray(longArray: Array<i64>): void;
+    WriteFloatArray(floatArray: Array<f64>): void;
     WriteDoubleArray(doubleArray: Array<f64>): void;
     WriteBooleanArray(booleanArray: Array<bool>): void;
+    WriteCharArray(charArray: Array<i32>): void;
     WriteStringArray(stringArray: Array<String>): void;
     WriteParcelableArray(parcelableArray: Array<Parcelable>): void;
+    WriteRemoteObjectArray(objectArray: Array<IRemoteObjectUnion>): void;
 
     ReadInt(): i32;
     ReadLong(): i64;
@@ -152,6 +208,81 @@ interface MessageSequence {
         }
     """)
 
+    @overload("readRemoteObjectArray")
+    ReadRemoteObjectArrayImpl(): Array<IRemoteObjectUnion>;
+    @!sts_inject_into_class("""
+        readRemoteObjectArray(dataIn: Array<IRemoteObjectUnion>): void {
+            let res: Array<IRemoteObjectUnion> = this.readRemoteObjectArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readCharArray")
+    ReadCharArrayImpl(): Array<i32>;
+    @!sts_inject_into_class("""
+        readCharArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readCharArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readFloatArray")
+    ReadFloatArrayImpl(): Array<f64>;
+    @!sts_inject_into_class("""
+        readFloatArray(dataIn: Array<double>): void {
+            let res: Array<double> = this.readFloatArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readLongArray")
+    ReadLongArrayImpl(): Array<i64>;
+    @!sts_inject_into_class("""
+        readLongArray(dataIn: Array<long>): void {
+            let res: Array<long> = this.readLongArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readShortArray")
+    ReadShortArrayImpl(): Array<i32>;
+    @!sts_inject_into_class("""
+        readShortArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readShortArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    @overload("readByteArray")
+    ReadByteArrayImpl(): Array<i32>;
+    @!sts_inject_into_class("""
+        readByteArray(dataIn: Array<int>): void {
+            let res: Array<int> = this.readByteArray();
+            for (let i = 0; i < res.length; i++) {
+                dataIn[i] = res[i];
+            }
+        }
+    """)
+
+    ReadChar(): i32;
+    ReadFloat(): f64;
+    ReadDouble(): f64;
+    ReadShort(): i32;
+    ReadByte(): i32;
+    RewindRead(pos: i32): void;
+    RewindWrite(pos: i32): void;
+    SetSize(size: i32): void;
+
     ReadParcelableArray(parcelableArray: Array<Parcelable>): void;
 
     WriteFileDescriptor(fd: i32): void;
@@ -165,6 +296,30 @@ interface MessageSequence {
 
     GetNativePtr(): i64;
     AddJsObjWeakRef(obj: MessageSequence): void;
+
+    WriteArrayBuffer(buf: @arraybuffer Array<u8>, typeCode: TypeCode): void;
+
+    ReadArrayBuffer(typeCode: TypeCode): @arraybuffer Array<u8>;
+
+    GetSize(): i32;
+
+    GetWritableBytes(): i32;
+
+    GetReadableBytes(): i32;
+
+    GetReadPosition(): i32;
+
+    GetWritePosition(): i32;
+
+    ContainFileDescriptors(): bool;
+
+    GetRawDataCapacity(): i32;
+
+    WriteByte(val: i32): void;
+
+    WriteShort(val: i32): void;
+
+    WriteFloat(val: f64): void;
 }
 
 @static("MessageSequence")
@@ -180,6 +335,9 @@ function CreateMessageSequence(): MessageSequence;
 @static("MessageSequence")
 function CloseFileDescriptor(fd: i32): void;
 
+@static("MessageSequence")
+function DupFileDescriptor(fd: i32): i32;
+
 function unwrapRemoteObject(obj: IRemoteObjectUnion): i64;
 
 function wrapRemoteObject(nativePtr: i64): IRemoteObjectUnion;
@@ -191,7 +349,7 @@ interface IRemoteObject {
     @gen_async("sendMessageRequest")
     SendMessageRequestSync(code: i32, data: MessageSequence, reply: MessageSequence, options: MessageOption):
         RequestResult;
-    
+
     RegisterDeathRecipient(recipient: DeathRecipient, flags: i32): void;
     UnregisterDeathRecipient(recipient: DeathRecipient, flags: i32): void;
 
@@ -232,6 +390,21 @@ interface RemoteProxy : IRemoteObject {
     AddJsObjWeakRef(obj: RemoteProxy): void;
 }
 
+@static("RemoteProxy")
+@get("PING_TRANSACTION") function GetPingTransaction(): i32;
+
+@static("RemoteProxy")
+@get("DUMP_TRANSACTION") function GetDumpTransaction(): i32;
+
+@static("RemoteProxy")
+@get("INTERFACE_TRANSACTION") function GetInterfaceTransaction(): i32;
+
+@static("RemoteProxy")
+@get("MIN_TRANSACTION_ID") function GetMinTransactionId(): i32;
+
+@static("RemoteProxy")
+@get("MAX_TRANSACTION_ID") function GetMaxTransactionId(): i32;
+
 @ctor("RemoteProxy")
 function CreateRemoteProxyFromNative(nativePtr: i64): RemoteProxy;
 
@@ -240,6 +413,10 @@ interface MessageOption {
     IsAsync(): bool;
     SetAsync(isAsync: bool): void;
     GetNativePtr(): i64;
+    GetFlags(): i32;
+    SetFlags(flags: i32): void;
+    GetWaitTime(): i32;
+    SetWaitTime(waitTime: i32): void;
 }
 
 @ctor("MessageOption")
@@ -251,6 +428,17 @@ function CreateMessageOption_WithOneParam(isAsync: bool): MessageOption;
 @ctor("MessageOption")
 function CreateMessageOption(): MessageOption;
 
+@static("MessageOption") 
+@get("TF_SYNC") function GetTfSync(): i32;
+
+@static("MessageOption")
+@get("TF_ASYNC") function GetTfAsync(): i32;
+
+@static("MessageOption")
+@get("TF_ACCEPT_FDS") function GetTfAcceptFds(): i32;
+
+@static("MessageOption")
+@get("TF_WAIT_TIME") function GetTfWaitTime(): i32;
 
 @class
 interface IPCSkeleton {
@@ -267,3 +455,21 @@ function GetCallingTokenId(): i64;
 
 @static("IPCSkeleton")
 function GetContextObject(): IRemoteObjectUnion;
+
+@static("IPCSkeleton")
+function ResetCallingIdentity(): String;
+
+@static("IPCSkeleton")
+function RestoreCallingIdentity(identity: String): void;
+
+@static("IPCSkeleton")
+function FlushCmdBuffer(object: IRemoteObjectUnion): void;
+
+@static("IPCSkeleton")
+function GetCallingDeviceID(): String;
+
+@static("IPCSkeleton")
+function GetLocalDeviceID(): String;
+
+@static("IPCSkeleton")
+function IsLocalCalling(): bool;
