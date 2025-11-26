@@ -63,24 +63,24 @@ class IpcCApiParcelUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() override;
+    void TearDown() override;
 
     uint32_t CalcSpendTime(TimePoint &start, TimePoint &end);
-    void ReadWriteString(const char *str, uint32_t &writeDuration, uint32_t &readDuration);
-    void ReadWriteStringCpp(const char *str, uint32_t &writeDuration, uint32_t &readDuration);
+    void ReadWriteString(const char *str, uint32_t *writeDuration, uint32_t *readDuration);
+    void ReadWriteStringCpp(const char *str, uint32_t *writeDuration, uint32_t *readDuration);
     void ReadWriteStringPerformance(PerformanceResult &writeResult, PerformanceResult &readResult,
         PerformanceResult &writeCppResult, PerformanceResult &readCppResult);
-    void ReadWriteBuffer(const uint8_t *buf, int32_t bufLength, uint32_t &writeDuration, uint32_t &readDuration);
-    void ReadWriteBufferCpp(const uint8_t *buf, int32_t bufLength, uint32_t &writeDuration, uint32_t &readDuration);
+    void ReadWriteBuffer(const uint8_t *buf, int32_t bufLength, uint32_t *writeDuration, uint32_t *readDuration);
+    void ReadWriteBufferCpp(const uint8_t *buf, int32_t bufLength, uint32_t *writeDuration, uint32_t *readDuration);
     void ReadWriteBufferPerformance(PerformanceResult &writeResult, PerformanceResult &readResult,
         PerformanceResult &writeCppResult, PerformanceResult &readCppResult);
-    void ReadWriteInterfaceToken(const char *token, uint32_t &writeDuration, uint32_t &readDuration);
-    void ReadWriteInterfaceTokenCpp(const char *token, uint32_t &writeDuration, uint32_t &readDuration);
+    void ReadWriteInterfaceToken(const char *token, uint32_t *writeDuration, uint32_t *readDuration);
+    void ReadWriteInterfaceTokenCpp(const char *token, uint32_t *writeDuration, uint32_t *readDuration);
     void ReadWriteInterfaceTokenPerformance(PerformanceResult &writeResult, PerformanceResult &readResult,
         PerformanceResult &writeCppResult, PerformanceResult &readCppResult);
 
-    void PerformanceStatistic(uint32_t writeAvg, uint32_t readAvg, uint32_t writeCppAvg, uint32_t readCppAvg);
+    void PerformanceStatistic(uint32_t writeAvg, uint32_t readAvg, uint32_t writeCppAvg, uint32_t readCppAvg) const;
 
     static constexpr HiLogLabel LABEL = { LOG_CORE, LOG_ID_TEST, "IpcCApiUnitTest" };
 };
@@ -102,6 +102,7 @@ static void* LocalMemAllocator(int32_t len)
 
 static void* LocalMemAllocatorErr(int32_t len)
 {
+    (void)len;
     return nullptr;
 }
 
@@ -130,13 +131,13 @@ uint32_t IpcCApiParcelUnitTest::CalcSpendTime(TimePoint& start, TimePoint& end)
 }
 
 void IpcCApiParcelUnitTest::PerformanceStatistic(uint32_t writeAvg, uint32_t readAvg,
-    uint32_t writeCppAvg, uint32_t readCppAvg)
+    uint32_t writeCppAvg, uint32_t readCppAvg) const
 {
     std::cout << "OHIPCParcel writeAvg:" << writeAvg << "ns, readAvg:" << readAvg << "ns" << std::endl;
     std::cout << "MessageParcel writeAvg:" << writeCppAvg << "ns, readAvg:" << readCppAvg << "ns" << std::endl;
 }
 
-void IpcCApiParcelUnitTest::ReadWriteString(const char *str, uint32_t &writeDuration, uint32_t &readDuration)
+void IpcCApiParcelUnitTest::ReadWriteString(const char *str, uint32_t *writeDuration, uint32_t *readDuration)
 {
     auto dataCParcel = OH_IPCParcel_Create();
     int ret = OH_IPC_SUCCESS;
@@ -144,7 +145,7 @@ void IpcCApiParcelUnitTest::ReadWriteString(const char *str, uint32_t &writeDura
     ret = OH_IPCParcel_WriteString(dataCParcel, str);
     auto endPoint = std::chrono::steady_clock::now();
     ASSERT_EQ(ret, OH_IPC_SUCCESS);
-    writeDuration = CalcSpendTime(startPoint, endPoint);
+    *writeDuration = CalcSpendTime(startPoint, endPoint);
 
     startPoint = std::chrono::steady_clock::now();
     const char *readStr = OH_IPCParcel_ReadString(dataCParcel);
@@ -152,23 +153,23 @@ void IpcCApiParcelUnitTest::ReadWriteString(const char *str, uint32_t &writeDura
     ASSERT_NE(readStr, nullptr);
     EXPECT_EQ(strlen(readStr), strlen(str));
     OH_IPCParcel_Destroy(dataCParcel);
-    readDuration = CalcSpendTime(startPoint, endPoint);
+    *readDuration = CalcSpendTime(startPoint, endPoint);
 }
 
-void IpcCApiParcelUnitTest::ReadWriteStringCpp(const char *str, uint32_t &writeDuration, uint32_t &readDuration)
+void IpcCApiParcelUnitTest::ReadWriteStringCpp(const char *str, uint32_t *writeDuration, uint32_t *readDuration)
 {
     MessageParcel dataCpp;
     auto startPoint = std::chrono::steady_clock::now();
     dataCpp.WriteCString(str);
     auto endPoint = std::chrono::steady_clock::now();
-    writeDuration = CalcSpendTime(startPoint, endPoint);
+    *writeDuration = CalcSpendTime(startPoint, endPoint);
 
     startPoint = std::chrono::steady_clock::now();
     const char *readStr = dataCpp.ReadCString();
     endPoint = std::chrono::steady_clock::now();
     ASSERT_NE(readStr, nullptr);
     EXPECT_EQ(strlen(readStr), strlen(str));
-    readDuration = CalcSpendTime(startPoint, endPoint);
+    *readDuration = CalcSpendTime(startPoint, endPoint);
 }
 
 void IpcCApiParcelUnitTest::ReadWriteStringPerformance(PerformanceResult &writeResult,
@@ -179,7 +180,7 @@ void IpcCApiParcelUnitTest::ReadWriteStringPerformance(PerformanceResult &writeR
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         uint32_t writeDuration = 0;
         uint32_t readDuration = 0;
-        ReadWriteString(str, writeDuration, readDuration);
+        ReadWriteString(str, &writeDuration, &readDuration);
         writeResult.min = (writeDuration > writeResult.min) ? writeResult.min : writeDuration;
         writeResult.max = (writeDuration < writeResult.max) ? writeResult.max : writeDuration;
         writeResult.average += writeDuration;
@@ -189,7 +190,7 @@ void IpcCApiParcelUnitTest::ReadWriteStringPerformance(PerformanceResult &writeR
 
         uint32_t writeCppDuration = 0;
         uint32_t readCppDuration = 0;
-        ReadWriteStringCpp(str, writeCppDuration, readCppDuration);
+        ReadWriteStringCpp(str, &writeCppDuration, &readCppDuration);
         writeCppResult.min = (writeCppDuration > writeCppResult.min) ? writeCppResult.min : writeCppDuration;
         writeCppResult.max = (writeCppDuration < writeCppResult.max) ? writeCppResult.max : writeCppDuration;
         writeCppResult.average += writeCppDuration;
@@ -204,7 +205,7 @@ void IpcCApiParcelUnitTest::ReadWriteStringPerformance(PerformanceResult &writeR
 }
 
 void IpcCApiParcelUnitTest::ReadWriteBuffer(const uint8_t *buf, int32_t bufLength,
-    uint32_t &writeDuration, uint32_t &readDuration)
+    uint32_t *writeDuration, uint32_t *readDuration)
 {
     auto dataCParcel = OH_IPCParcel_Create();
     int ret = OH_IPC_SUCCESS;
@@ -212,7 +213,7 @@ void IpcCApiParcelUnitTest::ReadWriteBuffer(const uint8_t *buf, int32_t bufLengt
     ret = OH_IPCParcel_WriteBuffer(dataCParcel, buf, bufLength);
     auto endPoint = std::chrono::steady_clock::now();
     ASSERT_EQ(ret, OH_IPC_SUCCESS);
-    writeDuration = CalcSpendTime(startPoint, endPoint);
+    *writeDuration = CalcSpendTime(startPoint, endPoint);
 
     startPoint = std::chrono::steady_clock::now();
     const uint8_t *readBuffer = OH_IPCParcel_ReadBuffer(dataCParcel, bufLength);
@@ -220,24 +221,24 @@ void IpcCApiParcelUnitTest::ReadWriteBuffer(const uint8_t *buf, int32_t bufLengt
     ASSERT_NE(readBuffer, nullptr);
     EXPECT_EQ(memcmp(readBuffer, buf, bufLength), 0);
     OH_IPCParcel_Destroy(dataCParcel);
-    readDuration = CalcSpendTime(startPoint, endPoint);
+    *readDuration = CalcSpendTime(startPoint, endPoint);
 }
 
 void IpcCApiParcelUnitTest::ReadWriteBufferCpp(const uint8_t *buf, int32_t bufLength,
-    uint32_t &writeDuration, uint32_t &readDuration)
+    uint32_t *writeDuration, uint32_t *readDuration)
 {
     MessageParcel dataCpp;
     auto startPoint = std::chrono::steady_clock::now();
     dataCpp.WriteBuffer(buf, TEST_PARCEL_SIZE);
     auto endPoint = std::chrono::steady_clock::now();
-    writeDuration = CalcSpendTime(startPoint, endPoint);
+    *writeDuration = CalcSpendTime(startPoint, endPoint);
 
     startPoint = std::chrono::steady_clock::now();
     const uint8_t *readBuf = dataCpp.ReadBuffer(TEST_PARCEL_SIZE);
     endPoint = std::chrono::steady_clock::now();
     ASSERT_NE(readBuf, nullptr);
     EXPECT_EQ(memcmp(readBuf, buf, bufLength), 0);
-    readDuration = CalcSpendTime(startPoint, endPoint);
+    *readDuration = CalcSpendTime(startPoint, endPoint);
 }
 
 void IpcCApiParcelUnitTest::ReadWriteBufferPerformance(PerformanceResult &writeResult,
@@ -248,7 +249,7 @@ void IpcCApiParcelUnitTest::ReadWriteBufferPerformance(PerformanceResult &writeR
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         uint32_t writeDuration = 0;
         uint32_t readDuration = 0;
-        ReadWriteBuffer(buf, TEST_PARCEL_SIZE, writeDuration, readDuration);
+        ReadWriteBuffer(buf, TEST_PARCEL_SIZE, &writeDuration, &readDuration);
         writeResult.min = (writeDuration > writeResult.min) ? writeResult.min : writeDuration;
         writeResult.max = (writeDuration < writeResult.max) ? writeResult.max : writeDuration;
         writeResult.average += writeDuration;
@@ -258,7 +259,7 @@ void IpcCApiParcelUnitTest::ReadWriteBufferPerformance(PerformanceResult &writeR
 
         uint32_t writeCppDuration = 0;
         uint32_t readCppDuration = 0;
-        ReadWriteBufferCpp(buf, TEST_PARCEL_SIZE, writeCppDuration, readCppDuration);
+        ReadWriteBufferCpp(buf, TEST_PARCEL_SIZE, &writeCppDuration, &readCppDuration);
         writeCppResult.min = (writeCppDuration > writeCppResult.min) ? writeCppResult.min : writeCppDuration;
         writeCppResult.max = (writeCppDuration < writeCppResult.max) ? writeCppResult.max : writeCppDuration;
         writeCppResult.average += writeCppDuration;
@@ -273,7 +274,7 @@ void IpcCApiParcelUnitTest::ReadWriteBufferPerformance(PerformanceResult &writeR
 }
 
 void IpcCApiParcelUnitTest::ReadWriteInterfaceToken(const char *token,
-    uint32_t &writeDuration, uint32_t &readDuration)
+    uint32_t *writeDuration, uint32_t *readDuration)
 {
     auto dataCParcel = OH_IPCParcel_Create();
     int ret = OH_IPC_SUCCESS;
@@ -281,7 +282,7 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceToken(const char *token,
     ret = OH_IPCParcel_WriteInterfaceToken(dataCParcel, token);
     auto endPoint = std::chrono::steady_clock::now();
     ASSERT_EQ(ret, OH_IPC_SUCCESS);
-    writeDuration = CalcSpendTime(startPoint, endPoint);
+    *writeDuration = CalcSpendTime(startPoint, endPoint);
 
     int readLen = 0;
     char *readInterfaceToken = nullptr;
@@ -292,18 +293,18 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceToken(const char *token,
     EXPECT_EQ(readLen, strlen(token) + 1);
     free(readInterfaceToken);
     OH_IPCParcel_Destroy(dataCParcel);
-    readDuration = CalcSpendTime(startPoint, endPoint);
+    *readDuration = CalcSpendTime(startPoint, endPoint);
 }
 
 void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenCpp(const char *token,
-    uint32_t &writeDuration, uint32_t &readDuration)
+    uint32_t *writeDuration, uint32_t *readDuration)
 {
     MessageParcel dataCpp;
     auto startPoint = std::chrono::steady_clock::now();
     auto u16Token = OHOS::Str8ToStr16(token);
     dataCpp.WriteInterfaceToken(u16Token.c_str());
     auto endPoint = std::chrono::steady_clock::now();
-    writeDuration = CalcSpendTime(startPoint, endPoint);
+    *writeDuration = CalcSpendTime(startPoint, endPoint);
 
     startPoint = std::chrono::steady_clock::now();
     auto u16TokenRead = dataCpp.ReadInterfaceToken();
@@ -311,7 +312,7 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenCpp(const char *token,
     endPoint = std::chrono::steady_clock::now();
     EXPECT_EQ(strTokenRead.length(), strlen(token));
     EXPECT_EQ(strTokenRead.compare(token), 0);
-    readDuration = CalcSpendTime(startPoint, endPoint);
+    *readDuration = CalcSpendTime(startPoint, endPoint);
 }
 
 void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenPerformance(PerformanceResult &writeResult,
@@ -322,7 +323,7 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenPerformance(PerformanceResult
     for (int i = 0; i < TEST_PERFORMANCE_OPERATOR_COUNT; ++i) {
         uint32_t writeDuration = 0;
         uint32_t readDuration = 0;
-        ReadWriteInterfaceToken(token, writeDuration, readDuration);
+        ReadWriteInterfaceToken(token, &writeDuration, &readDuration);
         writeResult.min = (writeDuration > writeResult.min) ? writeResult.min : writeDuration;
         writeResult.max = (writeDuration < writeResult.max) ? writeResult.max : writeDuration;
         writeResult.average += writeDuration;
@@ -332,7 +333,7 @@ void IpcCApiParcelUnitTest::ReadWriteInterfaceTokenPerformance(PerformanceResult
 
         uint32_t writeCppDuration = 0;
         uint32_t readCppDuration = 0;
-        ReadWriteInterfaceTokenCpp(token, writeCppDuration, readCppDuration);
+        ReadWriteInterfaceTokenCpp(token, &writeCppDuration, &readCppDuration);
         writeCppResult.min = (writeCppDuration > writeCppResult.min) ? writeCppResult.min : writeCppDuration;
         writeCppResult.max = (writeCppDuration < writeCppResult.max) ? writeCppResult.max : writeCppDuration;
         writeCppResult.average += writeCppDuration;

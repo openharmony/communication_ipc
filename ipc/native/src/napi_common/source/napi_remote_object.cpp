@@ -409,6 +409,7 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
 {
+    (void)hint;
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
     if (holder == nullptr) {
         ZLOGW(LOG_LABEL, "RemoteObjectHolderFinalizeCb null holder");
@@ -444,6 +445,7 @@ static void IncreaseJsObjectRef(napi_env env, napi_ref ref)
 
 static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
 {
+    (void)hint;
     NAPIRemoteObjectHolder *holder = reinterpret_cast<NAPIRemoteObjectHolder *>(data);
     NAPI_ASSERT_RETURN_VOID(env, holder != nullptr, "holder is nullptr");
 
