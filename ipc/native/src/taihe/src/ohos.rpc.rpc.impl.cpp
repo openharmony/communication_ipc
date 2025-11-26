@@ -1388,6 +1388,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
     uint32_t arrayLength = nativeParcel_->ReadUint32();
+
     if (arrayLength <= 0) {
         ZLOGE(LOG_LABEL, "arrayLength:%{public}d <= 0", arrayLength);
         return ::taihe::array<int32_t>(nullptr, 0);
@@ -1407,6 +1408,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<double>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
+
     if (arrayLength <= 0) {
         ZLOGE(LOG_LABEL, "arrayLength:%{public}d <= 0", arrayLength);
         return ::taihe::array<double>(nullptr, 0);
@@ -1425,6 +1427,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int64_t>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
+
     if (arrayLength <= 0) {
         ZLOGE(LOG_LABEL, "arrayLength:%{public}d <= 0", arrayLength);
         return ::taihe::array<int64_t>(nullptr, 0);
@@ -1443,6 +1446,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
     int32_t arrayLength = nativeParcel_->ReadInt32();
+
     if (arrayLength <= 0) {
         ZLOGE(LOG_LABEL, "arrayLength:%{public}d <= 0", arrayLength);
         return ::taihe::array<int32_t>(nullptr, 0);
