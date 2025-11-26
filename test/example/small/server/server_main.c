@@ -89,6 +89,8 @@ void __attribute__((weak)) HOS_SystemInit(void)
 
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     RPC_LOG_INFO("[ipc_test_server] server enter");
     HOS_SystemInit();
 
