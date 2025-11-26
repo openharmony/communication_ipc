@@ -1231,6 +1231,9 @@ typedef struct {
     void (*OnBytesSent)(int32_t socket, uint32_t dataSeq, int32_t errCode);
     bool (*OnNegotiate2)(int32_t socket, PeerSocketInfo info, SocketAccessInfo *peerInfo, SocketAccessInfo *localInfo);
     void (*OnMessageSent)(int32_t socket, uint16_t dataSeq, int32_t errCode);
+    void (*OnEvent)(int32_t socket, MultiPathEventType eventType, const void *eventData, uint32_t dataLen);
+    void (*OnServiceBind)(int32_t socket, ServiceSocketInfo info);
+    bool (*OnServiceNegotiate)(int32_t socket, ServiceSocketInfo info);
 } ISocketListener;
 
 #ifdef __cplusplus
