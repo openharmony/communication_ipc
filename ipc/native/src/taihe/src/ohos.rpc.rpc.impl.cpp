@@ -1934,7 +1934,7 @@ int32_t MessageSequenceImpl::GetWritePosition()
 
 bool MessageSequenceImpl::ContainFileDescriptors()
 {
-    bool result = nativeParcel_->GetWritePosition();
+    bool result = nativeParcel_->ContainFileDescriptors();
     return result;
 }
 
