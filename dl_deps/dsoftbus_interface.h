@@ -44,32 +44,6 @@ typedef struct {
     char osVersion[OS_VERSION_BUF_LEN];    /**< Os version */
 } NodeBasicInfo;
 
-typedef enum {
-    DATA_TYPE_MESSAGE = 1,         /**< Message */
-    DATA_TYPE_BYTES,               /**< Bytes */
-    DATA_TYPE_FILE,                /**< File */
-    DATA_TYPE_RAW_STREAM,          /**< Raw data stream */
-    DATA_TYPE_VIDEO_STREAM,        /**< Video data stream */
-    DATA_TYPE_AUDIO_STREAM,        /**< Audio data stream */
-    DATA_TYPE_SLICE_STREAM,        /**< Video slice stream */
-    DATA_TYPE_RAW_STREAM_ENCRYPED, /**< Encryped raw stream data */
-    DATA_TYPE_D2D_MESSAGE = 10,    /**< D2D Message */
-    DATA_TYPE_D2D_VOICE = 11,      /**< D2D Voice */
-    DATA_TYPE_BUTT,
-} TransDataType;
-
-typedef struct {
-    char *peerNetworkId;    /**< Peer network ID, maximum length 64 bytes */
-    int64_t serviceId;      /**< My service id */
-    int64_t peerServiceId;  /**< Peer service id */
-    TransDataType dataType; /**< Data type */
-} ServiceSocketInfo;
-
-typedef enum {
-    EVENT_TYPE_MT_MUTIPATH,
-    EVENT_TYPE_MT_MAX,
-} MultiPathEventType;
-
 int32_t GetAllNodeDeviceInfo(const char *pkgName, NodeBasicInfo **info, int32_t *infoNum);
 int32_t GetLocalNodeDeviceInfo(const char *pkgName, NodeBasicInfo *info);
 void FreeNodeInfo(NodeBasicInfo *info);
@@ -1129,6 +1103,18 @@ typedef struct {
     void *extraData;         /**< Peer extradata, maximum length 5 bytes */
     uint32_t dataLen;        /**< Peer dataLen, maximum 5 */
 } PeerSocketInfo;
+
+typedef struct {
+    char *peerNetworkId;    /**< Peer network ID, maximum length 64 bytes */
+    int64_t serviceId;      /**< My service id */
+    int64_t peerServiceId;  /**< Peer service id */
+    TransDataType dataType; /**< Data type */
+} ServiceSocketInfo;
+
+typedef enum {
+    EVENT_TYPE_MT_MUTIPATH,
+    EVENT_TYPE_MT_MAX,
+} MultiPathEventType;
 
 typedef enum {
     SHUTDOWN_REASON_UNKNOWN,       /**< Shutdown for unknown reason */
