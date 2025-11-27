@@ -65,6 +65,7 @@ private:
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;
     std::map<::ohos::rpc::rpc::DeathRecipient*, OHOS::sptr<DeathRecipientImpl>> deathRecipientMap_;
+    std::mutex deathMutex_;
 };
 
 } // namespace

@@ -257,6 +257,7 @@ RemoteProxyImpl::RemoteProxyImpl(uintptr_t nativePtr, bool isCreateJsRemoteObj)
 
 void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
+    std::lock_guard<std::mutex> lock(deathMutex_);
     OHOS::sptr<DeathRecipientImpl> nativeDeathRecipient = new (std::nothrow) DeathRecipientImpl(recipient);
     if (!cachedObject_->AddDeathRecipient(nativeDeathRecipient)) {
         ZLOGE(LOG_LABEL, "AddDeathRecipient failed");
@@ -268,6 +269,7 @@ void RemoteProxyImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient co
 
 void RemoteProxyImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
+    std::lock_guard<std::mutex> lock(deathMutex_);
     auto it = deathRecipientMap_.find(const_cast<::ohos::rpc::rpc::DeathRecipient *>(&recipient));
     if (it != deathRecipientMap_.end()) {
         if (!cachedObject_->RemoveDeathRecipient(it->second)) {
@@ -1612,7 +1614,12 @@ int32_t MessageSequenceImpl::DupFileDescriptor(int32_t fd)
         ZLOGE(LOG_LABEL, "invalid fd:%{public}d", fd);
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR, -1);
     }
-    return dup(fd);
+    int32_t dupResult = dup(fd);
+    if (dupResult < 0) {
+        ZLOGE(LOG_LABEL, "os dup function failed");
+        return RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_OS_DUP_ERROR, -1);
+    }
+    return dupResult;
 }
 
 void MessageSequenceImpl::CloseFileDescriptor(int32_t fd)
