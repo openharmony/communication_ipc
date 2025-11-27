@@ -1104,6 +1104,18 @@ typedef struct {
     uint32_t dataLen;        /**< Peer dataLen, maximum 5 */
 } PeerSocketInfo;
 
+typedef struct {
+    char *peerNetworkId;    /**< Peer network ID, maximum length 64 bytes */
+    int64_t serviceId;      /**< My service id */
+    int64_t peerServiceId;  /**< Peer service id */
+    TransDataType dataType; /**< Data type */
+} ServiceSocketInfo;
+
+typedef enum {
+    EVENT_TYPE_MT_MUTIPATH,
+    EVENT_TYPE_MT_MAX,
+} MultiPathEventType;
+
 typedef enum {
     SHUTDOWN_REASON_UNKNOWN,       /**< Shutdown for unknown reason */
     SHUTDOWN_REASON_LOCAL,         /**< Shutdown by local process */
@@ -1231,6 +1243,9 @@ typedef struct {
     void (*OnBytesSent)(int32_t socket, uint32_t dataSeq, int32_t errCode);
     bool (*OnNegotiate2)(int32_t socket, PeerSocketInfo info, SocketAccessInfo *peerInfo, SocketAccessInfo *localInfo);
     void (*OnMessageSent)(int32_t socket, uint16_t dataSeq, int32_t errCode);
+    void (*OnEvent)(int32_t socket, MultiPathEventType eventType, const void *eventData, uint32_t dataLen);
+    void (*OnServiceBind)(int32_t socket, ServiceSocketInfo info);
+    bool (*OnServiceNegotiate)(int32_t socket, ServiceSocketInfo info);
 } ISocketListener;
 
 #ifdef __cplusplus
