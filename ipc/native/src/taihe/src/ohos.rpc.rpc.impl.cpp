@@ -1617,7 +1617,7 @@ int32_t MessageSequenceImpl::DupFileDescriptor(int32_t fd)
     int32_t dupResult = dup(fd);
     if (dupResult < 0) {
         ZLOGE(LOG_LABEL, "os dup function failed");
-        return RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_OS_DUP_ERROR, -1);
+        RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_OS_DUP_ERROR, -1);
     }
     return dupResult;
 }
