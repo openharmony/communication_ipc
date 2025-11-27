@@ -44,6 +44,11 @@ typedef struct {
     char osVersion[OS_VERSION_BUF_LEN];    /**< Os version */
 } NodeBasicInfo;
 
+typedef enum {
+    EVENT_TYPE_MT_MUTIPATH,
+    EVENT_TYPE_MT_MAX,
+} MultiPathEventType;
+
 int32_t GetAllNodeDeviceInfo(const char *pkgName, NodeBasicInfo **info, int32_t *infoNum);
 int32_t GetLocalNodeDeviceInfo(const char *pkgName, NodeBasicInfo *info);
 void FreeNodeInfo(NodeBasicInfo *info);
