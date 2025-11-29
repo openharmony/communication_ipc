@@ -39,14 +39,27 @@ public:
 
     void SetAsync(bool isAsync);
 
+    int32_t GetFlags();
+
+    void SetFlags(int32_t flags);
+
+    int32_t GetWaitTime();
+
+    void SetWaitTime(int32_t waitTime);
+
     int64_t GetNativePtr();
 
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageOption obj);
 
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithTwoParam(int32_t syncFlags, int32_t waitTime);
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithOneParam(bool isAsync);
+    static ::ohos::rpc::rpc::MessageOption CreateMessageOption_WithOneIntParam(int32_t syncFlags);
     static ::ohos::rpc::rpc::MessageOption CreateMessageOption();
 
+    static int32_t GetTfSync();
+    static int32_t GetTfAsync();
+    static int32_t GetTfAcceptFds();
+    static int32_t GetTfWaitTime();
 private:
     std::shared_ptr<OHOS::MessageOption> messageOption_ = nullptr;
     std::optional<::ohos::rpc::rpc::weak::MessageOption> jsObjRef_;
