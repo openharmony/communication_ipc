@@ -41,9 +41,9 @@ public:
     ::ohos::rpc::rpc::RequestResult SendMessageRequestSync(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
         ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
 
-    void RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags);
+    void RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags);
 
-    void UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient recipient, int32_t flags);
+    void UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags);
 
     ::taihe::string GetDescriptor();
 
@@ -54,11 +54,18 @@ public:
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteProxy obj);
 
     static ::ohos::rpc::rpc::RemoteProxy CreateRemoteProxyFromNative(uintptr_t nativePtr);
+
+    static int32_t GetPingTransaction();
+    static int32_t GetDumpTransaction();
+    static int32_t GetInterfaceTransaction();
+    static int32_t GetMinTransactionId();
+    static int32_t GetMaxTransactionId();
 private:
     OHOS::sptr<OHOS::IPCObjectProxy> cachedObject_;
     std::optional<::ohos::rpc::rpc::RemoteProxy> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;
     std::map<::ohos::rpc::rpc::DeathRecipient*, OHOS::sptr<DeathRecipientImpl>> deathRecipientMap_;
+    std::mutex deathMutex_;
 };
 
 } // namespace
