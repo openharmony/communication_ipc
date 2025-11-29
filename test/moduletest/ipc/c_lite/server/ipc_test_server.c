@@ -131,6 +131,7 @@ ServerInvokeCmd g_serverInvokeCmdTbl[] = {
 
 static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
+    (void)origin;
     RPC_LOG_INFO("[ipc_test_server]Invoke:RECEIVE FUNCID:%d", funcId);
     int tblSize = sizeof(g_serverInvokeCmdTbl) / sizeof(ServerInvokeCmd);
     for (int i = 0; i < tblSize; i++) {
@@ -160,6 +161,8 @@ void __attribute__((weak)) HOS_SystemInit(void)
 
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     RPC_LOG_INFO("[ipc_test_server] Enter System Ability Server");
     HOS_SystemInit();
 
