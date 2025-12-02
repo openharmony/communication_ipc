@@ -164,13 +164,36 @@ void DeathRecipientImpl::OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject> &obj
 }
 
 // ANIRemoteObject
-ANIRemoteObject::ANIRemoteObject(const std::u16string &descriptor, ::ohos::rpc::rpc::weak::RemoteObject jsObj)
-    : OHOS::IPCObjectStub(descriptor), jsObjRef_(jsObj)
+ANIRemoteObject::ANIRemoteObject(const std::u16string &descriptor, ::ohos::rpc::rpc::weak::RemoteObject jsObj,
+    bool hasCallingInfo) : OHOS::IPCObjectStub(descriptor), jsObjRef_(jsObj), hasCallingInfoAni_(hasCallingInfo)
 {
 }
 
 ANIRemoteObject::~ANIRemoteObject()
 {
+}
+
+::ohos::rpc::rpc::CallingInfo ANIRemoteObject::GetCallingInfo()
+{
+    bool isLocalCalling = IPCSkeleton::IsLocalCalling();
+    if (isLocalCalling) {
+        return {
+            IPCSkeleton::GetCallingPid(),
+            IPCSkeleton::GetCallingUid(),
+            IPCSkeleton::GetCallingTokenID(),
+            "",
+            "",
+            IPCSkeleton::IsLocalCalling()
+        };
+    }
+    return {
+        IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid(),
+        IPCSkeleton::GetCallingTokenID(),
+        IPCSkeleton::GetCallingDeviceID(),
+        IPCSkeleton::GetLocalDeviceID(),
+        IPCSkeleton::IsLocalCalling()
+    };
 }
 
 int ANIRemoteObject::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply,
@@ -182,7 +205,13 @@ int ANIRemoteObject::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, O
     jsReply->AddJsObjWeakRef(jsReply);
     auto jsOption = taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(option.GetFlags(),
         option.GetWaitTime());
-    auto ret = jsObjRef_.value()->OnRemoteMessageRequest(code, jsData, jsReply, jsOption);
+    int ret = OHOS::ERR_UNKNOWN_TRANSACTION;
+    if (hasCallingInfoAni_) {
+        ret = jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, jsData, jsReply, jsOption,
+            GetCallingInfo());
+    } else {
+        ret = jsObjRef_.value()->OnRemoteMessageRequest(code, jsData, jsReply, jsOption);
+    }
     return ret ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
 }
 
@@ -576,15 +605,30 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
     ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options)
 {
-    auto ret = jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+    int ret = OHOS::ERR_UNKNOWN_TRANSACTION;
+    if (hasCallingInfo_) {
+        auto *aniObj = reinterpret_cast<OHOS::ANIRemoteObject *>(GetNativePtr());
+        ret = jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options,
+            aniObj->GetCallingInfo());
+    } else {
+        ret = jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+    }
     int32_t retVal = ret ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
     return { retVal, code, data, reply };
 }
 
-bool RemoteObjectImpl::OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
-    ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options)
+bool RemoteObjectImpl::OnRemoteMessageRequestWithCallingInfo(int32_t code,
+    ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
+    ::ohos::rpc::rpc::weak::MessageOption options, ::ohos::rpc::rpc::CallingInfo const& callingInfo)
 {
-    TH_THROW(std::runtime_error, "OnRemoteMessageRequest should be implemented int ets");
+    TH_THROW(std::runtime_error, "OnRemoteMessageRequestWithCallingInfo should be implemented in ets");
+}
+
+bool RemoteObjectImpl::OnRemoteMessageRequest(int32_t code,
+    ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
+    ::ohos::rpc::rpc::weak::MessageOption options)
+{
+    TH_THROW(std::runtime_error, "OnRemoteMessageRequest should be implemented in ets");
 }
 
 void RemoteObjectImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
@@ -636,23 +680,29 @@ int64_t RemoteObjectImpl::GetNativePtr()
         sptrCachedObject_.GetRefPtr() : wptrCachedObject_.GetRefPtr());
 }
 
-void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj, bool isNative)
+void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj, bool isNative, bool hasCallingInfo)
 {
+    hasCallingInfo_ = hasCallingInfo;
     jsObjRef_ = std::optional<::ohos::rpc::rpc::RemoteObject>(std::in_place, obj);
     std::u16string descStr16(desc_.begin(), desc_.end());
+    ANIRemoteObject *newObject = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value(), hasCallingInfo);
+    if (newObject == nullptr) {
+        ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");
+        return;
+    }
     if (!isNative) {
-        wptrCachedObject_ = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value());
+        wptrCachedObject_ = newObject;
     } else {
-        sptrCachedObject_ = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value());
+        sptrCachedObject_ = newObject;
     }
 }
 
 ::ohos::rpc::rpc::RemoteObject RemoteObjectImpl::CreateRemoteObject(::ohos::rpc::rpc::weak::RemoteObject jsSelf,
-    ::taihe::string_view descriptor)
+    ::taihe::string_view descriptor, ::taihe::callback_view<bool()> hasCallingInfoCB)
 {
     ::ohos::rpc::rpc::RemoteObject obj = taihe::make_holder<RemoteObjectImpl,
         ::ohos::rpc::rpc::RemoteObject>(descriptor);
-    obj->AddJsObjWeakRef(jsSelf, true);
+    obj->AddJsObjWeakRef(jsSelf, true, hasCallingInfoCB());
     return obj;
 }
 
@@ -660,7 +710,7 @@ void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj,
 {
     ::ohos::rpc::rpc::RemoteObject obj = taihe::make_holder<RemoteObjectImpl,
         ::ohos::rpc::rpc::RemoteObject>(nativePtr);
-    obj->AddJsObjWeakRef(obj, false);
+    obj->AddJsObjWeakRef(obj, false, false);
     return obj;
 }
 

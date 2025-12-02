@@ -46,6 +46,15 @@ struct RequestResult {
     reply: MessageSequence;
 }
 
+struct CallingInfo {
+    callerPid: i32;
+    callerUid: i32;
+    callerTokenId: i64;
+    remoteDeviceId: String;
+    localDeviceId: String;
+    isLocalCalling: bool;
+}
+
 enum ErrorCode : i32 {
     CHECK_PARAM_ERROR = 401,
     OS_MMAP_ERROR = 1900001,
@@ -362,12 +371,40 @@ interface RemoteObject : IRemoteObject {
 
     @!sts_inject_into_class("""
     constructor(descriptor: String) {
-        this(this, descriptor);
+        this(this, descriptor, (): boolean => {
+            let cls = Class.of(this);
+            let methodName = "onRemoteMessageRequest";
+            let methods = cls.getInstanceMethods();
+            for (let idx = 0; idx < methods.length; idx++) {
+                let method = methods[idx];
+                let name = method.getName();
+                let num = method.getParametersNum();
+                let owner = method.getOwner();
+                if (name === methodName && num == 5 && owner == cls) {
+                    return true;
+                }
+            }
+            return false;
+        });
     }
     """)
 
-    //@gen_promise("onRemoteMessageRequest")
-    OnRemoteMessageRequest(code: i32, data: MessageSequence, reply: MessageSequence, options: MessageOption): bool;
+    @overload("onRemoteMessageRequest")
+    OnRemoteMessageRequestWithCallingInfo(
+        code: i32,
+        data: MessageSequence,
+        reply: MessageSequence,
+        options: MessageOption,
+        callingInfo: CallingInfo
+    ): bool;
+
+    @overload("onRemoteMessageRequest")
+    OnRemoteMessageRequest(
+        code: i32,
+        data: MessageSequence,
+        reply: MessageSequence,
+        options: MessageOption
+    ): bool;
 
     GetCallingPid(): i32;
     GetCallingUid(): i32;
@@ -375,11 +412,11 @@ interface RemoteObject : IRemoteObject {
     ModifyLocalInterface(localInterface: IRemoteBroker, descriptor: String): void;
 
     GetNativePtr(): i64;
-    AddJsObjWeakRef(obj: RemoteObject, isNative: bool): void;
+    AddJsObjWeakRef(obj: RemoteObject, isNative: bool, hasCallingInfo: bool): void;
 }
 
 @ctor("RemoteObject")
-function CreateRemoteObject(self: RemoteObject, descriptor: String): RemoteObject;
+function CreateRemoteObject(self: RemoteObject, descriptor: String, hasCallingInfoCB: () => bool): RemoteObject;
 
 @ctor("RemoteObject")
 function CreateRemoteObjectFromNative(nativePtr: i64): RemoteObject;
