@@ -182,6 +182,9 @@ ssize_t BufferObject::GetReceiveBufferWriteCursor() const
 
 void BufferObject::SetReceiveBufferWriteCursor(ssize_t newWriteCursor)
 {
+    if (newWriteCursor < 0) {
+        return;
+    }
     recvBufferCursorW_ = newWriteCursor;
 }
 
@@ -202,6 +205,9 @@ ssize_t BufferObject::GetSendBufferWriteCursor() const
 
 void BufferObject::SetSendBufferWriteCursor(ssize_t newWriteCursor)
 {
+    if (newWriteCursor < 0) {
+        return;
+    }
     sendBufferCursorW_ = newWriteCursor;
 }
 
