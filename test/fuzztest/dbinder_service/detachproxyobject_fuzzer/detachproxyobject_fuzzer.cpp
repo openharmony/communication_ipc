@@ -28,6 +28,7 @@ namespace OHOS {
         if ((data == nullptr) || (size == 0)) {
             return;
         }
+        (void)data;
         sptr<DBinderService> dBinderService = DBinderService::GetInstance();
         if (dBinderService == nullptr) {
             return;
