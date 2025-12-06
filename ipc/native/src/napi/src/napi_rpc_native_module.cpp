@@ -25,6 +25,7 @@ EXTERN_C_START
 extern napi_value NAPIIPCSkeletonExport(napi_env env, napi_value exports);
 extern napi_value NAPIRemoteProxyExport(napi_env env, napi_value exports);
 extern napi_value NAPIMessageOptionExport(napi_env env, napi_value exports);
+extern napi_value NAPICallingInfoExport(napi_env env, napi_value exports);
 
 static napi_value RpcExport(napi_env env, napi_value exports)
 {
@@ -36,6 +37,7 @@ static napi_value RpcExport(napi_env env, napi_value exports)
     NAPIRemoteProxyExport(env, exports);
     NAPIMessageOptionExport(env, exports);
     NapiError::NAPIRpcErrorEnumExport(env, exports);
+    NAPICallingInfoExport(env, exports);
     return exports;
 }
 EXTERN_C_END

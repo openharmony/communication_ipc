@@ -34,8 +34,11 @@ namespace OHOS {
 
 class ANIRemoteObject : public OHOS::IPCObjectStub {
 public:
-    ANIRemoteObject(const std::u16string &descriptor, ::ohos::rpc::rpc::weak::RemoteObject jsObj);
+    ANIRemoteObject(const std::u16string &descriptor, ::ohos::rpc::rpc::weak::RemoteObject jsObj,
+        bool hasCallingInfo = false);
     ~ANIRemoteObject();
+
+    ::ohos::rpc::rpc::CallingInfo GetCallingInfo();
 
     int OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply,
         OHOS::MessageOption &option) override;
@@ -46,6 +49,7 @@ public:
 
 private:
     std::optional<::ohos::rpc::rpc::RemoteObject> jsObjRef_;
+    bool hasCallingInfoAni_;
 };
 } // namespace
 

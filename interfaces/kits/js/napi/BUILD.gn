@@ -35,6 +35,7 @@ if (support_jsapi) {
     public_configs = [ ":rpc_public_config" ]
 
     sources = [
+      "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_calling_info.cpp",
       "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_ipc_skeleton.cpp",
       "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_message_option.cpp",
       "$SUBSYSTEM_DIR/ipc/native/src/napi/src/napi_remote_proxy.cpp",
