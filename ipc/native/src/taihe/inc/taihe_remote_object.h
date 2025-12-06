@@ -59,6 +59,10 @@ public:
     
     bool IsObjectDead();
     
+    bool OnRemoteMessageRequestWithCallingInfo(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
+        ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options,
+        ::ohos::rpc::rpc::CallingInfo const& callingInfo);
+
     bool OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
         ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
     
@@ -66,10 +70,10 @@ public:
 
     int64_t GetNativePtr();
     
-    void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj, bool isNative);
+    void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj, bool isNative, bool hasCallingInfo);
     
     static ::ohos::rpc::rpc::RemoteObject CreateRemoteObject(::ohos::rpc::rpc::weak::RemoteObject jsSelf,
-        ::taihe::string_view descriptor);
+        ::taihe::string_view descriptor, ::taihe::callback_view<bool()> hasCallingInfoCB);
     static ::ohos::rpc::rpc::RemoteObject CreateRemoteObjectFromNative(uintptr_t nativePtr);
     
 private:
@@ -79,6 +83,7 @@ private:
     ::taihe::string desc_;
     std::optional<::ohos::rpc::rpc::RemoteObject> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;
+    bool hasCallingInfo_;
 };
 
 } // namespace

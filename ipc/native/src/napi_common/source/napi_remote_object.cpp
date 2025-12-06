@@ -42,11 +42,14 @@ static const size_t ARGV_INDEX_1 = 1;
 static const size_t ARGV_INDEX_2 = 2;
 static const size_t ARGV_INDEX_3 = 3;
 static const size_t ARGV_INDEX_4 = 4;
+static const size_t ARGV_INDEX_6 = 6;
 
 static const size_t ARGV_LENGTH_1 = 1;
 static const size_t ARGV_LENGTH_2 = 2;
 static const size_t ARGV_LENGTH_4 = 4;
 static const size_t ARGV_LENGTH_5 = 5;
+
+static const size_t ARGC_LENGTH_6 = 6;
 
 static const size_t DEVICE_ID_LENGTH = 64;
 
@@ -68,25 +71,44 @@ static bool IsValidParamWithNotify(napi_value value, CallbackParam *param, const
     return true;
 }
 
+enum class OnRemoteRequestType {
+    ON_REMOTE_REQUEST,
+    ON_REMOTE_MESSAGE_REQUEST,
+    ON_REMOTE_MESSAGE_REQUEST_WITH_CALLING_INFO,
+};
+
 static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value thisVar, napi_value &onRemoteRequest,
-    bool &isOnRemoteMessageRequest)
+    OnRemoteRequestType &requestType)
 {
     napi_get_named_property(param->env, thisVar, "onRemoteMessageRequest", &onRemoteRequest);
-    if (!IsValidParamWithNotify(onRemoteRequest, param, "get function onRemoteMessageRequest failed")) {
-        return false;
-    }
-    isOnRemoteMessageRequest = true;
-
-    napi_valuetype type = napi_undefined;
-    napi_typeof(param->env, onRemoteRequest, &type);
-    if (type != napi_function) {
-        napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
-        if (!IsValidParamWithNotify(onRemoteRequest, param, "get function onRemoteRequest failed")) {
-            return false;
+    if (IsValidParamWithNotify(onRemoteRequest, param, "get function onRemoteMessageRequest failed")) {
+        napi_valuetype type = napi_undefined;
+        napi_typeof(param->env, onRemoteRequest, &type);
+        if (type == napi_function) {
+            uint32_t funcParamCount = ARGV_LENGTH_4;
+            napi_value jsFuncParamCount = nullptr;
+            napi_get_named_property(param->env, onRemoteRequest, "length", &jsFuncParamCount);
+            napi_get_value_uint32(param->env, jsFuncParamCount, &funcParamCount);
+            requestType = (funcParamCount == ARGV_LENGTH_4)
+                ? OnRemoteRequestType::ON_REMOTE_MESSAGE_REQUEST
+                : OnRemoteRequestType::ON_REMOTE_MESSAGE_REQUEST_WITH_CALLING_INFO;
+            return true;
         }
-        isOnRemoteMessageRequest = false;
+        ZLOGE(LOG_LABEL, "onRemoteMessageRequest is not function");
     }
-    return true;
+
+    napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
+    if (IsValidParamWithNotify(onRemoteRequest, param, "get function onRemoteRequest failed")) {
+        napi_valuetype type = napi_undefined;
+        napi_typeof(param->env, onRemoteRequest, &type);
+        if (type == napi_function) {
+            requestType = OnRemoteRequestType::ON_REMOTE_REQUEST;
+            return true;
+        }
+        ZLOGE(LOG_LABEL, "onRemoteRequest is not function");
+    }
+    ZLOGE(LOG_LABEL, "failed to get OnRemoteRequest function");
+    return false;
 }
 
 static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_value &jsOption)
@@ -110,10 +132,10 @@ static bool CreateJsOption(CallbackParam *param, const napi_value global, napi_v
     return true;
 }
 
-static bool GetJsParcelConstructor(CallbackParam *param, const napi_value global, bool isOnRemoteMessageRequest,
+static bool GetJsParcelConstructor(CallbackParam *param, const napi_value global, OnRemoteRequestType requestType,
     napi_value &jsParcelConstructor)
 {
-    if (isOnRemoteMessageRequest) {
+    if (requestType != OnRemoteRequestType::ON_REMOTE_REQUEST) {
         napi_get_named_property(param->env, global, "IPCSequenceConstructor_", &jsParcelConstructor);
     } else {
         napi_get_named_property(param->env, global, "IPCParcelConstructor_", &jsParcelConstructor);
@@ -141,6 +163,79 @@ static bool CreateJsParcel(CallbackParam *param, const napi_value jsParcelConstr
     napi_new_instance(param->env, jsParcelConstructor, argc, argv, &jsParcel);
     if (!IsValidParamWithNotify(parcel, param,
         isJsDataParcel ? "create js data parcel failed" : "create js reply parcel failed")) {
+        return false;
+    }
+    return true;
+}
+
+static bool CreateInt32NapiValue(CallbackParam *param, napi_value &value, int32_t num)
+{
+    napi_status status = napi_create_int32(param->env, num, &value);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "failed to create int32 napi value");
+        return false;
+    }
+    return true;
+}
+
+static bool CreateUint32NapiValue(CallbackParam *param, napi_value &value, uint32_t num)
+{
+    napi_status status = napi_create_uint32(param->env, num, &value);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "failed to create uint32 napi value");
+        return false;
+    }
+    return true;
+}
+
+static bool CreateStringNapiValue(CallbackParam *param, napi_value &value, const std::string &str)
+{
+    napi_status status = napi_create_string_utf8(param->env, str.c_str(), str.length(), &value);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "failed to create str napi value");
+        return false;
+    }
+    return true;
+}
+
+static bool CreateBoolNapiValue(CallbackParam *param, napi_value &value, bool boolVal)
+{
+    napi_status status = napi_get_boolean(param->env, boolVal, &value);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "failed to create bool napi value");
+        return false;
+    }
+    return true;
+}
+
+static bool CreateJsCallingInfo(CallbackParam *param, const napi_value global, napi_value &jsCallingInfo)
+{
+    napi_value jsCallingInfoConstructor = nullptr;
+    napi_get_named_property(param->env, global, "IPCCallingInfoConstructor_", &jsCallingInfoConstructor);
+    if (!IsValidParamWithNotify(jsCallingInfoConstructor, param, "jsCallingInfo constructor is null")) {
+        return false;
+    }
+    size_t argc = ARGC_LENGTH_6;
+    
+    napi_value callingPid = nullptr;
+    napi_value callingUid = nullptr;
+    napi_value callingTokenId = nullptr;
+    napi_value callingDeviceId = nullptr;
+    napi_value localDeviceId = nullptr;
+    napi_value isLocalCalling = nullptr;
+    if (!CreateInt32NapiValue(param, callingPid, param->callingInfo.callingPid)
+        || !CreateInt32NapiValue(param, callingUid, param->callingInfo.callingUid)
+        || !CreateUint32NapiValue(param, callingTokenId, param->callingInfo.callingTokenId)
+        || !CreateStringNapiValue(param, callingDeviceId, param->callingInfo.callingDeviceID)
+        || !CreateStringNapiValue(param, localDeviceId, param->callingInfo.localDeviceID)
+        || !CreateBoolNapiValue(param, isLocalCalling, param->callingInfo.isLocalCalling)) {
+        return false;
+    }
+
+    napi_value argv[ARGV_INDEX_6] = { callingPid, callingUid, callingTokenId,
+        callingDeviceId, localDeviceId, isLocalCalling };
+    napi_new_instance(param->env, jsCallingInfoConstructor, argc, argv, &jsCallingInfo);
+    if (!IsValidParamWithNotify(jsCallingInfo, param, "new jsCallingInfo failed")) {
         return false;
     }
     return true;
@@ -310,14 +405,14 @@ static bool CallPromiseThen(CallbackParam *param, napi_value &thenValue, napi_va
 }
 
 static void CallJsOnRemoteRequestCallback(CallbackParam *param, napi_value &onRemoteRequest, napi_value &thisVar,
-    const napi_value *argv)
+    const napi_value *argv, size_t argc)
 {
     NAPI_RemoteObject_saveOldCallingInfoInner(param->env, param->oldCallingInfo);
     NAPI_RemoteObject_setNewCallingInfo(param->env, param->callingInfo);
 
     // start to call onRemoteRequest
     napi_value returnVal;
-    napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, ARGV_LENGTH_4, argv, &returnVal);
+    napi_status ret = napi_call_function(param->env, thisVar, onRemoteRequest, argc, argv, &returnVal);
 
     do {
         if (ret != napi_ok) {
@@ -378,8 +473,8 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
     }
 
     napi_value onRemoteRequest = nullptr;
-    bool isOnRemoteMessageRequest = true;
-    if (!GetJsOnRemoteRequestCallback(param, thisVar, onRemoteRequest, isOnRemoteMessageRequest)) {
+    OnRemoteRequestType requestType = OnRemoteRequestType::ON_REMOTE_REQUEST;
+    if (!GetJsOnRemoteRequestCallback(param, thisVar, onRemoteRequest, requestType)) {
         return;
     }
 
@@ -396,15 +491,19 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
     napi_value jsParcelConstructor = nullptr;
     napi_value jsData = nullptr;
     napi_value jsReply = nullptr;
+    napi_value jsCallingInfo = nullptr;
     if (!CreateJsOption(param, global, jsOption) ||
-        !GetJsParcelConstructor(param, global, isOnRemoteMessageRequest, jsParcelConstructor) ||
+        !GetJsParcelConstructor(param, global, requestType, jsParcelConstructor) ||
         !CreateJsParcel(param, jsParcelConstructor, jsData, true) ||
-        !CreateJsParcel(param, jsParcelConstructor, jsReply, false)) {
+        !CreateJsParcel(param, jsParcelConstructor, jsReply, false) ||
+        !CreateJsCallingInfo(param, global, jsCallingInfo)) {
         return;
     }
 
-    napi_value argv[ARGV_LENGTH_4] = { jsCode, jsData, jsReply, jsOption };
-    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, argv);
+    napi_value argv[ARGV_LENGTH_5] = { jsCode, jsData, jsReply, jsOption, jsCallingInfo };
+    size_t argc = requestType == OnRemoteRequestType::ON_REMOTE_MESSAGE_REQUEST_WITH_CALLING_INFO
+        ? ARGV_LENGTH_5 : ARGV_LENGTH_4;
+    CallJsOnRemoteRequestCallback(param, onRemoteRequest, thisVar, argv, argc);
 }
 
 static void RemoteObjectHolderFinalizeCb(napi_env env, void *data, void *hint)
