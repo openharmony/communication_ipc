@@ -56,6 +56,7 @@ public:
     MOCK_METHOD1(QueryClientSessionObject, std::shared_ptr<DBinderSessionObject>(uint32_t databusHandle));
     MOCK_METHOD2(NewSessionOfBinderProxy, std::shared_ptr<DBinderSessionObject>(uint32_t handle,
         std::shared_ptr<DBinderSessionObject> session));
+    MOCK_METHOD1(QueryServerSessionObjectBySocketId,bool(uint32_t socketId));
     MOCK_METHOD2(QuerySessionOfBinderProxy, std::shared_ptr<DBinderSessionObject>(uint32_t handle,
         std::shared_ptr<DBinderSessionObject> session));
     MOCK_METHOD2(CreateServerSessionObject, std::shared_ptr<DBinderSessionObject>(binder_uintptr_t binder,

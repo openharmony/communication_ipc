@@ -210,6 +210,25 @@ std::shared_ptr<DBinderSessionObject> DBinderDatabusInvoker::QueryServerSessionO
     return sessionOfPeer;
 }
 
+bool DBinderDatabusInvoker::QueryServerSessionObjectBySocketId(uint32_t socketId)
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "IPCProcessSkeleton is nullptr");
+        return false;
+    }
+    std::vector<uint32_t> proxyHandle;
+    if (!current->QueryProxyBySocketId(socketId, proxyHandle)) {
+        ZLOGE(LOG_LABEL, "session id:%{public}d is invalid", socketId);
+        return false;
+    }
+    if (proxyHandle.empty()) {
+        ZLOGE(LOG_LABEL, "proxy handle is empty");
+        return false;
+    }
+    return true;
+}
+
 bool DBinderDatabusInvoker::OnReceiveNewConnection(int32_t socketId, int peerPid, int peerUid,
     std::string peerName, std::string networkId)
 {
