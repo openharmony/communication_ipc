@@ -55,6 +55,7 @@ public:
     bool UpdateClientSession(std::shared_ptr<DBinderSessionObject> sessionObject) override;
     std::shared_ptr<DBinderSessionObject> QueryClientSessionObject(uint32_t databusHandle) override;
     std::shared_ptr<DBinderSessionObject> QueryServerSessionObject(uint32_t handle) override;
+    bool QueryServerSessionObjectBySocketId(uint32_t socketId) override;
     std::shared_ptr<DBinderSessionObject> CreateServerSessionObject(binder_uintptr_t binder,
         std::shared_ptr<DBinderSessionObject> sessionObject) override;
     int FlushCommands(IRemoteObject *object) override;
