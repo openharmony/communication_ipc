@@ -485,6 +485,18 @@ template <class T> bool DBinderBaseInvoker<T>::RemoveDeathRecipient(int32_t hand
     return true;
 }
 
+template <class T> bool DBinderBaseInvoker<T>::CheckMessageVaildity(int32_t socketId, int cmd)
+{
+    if (cmd == BC_TRANSACTION && ((QueryClientSessionObject(socketId) != nullptr))) {
+        return true;
+    }
+    if (cmd == BC_REPLY && QueryServerSessionObjectBySocketId(socketId) == true) {
+        return true;
+    }
+    ZLOGE(LOG_LABEL, "check false");
+    return false;
+}
+
 template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(int32_t socketId, const char *buffer, uint32_t size)
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -497,6 +509,11 @@ template <class T> void DBinderBaseInvoker<T>::StartProcessLoop(int32_t socketId
     if (processInfo == nullptr) {
         ZLOGE(LOG_LABEL, "processInfo is nullptr");
         StartLoopFailSendReply(buffer, size, RPC_BASE_INVOKER_MALLOC_ERR);
+        return;
+    }
+    char *package = processInfo->buffer.get();
+    dbinder_transaction_data *tr = reinterpret_cast<dbinder_transaction_data *> (package);
+    if (!CheckMessageVaildity(socketId, tr->cmd)) {
         return;
     }
     std::thread::id threadId = current->GetIdleDataThread();

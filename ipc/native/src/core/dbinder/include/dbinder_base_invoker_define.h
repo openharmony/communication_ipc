@@ -115,6 +115,8 @@ public:
     void PrintDBinderTransaction(const char *funcName, const char *titleName, const dbinder_transaction_data *tr);
     void PrintBuffer(const char *funcName, const char *titleName, const uint8_t *data, size_t length);
     void PrintDBinderTransData(const dbinder_transaction_data *transData, uint32_t dataLen);
+    virtual bool CheckMessageVaildity(int32_t socketId, int cmd);
+    virtual bool QueryServerSessionObjectBySocketId(uint32_t socketId) = 0;
 
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,
