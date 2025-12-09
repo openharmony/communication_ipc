@@ -130,7 +130,7 @@ ohos_shared_library("ipc_single") {
     "platformsdk",
     "sasdk",
   ]
-  if (is_ohos && is_clang && target_cpu == "arm64") {
+  if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
     ldflags = [ 
       "-Wl,--emit-relocs",
       "-Wl,--no-relax", 
