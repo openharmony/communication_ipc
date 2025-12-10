@@ -22,20 +22,10 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, LOG_ID_IPC_N
 static ani_object CreateMessageSequence(ani_env *env, MessageParcel &msgParcel)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter CreateMessageSequence func");
-    static const char *nsName = "L@ohos/rpc/rpc;";
-    ani_namespace ns;
-    ani_object nullobj{};
-    if (env == nullptr) {
-        return nullobj;
-    }
-    if (ANI_OK != env->FindNamespace(nsName, &ns)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found MessageSequence Namespace: '%{public}s'", nsName);
-        return nullobj;
-    }
-
-    static const char *className = "LMessageSequence;";
+    static const char *className = "@ohos.rpc.rpc.MessageSequence";
     ani_class cls;
-    if (ANI_OK != env->Namespace_FindClass(ns, className, &cls)) {
+    ani_object nullobj {};
+    if (ANI_OK != env->FindClass(className, &cls)) {
         ZLOGE(LOG_LABEL, "[ANI] Not found MessageSequence Class: '%{public}s'", className);
         return nullobj;
     }
@@ -86,20 +76,10 @@ static ani_object CreateMessageOption(ani_env *env, MessageOption &option)
 {
     ZLOGI(LOG_LABEL, "[ANI] enter CreateMessageOption func, flags: %{public}u", option.GetFlags());
 
-    static const char *nsName = "L@ohos/rpc/rpc;";
-    ani_namespace ns;
-    ani_object nullobj{};
-    if (env == nullptr) {
-        return nullobj;
-    }
-    if (ANI_OK != env->FindNamespace(nsName, &ns)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found MessageSequence Namespace: '%{public}s'", nsName);
-        return nullobj;
-    }
-
-    static const char *className = "LMessageOption;";
+    static const char *className = "@ohos.rpc.rpc.MessageOption";
     ani_class cls;
-    if (ANI_OK != env->Namespace_FindClass(ns, className, &cls)) {
+    ani_object nullobj {};
+    if (ANI_OK != env->FindClass(className, &cls)) {
         ZLOGE(LOG_LABEL, "[ANI] Not found MessageOption Class: '%{public}s'", className);
         return nullobj;
     }
@@ -149,19 +129,13 @@ int IPCAniStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParce
 {
     ZLOGI(LOG_LABEL, "[ANI] enter IPCAniStub OnRemoteRequest");
     ani_env *env = env_;
-    static const char *nsName = "L@ohos/rpc/rpc;";
-    ani_namespace ns;
+    static const char *remoteObjClsName = "@ohos.rpc.rpc.RemoteObject";
     if (env == nullptr) {
         return ANI_ERROR;
     }
-    if (ANI_OK != env->FindNamespace(nsName, &ns)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", nsName);
-        return ANI_NOT_FOUND;
-    }
 
-    static const char *remoteObjClsName = "LRemoteObject;";
     ani_class cls;
-    if (ANI_OK != env->Namespace_FindClass(ns, remoteObjClsName, &cls)) {
+    if (ANI_OK != env->FindClass(remoteObjClsName, &cls)) {
         ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", remoteObjClsName);
         return ANI_NOT_FOUND;
     }
