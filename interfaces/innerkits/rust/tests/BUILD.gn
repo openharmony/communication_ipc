@@ -14,50 +14,60 @@
 import("//build/test.gni")
 import("../../../../config.gni")
 
-ohos_rust_unittest("rust_ipc_ut_test") {
-  module_out_path = "ipc/ipc_rust"
-
-  sources = [ "../src/lib.rs" ]
-  deps = [
-    "../../rust:ipc_rust_cxx",
-  ]
-
-  external_deps = [
-    "hilog:hilog_rust",
-    "ylong_runtime:ylong_runtime",
-    "rust_cxx:lib"
-  ]
-
-  subsystem_name = "communication"
-  part_name = "ipc"
+declare_args() {
+  ipc_rust_test_enable = true
+  if (defined(global_parts_info) &&
+  !defined(global_parts_info.thirdparty_rust_cxx)) {
+    ipc_rust_test_enable = false
+  }
 }
 
-ohos_rust_unittest("rust_ipc_sdv_test") {
-  module_out_path = "ipc/ipc_rust"
+if (ipc_rust_test_enable) {
+  ohos_rust_unittest("rust_ipc_ut_test") {
+    module_out_path = "ipc/ipc_rust"
 
-  rustflags = [ "--cfg=gn_test" ]
+    sources = [ "../src/lib.rs" ]
+    deps = [
+      "../../rust:ipc_rust_cxx",
+    ]
 
-  sources = [ "entry.rs" ]
+    external_deps = [
+      "hilog:hilog_rust",
+      "ylong_runtime:ylong_runtime",
+      "rust_cxx:lib"
+    ]
 
-  deps = [
-    "../../rust:ipc_rust",
-    "c:ipc_rust_test_c",
-  ]
+    subsystem_name = "communication"
+    part_name = "ipc"
+  }
 
-  external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
-    "hilog:hilog_rust",
-    "samgr:samgr_rust",
-  ]
+  ohos_rust_unittest("rust_ipc_sdv_test") {
+    module_out_path = "ipc/ipc_rust"
 
-  subsystem_name = "communication"
-  part_name = "ipc"
+    rustflags = [ "--cfg=gn_test" ]
+
+    sources = [ "entry.rs" ]
+
+    deps = [
+      "../../rust:ipc_rust",
+      "c:ipc_rust_test_c",
+    ]
+
+    external_deps = [
+      "access_token:libnativetoken",
+      "access_token:libtoken_setproc",
+      "hilog:hilog_rust",
+      "samgr:samgr_rust",
+    ]
+
+    subsystem_name = "communication"
+    part_name = "ipc"
+  }
 }
 
 group("unittest") {
   testonly = true
-  if (ipc_feature_test_enabled) {
+  if (ipc_feature_test_enabled && ipc_rust_test_enable) {
     deps = [
       ":rust_ipc_sdv_test",
       ":rust_ipc_ut_test",
