@@ -567,7 +567,12 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     auto task = [param]() {
         ZLOGI(LOG_LABEL, "decrease");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         DecreaseJsObjectRef(param->env, param->thisVarRef);
         napi_close_handle_scope(param->env, scope);
         delete param;
@@ -724,7 +729,12 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
         auto task = [param]() {
             napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(param->env, &scope);
+            napi_status status = napi_open_handle_scope(param->env, &scope);
+            if (status != napi_ok || scope == nullptr) {
+                ZLOGE(LOG_LABEL, "Fail to open scope");
+                delete param;
+                return;
+            }
             IncreaseJsObjectRef(param->env, param->thisVarRef);
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -761,7 +771,12 @@ NAPIRemoteObject::~NAPIRemoteObject()
 
             auto task = [param]() {
                 napi_handle_scope scope = nullptr;
-                napi_open_handle_scope(param->env, &scope);
+                napi_status status = napi_open_handle_scope(param->env, &scope);
+                if (status != napi_ok || scope == nullptr) {
+                    ZLOGE(LOG_LABEL, "Fail to open scope");
+                    delete param;
+                    return;
+                }
                 DecreaseJsObjectRef(param->env, param->thisVarRef);
                 napi_close_handle_scope(param->env, scope);
                 delete param;
@@ -1214,7 +1229,12 @@ static void AfterWorkCallback(SendRequestParam *param)
     if (param->callback != nullptr) {
         ZLOGI(LOG_LABEL, "callback started");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         napi_value result = MakeSendRequestResult(param);
         napi_value callbackValue = nullptr;
         napi_get_reference_value(param->env, param->callback, &callbackValue);
@@ -1231,7 +1251,12 @@ static void AfterWorkCallback(SendRequestParam *param)
             std::chrono::steady_clock::now().time_since_epoch()).count());
         ZLOGI(LOG_LABEL, "promise fulfilled time:%{public}" PRIu64, curTime);
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         napi_value result = MakeSendRequestResult(param);
         if (param->errCode == 0) {
             napi_resolve_deferred(param->env, param->deferred, result);
