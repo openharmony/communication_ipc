@@ -170,7 +170,11 @@ napi_value NAPI_MessageSequence::JS_readInterfaceToken(napi_env env, napi_callba
 
     std::u16string parcelString = napiSequence->nativeParcel_->ReadInterfaceToken();
     napi_value napiValue = nullptr;
-    napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &napiValue);
+    napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &napiValue);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "create string failed");
+        return napiValue;
+    }
     return napiValue;
 }
 
@@ -342,7 +346,11 @@ napi_value NAPI_MessageSequence::JS_readString(napi_env env, napi_callback_info 
 
     std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
     napi_value napiValue = nullptr;
-    napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &napiValue);
+    napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &napiValue);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "create string failed");
+        return napiValue;
+    }
     return napiValue;
 }
 
@@ -784,7 +792,11 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
             }
             std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
             napi_value val = nullptr;
-            napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
+            napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
+            if (status != napi_ok) {
+                ZLOGE(LOG_LABEL, "create string failed");
+                return val;
+            }
             napi_set_element(env, argv[ARGV_INDEX_0], i, val);
         }
         napi_value napiValue = nullptr;
@@ -801,7 +813,11 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
         }
         std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
         napi_value val = nullptr;
-        napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
+        napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "create string failed");
+            return val;
+        }
         napi_set_element(env, result, i, val);
     }
     return result;
