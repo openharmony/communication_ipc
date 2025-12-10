@@ -23,7 +23,9 @@
 #include "log_tags.h"
 #include "message_parcel.h"
 #include "string_ex.h"
-#include "rpc_ani_class.h"
+#include <ani.h>
+#include <array>
+#include <cstring>
 
 using namespace OHOS;
 
@@ -146,12 +148,12 @@ static ani_string GetRemoteProxyDescriptor([[maybe_unused]] ani_env *env, [[mayb
     return result_string;
 }
 
-static ani_status BindMessageSequenceClassMethods(ani_env *env, ani_namespace &ns)
+static ani_status BindMessageSequenceClassMethods(ani_env *env, const char *nsName)
 {
-    static const char *msgSeqClsName = "LMessageSequence;";
+    const std::string msgSeqClsName = std::string(nsName).append(".MessageSequence");
     ani_class msgSequenceClass;
-    if (ANI_OK != env->Namespace_FindClass(ns, msgSeqClsName, &msgSequenceClass)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", msgSeqClsName);
+    if (ANI_OK != env->FindClass(msgSeqClsName.c_str(), &msgSequenceClass)) {
+        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", msgSeqClsName.c_str());
         return ANI_NOT_FOUND;
     }
 
@@ -163,19 +165,19 @@ static ani_status BindMessageSequenceClassMethods(ani_env *env, ani_namespace &n
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(msgSequenceClass, methods.data(), methods.size())) {
-        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", msgSeqClsName);
+        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", msgSeqClsName.c_str());
         return ANI_ERROR;
     };
 
     return ANI_OK;
 }
 
-static ani_status BindMessageOptionClassMethods(ani_env *env, ani_namespace &ns)
+static ani_status BindMessageOptionClassMethods(ani_env *env, const char *nsName)
 {
-    static const char *msgOptClsName = "LMessageOption;";
+    const std::string msgOptClsName = std::string(nsName).append(".MessageOption");
     ani_class msgOptionClass;
-    if (ANI_OK != env->Namespace_FindClass(ns, msgOptClsName, &msgOptionClass)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", msgOptClsName);
+    if (ANI_OK != env->FindClass(msgOptClsName.c_str(), &msgOptionClass)) {
+        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", msgOptClsName.c_str());
         return ANI_NOT_FOUND;
     }
 
@@ -184,41 +186,41 @@ static ani_status BindMessageOptionClassMethods(ani_env *env, ani_namespace &ns)
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(msgOptionClass, methods.data(), methods.size())) {
-        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", msgOptClsName);
+        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", msgOptClsName.c_str());
         return ANI_ERROR;
     };
 
     return ANI_OK;
 }
 
-static ani_status BindRemoteObjectClassMethods(ani_env *env, ani_namespace &ns)
+static ani_status BindRemoteObjectClassMethods(ani_env *env, const char *nsName)
 {
-    static const char *remoteObjClsName = "LRemoteObject;";
+    const std::string remoteObjClsName = std::string(nsName).append(".RemoteObject");
     ani_class remoteObjClass;
-    if (ANI_OK != env->Namespace_FindClass(ns, remoteObjClsName, &remoteObjClass)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", remoteObjClsName);
+    if (ANI_OK != env->FindClass(remoteObjClsName.c_str(), &remoteObjClass)) {
+        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", remoteObjClsName.c_str());
         return ANI_NOT_FOUND;
     }
 
     std::array methods = {
         ani_native_function {"getDescriptor", nullptr, reinterpret_cast<void *>(GetRemoteObjectDescriptor)},
-        ani_native_function {"init", "Lstd/core/String;:V", reinterpret_cast<void *>(RemoteObjectInit)},
+        ani_native_function {"init", "C{std.core.String}:", reinterpret_cast<void *>(RemoteObjectInit)},
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(remoteObjClass, methods.data(), methods.size())) {
-        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", remoteObjClsName);
+        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", remoteObjClsName.c_str());
         return ANI_ERROR;
     };
 
     return ANI_OK;
 }
 
-static ani_status BindRemoteProxyClassMethods(ani_env *env, ani_namespace &ns)
+static ani_status BindRemoteProxyClassMethods(ani_env *env, const char *nsName)
 {
-    static const char *remoteProxyClsName = "LRemoteProxy;";
+    const std::string remoteProxyClsName = std::string(nsName).append(".RemoteProxy");
     ani_class remoteProxyClass;
-    if (ANI_OK != env->Namespace_FindClass(ns, remoteProxyClsName, &remoteProxyClass)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", remoteProxyClsName);
+    if (ANI_OK != env->FindClass(remoteProxyClsName.c_str(), &remoteProxyClass)) {
+        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", remoteProxyClsName.c_str());
         return ANI_NOT_FOUND;
     }
 
@@ -227,16 +229,16 @@ static ani_status BindRemoteProxyClassMethods(ani_env *env, ani_namespace &ns)
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(remoteProxyClass, methods.data(), methods.size())) {
-        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", remoteProxyClsName);
+        ZLOGE(LOG_LABEL, "[ANI] Cannot bind native methods to '%{public}s'", remoteProxyClsName.c_str());
         return ANI_ERROR;
     };
 
     return ANI_OK;
 }
 
-static ani_status BindCleanerclassMethods(ani_env *env, ani_namespace &ns)
+static ani_status BindCleanerclassMethods(ani_env *env, const char *nsName)
 {
-    auto cleanerCls = AniTypeFinder(env).FindClass(ns, "LCleaner;");
+    auto cleanerCls = AniTypeFinder(env).FindClass(nsName, "Cleaner");
     return NativePtrCleaner(env).Bind(cleanerCls.value());
 }
 
@@ -248,34 +250,29 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         return ANI_ERROR;
     }
 
-    static const char *nsName = "L@ohos/rpc/rpc;";
-    ani_namespace ns;
-    if (ANI_OK != env->FindNamespace(nsName, &ns)) {
-        ZLOGE(LOG_LABEL, "[ANI] Not found '%{public}s'", nsName);
-        return ANI_NOT_FOUND;
-    }
+    static const char *nsName = "@ohos.rpc.rpc";
 
-    if (ANI_OK != BindMessageSequenceClassMethods(env, ns)) {
+    if (ANI_OK != BindMessageSequenceClassMethods(env, nsName)) {
         ZLOGE(LOG_LABEL, "[ANI] BindMessageSequenceClassMethods failed");
         return ANI_ERROR;
     }
 
-    if (ANI_OK != BindMessageOptionClassMethods(env, ns)) {
+    if (ANI_OK != BindMessageOptionClassMethods(env, nsName)) {
         ZLOGE(LOG_LABEL, "[ANI] BindMessageOptionClassMethods failed");
         return ANI_ERROR;
     }
 
-    if (ANI_OK != BindRemoteObjectClassMethods(env, ns)) {
+    if (ANI_OK != BindRemoteObjectClassMethods(env, nsName)) {
         ZLOGE(LOG_LABEL, "[ANI] BindRemoteObjectClassMethods failed");
         return ANI_ERROR;
     }
 
-    if (ANI_OK != BindRemoteProxyClassMethods(env, ns)) {
+    if (ANI_OK != BindRemoteProxyClassMethods(env, nsName)) {
         ZLOGE(LOG_LABEL, "[ANI] BindRemoteProxyClassMethods failed");
         return ANI_ERROR;
     }
 
-    if (ANI_OK != BindCleanerclassMethods(env, ns)) {
+    if (ANI_OK != BindCleanerclassMethods(env, nsName)) {
         ZLOGE(LOG_LABEL, "[ANI] BindCleanerclassMethods failed");
         return ANI_ERROR;
     }
