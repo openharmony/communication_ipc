@@ -52,6 +52,7 @@ static CallingInfo* GetCallingInfo(napi_env env, napi_callback_info info)
 static napi_value NapiGetCallingPid(napi_env env, napi_callback_info info)
 {
     CallingInfo *callingInfo = GetCallingInfo(env, info);
+    NAPI_ASSERT(env, callingInfo != nullptr, "failed to get native CallingInfo object");
     pid_t callingPid = callingInfo->callingPid;
     napi_value result = nullptr;
     napi_status status = napi_create_int32(env, callingPid, &result);
@@ -62,6 +63,7 @@ static napi_value NapiGetCallingPid(napi_env env, napi_callback_info info)
 static napi_value NapiGetCallingUid(napi_env env, napi_callback_info info)
 {
     CallingInfo *callingInfo = GetCallingInfo(env, info);
+    NAPI_ASSERT(env, callingInfo != nullptr, "failed to get native CallingInfo object");
     pid_t callingUid = callingInfo->callingUid;
     napi_value result = nullptr;
     napi_status status = napi_create_int32(env, callingUid, &result);
@@ -72,6 +74,7 @@ static napi_value NapiGetCallingUid(napi_env env, napi_callback_info info)
 static napi_value NapiGetCallingTokenId(napi_env env, napi_callback_info info)
 {
     CallingInfo *callingInfo = GetCallingInfo(env, info);
+    NAPI_ASSERT(env, callingInfo != nullptr, "failed to get native CallingInfo object");
     uint32_t callingTokenId = callingInfo->callingTokenId;
     napi_value result = nullptr;
     napi_status status = napi_create_uint32(env, callingTokenId, &result);
@@ -82,6 +85,7 @@ static napi_value NapiGetCallingTokenId(napi_env env, napi_callback_info info)
 static napi_value NapiGetCallingDeviceId(napi_env env, napi_callback_info info)
 {
     CallingInfo *callingInfo = GetCallingInfo(env, info);
+    NAPI_ASSERT(env, callingInfo != nullptr, "failed to get native CallingInfo object");
     std::string callingDeviceId = callingInfo->callingDeviceID;
     napi_value result = nullptr;
     napi_status status = napi_create_string_utf8(env, callingDeviceId.c_str(), callingDeviceId.length(), &result);
@@ -92,6 +96,7 @@ static napi_value NapiGetCallingDeviceId(napi_env env, napi_callback_info info)
 static napi_value NapiGetLocalDeviceId(napi_env env, napi_callback_info info)
 {
     CallingInfo *callingInfo = GetCallingInfo(env, info);
+    NAPI_ASSERT(env, callingInfo != nullptr, "failed to get native CallingInfo object");
     std::string localDeviceId = callingInfo->localDeviceID;
     napi_value result = nullptr;
     napi_status status = napi_create_string_utf8(env, localDeviceId.c_str(), localDeviceId.length(), &result);
@@ -102,6 +107,7 @@ static napi_value NapiGetLocalDeviceId(napi_env env, napi_callback_info info)
 static napi_value NapiGetIsLocalCalling(napi_env env, napi_callback_info info)
 {
     CallingInfo *callingInfo = GetCallingInfo(env, info);
+    NAPI_ASSERT(env, callingInfo != nullptr, "failed to get native CallingInfo object");
     bool isLocalCalling = callingInfo->isLocalCalling;
     napi_value result = nullptr;
     napi_status status = napi_get_boolean(env, isLocalCalling, &result);
@@ -111,7 +117,7 @@ static napi_value NapiGetIsLocalCalling(napi_env env, napi_callback_info info)
 
 static bool IsParametersTypeValid(napi_env env, napi_value argv[], size_t argc)
 {
-    if (argc > ArgcLength::ARGC_LENGTH_6) {
+    if (argc != ArgcLength::ARGC_LENGTH_6) {
         ZLOGE(LOG_LABEL, "arguments count mismatch, argc %{public}zu", argc);
         return false;
     }
