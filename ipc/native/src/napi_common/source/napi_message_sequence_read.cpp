@@ -763,6 +763,20 @@ napi_value NAPI_MessageSequence::JS_readCharArray(napi_env env, napi_callback_in
     return result;
 }
 
+bool NAPI_MessageSequence::ReadAndSetStringToArray(napi_env env, NAPI_MessageSequence* napiSequence,
+    napi_value array, uint32_t index)
+{
+    std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
+    napi_value val = nullptr;
+    napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "create string failed");
+        return false;
+    }
+    napi_set_element(env, array, index, val);
+    return true;
+}
+
 napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_info info)
 {
     size_t argc = 0;
@@ -775,7 +789,6 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
         ZLOGE(LOG_LABEL, "napiSequence is null");
         return napiErr.ThrowError(env, errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     }
-
     uint32_t arrayLength = napiSequence->nativeParcel_->ReadUint32();
     if (argc > 0) {
         CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
@@ -785,25 +798,19 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
             ZLOGE(LOG_LABEL, "checkArgsResult is null");
             return checkArgsResult;
         }
-
         for (uint32_t i = 0; i < arrayLength; i++) {
             if (napiSequence->nativeParcel_->GetReadableBytes() <= 0) {
                 break;
             }
-            std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
             napi_value val = nullptr;
-            napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
-            if (status != napi_ok) {
-                ZLOGE(LOG_LABEL, "create string failed");
+            if (!ReadAndSetStringToArray(env, napiSequence, argv[ARGV_INDEX_0], i)) {
                 return val;
             }
-            napi_set_element(env, argv[ARGV_INDEX_0], i, val);
         }
         napi_value napiValue = nullptr;
         NAPI_CALL(env, napi_get_boolean(env, true, &napiValue));
         return napiValue;
     }
-
     CHECK_READ_LENGTH(env, (size_t)arrayLength, BYTE_SIZE_32, napiSequence);
     napi_value result = nullptr;
     napi_create_array(env, &result);
@@ -811,14 +818,10 @@ napi_value NAPI_MessageSequence::JS_readStringArray(napi_env env, napi_callback_
         if (napiSequence->nativeParcel_->GetReadableBytes() <= 0) {
             break;
         }
-        std::u16string parcelString = napiSequence->nativeParcel_->ReadString16();
         napi_value val = nullptr;
-        napi_status status = napi_create_string_utf16(env, parcelString.c_str(), parcelString.length(), &val);
-        if (status != napi_ok) {
-            ZLOGE(LOG_LABEL, "create string failed");
+        if (!ReadAndSetStringToArray(env, napiSequence, result, i)) {
             return val;
         }
-        napi_set_element(env, result, i, val);
     }
     return result;
 }
