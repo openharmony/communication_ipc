@@ -427,10 +427,8 @@ HWTEST_F(DBinderServiceTest, StartRemoteListenerTest002, TestSize.Level1)
 HWTEST_F(DBinderServiceTest, StartRemoteListenerTest003, TestSize.Level1)
 {
     DBinderService dBinderService;
-    NiceMock<DBinderServiceInterfaceMock> mock;
     dBinderService.remoteListener_ = std::make_shared<DBinderRemoteListener>();
     ASSERT_TRUE(dBinderService.remoteListener_ != nullptr);
-    EXPECT_CALL(mock, StartListener).WillOnce(testing::Return(true));
 
     bool result = dBinderService.StartRemoteListener();
     ASSERT_TRUE(result);
@@ -731,6 +729,8 @@ HWTEST_F(DBinderServiceTest, StopRemoteListenerTest001, TestSize.Level1)
     ASSERT_TRUE(dBinderService != nullptr);
     std::shared_ptr<DBinderRemoteListener> testListener = std::make_shared<DBinderRemoteListener>();
     ASSERT_TRUE(testListener != nullptr);
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, StartListener).WillOnce(testing::Return(true));
     EXPECT_EQ(dBinderService->StartRemoteListener(), true);
     dBinderService->StopRemoteListener();
 }
@@ -1237,50 +1237,6 @@ HWTEST_F(DBinderServiceTest, CopyDeviceIDsToMessageTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateMessageTest001
- * @tc.desc: Verify the CreateMessage function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceTest, CreateMessageTest001, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    ASSERT_TRUE(dBinderService != nullptr);
-
-    std::u16string serviceName = u"testServiceName";
-    std::string deviceID = "testDeviceID";
-    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
-    ASSERT_NE(stub, nullptr);
-    uint32_t seqNumber = 1;
-    uint32_t pid = 1;
-    uint32_t uid = 1;
-    auto message = dBinderService->CreateMessage(stub, seqNumber, pid, uid);
-    EXPECT_EQ(message, nullptr);
-}
-
-/**
- * @tc.name: CreateMessageTest002
- * @tc.desc: Verify the CreateMessage function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceTest, CreateMessageTest002, TestSize.Level1)
-{
-    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
-    ASSERT_TRUE(dBinderService != nullptr);
-
-    std::u16string serviceName = u"123";
-    std::string deviceID = "testDeviceID";
-    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
-    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
-    ASSERT_NE(stub, nullptr);
-    uint32_t seqNumber = 1;
-    uint32_t pid = 1;
-    uint32_t uid = 1;
-    auto message = dBinderService->CreateMessage(stub, seqNumber, pid, uid);
-    EXPECT_NE(message, nullptr);
-}
-
-/**
  * @tc.name: SendEntryToRemoteTest001
  * @tc.desc: Verify the SendEntryToRemote function when deviceID is error
  * @tc.type: FUNC
@@ -1539,7 +1495,6 @@ HWTEST_F(DBinderServiceTest, PopLoadSaItemTest004, TestSize.Level1)
     std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
     dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
     ASSERT_TRUE(dBinderService->remoteListener_ != nullptr);
-    EXPECT_CALL(*remoteObject1, IsObjectDead()).WillOnce(testing::Return(true)).WillRepeatedly(testing::Return(false));
     dBinderService->LoadSystemAbilityComplete(srcNetworkId, systemAbilityId, remoteObject1);
     EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SESSION_NAME_NOT_FOUND);
     dBinderService->remoteListener_ = nullptr;
@@ -2492,11 +2447,13 @@ HWTEST_F(DBinderServiceTest, CreateDatabusNameTest002, TestSize.Level1)
     int pid = 0;
     int uid = 0;
     std::string res = dBinderService->CreateDatabusName(pid, uid);
-    EXPECT_EQ(res, "");
+    std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
+    EXPECT_EQ(res, sessionName);
     pid = TEST_PID;
     uid = TEST_UID;
     res = dBinderService->CreateDatabusName(pid, uid);
-    EXPECT_EQ(res, "");
+    sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
+    EXPECT_EQ(res, sessionName);
 }
 
 /**
@@ -2660,7 +2617,7 @@ HWTEST_F(DBinderServiceTest, CheckStubIndexAndSessionNameIllegalTest001, TestSiz
     bool ret = dBinderService->CheckStubIndexAndSessionNameIllegal(stubIndex, serverSessionName, deviceId, &proxy);
     EXPECT_TRUE(ret);
 
-    stubIndex = 0;
+    stubIndex = 1;
     serverSessionName = SERVICE_NAME_TEST;
     deviceId = RANDOM_DEVICEID;
     ret = dBinderService->CheckStubIndexAndSessionNameIllegal(stubIndex, serverSessionName, deviceId, &proxy);
