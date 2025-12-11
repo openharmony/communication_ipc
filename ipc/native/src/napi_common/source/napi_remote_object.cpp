@@ -755,40 +755,42 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", desc_.c_str());
-    if (thisVarRef_ != nullptr && env_ != nullptr) {
-        if ((jsThreadId_ == std::this_thread::get_id()) &&
-            (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
-            DecreaseJsObjectRef(env_, thisVarRef_);
-        } else {
-            OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
-                .env = env_,
-                .thisVarRef = thisVarRef_
-            };
-            if (param == nullptr) {
-                thisVarRef_ = nullptr;
-                NAPI_ASSERT_RETURN_VOID(env_, false, "new OperateJsRefParam failed");
-            }
-
-            auto task = [param]() {
-                napi_handle_scope scope = nullptr;
-                napi_status status = napi_open_handle_scope(param->env, &scope);
-                if (status != napi_ok || scope == nullptr) {
-                    ZLOGE(LOG_LABEL, "Fail to open scope");
-                    delete param;
-                    return;
-                }
-                DecreaseJsObjectRef(param->env, param->thisVarRef);
-                napi_close_handle_scope(param->env, scope);
-                delete param;
-            };
-            napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
-            if (sendRet != napi_ok) {
-                ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
-                delete param;
-            }
-        }
-        thisVarRef_ = nullptr;
+    if (thisVarRef_ == nullptr || env_ == nullptr) {
+        ZLOGD(LOG_LABEL, "thisVarRef_ or env_ is nullptr");
+        return;
     }
+    if ((jsThreadId_ == std::this_thread::get_id()) &&
+        (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
+        DecreaseJsObjectRef(env_, thisVarRef_);
+    } else {
+        OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
+            .env = env_,
+            .thisVarRef = thisVarRef_
+        };
+        if (param == nullptr) {
+            thisVarRef_ = nullptr;
+            NAPI_ASSERT_RETURN_VOID(env_, false, "new OperateJsRefParam failed");
+        }
+
+        auto task = [param]() {
+            napi_handle_scope scope = nullptr;
+            napi_status status = napi_open_handle_scope(param->env, &scope);
+            if (status != napi_ok || scope == nullptr) {
+                ZLOGE(LOG_LABEL, "Fail to open scope");
+                delete param;
+                return;
+            }
+            DecreaseJsObjectRef(param->env, param->thisVarRef);
+            napi_close_handle_scope(param->env, scope);
+            delete param;
+        };
+        napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
+        if (sendRet != napi_ok) {
+            ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
+            delete param;
+        }
+    }
+    thisVarRef_ = nullptr;
 }
 
 bool NAPIRemoteObject::CheckObjectLegality() const
