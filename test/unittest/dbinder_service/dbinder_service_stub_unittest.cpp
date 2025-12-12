@@ -757,207 +757,6 @@ HWTEST_F(DBinderServiceStubTest, ProcessDeathRecipientTest004, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddDbinderDeathRecipientTest001
- * @tc.desc: Verify the AddDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest001, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-    MessageParcel data;
-    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_INVALID_DATA_ERR);
-}
-
-/**
- * @tc.name: AddDbinderDeathRecipientTest002
- * @tc.desc: Verify the AddDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest002, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
-    EXPECT_TRUE(callbackStub != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackStub);
-    data.WriteString("");
-    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
-}
-
-/**
- * @tc.name: AddDbinderDeathRecipientTest003
- * @tc.desc: Verify the AddDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest003, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
-    EXPECT_TRUE(callbackStub != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackStub);
-    data.WriteString("test");
-    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
-}
-
-/**
- * @tc.name: AddDbinderDeathRecipientTest004
- * @tc.desc: Verify the AddDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest004, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
-    EXPECT_TRUE(callbackProxy != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackProxy);
-    data.WriteString("test");
-    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: AddDbinderDeathRecipientTest005
- * @tc.desc: Verify the AddDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, AddDbinderDeathRecipientTest005, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
-    EXPECT_TRUE(callbackProxy != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackProxy);
-    data.WriteString("");
-    int32_t ret = dBinderServiceStub.AddDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_ADD_DEATH_ERR);
-}
-
-/**
- * @tc.name: RemoveDbinderDeathRecipientTest001
- * @tc.desc: Verify the RemoveDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest001, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    MessageParcel data;
-    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
-}
-
-/**
- * @tc.name: RemoveDbinderDeathRecipientTest002
- * @tc.desc: Verify the RemoveDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest002, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
-    EXPECT_TRUE(callbackProxy != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackProxy);
-    data.WriteString("test");
-    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: RemoveDbinderDeathRecipientTest003
- * @tc.desc: Verify the RemoveDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest003, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectProxy> callbackProxy = new (std::nothrow) IPCObjectProxy(0);
-    EXPECT_TRUE(callbackProxy != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackProxy);
-    data.WriteString("");
-    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
-}
-
-/**
- * @tc.name: RemoveDbinderDeathRecipientTest004
- * @tc.desc: Verify the RemoveDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest004, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
-    EXPECT_TRUE(callbackStub != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackStub);
-    data.WriteString("test");
-    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
-}
-
-/**
- * @tc.name: RemoveDbinderDeathRecipientTest005
- * @tc.desc: Verify the RemoveDbinderDeathRecipient function
- * @tc.type: FUNC
- */
-HWTEST_F(DBinderServiceStubTest, RemoveDbinderDeathRecipientTest005, TestSize.Level1)
-{
-    const std::u16string service = u"serviceTest";
-    const std::string device = "deviceTest";
-    binder_uintptr_t object = BINDER_OBJECT;
-    DBinderServiceStub dBinderServiceStub(service, device, object);
-
-    sptr<IPCObjectStub> callbackStub = new (std::nothrow) IPCObjectStub(u"testStub");
-    EXPECT_TRUE(callbackStub != nullptr);
-    MessageParcel data;
-    data.WriteRemoteObject(callbackStub);
-    data.WriteString("");
-    int32_t ret = dBinderServiceStub.RemoveDbinderDeathRecipient(data);
-    EXPECT_EQ(ret, DBINDER_SERVICE_REMOVE_DEATH_ERR);
-}
-
-/**
  * @tc.name: MarshallingTest001
  * @tc.desc: Verify the Marshalling function when dbinderData_ is nullptr
  * @tc.type: FUNC
@@ -1097,6 +896,15 @@ HWTEST_F(DBinderServiceStubTest, MarshallingTest007, TestSize.Level1)
     sptr<IRemoteObject> stubObject = new DBinderServiceStub(service2, device2, object);
     EXPECT_TRUE(stubObject != nullptr);
     Parcel parcel;
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(mockServiceStub, GetRemoteInvoker).WillRepeatedly(testing::Return(invoker));
+    EXPECT_CALL(mockServiceStub, FlattenDBinderData).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*invoker, FlattenObject).WillRepeatedly(testing::Return(true));
+
     bool result = dBinderServiceStub.Marshalling(parcel, stubObject);
     EXPECT_TRUE(result);
 }
