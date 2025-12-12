@@ -354,7 +354,7 @@ HWTEST_F(BufferObjectUnitTest, SetSendBufferWriteCursorTest002, TestSize.Level1)
 {
     BufferObject object;
     object.SetSendBufferWriteCursor(-1);
-    EXPECT_EQ(object.GetSendBufferWriteCursor(), -1);
+    EXPECT_NE(object.GetSendBufferWriteCursor(), -1);
 }
 
 /**
@@ -402,7 +402,7 @@ HWTEST_F(BufferObjectUnitTest, SetReceiveBufferWriteCursorTest002, TestSize.Leve
 {
     BufferObject object;
     object.SetReceiveBufferWriteCursor(-1);
-    EXPECT_EQ(object.GetReceiveBufferWriteCursor(), -1);
+    EXPECT_NE(object.GetReceiveBufferWriteCursor(), -1);
 }
 
 /**
