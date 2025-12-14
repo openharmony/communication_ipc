@@ -50,7 +50,7 @@ static ani_object DoubleToObject(ani_env *env, double value)
 {
     ani_object aniObject = nullptr;
     ani_double doubleValue = static_cast<ani_double>(value);
-    static const char *className = "Lstd/core/Double;";
+    static const char *className = "std.core.Double";
     ani_class aniClass;
     if (env == nullptr) {
         return aniObject;
@@ -60,7 +60,7 @@ static ani_object DoubleToObject(ani_env *env, double value)
         return aniObject;
     }
     ani_method personInfoCtor;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "D:V", &personInfoCtor)) {
+    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "d:", &personInfoCtor)) {
         ZLOGE(LOG_LABEL, "Class_GetMethod Failed '%{public}s' <ctor>", className);
         return aniObject;
     }

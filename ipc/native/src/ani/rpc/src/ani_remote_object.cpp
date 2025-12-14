@@ -50,7 +50,7 @@ static ani_object CreateJsProxyRemoteObject(ani_env *env, const sptr<IRemoteObje
         ZLOGE(LOG_LABEL, "[ANI] OhSharedPtrHolder constructor failed");
         return nullptr;
     }
-    ani_object jsRemoteProxy = AniObjectUtils::Create(env, "L@ohos/rpc/rpc;", "LRemoteProxy;");
+    ani_object jsRemoteProxy = AniObjectUtils::Create(env, "@ohos.rpc.rpc", "RemoteProxy");
     if (jsRemoteProxy == nullptr) {
         ZLOGE(LOG_LABEL, "[ANI] Create jsRemoteProxy failed");
         delete holder;
