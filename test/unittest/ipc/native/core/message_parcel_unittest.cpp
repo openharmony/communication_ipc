@@ -316,9 +316,7 @@ HWTEST_F(MessageParcelTest, AppendTest003, TestSize.Level1)
     data.WriteBuffer(bytes, BNUMBER_TEST);
     data.objectCursor_ = 1;
     binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
-    if (objectOffsets == nullptr) {
-        return;
-    }
+    EXPECT_NE(objectOffsets, nullptr);
     data.objectOffsets_ = objectOffsets;
     MessageParcel parcel;
     parcel.writeCursor_ = 10;
@@ -434,9 +432,7 @@ HWTEST_F(MessageParcelTest, ClearFileDescriptorTest001, TestSize.Level1)
     MessageParcel parcel;
     parcel.objectCursor_ = 1;
     binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
-    if (objectOffsets == nullptr) {
-        return;
-    }
+    EXPECT_NE(objectOffsets, nullptr);
     parcel.objectOffsets_ = objectOffsets;
     parcel.dataSize_ = objectOffsets[0] + sizeof(flat_binder_object);
     parcel.data_ = 0;
@@ -467,9 +463,7 @@ HWTEST_F(MessageParcelTest, ContainFileDescriptorsTest002, TestSize.Level1)
     MessageParcel parcel;
     parcel.objectCursor_ = 1;
     binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
-    if (objectOffsets == nullptr) {
-        return;
-    }
+    EXPECT_NE(objectOffsets, nullptr);
     parcel.objectOffsets_ = objectOffsets;
     parcel.dataSize_ = 0;
     bool ret = parcel.ContainFileDescriptors();
@@ -486,9 +480,7 @@ HWTEST_F(MessageParcelTest, ContainFileDescriptorsTest003, TestSize.Level1)
     MessageParcel parcel;
     parcel.objectCursor_ = 1;
     binder_size_t *objectOffsets = new (std::nothrow) binder_size_t;
-    if (objectOffsets == nullptr) {
-        return;
-    }
+    EXPECT_NE(objectOffsets, nullptr);
     parcel.objectOffsets_ = objectOffsets;
     parcel.dataSize_ = objectOffsets[0] + sizeof(flat_binder_object);
     parcel.data_ = 0;
