@@ -50,7 +50,6 @@ if (ohos_kernel_type == "linux") {
     ]
     public_deps = [
       "$SUBSYSTEM_DIR/interfaces/innerkits/c/ipc:rpc_log",
-      "//third_party/bounds_checking_function/:libsec_shared",
     ]
     external_deps = [ "bounds_checking_function:libsec_shared" ]
   }

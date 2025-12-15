@@ -98,6 +98,8 @@ private:
     static napi_value JS_readBooleanArray(napi_env env, napi_callback_info info);
     static napi_value JS_readCharArray(napi_env env, napi_callback_info info);
     static napi_value JS_readStringArray(napi_env env, napi_callback_info info);
+    static bool ReadAndSetStringToArray(napi_env env, NAPI_MessageSequence* napiSequence,
+        napi_value array, uint32_t index);
     static napi_value JS_readParcelableArray(napi_env env, napi_callback_info info);
     static napi_value JS_readRemoteObjectArray(napi_env env, napi_callback_info info);
     static napi_value JS_readArrayBuffer(napi_env env, napi_callback_info info);

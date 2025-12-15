@@ -567,7 +567,12 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
     auto task = [param]() {
         ZLOGI(LOG_LABEL, "decrease");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         DecreaseJsObjectRef(param->env, param->thisVarRef);
         napi_close_handle_scope(param->env, scope);
         delete param;
@@ -724,7 +729,12 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 
         auto task = [param]() {
             napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(param->env, &scope);
+            napi_status status = napi_open_handle_scope(param->env, &scope);
+            if (status != napi_ok || scope == nullptr) {
+                ZLOGE(LOG_LABEL, "Fail to open scope");
+                delete param;
+                return;
+            }
             IncreaseJsObjectRef(param->env, param->thisVarRef);
             std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
             param->lockInfo->ready = true;
@@ -745,35 +755,42 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
 NAPIRemoteObject::~NAPIRemoteObject()
 {
     ZLOGD(LOG_LABEL, "destoryed, desc:%{public}s", desc_.c_str());
-    if (thisVarRef_ != nullptr && env_ != nullptr) {
-        if ((jsThreadId_ == std::this_thread::get_id()) &&
-            (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
-            DecreaseJsObjectRef(env_, thisVarRef_);
-        } else {
-            OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
-                .env = env_,
-                .thisVarRef = thisVarRef_
-            };
-            if (param == nullptr) {
-                thisVarRef_ = nullptr;
-                NAPI_ASSERT_RETURN_VOID(env_, false, "new OperateJsRefParam failed");
-            }
-
-            auto task = [param]() {
-                napi_handle_scope scope = nullptr;
-                napi_open_handle_scope(param->env, &scope);
-                DecreaseJsObjectRef(param->env, param->thisVarRef);
-                napi_close_handle_scope(param->env, scope);
-                delete param;
-            };
-            napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
-            if (sendRet != napi_ok) {
-                ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
-                delete param;
-            }
-        }
-        thisVarRef_ = nullptr;
+    if (thisVarRef_ == nullptr || env_ == nullptr) {
+        ZLOGD(LOG_LABEL, "thisVarRef_ or env_ is nullptr");
+        return;
     }
+    if ((jsThreadId_ == std::this_thread::get_id()) &&
+        (IPCThreadSkeleton::GetThreadType() != ThreadType::IPC_THREAD)) {
+        DecreaseJsObjectRef(env_, thisVarRef_);
+    } else {
+        OperateJsRefParam *param = new (std::nothrow) OperateJsRefParam {
+            .env = env_,
+            .thisVarRef = thisVarRef_
+        };
+        if (param == nullptr) {
+            thisVarRef_ = nullptr;
+            NAPI_ASSERT_RETURN_VOID(env_, false, "new OperateJsRefParam failed");
+        }
+
+        auto task = [param]() {
+            napi_handle_scope scope = nullptr;
+            napi_status status = napi_open_handle_scope(param->env, &scope);
+            if (status != napi_ok || scope == nullptr) {
+                ZLOGE(LOG_LABEL, "Fail to open scope");
+                delete param;
+                return;
+            }
+            DecreaseJsObjectRef(param->env, param->thisVarRef);
+            napi_close_handle_scope(param->env, scope);
+            delete param;
+        };
+        napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
+        if (sendRet != napi_ok) {
+            ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
+            delete param;
+        }
+    }
+    thisVarRef_ = nullptr;
 }
 
 bool NAPIRemoteObject::CheckObjectLegality() const
@@ -1214,7 +1231,12 @@ static void AfterWorkCallback(SendRequestParam *param)
     if (param->callback != nullptr) {
         ZLOGI(LOG_LABEL, "callback started");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         napi_value result = MakeSendRequestResult(param);
         napi_value callbackValue = nullptr;
         napi_get_reference_value(param->env, param->callback, &callbackValue);
@@ -1231,7 +1253,12 @@ static void AfterWorkCallback(SendRequestParam *param)
             std::chrono::steady_clock::now().time_since_epoch()).count());
         ZLOGI(LOG_LABEL, "promise fulfilled time:%{public}" PRIu64, curTime);
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         napi_value result = MakeSendRequestResult(param);
         if (param->errCode == 0) {
             napi_resolve_deferred(param->env, param->deferred, result);

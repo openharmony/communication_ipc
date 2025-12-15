@@ -72,7 +72,12 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
 
     auto task = [param]() {
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(param->env, &scope);
+        napi_status status = napi_open_handle_scope(param->env, &scope);
+        if (status != napi_ok || scope == nullptr) {
+            ZLOGE(LOG_LABEL, "Fail to open scope");
+            delete param;
+            return;
+        }
         napi_status napiStatus = napi_delete_reference(param->env, param->thisVarRef);
         if (napiStatus != napi_ok) {
             ZLOGE(LOG_LABEL, "failed to delete ref");
