@@ -1295,6 +1295,13 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     napi_status sendRet = napi_send_event(env, task, napi_eprio_high);
     if (sendRet != napi_ok) {
         ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
+        if (param->callback) {
+            napi_delete_reference(param->env, param->callback);
+        }
+        napi_delete_reference(param->env, param->jsCodeRef);
+        napi_delete_reference(param->env, param->jsDataRef);
+        napi_delete_reference(param->env, param->jsReplyRef);
+        napi_delete_reference(param->env, param->jsOptionRef);
         delete param;
     }
 }
