@@ -1041,7 +1041,7 @@ void MessageSequenceImpl::WriteChar(int32_t val)
 
 void MessageSequenceImpl::WriteString(::taihe::string_view val)
 {
-    if (val.size() > MAX_BYTES_LENGTH) {
+    if (val.size() >= MAX_BYTES_LENGTH) {
         ZLOGE(LOG_LABEL, "write string failed, string size:%{public}zu is too large", val.size());
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
     }
