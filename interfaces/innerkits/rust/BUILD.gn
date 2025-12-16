@@ -13,72 +13,93 @@
 
 import("//build/ohos.gni")
 
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+declare_args() {
+  ipc_rust_enable = true
+  if (defined(global_parts_info) &&
+  !defined(global_parts_info.thirdparty_rust_cxx)) {
+    ipc_rust_enable = false
+  }
+}
 
-rust_cxx("ipc_cxx_gen") {
-  sources = [
-    "src/parcel/wrapper.rs",
-    "src/remote/wrapper.rs",
-    "src/skeleton.rs",
-  ]
+if (ipc_rust_enable) {
+  rust_cxx("ipc_cxx_gen") {
+    sources = [
+      "src/parcel/wrapper.rs",
+      "src/remote/wrapper.rs",
+      "src/skeleton.rs",
+    ]
+  }
 }
 
 config("libipc_c_private_config") {
   cflags_cc = [ "-O2" ]
 }
 
-ohos_static_library("ipc_rust_cxx") {
-  branch_protector_ret = "pac_ret"
-  sources = [
-    "src/cxx/parcel_wrapper.cpp",
-    "src/cxx/remote_object_wrapper.cpp",
-    "src/cxx/skeleton_wrapper.cpp",
-  ]
-  sources += get_target_outputs(":ipc_cxx_gen")
+if (ipc_rust_enable) {
+  SUBSYSTEM_DIR = "//foundation/communication/ipc"
 
-  include_dirs = [
-    "include",
-    "${target_gen_dir}/src",
-  ]
+  ohos_static_library("ipc_rust_cxx") {
+    branch_protector_ret = "pac_ret"
+    sources = [
+      "src/cxx/parcel_wrapper.cpp",
+      "src/cxx/remote_object_wrapper.cpp",
+      "src/cxx/skeleton_wrapper.cpp",
+    ]
+    sources += get_target_outputs(":ipc_cxx_gen")
 
-  configs = [ ":libipc_c_private_config" ]
+    include_dirs = [
+      "include",
+      "${target_gen_dir}/src",
+    ]
 
-  deps = [
-    ":ipc_cxx_gen",
-    "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
-  ]
+    configs = [ ":libipc_c_private_config" ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "rust_cxx:cxx_cppdeps",
-  ]
+    deps = [
+      ":ipc_cxx_gen",
+      "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single",
+    ]
 
-  subsystem_name = "communication"
-  part_name = "ipc"
-}
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "rust_cxx:cxx_cppdeps",
+    ]
 
-ohos_rust_shared_library("ipc_rust") {
-  crate_name = "ipc"
-  edition = "2021"
+    subsystem_name = "communication"
+    part_name = "ipc"
+  }
 
-  sources = [ "src/lib.rs" ]
+  ohos_rust_shared_library("ipc_rust") {
+    crate_name = "ipc"
+    edition = "2021"
 
-  rustflags = [ "-Zstack-protector=all" ]
+    sources = [ "src/lib.rs" ]
 
-  deps = [
-    ":ipc_rust_cxx",
-  ]
+    rustflags = [ "-Zstack-protector=all" ]
 
-  external_deps = [
-    "hilog:hilog_rust",
-    "ylong_runtime:ylong_runtime",
-    "rust_cxx:lib",
-  ]
+    deps = [
+      ":ipc_rust_cxx",
+    ]
 
-  install_images = [ system_base_dir ]
-  subsystem_name = "communication"
-  part_name = "ipc"
+    external_deps = [
+      "hilog:hilog_rust",
+      "ylong_runtime:ylong_runtime",
+      "rust_cxx:lib",
+    ]
+
+    install_images = [ system_base_dir ]
+    subsystem_name = "communication"
+    part_name = "ipc"
+  }
+} else {
+  # Just to ensure that the vendor's compilation and build pass
+  static_library("ipc_rust") {
+    public_configs = [ ":libipc_c_private_config" ]
+  }
+  # Just to ensure that the vendor's compilation and build pass
+  static_library("ipc_rust_cxx") {
+    public_configs = [ ":libipc_c_private_config" ]
+  }
 }
 
 group("rust_ipc_component") {
