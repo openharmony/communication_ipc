@@ -67,6 +67,7 @@ public:
     virtual bool WriteUint16(uint16_t value) = 0;
     virtual uint64_t ReadUint64() = 0;
     virtual const std::string ReadString() = 0;
+    virtual int32_t DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName) = 0;
 };
 class DBinderServiceInterfaceMock : public DBinderServiceInterface {
 public:
@@ -84,6 +85,7 @@ public:
     MOCK_METHOD1(WriteUint16, bool(uint16_t value));
     MOCK_METHOD0(ReadUint64, uint64_t());
     MOCK_METHOD0(ReadString, const std::string());
+    MOCK_METHOD3(DBinderGrantPermission, int32_t(int32_t uid, int32_t pid, const std::string &socketName));
 };
 
 static void *g_interface = nullptr;
@@ -179,6 +181,13 @@ extern "C" {
             return "";
         }
         return GetDBinderServiceInterfaceMock()->ReadString();
+    }
+    int32_t DBinderSoftbusClient::DBinderGrantPermission(int32_t uid, int32_t pid, const std::string &socketName)
+    {
+        if (g_interface == nullptr) {
+            return 0;
+        }
+        return GetDBinderServiceInterfaceMock()->DBinderGrantPermission(uid, pid, socketName);
     }
 }
 
@@ -2431,6 +2440,8 @@ HWTEST_F(DBinderServiceTest, CreateDatabusNameTest001, TestSize.Level1)
     softbusClient.grantPermissionFunc_ = [](int32_t uid, int32_t pid, const char *permission) -> int32_t {
         return ERR_NONE;
     };
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, DBinderGrantPermission).WillOnce(testing::Return(ERR_NONE));
     std::string databusName = dBinderService->CreateDatabusName(UID, PID);
     EXPECT_FALSE(databusName.empty());
 }
@@ -2446,14 +2457,10 @@ HWTEST_F(DBinderServiceTest, CreateDatabusNameTest002, TestSize.Level1)
     ASSERT_TRUE(dBinderService != nullptr);
     int pid = 0;
     int uid = 0;
+    NiceMock<DBinderServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, DBinderGrantPermission).WillOnce(testing::Return(DBINDER_SERVICE_INVALID_DATA_ERR));
     std::string res = dBinderService->CreateDatabusName(pid, uid);
-    std::string sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    EXPECT_EQ(res, sessionName);
-    pid = TEST_PID;
-    uid = TEST_UID;
-    res = dBinderService->CreateDatabusName(pid, uid);
-    sessionName = "DBinder" + std::to_string(uid) + std::string("_") + std::to_string(pid);
-    EXPECT_EQ(res, sessionName);
+    EXPECT_EQ(res, "");
 }
 
 /**

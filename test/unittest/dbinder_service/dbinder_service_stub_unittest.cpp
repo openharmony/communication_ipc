@@ -42,6 +42,7 @@ namespace {
     const pid_t INVALID_PID_TEST = -1;
     const uid_t INVALID_UID_TEST = -1;
     const uint32_t TEST_SEQ_NUM = 1;
+    constexpr binder_uintptr_t TEST_BINDER_OBJECT_PTR = 1564618;
 }
 
 class DBinderServiceStubInterface {
@@ -1305,5 +1306,45 @@ HWTEST_F(DBinderServiceStubTest, SetNegoStatusAndTimeTest001, TestSize.Level1)
     dbinderServiceStub.GetNegoStatusAndTime(status, time);
     EXPECT_EQ(status, NegotiationStatus::NEGO_DOING);
     EXPECT_EQ(time, 1);
+}
+
+HWTEST_F(DBinderServiceStubTest, CreateMessageTest001, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_TRUE(dBinderService != nullptr);
+
+    std::u16string serviceName = u"testServiceName";
+    std::string deviceID = "testDeviceID";
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
+    ASSERT_NE(stub, nullptr);
+    uint32_t seqNumber = 1;
+    uint32_t pid = 1;
+    uint32_t uid = 1;
+    auto message = dBinderService->CreateMessage(stub, seqNumber, pid, uid);
+    EXPECT_EQ(message, nullptr);
+}
+
+/**
+ * @tc.name: CreateMessageTest002
+ * @tc.desc: Verify the CreateMessage function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, CreateMessageTest002, TestSize.Level1)
+{
+    sptr<DBinderService> dBinderService = DBinderService::GetInstance();
+    ASSERT_TRUE(dBinderService != nullptr);
+
+    std::u16string serviceName = u"123";
+    std::string deviceID = "testDeviceID";
+    binder_uintptr_t binderObject = TEST_BINDER_OBJECT_PTR;
+    sptr<DBinderServiceStub> stub = new (std::nothrow) DBinderServiceStub(serviceName, deviceID, binderObject);
+    ASSERT_NE(stub, nullptr);
+    uint32_t seqNumber = 1;
+    uint32_t pid = 1;
+    uint32_t uid = 1;
+
+    auto message = dBinderService->CreateMessage(stub, seqNumber, pid, uid);
+    EXPECT_NE(message, nullptr);
 }
 } // namespace OHOS
