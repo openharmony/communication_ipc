@@ -911,7 +911,7 @@ void MessageSequenceImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion
 void MessageSequenceImpl::WriteInterfaceToken(::taihe::string_view token)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
-    if (token.size() > MAX_BYTES_LENGTH) {
+    if (token.size() >= MAX_BYTES_LENGTH) {
         ZLOGE(LOG_LABEL, "token is too large");
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
     }
@@ -1220,7 +1220,7 @@ void MessageSequenceImpl::WriteStringArray(::taihe::array_view<::taihe::string> 
     nativeParcel_->WriteUint32(arrayLength);
     bool result = false;
     for (size_t i = 0; i < arrayLength; i++) {
-        if (stringArray[i].size() > MAX_BYTES_LENGTH) {
+        if (stringArray[i].size() >= MAX_BYTES_LENGTH) {
             ZLOGE(LOG_LABEL, "string length is too long, index:%{public}zu, size:%{public}zu",
                 i, stringArray[i].size());
             RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
