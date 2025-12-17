@@ -59,6 +59,7 @@ public:
     virtual bool WriteUint64(uint64_t value) = 0;
     virtual bool WriteString(const std::string &value) = 0;
     virtual bool WriteString16(const std::u16string &value) = 0;
+    virtual bool IsLocalCalling() = 0;
 };
 class DBinderServiceStubInterfaceMock : public DBinderServiceStubInterface {
 public:
@@ -74,6 +75,7 @@ public:
     MOCK_METHOD1(WriteUint64, bool(uint64_t value));
     MOCK_METHOD1(WriteString, bool(const std::string &value));
     MOCK_METHOD1(WriteString16, bool(const std::u16string &value));
+    MOCK_METHOD0(IsLocalCalling, bool());
 };
 
 static void *g_interface = nullptr;
@@ -156,6 +158,13 @@ extern "C" {
             return 0;
         }
         return GetDBinderServiceStubInterface()->GetCallingPid();
+    }
+    bool IPCSkeleton::IsLocalCalling()
+    {
+        if (GetDBinderServiceStubInterface() == nullptr) {
+            return false;
+        }
+        return GetDBinderServiceStubInterface()->IsLocalCalling();
     }
 }
 
@@ -1346,5 +1355,43 @@ HWTEST_F(DBinderServiceStubTest, CreateMessageTest002, TestSize.Level1)
 
     auto message = dBinderService->CreateMessage(stub, seqNumber, pid, uid);
     EXPECT_NE(message, nullptr);
+}
+
+/**
+ * @tc.name: DBinderClearServiceStateTest001
+ * @tc.desc: Verify the DBinderClearServiceState function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, DBinderClearServiceStateTest001, TestSize.Level1)
+{
+    uint32_t code = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    EXPECT_CALL(mockServiceStub, IsLocalCalling).WillOnce(Return(false));
+    DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    int ret = dBinderServiceStub.DBinderClearServiceState(code, data, reply, option);
+    EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
+}
+
+/**
+ * @tc.name: DBinderClearServiceStateTest002
+ * @tc.desc: Verify the DBinderClearServiceState function
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderServiceStubTest, DBinderClearServiceStateTest002, TestSize.Level1)
+{
+    uint32_t code = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    NiceMock<DBinderServiceStubInterfaceMock> mockServiceStub;
+    EXPECT_CALL(mockServiceStub, IsLocalCalling).WillOnce(Return(true));
+    DBinderServiceStub dBinderServiceStub(SERVICE_TEST, DEVICE_TEST, BINDER_OBJECT);
+    int ret = dBinderServiceStub.DBinderClearServiceState(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 } // namespace OHOS
