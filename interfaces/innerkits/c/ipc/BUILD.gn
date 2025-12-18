@@ -100,8 +100,8 @@ if (ohos_kernel_type == "liteos_m") {
     ]
     public_deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-      "//third_party/bounds_checking_function/:libsec_shared",
     ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
   }
 
   shared_library("ipc_single") {
@@ -130,8 +130,8 @@ if (ohos_kernel_type == "liteos_m") {
     public_deps = [
       ":rpc_log",
       "$IPC_CORE_ROOT/adapter:rpc_adapter",
-      "//third_party/bounds_checking_function/:libsec_shared",
     ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
   }
 
   shared_library("rpc_manager") {
@@ -145,8 +145,8 @@ if (ohos_kernel_type == "liteos_m") {
     ]
     public_deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-      "//third_party/bounds_checking_function/:libsec_shared",
     ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
   }
 
   shared_library("ipc_single") {
@@ -175,8 +175,8 @@ if (ohos_kernel_type == "liteos_m") {
     public_deps = [
       ":rpc_log",
       "//foundation/communication/ipc/ipc/native/c/adapter:rpc_adapter",
-      "//third_party/bounds_checking_function/:libsec_shared",
     ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
     configs -= [ "//build/lite/config:clang_opt" ]
     defines = [ "IPC_RESET_SKELETON" ]
   }
@@ -206,7 +206,6 @@ if (ohos_kernel_type == "liteos_m") {
       "$IPC_CORE_ROOT/rpc/trans_adapter/include",
       "$SUBSYSTEM_DIR/dbinder/c/include",
       "$SUBSYSTEM_DIR/utils/include",
-      "//third_party/bounds_checking_function/include",
     ]
     ldflags = [
       "-lstdc++",
@@ -217,9 +216,11 @@ if (ohos_kernel_type == "liteos_m") {
     public_deps = [
       ":rpc_log",
       "$IPC_CORE_ROOT/adapter:rpc_adapter",
-      "//third_party/bounds_checking_function/:libsec_shared",
     ]
-    external_deps = [ "dsoftbus:softbus_client" ]
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "dsoftbus:softbus_client",
+    ]
     defines = [ "RPC_SOFTBUS_TRANS" ]
     defines += [ "IPC_RESET_SKELETON" ]
 
