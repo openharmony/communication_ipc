@@ -963,7 +963,7 @@ int32_t MessageSequenceImpl::GetCapacity()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
-    int32_t result = nativeParcel_->GetDataCapacity();
+    int32_t result = static_cast<int32_t>(nativeParcel_->GetDataCapacity());
     return result;
 }
 
@@ -2055,7 +2055,7 @@ bool MessageOptionImpl::IsAsync()
         return false;
     }
     int flags = messageOption_->GetFlags();
-    return (flags & OHOS::MessageOption::TF_ASYNC) != 0;
+    return (static_cast<int32_t>(flags) & OHOS::MessageOption::TF_ASYNC) != 0;
 }
 
 void MessageOptionImpl::SetAsync(bool isAsync)
