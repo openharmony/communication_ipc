@@ -461,9 +461,13 @@ HWTEST_F(DatabusSocketListenerTest, CreateClientSocketTest004, TestSize.Level1) 
     const std::string ownName = "ownName";
     const std::string peerName = "peerName";
     const std::string &networkId = "255255255251";
+    int32_t ret_ok = 1001;
 
+    DBinderSocketInfo info(ownName, peerName, networkId);
+    listener.socketInfoMap_[info] = ret_ok;
     int32_t ret = listener.CreateClientSocket(ownName, peerName, networkId);
     EXPECT_EQ(ret, 1001);
+    listener.socketInfoMap_.clear();
 }
 
 /**

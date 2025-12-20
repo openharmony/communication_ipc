@@ -1384,6 +1384,7 @@ HWTEST_F(DBinderServiceTest, PopLoadSaItemTest001, TestSize.Level1)
     int32_t socket = 1001;
     DBinderRemoteListener::ServerOnBind(socket, info);
 
+    dBinderService->loadSaReply_.push_back(message);
     std::shared_ptr<MockDBinderRemoteListener> mockListener = std::make_shared<MockDBinderRemoteListener>();
     dBinderService->remoteListener_ = std::static_pointer_cast<DBinderRemoteListener>(mockListener);
     EXPECT_TRUE(dBinderService->remoteListener_ != nullptr);
@@ -1391,7 +1392,6 @@ HWTEST_F(DBinderServiceTest, PopLoadSaItemTest001, TestSize.Level1)
     EXPECT_EQ(MockDBinderRemoteListener::GetInstance().GetResult(), SA_NOT_FOUND);
 
     /* verify running into the add death recipient fail branch */
-    dBinderService->loadSaReply_.push_back(message);
     sptr<MockIPCObjectProxy> remoteObject1 = sptr<MockIPCObjectProxy>::MakeSptr();
     EXPECT_TRUE(remoteObject1 != nullptr);
     EXPECT_CALL(*remoteObject1, AddDeathRecipient(testing::_)).WillRepeatedly(testing::Return(false));
