@@ -917,6 +917,8 @@ HWTEST_F(DBinderServiceStubTest, MarshallingTest007, TestSize.Level1)
 
     bool result = dBinderServiceStub.Marshalling(parcel, stubObject);
     EXPECT_TRUE(result);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
 }
 
 /**
