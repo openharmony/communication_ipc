@@ -38,12 +38,8 @@ public:
     template <typename... Names>
     expected<ani_namespace, ani_status> FindNamespace(const char *firstNs, const char *nextNs, Names... restNs)
     {
-        ani_namespace ns;
-        ani_status status = env_->FindNamespace(firstNs, &ns);
-        if (ANI_OK != status) {
-            return status;
-        }
-        return FindNamespace(ns, nextNs, restNs...);
+        const std::string nsName = std::string(firstNs).append(".").append(nextNs);
+        return FindNamespace(nsName.c_str(), restNs...);
     }
 
     expected<ani_class, ani_status> FindClass(const char *clsName)
@@ -58,11 +54,8 @@ public:
 
     expected<ani_class, ani_status> FindClass(const char *nsName, const char *clsName)
     {
-        auto ns = FindNamespace(nsName, clsName);
-        if (!ns.has_value()) {
-            return ns.error();
-        }
-        return FindClass(ns.value(), clsName);
+        const std::string fullClsName = std::string(nsName).append(".").append(clsName);
+        return FindClass(fullClsName.c_str());
     }
 
     template <typename... Names>
@@ -71,48 +64,19 @@ public:
                                               Names... restNs,
                                               const char *clsName)
     {
-        auto ns = FindNamespace(firstNs, secondNs, restNs...);
-        if (!ns.has_value()) {
-            return ns.error();
-        }
-        return FindClass(ns.value(), clsName);
+        const std::string nsName = std::string(firstNs).append(".").append(secondNs);
+        return FindClass(nsName.c_str(), restNs..., clsName);
     }
 
-    expected<ani_class, ani_status> FindClass(ani_namespace ns, const char *clsName)
-    {
-        ani_class cls;
-        ani_status status = env_->Namespace_FindClass(ns, clsName, &cls);
-        if (ANI_OK != status) {
-            return status;
-        }
-        return cls;
-    }
-
-    expected<ani_enum, ani_status> FindEnum(ani_namespace ns, const char *enumName)
+    expected<ani_enum, ani_status> FindEnum(const char *nsName, const char *enumName)
     {
         ani_enum aniEnum {};
-        ani_status status = env_->Namespace_FindEnum(ns, enumName, &aniEnum);
+        const std::string fullEnumName = std::string(nsName).append(".").append(enumName);
+        ani_status status = env_->FindEnum(fullEnumName.c_str(), &aniEnum);
         if (ANI_OK != status) {
             return status;
         }
         return aniEnum;
-    }
-
-private:
-    template <typename... Names>
-    expected<ani_namespace, ani_status> FindNamespace(ani_namespace currentNs, const char *nextNs, Names... restNs)
-    {
-        ani_namespace ns;
-        ani_status status = env_->Namespace_FindNamespace(currentNs, nextNs, &ns);
-        if (ANI_OK != status) {
-            return status;
-        }
-        return FindNamespace(ns, restNs...);
-    }
-
-    expected<ani_namespace, ani_status> FindNamespace(ani_namespace currentNs)
-    {
-        return currentNs;
     }
 
 private:
