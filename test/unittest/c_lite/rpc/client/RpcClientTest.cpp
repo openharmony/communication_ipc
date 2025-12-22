@@ -164,11 +164,6 @@ HWTEST_F(RpcClientTest, RpcClientTest004, TestSize.Level0)
     uintptr_t ptr2 = 0;
     int32_t ret = SendRequest(sid, OP_ADD, &data2, &reply2, option, &ptr2);
     EXPECT_EQ(ret, ERR_NONE);
-    if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("SendRequest OP_ADD failed, error = %d", ret);
-        FreeBuffer((void *)ptr2);
-        return;
-    }
 
     int32_t sum;
     ReadInt32(&reply2, &sum);
@@ -195,11 +190,6 @@ HWTEST_F(RpcClientTest, RpcClientTest005, TestSize.Level0)
     uintptr_t ptr3 = 0;
     int32_t ret = SendRequest(sid, OP_MULTI, &data3, &reply3, option, &ptr3);
     EXPECT_EQ(ret, ERR_NONE);
-    if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("SendRequest OP_MULTI failed, error = %d", ret);
-        FreeBuffer((void *)ptr3);
-        return;
-    }
 
     int32_t mutil;
     ReadInt32(&reply3, &mutil);
@@ -249,11 +239,6 @@ HWTEST_F(RpcClientTest, RpcClientTest007, TestSize.Level0)
     uintptr_t ptr3 = 0;
     int32_t ret = SendRequest(sid, OP_DIVISION, &data, &reply, option, &ptr3);
     EXPECT_EQ(ret, ERR_NONE);
-    if (ret != ERR_NONE) {
-        RPC_LOG_ERROR("SendRequest OP_DIVISION failed, error = %d", ret);
-        FreeBuffer((void *)ptr3);
-        return;
-    }
 
     int32_t division;
     ReadInt32(&reply, &division);
