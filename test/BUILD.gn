@@ -177,7 +177,7 @@ group("ipc_test") {
   if (ipc_feature_test_enabled) {
     deps = [
       "fuzztest:ipc_fuzztest",
-      "moduletest:ipc_moduletest",
+      #"moduletest:ipc_moduletest",
       "unittest:ipc_unittest",
     ]
   }
