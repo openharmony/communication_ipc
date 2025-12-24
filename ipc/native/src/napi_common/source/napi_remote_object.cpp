@@ -876,6 +876,12 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
 
 void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {
+    napi_handle_scope scope = nullptr;
+    napi_status status = napi_open_handle_scope(env, &scope);
+    if (status != napi_ok || scope == nullptr) {
+        ZLOGE(LOG_LABEL, "Fail to open scope");
+        return;
+    }
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_get_named_property(env, global, "callingPid_", &oldCallingInfo.callingPid);
@@ -886,10 +892,17 @@ void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCal
     napi_get_named_property(env, global, "isLocalCalling_", &oldCallingInfo.isLocalCalling);
     napi_get_named_property(env, global, "isLocalCalling_", &oldCallingInfo.isLocalCalling);
     napi_get_named_property(env, global, "activeStatus_", &oldCallingInfo.activeStatus);
+    napi_close_handle_scope(env, scope);
 }
 
 void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCallingInfoParam)
 {
+    napi_handle_scope scope = nullptr;
+    napi_status status = napi_open_handle_scope(env, &scope);
+    if (status != napi_ok || scope == nullptr) {
+        ZLOGE(LOG_LABEL, "Fail to open scope");
+        return;
+    }
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_value newPid = nullptr;
@@ -913,10 +926,17 @@ void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCal
     napi_value newActiveStatus = nullptr;
     napi_create_int32(env, newCallingInfoParam.activeStatus, &newActiveStatus);
     napi_set_named_property(env, global, "activeStatus_", newActiveStatus);
+    napi_close_handle_scope(env, scope);
 }
 
 void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {
+    napi_handle_scope scope = nullptr;
+    napi_status status = napi_open_handle_scope(env, &scope);
+    if (status != napi_ok || scope == nullptr) {
+        ZLOGE(LOG_LABEL, "Fail to open scope");
+        return;
+    }
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_set_named_property(env, global, "callingPid_", oldCallingInfo.callingPid);
@@ -926,6 +946,7 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
     napi_set_named_property(env, global, "localDeviceID_", oldCallingInfo.localDeviceID);
     napi_set_named_property(env, global, "isLocalCalling_", oldCallingInfo.isLocalCalling);
     napi_set_named_property(env, global, "activeStatus_", oldCallingInfo.activeStatus);
+    napi_close_handle_scope(env, scope);
 }
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
@@ -961,24 +982,32 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 
 napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
+    napi_value jsRemoteProxy = nullptr;
+    napi_handle_scope scope = nullptr;
+    napi_status scopeStatus = napi_open_handle_scope(env, &scope);
+    if (scopeStatus != napi_ok || scope == nullptr) {
+        ZLOGE(LOG_LABEL, "Fail to open scope, return null remoteObj");
+        return jsRemoteProxy;
+    }
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
     napi_value constructor = nullptr;
     status = napi_get_named_property(env, global, "IPCProxyConstructor_", &constructor);
     NAPI_ASSERT(env, status == napi_ok, "get proxy constructor failed");
-    napi_value jsRemoteProxy;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsRemoteProxy);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteProxy");
     NAPIRemoteProxyHolder *proxyHolder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
     if (proxyHolder == nullptr) {
         ZLOGE(LOG_LABEL, "proxyHolder null");
+        napi_close_handle_scope(env, scope);
         return nullptr;
     }
     proxyHolder->object_ = target;
     proxyHolder->list_ = new (std::nothrow) NAPIDeathRecipientList();
     NAPI_ASSERT(env, proxyHolder->list_ != nullptr, "new NAPIDeathRecipientList failed");
 
+    napi_close_handle_scope(env, scope);
     return jsRemoteProxy;
 }
 
@@ -1066,6 +1095,12 @@ bool NAPI_ohos_rpc_ClearNativeRemoteProxy(napi_env env, napi_value jsRemoteProxy
 
 sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value object)
 {
+    napi_handle_scope scope = nullptr;
+    napi_status scopeStatus = napi_open_handle_scope(env, &scope);
+    if (scopeStatus != napi_ok || scope == nullptr) {
+        ZLOGE(LOG_LABEL, "Fail to open scope");
+        return nullptr;
+    }
     if (object != nullptr) {
         napi_value global = nullptr;
         napi_status status = napi_get_global(env, &global);
@@ -1080,6 +1115,7 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             NAPIRemoteObjectHolder *holder = nullptr;
             napi_unwrap(env, object, (void **)&holder);
             NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
+            napi_close_handle_scope(env, scope);
             return holder != nullptr ? holder->Get() : nullptr;
         }
 
@@ -1091,9 +1127,11 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
         NAPI_ASSERT(env, status == napi_ok, "failed to check js object type");
         if (instanceOfProxy) {
             NAPIRemoteProxyHolder *holder = NAPI_ohos_rpc_getRemoteProxyHolder(env, object);
+            napi_close_handle_scope(env, scope);
             return holder != nullptr ? holder->object_ : nullptr;
         }
     }
+    napi_close_handle_scope(env, scope);
     return nullptr;
 }
 
