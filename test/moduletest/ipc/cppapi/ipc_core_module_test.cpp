@@ -579,10 +579,7 @@ HWTEST_F(IPCNativeFrameworkTest, function_test_019, TestSize.Level1)
 {
     for (int i = 0; i < repeatTimes; i++) {
         unsigned char *buffer = new (std::nothrow) unsigned char[rawData10M];
-        if (buffer == nullptr) {
-            ZLOGE(LABEL, "new buffer failed of length = %{public}d", rawData10M);
-            return;
-        }
+        EXPECT_NE(buffer, nullptr);
         buffer[0] = 'a';
         buffer[rawData10M - 1] = 'z';
 
