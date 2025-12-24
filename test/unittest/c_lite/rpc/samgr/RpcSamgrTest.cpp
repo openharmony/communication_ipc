@@ -257,10 +257,7 @@ HWTEST_F(RpcSamgrTest, RpcSamgrTest002, TestSize.Level0)
         .cookie = (uintptr_t)&objectStub
     };
 
-    if (SetContextObject(target) != ERR_NONE) {
-        RPC_LOG_ERROR("SAMGR register samgr failed");
-        return;
-    }
+    EXPECT_EQ(SetContextObject(target), ERR_NONE);
 
     int32_t ret = StartDBinderService();
     EXPECT_EQ(ret, ERR_NONE);

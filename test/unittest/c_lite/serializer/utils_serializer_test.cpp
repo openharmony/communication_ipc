@@ -130,17 +130,12 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_001, TestSize.Level0)
     int ret = -1;
     int fd[2];
 
-    if (pipe(fd) < 0) {
-        perror("pipe error!\n");
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
 
     struct TestData data = { true, -0x34, 0x5634, -0x12345678, 0x34, 0x5634, 0x12345678 };
     pid = fork();
-    if (pid < 0) {
-        return;
-    }
-    else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -227,15 +222,11 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_002, TestSize.Level0)
     int ret = -1;
     int fd[2];
 
-    if (pipe(fd) < 0) {
-        perror("pipe error!\n");
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     struct TestData data = { true, -0x34, 0x5634, -0x12345678, 0x34, 0x5634, 0x12345678 };
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -268,17 +259,13 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_003, TestSize.Level0)
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     int64_t int64Test = -0x1234567887654321;
     uint64_t uint64Test = 0x1234567887654321;
     pid = fork();
-    if (pid < 0) {
-        return;
-    }
-    else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -320,16 +307,13 @@ HWTEST_F(UtilsSerializerTest, test_serializer_String_001, TestSize.Level0)
     int ret = -1;
     int fd[2];
 
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const char stringWrite1[] = "asdfgh";
     const char stringWrite2[] = "123456";
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -374,17 +358,14 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_String_002, TestSize.
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     uint16_t str16Write[] = { 0x5634, 0x5635, 0x5636, 0x5637, 0x5638, 0x5639,
     0x5640, 0x5641, 0x5642, 0x5643, 0x5644, 0x5645 };
     size_t length = sizeof(str16Write) / sizeof(uint16_t);
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -421,16 +402,13 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_Float_001, TestSize.L
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     float floatWrite = 12.345678f;
     double doubleWrite = 1345.7653;
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -471,16 +449,13 @@ HWTEST_F(UtilsSerializerTest, test_serializer_Data_Structure_001, TestSize.Level
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const struct Padded pad = { 'p', 0x34567890, 0x2345678998765432 };
     const struct Unpadded unpad = { 'u' };
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -521,16 +496,13 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndReadVector_Bool_001, TestS
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const bool boolTest[12] = { true, false, false, true, false, false, true, false, true, true, false, true };
     size_t sizeBool = sizeof(boolTest) / sizeof(bool);
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -570,9 +542,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_Vector_001, TestSize.Level0)
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const int8_t int8Test[12] = { -0x27, -0x28, -0x29, -0x30, 0x31, 0x32, -0x33, -0x34, -0x35, -0x36, -0x37, -0x38 };
     size_t sizeInt8 = sizeof(int8Test) / sizeof(int8_t);
@@ -625,9 +595,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_Vector_002, TestSize.Level0)
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const int32_t int32Test[12] = { 0x12345678, -0x23456789, 0x34567890, -0x45678901, 0x12345778, 0x12345878,
     -0x12345978, 0x12345878, -0x12345818, 0x12345828, 0x12345838, 0x12345848 };
@@ -680,9 +648,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_Vector_003, TestSize.Level0)
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const uint8_t uint8Test[12] = { 0x01, 0x10, 0x20, 0x30, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47 };
     size_t sizeUint8 = sizeof(uint8Test) / sizeof(uint8_t);
@@ -734,9 +700,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_Vector_004, TestSize.Level0)
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const uint32_t uint32Test[12] = { 0x12345678, 0x23456789, 0x34567890, 0x45678901, 0x12345778, 0x12345878,
     0x12345978, 0x12345878, 0x12345818, 0x12345828, 0x12345838, 0x12345848 };
@@ -790,9 +754,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_Vector_005, TestSize.Level0)
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const float floatTest[12] = { 11221.132313, 11221.45678, 11221.45608, 11221.45618, 11221.45628,
     11221.45638, 11221.45648, 11221.45658, 11221.45668, 11221.45678, 11221.45688, 11221.45698 };
@@ -842,9 +804,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_String_003, TestSize.
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const uint16_t interfaceTest[] = { 0x5634, 0x5635, 0x5636, 0x5637, 0x5638, 0x5639,
     0x5640, 0x5641, 0x5642, 0x5643, 0x5644, 0x5645 };
@@ -888,9 +848,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_String_004, TestSize.
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     const struct Padded testData = { 'p', 0x34567890, 0x2345678998765432 };
     size_t size = sizeof(struct Padded);
@@ -932,9 +890,7 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_Pointer_001, TestSize
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     char* testData = "sjf";
     pid = fork();
@@ -1004,15 +960,12 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_Maximum_001, TestSize
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     struct TestData data = { true, 0x7F, 0x7FFF, 0x7FFFFFFF, 0xFF, 0xFFFF, 0xFFFFFFFF };
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -1044,17 +997,12 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_Maximum_002, TestSize
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        perror("pipe error!\n");
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     struct TestData data = { true, 0x7F, 0x7FFF, 0x7FFFFFFF, 0xFF, 0xFFFF, 0xFFFFFFFF };
     pid = fork();
-    if (pid < 0) {
-        return;
-    }
-    else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
@@ -1085,16 +1033,13 @@ HWTEST_F(UtilsSerializerTest, test_serializer_WriteAndRead_Maximum_003, TestSize
     int pid = -1;
     int ret = -1;
     int fd[2];
-    if (pipe(fd) < 0) {
-        return;
-    }
+    EXPECT_GE(pipe(fd), 0);
     bool result;
     int64_t int64Test = 0x7FFFFFFFFFFFFFFF;
     uint64_t uint64Test = 0xFFFFFFFFFFFFFFFF;
     pid = fork();
-    if (pid < 0) {
-        return;
-    } else if (pid == 0) {
+    EXPECT_GE(pid, 0);
+    if (pid == 0) {
         close(fd[0]);
         IpcIo io;
         IpcIoInit(&io, buffer, BUFFER_SIZE, 0);
