@@ -33,6 +33,7 @@
       "ram": "100KB",
       "deps": {
         "components": [
+          "ability_runtime",
           "samgr",
           "hitrace",
           "hilog",

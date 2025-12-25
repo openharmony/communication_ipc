@@ -24,6 +24,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "iremote_invoker.h"
+#include "js_runtime_utils.h"
 #include "log_tags.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -982,33 +983,26 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 
 napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
-    napi_value jsRemoteProxy = nullptr;
-    napi_handle_scope scope = nullptr;
-    napi_status scopeStatus = napi_open_handle_scope(env, &scope);
-    if (scopeStatus != napi_ok || scope == nullptr) {
-        ZLOGE(LOG_LABEL, "Fail to open scope, return null remoteObj");
-        return jsRemoteProxy;
-    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
     NAPI_ASSERT(env, status == napi_ok, "get napi global failed");
     napi_value constructor = nullptr;
     status = napi_get_named_property(env, global, "IPCProxyConstructor_", &constructor);
     NAPI_ASSERT(env, status == napi_ok, "get proxy constructor failed");
+    napi_value jsRemoteProxy;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsRemoteProxy);
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteProxy");
     NAPIRemoteProxyHolder *proxyHolder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
     if (proxyHolder == nullptr) {
         ZLOGE(LOG_LABEL, "proxyHolder null");
-        napi_close_handle_scope(env, scope);
         return nullptr;
     }
     proxyHolder->object_ = target;
     proxyHolder->list_ = new (std::nothrow) NAPIDeathRecipientList();
     NAPI_ASSERT(env, proxyHolder->list_ != nullptr, "new NAPIDeathRecipientList failed");
 
-    napi_close_handle_scope(env, scope);
-    return jsRemoteProxy;
+    return handleEscape.Escape(jsRemoteProxy);
 }
 
 napi_value CreateJsStubRemoteObject(napi_env env, const sptr<IRemoteObject> target)
