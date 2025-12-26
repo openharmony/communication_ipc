@@ -50,7 +50,6 @@ if (support_jsapi) {
     deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
 
     external_deps = [
-      "ability_runtime:runtime",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
