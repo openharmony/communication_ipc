@@ -21,6 +21,8 @@
 
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
 #include "hisysevent.h"
+#include "ipc_skeleton.h"
+#include "ipc_process_skeleton.h"
 #endif
 
 namespace OHOS {
@@ -36,12 +38,10 @@ public:
     static const int SOCKET_DRIVER_ERROR = 950000608;
 
     static constexpr char DSOFTBUS_DOMAIN[] = "DSOFTBUS";
-    static constexpr char DSOFTBUS_EVENT_NAME[] = "IPC_BEHAVIOR";
-    static constexpr char DSOFTBUS_REQUEST_PROC_EVENT_NAME[] = "IPC_REQUEST_PROC_BEHAVIOR";
-    static constexpr char DSOFTBUS_PKG_NAME[] = "dsoftbus_ipc";
-
-    inline static constexpr const char *ERROR_TYPE = "ErrType";
-    inline static constexpr const char *ERROR_CODE = "ErrCode";
+    static constexpr char DSOFTBUS_RPC_EVENT_NAME[] = "RPC_BEHAVIOR";
+    static constexpr char DSOFTBUS_RPC_NEGOTIATION_EVENT_NAME[] = "RPC_NEGOTIATION_STATISTIC";
+    static constexpr char DSOFTBUS_RPC_REQUEST_PROC_EVENT_NAME[] = "RPC_REQUEST_PROC_BEHAVIOR";
+    static constexpr char DSOFTBUS_RPC_PKG_NAME[] = "DSOFTBUS_RPC";
 
     // 601
     enum SystemEnvironmentError {
@@ -125,21 +125,22 @@ public:
 
     // BIZ_SCENE
     enum IpcEventScene {
-        IPC_COMMUNICATION = 1,
+        RPC_COMMUNICATION = 1,
     };
 
     // BIZ_STAGE
     enum IpcEventStage {
-        IPC_MESSAGE_RPOCESS = 1,
+        RPC_NEGOTIATION_RPOCESS = 0,
+        RPC_MESSAGE_RPOCESS = 1,
     };
 
     // STAGE_RES
     enum IpcEventResult {
-        IPC_RESULT_IDLE = 0,
-        IPC_RESULT_OK,
-        IPC_RESULT_FAILED,
-        IPC_RESULT_CANCELED,
-        IPC_RESULT_UNKNOWN,
+        RPC_RESULT_IDLE = 0,
+        RPC_RESULT_OK,
+        RPC_RESULT_FAILED,
+        RPC_RESULT_CANCELED,
+        RPC_RESULT_UNKNOWN,
     };
 };
 
@@ -149,10 +150,10 @@ inline void DfxReportFailEvent(int type, int errorCode, const char *func)
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
-        "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "TYPE", type);
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
+        "STAGE_RES", DbinderErrorCode::RPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "TYPE", type);
 #endif
 }
 
@@ -162,10 +163,10 @@ inline void DfxReportFailListenEvent(int type, int listenFd, int errorCode, cons
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
-        "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "LISTEN_FD", listenFd, "TYPE",
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
+        "STAGE_RES", DbinderErrorCode::RPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "LISTEN_FD", listenFd, "TYPE",
         type);
 #endif
 }
@@ -176,10 +177,11 @@ inline void DfxReportFailHandleEvent(int type, int handle, int errorCode, const 
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
-        "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "HANDLE", handle, "TYPE", type);
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
+        "STAGE_RES", DbinderErrorCode::RPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "HANDLE", handle, "TYPE",
+        type);
 #endif
 }
 
@@ -189,10 +191,11 @@ inline void DfxReportFailDeviceEvent(int type, const std::string &device, int er
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
-        "STAGE_RES", DbinderErrorCode::IPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "DEVICE", device, "TYPE", type);
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
+        "STAGE_RES", DbinderErrorCode::RPC_RESULT_FAILED, "ERROR_CODE", abs(errorCode), "DEVICE", device, "TYPE",
+        type);
 #endif
 }
 
@@ -202,9 +205,9 @@ inline void DfxReportEvent(int type, int stageRes, const char *func)
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
         "STAGE_RES", stageRes, "TYPE", type);
 #endif
 }
@@ -215,9 +218,9 @@ inline void DfxReportDeviceEvent(int type, int stageRes, const std::string &devi
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
         "STAGE_RES", stageRes, "DEVICE", device, "TYPE", type);
 #endif
 }
@@ -228,11 +231,28 @@ inline void DfxReportRequestProcEvent(const std::string &desc, int procTime, int
         return;
     }
 #ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
-    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_REQUEST_PROC_EVENT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_PKG_NAME, "FUNC", func,
-        "BIZ_SCENE", DbinderErrorCode::IPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::IPC_MESSAGE_RPOCESS,
-        "STAGE_RES", DbinderErrorCode::IPC_RESULT_OK, "IPC_REQUEST_DESC", desc,
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_REQUEST_PROC_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME, "FUNC",
+        func, "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_MESSAGE_RPOCESS,
+        "STAGE_RES", DbinderErrorCode::RPC_RESULT_OK, "IPC_REQUEST_DESC", desc,
         "IPC_REQUEST_TIME", procTime, "IPC_REQUEST_CODE", code);
+#endif
+}
+
+inline void DfxReportNegotiationEvent(int32_t saId, int32_t errCode, uint64_t startTime,
+    const std::string &remoteDevice)
+{
+#ifdef HIVIEWDFX_HISYSEVENT_SUPPORT
+    constexpr int32_t DBINDER_OK = 100;
+    auto stopTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    auto localDevice = IPCProcessSkeleton::ConvertToSecureString(IPCSkeleton::GetLocalDeviceID());
+    HiSysEventWrite(DbinderErrorCode::DSOFTBUS_DOMAIN, DbinderErrorCode::DSOFTBUS_RPC_NEGOTIATION_EVENT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "ORG_PKG", DbinderErrorCode::DSOFTBUS_RPC_PKG_NAME,
+        "BIZ_SCENE", DbinderErrorCode::RPC_COMMUNICATION, "BIZ_STAGE", DbinderErrorCode::RPC_NEGOTIATION_RPOCESS,
+        "STAGE_RES", (errCode == DBINDER_OK) ? DbinderErrorCode::RPC_RESULT_OK : DbinderErrorCode::RPC_RESULT_FAILED,
+        "ERROR_CODE", abs(errCode), "SA_ID", saId, "COST_TIME", stopTime - startTime, "LOCAL_DEVICE", localDevice,
+        "REMOTE_DEVICE", IPCProcessSkeleton::ConvertToSecureString(remoteDevice));
 #endif
 }
 
