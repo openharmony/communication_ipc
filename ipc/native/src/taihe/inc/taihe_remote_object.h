@@ -83,7 +83,7 @@ private:
     ::taihe::string desc_;
     std::optional<::ohos::rpc::rpc::RemoteObject> jsObjRef_;
     std::optional<::ohos::rpc::rpc::IRemoteBroker> jsLocalInterface_;
-    bool hasCallingInfo_;
+    bool hasCallingInfo_ = false;
 };
 
 } // namespace
