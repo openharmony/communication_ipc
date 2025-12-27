@@ -63,6 +63,19 @@ private:
     bool isValid_ = false;
 };
 
+class HandleEscape {
+public:
+    HandleEscape(napi_env env);
+    ~HandleEscape();
+
+    napi_value Escape(napi_value value);
+    bool EscapeIsValid();
+private:
+    napi_env env_ = nullptr;
+    napi_escapable_handle_scope scope_ = nullptr;
+    bool escapeIsValid_ = false;
+};
+
 class NAPIRemoteObject : public IPCObjectStub {
 public:
     NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef, const std::u16string &descriptor);
