@@ -706,6 +706,43 @@ bool NapiScope::IsValid()
     return isValid_;
 }
 
+HandleEscape::HandleEscape(napi_env env) : env_(env)
+{
+    napi_status status = napi_open_escapable_handle_scope(env_, &scope_);
+    if (status != napi_ok || scope_ == nullptr) {
+        ZLOGE(LOG_LABEL, "open escapable handle scope failed, status:%{public}d", status);
+        escapeIsValid_ = false;
+    } else {
+        escapeIsValid_ = true;
+    }
+}
+
+HandleEscape::~HandleEscape()
+{
+    if (escapeIsValid_) {
+        napi_status status = napi_close_escapable_handle_scope(env_, scope_);
+        if (status != napi_ok) {
+            ZLOGE(LOG_LABEL, "close escapable handle scope failed, status:%{public}d", status);
+        }
+    }
+}
+
+napi_value HandleEscape::Escape(napi_value value)
+{
+    napi_value result = nullptr;
+    napi_status status = napi_escape_handle(env_, scope_, value, &result);
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "escapable handle failed, result is nullptr, status:%{public}d", status);
+        return nullptr;
+    }
+    return result;
+}
+
+bool HandleEscape::EscapeIsValid()
+{
+    return escapeIsValid_;
+}
+
 NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, napi_ref jsObjectRef,
     const std::u16string &descriptor)
     : IPCObjectStub(descriptor), jsThreadId_(jsThreadId)
@@ -982,10 +1019,8 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
 
 napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> target)
 {
-    napi_escapable_handle_scope scope = nullptr;
-    napi_status scopeStatus = napi_open_escapable_handle_scope(env, &scope);
-    if (scopeStatus != napi_ok || scope == nullptr) {
-        ZLOGE(LOG_LABEL, "Fail to open scope, return null remoteObj");
+    HandleEscape handleEscape(env);
+    if (!handleEscape.EscapeIsValid()) {
         return nullptr;
     }
     napi_value global = nullptr;
@@ -1000,16 +1035,13 @@ napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> tar
     NAPIRemoteProxyHolder *proxyHolder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
     if (proxyHolder == nullptr) {
         ZLOGE(LOG_LABEL, "proxyHolder null");
-        napi_close_escapable_handle_scope(env, scope);
         return nullptr;
     }
     proxyHolder->object_ = target;
     proxyHolder->list_ = new (std::nothrow) NAPIDeathRecipientList();
     NAPI_ASSERT(env, proxyHolder->list_ != nullptr, "new NAPIDeathRecipientList failed");
 
-    napi_escape_handle(env, scope, jsRemoteProxy, &jsRemoteProxy);
-    napi_close_escapable_handle_scope(env, scope);
-    return jsRemoteProxy;
+    return handleEscape.Escape(jsRemoteProxy);
 }
 
 napi_value CreateJsStubRemoteObject(napi_env env, const sptr<IRemoteObject> target)
@@ -1096,10 +1128,8 @@ bool NAPI_ohos_rpc_ClearNativeRemoteProxy(napi_env env, napi_value jsRemoteProxy
 
 sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value object)
 {
-    napi_handle_scope scope = nullptr;
-    napi_status scopeStatus = napi_open_handle_scope(env, &scope);
-    if (scopeStatus != napi_ok || scope == nullptr) {
-        ZLOGE(LOG_LABEL, "Fail to open scope");
+    NapiScope napiScope(env);
+    if (!napiScope.IsValid()) {
         return nullptr;
     }
     if (object != nullptr) {
@@ -1116,7 +1146,6 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
             NAPIRemoteObjectHolder *holder = nullptr;
             napi_unwrap(env, object, (void **)&holder);
             NAPI_ASSERT(env, holder != nullptr, "failed to get napi remote object holder");
-            napi_close_handle_scope(env, scope);
             return holder != nullptr ? holder->Get() : nullptr;
         }
 
@@ -1128,11 +1157,9 @@ sptr<IRemoteObject> NAPI_ohos_rpc_getNativeRemoteObject(napi_env env, napi_value
         NAPI_ASSERT(env, status == napi_ok, "failed to check js object type");
         if (instanceOfProxy) {
             NAPIRemoteProxyHolder *holder = NAPI_ohos_rpc_getRemoteProxyHolder(env, object);
-            napi_close_handle_scope(env, scope);
             return holder != nullptr ? holder->object_ : nullptr;
         }
     }
-    napi_close_handle_scope(env, scope);
     return nullptr;
 }
 
