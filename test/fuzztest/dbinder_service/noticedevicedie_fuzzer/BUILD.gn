@@ -34,6 +34,7 @@ ohos_fuzztest("NoticeDeviceDieFuzzTest") {
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder:libdbinder",
   ]
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
   ]
