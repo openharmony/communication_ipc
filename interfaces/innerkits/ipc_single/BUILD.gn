@@ -79,6 +79,7 @@ common_public_configs = [
 ]
 
 common_external_deps = [
+  "bounds_checking_function:libsec_shared",
   "faultloggerd:libbacktrace_local",
   "ffrt:libffrt",
   "hilog:libhilog",

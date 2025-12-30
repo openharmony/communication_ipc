@@ -71,6 +71,7 @@ if (os_level == "standard") {
     ]
 
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
     ]
@@ -142,6 +143,7 @@ if (os_level == "standard") {
 
     deps = [ ":ipc_common_test_static" ]
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "faultloggerd:libbacktrace_local",
       "ffrt:libffrt",
