@@ -39,6 +39,7 @@ if (support_jsapi) {
       "../../../interfaces/innerkits/ipc_napi_common:ipc_napi",
     ]
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",

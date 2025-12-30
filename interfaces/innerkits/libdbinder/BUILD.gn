@@ -68,6 +68,7 @@ ohos_shared_library("libdbinder") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",

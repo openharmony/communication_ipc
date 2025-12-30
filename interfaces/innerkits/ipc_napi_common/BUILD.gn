@@ -50,6 +50,7 @@ if (support_jsapi) {
     deps = [ "../../../interfaces/innerkits/ipc_core:ipc_core" ]
 
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",

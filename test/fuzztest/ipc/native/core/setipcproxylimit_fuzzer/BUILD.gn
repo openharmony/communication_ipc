@@ -31,6 +31,7 @@ ohos_fuzztest("SetIPCProxyLimitFuzzTest") {
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single" ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
   ]
