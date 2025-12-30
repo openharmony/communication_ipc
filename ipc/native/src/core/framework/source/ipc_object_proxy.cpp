@@ -236,7 +236,7 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
 
     IPCThreadSkeleton::UpdateSendRequestCount(1);
     int status = invoker->SendRequest(handle_, code, data, reply, option);
-    if (status == ERR_DEAD_OBJECT) {
+    if (status == ERR_DEAD_OBJECT || status == BR_DEAD_REPLY) {
         SetObjectDied(true);
     }
     IPCThreadSkeleton::UpdateSendRequestCount(-1);
