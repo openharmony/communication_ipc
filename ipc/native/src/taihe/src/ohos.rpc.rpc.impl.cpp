@@ -2055,7 +2055,7 @@ bool MessageOptionImpl::IsAsync()
         return false;
     }
     int flags = messageOption_->GetFlags();
-    return (static_cast<int32_t>(flags) & OHOS::MessageOption::TF_ASYNC) != 0;
+    return (static_cast<uint32_t>(flags) & OHOS::MessageOption::TF_ASYNC) != 0;
 }
 
 void MessageOptionImpl::SetAsync(bool isAsync)
