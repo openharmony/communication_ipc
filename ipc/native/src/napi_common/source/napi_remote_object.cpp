@@ -913,12 +913,6 @@ int NAPIRemoteObject::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
 
 void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {
-    napi_handle_scope scope = nullptr;
-    napi_status status = napi_open_handle_scope(env, &scope);
-    if (status != napi_ok || scope == nullptr) {
-        ZLOGE(LOG_LABEL, "Fail to open scope");
-        return;
-    }
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_get_named_property(env, global, "callingPid_", &oldCallingInfo.callingPid);
@@ -929,17 +923,10 @@ void NAPI_RemoteObject_saveOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCal
     napi_get_named_property(env, global, "isLocalCalling_", &oldCallingInfo.isLocalCalling);
     napi_get_named_property(env, global, "isLocalCalling_", &oldCallingInfo.isLocalCalling);
     napi_get_named_property(env, global, "activeStatus_", &oldCallingInfo.activeStatus);
-    napi_close_handle_scope(env, scope);
 }
 
 void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCallingInfoParam)
 {
-    napi_handle_scope scope = nullptr;
-    napi_status status = napi_open_handle_scope(env, &scope);
-    if (status != napi_ok || scope == nullptr) {
-        ZLOGE(LOG_LABEL, "Fail to open scope");
-        return;
-    }
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_value newPid = nullptr;
@@ -963,17 +950,10 @@ void NAPI_RemoteObject_setNewCallingInfo(napi_env env, const CallingInfo &newCal
     napi_value newActiveStatus = nullptr;
     napi_create_int32(env, newCallingInfoParam.activeStatus, &newActiveStatus);
     napi_set_named_property(env, global, "activeStatus_", newActiveStatus);
-    napi_close_handle_scope(env, scope);
 }
 
 void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCallingInfo)
 {
-    napi_handle_scope scope = nullptr;
-    napi_status status = napi_open_handle_scope(env, &scope);
-    if (status != napi_ok || scope == nullptr) {
-        ZLOGE(LOG_LABEL, "Fail to open scope");
-        return;
-    }
     napi_value global = nullptr;
     napi_get_global(env, &global);
     napi_set_named_property(env, global, "callingPid_", oldCallingInfo.callingPid);
@@ -983,7 +963,6 @@ void NAPI_RemoteObject_resetOldCallingInfo(napi_env env, NAPI_CallingInfo &oldCa
     napi_set_named_property(env, global, "localDeviceID_", oldCallingInfo.localDeviceID);
     napi_set_named_property(env, global, "isLocalCalling_", oldCallingInfo.isLocalCalling);
     napi_set_named_property(env, global, "activeStatus_", oldCallingInfo.activeStatus);
-    napi_close_handle_scope(env, scope);
 }
 
 int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
