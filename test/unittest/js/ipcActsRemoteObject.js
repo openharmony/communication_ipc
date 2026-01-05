@@ -35,7 +35,8 @@ class TestListener extends rpc.RemoteObject {
     super(descriptor);
     this.checkResult = checkResult;
   }
-  onRemoteMessageRequest(code: number, data: rpc.MessageSequence, reply: rpc.MessageSequence, option: rpc.MessageOption): boolean | Promise<boolean> {
+  onRemoteMessageRequest(code: number, data: rpc.MessageSequence,
+    reply: rpc.MessageSequence, option: rpc.MessageOption): boolean | Promise<boolean> {
     let result = false;
     if (code === 1) {
       console.info(logTag + "onRemoteRequest called, descriptor: " + this.getDescriptor());
