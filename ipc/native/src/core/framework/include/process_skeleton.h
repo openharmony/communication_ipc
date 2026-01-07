@@ -107,10 +107,10 @@ private:
 
     std::shared_mutex validObjectMutex_;
     std::unordered_map<IRemoteObject *, std::u16string> validObjectRecord_;
-    uint64_t ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
+    std::atomic<uint64_t> ipcProxyLimitNum_ = 20000; // default maximun ipc proxy number
     std::atomic<uint64_t> proxyObjectCountNum_ = 0;
     std::function<void(uint64_t num)> ipcProxyCallback_{ nullptr };
-
+    std::mutex ipcProxyCallbackMutex_;
     std::shared_mutex invokerProcMutex_;
     std::unordered_map<std::string, InvokerProcInfo> invokerProcInfo_;
 
