@@ -165,10 +165,14 @@ bool ProcessSkeleton::AttachObject(IRemoteObject *object, const std::u16string &
 
     if (object->IsProxyObject()) {
         uint64_t proxyObjectCountNum = proxyObjectCountNum_.fetch_add(1, std::memory_order_relaxed) + 1;
-        if (ipcProxyCallback_ != nullptr && ipcProxyLimitNum_ > 0 && proxyObjectCountNum > ipcProxyLimitNum_) {
-            ZLOGD(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64, proxyObjectCountNum,
-                ipcProxyLimitNum_);
-            ipcProxyCallback_(proxyObjectCountNum);
+        uint64_t ipcProxyLimitNum = ipcProxyLimitNum_.load(std::memory_order_relaxed);
+        if (ipcProxyLimitNum > 0 && proxyObjectCountNum > ipcProxyLimitNum) {
+            std::lock_guard<std::mutex> lockGuard(ipcProxyCallbackMutex_);
+            if (ipcProxyCallback_ != nullptr) {
+                ZLOGD(LOG_LABEL, "ipc proxy num:%{public}" PRIu64 " exceeds limit:%{public}" PRIu64,
+                    proxyObjectCountNum, ipcProxyLimitNum);
+                ipcProxyCallback_(proxyObjectCountNum);
+            }
         }
     }
     auto result = objects_.insert_or_assign(descriptor, wp);
@@ -348,7 +352,8 @@ std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)
 
 bool ProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback)
 {
-    ipcProxyLimitNum_ = num;
+    ipcProxyLimitNum_.store(num);
+    std::lock_guard<std::mutex> lockGuard(ipcProxyCallbackMutex_);
     ipcProxyCallback_ = callback;
     return true;
 }
