@@ -489,6 +489,7 @@ bool ProcessSkeleton::GetThreadStopFlag()
 
 void ProcessSkeleton::IncreaseThreadCount()
 {
+    CHECK_INSTANCE_EXIT(exitFlag_);
     std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
     runningChildThreadNum_.fetch_add(1);
 }
