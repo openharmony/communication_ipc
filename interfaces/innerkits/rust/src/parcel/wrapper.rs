@@ -17,6 +17,8 @@ use std::mem::size_of;
 use std::pin::Pin;
 
 use cxx::CxxVector;
+use cxx::SharedPtr;
+
 pub use ffi::*;
 
 use super::msg::MsgParcel;
@@ -30,6 +32,9 @@ mod ffi {
         include!("parcel_wrapper.h");
         include!("message_option.h");
         type IRemoteObjectWrapper = crate::remote::wrapper::IRemoteObjectWrapper;
+
+        #[namespace = "OHOS"]
+        type Ashmem = utils_rust::ashmem::ffi::Ashmem;
 
         #[namespace = "OHOS"]
         type MessageParcel;
@@ -51,6 +56,8 @@ mod ffi {
         fn ReadInterfaceToken(msgParcel: Pin<&mut MessageParcel>) -> String;
 
         fn WriteBuffer(msgParcel: Pin<&mut MessageParcel>, buffer: &[u8]) -> bool;
+
+        fn WriteAshmem(msgParcel: Pin<&mut MessageParcel>, buffer: SharedPtr<Ashmem>) -> bool;
 
         fn ReadBuffer(msgParcel: Pin<&mut MessageParcel>, len: usize, buffer: &mut Vec<u8>)
             -> bool;

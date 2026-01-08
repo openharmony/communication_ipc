@@ -66,6 +66,10 @@ if (ipc_rust_enable) {
       "rust_cxx:cxx_cppdeps",
     ]
 
+    if (is_standard_system) {
+      external_deps += [ "c_utils:utils_rust" ]
+    }
+
     subsystem_name = "communication"
     part_name = "ipc"
   }
@@ -87,6 +91,10 @@ if (ipc_rust_enable) {
       "ylong_runtime:ylong_runtime",
       "rust_cxx:lib",
     ]
+
+    if (is_standard_system) {
+      external_deps += [ "c_utils:utils_rust" ]
+    }
 
     install_images = [ system_base_dir ]
     subsystem_name = "communication"

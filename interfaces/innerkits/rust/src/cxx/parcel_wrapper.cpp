@@ -294,5 +294,18 @@ bool ReadString16Vector(Parcel &parcel, rust::vec<rust::string> &val)
     return true;
 }
 
+bool WriteAshmem(MessageParcel &msgParcel, std::shared_ptr<Ashmem> buffer)
+{
+    int fd = buffer->GetAshmemFd();
+    int32_t size = buffer->GetAshmemSize();
+    if (fd < 0 || size <= 0) {
+        return false;
+    }
+    if (!msgParcel.WriteFileDescriptor(fd) || !msgParcel.WriteInt32(size)) {
+        return false;
+    }
+    return true;
+}
+
 } // namespace IpcRust
 } // namespace OHOS

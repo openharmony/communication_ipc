@@ -20,11 +20,13 @@ use std::pin::Pin;
 
 use cxx::UniquePtr;
 
+use utils_rust::ashmem::Ashmem;
+
 use super::error::ParcelSetError;
 use super::wrapper::{
     AsParcel, AsParcelMut, MessageOption, MessageParcel, NewMessageOption, NewMessageParcel,
     Parcel, ReadBuffer, ReadInterfaceToken, ReadRemoteObject, ReadString16, ReadString16Vector,
-    WriteBuffer, WriteInterfaceToken, WriteRemoteObject, WriteString16, WriteString16Vector,
+    WriteBuffer, WriteInterfaceToken, WriteRemoteObject, WriteString16, WriteString16Vector, WriteAshmem
 };
 use super::{Deserialize, Serialize};
 use crate::parcel::wrapper::IRemoteObjectWrapper;
@@ -737,6 +739,14 @@ impl MsgParcel {
     fn get_pad_size(size: usize) -> usize {
         const SIZE_OFFSET: usize = 3;
         ((size + SIZE_OFFSET) & (!SIZE_OFFSET)) - size
+    }
+
+    pub fn write_ashmem(&mut self, ashmem: Ashmem) -> IpcResult<()> {
+        let buffer = unsafe { ashmem.c_ashmem() };
+        match WriteAshmem(self.as_msg_parcel_mut(), buffer.clone()) {
+            true => Ok(()),
+            false => Err(IpcStatusCode::Failed),
+        }
     }
 }
 
