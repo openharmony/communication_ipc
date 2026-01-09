@@ -946,6 +946,37 @@ int64_t unwrapRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& obj)
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
             ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet());
     }
+
+    auto* taiheAniObj = reinterpret_cast<RemoteObjectTaiheAni*>(nativePtr);
+    if (taiheAniObj == nullptr) {
+        ZLOGE(LOG_LABEL, "reinterpret_cast to RemoteObjectTaiheAni failed");
+        return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
+    }
+
+    OHOS::sptr<OHOS::IRemoteObject> iRemoteObject = taiheAniObj->nativeObject_;
+    if (iRemoteObject == nullptr) {
+        ZLOGE(LOG_LABEL, "nativeObject_ is nullptr");
+        return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
+    }
+
+    if (!iRemoteObject->IsProxyObject()) {
+        auto* stub = static_cast<OHOS::IPCObjectStub*>(iRemoteObject.GetRefPtr());
+        uint32_t objectType = static_cast<uint32_t>(stub->GetObjectType());
+        ZLOGD(LOG_LABEL, "create js object, type:%{public}d", objectType);
+        
+        if (objectType == OHOS::IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
+            auto* aniStub = static_cast<OHOS::ANIRemoteObject*>(stub);
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(aniStub->GetJsObject());
+        } else if (objectType == OHOS::IPCObjectStub::OBJECT_TYPE_NATIVE) {
+            uintptr_t addr = reinterpret_cast<uintptr_t>(stub);
+            auto jsStub = RemoteObjectImpl::CreateRemoteObjectFromNative(addr);
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsStub);
+        } else {
+            ZLOGE(LOG_LABEL, "invalid object type:%{public}d", objectType);
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
+        }
+    }
+
     ::ohos::rpc::rpc::RemoteProxy obj = taihe::make_holder<RemoteProxyImpl,
         ::ohos::rpc::rpc::RemoteProxy>(nativePtr, true);
     return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteProxy(obj);
