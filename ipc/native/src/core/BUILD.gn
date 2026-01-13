@@ -22,7 +22,6 @@ config("libipc_common_private_config") {
 }
 
 ohos_shared_library("ipc_common") {
-  visibility = [ "$SUBSYSTEM_DIR/*" ]
   sanitize = {
     integer_overflow = true
   }

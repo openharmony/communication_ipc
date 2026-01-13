@@ -18,7 +18,6 @@ IPC_CORE_ROOT = "$SUBSYSTEM_DIR/ipc/native"
 IPC_TEST_ROOT = "$SUBSYSTEM_DIR/test"
 
 ohos_shared_library("ipc_test_helper") {
-  visibility = [ "$SUBSYSTEM_DIR/*" ]
   include_dirs = [
     "include",
     "$IPC_CORE_ROOT/c/adapter/access_token/include",
@@ -119,7 +118,6 @@ ohos_executable("ipc_client_test") {
 }
 
 ohos_shared_library("ipc_test_helper_extra") {
-  visibility = [ "$SUBSYSTEM_DIR/*" ]
   include_dirs = [
     "include",
     "$IPC_CORE_ROOT/c/adapter/access_token/include",

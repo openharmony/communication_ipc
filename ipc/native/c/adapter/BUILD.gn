@@ -14,7 +14,7 @@
 config("rpc_adapter_interface") {
   include_dirs = [ "include" ]
 }
-SUBSYSTEM_DIR = "//foundation/communication/ipc"
+
 if (ohos_kernel_type == "liteos_m") {
   static_library("rpc_adapter") {
     sources = [ "Liteos_m/rpc_os_adapter.c" ]
@@ -22,7 +22,6 @@ if (ohos_kernel_type == "liteos_m") {
   }
 } else {
   shared_library("rpc_adapter") {
-    visibility = [ "$SUBSYSTEM_DIR/*" ]
     sources = [ "Linux/rpc_os_adapter.c" ]
     public_configs = [ ":rpc_adapter_interface" ]
     ldflags = [
