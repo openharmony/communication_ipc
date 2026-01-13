@@ -93,7 +93,6 @@ if (ohos_kernel_type == "liteos_m") {
   }
 } else if (ohos_kernel_type == "liteos_a") {
   shared_library("rpc_log") {
-    visibility = [ "$SUBSYSTEM_DIR/*" ]
     sources = [ "$IPC_CORE_ROOT/manager/src/rpc_log.c" ]
     include_dirs = [
       "$IPC_CORE_ROOT/manager/include",
@@ -136,11 +135,9 @@ if (ohos_kernel_type == "liteos_m") {
   }
 
   shared_library("rpc_manager") {
-    visibility = [ "$SUBSYSTEM_DIR/*" ]
   }
 } else {
   shared_library("rpc_log") {
-    visibility = [ "$SUBSYSTEM_DIR/*" ]
     sources = [ "$IPC_CORE_ROOT/manager/src/rpc_log.c" ]
     include_dirs = [
       "$IPC_CORE_ROOT/manager/include",
@@ -187,7 +184,6 @@ if (ohos_kernel_type == "liteos_m") {
   SYSTEM_LEVEL = "small"
   enable_socket_trans = true
   shared_library("rpc_manager") {
-    visibility = [ "$SUBSYSTEM_DIR/*" ]
     sources = ipc_common_src
     sources += [
       "$IPC_CORE_ROOT/ipc/src/linux/ipc_invoker.c",
