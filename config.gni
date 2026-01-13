@@ -26,6 +26,7 @@ declare_args() {
   hiviewdfx_hisysevent_support = false
   ipc_proxy_dfx_backtrace_enabled = false
   ipc_feature_freeze_enabled = false
+  ipc_feature_memory_usage_enabled = false
 }
 
 if (defined(global_parts_info) &&

@@ -70,6 +70,10 @@ template("ipc_dbinder_unittest") {
       external_deps += invoker.external_deps
     }
 
+    if (ipc_feature_memory_usage_enabled) {
+      defines += ["MEMORY_USAGE_ENABLED"]
+    }
+
     sources = invoker.sources
     ldflags = [ "-lpthread" ]
     resource_config_file = "$IPC_ROOT_PATH/test/resource/unittest/ohos_test.xml"

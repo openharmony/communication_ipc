@@ -2433,4 +2433,64 @@ HWTEST_F(BinderInvokerTest, SendReplyTest002, TestSize.Level1)
 }
 #endif
 
+#ifdef MEMORY_USAGE_ENABLED
+/**
+ * @tc.name: GetMemoryUsageTest001
+ * @tc.desc: cover GetMemoryUsage branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetMemoryUsageTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    BinderConnector::instance_ = nullptr;
+    unsigned long totalSize = 0UL;
+    unsigned long oneWayFreeSize = 0UL;
+    EXPECT_EQ(binderInvoker.GetMemoryUsage(1, totalSize, oneWayFreeSize), IPC_INVOKER_CONNECT_ERR);
+}
+
+/**
+ * @tc.name: GetMemoryUsageTest002
+ * @tc.desc: cover GetMemoryUsage branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetMemoryUsageTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    BinderConnector::instance_ = nullptr;
+    binderInvoker.binderConnector_ = BinderConnector::GetInstance();
+    unsigned long totalSize = 0UL;
+    unsigned long oneWayFreeSize = 0UL;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    EXPECT_CALL(mock, IsDriverAlive).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_INVALID_DATA));
+    EXPECT_EQ(binderInvoker.GetMemoryUsage(1, totalSize, oneWayFreeSize), ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetMemoryUsageTest003
+ * @tc.desc: cover GetMemoryUsage branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetMemoryUsageTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    BinderConnector::instance_ = nullptr;
+    binderInvoker.binderConnector_ = BinderConnector::GetInstance();
+    unsigned long totalSize = 1UL;
+    unsigned long oneWayFreeSize = 1UL;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    EXPECT_CALL(mock, IsDriverAlive).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder)
+        .WillOnce([](unsigned long code, void* data) {
+            auto* memoryInfo = reinterpret_cast<hmb_oneway_spam_state*>(data);
+            memoryInfo->total_size = 1024;
+            memoryInfo->oneway_free_size = 24;
+            return ERR_NONE;
+        });
+    EXPECT_EQ(binderInvoker.GetMemoryUsage(1, totalSize, oneWayFreeSize), ERR_NONE);
+    EXPECT_EQ(totalSize, 1024);
+    EXPECT_EQ(oneWayFreeSize, 24);
+}
+#endif // MEMORY_USAGE_ENABLED
+
 } // namespace OHOS
