@@ -63,8 +63,14 @@ template("ipc_unittest") {
       "samgr:samgr_proxy",
     ]
 
+    defines = []
+
     if (ipc_feature_freeze_enabled) {
-      defines = ["FREEZE_PROCESS_ENABLED"]
+      defines += ["FREEZE_PROCESS_ENABLED"]
+    }
+
+    if (ipc_feature_memory_usage_enabled) {
+      defines += ["MEMORY_USAGE_ENABLED"]
     }
 
     if (hiviewdfx_hisysevent_support) {

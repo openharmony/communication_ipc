@@ -234,6 +234,20 @@ public:
      */
     static int32_t GetProcessFreezeInfo(uint32_t pid, bool &isFrozen);
 #endif // FREEZE_PROCESS_ENABLED
+
+#ifdef MEMORY_USAGE_ENABLED
+    /**
+     * @brief Get memory space usage of the specific process.
+     * @note This function can only be used for local device processes.
+     * @param pid Process ID to check.
+     * @param totalSize Total memory size.
+     * @param oneWayFreeSize Total free memory size.
+     * @return Returns {@link ERR_NONE} if the operation is successful; returns an error code
+     * defined in {@link ipc_types.h} otherwise.
+     * @since 23
+     */
+    static int32_t GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize);
+#endif // MEMORY_USAGE_ENABLED
 };
 
 class IPCDfx {

@@ -809,6 +809,26 @@ int32_t BinderInvoker::GetProcessFreezeInfo(uint32_t pid, bool &isFrozen)
 }
 #endif // FREEZE_PROCESS_ENABLED
 
+#ifdef MEMORY_USAGE_ENABLED
+int32_t BinderInvoker::GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsDriverAlive())) {
+        return IPC_INVOKER_CONNECT_ERR;
+    }
+    hmb_oneway_spam_state memoryInfo;
+    memoryInfo.oneway_free_size = 0;
+    memoryInfo.total_size = 0;
+    int error = binderConnector_->WriteBinder(BINDER_GET_MEMORY_USAGE, &memoryInfo);
+    if (error != ERR_NONE) {
+        ZLOGE(LABEL, "error:%{public}d", error);
+        return error;
+    }
+    totalSize = memoryInfo.total_size;
+    oneWayFreeSize = memoryInfo.oneway_free_size;
+    return ERR_NONE;
+}
+#endif // MEMORY_USAGE_ENABLED
+
 int32_t BinderInvoker::GeneralServiceSendRequest(
     const binder_transaction_data &tr, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {

@@ -954,4 +954,49 @@ HWTEST_F(IPCSkeletonTest, CheckFreezeTest, TestSize.Level1)
     delete binderInvoker;
 }
 #endif // FREEZE_PROCESS_ENABLED
+
+#ifdef MEMORY_USAGE_ENABLED
+/**
+ * @tc.name: GetMemoryUsageTest01
+ * @tc.desc: Verify the GetMemoryUsage function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetMemoryUsageTest01, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+    MockIRemoteInvoker *binderInvoker = new (std::nothrow) MockIRemoteInvoker();
+    ASSERT_NE(binderInvoker, nullptr);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = binderInvoker;
+
+    EXPECT_CALL(*binderInvoker, GetMemoryUsage(_, _, _))
+        .WillRepeatedly(testing::Return(ERR_NONE));
+
+    unsigned long totalSize = 0UL;
+    unsigned long oneWayFreeSize = 0UL;
+    ASSERT_EQ(IPCSkeleton::GetMemoryUsage(0, totalSize, oneWayFreeSize), ERR_NONE);
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+    delete binderInvoker;
+}
+
+/**
+ * @tc.name: GetMemoryUsageTest02
+ * @tc.desc: Verify the GetMemoryUsage function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetMemoryUsageTest02, TestSize.Level1)
+{
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    ASSERT_NE(current, nullptr);
+
+    unsigned long totalSize = 0UL;
+    unsigned long oneWayFreeSize = 0UL;
+    ASSERT_EQ(IPCSkeleton::GetMemoryUsage(0, totalSize, oneWayFreeSize), ERR_NONE);
+    ZLOGI(LOG_LABEL, "get memory usage size : totalSize:%{public}lu, oneWayFreeSize:%{public}lu",
+        totalSize, oneWayFreeSize);
+
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+}
+#endif // MEMORY_USAGE_ENABLED
 } // namespace OHOS
