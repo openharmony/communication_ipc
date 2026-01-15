@@ -68,6 +68,7 @@ private:
     int idleSocketThreadNum_;
     std::mutex mutex_;
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_COMMON, "IPCWorkThreadPool" };
+    static std::atomic<bool> exitFlag_;
 };
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
