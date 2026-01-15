@@ -117,7 +117,9 @@ public:
     void PrintDBinderTransData(const dbinder_transaction_data *transData, uint32_t dataLen);
     virtual bool CheckMessageVaildity(int32_t socketId, int cmd);
     virtual bool QueryServerSessionObjectBySocketId(uint32_t socketId) = 0;
-
+#ifdef MEMORY_USAGE_ENABLED
+    virtual int32_t GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize) override;
+#endif // MEMORY_USAGE_ENABLED
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,
         std::shared_ptr<T> session);

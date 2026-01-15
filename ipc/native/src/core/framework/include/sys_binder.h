@@ -77,6 +77,13 @@ struct binder_proc_frozen_state {
 };
 #endif // FREEZE_PROCESS_ENABLED
 
+#ifdef MEMORY_USAGE_ENABLED
+struct hmb_oneway_spam_state {
+    unsigned long oneway_free_size;
+    unsigned long total_size;
+};
+#endif // MEMORY_USAGE_ENABLED
+
 #ifndef __linux__
 #define HMB_ERROR_INFO_LEN 64
 struct hmb_detailed_err {
@@ -181,6 +188,9 @@ struct binder_sender_info {
 #endif // FREEZE_PROCESS_ENABLED
 #define BINDER_FEATURE_SET _IOWR('b', 30, struct binder_feature_set)
 #define BINDER_GET_ACCESS_TOKEN _IOWR('b', 31, struct access_token)
+#ifdef MEMORY_USAGE_ENABLED
+#define BINDER_GET_MEMORY_USAGE _IOWR('b', 162, struct hmb_oneway_spam_state)
+#endif // MEMORY_USAGE_ENABLED
 #define BINDER_GET_SENDER_INFO _IOWR('b', 32, struct binder_sender_info)
 #define BINDER_THREAD_RECLAIM _IOW('b', 33, __s32)
 

@@ -130,6 +130,10 @@ public:
     virtual sptr<IRemoteObject> GetSAMgrObject() = 0;
 #endif
 
+#ifdef MEMORY_USAGE_ENABLED
+    virtual int32_t GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize) = 0;
+#endif // MEMORY_USAGE_ENABLED
+
 private:
     static constexpr RemoteObjectSerializedInfo remoteObjectInfo_[] = {
         { BINDER_TYPE_BINDER, sizeof(flat_binder_object) },

@@ -68,6 +68,10 @@ template("ipc_unittest") {
       defines += [ "FREEZE_PROCESS_ENABLED" ]
     }
 
+    if (ipc_feature_memory_usage_enabled) {
+      defines += ["MEMORY_USAGE_ENABLED"]
+    }
+
     if (hiviewdfx_hisysevent_support) {
       external_deps += [ "hisysevent:libhisysevent" ]
     }

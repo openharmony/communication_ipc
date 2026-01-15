@@ -153,3 +153,20 @@ HWTEST_F(DBinderBaseInvokerUnitTest, StartProcessLoopAbnormalBranch002, TestSize
     mock.StartProcessLoop(socketId, reinterpret_cast<const char*>(tr.get()), size);
     EXPECT_EQ(mock.result_, RPC_BASE_INVOKER_MALLOC_ERR);
 }
+
+#ifdef MEMORY_USAGE_ENABLED
+/**
+ * @tc.name: GetMemoryUsage001
+ * @tc.desc: Verify the GetMemoryUsage function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderBaseInvokerUnitTest, GetMemoryUsage001, TestSize.Level1)
+{
+    std::shared_ptr<MockDBinderBaseInvoker> invoker = std::make_shared<MockDBinderBaseInvoker>();
+    ASSERT_TRUE(invoker != nullptr);
+
+    unsigned long totalSize = 0UL;
+    unsigned long oneWayFreeSize = 0UL;
+    ASSERT_EQ(invoker->GetMemoryUsage(0, totalSize, oneWayFreeSize), RPC_BASE_INVOKER_NOT_SUPPORT_ERR);
+}
+#endif // MEMORY_USAGE_ENABLED
