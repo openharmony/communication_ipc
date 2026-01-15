@@ -202,6 +202,14 @@ int32_t DBinderBaseInvoker<T>::GetProcessFreezeInfo(uint32_t pid, bool &isFreeze
 }
 #endif // FREEZE_PROCESS_ENABLED
 
+#ifdef MEMORY_USAGE_ENABLED
+template <class T>
+int32_t DBinderBaseInvoker<T>::GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize)
+{
+    return RPC_BASE_INVOKER_NOT_SUPPORT_ERR;
+}
+#endif // MEMORY_USAGE_ENABLED
+
 template <class T> bool DBinderBaseInvoker<T>::CheckTransactionData(const dbinder_transaction_data *tr) const
 {
     if (tr->sizeOfSelf == 0 || tr->sizeOfSelf > SOCKET_MAX_BUFF_SIZE || tr->buffer_size > SOCKET_MAX_BUFF_SIZE ||

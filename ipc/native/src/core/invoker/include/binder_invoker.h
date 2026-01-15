@@ -156,6 +156,10 @@ public:
     sptr<IRemoteObject> GetSAMgrObject() override;
 #endif
 
+#ifdef MEMORY_USAGE_ENABLED
+    int32_t GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize) override;
+#endif // MEMORY_USAGE_ENABLED
+
 protected:
     std::atomic<bool> isMainWorkThread;
     bool stopWorkThread;
