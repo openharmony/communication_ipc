@@ -152,6 +152,7 @@ ohos_shared_library("ipc_single") {
 }
 
 ohos_shared_library("ipc_single_test") {
+  visibility = [ "$SUBSYSTEM_DIR/*" ]
   sanitize = {
     integer_overflow = true
   }
