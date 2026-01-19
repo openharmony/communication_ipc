@@ -236,7 +236,7 @@ int IPCObjectProxy::SendRequestInner(bool isLocal, uint32_t code, MessageParcel 
 
     IPCThreadSkeleton::UpdateSendRequestCount(1);
     int status = invoker->SendRequest(handle_, code, data, reply, option);
-    if (status == ERR_DEAD_OBJECT || status == BR_DEAD_REPLY) {
+    if (status == ERR_DEAD_OBJECT) {
         SetObjectDied(true);
     }
     IPCThreadSkeleton::UpdateSendRequestCount(-1);
@@ -552,8 +552,9 @@ void IPCObjectProxy::SendObituary()
     }
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
-        // hd is handle, ct is count
-        ZLOGI_SENDOBITUARY(LABEL, "hd:%{public}d ct:%{public}zu", handle_, toBeReport.size());
+        // hd is handle, ct is count, D is desc
+        ZLOGI_SENDOBITUARY(LABEL, "hd:%{public}d ct:%{public}zu D:", handle_, toBeReport.size(),
+            remoteDescriptor_.c_str());
     }
 #ifndef CONFIG_IPC_SINGLE
     if (handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
@@ -581,6 +582,8 @@ void IPCObjectProxy::SendObituary()
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
             recipient->OnRemoteDied(this);
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
+        } else{
+            ZLOGE(LABEL, "recipient is null");
         }
     }
 }
