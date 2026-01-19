@@ -346,24 +346,22 @@ static int32_t GetSocketLocalDeviceID(const char *SaSessionName, char *deviceId)
                 continue;
             }
 
-            char *localDeviceId = inet_ntoa(((struct sockaddr_in*)ifa->ifa_addr)->sin_addr);
-            if (localDeviceId == NULL) {
-                RPC_LOG_ERROR("GetSocketLocalDeviceID inet_ntoa get null");
+            char localDeviceId[INET_ADDRSTRLEN] = {0};
+            if (inet_ntop(AF_INET, &(((struct sockaddr_in*)ifa->ifa_addr)->sin_addr),
+                localDeviceId, INET_ADDRSTRLEN) == NULL) {
+                RPC_LOG_ERROR("GetSocketLocalDeviceID inet_ntop get null");
                 break;
             }
 
             size_t deviceIdLen = strlen(localDeviceId);
             if (deviceIdLen == 0 || deviceIdLen > DEVICEID_LENGTH) {
                 RPC_LOG_ERROR("deviceIdLen invalid");
-                free(localDeviceId);
                 break;
             }
             if (strcpy_s(deviceId, DEVICEID_LENGTH + 1, localDeviceId) != EOK) {
                 RPC_LOG_ERROR("deviceId strcpy failed");
-                free(localDeviceId);
                 return ERR_FAILED;
             }
-            free(localDeviceId);
             break;
         }
     }
