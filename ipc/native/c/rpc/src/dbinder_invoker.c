@@ -168,8 +168,9 @@ static int32_t MoveTransData2Buffer(HandleSessionList *sessionObject, dbinder_tr
         return ERR_FAILED;
     }
 
+    size_t bufferSize = (size_t)transData->sizeOfSelf - sizeof(dbinder_transaction_data);
     if (memcpy_s(sessionObject->buffer + sizeof(dbinder_transaction_data),
-        transData->buffer_size, transData->buffer, transData->buffer_size) != EOK) {
+        bufferSize, transData->buffer, bufferSize) != EOK) {
         RPC_LOG_ERROR("sessionObject buffer memset failed");
         free(sessionObject->buffer);
         return ERR_FAILED;
