@@ -553,7 +553,7 @@ void IPCObjectProxy::SendObituary()
     {
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         // hd is handle, ct is count, D is desc
-        ZLOGI_SENDOBITUARY(LABEL, "hd:%{public}d ct:%{public}zu D:", handle_, toBeReport.size(),
+        ZLOGI_SENDOBITUARY(LABEL, "hd:%{public}d ct:%{public}zu D:%{public}s", handle_, toBeReport.size(),
             remoteDescriptor_.c_str());
     }
 #ifndef CONFIG_IPC_SINGLE
