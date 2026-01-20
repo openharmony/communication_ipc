@@ -23,8 +23,12 @@ config("libipc_single_private_config") {
 
 config("ipc_all_deps_config") {
   include_dirs = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include" ]
+  defines = []
   if (current_os == "ohos") {
-    defines = [ "OHOS_PLATFORM" ]
+    defines += [ "OHOS_PLATFORM" ]
+  }
+  if (ipc_feature_memory_usage_enabled) {
+    defines += [ "MEMORY_USAGE_ENABLED" ]
   }
 }
 
@@ -126,9 +130,6 @@ ohos_shared_library("ipc_single") {
   if (ipc_feature_freeze_enabled) {
     defines += [ "FREEZE_PROCESS_ENABLED" ]
   }
-  if (ipc_feature_memory_usage_enabled) {
-    defines += [ "MEMORY_USAGE_ENABLED" ]
-  }
   innerapi_tags = [
     "chipsetsdk",
     "platformsdk",
@@ -181,9 +182,6 @@ ohos_shared_library("ipc_single_test") {
   }
   if (ipc_feature_freeze_enabled) {
     defines += [ "FREEZE_PROCESS_ENABLED" ]
-  }
-  if (ipc_feature_memory_usage_enabled) {
-    defines += [ "MEMORY_USAGE_ENABLED" ]
   }
   innerapi_tags = [
     "chipsetsdk_sp",
