@@ -50,6 +50,9 @@ if (ohos_kernel_type == "liteos_m") {
   SYSTEM_LEVEL = "mini"
   enable_socket_trans = false
   static_library("rpc_manager") {
+    visibility = [
+      "$SUBSYSTEM_DIR/*",
+    ]
     sources = ipc_common_src
     sources += [
       "$IPC_CORE_ROOT/ipc/src/liteos_m/ipc_invoker.c",
