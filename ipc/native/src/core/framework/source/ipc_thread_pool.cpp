@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "check_instance_exit.h"
 #include "ipc_debug.h"
 #include "log_tags.h"
 
@@ -31,6 +32,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, LOG_ID_IPC_
 
 static void *g_selfSoHandler = nullptr;
 static constexpr int32_t IDLE_SPAWN_ACTIVE_NUM = 1;
+std::atomic<bool> IPCWorkThreadPool::exitFlag_ = false;
 
 // this func is called when ipc_single and ipc_core before loading
 // LCOV_EXCL_START
@@ -63,6 +65,7 @@ IPCWorkThreadPool::IPCWorkThreadPool(int maxThreadNum)
 
 IPCWorkThreadPool::~IPCWorkThreadPool()
 {
+    exitFlag_ = true;
     StopAllThreads();
 }
 
@@ -77,6 +80,7 @@ void IPCWorkThreadPool::StopAllThreads()
 
 bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::lock_guard<std::mutex> lock(mutex_);
     if (((proto == IRemoteObject::IF_PROT_DEFAULT) && (idleThreadNum_ <= 0)) ||
         ((proto == IRemoteObject::IF_PROT_DATABUS) && (idleSocketThreadNum_ <= 0))) {
@@ -112,6 +116,7 @@ bool IPCWorkThreadPool::SpawnThread(int policy, int proto)
 
 std::string IPCWorkThreadPool::MakeThreadName(int proto, int &threadIndex)
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, "");
     int sequence = threadSequence_.fetch_add(1, std::memory_order_relaxed);
     threadIndex = sequence;
     return IPCWorkThread::MakeBasicThreadName(proto, sequence);
@@ -119,6 +124,7 @@ std::string IPCWorkThreadPool::MakeThreadName(int proto, int &threadIndex)
 
 bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = threads_.find(threadName);
     if (it != threads_.end()) {
@@ -140,16 +146,19 @@ bool IPCWorkThreadPool::RemoveThread(const std::string &threadName)
 
 int IPCWorkThreadPool::GetSocketIdleThreadNum() const
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
     return idleSocketThreadNum_;
 }
 
 int IPCWorkThreadPool::GetSocketTotalThreadNum() const
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
     return maxThreadNum_ / PROTO_NUM;
 }
 
 int IPCWorkThreadPool::GetMaxThreadNum() const
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
     return (maxThreadNum_ / PROTO_NUM) + IDLE_SPAWN_ACTIVE_NUM;
 }
 
@@ -158,6 +167,7 @@ void IPCWorkThreadPool::UpdateMaxThreadNum(int maxThreadNum)
     /*
      * not support delete thread, because thread is in using
      */
+    CHECK_INSTANCE_EXIT(exitFlag_);
     int totalNum = maxThreadNum + maxThreadNum;
     std::lock_guard<std::mutex> lock(mutex_);
     if (totalNum <= maxThreadNum_) {

@@ -93,11 +93,13 @@ void ProcessSkeleton::SetRegistryObject(sptr<IRemoteObject> &object)
 
 void ProcessSkeleton::SetSamgrFlag(bool flag)
 {
+    CHECK_INSTANCE_EXIT(exitFlag_);
     isSamgr_ = flag;
 }
 
 bool ProcessSkeleton::GetSamgrFlag()
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     return isSamgr_;
 }
 
@@ -352,6 +354,7 @@ std::string ProcessSkeleton::ConvertToSecureDesc(const std::string &str)
 
 bool ProcessSkeleton::SetIPCProxyLimit(uint64_t num, std::function<void(uint64_t num)> callback)
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     ipcProxyLimitNum_.store(num);
     std::lock_guard<std::mutex> lockGuard(ipcProxyCallbackMutex_);
     ipcProxyCallback_ = callback;
@@ -484,6 +487,7 @@ std::string ProcessSkeleton::ConvertBytesToHexString(const uint8_t *data, size_t
 
 bool ProcessSkeleton::GetThreadStopFlag()
 {
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
     return stopThreadFlag_.load();
 }
 
@@ -496,6 +500,7 @@ void ProcessSkeleton::IncreaseThreadCount()
 
 void ProcessSkeleton::DecreaseThreadCount()
 {
+    CHECK_INSTANCE_EXIT(exitFlag_);
     std::unique_lock<std::mutex> lockGuard(threadCountMutex_);
     if (runningChildThreadNum_.load() > 0) {
         runningChildThreadNum_.fetch_sub(1);
@@ -509,6 +514,7 @@ void ProcessSkeleton::DecreaseThreadCount()
 // LCOV_EXCL_START
 void ProcessSkeleton::NotifyChildThreadStop()
 {
+    CHECK_INSTANCE_EXIT(exitFlag_);
     // set child thread exit flag
     stopThreadFlag_.store(true);
     // after closeing fd, child threads will be not block in the 'WriteBinder' function
