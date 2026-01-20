@@ -582,7 +582,7 @@ void IPCObjectProxy::SendObituary()
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied begin", handle_);
             recipient->OnRemoteDied(this);
             ZLOGD(LABEL, "handle:%{public}u call OnRemoteDied end", handle_);
-        } else{
+        } else {
             ZLOGE(LABEL, "recipient is null");
         }
     }
