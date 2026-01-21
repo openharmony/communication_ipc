@@ -37,7 +37,7 @@ namespace OHOS {
             (void)systemAbilityId;
             return isLoad_;
         }
-        bool IsDistributedSystemAbility(int32_t systemAbilityId) override
+        bool IsDistributedSystemAbility(int32_t systemAbilityId) const override
         {
             (void)systemAbilityId;
             return isSystemAbility_;

@@ -90,7 +90,7 @@ int32_t RemoteRequestOne(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return result;
 }
 
-void *ThreadHandler(void *args)
+void *ThreadHandler(const void *args)
 {
     (void)args;
     sleep(IPC_TEST_TIME_INTERVAL); // sleep 2 min

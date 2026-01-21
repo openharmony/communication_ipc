@@ -30,7 +30,7 @@
 #include "serializer.h"
 
 namespace {
-void ServerDead1(void *args)
+void ServerDead1(const void *args)
 {
     (void)args;
     RPC_LOG_INFO("#### rpc server dead callback11 called");

@@ -256,7 +256,7 @@ static void* WrapperHandleSendReply(void* args)
     return NULL;
 }
 
-static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, void *args)
+static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, const void *args)
 {
     (void)args;
     if (SaSessionName == NULL) {
