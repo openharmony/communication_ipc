@@ -237,6 +237,7 @@ std::shared_ptr<dbinder_transaction_data> DBinderBaseInvoker<T>::ProcessNormalDa
         ZLOGE(LOG_LABEL, "new buffer failed of length:%{public}u", sendSize);
         return nullptr;
     }
+    (void)memset_s(transData.get(), sendSize, 0, sendSize);
     ConstructTransData(data, *transData, sendSize, seqNum, cmd, code, flags);
     transData->cookie = (handle == 0) ? 0 : sessionObject->GetStubIndex();
     if (MoveMessageParcel2TransData(data, sessionObject, transData, socketId, status) != true) {
