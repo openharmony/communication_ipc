@@ -40,6 +40,23 @@ config("libdbinder_private_config") {
 }
 
 ohos_shared_library("libdbinder") {
+  visibility = [ 
+    "$SUBSYSTEM_DIR/*",
+    "$SUBSYSTEM_DIR/../../../base/account/os_account/frameworks/test/unittest/*",
+    "$SUBSYSTEM_DIR/../../../base/notification/common_event_service/services/test/moduletest/*",
+    "$SUBSYSTEM_DIR/../../../base/notification/common_event_service/test/benchmarktest/common_event_service_test/*",
+    "$SUBSYSTEM_DIR/../../../base/notification/common_event_service/test/fuzztest/*",
+    "$SUBSYSTEM_DIR/../../../base/security/access_token/interfaces/innerkits/accesstoken/test/unittest/*",
+    "$SUBSYSTEM_DIR/../../../base/security/access_token/interfaces/innerkits/privacy/test/*",
+    "$SUBSYSTEM_DIR/../../../foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test/unittest/*",
+    "$SUBSYSTEM_DIR/../../distributedhardware/device_manager/interfaces/inner_kits/native_cpp/*",
+    "$SUBSYSTEM_DIR/../../filemanagement/storage_service/services/storage_daemon/ipc/test/*",
+    "$SUBSYSTEM_DIR/../../filemanagement/storage_service/services/storage_daemon/user/test/*",
+    "$SUBSYSTEM_DIR/../../filemanagement/storage_service/services/storage_daemon/utils/test/*",
+    "$SUBSYSTEM_DIR/../../systemabilitymgr/samgr/services/samgr/native/*",
+    "$SUBSYSTEM_DIR/../../systemabilitymgr/samgr/test/fuzztest/*",
+    "//out/*",
+  ]
   sanitize = {
     integer_overflow = true
   }
