@@ -1991,6 +1991,7 @@ HWTEST_F(IPCProcessSkeletonUnitTest, LockForNumExecutingTest001, TestSize.Level1
     ASSERT_TRUE(skeleton != nullptr);
     delete skeleton->threadPool_;
     skeleton->threadPool_ = nullptr;
+    IPCWorkThreadPool::exitFlag_ = false;
     skeleton->SetMaxWorkThread(1);
     ASSERT_TRUE(skeleton->threadPool_ != nullptr);
 
