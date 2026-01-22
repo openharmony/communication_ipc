@@ -248,6 +248,7 @@ private:
     uint64_t numExecutingFullLastTime_ = 0;
 
     IPCWorkThreadPool *threadPool_ = nullptr;
+    mutable std::mutex threadPoolMutex_;
 
 #ifndef CONFIG_IPC_SINGLE
     std::mutex databusProcMutex_;

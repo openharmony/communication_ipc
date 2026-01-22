@@ -86,10 +86,13 @@ IPCProcessSkeleton::IPCProcessSkeleton()
 // LCOV_EXCL_START
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
+    {
+        std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
+        delete threadPool_;
+        threadPool_ = nullptr;
+    }
     std::lock_guard<std::mutex> lockGuard(procMutex_);
     exitFlag_ = true;
-    delete threadPool_;
-    threadPool_ = nullptr;
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
@@ -307,12 +310,16 @@ bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
         ZLOGE(LOG_LABEL, "Set Invalid thread Number:%{public}d", maxThreadNum);
         return false;
     }
-
     if (threadPool_ == nullptr) {
-        threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
-        if (threadPool_ == nullptr) {
-            ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
-            return false;
+        {
+            std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
+            if (threadPool_ == nullptr) {
+                threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
+                if (threadPool_ == nullptr) {
+                    ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
+                    return false;
+                }
+            }
         }
     }
     threadPool_->UpdateMaxThreadNum(maxThreadNum);
@@ -327,6 +334,7 @@ bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
 bool IPCProcessSkeleton::SpawnThread(int policy, int proto)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
     if (threadPool_ == nullptr) {
         ZLOGE(LOG_LABEL, "threadPool_ is nullptr.");
         return false;
@@ -337,6 +345,7 @@ bool IPCProcessSkeleton::SpawnThread(int policy, int proto)
 bool IPCProcessSkeleton::OnThreadTerminated(const std::string &threadName)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);
+    std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
     if (threadPool_ == nullptr) {
         ZLOGE(LOG_LABEL, "threadPool_ is nullptr.");
         return false;
@@ -800,6 +809,7 @@ std::thread::id IPCProcessSkeleton::GetIdleDataThread()
 int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
+    std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
     if (threadPool_ != nullptr) {
         return threadPool_->GetSocketIdleThreadNum();
     }
@@ -812,6 +822,7 @@ int IPCProcessSkeleton::GetSocketIdleThreadNum() const
 int IPCProcessSkeleton::GetSocketTotalThreadNum() const
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, 0);
+    std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
     if (threadPool_ != nullptr) {
         return threadPool_->GetSocketTotalThreadNum();
     }
