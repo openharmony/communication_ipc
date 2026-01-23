@@ -605,6 +605,7 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, CreateProcessThreadTest002, TestSize.Leve
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     int maxThreadNum = 3;
     EXPECT_TRUE(current->SetMaxWorkThread(maxThreadNum));
+    IPCWorkThreadPool::exitFlag_ = false;
     bool ret = testInvoker.CreateProcessThread();
     EXPECT_TRUE(ret);
 }

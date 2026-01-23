@@ -60,7 +60,7 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest001, TestSize.Level1)
     ASSERT_TRUE(ipcThread != nullptr);
     ipcThread->proto_ = IRemoteObject::IF_PROT_DEFAULT;
     threadPool.threads_[threadName] = ipcThread;
-
+    IPCWorkThreadPool::exitFlag_ = false;
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
@@ -81,7 +81,7 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest002, TestSize.Level1)
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
     ipcThread->proto_ = IRemoteObject::IF_PROT_DATABUS;
     threadPool.threads_[threadName] = ipcThread;
-
+    IPCWorkThreadPool::exitFlag_ = false;
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
@@ -101,7 +101,7 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, RemoveThreadTest003, TestSize.Level1)
     auto ipcThread = new (std::nothrow) IPCWorkThread(threadName);
     ipcThread->proto_ = IRemoteObject::IF_PROT_ERROR;
     threadPool.threads_[threadName] = ipcThread;
-
+    IPCWorkThreadPool::exitFlag_ = false;
     auto ret = threadPool.RemoveThread(threadName);
 
     EXPECT_EQ(ret, true);
