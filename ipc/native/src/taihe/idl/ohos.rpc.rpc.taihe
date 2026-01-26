@@ -23,7 +23,7 @@ union IRemoteObjectUnion {
     remoteProxy: RemoteProxy;
     remoteObject: RemoteObject;
     iRemoteObject: IRemoteObject;
-    @undefined errRet;
+    errRet: @undefined unit;
 }
 
 interface IRemoteBroker {
