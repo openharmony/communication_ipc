@@ -256,14 +256,14 @@ static void* WrapperHandleSendReply(void* args)
     return NULL;
 }
 
-static int32_t Connect(const char *SaSessionName, const char *peerDeviceId, const void *args)
+static int32_t Connect(const char *saSessionName, const char *peerDeviceId, const void *args)
 {
     (void)args;
-    if (SaSessionName == NULL) {
-        RPC_LOG_INFO("SaSessionName is null");
+    if (saSessionName == NULL) {
+        RPC_LOG_INFO("saSessionName is null");
         return ERR_FAILED;
     }
-    uint16_t port = Hash(SaSessionName);
+    uint16_t port = Hash(saSessionName);
 
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {

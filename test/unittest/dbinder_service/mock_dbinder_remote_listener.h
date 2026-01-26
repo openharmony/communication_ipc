@@ -72,7 +72,7 @@ void MockDBinderRemoteListener::SetResult(int32_t result)
     result_ = result;
 }
 
-int32_t MockDBinderRemoteListener::GetResult() const
+int32_t MockDBinderRemoteListener::GetResult()
 {
     return result_;
 }

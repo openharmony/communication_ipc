@@ -69,13 +69,13 @@ public:
         return nullptr;
     }
 
-    bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, const int32_t systemAbilityId) const override
+    bool LoadSystemAbilityFromRemote(const std::string& srcNetworkId, const int32_t systemAbilityId) override
     {
         (void)srcNetworkId;
         (void)systemAbilityId;
         return isLoad_;
     }
-    bool IsDistributedSystemAbility(int32_t systemAbilityId) const override
+    bool IsDistributedSystemAbility(int32_t systemAbilityId) override
     {
         (void)systemAbilityId;
         return isSystemAbility_;
