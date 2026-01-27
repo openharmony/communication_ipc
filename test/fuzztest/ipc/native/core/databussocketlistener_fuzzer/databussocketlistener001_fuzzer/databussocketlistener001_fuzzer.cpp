@@ -24,16 +24,13 @@ namespace OHOS {
 static std::string TEST_SOCKET_NAME = "DBinder1_1";
 static std::string TEST_SOCKET_PEER_NETWORKID = "wad213hkad213jh123jk213j1h2312h3jk12dadadeawd721hledhjlad22djhla";
 static std::string TEST_SOCKET_PKG_NAME = "DBinderBus";
+static constexpr size_t STR_MAX_LEN = 100;
 
-static void DBinderSocketInfoFuzzTest(const uint8_t *data, size_t size)
+static void DBinderSocketInfoFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-
-    std::string ownName(reinterpret_cast<const char *>(data), size);
-    std::string peerName(reinterpret_cast<const char *>(data), size);
-    std::string networkId(reinterpret_cast<const char *>(data), size);
+    std::string ownName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string peerName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string networkId = provider.ConsumeRandomLengthString(STR_MAX_LEN);
     OHOS::DBinderSocketInfo info(ownName, peerName, networkId);
     (void)info.GetOwnName();
     (void)info.GetPeerName();
@@ -119,9 +116,10 @@ static void ClientOnShutdownFuzzTest(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::DBinderSocketInfoFuzzTest(data, size);
     OHOS::ServerOnBindFuzzTest(data, size);
     OHOS::ServerOnShutdownFuzzTest(data, size);
     OHOS::ClientOnShutdownFuzzTest(data, size);
+    FuzzedDataProvider provider(data, size);
+    OHOS::DBinderSocketInfoFuzzTest(provider);
     return 0;
 }

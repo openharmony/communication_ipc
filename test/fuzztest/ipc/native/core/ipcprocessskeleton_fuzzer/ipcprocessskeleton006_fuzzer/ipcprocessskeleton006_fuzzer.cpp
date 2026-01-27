@@ -1187,9 +1187,16 @@ void QueryObjectFuzzTest(const uint8_t *data, size_t size)
     MessageParcel parcel;
     parcel.WriteBuffer(data, size);
     bool lockFlag = parcel.ReadBool();
-    const char16_t *charData = reinterpret_cast<const char16_t *>(data);
-    size_t charCount = size / sizeof(char16_t);
-    std::u16string descriptor(charData, charCount);
+    size_t length = parcel.GetReadableBytes();
+    if (length == 0) {
+        return;
+    }
+    const char *bufData = reinterpret_cast<const char *>(parcel.ReadBuffer(length));
+    if (bufData == nullptr) {
+        return;
+    }
+    std::string descriptor_str(bufData, length);
+    std::u16string descriptor(descriptor_str.begin(), descriptor_str.end());
     OHOS::IPCProcessSkeleton *ipcSktPtr = IPCProcessSkeleton::GetCurrent();
     if (ipcSktPtr == nullptr) {
         return;
