@@ -557,6 +557,7 @@ RemoteObjectImpl::RemoteObjectImpl(uintptr_t nativePtr) : desc_("")
         return;
     }
     desc_ = OHOS::Str16ToStr8(stub->GetObjectDescriptor());
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     sptrCachedObject_ = stub;
 }
 
@@ -676,6 +677,7 @@ OHOS::sptr<OHOS::IPCObjectStub> RemoteObjectImpl::GetNativeObject()
 
 int64_t RemoteObjectImpl::GetNativePtr()
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     return reinterpret_cast<int64_t>(sptrCachedObject_ != nullptr ?
         sptrCachedObject_.GetRefPtr() : wptrCachedObject_.GetRefPtr());
 }
@@ -690,6 +692,7 @@ void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj,
         ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");
         return;
     }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (!isNative) {
         wptrCachedObject_ = newObject;
     } else {
