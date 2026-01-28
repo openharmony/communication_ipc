@@ -28,7 +28,7 @@
 
 static IClientProxy *g_serverProxy = NULL;
 
-static void ServerDeadCallback(void *arg)
+static void ServerDeadCallback(const void *arg)
 {
     (void)arg;
     RPC_LOG_INFO("====== server dead ServerDeadCallback called ======");

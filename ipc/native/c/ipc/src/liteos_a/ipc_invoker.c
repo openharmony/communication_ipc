@@ -613,7 +613,7 @@ static int32_t IpcSendRequest(SvcIdentity target, uint32_t code, IpcIo *data, Ip
     return ret;
 }
 
-static int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
+static int32_t IpcAddDeathRecipient(int32_t handle, const void *cookie)
 {
     (void)handle;
     (void)cookie;
@@ -630,7 +630,7 @@ static int32_t IpcAddDeathRecipient(int32_t handle, void *cookie)
     return ERR_NONE;
 }
 
-static int32_t IpcRemoveDeathRecipient(int32_t handle, void *cookie)
+static int32_t IpcRemoveDeathRecipient(int32_t handle, const void *cookie)
 {
     (void)handle;
     (void)cookie;
