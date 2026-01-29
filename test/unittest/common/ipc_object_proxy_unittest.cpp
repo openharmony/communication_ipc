@@ -1595,4 +1595,19 @@ HWTEST_F(IPCObjectProxyTest, GetDBinderNegotiationDataTest006, TestSize.Level1)
     ret = object.GetDBinderNegotiationData(dbinderData);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
+
+#ifdef OHOS_PLATFORM
+/**
+ * @tc.name: CanPromoteTest001
+ * @tc.desc: Verify the IPCObjectProxy::CanPromote function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, CanPromoteTest001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+
+    auto ret = object.CanPromote();
+    ASSERT_TRUE(ret);
+}
+#endif
 } // namespace OHOS
