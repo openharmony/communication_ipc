@@ -350,16 +350,18 @@ int32_t IPCSkeleton::GetProcessFreezeInfo(uint32_t pid, bool &isFrozen)
 }
 #endif // FREEZE_PROCESS_ENABLED
 
-#ifdef MEMORY_USAGE_ENABLED
 int32_t IPCSkeleton::GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize)
 {
+#ifndef MEMORY_USAGE_ENABLED
+    return IPC_SKELETON_ERR;
+#else
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
     if (invoker == nullptr) {
         return IPC_SKELETON_NULL_OBJECT_ERR;
     }
     return invoker->GetMemoryUsage(pid, totalSize, oneWayFreeSize);
-}
 #endif // MEMORY_USAGE_ENABLED
+}
 
 void IPCDfx::BlockUntilThreadAvailable()
 {
