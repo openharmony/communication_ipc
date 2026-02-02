@@ -17,10 +17,12 @@
 #include "dbinder_base_invoker_process.h"
 #include "dbinder_databus_invoker.h"
 #include "securec.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 using OHOS::DatabusSocketListener;
 
 namespace OHOS {
+static constexpr size_t STR_MAX_LEN = 100;
 
 static void WriteFileDescriptorFuzzTest(const uint8_t *data, size_t size)
 {
@@ -59,14 +61,10 @@ static void WriteFileDescriptorFuzzTest(const uint8_t *data, size_t size)
     invoker.GetCallerDeviceID();
 }
 
-static void UpdateClientSessionFuzzTest(const uint8_t *data, size_t size)
+static void UpdateClientSessionFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < 0) {
-        return;
-    }
-
-    std::string serviceName(reinterpret_cast<const char *>(data), size);
-    std::string deviceId(reinterpret_cast<const char *>(data), size);
+    std::string serviceName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string deviceId = provider.ConsumeRandomLengthString(STR_MAX_LEN);
     uint64_t stubIndex = 0;
     uint32_t tokenId = 0;
     auto dbinderSession = std::make_shared<DBinderSessionObject>(serviceName, deviceId, stubIndex, nullptr, tokenId);
@@ -144,9 +142,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::WriteFileDescriptorFuzzTest(data, size);
-    OHOS::UpdateClientSessionFuzzTest(data, size);
     OHOS::QueryClientSessionObjectFuzzTest(data, size);
     OHOS::QueryServerSessionObjectFuzzTest(data, size);
     OHOS::OnDatabusSessionServerSideClosedFuzzTest(data, size);
+    FuzzedDataProvider provider(data, size);
+    OHOS::UpdateClientSessionFuzzTest(provider);
     return 0;
 }

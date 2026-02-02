@@ -24,6 +24,7 @@ namespace OHOS {
 static std::string TEST_SOCKET_NAME = "DBinder1_1";
 static std::string TEST_SOCKET_PEER_NAME = "DBinderService";
 static std::string TEST_SOCKET_PEER_NETWORKID = "wad213hkad213jh123jk213j1h2312h3jk12dadadeawd721hledhjlad22djhla";
+static constexpr size_t STR_MAX_LEN = 100;
 
 static void OnBytesRecivedFuzzTest(const uint8_t *data, size_t size)
 {
@@ -61,15 +62,11 @@ static void StartServerListenerFuzzTest(const uint8_t *data, size_t size)
     (void)listener->StartServerListener(name);
 }
 
-static void QueryOrNewInfoMutexFuzzTest(const uint8_t *data, size_t size)
+static void QueryOrNewInfoMutexFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-
-    std::string ownName(reinterpret_cast<const char *>(data), size);
-    std::string peerName(reinterpret_cast<const char *>(data), size);
-    std::string networkId(reinterpret_cast<const char *>(data), size);
+    std::string ownName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string peerName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string networkId = provider.ConsumeRandomLengthString(STR_MAX_LEN);
 
     OHOS::DBinderSocketInfo info1(ownName, TEST_SOCKET_PEER_NAME, TEST_SOCKET_PEER_NETWORKID);
     OHOS::DBinderSocketInfo info2(TEST_SOCKET_NAME, peerName, TEST_SOCKET_PEER_NETWORKID);
@@ -84,15 +81,11 @@ static void QueryOrNewInfoMutexFuzzTest(const uint8_t *data, size_t size)
     (void)listener->QueryOrNewInfoMutex(info3);
 }
 
-static void CreateClientSocketFuzzTest(const uint8_t *data, size_t size)
+static void CreateClientSocketFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-
-    std::string ownName(reinterpret_cast<const char *>(data), size);
-    std::string peerName(reinterpret_cast<const char *>(data), size);
-    std::string networkId(reinterpret_cast<const char *>(data), size);
+    std::string ownName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string peerName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string networkId = provider.ConsumeRandomLengthString(STR_MAX_LEN);
 
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
@@ -111,7 +104,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     OHOS::OnBytesRecivedFuzzTest(data, size);
     OHOS::StartServerListenerFuzzTest(data, size);
-    OHOS::QueryOrNewInfoMutexFuzzTest(data, size);
-    OHOS::CreateClientSocketFuzzTest(data, size);
+    FuzzedDataProvider provider(data, size);
+    OHOS::QueryOrNewInfoMutexFuzzTest(provider);
+    OHOS::CreateClientSocketFuzzTest(provider);
     return 0;
 }
