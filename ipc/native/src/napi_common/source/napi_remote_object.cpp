@@ -577,7 +577,7 @@ static void RemoteObjectHolderRefCb(napi_env env, void *data, void *hint)
         napi_close_handle_scope(param->env, scope);
         delete param;
     };
-    napi_status sendRet = napi_send_event(env, task, napi_eprio_high);
+    napi_status sendRet = napi_send_event(env, task, napi_eprio_high, "RemoteObjectHolderRefCb");
     if (sendRet != napi_ok) {
         ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         delete param;
@@ -778,7 +778,7 @@ NAPIRemoteObject::NAPIRemoteObject(std::thread::id jsThreadId, napi_env env, nap
             param->lockInfo->condition.notify_all();
             napi_close_handle_scope(param->env, scope);
         };
-        napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
+        napi_status sendRet = napi_send_event(env_, task, napi_eprio_high, "NAPIRemoteObject::NAPIRemoteObject");
         if (sendRet != napi_ok) {
             ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         } else {
@@ -821,7 +821,7 @@ NAPIRemoteObject::~NAPIRemoteObject()
             napi_close_handle_scope(param->env, scope);
             delete param;
         };
-        napi_status sendRet = napi_send_event(env_, task, napi_eprio_high);
+        napi_status sendRet = napi_send_event(env_, task, napi_eprio_high, "NAPIRemoteObject::~NAPIRemoteObject");
         if (sendRet != napi_ok) {
             ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
             delete param;
@@ -985,7 +985,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     auto task = [jsParam, &descriptor]() {
         OnJsRemoteRequestCallBack(jsParam, descriptor);
     };
-    napi_status sendRet = napi_send_event(env_, task, napi_eprio_immediate);
+    napi_status sendRet = napi_send_event(env_, task, napi_eprio_immediate, "NAPIRemoteObject::OnJsRemoteRequest");
     if (sendRet != napi_ok) {
         ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         return ERR_SEND_EVENT;
@@ -1337,7 +1337,7 @@ void StubExecuteSendRequest(napi_env env, SendRequestParam *param)
     auto task = [param]() {
         AfterWorkCallback(param);
     };
-    napi_status sendRet = napi_send_event(env, task, napi_eprio_high);
+    napi_status sendRet = napi_send_event(env, task, napi_eprio_high, "StubExecuteSendRequest");
     if (sendRet != napi_ok) {
         ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         if (param->callback) {
