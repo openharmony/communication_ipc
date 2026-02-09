@@ -328,7 +328,7 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
     }
     pthread_mutex_unlock(&g_ipcSkeleton->lock);
     if (firstDeathNode) {
-        RPC_LOG_ERROR("first add death callback for handle = %d.", handle);
+        RPC_LOG_DEBUG("first add death callback for handle = %d.", handle);
         RemoteInvoker *invoker = GetRemoteInvoker();
         ret = ERR_INVALID_PARAM;
         if (invoker != NULL) {
@@ -345,7 +345,7 @@ int32_t ProcessRemoveDeathRecipient(int32_t handle, uint32_t cbId)
         return ERR_IPC_SKELETON_NOT_INIT;
     }
     if (cbId >= MAX_DEATH_CALLBACK_NUM) {
-        RPC_LOG_ERROR("invalid callback id.");
+        RPC_LOG_ERROR("invalid callback id %u.", cbId);
         return ERR_INVALID_PARAM;
     }
     if (pthread_mutex_lock(&g_ipcSkeleton->lock) != 0) {
