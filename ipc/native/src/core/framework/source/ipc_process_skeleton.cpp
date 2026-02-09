@@ -87,12 +87,14 @@ IPCProcessSkeleton::IPCProcessSkeleton()
 IPCProcessSkeleton::~IPCProcessSkeleton()
 {
     {
+        std::lock_guard<std::mutex> lockGuard(procMutex_);
+        exitFlag_ = true;
+    }
+    {
         std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
         delete threadPool_;
         threadPool_ = nullptr;
     }
-    std::lock_guard<std::mutex> lockGuard(procMutex_);
-    exitFlag_ = true;
 
 #ifndef CONFIG_IPC_SINGLE
     ClearDataResource();
