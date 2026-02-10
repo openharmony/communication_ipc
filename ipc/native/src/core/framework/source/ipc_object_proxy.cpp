@@ -1076,7 +1076,7 @@ int IPCObjectProxy::ClearDBinderServiceState()
         std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
         PRINT_SEND_REQUEST_FAIL_INFO(handle_, err, remoteDescriptor_, ProcessSkeleton::ConvertAddr(this));
     }
-    SetObjectDied(true);
+    SetObjectDied(isDead);
     ZLOGI(LABEL, "result:%{public}d", err);
     return err;
 }
