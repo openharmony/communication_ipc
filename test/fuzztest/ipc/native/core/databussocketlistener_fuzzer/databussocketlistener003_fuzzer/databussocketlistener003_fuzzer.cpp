@@ -45,15 +45,11 @@ static void ShutdownSocketFuzzTest(const uint8_t *data, size_t size)
     listener->ShutdownSocket(socketId);
 }
 
-static void EraseDeviceLockFuzzTest(const uint8_t *data, size_t size)
+static void EraseDeviceLockFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-
-    std::string ownName(reinterpret_cast<const char *>(data), size);
-    std::string peerName(reinterpret_cast<const char *>(data), size);
-    std::string networkId(reinterpret_cast<const char *>(data), size);
+    std::string ownName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string peerName = provider.ConsumeRandomLengthString(STR_MAX_LEN);
+    std::string networkId = provider.ConsumeRandomLengthString(STR_MAX_LEN);
 
     OHOS::DBinderSocketInfo info1(ownName, TEST_SOCKET_PEER_NAME, TEST_SOCKET_PEER_NETWORKID);
     OHOS::DBinderSocketInfo info2(TEST_SOCKET_NAME, peerName, TEST_SOCKET_PEER_NETWORKID);
@@ -107,9 +103,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::ShutdownSocketFuzzTest(data, size);
-    OHOS::EraseDeviceLockFuzzTest(data, size);
 
     FuzzedDataProvider provider(data, size);
+    OHOS::EraseDeviceLockFuzzTest(provider);
     OHOS::ClientOnBindFuzzTest(provider);
     OHOS::GetPidAndUidFromServiceNameFuzzTest(provider);
     return 0;
