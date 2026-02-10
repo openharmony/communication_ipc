@@ -244,7 +244,7 @@ int IPCObjectStub::DBinderIncRefsTransaction(uint32_t code, MessageParcel &data,
     }
 
     pid_t callerPid = invoker->GetCallerPid();
-    pid_t callerUid = invoker->GetCallerUid();
+    uid_t callerUid = invoker->GetCallerUid();
     uint32_t tokenId = static_cast<uint32_t>(invoker->GetCallerTokenID());
     std::string callerDevId = invoker->GetCallerDeviceID();
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
