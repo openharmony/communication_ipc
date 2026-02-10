@@ -41,8 +41,9 @@ ohos_prebuilt_shared_library("ipc_core") {
   deps = [ "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_single:ipc_single" ]
 
   install_enable = true
+  relative_install_dir = "platformsdk"
   innerapi_tags = [
-    "chipsetsdk_sp",
+    "llndk",
     "platformsdk",
     "sasdk",
   ]
