@@ -15,6 +15,7 @@ import("//build/config/features.gni")
 
 group("ipc_fuzztest") {
   testonly = true
+
   if (os_level == "standard") {
     deps = [
       "dbinder_service:ipc_dbinder_fuzztest",

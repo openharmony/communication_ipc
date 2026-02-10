@@ -353,7 +353,7 @@ int32_t IPCThreadSkeleton::GetThreadInvocationState()
         ZLOGE(LOG_LABEL, "get remote invoker failed");
         return STATUS_UNKNOWN;
     }
-    if(invoker->GetStatus() != IRemoteInvoker::ACTIVE_INVOKER) {
+    if (invoker->GetStatus() != IRemoteInvoker::ACTIVE_INVOKER) {
         ZLOGE(LOG_LABEL, "not ipc thread");
         return STATUS_NO_SUPPORT;
     }
