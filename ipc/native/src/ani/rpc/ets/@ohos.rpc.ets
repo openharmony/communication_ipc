@@ -154,7 +154,9 @@ export namespace rpc {
         ): boolean {
             const result = this.onRemoteMessageRequest(code, data, reply, options);
             if (result instanceof Promise) {
-                return await (result as Promise<boolean>);
+                return waitForCompletion(async() => {
+                    return await (result as Promise<boolean>);
+                })
             }
             return result as boolean;
         }
