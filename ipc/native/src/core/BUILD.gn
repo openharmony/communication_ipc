@@ -61,7 +61,6 @@ ohos_shared_library("ipc_common") {
   }
 
   innerapi_tags = [
-    "chipsetsdk_sp_indirect",
     "platformsdk_indirect",
   ]
 
