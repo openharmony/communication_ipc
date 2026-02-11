@@ -202,8 +202,9 @@ public:
 
     /**
      * @brief Get calling token ID of caller on the peer device.
-     * @return Returns the token ID of caller in the rpc context, Token ID can not be used for permission verification;
-     * Returns a invalid value 0 in the ipc context.
+     * @return Returns the token ID of caller in the rpc context; Returns a invalid value 0 in the ipc context;
+     * In the rpc context, the token ID from the peer device is not trusted, it is not recommended to use it for
+     * permission verification, if the business requires it, you must ensure cross-device security mechanisms yourself.
      * @since 20
      */
     static uint32_t GetDCallingTokenID();
