@@ -64,6 +64,7 @@ public:
     virtual ~IpcObjectProxyInterface() {};
     virtual IPCProcessSkeleton *GetCurrent() = 0;
     virtual IRemoteInvoker *GetRemoteInvoker(int proto) = 0;
+    virtual bool RegisterBinderDeathRecipient() = 0;
     virtual bool CreateSoftbusServer(const std::string &name) = 0;
     virtual bool UpdateClientSession(std::shared_ptr<DBinderSessionObject> sessionObject) = 0;
     virtual bool ProxyAttachDBinderSession(uint32_t handle, std::shared_ptr<DBinderSessionObject> object) = 0;
@@ -79,6 +80,7 @@ public:
     ~IpcObjectProxyInterfaceMock() override;
     MOCK_METHOD0(GetCurrent, IPCProcessSkeleton *());
     MOCK_METHOD1(GetRemoteInvoker, IRemoteInvoker *(int proto));
+    MOCK_METHOD0(RegisterBinderDeathRecipient, bool());
     MOCK_METHOD1(CreateSoftbusServer, bool(const std::string &name));
     MOCK_METHOD1(UpdateClientSession, bool(std::shared_ptr<DBinderSessionObject> sessionObject));
     MOCK_METHOD2(ProxyAttachDBinderSession, bool(uint32_t handle, std::shared_ptr<DBinderSessionObject> object));
@@ -121,6 +123,15 @@ extern "C" {
             return nullptr;
         }
         return interface->GetRemoteInvoker(proto);
+    }
+
+    bool IPCObjectProxy::RegisterBinderDeathRecipient()
+    {
+        IpcObjectProxyInterface* interface = GetIpcObjectProxyInterface();
+        if (interface == nullptr) {
+            return false;
+        }
+        return interface->RegisterBinderDeathRecipient();
     }
 
     bool IPCProcessSkeleton::CreateSoftbusServer(const std::string &name)
@@ -377,6 +388,8 @@ HWTEST_F(IPCObjectProxyTest, AddDeathRecipient002, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, AddDeathRecipient003, TestSize.Level1)
 {
     IPCObjectProxy object(1);
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(testing::Return(true));
     sptr<IRemoteObject::DeathRecipient> recipient1 = new MockDeathRecipient();
     ASSERT_NE(recipient1, nullptr);
     EXPECT_TRUE(object.AddDeathRecipient(recipient1));
@@ -403,7 +416,7 @@ HWTEST_F(IPCObjectProxyTest, AddDeathRecipient004, TestSize.Level1)
 
 /**
  * @tc.name: AddDeathRecipientTest005
- * @tc.desc: Verify the IPCObjectProxy::AddDeathRecipient function when RegisterBinderDeathRecipient rturn false
+ * @tc.desc: Verify the IPCObjectProxy::AddDeathRecipient function when RegisterBinderDeathRecipient return false
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, AddDeathRecipient005, TestSize.Level1)
@@ -412,6 +425,24 @@ HWTEST_F(IPCObjectProxyTest, AddDeathRecipient005, TestSize.Level1)
     sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
     NiceMock<IpcObjectProxyInterfaceMock> mock;
     EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(testing::Return(false));
+    object.proto_ = IRemoteObject::IF_PROT_DATABUS;
+    bool ret = object.AddDeathRecipient(death.GetRefPtr());
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AddDeathRecipientTest006
+ * @tc.desc: Verify the IPCObjectProxy::AddDeathRecipient function when RegisterBinderDeathRecipient return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, AddDeathRecipient006, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(testing::Return(true));
     object.proto_ = IRemoteObject::IF_PROT_DATABUS;
     bool ret = object.AddDeathRecipient(death.GetRefPtr());
     ASSERT_EQ(ret, true);
