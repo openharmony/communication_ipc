@@ -388,9 +388,11 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
         return false;
     }
     if (kernelMappedWrite_ != nullptr) {
+        ZLOGE(LOG_LABEL, "kernelMappedWrite_ is not null");
         return false;
     }
     if (!WriteInt32(size)) {
+        ZLOGE(LOG_LABEL, "WriteInt32 failed");
         return false;
     }
     if (size <= MIN_RAWDATA_SIZE) {
@@ -399,6 +401,7 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
     }
     int fd = AshmemCreate("Parcel RawData", size);
     if (fd < 0) {
+        ZLOGE(LOG_LABEL, "AshmemCreate failed");
         return false;
     }
     fdsan_exchange_owner_tag(fd, 0, IPC_FD_TAG);
@@ -407,21 +410,25 @@ bool MessageParcel::WriteRawData(const void *data, size_t size)
     int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
     if (result < 0) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
+        ZLOGE(LOG_LABEL, "AshmemSetProt failed");
         return false;
     }
     void *ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
+        ZLOGE(LOG_LABEL, "mmap failed");
         return false;
     }
     if (!WriteFileDescriptor(fd)) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
         ::munmap(ptr, size);
+        ZLOGE(LOG_LABEL, "WriteFileDescriptor failed");
         return false;
     }
     if (memcpy_s(ptr, size, data, size) != EOK) {
         // Do not close fd here, which will be closed in MessageParcel's destructor.
         ::munmap(ptr, size);
+        ZLOGE(LOG_LABEL, "memcpy_s failed");
         return false;
     }
     kernelMappedWrite_ = ptr;

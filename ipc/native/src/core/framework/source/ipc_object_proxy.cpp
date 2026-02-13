@@ -496,6 +496,7 @@ bool IPCObjectProxy::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
         ZLOGE(LABEL, "register failed, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
             desc.c_str(), ProcessSkeleton::ConvertAddr(this));
         recipients_.pop_back();
+        return false;
     }
     ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s %{public}u", handle_,
         desc.c_str(), ProcessSkeleton::ConvertAddr(this));
@@ -535,6 +536,7 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     if (recipientErased && recipients_.empty() && !UnRegisterBinderDeathRecipient()) {
         ZLOGE(LABEL, "unregister failed, handle:%{public}d desc:%{public}s addr:%{public}u",
             handle_, desc.c_str(), ProcessSkeleton::ConvertAddr(this));
+        return false;
     }
 
     ZLOGD(LABEL, "handle:%{public}d desc:%{public}s addr:%{public}u, result:%{public}d", handle_,
