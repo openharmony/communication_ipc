@@ -584,11 +584,6 @@ napi_value NAPI_RemoteProxy_unregisterDeathRecipient(napi_env env, napi_callback
     if (!list->Remove(nativeRecipient)) {
         ZLOGE(LOG_LABEL, "unregister death recipent failed");
     }
-
-    napi_status napiStatus = napi_delete_reference(env, nativeRecipient->GetDeathRecipientRef());
-    if (napiStatus != napi_ok) {
-        ZLOGE(LOG_LABEL, "failed to delete reference to js death recipient");
-    }
     return result;
 }
 
