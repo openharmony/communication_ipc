@@ -48,7 +48,6 @@ public:
     virtual ~HitraceInvokerInterface() {};
 
     virtual int ToBytes(uint8_t* pIdArray, int len) = 0;
-    virtual bool IsValid() = 0;
     virtual bool WriteBuffer(const void *data, size_t size) = 0;
     virtual bool WriteUint8(uint8_t value) = 0;
     virtual size_t GetDataSize() = 0;
@@ -61,7 +60,6 @@ public:
     ~HitraceInvokerInterfaceMock() override;
 
     MOCK_METHOD2(ToBytes, int(uint8_t*, int));
-    MOCK_METHOD0(IsValid, bool());
     MOCK_METHOD2(WriteBuffer, bool(const void *, size_t));
     MOCK_METHOD1(WriteUint8, bool(uint8_t));
     MOCK_METHOD0(GetDataSize, size_t());
@@ -89,10 +87,6 @@ extern "C" {
     int HiTraceId::ToBytes(uint8_t* pIdArray, int len) const
     {
         return GetHitraceInvokerInterface()->ToBytes(pIdArray, len);
-    }
-    bool HiTraceId::IsValid() const
-    {
-        return GetHitraceInvokerInterface()->IsValid();
     }
     bool Parcel::WriteBuffer(const void *data, size_t size)
     {
@@ -124,18 +118,24 @@ HWTEST_F(HitraceInvokerTest, TraceClientSendTest001, TestSize.Level1)  // line 7
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     MessageParcel newData;
-    const HiTraceId traceId;
+    HiTraceId getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
     int handle = 1;
     uint32_t code = 1001;
     uint32_t flags = 2;
 
-    EXPECT_CALL(mock, IsValid).WillOnce(Return(true));
     EXPECT_CALL(mock, ToBytes).WillOnce(Return(HITRACE_ID_LEN));
     EXPECT_CALL(mock, WriteBuffer).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteUint8).WillOnce(Return(true));
 
     HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     EXPECT_EQ(flags, 130);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(1, getId.IsValid());
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
 }
 
 /**
@@ -147,15 +147,21 @@ HWTEST_F(HitraceInvokerTest, TraceClientSendTest005, TestSize.Level1)  // line 5
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     MessageParcel newData;
-    const HiTraceId traceId;
+    HiTraceId getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
     int handle = 1;
     uint32_t code = 1001;
     uint32_t flags = 2;
 
-    EXPECT_CALL(mock, IsValid).WillOnce(Return(true));
     EXPECT_CALL(mock, ToBytes).WillOnce(Return(1));
     HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     EXPECT_EQ(flags, 2);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(1, getId.IsValid());
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
 }
 
 /**
@@ -167,17 +173,23 @@ HWTEST_F(HitraceInvokerTest, TraceClientSendTest002, TestSize.Level1)  // line: 
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     MessageParcel newData;
-    const HiTraceId traceId;
+    HiTraceId getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
     int handle = 1;
     uint32_t code = 1001;
     uint32_t flags = 2;
 
-    EXPECT_CALL(mock, IsValid).WillOnce(Return(true));
     EXPECT_CALL(mock, ToBytes).WillOnce(Return(HITRACE_ID_LEN));
     EXPECT_CALL(mock, WriteBuffer).WillOnce(Return(false));
 
     HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     EXPECT_EQ(flags, 2);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(1, getId.IsValid());
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
 }
 
 /**
@@ -189,17 +201,23 @@ HWTEST_F(HitraceInvokerTest, TraceClientSendTest003, TestSize.Level1)  // line: 
 {
     NiceMock<HitraceInvokerInterfaceMock> mock;
     MessageParcel newData;
-    const HiTraceId traceId;
+    HiTraceId getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
     int handle = 1;
     uint32_t code = 1001;
     uint32_t flags = 2;
 
-    EXPECT_CALL(mock, IsValid).WillOnce(Return(true));
     EXPECT_CALL(mock, ToBytes).WillOnce(Return(HITRACE_ID_LEN));
     EXPECT_CALL(mock, WriteBuffer).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteUint8).WillOnce(Return(false));
     HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     EXPECT_EQ(flags, 2);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(1, getId.IsValid());
+    HiTraceChain::End(traceId);
+    getId = HiTraceChain::GetId();
+    EXPECT_EQ(0, getId.IsValid());
 }
 
 /**
@@ -216,7 +234,6 @@ HWTEST_F(HitraceInvokerTest, TraceClientSendTest004, TestSize.Level1)  // line: 
     uint32_t code = 1001;
     uint32_t flags = 129;
 
-    EXPECT_CALL(mock, IsValid).WillOnce(Return(false));
     HitraceInvoker::TraceClientSend(handle, code, newData, flags, traceId);
     EXPECT_EQ(flags, 1);
 }
