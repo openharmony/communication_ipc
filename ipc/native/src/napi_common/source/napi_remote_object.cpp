@@ -233,7 +233,6 @@ static bool CreateJsCallingInfo(CallbackParam *param, const napi_value global, n
         || !CreateStringNapiValue(param, callingDeviceId, param->callingInfo.callingDeviceID)
         || !CreateStringNapiValue(param, localDeviceId, param->callingInfo.localDeviceID)
         || !CreateBoolNapiValue(param, isLocalCalling, param->callingInfo.isLocalCalling)) {
-
         param->result = IPC_INVALID_PARAM_ERR;
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         param->lockInfo->ready = true;
