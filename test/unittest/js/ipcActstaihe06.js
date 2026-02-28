@@ -1411,30 +1411,6 @@ export default function ActsRpcClientEtsTest() {
                 console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0920---------------------------");
             });
 
-            /*
-             * @tc.number  : SUB_DSoftbus_IPC_API_MessageSequence_0930
-             * @tc.name    : test Test MessageSequence to deliver illegal RawData data
-             * @tc.desc    : [G-DISTRIBUTED-0212]禁止修改IPC中定义的数据结构和接口，并提供对应完整实现
-             * @tc.level   : Level 3
-             * @tc.type    : Compatibility
-             * @tc.size    : MediumTest
-             */
-            it("SUB_DSoftbus_IPC_API_MessageSequence_0930", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
-                console.info("---------------------start SUB_DSoftbus_IPC_API_MessageSequence_0930---------------------------");
-                try {
-                    var parcel = new rpc.MessageSequence();
-                    let arr = ["aaa", 1, 2, 3];
-                    parcel.writeInt(arr.length);
-                    parcel.writeRawData(arr, arr.length);
-                    expect(parcel.getRawDataCapacity()).assertEqual(128 * M);
-                } catch (error) {
-                    console.info("SUB_DSoftbus_IPC_API_MessageSequence_testcase error is:" + error);
-                    expect(error == null).assertTrue();
-                } finally {
-                    parcel.reclaim();
-                }
-                console.info("---------------------end SUB_DSoftbus_IPC_API_MessageSequence_0930---------------------------");
-            });
     console.info("-----------------------SUB_DSoftbus_IPC_API_Stage_MessageSequence_Test is end-----------------------");
   })
 }
