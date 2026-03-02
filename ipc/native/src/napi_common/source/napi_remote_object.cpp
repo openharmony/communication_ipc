@@ -108,6 +108,10 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value 
         ZLOGE(LOG_LABEL, "onRemoteRequest is not function");
     }
     ZLOGE(LOG_LABEL, "failed to get OnRemoteRequest function");
+    param->result = IPC_INVALID_PARAM_ERR;
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->ready = true;
+    param->lockInfo->condition.notify_all();
     return false;
 }
 
@@ -229,6 +233,10 @@ static bool CreateJsCallingInfo(CallbackParam *param, const napi_value global, n
         || !CreateStringNapiValue(param, callingDeviceId, param->callingInfo.callingDeviceID)
         || !CreateStringNapiValue(param, localDeviceId, param->callingInfo.localDeviceID)
         || !CreateBoolNapiValue(param, isLocalCalling, param->callingInfo.isLocalCalling)) {
+        param->result = IPC_INVALID_PARAM_ERR;
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->ready = true;
+        param->lockInfo->condition.notify_all();
         return false;
     }
 
@@ -463,6 +471,11 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
 
     NapiScope napiScope(param->env);
     if (!napiScope.IsValid()) {
+        ZLOGE(LOG_LABEL, "napiScope is invalid");
+        param->result = IPC_INVALID_PARAM_ERR;
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->ready = true;
+        param->lockInfo->condition.notify_all();
         return;
     }
 
