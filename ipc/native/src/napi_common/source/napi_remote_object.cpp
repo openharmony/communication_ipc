@@ -471,7 +471,7 @@ static void OnJsRemoteRequestCallBack(CallbackParam *param, std::string &desc)
 
     NapiScope napiScope(param->env);
     if (!napiScope.IsValid()) {
-        ZLOGE(LOG_LABEL, "napiScope is invaild");
+        ZLOGE(LOG_LABEL, "napiScope is invalid");
         param->result = IPC_INVALID_PARAM_ERR;
         std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
         param->lockInfo->ready = true;
