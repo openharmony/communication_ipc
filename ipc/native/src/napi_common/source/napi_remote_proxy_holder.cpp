@@ -94,7 +94,7 @@ void NAPIDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     auto task = [param]() {
         AfterWorkCallback(param);
     };
-    napi_status sendRet = napi_send_event(env_, task, napi_eprio_high, "NAPIDeathRecipient::OnRemoteDied");
+    napi_status sendRet = napi_send_event(env_, task, napi_eprio_high, "IPC_NAPIDeathRecipient::OnRemoteDied");
     if (sendRet != napi_ok) {
         ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         delete param;
