@@ -86,7 +86,7 @@ void NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork()
         delete param;
     };
     napi_status sendRet = napi_send_event(env_, task, napi_eprio_high,
-        "NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork");
+        "IPC_NAPIRemoteObjectHolder::DeleteJsObjectRefInUvWork");
     if (sendRet != napi_ok) {
         ZLOGE(LOG_LABEL, "napi_send_event failed, ret:%{public}d", sendRet);
         delete param;
