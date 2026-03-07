@@ -94,7 +94,7 @@ static bool GetJsOnRemoteRequestCallback(CallbackParam *param, const napi_value 
                 : OnRemoteRequestType::ON_REMOTE_MESSAGE_REQUEST_WITH_CALLING_INFO;
             return true;
         }
-        ZLOGE(LOG_LABEL, "onRemoteMessageRequest is not function");
+        ZLOGD(LOG_LABEL, "onRemoteMessageRequest is not function");
     }
 
     napi_get_named_property(param->env, thisVar, "onRemoteRequest", &onRemoteRequest);
@@ -361,7 +361,7 @@ static bool CreateThenCallback(CallbackParam *param, napi_value &thenValue)
 
 static napi_value CatchCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGW(LOG_LABEL, "call js onRemoteRequest got exception");
+    ZLOGW(LOG_LABEL, "js Error");
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
