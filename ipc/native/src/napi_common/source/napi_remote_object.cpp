@@ -361,7 +361,7 @@ static bool CreateThenCallback(CallbackParam *param, napi_value &thenValue)
 
 static napi_value CatchCallback(napi_env env, napi_callback_info info)
 {
-    ZLOGW(LOG_LABEL, "js Error");
+    ZLOGD(LOG_LABEL, "call js onRemoteRequest got exception");
     size_t argc = 1;
     napi_value argv[ARGV_LENGTH_1] = {nullptr};
     void* data = nullptr;
