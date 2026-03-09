@@ -16,6 +16,7 @@
 #include "iremote_broker.h"
 
 #include <dlfcn.h>
+#include <set>
 #include <utility>
 
 #include "__mutex_base"
@@ -93,12 +94,17 @@ void BrokerRegistration::Unregister(const std::u16string &descriptor)
         creators_.erase(it);
     }
 
+    std::set<std::string> printedSoNames;
+
     for (auto iter = objects_.begin(); iter != objects_.end();) {
         std::string soPath = GetObjectSoPath(iter->first);
         if (soPath.empty() || (soPath != iter->second)) {
             size_t pos = iter->second.find_last_of('/');
             std::string soName = (pos != std::string::npos) ? iter->second.substr(pos + 1) : iter->second;
-            ZLOGW(LABEL, "%{public}s is dlclosed", soName.c_str());
+            if (printedSoNames.find(soName) == printedSoNames.end()) {
+                ZLOGW(LABEL, "%{public}s is dlclosed", soName.c_str());
+                printedSoNames.insert(soName);
+            }
             iter = objects_.erase(iter);
             continue;
         }
