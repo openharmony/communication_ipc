@@ -247,6 +247,15 @@ public:
      * @since 23
      */
     static int32_t GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize);
+
+    /**
+     * @brief Get calling user ID of caller on the peer device.
+     * @return Returns the UID of caller in the rpc context; Returns a invalid value -1 in the ipc context.
+     * In the rpc context, the UID from the peer device is not trusted, it is not recommended to use it for
+     * permission verification, if the business requires it, you must ensure cross-device security mechanisms yourself.
+     * @since 26.0.0
+     */
+    static pid_t GetDCallingUid();
 };
 
 class IPCDfx {
