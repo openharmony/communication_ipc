@@ -175,7 +175,7 @@ function testMessageSequence_WriteAndRead_IntArray2() {
         let intArray: Array<int> = [121, 212, 323, 414, 525, 616, 77, 88, 99, 100];
         data.writeIntArray(intArray);
         console.log(`writeIntArray success`);
-        let array: Array<int> = new Array<int>(intArray.length);
+        let array: Array<int> = Array.create<int>(intArray.length, 0);
         data.readIntArray(array);
         console.log(`readIntArray success, res is `, array);
         console.log(`readIntArray success, res.length is `, array.length);
@@ -212,7 +212,7 @@ function testMessageSequence_WriteAndRead_DoubleArray2() {
         let doubleArray: Array<double> = [121.1, 212.2, 323.3, 414.4, 525.5, 616.6, 77, 88, 99, 100];
         data.writeDoubleArray(doubleArray);
         console.log(`writeDoubleArray success`);
-        let array: Array<double> = new Array<double>(doubleArray.length);
+        let array: Array<double> = Array.create<double>(doubleArray.length, 0);
         data.readDoubleArray(array);
         console.log(`readDoubleArray success, res is `, array);
         console.log(`readDoubleArray success, res.length is `, array.length);
@@ -249,7 +249,7 @@ function testMessageSequence_WriteAndRead_StringArray2() {
         let stringArray: Array<string> = ["this ", "is ", "a ", "test ", "string ", "array", "2"];
         data.writeStringArray(stringArray);
         console.log(`writeStringArray success`);
-        let array: Array<string> = new Array<string>(stringArray.length);
+        let array: Array<string> = Array.create<string>(stringArray.length, "");
         data.readStringArray(array);
         console.log(`readStringArray success, res is `, array);
         console.log(`readStringArray success, res.length is `, array.length);
@@ -287,7 +287,7 @@ function testMessageSequence_WriteAndRead_BooleanArray2() {
         let boolArray: Array<boolean> = [false, true, false, true, false, true, false, true, false, true];
         data.writeBooleanArray(boolArray);
         console.log(`writeBooleanArray success`);
-        let array: Array<boolean> = new Array<boolean>(boolArray.length);
+        let array: Array<boolean> = Array.create<boolean>(boolArray.length, false);
         data.readBooleanArray(array);
         console.log(`readBooleanArray success, res is `, array);
         console.log(`readBooleanArray success, res.length is `, array.length);
