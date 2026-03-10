@@ -330,6 +330,18 @@ uint32_t IPCSkeleton::GetDCallingTokenID()
     return static_cast<uint32_t>(GetSelfTokenID());
 }
 
+pid_t IPCSkeleton::GetDCallingUid()
+{
+    if (IsLocalCalling()) {
+        return -1;
+    }
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker != nullptr) {
+        return invoker->GetCallerUid();
+    }
+    return -1;
+}
+
 #ifdef FREEZE_PROCESS_ENABLED
 int32_t IPCSkeleton::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
 {
