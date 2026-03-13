@@ -128,7 +128,7 @@ void WaitForInitFuzzTest(FuzzedDataProvider &provider)
     if (proxy == nullptr) {
         return;
     }
-    proxy->isFinishInit_ = true;
+    proxy->initState_.store(2, std::memory_order_release);
     proxy->proto_ = IRemoteObject::IF_PROT_DATABUS;
     proxy->WaitForInit(nullptr);
 }
