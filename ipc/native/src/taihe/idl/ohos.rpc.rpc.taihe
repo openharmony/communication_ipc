@@ -20,10 +20,10 @@ static { loadLibraryWithPermissionCheck("rpc_taihe.z", "@ohos.rpc"); }
 """)
 
 union IRemoteObjectUnion {
+    errRet: @undefined unit;
     remoteProxy: RemoteProxy;
     remoteObject: RemoteObject;
     iRemoteObject: IRemoteObject;
-    errRet: @undefined unit;
 }
 
 interface IRemoteBroker {
