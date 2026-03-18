@@ -127,6 +127,7 @@
             "OHOS::IPCSkeleton::TriggerSystemIPCThreadReclaim()";
             "OHOS::IPCSkeleton::GetThreadInvocationState()";
             "OHOS::IPCSkeleton::GetDCallingTokenID()";
+            "OHOS::IPCSkeleton::GetDCallingUid()";
             "OHOS::IPCPayloadStatistics::StartStatistics()";
             "OHOS::IPCPayloadStatistics::StopStatistics()";
             "OHOS::IPCPayloadStatistics::GetTotalCount()";
