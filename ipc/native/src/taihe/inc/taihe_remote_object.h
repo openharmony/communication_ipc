@@ -78,6 +78,7 @@ public:
     
 private:
     std::mutex mutex_;
+    std::mutex descMutex_;
     OHOS::wptr<OHOS::IPCObjectStub> wptrCachedObject_;
     OHOS::sptr<OHOS::IPCObjectStub> sptrCachedObject_;
     ::taihe::string desc_;
