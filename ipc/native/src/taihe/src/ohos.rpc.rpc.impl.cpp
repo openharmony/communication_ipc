@@ -556,7 +556,10 @@ RemoteObjectImpl::RemoteObjectImpl(uintptr_t nativePtr) : desc_("")
         TH_THROW(std::runtime_error, "reinterpret_cast nativePtr failed");
         return;
     }
-    desc_ = OHOS::Str16ToStr8(stub->GetObjectDescriptor());
+    {
+        std::lock_guard<std::mutex> lockGuard(descMutex_);
+        desc_ = OHOS::Str16ToStr8(stub->GetObjectDescriptor());
+    }
     std::lock_guard<std::mutex> lockGuard(mutex_);
     sptrCachedObject_ = stub;
 }
@@ -579,7 +582,10 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
     }
     jsLocalInterface_ = localInterface;
-    desc_ = descriptor;
+    {
+        std::lock_guard<std::mutex> lockGuard(descMutex_);
+        desc_ = descriptor;
+    }
 }
 
 ::ohos::rpc::rpc::IRemoteBroker RemoteObjectImpl::GetLocalInterface(::taihe::string_view descriptor)
@@ -589,6 +595,7 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
         ZLOGE(LOG_LABEL, "string length exceeds %{public}zu bytes", MAX_BYTES_LENGTH);
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR, jsBroker);
     }
+    std::lock_guard<std::mutex> lockGuard(descMutex_);
     if (descriptor != desc_) {
         ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc_.data());
         return jsBroker;
@@ -646,6 +653,7 @@ void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient
 
 ::taihe::string RemoteObjectImpl::GetDescriptor()
 {
+    std::lock_guard<std::mutex> lockGuard(descMutex_);
     return desc_;
 }
 
@@ -686,7 +694,15 @@ void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj,
 {
     hasCallingInfo_ = hasCallingInfo;
     jsObjRef_ = std::optional<::ohos::rpc::rpc::RemoteObject>(std::in_place, obj);
-    std::u16string descStr16(desc_.begin(), desc_.end());
+    if (!jsObjRef_.has_value()) {
+        ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+        return;
+    }
+    std::u16string descStr16;
+    {
+        std::lock_guard<std::mutex> lockGuard(descMutex_);
+        descStr16 = std::u16string(desc_.begin(), desc_.end());
+    }
     ANIRemoteObject *newObject = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value(), hasCallingInfo);
     if (newObject == nullptr) {
         ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");

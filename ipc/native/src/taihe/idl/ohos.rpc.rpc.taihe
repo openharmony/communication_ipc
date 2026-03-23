@@ -100,11 +100,11 @@ interface Ashmem {
 }
 
 @static("Ashmem")
-@overload("create")
+@rename("create")
 function CreateAshmem_WithTwoParam(name: String, size: i32): Ashmem;
 
 @static("Ashmem")
-@overload("create")
+@rename("create")
 function CreateAshmem_WithOneParam(ashmem: Ashmem): Ashmem;
 
 @static("Ashmem")
@@ -173,7 +173,7 @@ interface MessageSequence {
     ReadString(): String;
     ReadParcelable(dataIn: Parcelable): void;
 
-    @overload("readIntArray")
+    @rename("readIntArray")
     ReadIntArrayImpl(): Array<i32>;
     @!sts_inject_into_class("""
         readIntArray(dataIn: Array<int>): void {
@@ -184,7 +184,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readDoubleArray")
+    @rename("readDoubleArray")
     ReadDoubleArrayImpl(): Array<f64>;
     @!sts_inject_into_class("""
         readDoubleArray(dataIn: Array<double>): void {
@@ -195,7 +195,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readBooleanArray")
+    @rename("readBooleanArray")
     ReadBooleanArrayImpl(): Array<bool>;
     @!sts_inject_into_class("""
         readBooleanArray(dataIn: Array<boolean>): void {
@@ -206,7 +206,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readStringArray")
+    @rename("readStringArray")
     ReadStringArrayImpl(): Array<String>;
     @!sts_inject_into_class("""
         readStringArray(dataIn: Array<String>): void {
@@ -217,7 +217,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readRemoteObjectArray")
+    @rename("readRemoteObjectArray")
     ReadRemoteObjectArrayImpl(): Array<IRemoteObjectUnion>;
     @!sts_inject_into_class("""
         readRemoteObjectArray(dataIn: Array<IRemoteObjectUnion>): void {
@@ -228,7 +228,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readCharArray")
+    @rename("readCharArray")
     ReadCharArrayImpl(): Array<i32>;
     @!sts_inject_into_class("""
         readCharArray(dataIn: Array<int>): void {
@@ -239,7 +239,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readFloatArray")
+    @rename("readFloatArray")
     ReadFloatArrayImpl(): Array<f64>;
     @!sts_inject_into_class("""
         readFloatArray(dataIn: Array<double>): void {
@@ -250,7 +250,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readLongArray")
+    @rename("readLongArray")
     ReadLongArrayImpl(): Array<i64>;
     @!sts_inject_into_class("""
         readLongArray(dataIn: Array<long>): void {
@@ -261,7 +261,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readShortArray")
+    @rename("readShortArray")
     ReadShortArrayImpl(): Array<i32>;
     @!sts_inject_into_class("""
         readShortArray(dataIn: Array<int>): void {
@@ -272,7 +272,7 @@ interface MessageSequence {
         }
     """)
 
-    @overload("readByteArray")
+    @rename("readByteArray")
     ReadByteArrayImpl(): Array<i32>;
     @!sts_inject_into_class("""
         readByteArray(dataIn: Array<int>): void {
@@ -338,7 +338,7 @@ function RpcTransferStaicImpl(input: @sts_type("ESValue") Opaque): MessageSequen
 function RpcTransferDynamicImpl(obj: MessageSequence): @sts_type("Any") Opaque;
 
 @static("MessageSequence")
-@overload("create")
+@rename("create")
 function CreateMessageSequence(): MessageSequence;
 
 @static("MessageSequence")
@@ -389,7 +389,7 @@ interface RemoteObject : IRemoteObject {
     }
     """)
 
-    @overload("onRemoteMessageRequest")
+    @rename("onRemoteMessageRequest")
     OnRemoteMessageRequestWithCallingInfo(
         code: i32,
         data: MessageSequence,
@@ -398,7 +398,7 @@ interface RemoteObject : IRemoteObject {
         callingInfo: CallingInfo
     ): bool;
 
-    @overload("onRemoteMessageRequest")
+    @rename("onRemoteMessageRequest")
     OnRemoteMessageRequest(
         code: i32,
         data: MessageSequence,
