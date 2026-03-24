@@ -57,6 +57,8 @@
             "OHOS::IPCObjectStub::SendRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
             "OHOS::IPCObjectStub::AddDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
             "OHOS::IPCObjectStub::RemoveDeathRecipient(OHOS::sptr<OHOS::IRemoteObject::DeathRecipient> const&)";
+            "OHOS::IPCObjectStub::AddRefreshRecipient(OHOS::sptr<OHOS::IRemoteObject::RefreshRecipient> const&)";
+            "OHOS::IPCObjectStub::RemoveRefreshRecipient(OHOS::sptr<OHOS::IRemoteObject::RefreshRecipient> const&)";
             "OHOS::IPCObjectStub::Dump(int, std::__h::vector<std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>, std::__h::allocator<std::__h::basic_string<char16_t, std::__h::char_traits<char16_t>, std::__h::allocator<char16_t>>>> const&)";
             "OHOS::IPCObjectStub::OnFirstStrongRef(void const*)";
             "OHOS::IPCObjectStub::OnLastStrongRef(void const*)";

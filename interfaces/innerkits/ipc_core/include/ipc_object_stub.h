@@ -274,6 +274,22 @@ public:
     int32_t AddAuthInfo(MessageParcel &data, MessageParcel &reply, uint32_t code);
 #endif
 
+    /**
+     * @brief Register for callbacks to receive refresh notifications.
+     * @param recipient Indicates the RefreshRecipient pointer callback to register.
+     * @return Returns <b>true</b> if register succeeds; returns <b>false</b> otherwise.
+     * @since 24
+     */
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient) override;
+
+    /**
+     * @brief Unregister for callbacks to receive refresh notifications.
+     * @param recipient Indicates the RefreshRecipient pointer callback to register.
+     * @return Returns <b>true</b> if unregister succeeds; returns <b>false</b> otherwise.
+     * @since 24
+     */
+    bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient) override;
+
 protected:
 #ifndef CONFIG_IPC_SINGLE
     /**

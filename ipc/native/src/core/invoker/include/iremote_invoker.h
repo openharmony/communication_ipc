@@ -61,6 +61,10 @@ public:
 
     virtual bool RemoveDeathRecipient(int32_t handle, void *cookie) = 0;
 
+    virtual bool AddRefreshRecipient(int32_t handle, void *cookie) = 0;
+
+    virtual bool RemoveRefreshRecipient(int32_t handle, void *cookie) = 0;
+
     virtual bool SetMaxWorkThread(int maxThreadNum) = 0;
 
     virtual void JoinThread(bool initiative) = 0;

@@ -74,6 +74,7 @@ public:
     virtual int GetSptrRefCount() = 0;
     virtual uint64_t GetSelfFirstCallerTokenID() = 0;
     virtual bool IsDriverAlive() = 0;
+    virtual bool IsRefreshSupported() = 0;
     virtual bool GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length) = 0;
     virtual bool StrToUint64(const std::string &str, uint64_t &value) = 0;
     virtual bool StrToInt32(const std::string &str, int32_t &value) = 0;
@@ -103,6 +104,7 @@ public:
     MOCK_METHOD0(GetSptrRefCount, int());
     MOCK_METHOD0(GetSelfFirstCallerTokenID, uint64_t());
     MOCK_METHOD0(IsDriverAlive, bool());
+    MOCK_METHOD0(IsRefreshSupported, bool());
     MOCK_METHOD4(GetSubStr, bool(const std::string &str, std::string &substr, size_t offset, size_t length));
     MOCK_METHOD2(StrToUint64, bool(const std::string &str, uint64_t &value));
     MOCK_METHOD2(StrToInt32, bool(const std::string &str, int32_t &value));
@@ -248,6 +250,13 @@ extern "C" {
             return false;
         }
         return GetBinderInvokerInterface()->IsDriverAlive();
+    }
+    bool BinderConnector::IsRefreshSupported()
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->IsRefreshSupported();
     }
     bool ProcessSkeleton::GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length)
     {
@@ -728,6 +737,347 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest005, TestSize.Level1) {
     EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest001
+ * @tc.desc: Verify the AddRefreshRecipient function When WriteInt32 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest001, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest002
+ * @tc.desc: Verify the AddRefreshRecipient function When WriteInt32 function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest002, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest003
+ * @tc.desc: Verify the AddRefreshRecipient function
+ * When WriteInt32 function return true, When WritePointer function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest003, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest004
+ * @tc.desc: Verify the AddRefreshRecipient function
+ * When WriteInt32 function return true, When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest004, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest005
+ * @tc.desc: Verify the AddRefreshRecipient function
+ * When WriteInt32 function return true, When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest005, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest006
+ * @tc.desc: Verify the AddRefreshRecipient function
+ * When RewinWrite function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest006, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32)
+        .Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest007
+ * @tc.desc: Verify the AddRefreshRecipient function
+ * When RewinWrite function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest007, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32)
+        .Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest008
+ * @tc.desc: Verify the AddRefreshRecipient function
+ * When WriteInt32 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest008, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    binderInvoker.binderConnector_ = nullptr;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+    bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest001
+ * @tc.desc: Verify the RemoveRefreshRecipient function When WriteInt32 function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest001, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest002
+ * @tc.desc: Verify the RemoveRefreshRecipient function
+ * When the WriteUint32 function returns true for the first time and false for the second time
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest002, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest003
+ * @tc.desc: Verify the RemoveRefreshRecipient function
+ * When the WriteUint32 function returns true for the first time and true for the second time
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest003, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest004
+ * @tc.desc: Verify the RemoveRefreshRecipient function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest004, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest005
+ * @tc.desc: Verify the RemoveRefreshRecipient function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest005, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+        .WillOnce(testing::Return(true))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest006
+ * @tc.desc: Verify the RemoveRefreshRecipient function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest006, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    binderInvoker.binderConnector_ = nullptr;
+    int32_t handle = TEST_HANDLE;
+    void *cookie = nullptr;
+    bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: OnBinderRefreshedTest001
+ * @tc.desc: Verify the OnBinderRefreshed function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest001, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
+}
+
+/**
+ * @tc.name: OnBinderRefreshedTest002
+ * @tc.desc: Verify the OnBinderRefreshed function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest002, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
+}
+
+/**
+ * @tc.name: OnBinderRefreshedTest003
+ * @tc.desc: Verify the OnBinderRefreshed function When WritePointer function return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest003, TestSize.Level1) {
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+
+    EXPECT_CALL(mock, ReadPointer)
+        .WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
 }
 
 /**

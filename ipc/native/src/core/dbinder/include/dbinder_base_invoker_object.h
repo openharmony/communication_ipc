@@ -485,6 +485,16 @@ template <class T> bool DBinderBaseInvoker<T>::RemoveDeathRecipient(int32_t hand
     return true;
 }
 
+template <class T> bool DBinderBaseInvoker<T>::AddRefreshRecipient(int32_t handle, void *cookie)
+{
+    return true;
+}
+
+template <class T> bool DBinderBaseInvoker<T>::RemoveRefreshRecipient(int32_t handle, void *cookie)
+{
+    return true;
+}
+
 template <class T> bool DBinderBaseInvoker<T>::CheckMessageVaildity(int32_t socketId, int cmd)
 {
     if (cmd == BC_TRANSACTION && ((QueryClientSessionObject(socketId) != nullptr))) {
