@@ -131,6 +131,11 @@ bool BinderConnector::IsRealPidSupported()
     return (featureSet_ & SENDER_INFO_FAETURE_MASK) != 0;
 }
 
+bool BinderConnector::IsRefreshSupported()
+{
+    return (featureSet_ & REFRESH_RECIPIENT_ENABLED_MASK) != 0;
+}
+
 int BinderConnector::WriteBinder(unsigned long request, void *value)
 {
     int err = -EINTR;

@@ -156,6 +156,7 @@ struct binder_node_info_for_ref {
 #define ACCESS_TOKEN_FAETURE_MASK (1 << 0)
 #define SENDER_INFO_FAETURE_MASK (1 << 2)
 //      ACTV_BINDER_FEATURE_MASK  (1 << 1)
+#define REFRESH_RECIPIENT_ENABLED_MASK (1 << 3)
 
 struct binder_feature_set {
     __u64 feature_set;
@@ -274,6 +275,8 @@ enum binder_driver_return_protocol {
     BR_FROZEN_REPLY = _IO('r', 18),
     BR_TRANSACTION_PENDING_FROZEN = _IO('r', 20),
 #endif // FREEZE_PROCESS_ENABLED
+    BR_REFRESH_BINDER = _IOR('r', 100, binder_uintptr_t),
+    BR_CLEAR_REFRESH_NOTIFICATION_DONE = _IOR('r', 101, binder_uintptr_t),
 };
 enum binder_driver_command_protocol {
     BC_TRANSACTION = _IOW('c', 0, struct binder_transaction_data),
@@ -297,6 +300,9 @@ enum binder_driver_command_protocol {
     BC_REPLY_SG = _IOW('c', 18, struct binder_transaction_data_sg),
     BC_SEND_RAWDATA = _IOW('c', 20, __u32),
     BC_TRANSLATION = _IOW('c', 21, struct flat_binder_object),
+    BC_REQUEST_REFRESH_NOTIFICATION = _IOW('c', 128, struct binder_handle_cookie),
+    BC_CLEAR_REFRESH_NOTIFICATION = _IOW('c', 129, struct binder_handle_cookie),
+    BC_REFRESH_BINDER_DONE = _IOW('c', 130, binder_uintptr_t),
 #ifndef __linux__
     HMB_GET_DETAILED_ERROR = _IOWR('b', 161, struct hmb_detailed_err),
 #endif

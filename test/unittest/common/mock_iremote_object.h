@@ -33,6 +33,16 @@ public:
     }
 };
 
+class MockRefreshRecipient : public IRemoteObject::RefreshRecipient {
+public:
+    MockRefreshRecipient() = default;
+    ~MockRefreshRecipient() = default;
+    void OnRemoteRefreshed(const wptr<IRemoteObject> &object)
+    {
+        (void)object;
+    }
+};
+
 class MockIPCObjectProxy : public IPCObjectProxy {
 public:
     MockIPCObjectProxy() : IPCObjectProxy(1, u"mockProxyService") {};

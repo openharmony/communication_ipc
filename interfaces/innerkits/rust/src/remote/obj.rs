@@ -116,6 +116,29 @@ impl RemoteObj {
         }
     }
 
+    /// Sends a IPC request to remote service
+    pub fn send_request_ext(&self, code: u32, data: &mut MsgParcel, option: MsgOption) -> IpcResult<MsgParcel> {
+        let mut reply = MsgParcel::new();
+        let mut option = option;
+        match mem::replace(&mut data.inner, ParcelMem::Null) {
+            ParcelMem::Unique(mut p) => {
+                let res = self.inner.SendRequest(
+                    code,
+                    p.pin_mut(),
+                    reply.pin_mut().unwrap(),
+                    option.inner.pin_mut(),
+                );
+                data.inner = ParcelMem::Unique(p);
+                match res {
+                    0 => Ok(reply),
+                    29189 => Err(IpcStatusCode::ServiceDied),
+                    _ => Err(IpcStatusCode::Failed),
+                }
+            }
+            _ => Err(IpcStatusCode::Failed),
+        }
+    }
+
     /// Sends asynchronous IPC requests to remote services, The current
     /// interface will use ylong runtime to start a separate thread to execute
     /// requests
