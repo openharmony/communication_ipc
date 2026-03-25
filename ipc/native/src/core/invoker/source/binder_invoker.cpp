@@ -225,11 +225,11 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
     return true;
 }
 
-bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
+bool BinderInvoker::AddRecipient(int32_t handle, void *cookie, int32_t command_id)
 {
     ZLOGD(LABEL, "for handle:%{public}d", handle);
     size_t rewindPos = output_.GetWritePosition();
-    if (!output_.WriteInt32(BC_REQUEST_DEATH_NOTIFICATION)) {
+    if (!output_.WriteInt32(command_id)) {
         ZLOGE(LABEL, "fail to write command field, handle:%{public}d", handle);
         return false;
     }
@@ -260,10 +260,10 @@ bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
     return error == ERR_NONE;
 }
 
-bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
+bool BinderInvoker::RemoveRecipient(int32_t handle, void *cookie, int32_t command_id)
 {
     size_t rewindPos = output_.GetWritePosition();
-    if (!output_.WriteInt32(BC_CLEAR_DEATH_NOTIFICATION)) {
+    if (!output_.WriteInt32(command_id)) {
         return false;
     }
 
@@ -289,6 +289,34 @@ bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
     }
 
     return true;
+}
+
+bool BinderInvoker::AddDeathRecipient(int32_t handle, void *cookie)
+{
+    return AddRecipient(handle, cookie, BC_REQUEST_DEATH_NOTIFICATION);
+}
+
+bool BinderInvoker::RemoveDeathRecipient(int32_t handle, void *cookie)
+{
+    return RemoveRecipient(handle, cookie, BC_CLEAR_DEATH_NOTIFICATION);
+}
+
+bool BinderInvoker::AddRefreshRecipient(int32_t handle, void *cookie)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsRefreshSupported())) {
+        ZLOGE(LABEL, "featureSet_ not support this operation(AddRefreshRecipient), handle:%{public}d", handle);
+        return false;
+    }
+    return AddRecipient(handle, cookie, BC_REQUEST_REFRESH_NOTIFICATION);
+}
+
+bool BinderInvoker::RemoveRefreshRecipient(int32_t handle, void *cookie)
+{
+    if ((binderConnector_ == nullptr) || (!binderConnector_->IsRefreshSupported())) {
+        ZLOGE(LABEL, "featureSet_ not support this operation(RemoveRefreshRecipient), handle:%{public}d", handle);
+        return false;
+    }
+    return RemoveRecipient(handle, cookie, BC_CLEAR_REFRESH_NOTIFICATION);
 }
 
 #ifndef CONFIG_IPC_SINGLE
@@ -647,6 +675,42 @@ void BinderInvoker::OnBinderDied()
 }
 // LCOV_EXCL_STOP
 
+void BinderInvoker::OnBinderRefreshed()
+{
+    ZLOGD(LABEL, "enter");
+    uintptr_t cookie = input_.ReadPointer();
+    auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
+    if ((proxy == nullptr) || (proxy->GetSptrRefCount() <= 0)) {
+        ZLOGE(LABEL, "Invalid proxy object %{public}u.", ProcessSkeleton::ConvertAddr(proxy));
+        return;
+    }
+    
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    std::u16string desc;
+    if ((current != nullptr) && !current->IsValidObject(proxy, desc)) {
+        ZLOGE(LABEL, "%{public}u is invalid", ProcessSkeleton::ConvertAddr(proxy));
+    } else {
+        std::string descTemp = Str16ToStr8(desc);
+        CrashObjDumper dumper(descTemp.c_str());
+        if (proxy->AttemptIncStrongRef(this)) {
+            proxy->SendRefreshObituary();
+            proxy->DecStrongRef(this);
+        } else {
+            ZLOGW(LABEL, "failed to increment strong reference count");
+        }
+    }
+    size_t rewindPos = output_.GetWritePosition();
+    if (!output_.WriteInt32(BC_REFRESH_BINDER_DONE)) {
+        return;
+    }
+
+    if (!output_.WritePointer((uintptr_t)cookie)) {
+        if (!output_.RewindWrite(rewindPos)) {
+            output_.FlushBuffer();
+        }
+    }
+}
+
 void BinderInvoker::OnAcquireObject(uint32_t cmd)
 {
     bool result = false;
@@ -970,6 +1034,11 @@ void BinderInvoker::OnRemoveRecipientDone()
 }
 // LCOV_EXCL_STOP
 
+void BinderInvoker::OnRemoveRefreshRecipientDone()
+{
+    OnRemoveRecipientDone();
+}
+
 // LCOV_EXCL_START
 void BinderInvoker::OnSpawnThread()
 {
@@ -1084,11 +1153,17 @@ int BinderInvoker::HandleCommandsInner(uint32_t cmd)
         case BR_DEAD_BINDER:
             OnBinderDied();
             break;
+        case BR_REFRESH_BINDER:
+            OnBinderRefreshed();
+            break;
         case BR_OK:
         case BR_NOOP:
             break;
         case BR_CLEAR_DEATH_NOTIFICATION_DONE:
             OnRemoveRecipientDone();
+            break;
+        case BR_CLEAR_REFRESH_NOTIFICATION_DONE:
+            OnRemoveRefreshRecipientDone();
             break;
 
         default:
@@ -1394,7 +1469,7 @@ bool BinderInvoker::PingService(int32_t handle)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option{ MessageOption::TF_IMAGE };
     int result = SendRequest(handle, PING_TRANSACTION, data, reply, option);
     return (result == ERR_NONE);
 }

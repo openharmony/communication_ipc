@@ -246,6 +246,29 @@ public:
     bool CanPromote() override;
 #endif
 
+    /**
+     * @brief Registered a refresh recipient.
+     * @param recipient Indicates the recipient of the RefreshRecipient pointer.
+     * @return Returns <b>true</b> if the callback is registered successfully; returns <b>false</b> otherwise.
+     * @since 24
+     */
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient) override;
+
+    /**
+     * @brief Unregistered a refresh recipient.
+     * @param recipient Indicates the recipient of the RefreshRecipient pointer.
+     * @return Returns <b>true</b> if the callback is registered successfully; returns <b>false</b> otherwise.
+     * @since 24
+     */
+    bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient) override;
+
+    /**
+     * @brief Send refresh obituary to agents who have registered for refresh notices.
+     * @return void
+     * @since 24
+     */
+    void SendRefreshObituary();
+
 private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
@@ -378,6 +401,22 @@ private:
         std::string soPath_;
     };
 
+    struct RefreshRecipientAddrInfo : public virtual RefBase {
+    public:
+        explicit RefreshRecipientAddrInfo(const sptr<RefreshRecipient> &recipient);
+
+        std::string GetNewSoPath();
+        bool IsDlclosed();
+    public:
+        sptr<RefreshRecipient> recipient_;
+        void *soFuncAddr_;
+        std::string soPath_;
+    };
+
+    void ClearRefreshRecipients();
+    bool RegisterBinderRefreshRecipient();
+    bool UnRegisterBinderRefreshRecipient();
+
 private:
     std::mutex initMutex_;
     std::recursive_mutex mutex_;
@@ -398,6 +437,7 @@ private:
     std::string fullRemoteDescriptor_;
     bool isTraceEnabled_ = false;
 #endif
+    std::vector<sptr<RefreshRecipientAddrInfo>> refreshRecipients_;
 };
 } // namespace OHOS
 #endif // OHOS_IPC_IPC_OBJECT_PROXY_H

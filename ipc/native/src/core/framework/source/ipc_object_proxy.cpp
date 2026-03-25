@@ -439,6 +439,7 @@ void IPCObjectProxy::OnLastStrongRef(const void *objectId)
 #ifndef CONFIG_IPC_SINGLE
     ReleaseProto();
 #endif
+    ClearRefreshRecipients();
     ClearDeathRecipients();
     // This proxy is going to be destroyed, so we need to decrease refcount of binder_ref.
     // It may has been replace with a new proxy, thus we have no need to check result.
@@ -538,6 +539,10 @@ bool IPCObjectProxy::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
             handle_, desc.c_str(), ProcessSkeleton::ConvertAddr(this));
         return false;
     }
+    if (refreshRecipients_.size() >= 1) {
+        ZLOGE(LABEL, "DeathRecipient is not empty, handle:%{public}d desc:%{public}s", handle_, desc.c_str());
+        return false;
+    }
 
     ZLOGD(LABEL, "handle:%{public}d desc:%{public}s addr:%{public}u, result:%{public}d", handle_,
         desc.c_str(), ProcessSkeleton::ConvertAddr(this), recipientErased);
@@ -566,6 +571,7 @@ void IPCObjectProxy::SendObituary()
     }
 #endif
     SetObjectDied(true);
+    ClearRefreshRecipients();
     if (toBeReport.size() > 0 && handle_ < IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
         IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
         if (invoker != nullptr) {
@@ -613,6 +619,134 @@ void IPCObjectProxy::ClearDeathRecipients()
 #endif
 }
 // LCOV_EXCL_STOP
+
+bool IPCObjectProxy::AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+{
+    if (recipient == nullptr) {
+        ZLOGE(LABEL, "recipient is null");
+        return false;
+    }
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = remoteDescriptor_;
+    }
+    if (recipients_.size() < 1) {
+        ZLOGE(LABEL, "call AddDeathRecipient first, handle:%{public}d desc:%{public}s", handle_, desc.c_str());
+        return false;
+    }
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (IsObjectDead()) {
+        ZLOGE(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s", handle_, desc.c_str());
+        return false;
+    }
+    sptr<RefreshRecipientAddrInfo> info = new (std::nothrow) RefreshRecipientAddrInfo(recipient);
+    if (info == nullptr || info->soPath_.empty()) {
+        ZLOGE(LABEL, "invalid object, info is nullptr:%{public}d", info == nullptr);
+        return false;
+    }
+    refreshRecipients_.push_back(info);
+    if (refreshRecipients_.size() > 1 || handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        ZLOGD(LABEL, "refresh recipient is already registered, handle:%{public}d desc:%{public}s",
+            handle_, desc.c_str());
+        return true;
+    }
+    if (!RegisterBinderRefreshRecipient()) {
+        ZLOGE(LABEL, "register failed, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
+            desc.c_str(), ProcessSkeleton::ConvertAddr(this));
+        refreshRecipients_.pop_back();
+        return false;
+    }
+    ZLOGD(LABEL, "success, handle:%{public}d desc:%{public}s addr:%{public}u", handle_,
+        desc.c_str(), ProcessSkeleton::ConvertAddr(this));
+    return true;
+}
+
+bool IPCObjectProxy::RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+{
+    if (recipient == nullptr) {
+        ZLOGW(LABEL, "recipient is null");
+        return false;
+    }
+    std::string desc;
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        desc = remoteDescriptor_;
+    }
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (IsObjectDead()) {
+        ZLOGD(LABEL, "proxy is already dead, handle:%{public}d desc:%{public}s", handle_, desc.c_str());
+        return false;
+    }
+    bool recipientErased = false;
+    for (auto iter = refreshRecipients_.begin(); iter != refreshRecipients_.end(); iter++) {
+        if ((*iter)->recipient_ == recipient) {
+            refreshRecipients_.erase(iter);
+            recipientErased = true;
+            break;
+        }
+    }
+    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE && recipientErased) {
+        ZLOGI(LABEL, "refresh recipient is already unregistered, handle:%{public}d desc:%{public}s",
+            handle_, desc.c_str());
+        return true;
+    }
+    
+    if (recipientErased && refreshRecipients_.empty() && !UnRegisterBinderRefreshRecipient()) {
+        ZLOGE(LABEL, "unregister failed, handle:%{public}d desc:%{public}s addr:%{public}u",
+            handle_, desc.c_str(), ProcessSkeleton::ConvertAddr(this));
+        return false;
+    }
+    
+    ZLOGD(LABEL, "handle:%{public}d desc:%{public}s addr:%{public}u, result:%{public}d", handle_,
+        desc.c_str(), ProcessSkeleton::ConvertAddr(this), recipientErased);
+    return recipientErased;
+}
+
+void IPCObjectProxy::ClearRefreshRecipients()
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (refreshRecipients_.empty()) {
+        return;
+    }
+
+    refreshRecipients_.clear();
+    if (handle_ >= IPCProcessSkeleton::DBINDER_HANDLE_BASE) {
+        return;
+    }
+
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker != nullptr) {
+        invoker->RemoveRefreshRecipient(handle_, this);
+    }
+}
+
+void IPCObjectProxy::SendRefreshObituary()
+{
+    std::vector<sptr<RefreshRecipientAddrInfo>> toBeReport;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        toBeReport = refreshRecipients_;
+    }
+    {
+        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+        // hd is handle, ct is count
+        ZLOGI_SENDOBITUARY(LABEL, "hd:%{public}d ct:%{public}zu", handle_, toBeReport.size());
+    }
+    
+    for (auto iter = toBeReport.begin(); iter != toBeReport.end(); iter++) {
+        if ((*iter)->IsDlclosed()) {
+            ZLOGE(LABEL, "so has been dlclosed, sopath:%{public}s", (*iter)->soPath_.c_str());
+            continue;
+        }
+        sptr<RefreshRecipient> recipient = (*iter)->recipient_;
+        if (recipient != nullptr) {
+            ZLOGD(LABEL, "handle:%{public}u call OnRemoteRefreshed begin", handle_);
+            recipient->OnRemoteRefreshed(this);
+            ZLOGD(LABEL, "handle:%{public}u call OnRemoteRefreshed end", handle_);
+        }
+    }
+}
 
 int IPCObjectProxy::GetProto() const
 {
@@ -1162,6 +1296,76 @@ std::string IPCObjectProxy::DeathRecipientAddrInfo::GetNewSoPath()
 // LCOV_EXCL_STOP
 
 bool IPCObjectProxy::DeathRecipientAddrInfo::IsDlclosed()
+{
+    std::string newSoPath = GetNewSoPath();
+    if (newSoPath.empty() || (newSoPath != soPath_)) {
+        return true;
+    }
+    return false;
+}
+
+bool IPCObjectProxy::RegisterBinderRefreshRecipient()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "invoker is null");
+        return false;
+    }
+    if (!invoker->AddRefreshRecipient(handle_, this)) {
+        ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
+        return false;
+    }
+#ifndef CONFIG_IPC_SINGLE
+    if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
+        ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
+        return false;
+    }
+#endif
+    ZLOGD(LABEL, "success, handle:%{public}d", handle_);
+    return true;
+}
+
+bool IPCObjectProxy::UnRegisterBinderRefreshRecipient()
+{
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetDefaultInvoker();
+    if (invoker == nullptr) {
+        ZLOGE(LABEL, "invoker is null");
+        return false;
+    }
+
+    bool status = invoker->RemoveRefreshRecipient(handle_, this);
+    ZLOGD(LABEL, "unregister result:%{public}d, handle:%{public}d", status, handle_);
+    return status;
+}
+
+IPCObjectProxy::RefreshRecipientAddrInfo::RefreshRecipientAddrInfo(const sptr<RefreshRecipient> &recipient)
+    : recipient_(recipient), soFuncAddr_(nullptr), soPath_()
+{
+    if (recipient_ == nullptr) {
+        ZLOGD(LABEL, "recipient is null");
+        return;
+    }
+    soFuncAddr_ = reinterpret_cast<void *>(GET_FIRST_VIRTUAL_FUNC_ADDR(recipient_.GetRefPtr()));
+    soPath_ = GetNewSoPath();
+}
+
+std::string IPCObjectProxy::RefreshRecipientAddrInfo::GetNewSoPath()
+{
+    if (soFuncAddr_ == nullptr) {
+        ZLOGE(LABEL, "empty function addr");
+        return "";
+    }
+
+    Dl_info info;
+    int32_t ret = dladdr(soFuncAddr_, &info);
+    if ((ret == 0) || (info.dli_fname == nullptr)) {
+        ZLOGE(LABEL, "dladdr failed ret:%{public}d", ret);
+        return "";
+    }
+    return info.dli_fname;
+}
+
+bool IPCObjectProxy::RefreshRecipientAddrInfo::IsDlclosed()
 {
     std::string newSoPath = GetNewSoPath();
     if (newSoPath.empty() || (newSoPath != soPath_)) {

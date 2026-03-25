@@ -179,6 +179,39 @@ public:
      */
     std::u16string GetObjectDescriptor() const;
 
+    class RefreshRecipient : public virtual RefBase {
+    public:
+        /**
+         * @brief Called to perform subsequent operations when a refresh notification of the remote object is received.
+         * @param object Indicates the IRemoteObject pointer object.
+         * @return void
+         * @since 24
+         */
+        virtual void OnRemoteRefreshed(const wptr<IRemoteObject> &object) = 0;
+    };
+
+    /**
+     * @brief Add a callback used to receive notifications of the refresh of a remote object.
+     * @return Returns <b>true</b> if the identity is legal; returns <b>false</b> otherwise.
+     * @since 24
+     */
+    virtual bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        (void)recipient;
+        return false;
+    }
+
+    /**
+     * @brief Remove a callback used to receive notifications of the refresh of a remote object.
+     * @return Returns <b>true</b> if the identity is legal; returns <b>false</b> otherwise.
+     * @since 24
+     */
+    virtual bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        (void)recipient;
+        return false;
+    }
+
 protected:
     explicit IRemoteObject(std::u16string descriptor = {});
     virtual ~IRemoteObject() = default;

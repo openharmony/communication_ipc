@@ -31,6 +31,7 @@ public:
     bool IsDriverAlive();
     bool IsAccessTokenSupported();
     bool IsRealPidSupported();
+    bool IsRefreshSupported();
     uint64_t GetSelfTokenID();
     uint64_t GetSelfFirstCallerTokenID();
     void CloseDriverFd();

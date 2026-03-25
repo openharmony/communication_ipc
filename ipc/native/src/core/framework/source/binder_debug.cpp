@@ -44,6 +44,8 @@ ErrorMap &BinderDebug::GetErrorMap()
                                  { BR_DEAD_BINDER, "BR_DEAD_BINDER" },
                                  { BR_CLEAR_DEATH_NOTIFICATION_DONE, "BR_CLEAR_DEATH_NOTIFICATION_DONE" },
                                  { BR_FAILED_REPLY, "BR_FAILED_REPLY" },
+                                 { BR_REFRESH_BINDER, "BR_REFRESH_BINDER" },
+                                 { BR_CLEAR_REFRESH_NOTIFICATION_DONE, "BR_CLEAR_REFRESH_NOTIFICATION_DONE" },
                                  { BC_TRANSACTION, "BC_TRANSACTION" },
                                  { BC_REPLY, "BC_REPLY" },
                                  { BC_ACQUIRE_RESULT, "BC_ACQUIRE_RESULT" },
@@ -58,6 +60,9 @@ ErrorMap &BinderDebug::GetErrorMap()
                                  { BC_REGISTER_LOOPER, "BC_REGISTER_LOOPER" },
                                  { BC_ENTER_LOOPER, "BC_ENTER_LOOPER" },
                                  { BC_EXIT_LOOPER, "BC_EXIT_LOOPER" },
+                                 { BC_REQUEST_REFRESH_NOTIFICATION, "BC_REQUEST_REFRESH_NOTIFICATION" },
+                                 { BC_CLEAR_REFRESH_NOTIFICATION, "BC_CLEAR_REFRESH_NOTIFICATION" },
+                                 { BC_REFRESH_BINDER_DONE, "BC_REFRESH_BINDER_DONE" },
                                  { BC_REQUEST_DEATH_NOTIFICATION, "BC_REQUEST_DEATH_NOTIFICATION" },
                                  { BC_CLEAR_DEATH_NOTIFICATION, "BC_CLEAR_DEATH_NOTIFICATION" },
                                  { BC_DEAD_BINDER_DONE, "BC_DEAD_BINDER_DONE" } };

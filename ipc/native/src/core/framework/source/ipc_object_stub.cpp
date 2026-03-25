@@ -514,6 +514,18 @@ bool IPCObjectStub::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     return false;
 }
 
+bool IPCObjectStub::AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+{
+    (void)recipient;
+    return false;
+}
+
+bool IPCObjectStub::RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+{
+    (void)recipient;
+    return false;
+}
+
 // LCOV_EXCL_START
 pid_t IPCObjectStub::GetCallingPid()
 {

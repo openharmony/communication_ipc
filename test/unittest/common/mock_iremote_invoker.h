@@ -50,6 +50,8 @@ public:
 #endif // MEMORY_USAGE_ENABLED
     MOCK_METHOD2(AddDeathRecipient, bool(int32_t handle, void *cookie));
     MOCK_METHOD2(RemoveDeathRecipient, bool(int32_t handle, void *cookie));
+    MOCK_METHOD2(AddRefreshRecipient, bool(int32_t handle, void *cookie));
+    MOCK_METHOD2(RemoveRefreshRecipient, bool(int32_t handle, void *cookie));
     MOCK_METHOD1(SetMaxWorkThread, bool(int maxThreadNum));
     MOCK_METHOD1(JoinThread, void(bool initiative));
     MOCK_METHOD1(JoinProcessThread, void(bool initiative));

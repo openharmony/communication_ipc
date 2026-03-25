@@ -758,6 +758,7 @@ pub struct MsgOption {
 impl MsgOption {
     const TF_SYNC: i32 = 0x00;
     const TF_ASYNC: i32 = 0x01;
+    const TF_IMAGE: i32 = 0x200000;
 
     /// Creates a new, empty MsgOption.
 
@@ -787,6 +788,11 @@ impl MsgOption {
     /// Sets send to be sync.
     pub fn set_sync(&mut self) {
         self.inner.pin_mut().SetFlags(Self::TF_SYNC);
+    }
+
+    /// Sets send to be image.
+    pub fn set_image(&mut self) {
+        self.inner.pin_mut().SetFlags(Self::TF_IMAGE);
     }
 
     /// Return true if has set to async.
