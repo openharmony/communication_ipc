@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include "dbinder_ipc_adapter.h"
@@ -663,18 +664,46 @@ static bool HasDBinderStub(uintptr_t binderObject)
     return false;
 }
 
-static void MakeSessionByReplyMessage(const DHandleEntryTxRx *replyMessage)
+static bool IsValidSessionName(const DHandleEntryTxRx *replyMessage)
+{
+    if (replyMessage->serviceNameLength > SERVICENAME_LENGTH) {
+        RPC_LOG_ERROR("invalid serviceNameLength:%hu", replyMessage->serviceNameLength);
+        return false;
+    }
+
+    size_t realLen = strnlen(replyMessage->serviceName, SERVICENAME_LENGTH + 1);
+    if (realLen > SERVICENAME_LENGTH || realLen != replyMessage->serviceNameLength) {
+        RPC_LOG_ERROR("invalid serviceName, serviceNameLength:%hu, realLen:%zu",
+            replyMessage->serviceNameLength, realLen);
+        return false;
+    }
+    return true;
+}
+
+static bool IsValidReplyMessage(const DHandleEntryTxRx *replyMessage)
 {
     if (replyMessage == NULL) {
         RPC_LOG_ERROR("replyMessage is null");
-        return;
+        return false;
     }
     if (!HasDBinderStub(replyMessage->binderObject)) {
         RPC_LOG_ERROR("invalid stub object");
-        return;
+        return false;
     }
     if (QuerySessionObject(replyMessage->stub) != NULL) {
         RPC_LOG_ERROR("invoker remote session already, do nothing");
+        return false;
+    }
+    if (!IsValidSessionName(replyMessage)) {
+        RPC_LOG_ERROR("invalid session name");
+        return false;
+    }
+    return true;
+}
+
+static void MakeSessionByReplyMessage(const DHandleEntryTxRx *replyMessage)
+{
+    if (!IsValidReplyMessage(replyMessage)) {
         return;
     }
 
