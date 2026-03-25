@@ -383,7 +383,7 @@ private:
     bool UnRegisterBinderDeathRecipient();
 
     std::string GetDescriptor(MessageParcel &data);
-
+    std::string GetRemoteDescriptor();
 #ifdef ENABLE_IPC_TRACE
     void StartLifeCycleTrace();
     std::string GenLifeCycleTraceInfo() const;
@@ -418,14 +418,13 @@ private:
     bool UnRegisterBinderRefreshRecipient();
 
 private:
-    std::mutex initMutex_;
     std::recursive_mutex mutex_;
     std::shared_mutex descMutex_;
 
     std::vector<sptr<DeathRecipientAddrInfo>> recipients_;
     uint32_t handle_;
     int proto_;
-    bool isFinishInit_;
+    std::atomic<int> initState_;
     std::atomic<bool> isRemoteDead_;
     // anonymized descriptor, only for log
     std::string remoteDescriptor_;

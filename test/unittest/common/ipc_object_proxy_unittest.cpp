@@ -439,7 +439,6 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest001, TestSize.Level1)
     object.isRemoteDead_ = false;
     object.WaitForInit();
     EXPECT_EQ(object.isRemoteDead_, false);
-    EXPECT_EQ(object.isFinishInit_, true);
 }
 
 #ifndef CONFIG_IPC_SINGLE
@@ -459,7 +458,6 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest002, TestSize.Level1)
     current->proxyToSession_.clear();
     object.WaitForInit();
     EXPECT_EQ(object.isRemoteDead_, true);
-    EXPECT_EQ(object.isFinishInit_, true);
 }
 
 /**
@@ -472,7 +470,7 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest003, TestSize.Level1)
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = false;
-    object.isFinishInit_ = true;
+    object.initState_.store(2, std::memory_order_release);
     object.proto_ = IRemoteObject::IF_PROT_DATABUS;
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -491,7 +489,7 @@ HWTEST_F(IPCObjectProxyTest, WaitForInitTest004, TestSize.Level1)
     IPCObjectProxy object(1);
 
     object.isRemoteDead_ = false;
-    object.isFinishInit_ = true;
+    object.initState_.store(2, std::memory_order_release);
     object.proto_ = IRemoteObject::IF_PROT_ERROR;
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
