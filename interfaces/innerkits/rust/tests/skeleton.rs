@@ -77,6 +77,34 @@ fn context() {
     assert_eq!(value, 0);
 }
 
+/// UT test case for "send_reques_ext"
+///
+/// # brief
+/// 1. Get SAMGR context object
+/// 2. Add a system ability by send request
+/// 3. Check this system ability by send request
+/// 4. Remove this system ability by send request
+#[test]
+fn test_send_request_ext() {
+    init();
+    let context = Skeleton::get_context_object().unwrap();
+    let mut data = MsgParcel::new();
+    let mut option = MsgOption::new();
+    option.set_image();
+    data.write_interface_token("ohos.samgr.accessToken");
+    data.write(&TEST_SYSTEM_ABILITY_ID);
+    data.write_remote(RemoteObj::from_stub(TestRemoteStub).unwrap())
+        .unwrap();
+    data.write(&false);
+    data.write(&0);
+    data.write("");
+    data.write("");
+
+    let mut reply = context.send_request_ext(3, &mut data, option).unwrap();
+    let value = reply.read::<i32>().unwrap();
+    assert_eq!(value, 0);
+}
+
 #[test]
 fn skeleton() {
     unsafe {

@@ -75,6 +75,10 @@ public:
 
     bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
 
+    bool AddRefreshRecipient(int32_t handle, void *cookie) override;
+
+    bool RemoveRefreshRecipient(int32_t handle, void *cookie) override;
+
     bool SetMaxWorkThread(int maxThreadNum) override;
 
     void JoinThread(bool initiative) override;
@@ -182,9 +186,17 @@ private:
 
     void OnRemoveRecipientDone();
 
+    void OnRemoveRefreshRecipientDone();
+
+    bool AddRecipient(int32_t handle, void *cookie, int32_t command_id);
+
+    bool RemoveRecipient(int32_t handle, void *cookie, int32_t command_id);
+
     void StartWorkLoop();
 
     void OnBinderDied();
+
+    void OnBinderRefreshed();
 
     void OnAcquireObject(uint32_t cmd);
 

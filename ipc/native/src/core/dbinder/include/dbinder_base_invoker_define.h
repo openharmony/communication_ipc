@@ -71,6 +71,8 @@ public:
         MessageOption &option) override;
     virtual bool AddDeathRecipient(int32_t handle, void *cookie) override;
     virtual bool RemoveDeathRecipient(int32_t handle, void *cookie) override;
+    virtual bool AddRefreshRecipient(int32_t handle, void *cookie) override;
+    virtual bool RemoveRefreshRecipient(int32_t handle, void *cookie) override;
     virtual bool SetMaxWorkThread(int maxThreadNum) override;
     virtual int SendReply(MessageParcel &reply, uint32_t flags, int32_t result) override;
     virtual bool PingService(int32_t handle) override;
