@@ -44,7 +44,7 @@ public:
 };
 
 static void *g_interface = nullptr;
-
+static constexpr int INITIALIZED = 2;
 IPCObjectProxyInterfaceMock::IPCObjectProxyInterfaceMock()
 {
     g_interface = reinterpret_cast<void *>(this);
@@ -128,7 +128,7 @@ void WaitForInitFuzzTest(FuzzedDataProvider &provider)
     if (proxy == nullptr) {
         return;
     }
-    proxy->isFinishInit_ = true;
+    proxy->initState_.store(INITIALIZED, std::memory_order_release);
     proxy->proto_ = IRemoteObject::IF_PROT_DATABUS;
     proxy->WaitForInit(nullptr);
 }

@@ -16,6 +16,7 @@
 #include "ipc_object_proxy.h"
 
 #include <cstdint>
+#include <thread>
 
 #include "__mutex_base"
 #include "algorithm"
@@ -64,9 +65,12 @@ using namespace IPC_SINGLE;
 using namespace OHOS::HiviewDFX;
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, LOG_ID_IPC_PROXY, "IPCObjectProxy" };
 static constexpr int SEND_REQUEST_TIMEOUT = 2000;
+static constexpr int NOT_INITIALIZED = 0;
+static constexpr int INITIALIZING = 1;
+static constexpr int INITIALIZED = 2;
 
 IPCObjectProxy::IPCObjectProxy(int handle, std::u16string descriptor, int proto)
-    : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), isFinishInit_(false), isRemoteDead_(false)
+    : IRemoteObject(std::move(descriptor)), handle_(handle), proto_(proto), initState_(0), isRemoteDead_(false)
 {
     ZLOGD(LABEL, "handle:%{public}u desc:%{public}s %{public}u", handle_,
         Str16ToStr8(descriptor_).c_str(), ProcessSkeleton::ConvertAddr(this));
@@ -377,44 +381,65 @@ void IPCObjectProxy::OnFirstStrongRef(const void *objectId)
     }
 }
 
+std::string IPCObjectProxy::GetRemoteDescriptor()
+{
+    std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
+    return remoteDescriptor_;
+}
+
 void IPCObjectProxy::WaitForInit(const void *dbinderData)
 {
-    std::string desc;
-    {
-        std::shared_lock<std::shared_mutex> lockGuard(descMutex_);
-        desc = remoteDescriptor_;
-    }
+    std::string desc = GetRemoteDescriptor();
     // RPC proxy: AcquireHandle->AttachObject->Open Session->IncRef to Remote Stub
-    {
-        std::lock_guard<std::mutex> lockGuard(initMutex_);
-        // When remote stub is gone, handle is reclaimed. But mapping from this handle to
-        // proxy may still exist before OnLastStrongRef called. If so, in FindOrNewObject
-        // we may find the same proxy that has been marked as dead. Thus, we need to check again.
-        if (IsObjectDead()) {
-            ZLOGW(LABEL, "proxy is dead, init again, handle:%{public}d desc:%{public}s", handle_, desc.c_str());
-            SetObjectDied(false);
-            isFinishInit_ = false;
-        }
+    // When remote stub is gone, handle is reclaimed. But mapping from this handle to
+    // proxy may still exist before OnLastStrongRef called. If so, in FindOrNewObject
+    // we may find the same proxy that has been marked as dead. Thus, we need to check again.
+    if (IsObjectDead()) {
+        ZLOGW(LABEL, "proxy is dead, init again, handle:%{public}d desc:%{public}s", handle_, desc.c_str());
+        SetObjectDied(false);
+        initState_.store(0, std::memory_order_release);
+    }
 
-        if (!isFinishInit_) {
+    // 三态初始化：0=未初始化, 1=正在初始化, 2=已初始化
+    int expected = NOT_INITIALIZED;
+    if (initState_.compare_exchange_strong(expected, INITIALIZING,
+        std::memory_order_acq_rel, std::memory_order_acquire)) {
+        // 成功获取初始化权限，执行初始化
+        bool initSuccess = true;
 #ifndef CONFIG_IPC_SINGLE
-            if (!UpdateProto(dbinderData)) {
-                return;
-            }
-#endif
-            isFinishInit_ = true;
-        } else {
-#ifndef CONFIG_IPC_SINGLE
-            // Anoymous rpc proxy need to update proto anyway because ownership of session
-            // corresponding to this handle has been marked as null in TranslateRemoteHandleType
-            if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
-                if (!CheckHaveSession()) {
-                    SetProto(IRemoteObject::IF_PROT_ERROR);
-                    SetObjectDied(true);
-                }
-            }
-#endif
+        if (!UpdateProto(dbinderData)) {
+            initSuccess = false;
         }
+#endif
+        if (initSuccess) {
+            initState_.store(INITIALIZED, std::memory_order_release);
+        } else {
+            // 初始化失败，重置状态
+            initState_.store(0, std::memory_order_release);
+            return;
+        }
+    } else if (expected == 1) {
+        // 其他线程正在初始化，等待完成
+        while (initState_.load(std::memory_order_acquire) == INITIALIZING) {
+            std::this_thread::yield();
+        }
+        // 检查初始化是否成功
+        if (initState_.load(std::memory_order_acquire) != INITIALIZED) {
+            // 初始化失败，直接返回
+            return;
+        }
+    } else {
+        // 已初始化完成，检查会话状态
+#ifndef CONFIG_IPC_SINGLE
+        // Anoymous rpc proxy need to update proto anyway because ownership of session
+        // corresponding to this handle has been marked as null in TranslateRemoteHandleType
+        if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
+            if (!CheckHaveSession()) {
+                SetProto(IRemoteObject::IF_PROT_ERROR);
+                SetObjectDied(true);
+            }
+        }
+#endif
     }
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
