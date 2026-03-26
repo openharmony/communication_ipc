@@ -58,6 +58,7 @@ mod ffi {
         fn WriteBuffer(msgParcel: Pin<&mut MessageParcel>, buffer: &[u8]) -> bool;
 
         fn WriteAshmem(msgParcel: Pin<&mut MessageParcel>, buffer: SharedPtr<Ashmem>) -> bool;
+        fn ReadAshmem(msgParcel: Pin<&mut MessageParcel>) -> SharedPtr<Ashmem>;
 
         fn ReadBuffer(msgParcel: Pin<&mut MessageParcel>, len: usize, buffer: &mut Vec<u8>)
             -> bool;

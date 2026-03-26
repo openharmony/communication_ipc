@@ -12,6 +12,7 @@
 // limitations under the License.
 
 #![cfg(gn_test)]
+mod ashmem;
 mod c_mem;
 mod interactive;
 mod parcel_remote;
