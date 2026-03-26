@@ -18,7 +18,7 @@ use std::ops::Deref;
 use std::os::fd::{FromRawFd, IntoRawFd, RawFd};
 use std::pin::Pin;
 
-use cxx::UniquePtr;
+use cxx::{SharedPtr, UniquePtr};
 
 use utils_rust::ashmem::Ashmem;
 
@@ -26,7 +26,7 @@ use super::error::ParcelSetError;
 use super::wrapper::{
     AsParcel, AsParcelMut, MessageOption, MessageParcel, NewMessageOption, NewMessageParcel,
     Parcel, ReadBuffer, ReadInterfaceToken, ReadRemoteObject, ReadString16, ReadString16Vector,
-    WriteBuffer, WriteInterfaceToken, WriteRemoteObject, WriteString16, WriteString16Vector, WriteAshmem
+    WriteBuffer, WriteInterfaceToken, WriteRemoteObject, WriteString16, WriteString16Vector, WriteAshmem, ReadAshmem
 };
 use super::{Deserialize, Serialize};
 use crate::parcel::wrapper::IRemoteObjectWrapper;
@@ -747,6 +747,20 @@ impl MsgParcel {
             true => Ok(()),
             false => Err(IpcStatusCode::Failed),
         }
+    }
+
+    pub fn read_ashmem(&mut self) -> IpcResult<Ashmem> {
+        fn read_ashmem_process(parcel: Pin<&mut MessageParcel>) -> IpcResult<SharedPtr<utils_rust::ashmem::ffi::Ashmem>> {
+            let ashmem = ReadAshmem(parcel);
+            if ashmem.is_null() {
+                Err(IpcStatusCode::Failed)
+            } else {
+                Ok(ashmem)
+            }
+        }
+
+        self.read_process(read_ashmem_process)
+            .map(Ashmem::new)
     }
 }
 
