@@ -654,7 +654,8 @@ HWTEST_F(IPCObjectProxyTest, RemoveRefreshRecipientTest003, TestSize.Level1)
 
 /**
  * @tc.name: ClearRefreshRecipientsTest001
- * @tc.desc: ClearRefreshRecipients
+ * @tc.desc: Verify the IPCObjectProxy::ClearRefreshRecipients function
+ * when refreshRecipients_ is empty
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest001, TestSize.Level1)
@@ -665,7 +666,8 @@ HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest001, TestSize.Level1)
 
 /**
  * @tc.name: ClearRefreshRecipientsTest002
- * @tc.desc: ClearRefreshRecipients
+ * @tc.desc: Verify the IPCObjectProxy::ClearRefreshRecipients function
+ * when handle_ >= DBINDER_HANDLE_BASE
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest002, TestSize.Level1)
@@ -689,7 +691,8 @@ HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest002, TestSize.Level1)
 
 /**
  * @tc.name: ClearRefreshRecipientsTest003
- * @tc.desc: ClearRefreshRecipients
+ * @tc.desc: Verify the IPCObjectProxy::ClearRefreshRecipients function
+ * when handle_ < DBINDER_HANDLE_BASE
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest003, TestSize.Level1)
@@ -713,7 +716,8 @@ HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest003, TestSize.Level1)
 
 /**
  * @tc.name: RegisterBinderRefreshRecipientTest001
- * @tc.desc: RegisterBinderRefreshRecipient
+ * @tc.desc: Verify the IPCObjectProxy::RegisterBinderRefreshRecipient function
+ * when IPCThreadSkeleton::GetDefaultInvoker() return nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, RegisterBinderRefreshRecipientTest001, TestSize.Level1)
@@ -724,7 +728,8 @@ HWTEST_F(IPCObjectProxyTest, RegisterBinderRefreshRecipientTest001, TestSize.Lev
 
 /**
  * @tc.name: UnRegisterBinderRefreshRecipientTest001
- * @tc.desc: UnRegisterBinderRefreshRecipient
+ * @tc.desc: Verify the IPCObjectProxy::UnRegisterBinderRefreshRecipient function
+ * when IPCThreadSkeleton::GetDefaultInvoker() return nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, UnRegisterBinderRefreshRecipientTest001, TestSize.Level1)
@@ -735,7 +740,8 @@ HWTEST_F(IPCObjectProxyTest, UnRegisterBinderRefreshRecipientTest001, TestSize.L
 
 /**
  * @tc.name: UnRegisterBinderRefreshRecipientTest002
- * @tc.desc: UnRegisterBinderRefreshRecipient
+ * @tc.desc: Verify the IPCObjectProxy::UnRegisterBinderRefreshRecipient function
+ * when RemoveRefreshRecipient return false
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, UnRegisterBinderRefreshRecipientTest002, TestSize.Level1)
@@ -751,7 +757,8 @@ HWTEST_F(IPCObjectProxyTest, UnRegisterBinderRefreshRecipientTest002, TestSize.L
 
 /**
  * @tc.name: UnRegisterBinderRefreshRecipientTest003
- * @tc.desc: UnRegisterBinderRefreshRecipient
+ * @tc.desc: Verify the IPCObjectProxy::UnRegisterBinderRefreshRecipient function
+ * when RemoveRefreshRecipient return true
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, UnRegisterBinderRefreshRecipientTest003, TestSize.Level1)
@@ -767,7 +774,8 @@ HWTEST_F(IPCObjectProxyTest, UnRegisterBinderRefreshRecipientTest003, TestSize.L
 
 /**
  * @tc.name: RefreshRecipientAddrInfoTest001
- * @tc.desc: Verify the RefreshRecipientAddrInfo function when recipient is nullptr
+ * @tc.desc: Verify the IPCObjectProxy::RefreshRecipientAddrInfo function
+ * when recipient is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrInfoTest001, TestSize.Level1)
@@ -781,7 +789,8 @@ HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrInfoTest001, TestSize.Level1)
 
 /**
  * @tc.name: RefreshRecipientAddrInfoTest002
- * @tc.desc: Verify the RefreshRecipientAddrInfo function when recipient is nullptr
+ * @tc.desc: Verify the IPCObjectProxy::RefreshRecipientAddrInfo function
+ * when recipient is not nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrInfoTest002, TestSize.Level1)
@@ -795,7 +804,8 @@ HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrInfoTest002, TestSize.Level1)
 
 /**
  * @tc.name: SendRefreshObituaryTest001
- * @tc.desc: SendRefreshObituary
+ * @tc.desc: Verify the IPCObjectProxy::SendRefreshObituary function
+ * when refreshRecipients_ is empty
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, SendRefreshObituaryTest001, TestSize.Level1)

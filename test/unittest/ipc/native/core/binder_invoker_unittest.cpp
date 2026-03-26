@@ -337,8 +337,8 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest001, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AcquireHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -346,7 +346,7 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest001, TestSize.Level1) {
 /**
  * @tc.name: AcquireHandleTest002
  * @tc.desc: Verify the AcquireHandle function
- * When WriteUint32 function return true, WriteInt32 function return false,
+ * When WriteUint32 function return true, WriteInt32 function return false
  * RewindWrite function return true
  * @tc.type: FUNC
  */
@@ -355,10 +355,10 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest002, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.AcquireHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -366,7 +366,7 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest002, TestSize.Level1) {
 /**
  * @tc.name: AcquireHandleTest003
  * @tc.desc: Verify the AcquireHandle function
- * When WriteUint32 function return true, WriteInt32 function return false,
+ * When WriteUint32 function return true, WriteInt32 function return false
  * RewindWrite function return false
  * @tc.type: FUNC
  */
@@ -375,10 +375,10 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest003, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AcquireHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -394,9 +394,9 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest004, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.AcquireHandle(handle);
     EXPECT_TRUE(ret);
 }
@@ -411,9 +411,9 @@ HWTEST_F(BinderInvokerTest, AcquireHandleTest005, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE_INVALID;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.AcquireHandle(handle);
     EXPECT_TRUE(ret);
 }
@@ -429,8 +429,8 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest001, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.ReleaseHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -446,10 +446,10 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest002, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.ReleaseHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -465,9 +465,9 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest003, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.ReleaseHandle(handle);
     EXPECT_TRUE(ret);
 }
@@ -483,10 +483,10 @@ HWTEST_F(BinderInvokerTest, ReleaseHandleTest004, TestSize.Level1) {
     NiceMock<BinderInvokerInterfaceMock> mock;
     int32_t handle = TEST_HANDLE;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.ReleaseHandle(handle);
     EXPECT_FALSE(ret);
 }
@@ -502,8 +502,8 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest001, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -519,11 +519,11 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest002, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -540,12 +540,12 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest003, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -562,12 +562,12 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest004, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_TRUE(ret);
 }
@@ -584,12 +584,12 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest005, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -605,12 +605,12 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest006, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_))
         .Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -626,13 +626,13 @@ HWTEST_F(BinderInvokerTest, AddDeathRecipientTest007, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_))
         .Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
     bool ret = binderInvoker.AddDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -648,8 +648,8 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest001, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -667,10 +667,10 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest002, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -688,11 +688,11 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest003, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -709,11 +709,11 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest004, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_TRUE(ret);
 }
@@ -730,18 +730,19 @@ HWTEST_F(BinderInvokerTest, RemoveDeathRecipientTest005, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.RemoveDeathRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
 
 /**
  * @tc.name: AddRefreshRecipientTest001
- * @tc.desc: Verify the AddRefreshRecipient function When WriteInt32 function return false
+ * @tc.desc: Verify the AddRefreshRecipient function When
+ * WriteInt32 command_id function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest001, TestSize.Level1) {
@@ -750,16 +751,17 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest001, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
 
 /**
  * @tc.name: AddRefreshRecipientTest002
- * @tc.desc: Verify the AddRefreshRecipient function When WriteInt32 function return true
+ * @tc.desc: Verify the AddRefreshRecipient
+ * WriteInt32 handle function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest002, TestSize.Level1) {
@@ -768,12 +770,12 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest002, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -781,7 +783,7 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest002, TestSize.Level1) {
 /**
  * @tc.name: AddRefreshRecipientTest003
  * @tc.desc: Verify the AddRefreshRecipient function
- * When WriteInt32 function return true, When WritePointer function return false
+ * When WriteInt32 function return true, When WritePointer cookie return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest003, TestSize.Level1) {
@@ -790,13 +792,13 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest003, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -813,13 +815,13 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest004, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_TRUE(ret);
 }
@@ -827,7 +829,7 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest004, TestSize.Level1) {
 /**
  * @tc.name: AddRefreshRecipientTest005
  * @tc.desc: Verify the AddRefreshRecipient function
- * When WriteInt32 function return true, When WritePointer function return true
+ * When FlushCommands function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest005, TestSize.Level1) {
@@ -836,13 +838,13 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest005, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -850,7 +852,7 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest005, TestSize.Level1) {
 /**
  * @tc.name: AddRefreshRecipientTest006
  * @tc.desc: Verify the AddRefreshRecipient function
- * When RewinWrite function return true
+ * When WritePointer handle return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest006, TestSize.Level1) {
@@ -859,13 +861,13 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest006, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_))
         .Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -873,7 +875,7 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest006, TestSize.Level1) {
 /**
  * @tc.name: AddRefreshRecipientTest007
  * @tc.desc: Verify the AddRefreshRecipient function
- * When RewinWrite function return false
+ * When WritePointer cookie return false,
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest007, TestSize.Level1) {
@@ -882,14 +884,14 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest007, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32)
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_))
         .Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.AddRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -897,7 +899,7 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest007, TestSize.Level1) {
 /**
  * @tc.name: AddRefreshRecipientTest008
  * @tc.desc: Verify the AddRefreshRecipient function
- * When WriteInt32 function return false
+ * When binderConnector_ is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest008, TestSize.Level1) {
@@ -911,7 +913,8 @@ HWTEST_F(BinderInvokerTest, AddRefreshRecipientTest008, TestSize.Level1) {
 
 /**
  * @tc.name: RemoveRefreshRecipientTest001
- * @tc.desc: Verify the RemoveRefreshRecipient function When WriteInt32 function return false
+ * @tc.desc: Verify the RemoveRefreshRecipient function
+ * When WriteInt32 command_id function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest001, TestSize.Level1) {
@@ -920,9 +923,9 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest001, TestSize.Level1) {
     int32_t handle = TEST_HANDLE;
     void *cookie = nullptr;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -930,7 +933,7 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest001, TestSize.Level1) {
 /**
  * @tc.name: RemoveRefreshRecipientTest002
  * @tc.desc: Verify the RemoveRefreshRecipient function
- * When the WriteUint32 function returns true for the first time and false for the second time
+ * When WriteUint32 handle function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest002, TestSize.Level1) {
@@ -940,11 +943,11 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest002, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
@@ -952,7 +955,7 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest002, TestSize.Level1) {
 /**
  * @tc.name: RemoveRefreshRecipientTest003
  * @tc.desc: Verify the RemoveRefreshRecipient function
- * When the WriteUint32 function returns true for the first time and true for the second time
+ * When WritePointer cookie return false,
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest003, TestSize.Level1) {
@@ -962,19 +965,20 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest003, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
 
 /**
  * @tc.name: RemoveRefreshRecipientTest004
- * @tc.desc: Verify the RemoveRefreshRecipient function When WritePointer function return true
+ * @tc.desc: Verify the RemoveRefreshRecipient function
+ * When RemoveRefreshRecipient function return true
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest004, TestSize.Level1) {
@@ -984,19 +988,20 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest004, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
     EXPECT_TRUE(ret);
 }
 
 /**
  * @tc.name: RemoveRefreshRecipientTest005
- * @tc.desc: Verify the RemoveRefreshRecipient function When WritePointer function return true
+ * @tc.desc: Verify the RemoveRefreshRecipient function
+ * When FlushCommands function return false
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest005, TestSize.Level1) {
@@ -1006,19 +1011,20 @@ HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest005, TestSize.Level1) {
     void *cookie = nullptr;
 
     EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteInt32).Times(EXECUTE_TWICE)
+    EXPECT_CALL(mock, WriteInt32(testing::_)).Times(EXECUTE_TWICE)
         .WillOnce(testing::Return(true))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(mock, IsRefreshSupported).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsRefreshSupported()).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.RemoveRefreshRecipient(handle, cookie);
     EXPECT_FALSE(ret);
 }
 
 /**
  * @tc.name: RemoveRefreshRecipientTest006
- * @tc.desc: Verify the RemoveRefreshRecipient function When WritePointer function return true
+ * @tc.desc: Verify the RemoveRefreshRecipient function
+ * When binderConnector_ is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, RemoveRefreshRecipientTest006, TestSize.Level1) {
@@ -1039,7 +1045,7 @@ HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest001, TestSize.Level1) {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
     sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
 
     EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
 }
@@ -1053,16 +1059,17 @@ HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest002, TestSize.Level1) {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
     sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
 
     EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
 }
 
 /**
  * @tc.name: OnBinderRefreshedTest003
- * @tc.desc: Verify the OnBinderRefreshed function When WritePointer function return true
+ * @tc.desc: Verify the OnBinderRefreshed function
+ * When ProcessSkeleton::GetInstance isn`t return nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest003, TestSize.Level1) {
@@ -1072,10 +1079,11 @@ HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest003, TestSize.Level1) {
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     ASSERT_TRUE(current != nullptr);
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(true));
 
     EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
 }
@@ -1129,8 +1137,8 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest001, TestSize.Level1) {
     dbinder_negotiation_data dbinderData;
     Parcel parcel;
 
-    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, ReadBuffer).WillOnce(testing::Return(nullptr));
+    EXPECT_CALL(mock, GetReadPosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_)).WillOnce(testing::Return(nullptr));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_FALSE(ret);
 }
@@ -1152,9 +1160,9 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest002, TestSize.Level1) {
     hdr.type = BINDER_TYPE_BINDER;
     uint8_t *buffer = (uint8_t *)&hdr;
 
-    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, ReadBuffer).WillOnce(testing::Return(buffer));
-    EXPECT_CALL(mock, RewindRead).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetReadPosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_)).WillOnce(testing::Return(buffer));
+    EXPECT_CALL(mock, RewindRead(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_FALSE(ret);
 }
@@ -1176,11 +1184,11 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest003, TestSize.Level1) {
     hdr.type = BINDER_TYPE_PTR;
     uint8_t *buffer = (uint8_t *)&hdr;
 
-    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, ReadBuffer)
+    EXPECT_CALL(mock, GetReadPosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_))
         .WillOnce(testing::Return(buffer))
         .WillOnce(testing::Return(nullptr));
-    EXPECT_CALL(mock, RewindRead).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindRead(testing::_)).WillOnce(testing::Return(false));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_FALSE(ret);
 }
@@ -1207,11 +1215,11 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest004, TestSize.Level1) {
     obj.length = sizeof(dbinder_negotiation_data);
     uint8_t *buffer2 = (uint8_t *)&obj;
 
-    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, ReadBuffer)
+    EXPECT_CALL(mock, GetReadPosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_))
         .WillOnce(testing::Return(buffer))
         .WillOnce(testing::Return(buffer2));
-    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, RewindRead(testing::_)).WillRepeatedly(testing::Return(0));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_FALSE(ret);
 }
@@ -1238,11 +1246,11 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest005, TestSize.Level1) {
     obj.length = sizeof(dbinder_negotiation_data) + 1;
     uint8_t *buffer2 = (uint8_t *)&obj;
 
-    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, ReadBuffer)
+    EXPECT_CALL(mock, GetReadPosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_))
         .WillOnce(testing::Return(buffer))
         .WillOnce(testing::Return(buffer2));
-    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, RewindRead(testing::_)).WillRepeatedly(testing::Return(0));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_FALSE(ret);
 }
@@ -1271,11 +1279,11 @@ HWTEST_F(BinderInvokerTest, UnFlattenDBinderObjectTest006, TestSize.Level1) {
     obj.buffer = reinterpret_cast<binder_uintptr_t>(&validDbinderData_);
     uint8_t *buffer2 = (uint8_t *)&obj;
 
-    EXPECT_CALL(mock, GetReadPosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, ReadBuffer)
+    EXPECT_CALL(mock, GetReadPosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_))
         .WillOnce(testing::Return(buffer))
         .WillOnce(testing::Return(buffer2));
-    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, RewindRead(testing::_)).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.UnFlattenDBinderObject(parcel, dbinderData);
     EXPECT_TRUE(ret);
 }
@@ -1308,7 +1316,7 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest001, TestSize.Level1)
     uintptr_t nullPtrValue = 0;
     uintptr_t validObjPtr = 1;
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(validObjPtr))
         .WillOnce(testing::Return(nullPtrValue));
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
@@ -1326,7 +1334,7 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest002, TestSize.Level1)
     NiceMock<BinderInvokerInterfaceMock> mock;
     uint32_t cmd = TEST_HANDLE;
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(0))
         .WillOnce(testing::Return(1));
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
@@ -1346,7 +1354,7 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest003, TestSize.Level1)
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
     current->validObjectRecord_.clear();
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(1))
         .WillOnce(testing::Return(1));
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
@@ -1372,11 +1380,12 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest004, TestSize.Level1)
     uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
     current->AttachValidObject(&object, str);
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(refsPointer))
         .WillOnce(testing::Return(objectPointer));
-    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(0));
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
     current->validObjectRecord_.clear();
@@ -1401,12 +1410,13 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest005, TestSize.Level1)
     uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
     current->AttachValidObject(&object, str);
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(refsPointer))
         .WillOnce(testing::Return(objectPointer));
-    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillRepeatedly(testing::Return(false));
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
     current->validObjectRecord_.clear();
 }
@@ -1430,12 +1440,13 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest006, TestSize.Level1)
     uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
     current->AttachValidObject(&object, str);
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(refsPointer))
         .WillOnce(testing::Return(objectPointer));
-    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillRepeatedly(testing::Return(true));
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
     current->validObjectRecord_.clear();
 }
@@ -1460,14 +1471,15 @@ HWTEST_F(BinderInvokerTest, OnAcquireObjectTest007, TestSize.Level1)
     uintptr_t objectPointer = reinterpret_cast<uintptr_t>(&object);
     current->AttachValidObject(&object, str);
 
-    EXPECT_CALL(mock, ReadPointer)
+    EXPECT_CALL(mock, ReadPointer())
         .WillOnce(testing::Return(refsPointer))
         .WillOnce(testing::Return(objectPointer));
-    EXPECT_CALL(mock, IsValidObject).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, GetSptrRefCount).WillRepeatedly(testing::Return(1));
-    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillRepeatedly(testing::Return(false));
     ASSERT_NO_FATAL_FAILURE(binderInvoker.OnAcquireObject(cmd));
     current->validObjectRecord_.clear();
 }
@@ -1560,7 +1572,7 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest004, TestSize.Level1)
     std::string identity = STR_TEST;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(false));
     bool result = binderInvoker.SetCallingIdentity(identity, true);
     EXPECT_FALSE(result);
 }
@@ -1576,7 +1588,7 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest005, TestSize.Level1)
     std::string identity = STR_TEST_ONE;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
     bool result = binderInvoker.SetCallingIdentity(identity, true);
     EXPECT_FALSE(result);
 }
@@ -1592,8 +1604,8 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest006, TestSize.Level1)
     std::string identity = STR_TEST_TWO;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64(_, _)).WillRepeatedly(testing::Return(true));
     bool result = binderInvoker.SetCallingIdentity(identity, true);
     EXPECT_FALSE(result);
 }
@@ -1609,9 +1621,9 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest007, TestSize.Level1)
     std::string identity = STR_TEST_THREE;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToInt32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64(_, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToInt32(_, _)).WillRepeatedly(testing::Return(true));
     bool result = binderInvoker.SetCallingIdentity(identity, true);
     EXPECT_FALSE(result);
 }
@@ -1627,9 +1639,9 @@ HWTEST_F(BinderInvokerTest, SetCallingIdentityTest008, TestSize.Level1)
     std::string identity = STR_TEST;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToInt32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64(_, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToInt32(_, _)).WillRepeatedly(testing::Return(true));
     bool result = binderInvoker.SetCallingIdentity(identity, true);
     EXPECT_TRUE(result);
 }
@@ -1671,7 +1683,7 @@ HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest002, TestSize.Level
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(false));
 
     bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
     EXPECT_FALSE(result);
@@ -1686,8 +1698,8 @@ HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest003, TestSize.Level
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder).WillRepeatedly(testing::Return(ERR_INVALID_DATA));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillRepeatedly(testing::Return(ERR_INVALID_DATA));
 
     bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
     EXPECT_FALSE(result);
@@ -1702,8 +1714,8 @@ HWTEST_F(BinderInvokerTest, TriggerSystemIPCThreadReclaimTest004, TestSize.Level
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder).WillRepeatedly(testing::Return(ERR_NONE));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillRepeatedly(testing::Return(ERR_NONE));
 
     bool result = binderInvoker.TriggerSystemIPCThreadReclaim();
     EXPECT_TRUE(result);
@@ -1732,8 +1744,8 @@ HWTEST_F(BinderInvokerTest, EnableIPCThreadReclaimTest002, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, IsDriverAlive).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_INVALID_DATA));
+    EXPECT_CALL(mock, IsDriverAlive()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillOnce(testing::Return(ERR_INVALID_DATA));
 
     bool result = binderInvoker.EnableIPCThreadReclaim(true);
     EXPECT_FALSE(result);
@@ -1765,8 +1777,8 @@ HWTEST_F(BinderInvokerTest, GetStrongRefCountForStubTest002, TestSize.Level1)
     uint32_t handle = 1;
     uint32_t strongCount = 1;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, IsDriverAlive).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder).WillOnce([&](unsigned long request, void *value) {
+    EXPECT_CALL(mock, IsDriverAlive()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillOnce([&](unsigned long request, void *value) {
         binder_node_info_for_ref *info = (binder_node_info_for_ref *)value;
         info->strong_count = strongCount;
         return ERR_NONE;
@@ -1852,8 +1864,8 @@ HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest003, TestSize.Level1)
     uint64_t value = 0;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64(_, _)).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.GetUint64ValueByStrSlice(str, offset, length, value);
     EXPECT_FALSE(ret);
 }
@@ -1872,8 +1884,8 @@ HWTEST_F(BinderInvokerTest, GetUint64ValueByStrSliceTest004, TestSize.Level1)
     uint64_t value = 0;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToUint64).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToUint64(_, _)).WillRepeatedly(testing::Return(true));
     bool ret = binderInvoker.GetUint64ValueByStrSlice(str, offset, length, value);
     EXPECT_TRUE(ret);
 }
@@ -1924,8 +1936,8 @@ HWTEST_F(BinderInvokerTest, GetCallerRealPidByStrTest003, TestSize.Level1)
     size_t length = 0;
     pid_t callerRealPid = 0;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToInt32).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToInt32(_, _)).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.GetCallerRealPidByStr(str, offset, length, callerRealPid);
     EXPECT_FALSE(ret);
 }
@@ -1943,8 +1955,8 @@ HWTEST_F(BinderInvokerTest, GetCallerRealPidByStrTest004, TestSize.Level1)
     size_t length = 0;
     pid_t callerRealPid = 0;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, StrToInt32).WillRepeatedly([&](const std::string &str, int32_t &value) {
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, StrToInt32(_, _)).WillRepeatedly([&](const std::string &str, int32_t &value) {
         value = -1;
         return true;
     });
@@ -1983,7 +1995,7 @@ HWTEST_F(BinderInvokerTest, GetCallerPidAndUidByStrTest002, TestSize.Level1)
     pid_t pid = 0;
     pid_t uid = 0;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, GetSubStr).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, GetSubStr(_, _, _, _)).WillRepeatedly(testing::Return(false));
     bool ret = binderInvoker.GetCallerPidAndUidByStr(str, offset, pid, uid);
     EXPECT_FALSE(ret);
 }
@@ -1999,7 +2011,7 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest001, TestSize.Level1)
     Parcel parcel;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, CheckOffsets).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, CheckOffsets()).WillOnce(testing::Return(false));
 
     sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
     EXPECT_EQ(ret, nullptr);
@@ -2016,8 +2028,8 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest002, TestSize.Level1)
     Parcel parcel;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, CheckOffsets).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, ReadBuffer).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, CheckOffsets()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_)).WillRepeatedly(testing::Return(nullptr));
 
     sptr<IRemoteObject> ret = binderInvoker.UnflattenObject(parcel);
     EXPECT_EQ(ret, nullptr);
@@ -2039,8 +2051,9 @@ HWTEST_F(BinderInvokerTest, UnflattenObjectTest003, TestSize.Level1)
     tr.hdr.type = -1;
     uint8_t *buffer = (uint8_t *)&tr;
 
-    EXPECT_CALL(mock, CheckOffsets).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, ReadBuffer).WillRepeatedly(testing::Return(buffer));
+    EXPECT_CALL(mock, CheckOffsets()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(buffer));
 
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
     current->instance_ = nullptr;
@@ -2080,7 +2093,7 @@ HWTEST_F(BinderInvokerTest, GetSAMgrObjectTest002, TestSize.Level1)
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetRegistryObject).WillOnce(testing::Return(nullptr));
+    EXPECT_CALL(mock, GetRegistryObject()).WillOnce(testing::Return(nullptr));
 
     auto ret = binderInvoker.GetSAMgrObject();
     EXPECT_EQ(ret, nullptr);
@@ -2097,7 +2110,7 @@ HWTEST_F(BinderInvokerTest, GetSAMgrObjectTest003, TestSize.Level1)
     NiceMock<BinderInvokerInterfaceMock> mock;
     sptr<IRemoteObject> testStub = new IPCObjectStub(DESCRIPTOR_TEST);
 
-    EXPECT_CALL(mock, GetRegistryObject).WillOnce(testing::Return(testStub));
+    EXPECT_CALL(mock, GetRegistryObject()).WillOnce(testing::Return(testStub));
 
     auto ret = binderInvoker.GetSAMgrObject();
     EXPECT_EQ(ret, testStub);
@@ -2122,7 +2135,7 @@ HWTEST_F(BinderInvokerTest, WriteTransactionTest001, TestSize.Level1)
     data.objectCursor_ = 10;
 
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillRepeatedly(testing::Return(true));
 
     bool result = binderInvoker.WriteTransaction(cmd, flags, handle, code, data, status, totalDBinderBufSize);
     EXPECT_TRUE(result);
@@ -2147,7 +2160,7 @@ HWTEST_F(BinderInvokerTest, WriteTransactionTest002, TestSize.Level1)
     data.objectCursor_ = 10;
 
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, WriteInt32).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillRepeatedly(testing::Return(false));
 
     bool result = binderInvoker.WriteTransaction(cmd, flags, handle, code, data, status, totalDBinderBufSize);
     EXPECT_FALSE(result);
@@ -2167,7 +2180,7 @@ HWTEST_F(BinderInvokerTest, SamgrServiceSendRequestTest001, TestSize.Level1)
     MessageOption option;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetRegistryObject).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, GetRegistryObject()).WillRepeatedly(testing::Return(nullptr));
 
     int32_t result = binderInvoker.SamgrServiceSendRequest(tr, data, reply, option);
     EXPECT_EQ(result, ERR_DEAD_OBJECT);
@@ -2188,7 +2201,7 @@ HWTEST_F(BinderInvokerTest, SamgrServiceSendRequestTest002, TestSize.Level1)
     NiceMock<BinderInvokerInterfaceMock> mock;
     sptr<IRemoteObject> testStub = new IPCObjectStub(DESCRIPTOR_TEST);
 
-    EXPECT_CALL(mock, GetRegistryObject).WillRepeatedly(testing::Return(testStub));
+    EXPECT_CALL(mock, GetRegistryObject()).WillRepeatedly(testing::Return(testStub));
 
     int32_t result = binderInvoker.SamgrServiceSendRequest(tr, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_UNKNOW_TRANS_ERR);
@@ -2205,8 +2218,8 @@ HWTEST_F(BinderInvokerTest, FreeBufferTest001, TestSize.Level1)
     void* data = nullptr;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(false));
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.FreeBuffer(data));
 }
@@ -2222,10 +2235,10 @@ HWTEST_F(BinderInvokerTest, FreeBufferTest002, TestSize.Level1)
     void* data = nullptr;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(false));
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.FreeBuffer(data));
 }
@@ -2242,10 +2255,10 @@ HWTEST_F(BinderInvokerTest, FreeBufferTest003, TestSize.Level1)
     void *data = nullptr;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetWritePosition).Times(EXECUTE_ONCE);
-    EXPECT_CALL(mock, WriteUint32).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WritePointer).WillOnce(testing::Return(false));
-    EXPECT_CALL(mock, RewindWrite).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetWritePosition()).Times(EXECUTE_ONCE);
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WritePointer(testing::_)).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, RewindWrite(testing::_)).WillOnce(testing::Return(true));
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.FreeBuffer(data));
 }
@@ -2538,7 +2551,7 @@ HWTEST_F(BinderInvokerTest, UpdateConsumedDataTest001, TestSize.Level1)
     size_t outAvail = 3;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, GetDataSize).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, GetDataSize()).WillRepeatedly(testing::Return(0));
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.UpdateConsumedData(bwr, outAvail));
 }
@@ -2558,7 +2571,7 @@ HWTEST_F(BinderInvokerTest, UpdateConsumedDataTest002, TestSize.Level1)
     size_t outAvail = 3;
     NiceMock<BinderInvokerInterfaceMock> mock;
 
-    EXPECT_CALL(mock, RewindRead).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, RewindRead(testing::_)).WillRepeatedly(testing::Return(0));
 
     ASSERT_NO_FATAL_FAILURE(binderInvoker.UpdateConsumedData(bwr, outAvail));
 }
@@ -2576,7 +2589,8 @@ HWTEST_F(BinderInvokerTest, GetDetailedErrorInfoTest001, TestSize.Level1)
     uint32_t errorCode = BR_FAILED_REPLY;
     std::string errDesc = "errDesc";
 
-    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_NONE));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_))
+        .WillOnce(testing::Return(ERR_NONE));
 
     bool result = binderInvoker.GetDetailedErrorInfo(errorCode, errDesc);
     EXPECT_TRUE(result);
@@ -2593,7 +2607,7 @@ HWTEST_F(BinderInvokerTest, GetDetailedErrorInfoTest002, TestSize.Level1)
     uint32_t errorCode = BR_FAILED_REPLY;
     std::string errDesc = "errDesc";
 
-    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_INVALID_DATA));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillOnce(testing::Return(ERR_INVALID_DATA));
 
     bool result = binderInvoker.GetDetailedErrorInfo(errorCode, errDesc);
     EXPECT_FALSE(result);
@@ -2617,7 +2631,7 @@ HWTEST_F(BinderInvokerTest, GetDetailedErrorInfoTest003, TestSize.Level1)
         memset_s(errInfo->err_str, sizeof(errInfo->err_str), 'x', sizeof(errInfo->err_str));
         return ERR_NONE;
     };
-    EXPECT_CALL(mock, WriteBinder(::testing::_, ::testing::_)).WillOnce(Invoke(mockFunc));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillOnce(Invoke(mockFunc));
 
     bool result = binderInvoker.GetDetailedErrorInfo(errorCode, errDesc);
     EXPECT_FALSE(result);
@@ -2635,8 +2649,9 @@ HWTEST_F(BinderInvokerTest, SetRegistryObjectTest001, TestSize.Level1)
     sptr<IRemoteObject> object = new (std::nothrow) IPCObjectStub(DESCRIPTOR_TEST);
     ASSERT_NE(object, nullptr);
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, IsDriverAlive).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder).WillRepeatedly(testing::Return(ERR_NONE));
+    EXPECT_CALL(mock, IsDriverAlive()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_NONE));
     EXPECT_TRUE(binderInvoker.SetRegistryObject(object));
 }
 
@@ -2669,7 +2684,8 @@ HWTEST_F(BinderInvokerTest, OnTransactionTest001, TestSize.Level1)
     };
     uint8_t *buffer = (uint8_t *)&trSecctx;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, ReadBuffer).WillRepeatedly(testing::Return(buffer));
+    EXPECT_CALL(mock, ReadBuffer(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(buffer));
     int32_t error = 0;
     uint32_t cmd = BR_TRANSACTION_SEC_CTX;
     binderInvoker.OnTransaction(cmd, error);
@@ -2685,7 +2701,7 @@ HWTEST_F(BinderInvokerTest, SendRequestTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, TranslateDBinderProxy).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, TranslateDBinderProxy(testing::_, testing::_)).WillOnce(testing::Return(false));
     int handle = 1;
     uint32_t code = 0;
     MessageParcel data;
@@ -2705,8 +2721,8 @@ HWTEST_F(BinderInvokerTest, SendRequestTest002, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, TranslateDBinderProxy).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, TranslateDBinderStub).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, TranslateDBinderProxy(testing::_, testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, TranslateDBinderStub(_, _, _, _)).WillOnce(testing::Return(false));
     int handle = 1;
     uint32_t code = 0;
     MessageParcel data;
@@ -2725,13 +2741,13 @@ HWTEST_F(BinderInvokerTest, SendRequestTest003, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, TranslateDBinderProxy).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, TranslateDBinderStub)
+    EXPECT_CALL(mock, TranslateDBinderProxy(testing::_, testing::_)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, TranslateDBinderStub(_, _, _, _))
         .WillOnce([&](int handle, MessageParcel &parcel, bool isReply, size_t &totalDBinderBufSize) {
             totalDBinderBufSize = 1;
             return true;
         });
-    EXPECT_CALL(mock, GetDataSize).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, GetDataSize()).WillRepeatedly(testing::Return(1));
     int handle = 1;
     uint32_t code = 0;
     MessageParcel data;
@@ -2752,7 +2768,7 @@ HWTEST_F(BinderInvokerTest, SendReplyTest001, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, TranslateDBinderStub).WillOnce(testing::Return(false));
+    EXPECT_CALL(mock, TranslateDBinderStub(_, _, _, _)).WillOnce(testing::Return(false));
     MessageParcel reply;
     uint32_t flags = 0;
     int32_t result = 0;
@@ -2769,12 +2785,12 @@ HWTEST_F(BinderInvokerTest, SendReplyTest002, TestSize.Level1)
 {
     BinderInvoker binderInvoker;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, TranslateDBinderStub)
+    EXPECT_CALL(mock, TranslateDBinderStub(_, _, _, _))
         .WillOnce([&](int handle, MessageParcel &parcel, bool isReply, size_t &totalDBinderBufSize) {
             totalDBinderBufSize = 1;
             return true;
         });
-    EXPECT_CALL(mock, GetDataSize).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, GetDataSize()).WillRepeatedly(testing::Return(1));
     MessageParcel reply;
     uint32_t flags = 0;
     int32_t result = 0;
@@ -2811,8 +2827,8 @@ HWTEST_F(BinderInvokerTest, GetMemoryUsageTest002, TestSize.Level1)
     unsigned long totalSize = 0UL;
     unsigned long oneWayFreeSize = 0UL;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, IsDriverAlive).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder).WillOnce(testing::Return(ERR_INVALID_DATA));
+    EXPECT_CALL(mock, IsDriverAlive()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_)).WillOnce(testing::Return(ERR_INVALID_DATA));
     EXPECT_EQ(binderInvoker.GetMemoryUsage(1, totalSize, oneWayFreeSize), ERR_INVALID_DATA);
 }
 
@@ -2829,8 +2845,8 @@ HWTEST_F(BinderInvokerTest, GetMemoryUsageTest003, TestSize.Level1)
     unsigned long totalSize = 1UL;
     unsigned long oneWayFreeSize = 1UL;
     NiceMock<BinderInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, IsDriverAlive).WillOnce(testing::Return(true));
-    EXPECT_CALL(mock, WriteBinder)
+    EXPECT_CALL(mock, IsDriverAlive()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(testing::_, testing::_))
         .WillOnce([](unsigned long code, void* data) {
             auto* memoryInfo = reinterpret_cast<hmb_oneway_spam_state*>(data);
             memoryInfo->total_size = 1024;
