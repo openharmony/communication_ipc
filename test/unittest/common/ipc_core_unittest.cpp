@@ -33,6 +33,7 @@
 #include "dbinder_session_object.h"
 #include "message_option.h"
 #include "mock_iremote_invoker.h"
+#include "mock_iremote_object.h"
 #include "stub_refcount_object.h"
 #include "system_ability_definition.h"
 #include "log_tags.h"
@@ -255,6 +256,92 @@ HWTEST_F(IPCNativeUnitTest, IsDeviceIdIllegalTest003, TestSize.Level1)
     sptr<IPCObjectStub> testStub = new IPCObjectStub(u"test");
     bool ret = testStub->IsDeviceIdIllegal(deviceID);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: MessageOptionBranchTest001
+ * @tc.desc: Verify constructor keeps initial flags and wait time
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, MessageOptionBranchTest001, TestSize.Level1)
+{
+    MessageOption option(MessageOption::TF_ASYNC | MessageOption::TF_ACCEPT_FDS, 123);
+    EXPECT_EQ(option.GetFlags(), MessageOption::TF_ASYNC | MessageOption::TF_ACCEPT_FDS);
+    EXPECT_EQ(option.GetWaitTime(), 123);
+}
+
+/**
+ * @tc.name: MessageOptionBranchTest002
+ * @tc.desc: Verify SetFlags appends bits instead of replacing them
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, MessageOptionBranchTest002, TestSize.Level1)
+{
+    MessageOption option(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_ACCEPT_FDS);
+    EXPECT_EQ(option.GetFlags(), MessageOption::TF_ASYNC | MessageOption::TF_ACCEPT_FDS);
+}
+
+/**
+ * @tc.name: MessageOptionBranchTest003
+ * @tc.desc: Verify SetWaitTime normalizes non-positive values to default
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, MessageOptionBranchTest003, TestSize.Level1)
+{
+    MessageOption option;
+    option.SetWaitTime(0);
+    EXPECT_EQ(option.GetWaitTime(), MessageOption::TF_WAIT_TIME);
+    option.SetWaitTime(-1);
+    EXPECT_EQ(option.GetWaitTime(), MessageOption::TF_WAIT_TIME);
+}
+
+/**
+ * @tc.name: MessageOptionBranchTest004
+ * @tc.desc: Verify SetWaitTime clamps to max range and keeps valid values
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, MessageOptionBranchTest004, TestSize.Level1)
+{
+    MessageOption option;
+    option.SetWaitTime(256);
+    EXPECT_EQ(option.GetWaitTime(), 256);
+    option.SetWaitTime(MAX_WAIT_TIME + 1);
+    EXPECT_EQ(option.GetWaitTime(), MAX_WAIT_TIME);
+}
+
+/**
+ * @tc.name: CommAuthInfoTest001
+ * @tc.desc: Verify constructor stores all auth fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoTest001, TestSize.Level1)
+{
+    MockIPCObjectProxy proxy;
+    CommAuthInfo authInfo(&proxy, 1001, 1002, 1003, "device-A", 9);
+
+    EXPECT_EQ(authInfo.GetStubObject(), &proxy);
+    EXPECT_EQ(authInfo.GetRemotePid(), 1001);
+    EXPECT_EQ(authInfo.GetRemoteUid(), 1002);
+    EXPECT_EQ(authInfo.GetRemoteTokenId(), 1003U);
+    EXPECT_EQ(authInfo.GetRemoteDeviceId(), "device-A");
+    EXPECT_EQ(authInfo.GetRemoteSocketId(), 9);
+}
+
+/**
+ * @tc.name: CommAuthInfoTest002
+ * @tc.desc: Verify default socket id and SetRemoteSocketId update path
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCNativeUnitTest, CommAuthInfoTest002, TestSize.Level1)
+{
+    MockIPCObjectProxy proxy;
+    CommAuthInfo authInfo(&proxy, 1, 2, 3, "device-B");
+
+    EXPECT_EQ(authInfo.GetRemoteSocketId(), 0);
+    authInfo.SetRemoteSocketId(27);
+    EXPECT_EQ(authInfo.GetRemoteSocketId(), 27);
 }
 
 #ifndef CONFIG_IPC_SINGLE
