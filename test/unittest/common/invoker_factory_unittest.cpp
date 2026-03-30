@@ -24,6 +24,16 @@ namespace OHOS {
 using namespace testing::ext;
 using namespace OHOS;
 
+namespace {
+constexpr int TEST_PROTOCOL_BASE = 10000;
+
+void ResetTestProtocol(InvokerFactory &invokerFactory, int protocol)
+{
+    invokerFactory.creators_.erase(protocol);
+    invokerFactory.isAvailable_ = true;
+}
+} // namespace
+
 class InvokerFactoryTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -152,6 +162,89 @@ HWTEST_F(InvokerFactoryTest, newInstance002, TestSize.Level1)
     int protocol = 1;
     invokerFactory.newInstance(protocol);
     EXPECT_EQ(invokerFactory.isAvailable_, true);
+}
+
+/**
+ * @tc.name: RegisterBranch001
+ * @tc.desc: Verify duplicate register returns false and keeps original creator
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, RegisterBranch001, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int protocol = TEST_PROTOCOL_BASE + 1;
+    ResetTestProtocol(invokerFactory, protocol);
+
+    auto creator = []() -> IRemoteInvoker* {
+        return new (std::nothrow) BinderInvoker();
+    };
+    auto duplicateCreator = []() -> IRemoteInvoker* {
+        return nullptr;
+    };
+
+    EXPECT_TRUE(invokerFactory.Register(protocol, creator));
+    EXPECT_FALSE(invokerFactory.Register(protocol, duplicateCreator));
+
+    std::unique_ptr<IRemoteInvoker> invoker(invokerFactory.newInstance(protocol));
+    EXPECT_NE(invoker, nullptr);
+    invokerFactory.Unregister(protocol);
+    ResetTestProtocol(invokerFactory, protocol);
+}
+
+/**
+ * @tc.name: RegisterBranch002
+ * @tc.desc: Verify nullptr creator path returns nullptr from newInstance
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, RegisterBranch002, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int protocol = TEST_PROTOCOL_BASE + 2;
+    ResetTestProtocol(invokerFactory, protocol);
+
+    EXPECT_TRUE(invokerFactory.Register(protocol, nullptr));
+    EXPECT_EQ(invokerFactory.newInstance(protocol), nullptr);
+
+    invokerFactory.Unregister(protocol);
+    ResetTestProtocol(invokerFactory, protocol);
+}
+
+/**
+ * @tc.name: UnregisterBranch001
+ * @tc.desc: Verify unregister removes registered creator
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, UnregisterBranch001, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int protocol = TEST_PROTOCOL_BASE + 3;
+    ResetTestProtocol(invokerFactory, protocol);
+
+    auto creator = []() -> IRemoteInvoker* {
+        return new (std::nothrow) BinderInvoker();
+    };
+
+    EXPECT_TRUE(invokerFactory.Register(protocol, creator));
+    invokerFactory.Unregister(protocol);
+    EXPECT_EQ(invokerFactory.newInstance(protocol), nullptr);
+    ResetTestProtocol(invokerFactory, protocol);
+}
+
+/**
+ * @tc.name: newInstanceBranch001
+ * @tc.desc: Verify unavailable factory returns nullptr directly
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, newInstanceBranch001, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int protocol = TEST_PROTOCOL_BASE + 4;
+    ResetTestProtocol(invokerFactory, protocol);
+
+    invokerFactory.isAvailable_ = false;
+    EXPECT_EQ(invokerFactory.newInstance(protocol), nullptr);
+    invokerFactory.isAvailable_ = true;
+    ResetTestProtocol(invokerFactory, protocol);
 }
 
 } // namespace OHOS
