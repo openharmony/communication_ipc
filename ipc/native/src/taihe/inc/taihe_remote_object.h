@@ -56,6 +56,8 @@ public:
     void UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags);
     
     ::taihe::string GetDescriptor();
+
+    void SetDescriptor(::taihe::string desc);
     
     bool IsObjectDead();
     
