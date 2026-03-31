@@ -504,6 +504,27 @@ HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RemoveDeathRecipientTest004
+ * @tc.desc: Verify the IPCObjectProxy::RemoveDeathRecipient function when refreshRecipients_.size() >= 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveDeathRecipientTest004, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    ASSERT_NE(death, nullptr);
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(Return(true));
+    EXPECT_CALL(mock, RegisterBinderRefreshRecipient()).WillOnce(Return(true));
+    EXPECT_TRUE(object.AddDeathRecipient(death));
+    sptr<IRemoteObject::RefreshRecipient> recipient1 = new MockRefreshRecipient();
+    ASSERT_NE(recipient1, nullptr);
+    EXPECT_TRUE(object.AddRefreshRecipient(recipient1));
+    bool ret = object.RemoveDeathRecipient(death.GetRefPtr());
+    ASSERT_FALSE(ret);
+}
+
+/**
  * @tc.name: AddRefreshRecipientTest001
  * @tc.desc: Verify the IPCObjectProxy::AddRefreshRecipient function when recipient nullptr
  * @tc.type: FUNC
@@ -605,6 +626,48 @@ HWTEST_F(IPCObjectProxyTest, AddRefreshRecipientTest006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddRefreshRecipientTest007
+ * @tc.desc: Verify the IPCObjectProxy::AddRefreshRecipient function when SetObjectDied return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, AddRefreshRecipientTest007, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_DATABUS;
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(Return(true));
+    bool ret = object.AddDeathRecipient(death.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    object.SetObjectDied(true);
+    sptr<IRemoteObject::RefreshRecipient> refresh(new MockRefreshRecipient());
+    ret = object.AddRefreshRecipient(refresh.GetRefPtr());
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest008
+ * @tc.desc: Verify the IPCObjectProxy::AddRefreshRecipient function
+ * when RegisterBinderRefreshRecipient return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, AddRefreshRecipientTest008, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_DATABUS;
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(Return(true));
+    bool ret = object.AddDeathRecipient(death.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    sptr<IRemoteObject::RefreshRecipient> refresh(new MockRefreshRecipient());
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, RegisterBinderRefreshRecipient()).WillOnce(Return(false));
+    ret = object.AddRefreshRecipient(refresh.GetRefPtr());
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: RemoveRefreshRecipientTest001
  * @tc.desc: Verify the IPCObjectProxy::RemoveRefreshRecipient function when recipient nullptr
  * @tc.type: FUNC
@@ -649,6 +712,57 @@ HWTEST_F(IPCObjectProxyTest, RemoveRefreshRecipientTest003, TestSize.Level1)
     ret = object.RemoveRefreshRecipient(refresh.GetRefPtr());
     object.handle_ = tmp;
 
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest004
+ * @tc.desc: Verify the IPCObjectProxy::RemoveRefreshRecipient function
+ * when proto_ = IF_PROT_DATABUS
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveRefreshRecipientTest004, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_DATABUS;
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(Return(true));
+    bool ret = object.AddDeathRecipient(death.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    sptr<IRemoteObject::RefreshRecipient> refresh(new MockRefreshRecipient());
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, RegisterBinderRefreshRecipient()).WillOnce(Return(true));
+    ret = object.AddRefreshRecipient(refresh.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    ret = object.RemoveRefreshRecipient(refresh.GetRefPtr());
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest005
+ * @tc.desc: Verify the IPCObjectProxy::RemoveRefreshRecipient function
+ * when refreshRecipients_ is not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RemoveRefreshRecipientTest005, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    object.proto_ = IRemoteObject::IF_PROT_DATABUS;
+    sptr<IRemoteObject::DeathRecipient> death(new MockDeathRecipient());
+    NiceMock<IpcObjectProxyInterfaceMock> mock;
+    EXPECT_CALL(mock, RegisterBinderDeathRecipient()).WillOnce(Return(true));
+    bool ret = object.AddDeathRecipient(death.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    sptr<IRemoteObject::RefreshRecipient> refresh(new MockRefreshRecipient());
+    EXPECT_CALL(mock, GetRemoteInvoker(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, RegisterBinderRefreshRecipient()).WillOnce(Return(true));
+    ret = object.AddRefreshRecipient(refresh.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    sptr<IRemoteObject::RefreshRecipient> refresh1(new MockRefreshRecipient());
+    ret = object.AddRefreshRecipient(refresh1.GetRefPtr());
+    ASSERT_EQ(ret, true);
+    ret = object.RemoveRefreshRecipient(refresh.GetRefPtr());
     ASSERT_TRUE(ret);
 }
 
@@ -712,18 +826,6 @@ HWTEST_F(IPCObjectProxyTest, ClearRefreshRecipientsTest003, TestSize.Level1)
 
     object.handle_ = IPCProcessSkeleton::DBINDER_HANDLE_RANG;
     EXPECT_NO_FATAL_FAILURE(object.ClearRefreshRecipients());
-}
-
-/**
- * @tc.name: RegisterBinderRefreshRecipientTest001
- * @tc.desc: Verify the IPCObjectProxy::RegisterBinderRefreshRecipient function
- * when IPCThreadSkeleton::GetDefaultInvoker() return nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(IPCObjectProxyTest, RegisterBinderRefreshRecipientTest001, TestSize.Level1)
-{
-    IPCObjectProxy object(1);
-    EXPECT_FALSE(object.RegisterBinderRefreshRecipient());
 }
 
 /**
@@ -803,6 +905,22 @@ HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrInfoTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RefreshRecipientAddrIsDlclosedTest001
+ * @tc.desc: Verify the IPCObjectProxy::RefreshRecipientAddrInfo function
+ * when newSoPath is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrIsDlclosedTest001, TestSize.Level1)
+{
+    sptr<IPCObjectProxy> object = new IPCObjectProxy(
+        1, u"test", IPCProcessSkeleton::DBINDER_HANDLE_BASE);
+    sptr<MockRefreshRecipient> recipient = new MockRefreshRecipient();
+    IPCObjectProxy::RefreshRecipientAddrInfo info(recipient);
+    EXPECT_NE(info.recipient_, nullptr);
+    EXPECT_FALSE(info.IsDlclosed());
+}
+
+/**
  * @tc.name: SendRefreshObituaryTest001
  * @tc.desc: Verify the IPCObjectProxy::SendRefreshObituary function
  * when refreshRecipients_ is empty
@@ -811,6 +929,22 @@ HWTEST_F(IPCObjectProxyTest, RefreshRecipientAddrInfoTest002, TestSize.Level1)
 HWTEST_F(IPCObjectProxyTest, SendRefreshObituaryTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
+    EXPECT_NO_FATAL_FAILURE(object.SendRefreshObituary());
+}
+
+/**
+ * @tc.name: SendRefreshObituaryTest002
+ * @tc.desc: Verify the IPCObjectProxy::SendRefreshObituary function
+ * when refreshRecipients_ is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, SendRefreshObituaryTest002, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    sptr<MockRefreshRecipient> recipient = new MockRefreshRecipient();
+    IPCObjectProxy::RefreshRecipientAddrInfo info(recipient);
+    EXPECT_NE(info.recipient_, nullptr);
+    EXPECT_FALSE(info.IsDlclosed());
     EXPECT_NO_FATAL_FAILURE(object.SendRefreshObituary());
 }
 
