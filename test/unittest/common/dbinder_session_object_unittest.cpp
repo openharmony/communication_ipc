@@ -132,6 +132,55 @@ HWTEST_F(DBinderSessionObjectTest, GetSessionBuffTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConstructorBranchTest001
+ * @tc.desc: Verify constructor keeps initial state and default peer/socket values
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, ConstructorBranchTest001, TestSize.Level1)
+{
+    IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(0x1234);
+    DBinderSessionObject object("service-A", "device-A", STUB_INDEX, proxy, TOKEN_ID);
+
+    EXPECT_STREQ("service-A", object.GetServiceName().c_str());
+    EXPECT_STREQ("device-A", object.GetDeviceId().c_str());
+    EXPECT_EQ(object.GetProxy(), proxy);
+    EXPECT_EQ(object.GetSocketId(), SOCKET_ID_INVALID);
+    EXPECT_EQ(object.GetPeerPid(), 0);
+    EXPECT_EQ(object.GetPeerUid(), 0);
+}
+
+/**
+ * @tc.name: GetSessionBuffBranch001
+ * @tc.desc: Verify GetSessionBuff caches and reuses the same buffer object
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, GetSessionBuffBranch001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+
+    auto first = object.GetSessionBuff();
+    auto second = object.GetSessionBuff();
+    EXPECT_NE(first, nullptr);
+    EXPECT_EQ(first, second);
+}
+
+/**
+ * @tc.name: SetProxyBranch001
+ * @tc.desc: Verify SetProxy updates exact pointer value including reset to nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(DBinderSessionObjectTest, SetProxyBranch001, TestSize.Level1)
+{
+    DBinderSessionObject object("testserviceName", "testserverDeviceId", STUB_INDEX, nullptr, TOKEN_ID);
+    IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(0x4321);
+
+    object.SetProxy(proxy);
+    EXPECT_EQ(object.GetProxy(), proxy);
+    object.SetProxy(nullptr);
+    EXPECT_EQ(object.GetProxy(), nullptr);
+}
+
+/**
  * @tc.name: GetStubIndexTest001
  * @tc.desc: Verify the DBinderSessionObject::GetStubIndex function
  * @tc.type: FUNC
