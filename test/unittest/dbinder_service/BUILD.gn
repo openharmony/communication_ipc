@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("../../../config.gni")
 
 IPC_CORE_ROOT = "$IPC_ROOT_PATH/ipc/native"
-MODULE_OUTPUT_PATH = "ipc/dbinder_service"
+MODULE_OUTPUT_PATH = "ipc/ipc/dbinder_service"
 
 template("ipc_dbinder_unittest") {
   ohos_unittest(target_name) {
