@@ -556,10 +556,8 @@ RemoteObjectImpl::RemoteObjectImpl(uintptr_t nativePtr) : desc_("")
         TH_THROW(std::runtime_error, "reinterpret_cast nativePtr failed");
         return;
     }
-    {
-        std::lock_guard<std::mutex> lockGuard(descMutex_);
-        desc_ = OHOS::Str16ToStr8(stub->GetObjectDescriptor());
-    }
+    auto desc = OHOS::Str16ToStr8(stub->GetObjectDescriptor());
+    SetDescriptor(desc);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     sptrCachedObject_ = stub;
 }
@@ -582,10 +580,7 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
         RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR);
     }
     jsLocalInterface_ = localInterface;
-    {
-        std::lock_guard<std::mutex> lockGuard(descMutex_);
-        desc_ = descriptor;
-    }
+    SetDescriptor(descriptor);
 }
 
 ::ohos::rpc::rpc::IRemoteBroker RemoteObjectImpl::GetLocalInterface(::taihe::string_view descriptor)
@@ -595,9 +590,9 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
         ZLOGE(LOG_LABEL, "string length exceeds %{public}zu bytes", MAX_BYTES_LENGTH);
         RPC_TAIHE_ERROR_WITH_RETVAL(OHOS::RpcTaiheErrorCode::TAIHE_CHECK_PARAM_ERROR, jsBroker);
     }
-    std::lock_guard<std::mutex> lockGuard(descMutex_);
-    if (descriptor != desc_) {
-        ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc_.data());
+    auto desc = GetDescriptor();
+    if (descriptor != desc) {
+        ZLOGE(LOG_LABEL, "descriptor: %{public}s mispatch, expected: %{public}s", descriptor.data(), desc.data());
         return jsBroker;
     }
     if (!jsLocalInterface_.has_value()) {
@@ -657,6 +652,12 @@ void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient
     return desc_;
 }
 
+void RemoteObjectImpl::SetDescriptor(::taihe::string desc)
+{
+    std::lock_guard<std::mutex> lockGuard(descMutex_);
+    desc_ = desc;
+}
+
 bool RemoteObjectImpl::IsObjectDead()
 {
     return false;
@@ -672,7 +673,8 @@ OHOS::sptr<OHOS::IPCObjectStub> RemoteObjectImpl::GetNativeObject()
     }
     OHOS::sptr<OHOS::IPCObjectStub> tmp = wptrCachedObject_.promote();
     if (tmp == nullptr) {
-        std::u16string descStr16(desc_.begin(), desc_.end());
+        auto desc = GetDescriptor();
+        std::u16string descStr16(desc.begin(), desc.end());
         tmp = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value());
         if (tmp == nullptr) {
             ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");
@@ -698,11 +700,8 @@ void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj,
         ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
         return;
     }
-    std::u16string descStr16;
-    {
-        std::lock_guard<std::mutex> lockGuard(descMutex_);
-        descStr16 = std::u16string(desc_.begin(), desc_.end());
-    }
+    auto desc = GetDescriptor();
+    std::u16string descStr16(desc.begin(), desc.end());
     ANIRemoteObject *newObject = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value(), hasCallingInfo);
     if (newObject == nullptr) {
         ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");
