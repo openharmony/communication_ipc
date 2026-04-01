@@ -16,16 +16,15 @@
 #include "bufferobject_fuzzer.h"
 #include "buffer_object.h"
 #include "message_parcel.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
-bool GetSendBufferAndLockTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return false;
-    }
+static constexpr size_t MAX_BYTES_SIZE = 50;
 
+bool GetSendBufferAndLockTest(FuzzedDataProvider &provider)
+{
     BufferObject object;
-    uint32_t sendSize = *(reinterpret_cast<const uint32_t*>(data));
+    uint32_t sendSize = provider.ConsumeIntegral<uint32_t>();
     char *sendBuffer = object.GetSendBufferAndLock(sendSize);
     if (sendBuffer == nullptr) {
         return false;
@@ -33,14 +32,10 @@ bool GetSendBufferAndLockTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool GetReceiveBufferAndLockTest(const uint8_t* data, size_t size)
+bool GetReceiveBufferAndLockTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return false;
-    }
-
     BufferObject object;
-    uint32_t sendSize = *(reinterpret_cast<const uint32_t*>(data));
+    uint32_t sendSize = provider.ConsumeIntegral<uint32_t>();
     char *sendBuffer = object.GetReceiveBufferAndLock(sendSize);
     if (sendBuffer == nullptr) {
         return false;
@@ -48,57 +43,42 @@ bool GetReceiveBufferAndLockTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool SetReceiveBufferWriteCursorTest(const uint8_t* data, size_t size)
+bool SetReceiveBufferWriteCursorTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(ssize_t)) {
-        return false;
-    }
-    ssize_t cursor =  *(reinterpret_cast<const ssize_t*>(data));
+    ssize_t cursor = provider.ConsumeIntegral<ssize_t>();
     BufferObject object;
     object.SetReceiveBufferWriteCursor(cursor);
     return true;
 }
 
-bool SetReceiveBufferReadCursorTest(const uint8_t* data, size_t size)
+bool SetReceiveBufferReadCursorTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(ssize_t)) {
-        return false;
-    }
     BufferObject object;
-    ssize_t cursor =  *(reinterpret_cast<const ssize_t*>(data));
+    ssize_t cursor = provider.ConsumeIntegral<ssize_t>();
     object.SetReceiveBufferReadCursor(cursor);
     return true;
 }
 
-bool SetSendBufferWriteCursorTest(const uint8_t* data, size_t size)
+bool SetSendBufferWriteCursorTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(ssize_t)) {
-        return false;
-    }
     BufferObject object;
-    ssize_t cursor =  *(reinterpret_cast<const ssize_t*>(data));
+    ssize_t cursor = provider.ConsumeIntegral<ssize_t>();
     object.SetSendBufferWriteCursor(cursor);
     return true;
 }
 
-bool SetSendBufferReadCursorTest(const uint8_t* data, size_t size)
+bool SetSendBufferReadCursorTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(ssize_t)) {
-        return false;
-    }
     BufferObject object;
-    ssize_t cursor =  *(reinterpret_cast<const ssize_t*>(data));
+    ssize_t cursor = provider.ConsumeIntegral<ssize_t>();
     object.SetSendBufferReadCursor(cursor);
     return true;
 }
 
-bool GetNeedBufferSizeTest(const uint8_t* data, size_t size)
+bool GetNeedBufferSizeTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return false;
-    }
     BufferObject object;
-    uint32_t sendSize = *(reinterpret_cast<const uint32_t*>(data));
+    uint32_t sendSize = provider.ConsumeIntegral<uint32_t>();
     uint32_t ret = object.GetNeedBufferSize(sendSize);
     if (ret == 0) {
         return false;
@@ -106,123 +86,112 @@ bool GetNeedBufferSizeTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool UpdateSendBufferTest(const uint8_t* data, size_t size)
+bool UpdateSendBufferTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return false;
-    }
     BufferObject object;
-    uint32_t sendSize = *(reinterpret_cast<const uint32_t*>(data));
+    uint32_t sendSize = provider.ConsumeIntegral<uint32_t>();
     object.UpdateSendBuffer(sendSize);
     return true;
 }
 
-void GetNeedBufferSizeFuzzTest(const uint8_t *data, size_t size)
+void GetNeedBufferSizeFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     size_t len = parcel.ReadUint64();
 
     BufferObject object;
     object.GetNeedBufferSize(len);
 }
 
-void GetReceiveBufferAndLockFuzzTest(const uint8_t *data, size_t size)
+void GetReceiveBufferAndLockFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     size_t len = parcel.ReadUint64();
 
     BufferObject object;
     object.GetReceiveBufferAndLock(len);
 }
 
-void GetSendBufferAndLockFuzzTest(const uint8_t *data, size_t size)
+void GetSendBufferAndLockFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     size_t len = parcel.ReadUint64();
 
     BufferObject object;
     object.GetSendBufferAndLock(len);
 }
 
-void SetReceiveBufferReadCursorFuzzTest(const uint8_t *data, size_t size)
+void SetReceiveBufferReadCursorFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     ssize_t cursor = parcel.ReadInt32();
 
     BufferObject object;
     object.SetReceiveBufferReadCursor(cursor);
 }
 
-void SetReceiveBufferWriteCursorFuzzTest(const uint8_t *data, size_t size)
+void SetReceiveBufferWriteCursorFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
+
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     ssize_t cursor = parcel.ReadInt32();
 
     BufferObject object;
     object.SetReceiveBufferWriteCursor(cursor);
 }
 
-void SetSendBufferReadCursorFuzzTest(const uint8_t *data, size_t size)
+void SetSendBufferReadCursorFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     ssize_t cursor = parcel.ReadInt32();
 
     BufferObject object;
     object.SetSendBufferReadCursor(cursor);
 }
 
-void SetSendBufferWriteCursorFuzzTest(const uint8_t *data, size_t size)
+void SetSendBufferWriteCursorFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     ssize_t cursor = parcel.ReadInt32();
 
     BufferObject object;
     object.SetSendBufferWriteCursor(cursor);
 }
 
-void UpdateSendBufferFuzzTest(const uint8_t *data, size_t size)
+void UpdateSendBufferFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     MessageParcel parcel;
-    parcel.WriteBuffer(data, size);
+    parcel.WriteBuffer(bytes.data(), bytes.size());
     size_t s = parcel.ReadUint64();
 
     BufferObject object;
@@ -310,9 +279,9 @@ bool UpdateReceiveBufferTest()
     return true;
 }
 
-void FuzzerTestInner1(const uint8_t* data, size_t size)
+void FuzzerTestInner1(FuzzedDataProvider &provider)
 {
-    OHOS::UpdateSendBufferFuzzTest(data, size);
+    OHOS::UpdateSendBufferFuzzTest(provider);
     OHOS::ReleaseSendBufferLockTest();
     OHOS::GetReceiveBufferWriteCursorTest();
     OHOS::ReleaseReceiveBufferLockTest();
@@ -323,27 +292,34 @@ void FuzzerTestInner1(const uint8_t* data, size_t size)
     OHOS::GetSendBufferWriteCursorTest();
     OHOS::GetReceiveBufferReadCursorTest();
 }
+
+void FuzzerTestInner2(FuzzedDataProvider &provider)
+{
+    OHOS::UpdateSendBufferTest(provider);
+    OHOS::GetNeedBufferSizeFuzzTest(provider);
+    OHOS::GetReceiveBufferAndLockFuzzTest(provider);
+    OHOS::GetSendBufferAndLockFuzzTest(provider);
+    OHOS::SetReceiveBufferReadCursorFuzzTest(provider);
+    OHOS::SetReceiveBufferWriteCursorFuzzTest(provider);
+    OHOS::SetSendBufferReadCursorFuzzTest(provider);
+    OHOS::SetSendBufferWriteCursorFuzzTest(provider);
+}
+
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetSendBufferAndLockTest(data, size);
-    OHOS::GetReceiveBufferAndLockTest(data, size);
-    OHOS::SetReceiveBufferWriteCursorTest(data, size);
-    OHOS::SetReceiveBufferReadCursorTest(data, size);
-    OHOS::SetSendBufferWriteCursorTest(data, size);
-    OHOS::SetSendBufferReadCursorTest(data, size);
-    OHOS::GetNeedBufferSizeTest(data, size);
-    OHOS::UpdateSendBufferTest(data, size);
-    OHOS::GetNeedBufferSizeFuzzTest(data, size);
-    OHOS::GetReceiveBufferAndLockFuzzTest(data, size);
-    OHOS::GetSendBufferAndLockFuzzTest(data, size);
-    OHOS::SetReceiveBufferReadCursorFuzzTest(data, size);
-    OHOS::SetReceiveBufferWriteCursorFuzzTest(data, size);
-    OHOS::SetSendBufferReadCursorFuzzTest(data, size);
-    OHOS::SetSendBufferWriteCursorFuzzTest(data, size);
-    OHOS::FuzzerTestInner1(data, size);
+    FuzzedDataProvider provider(data, size);
+    OHOS::GetSendBufferAndLockTest(provider);
+    OHOS::GetReceiveBufferAndLockTest(provider);
+    OHOS::SetReceiveBufferWriteCursorTest(provider);
+    OHOS::SetReceiveBufferReadCursorTest(provider);
+    OHOS::SetSendBufferWriteCursorTest(provider);
+    OHOS::SetSendBufferReadCursorTest(provider);
+    OHOS::GetNeedBufferSizeTest(provider);
+    OHOS::FuzzerTestInner2(provider);
+    OHOS::FuzzerTestInner1(provider);
     return 0;
 }

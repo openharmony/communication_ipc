@@ -23,15 +23,15 @@ using OHOS::DatabusSocketListener;
 
 namespace OHOS {
 static constexpr size_t STR_MAX_LEN = 100;
+static constexpr size_t MAX_BYTES_SIZE = 50;
 
-static void WriteFileDescriptorFuzzTest(const uint8_t *data, size_t size)
+static void WriteFileDescriptorFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < (sizeof(int32_t) + sizeof(bool))) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
+    if (!parcel.WriteBuffer(bytes.data(), bytes.size())) {
         return;
     }
 
@@ -75,14 +75,13 @@ static void UpdateClientSessionFuzzTest(FuzzedDataProvider &provider)
     (void)invoker.UpdateClientSession(dbinderSession);
 }
 
-static void QueryClientSessionObjectFuzzTest(const uint8_t *data, size_t size)
+static void QueryClientSessionObjectFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
+    if (!parcel.WriteBuffer(bytes.data(), bytes.size())) {
         return;
     }
 
@@ -95,14 +94,13 @@ static void QueryClientSessionObjectFuzzTest(const uint8_t *data, size_t size)
     (void)invoker.QueryClientSessionObject(databusHandle);
 }
 
-static void QueryServerSessionObjectFuzzTest(const uint8_t *data, size_t size)
+static void QueryServerSessionObjectFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
+    if (!parcel.WriteBuffer(bytes.data(), bytes.size())) {
         return;
     }
 
@@ -116,14 +114,13 @@ static void QueryServerSessionObjectFuzzTest(const uint8_t *data, size_t size)
 }
 
 
-static void OnDatabusSessionServerSideClosedFuzzTest(const uint8_t *data, size_t size)
+static void OnDatabusSessionServerSideClosedFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(int32_t)) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
+    if (!parcel.WriteBuffer(bytes.data(), bytes.size())) {
         return;
     }
 
@@ -141,11 +138,11 @@ static void OnDatabusSessionServerSideClosedFuzzTest(const uint8_t *data, size_t
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::WriteFileDescriptorFuzzTest(data, size);
-    OHOS::QueryClientSessionObjectFuzzTest(data, size);
-    OHOS::QueryServerSessionObjectFuzzTest(data, size);
-    OHOS::OnDatabusSessionServerSideClosedFuzzTest(data, size);
     FuzzedDataProvider provider(data, size);
+    OHOS::WriteFileDescriptorFuzzTest(provider);
+    OHOS::QueryClientSessionObjectFuzzTest(provider);
+    OHOS::QueryServerSessionObjectFuzzTest(provider);
+    OHOS::OnDatabusSessionServerSideClosedFuzzTest(provider);
     OHOS::UpdateClientSessionFuzzTest(provider);
     return 0;
 }

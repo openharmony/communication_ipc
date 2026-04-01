@@ -22,14 +22,15 @@ using OHOS::DatabusSocketListener;
 
 namespace OHOS {
 
-static void ProcessTransactionFuzzTest(const uint8_t *data, size_t size)
+static constexpr size_t MAX_BYTES_SIZE = 50;
+
+static void ProcessTransactionFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
+    if (!parcel.WriteBuffer(bytes.data(), bytes.size())) {
         return;
     }
 
@@ -47,14 +48,13 @@ static void ProcessTransactionFuzzTest(const uint8_t *data, size_t size)
     delete tr;
 }
 
-static void CheckTransactionDataFuzzTest(const uint8_t *data, size_t size)
+static void CheckTransactionDataFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return;
-    }
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(1, MAX_BYTES_SIZE);
+    std::vector<uint8_t> bytes = provider.ConsumeBytes<uint8_t>(bytesSize);
 
     Parcel parcel;
-    if (!parcel.WriteBuffer(data, size)) {
+    if (!parcel.WriteBuffer(bytes.data(), bytes.size())) {
         return;
     }
 
@@ -119,9 +119,9 @@ void QueryServerSessionObjectFuzzTest(FuzzedDataProvider &provider)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ProcessTransactionFuzzTest(data, size);
-    OHOS::CheckTransactionDataFuzzTest(data, size);
     FuzzedDataProvider provider(data, size);
+    OHOS::ProcessTransactionFuzzTest(provider);
+    OHOS::CheckTransactionDataFuzzTest(provider);
     OHOS::GetSessionForProxyFuzzTest(provider);
     OHOS::QueryClientSessionObjectFuzzTest(provider);
     OHOS::QueryServerSessionObjectFuzzTest(provider);
