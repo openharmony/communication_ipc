@@ -62,4 +62,32 @@ HWTEST_F(BinderDebugUnitTest, ToStringTest002, TestSize.Level1)
     std::string ret = debug.ToString(BC_DEAD_BINDER_DONE + 1);
     EXPECT_EQ(ret, "UNKNOWN COMMAND");
 }
+
+/**
+ * @tc.name: ToStringTest003
+ * @tc.desc: Verify known BC command mapping
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderDebugUnitTest, ToStringTest003, TestSize.Level1)
+{
+    BinderDebug debug;
+    std::string ret = debug.ToString(BC_ENTER_LOOPER);
+    EXPECT_EQ(ret, "BC_ENTER_LOOPER");
+}
+
+/**
+ * @tc.name: GetErrorMapTest001
+ * @tc.desc: Verify GetErrorMap returns reusable map with expected keys
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderDebugUnitTest, GetErrorMapTest001, TestSize.Level1)
+{
+    BinderDebug debug;
+    ErrorMap &first = debug.GetErrorMap();
+    ErrorMap &second = debug.GetErrorMap();
+
+    EXPECT_EQ(&first, &second);
+    EXPECT_EQ(first.at(BR_TRANSACTION), "BR_TRANSACTION");
+    EXPECT_EQ(first.at(BC_REQUEST_DEATH_NOTIFICATION), "BC_REQUEST_DEATH_NOTIFICATION");
+}
 } // namespace OHOS
