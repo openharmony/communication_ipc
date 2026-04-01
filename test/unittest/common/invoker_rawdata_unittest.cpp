@@ -63,6 +63,21 @@ HWTEST_F(InvokerRawDataTest, InvokerRawData001, TestSize.Level1)
 
     EXPECT_EQ(rawDataZero.GetData(), nullptr);
     EXPECT_EQ(rawDataMax.GetData(), nullptr);
+    EXPECT_EQ(rawDataZero.GetSize(), 0);
+    EXPECT_EQ(rawDataMax.GetSize(), 0);
+}
+
+/**
+ * @tc.name: InvokerRawData002
+ * @tc.desc: Verify the boundary size is accepted
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerRawDataTest, InvokerRawData002, TestSize.Level1)
+{
+    InvokerRawData rawData(maxSize_);
+
+    EXPECT_NE(rawData.GetData(), nullptr);
+    EXPECT_EQ(rawData.GetSize(), maxSize_);
 }
 
 /**
@@ -78,6 +93,23 @@ HWTEST_F(InvokerRawDataTest, GetData001, TestSize.Level1)
 
     std::shared_ptr<char> data = rawData.GetData();
     EXPECT_EQ(data.use_count(), 2);
+}
+
+/**
+ * @tc.name: GetData002
+ * @tc.desc: Verify the GetData function returns the same buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerRawDataTest, GetData002, TestSize.Level1)
+{
+    InvokerRawData rawData(validSize_);
+
+    std::shared_ptr<char> firstData = rawData.GetData();
+    std::shared_ptr<char> secondData = rawData.GetData();
+
+    ASSERT_NE(firstData, nullptr);
+    EXPECT_EQ(firstData, secondData);
+    EXPECT_EQ(firstData.get(), secondData.get());
 }
 
 /**

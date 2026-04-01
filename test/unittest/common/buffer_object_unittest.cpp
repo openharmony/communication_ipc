@@ -126,6 +126,29 @@ HWTEST_F(BufferObjectUnitTest, UpdateSendBufferTest004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateSendBufferTest005
+ * @tc.desc: Verify the UpdateSendBuffer function keeps cursors when no expansion or move is needed
+ * @tc.type: FUNC
+ */
+HWTEST_F(BufferObjectUnitTest, UpdateSendBufferTest005, TestSize.Level1)
+{
+    BufferObject object;
+    object.sendBuffSize_ = SOCKET_BUFF_SIZE_USER_S;
+    object.SetSendBufferWriteCursor(BUFFER_WRITE_CURSOR_TEST);
+    object.SetSendBufferReadCursor(1);
+    object.sendBuffer_ = new (std::nothrow) char[SOCKET_BUFF_SIZE_USER_S]();
+
+    object.UpdateSendBuffer(1);
+
+    EXPECT_EQ(object.GetSendBufferWriteCursor(), BUFFER_WRITE_CURSOR_TEST);
+    EXPECT_EQ(object.GetSendBufferReadCursor(), 1);
+    if (object.sendBuffer_ != nullptr) {
+        delete[] object.sendBuffer_;
+        object.sendBuffer_ = nullptr;
+    }
+}
+
+/**
  * @tc.name: UpdateReceiveBufferTest001
  * @tc.desc: Verify the UpdateReceiveBuffer function
  * @tc.type: FUNC
@@ -201,6 +224,29 @@ HWTEST_F(BufferObjectUnitTest, UpdateReceiveBufferTest004, TestSize.Level1)
     EXPECT_EQ(object.GetReceiveBufferWriteCursor(), BUFF_SIZE_TEST / 2 - 1);
     EXPECT_EQ(object.GetReceiveBufferReadCursor(), 0);
     EXPECT_EQ(object.receiveBuffer_[0], 'A');
+    if (object.receiveBuffer_ != nullptr) {
+        delete[] object.receiveBuffer_;
+        object.receiveBuffer_ = nullptr;
+    }
+}
+
+/**
+ * @tc.name: UpdateReceiveBufferTest005
+ * @tc.desc: Verify the UpdateReceiveBuffer function keeps cursors when no move is needed
+ * @tc.type: FUNC
+ */
+HWTEST_F(BufferObjectUnitTest, UpdateReceiveBufferTest005, TestSize.Level1)
+{
+    BufferObject object;
+    object.recvBuffSize_ = SOCKET_BUFF_SIZE_USER_S;
+    object.SetReceiveBufferWriteCursor(BUFFER_WRITE_CURSOR_TEST);
+    object.SetReceiveBufferReadCursor(1);
+    object.receiveBuffer_ = new (std::nothrow) char[SOCKET_BUFF_SIZE_USER_S]();
+
+    object.UpdateReceiveBuffer();
+
+    EXPECT_EQ(object.GetReceiveBufferWriteCursor(), BUFFER_WRITE_CURSOR_TEST);
+    EXPECT_EQ(object.GetReceiveBufferReadCursor(), 1);
     if (object.receiveBuffer_ != nullptr) {
         delete[] object.receiveBuffer_;
         object.receiveBuffer_ = nullptr;

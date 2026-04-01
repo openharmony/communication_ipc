@@ -127,6 +127,20 @@ ipc_unittest("BinderDebugUnitTest") {
   ]
 }
 
+ipc_unittest("BufferObjectUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/buffer_object.cpp",
+    "buffer_object_unittest.cpp",
+  ]
+}
+
+ipc_unittest("CommAuthInfoUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/comm_auth_info.cpp",
+    "comm_auth_info_unittest.cpp",
+  ]
+}
+
 ipc_unittest("BinderInvokerUnitTest") {
   sources = [ "binder_invoker_unittest.cpp" ]
 }
@@ -137,6 +151,13 @@ ipc_unittest("InvokerFactoryUnitTest") {
 
 ipc_unittest("RPCFeatureUnitTest") {
   sources = [ "rpc_feature_set_unittest.cpp" ]
+}
+
+ipc_unittest("StubRefCountObjectUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/stub_refcount_object.cpp",
+    "stub_refcount_object_unittest.cpp",
+  ]
 }
 
 ipc_unittest("IPCSoDlcloseUnitTest") {
@@ -169,8 +190,22 @@ ipc_unittest("MessageParcelUnitTest") {
   sources = [ "message_parcel_unittest_AcquireObject.cpp" ]
 }
 
+ipc_unittest("MessageOptionUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/message_option.cpp",
+    "message_option_unittest.cpp",
+  ]
+}
+
 ipc_unittest("InvokerRawDataUnitTest") {
   sources = [ "invoker_rawdata_unittest.cpp" ]
+}
+
+ipc_unittest("PeerHolderUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/peer_holder.cpp",
+    "peer_holder_unittest.cpp",
+  ]
 }
 
 if (support_jsapi) {
@@ -250,6 +285,8 @@ group("ipc_common_unittest") {
     ":BinderConnectorUnitTest",
     ":BinderDebugUnitTest",
     ":BinderInvokerUnitTest",
+    ":BufferObjectUnitTest",
+    ":CommAuthInfoUnitTest",
     ":DatabusSocketListenerUnitTest",
     ":HitraceInvokerUnitTest",
     ":IPCBlockThreadUnitTest",
@@ -262,7 +299,10 @@ group("ipc_common_unittest") {
     ":InvokerRawDataUnitTest",
     ":IpcCApiUnitTest",
     ":MessageParcelUnitTest",
+    ":MessageOptionUnitTest",
+    ":PeerHolderUnitTest",
     ":RPCFeatureUnitTest",
+    ":StubRefCountObjectUnitTest",
   ]
   if (support_jsapi) {
     deps += [ ":IPCNapiUnitTest" ]
