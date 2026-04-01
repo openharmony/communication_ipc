@@ -47,6 +47,22 @@ void IPCWorkThreadPoolUnitTest::SetUp() {}
 void IPCWorkThreadPoolUnitTest::TearDown() {}
 
 /**
+ * @tc.name: ConstructorBranchTest001
+ * @tc.desc: Verify constructor initializes thread limits for both protocols
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCWorkThreadPoolUnitTest, ConstructorBranchTest001, TestSize.Level1)
+{
+    IPCWorkThreadPool threadPool(2);
+    IPCWorkThreadPool::exitFlag_ = false;
+
+    EXPECT_EQ(threadPool.maxThreadNum_, 4);
+    EXPECT_EQ(threadPool.idleThreadNum_, 3);
+    EXPECT_EQ(threadPool.idleSocketThreadNum_, 2);
+    EXPECT_TRUE(threadPool.threads_.empty());
+}
+
+/**
  * @tc.name: RemoveThreadTest001
  * @tc.desc: Verify the RemoveThread function
  * @tc.type: FUNC
@@ -152,5 +168,59 @@ HWTEST_F(IPCWorkThreadPoolUnitTest, UpdateMaxThreadNumTest001, TestSize.Level1)
     threadPool.UpdateMaxThreadNum(0);
 
     EXPECT_EQ(threadPool.maxThreadNum_, 2);
+}
+
+/**
+ * @tc.name: MakeThreadNameBranch001
+ * @tc.desc: Verify MakeThreadName increments sequence and returns expected names
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCWorkThreadPoolUnitTest, MakeThreadNameBranch001, TestSize.Level1)
+{
+    IPCWorkThreadPool threadPool(1);
+    IPCWorkThreadPool::exitFlag_ = false;
+    int threadIndex = -1;
+
+    std::string first = threadPool.MakeThreadName(IRemoteObject::IF_PROT_DEFAULT, threadIndex);
+    EXPECT_EQ(threadIndex, 0);
+    EXPECT_EQ(first, IPCWorkThread::MakeBasicThreadName(IRemoteObject::IF_PROT_DEFAULT, 0));
+
+    std::string second = threadPool.MakeThreadName(IRemoteObject::IF_PROT_DATABUS, threadIndex);
+    EXPECT_EQ(threadIndex, 1);
+    EXPECT_EQ(second, IPCWorkThread::MakeBasicThreadName(IRemoteObject::IF_PROT_DATABUS, 1));
+}
+
+/**
+ * @tc.name: GetThreadNumBranch001
+ * @tc.desc: Verify getter functions expose constructor-derived thread counts
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCWorkThreadPoolUnitTest, GetThreadNumBranch001, TestSize.Level1)
+{
+    IPCWorkThreadPool threadPool(2);
+    IPCWorkThreadPool::exitFlag_ = false;
+
+    EXPECT_EQ(threadPool.GetSocketIdleThreadNum(), 2);
+    EXPECT_EQ(threadPool.GetSocketTotalThreadNum(), 2);
+    EXPECT_EQ(threadPool.GetMaxThreadNum(), 3);
+}
+
+/**
+ * @tc.name: UpdateMaxThreadNumBranch001
+ * @tc.desc: Verify UpdateMaxThreadNum grows both idle counters when max increases
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCWorkThreadPoolUnitTest, UpdateMaxThreadNumBranch001, TestSize.Level1)
+{
+    IPCWorkThreadPool threadPool(1);
+    IPCWorkThreadPool::exitFlag_ = false;
+
+    threadPool.UpdateMaxThreadNum(3);
+
+    EXPECT_EQ(threadPool.maxThreadNum_, 6);
+    EXPECT_EQ(threadPool.idleThreadNum_, 4);
+    EXPECT_EQ(threadPool.idleSocketThreadNum_, 3);
+    EXPECT_EQ(threadPool.GetSocketTotalThreadNum(), 3);
+    EXPECT_EQ(threadPool.GetMaxThreadNum(), 4);
 }
 } // namespace OHOS
