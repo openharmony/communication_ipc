@@ -37,17 +37,9 @@ static void DBinderSocketInfoFuzzTest(FuzzedDataProvider &provider)
     (void)info.GetNetworkId();
 }
 
-static void ServerOnBindFuzzTest(const uint8_t *data, size_t size)
+static void ServerOnBindFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < sizeof(int32_t)) {
-        return;
-    }
-
-    int32_t socketId = -1;
-    if (memcpy_s(&socketId, sizeof(int32_t), data, sizeof(int32_t)) != EOK) {
-        return;
-    }
-
+    int32_t socketId = provider.ConsumeIntegral<int32_t>();
     PeerSocketInfo info = {
         .name = const_cast<char *>(TEST_SOCKET_NAME.c_str()),
         .networkId = const_cast<char *>(TEST_SOCKET_PEER_NETWORKID.c_str()),
@@ -63,19 +55,13 @@ static void ServerOnBindFuzzTest(const uint8_t *data, size_t size)
     listener->ServerOnBind(socketId, info);
 }
 
-static void ServerOnShutdownFuzzTest(const uint8_t *data, size_t size)
+static void ServerOnShutdownFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < (sizeof(int32_t) + sizeof(ShutdownReason))) {
-        return;
-    }
-
-    int32_t socketId = -1;
-    if (memcpy_s(&socketId, sizeof(int32_t), data, sizeof(int32_t)) != EOK) {
-        return;
-    }
-
+    int32_t socketId = provider.ConsumeIntegral<int32_t>();
     ShutdownReason reason = SHUTDOWN_REASON_UNKNOWN;
-    if (memcpy_s(&reason, sizeof(ShutdownReason), data, sizeof(ShutdownReason)) != EOK) {
+    int32_t data = provider.ConsumeIntegral<int32_t>();
+
+    if (memcpy_s(&reason, sizeof(ShutdownReason), &data, sizeof(ShutdownReason)) != EOK) {
         return;
     }
 
@@ -87,19 +73,13 @@ static void ServerOnShutdownFuzzTest(const uint8_t *data, size_t size)
     listener->ServerOnShutdown(socketId, reason);
 }
 
-static void ClientOnShutdownFuzzTest(const uint8_t *data, size_t size)
+static void ClientOnShutdownFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size < (sizeof(int32_t) + sizeof(ShutdownReason))) {
-        return;
-    }
-
-    int32_t socketId = -1;
-    if (memcpy_s(&socketId, sizeof(int32_t), data, sizeof(int32_t)) != EOK) {
-        return;
-    }
-
+    int32_t socketId = provider.ConsumeIntegral<int32_t>();
     ShutdownReason reason = SHUTDOWN_REASON_UNKNOWN;
-    if (memcpy_s(&reason, sizeof(ShutdownReason), data, sizeof(ShutdownReason)) != EOK) {
+    int32_t data = provider.ConsumeIntegral<int32_t>();
+
+    if (memcpy_s(&reason, sizeof(ShutdownReason), &data, sizeof(ShutdownReason)) != EOK) {
         return;
     }
 
@@ -116,10 +96,10 @@ static void ClientOnShutdownFuzzTest(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ServerOnBindFuzzTest(data, size);
-    OHOS::ServerOnShutdownFuzzTest(data, size);
-    OHOS::ClientOnShutdownFuzzTest(data, size);
     FuzzedDataProvider provider(data, size);
+    OHOS::ServerOnBindFuzzTest(provider);
+    OHOS::ServerOnShutdownFuzzTest(provider);
+    OHOS::ClientOnShutdownFuzzTest(provider);
     OHOS::DBinderSocketInfoFuzzTest(provider);
     return 0;
 }
