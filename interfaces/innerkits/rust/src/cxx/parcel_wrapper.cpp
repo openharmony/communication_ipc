@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 #include "ashmem.h"
@@ -305,6 +306,21 @@ bool WriteAshmem(MessageParcel &msgParcel, std::shared_ptr<Ashmem> buffer)
         return false;
     }
     return true;
+}
+
+std::shared_ptr<Ashmem> ReadAshmem(MessageParcel &msgParcel)
+{
+    int fd = msgParcel.ReadFileDescriptor();
+    if (fd < 0) {
+        return nullptr;
+    }
+
+    int32_t size = msgParcel.ReadInt32();
+    if (size <= 0) {
+        ::close(fd);
+        return nullptr;
+    }
+    return std::make_shared<Ashmem>(fd, size);
 }
 
 } // namespace IpcRust
