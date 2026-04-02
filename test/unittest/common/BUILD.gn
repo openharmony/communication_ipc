@@ -148,6 +148,14 @@ ipc_unittest("IPCPayloadStatisticsImplStandaloneTest") {
   ]
 }
 
+ipc_unittest("IPCPayloadStatisticsStandaloneTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics.cpp",
+    "$IPC_CORE_ROOT/src/core/framework/source/ipc_payload_statistics_impl.cpp",
+    "ipc_payload_statistics_unittest.cpp",
+  ]
+}
+
 ipc_unittest("BinderInvokerUnitTest") {
   sources = [ "binder_invoker_unittest.cpp" ]
 }
@@ -302,6 +310,7 @@ group("ipc_common_unittest") {
     ":IPCNativeUnitTest",
     ":IPCSoDlcloseUnitTest",
     ":IPCTraceUnitTest",
+    ":IPCPayloadStatisticsStandaloneTest",
     ":IPCPayloadStatisticsImplStandaloneTest",
     ":InvokerFactoryUnitTest",
     ":InvokerRawDataUnitTest",
