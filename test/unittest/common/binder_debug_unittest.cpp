@@ -76,6 +76,30 @@ HWTEST_F(BinderDebugUnitTest, ToStringTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ToStringTest004
+ * @tc.desc: Verify known BR command mapping
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderDebugUnitTest, ToStringTest004, TestSize.Level1)
+{
+    BinderDebug debug;
+    std::string ret = debug.ToString(BR_DEAD_BINDER);
+    EXPECT_EQ(ret, "BR_DEAD_BINDER");
+}
+
+/**
+ * @tc.name: ToStringTest005
+ * @tc.desc: Verify values below the known range map to unknown command
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderDebugUnitTest, ToStringTest005, TestSize.Level1)
+{
+    BinderDebug debug;
+    std::string ret = debug.ToString(0);
+    EXPECT_EQ(ret, "UNKNOWN COMMAND");
+}
+
+/**
  * @tc.name: GetErrorMapTest001
  * @tc.desc: Verify GetErrorMap returns reusable map with expected keys
  * @tc.type: FUNC

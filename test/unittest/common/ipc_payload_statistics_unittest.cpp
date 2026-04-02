@@ -27,6 +27,7 @@ namespace {
     constexpr int32_t INVALID_PID = -1;
     constexpr int32_t CODE = 1;
     constexpr int32_t INVALID_CODE = -1;
+    constexpr uint32_t CURRENT_COST = 10;
 }
 
 class IPCPayloadStatisticsUnitTest : public testing::Test {
@@ -47,10 +48,14 @@ void IPCPayloadStatisticsUnitTest::TearDownTestCase()
 
 void IPCPayloadStatisticsUnitTest::SetUp()
 {
+    IPCPayloadStatistics::ClearStatisticsData();
+    IPCPayloadStatistics::StopStatistics();
 }
 
 void IPCPayloadStatisticsUnitTest::TearDown()
 {
+    IPCPayloadStatistics::ClearStatisticsData();
+    IPCPayloadStatistics::StopStatistics();
 }
 
 /**
@@ -282,5 +287,51 @@ HWTEST_F(IPCPayloadStatisticsUnitTest, StopStatistics001, TestSize.Level1)
 HWTEST_F(IPCPayloadStatisticsUnitTest, ClearStatisticsData001, TestSize.Level1)
 {
     EXPECT_EQ(IPCPayloadStatistics::ClearStatisticsData(), true);
+}
+
+/**
+ * @tc.name: WrapperDataPath001
+ * @tc.desc: Verify wrapper interfaces expose statistics stored in impl
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCPayloadStatisticsUnitTest, WrapperDataPath001, TestSize.Level1)
+{
+    IPCPayloadStatisticsImpl &impl = IPCPayloadStatisticsImpl::GetInstance();
+    EXPECT_TRUE(IPCPayloadStatistics::StartStatistics());
+    EXPECT_TRUE(impl.UpdatePayloadInfo(PID, u"string1", CODE, CURRENT_COST));
+
+    EXPECT_EQ(IPCPayloadStatistics::GetTotalCount(), 1);
+    EXPECT_EQ(IPCPayloadStatistics::GetTotalCost(), CURRENT_COST);
+    EXPECT_EQ(IPCPayloadStatistics::GetCount(PID), 1);
+    EXPECT_EQ(IPCPayloadStatistics::GetCost(PID), CURRENT_COST);
+
+    std::vector<int32_t> pids = IPCPayloadStatistics::GetPids();
+    ASSERT_EQ(pids.size(), 1);
+    EXPECT_EQ(pids[0], PID);
+
+    std::vector<IPCInterfaceInfo> infos = IPCPayloadStatistics::GetDescriptorCodes(PID);
+    ASSERT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos[0].desc, u"string1");
+    EXPECT_EQ(infos[0].code, CODE);
+}
+
+/**
+ * @tc.name: WrapperDataPath002
+ * @tc.desc: Verify wrapper returns matching count and cost for a descriptor/code pair
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCPayloadStatisticsUnitTest, WrapperDataPath002, TestSize.Level1)
+{
+    IPCPayloadStatisticsImpl &impl = IPCPayloadStatisticsImpl::GetInstance();
+    EXPECT_TRUE(IPCPayloadStatistics::StartStatistics());
+    EXPECT_TRUE(impl.UpdatePayloadInfo(PID, u"string1", CODE, CURRENT_COST));
+
+    EXPECT_EQ(IPCPayloadStatistics::GetDescriptorCodeCount(PID, u"string1", CODE), 1);
+
+    IPCPayloadCost cost = IPCPayloadStatistics::GetDescriptorCodeCost(PID, u"string1", CODE);
+    EXPECT_EQ(cost.totalCost, CURRENT_COST);
+    EXPECT_EQ(cost.maxCost, CURRENT_COST);
+    EXPECT_EQ(cost.minCost, CURRENT_COST);
+    EXPECT_EQ(cost.averCost, CURRENT_COST);
 }
 } // namespace OHOS
