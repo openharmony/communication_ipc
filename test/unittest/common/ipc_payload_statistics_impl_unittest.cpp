@@ -373,6 +373,8 @@ HWTEST_F(IPCPayloadStatisticsImplUnitTest, StartStatistics001, TestSize.Level1)
     IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
     EXPECT_EQ(instance.StartStatistics(), true);
     EXPECT_EQ(instance.GetStatisticsStatus(), true);
+    EXPECT_EQ(instance.ClearStatisticsData(), true);
+    EXPECT_EQ(instance.StopStatistics(), true);
 }
 
 /**
@@ -545,6 +547,50 @@ HWTEST_F(IPCPayloadStatisticsImplUnitTest, UpdatePayloadInfo003, TestSize.Level1
     EXPECT_EQ(cost.maxCost, DEFAULT_MAX_COST);
     EXPECT_EQ(cost.minCost, DEFAULT_MIN_COST);
     EXPECT_EQ(cost.averCost, (DEFAULT_TOTAL_COST + currentCost) / (DEFAULT_COUNT + currentCount));
+    EXPECT_EQ(instance.ClearStatisticsData(), true);
+    EXPECT_EQ(instance.StopStatistics(), true);
+}
+
+/**
+ * @tc.name: UpdatePayloadInfo004
+ * @tc.desc: Verify UpdatePayloadInfo returns false when statistics are not started
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCPayloadStatisticsImplUnitTest, UpdatePayloadInfo004, TestSize.Level1)
+{
+    IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
+    EXPECT_EQ(instance.StopStatistics(), true);
+    EXPECT_FALSE(instance.UpdatePayloadInfo(PID_1, u"string1", DESC_CODE_1, 1));
+    EXPECT_EQ(instance.GetTotalCount(), 0);
+}
+
+/**
+ * @tc.name: UpdatePayloadInfo005
+ * @tc.desc: Verify UpdatePayloadInfo returns false when currentCost is zero
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCPayloadStatisticsImplUnitTest, UpdatePayloadInfo005, TestSize.Level1)
+{
+    IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
+    EXPECT_EQ(instance.StartStatistics(), true);
+    EXPECT_FALSE(instance.UpdatePayloadInfo(PID_1, u"string1", DESC_CODE_1, 0));
+    EXPECT_EQ(instance.GetTotalCount(), 0);
+    EXPECT_EQ(instance.ClearStatisticsData(), true);
+    EXPECT_EQ(instance.StopStatistics(), true);
+}
+
+/**
+ * @tc.name: StartStatistics002
+ * @tc.desc: Verify repeated StartStatistics does not clear existing payload data
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCPayloadStatisticsImplUnitTest, StartStatistics002, TestSize.Level1)
+{
+    IPCPayloadStatisticsImpl& instance = IPCPayloadStatisticsImpl::GetInstance();
+    EXPECT_EQ(instance.StartStatistics(), true);
+    EXPECT_TRUE(instance.UpdatePayloadInfo(PID_1, u"string1", DESC_CODE_1, 5));
+    EXPECT_EQ(instance.StartStatistics(), true);
+    EXPECT_EQ(instance.GetDescriptorCodeCount(PID_1, u"string1", DESC_CODE_1), 1);
     EXPECT_EQ(instance.ClearStatisticsData(), true);
     EXPECT_EQ(instance.StopStatistics(), true);
 }
