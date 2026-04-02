@@ -27,6 +27,11 @@ using namespace OHOS;
 namespace {
 constexpr int TEST_PROTOCOL_BASE = 10000;
 
+class TestInvoker final : public BinderInvoker {
+public:
+    ~TestInvoker() override = default;
+};
+
 void ResetTestProtocol(InvokerFactory &invokerFactory, int protocol)
 {
     invokerFactory.creators_.erase(protocol);
@@ -244,6 +249,84 @@ HWTEST_F(InvokerFactoryTest, newInstanceBranch001, TestSize.Level1)
     invokerFactory.isAvailable_ = false;
     EXPECT_EQ(invokerFactory.newInstance(protocol), nullptr);
     invokerFactory.isAvailable_ = true;
+    ResetTestProtocol(invokerFactory, protocol);
+}
+
+/**
+ * @tc.name: UnregisterBranch002
+ * @tc.desc: Verify unregistering one protocol does not affect other creators
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, UnregisterBranch002, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int firstProtocol = TEST_PROTOCOL_BASE + 5;
+    const int secondProtocol = TEST_PROTOCOL_BASE + 6;
+    ResetTestProtocol(invokerFactory, firstProtocol);
+    ResetTestProtocol(invokerFactory, secondProtocol);
+
+    auto creator = []() -> IRemoteInvoker* {
+        return new (std::nothrow) BinderInvoker();
+    };
+
+    EXPECT_TRUE(invokerFactory.Register(firstProtocol, creator));
+    EXPECT_TRUE(invokerFactory.Register(secondProtocol, creator));
+
+    invokerFactory.Unregister(firstProtocol);
+    EXPECT_EQ(invokerFactory.newInstance(firstProtocol), nullptr);
+
+    std::unique_ptr<IRemoteInvoker> secondInvoker(invokerFactory.newInstance(secondProtocol));
+    EXPECT_NE(secondInvoker, nullptr);
+
+    invokerFactory.Unregister(secondProtocol);
+    ResetTestProtocol(invokerFactory, firstProtocol);
+    ResetTestProtocol(invokerFactory, secondProtocol);
+}
+
+/**
+ * @tc.name: RegisterBranch003
+ * @tc.desc: Verify the same protocol can be registered again after unregister
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, RegisterBranch003, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int protocol = TEST_PROTOCOL_BASE + 7;
+    ResetTestProtocol(invokerFactory, protocol);
+
+    auto creator = []() -> IRemoteInvoker* {
+        return new (std::nothrow) BinderInvoker();
+    };
+
+    EXPECT_TRUE(invokerFactory.Register(protocol, creator));
+    invokerFactory.Unregister(protocol);
+    EXPECT_TRUE(invokerFactory.Register(protocol, creator));
+
+    std::unique_ptr<IRemoteInvoker> invoker(invokerFactory.newInstance(protocol));
+    EXPECT_NE(invoker, nullptr);
+
+    invokerFactory.Unregister(protocol);
+    ResetTestProtocol(invokerFactory, protocol);
+}
+
+/**
+ * @tc.name: InvokerDelegatorBranch001
+ * @tc.desc: Verify InvokerDelegator registers a creator for the target protocol
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokerFactoryTest, InvokerDelegatorBranch001, TestSize.Level1)
+{
+    InvokerFactory &invokerFactory = InvokerFactory::Get();
+    const int protocol = TEST_PROTOCOL_BASE + 8;
+    ResetTestProtocol(invokerFactory, protocol);
+
+    {
+        InvokerDelegator<TestInvoker> delegator(protocol);
+        std::unique_ptr<IRemoteInvoker> invoker(invokerFactory.newInstance(protocol));
+        EXPECT_NE(invoker, nullptr);
+    }
+
+    invokerFactory.Unregister(protocol);
     ResetTestProtocol(invokerFactory, protocol);
 }
 
