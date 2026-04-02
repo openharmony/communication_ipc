@@ -58,12 +58,7 @@ static void ServerOnBindFuzzTest(FuzzedDataProvider &provider)
 static void ServerOnShutdownFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t socketId = provider.ConsumeIntegral<int32_t>();
-    ShutdownReason reason = SHUTDOWN_REASON_UNKNOWN;
-    int32_t data = provider.ConsumeIntegral<int32_t>();
-
-    if (memcpy_s(&reason, sizeof(ShutdownReason), &data, sizeof(ShutdownReason)) != EOK) {
-        return;
-    }
+    ShutdownReason reason = static_cast<ShutdownReason>(provider.ConsumeIntegral<int32_t>());
 
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
@@ -76,12 +71,7 @@ static void ServerOnShutdownFuzzTest(FuzzedDataProvider &provider)
 static void ClientOnShutdownFuzzTest(FuzzedDataProvider &provider)
 {
     int32_t socketId = provider.ConsumeIntegral<int32_t>();
-    ShutdownReason reason = SHUTDOWN_REASON_UNKNOWN;
-    int32_t data = provider.ConsumeIntegral<int32_t>();
-
-    if (memcpy_s(&reason, sizeof(ShutdownReason), &data, sizeof(ShutdownReason)) != EOK) {
-        return;
-    }
+    ShutdownReason reason = static_cast<ShutdownReason>(provider.ConsumeIntegral<int32_t>());
 
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
