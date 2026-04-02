@@ -84,6 +84,7 @@ bool ReadString16Vector(Parcel &parcel, rust::vec<rust::string> &val);
 bool WriteRemoteObject(MessageParcel &msgParcel, std::unique_ptr<IRemoteObjectWrapper> object);
 std::unique_ptr<IRemoteObjectWrapper> ReadRemoteObject(MessageParcel &msgParcel);
 bool WriteAshmem(MessageParcel &msgParcel, std::shared_ptr<Ashmem> buffer);
+std::shared_ptr<Ashmem> ReadAshmem(MessageParcel &msgParcel);
 
 } // namespace IpcRust
 } // namespace OHOS

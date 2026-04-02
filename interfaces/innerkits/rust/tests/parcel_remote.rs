@@ -12,8 +12,9 @@
 // limitations under the License.
 
 #![allow(missing_docs, unused)]
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::os::fd::FromRawFd;
 use std::sync::Once;
 
 use ipc::parcel::{Deserialize, MsgOption, MsgParcel, Serialize};
