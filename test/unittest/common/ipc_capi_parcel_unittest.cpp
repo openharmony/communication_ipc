@@ -587,6 +587,66 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteInt64_001, TestSize.Le
     OH_IPCParcel_Destroy(parcel);
 }
 
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint8_001, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    EXPECT_NE(parcel, nullptr);
+    uint8_t value = static_cast<uint8_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint8(nullptr, value), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_WriteUint8(parcel, value), OH_IPC_SUCCESS);
+    uint8_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint8(nullptr, &readValue), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint8(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint8(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_EQ(readValue, static_cast<uint8_t>(NUMBER_CONSTANT));
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint16_001, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    EXPECT_NE(parcel, nullptr);
+    uint16_t value = static_cast<uint16_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint16(nullptr, value), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_WriteUint16(parcel, value), OH_IPC_SUCCESS);
+    uint16_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint16(nullptr, &readValue), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint16(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint16(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_EQ(readValue, static_cast<uint16_t>(NUMBER_CONSTANT));
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint32_001, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    EXPECT_NE(parcel, nullptr);
+    uint32_t value = static_cast<uint32_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint32(nullptr, value), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_WriteUint32(parcel, value), OH_IPC_SUCCESS);
+    uint32_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint32(nullptr, &readValue), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint32(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint32(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_EQ(readValue, static_cast<uint32_t>(NUMBER_CONSTANT));
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint64_001, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    EXPECT_NE(parcel, nullptr);
+    uint64_t value = static_cast<uint64_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint64(nullptr, value), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_WriteUint64(parcel, value), OH_IPC_SUCCESS);
+    uint64_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint64(nullptr, &readValue), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint64(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
+    EXPECT_EQ(OH_IPCParcel_ReadUint64(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_EQ(readValue, static_cast<uint64_t>(NUMBER_CONSTANT));
+    OH_IPCParcel_Destroy(parcel);
+}
+
 HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteFloat_001, TestSize.Level1)
 {
     OHIPCParcel *parcel = OH_IPCParcel_Create();

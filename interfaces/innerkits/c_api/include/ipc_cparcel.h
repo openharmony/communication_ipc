@@ -303,6 +303,110 @@ int OH_IPCParcel_WriteInt64(OHIPCParcel *parcel, int64_t value);
 int OH_IPCParcel_ReadInt64(const OHIPCParcel *parcel, int64_t *value);
 
 /**
+ * @brief Writes a uint8_t value to an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_WriteUint8(OHIPCParcel *parcel, uint8_t value);
+
+/**
+ * @brief Reads a uint8_t value from an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_ReadUint8(const OHIPCParcel *parcel, uint8_t *value);
+
+/**
+ * @brief Writes a uint16_t value to an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_WriteUint16(OHIPCParcel *parcel, uint16_t value);
+
+/**
+ * @brief Reads a uint16_t value from an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_ReadUint16(const OHIPCParcel *parcel, uint16_t *value);
+
+/**
+ * @brief Writes a uint32_t value to an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_WriteUint32(OHIPCParcel *parcel, uint32_t value);
+
+/**
+ * @brief Reads a uint32_t value from an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_ReadUint32(const OHIPCParcel *parcel, uint32_t *value);
+
+/**
+ * @brief Writes a uint64_t value to an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Value to write.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_WRITE_ERROR} if the data write operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_WriteUint64(OHIPCParcel *parcel, uint64_t value);
+
+/**
+ * @brief Reads a uint64_t value from an <b>OHIPCParcel</b> object.
+ *
+ * @syscap SystemCapability.Communication.IPC.Core
+ * @param parcel Pointer to the target <b>OHIPCParcel</b> object. It cannot be NULL.
+ * @param value Pointer to the data to read. It cannot be NULL.
+ * @return Returns {@link OH_IPC_ErrorCode#OH_IPC_SUCCESS} if the operation is successful. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_CHECK_PARAM_ERROR} if invalid parameters are found. \n
+ * Returns {@link OH_IPC_ErrorCode#OH_IPC_PARCEL_READ_ERROR} if the read operation fails.
+ * @since 25
+ */
+int OH_IPCParcel_ReadUint64(const OHIPCParcel *parcel, uint64_t *value);
+
+/**
  * @brief Writes a float value to an <b>OHIPCParcel</b> object.
  *
  * @syscap SystemCapability.Communication.IPC.Core
