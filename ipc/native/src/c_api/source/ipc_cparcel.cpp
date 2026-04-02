@@ -175,6 +175,46 @@ int OH_IPCParcel_ReadInt64(const OHIPCParcel *parcel, int64_t *value)
     return ReadValue<int64_t>(parcel, value, &OHOS::MessageParcel::ReadInt64);
 }
 
+int OH_IPCParcel_WriteUint8(OHIPCParcel *parcel, uint8_t value)
+{
+    return WriteValue<uint8_t>(parcel, value, &OHOS::MessageParcel::WriteUint8);
+}
+
+int OH_IPCParcel_ReadUint8(const OHIPCParcel *parcel, uint8_t *value)
+{
+    return ReadValue<uint8_t>(parcel, value, &OHOS::MessageParcel::ReadUint8);
+}
+
+int OH_IPCParcel_WriteUint16(OHIPCParcel *parcel, uint16_t value)
+{
+    return WriteValue<uint16_t>(parcel, value, &OHOS::MessageParcel::WriteUint16);
+}
+
+int OH_IPCParcel_ReadUint16(const OHIPCParcel *parcel, uint16_t *value)
+{
+    return ReadValue<uint16_t>(parcel, value, &OHOS::MessageParcel::ReadUint16);
+}
+
+int OH_IPCParcel_WriteUint32(OHIPCParcel *parcel, uint32_t value)
+{
+    return WriteValue<uint32_t>(parcel, value, &OHOS::MessageParcel::WriteUint32);
+}
+
+int OH_IPCParcel_ReadUint32(const OHIPCParcel *parcel, uint32_t *value)
+{
+    return ReadValue<uint32_t>(parcel, value, &OHOS::MessageParcel::ReadUint32);
+}
+
+int OH_IPCParcel_WriteUint64(OHIPCParcel *parcel, uint64_t value)
+{
+    return WriteValue<uint64_t>(parcel, value, &OHOS::MessageParcel::WriteUint64);
+}
+
+int OH_IPCParcel_ReadUint64(const OHIPCParcel *parcel, uint64_t *value)
+{
+    return ReadValue<uint64_t>(parcel, value, &OHOS::MessageParcel::ReadUint64);
+}
+
 int OH_IPCParcel_WriteFloat(OHIPCParcel *parcel, float value)
 {
     return WriteValue<float>(parcel, value, &OHOS::MessageParcel::WriteFloat);
