@@ -48,12 +48,9 @@ static void OnBytesRecivedFuzzTest(const uint8_t *data, size_t size)
     listener->OnBytesReceived(socketId, recivedData, recivedLen);
 }
 
-static void StartServerListenerFuzzTest(const uint8_t *data, size_t size)
+static void StartServerListenerFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-    std::string name(reinterpret_cast<const char *>(data), size);
+    std::string name = provider.ConsumeRandomLengthString(STR_MAX_LEN);
 
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
@@ -102,9 +99,9 @@ static void CreateClientSocketFuzzTest(FuzzedDataProvider &provider)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::OnBytesRecivedFuzzTest(data, size);
-    OHOS::StartServerListenerFuzzTest(data, size);
     FuzzedDataProvider provider(data, size);
+    OHOS::OnBytesRecivedFuzzTest(data, size);
+    OHOS::StartServerListenerFuzzTest(provider);
     OHOS::QueryOrNewInfoMutexFuzzTest(provider);
     OHOS::CreateClientSocketFuzzTest(provider);
     return 0;

@@ -26,17 +26,9 @@ static std::string TEST_SOCKET_NAME = "DBinder1_1";
 static std::string TEST_SOCKET_PEER_NAME = "DBinderService";
 static std::string TEST_SOCKET_PEER_NETWORKID = "wad213hkad213jh123jk213j1h2312h3jk12dadadeawd721hledhjlad22djhla";
 
-static void ShutdownSocketFuzzTest(const uint8_t *data, size_t size)
+static void ShutdownSocketFuzzTest(FuzzedDataProvider &provider)
 {
-    if (data == nullptr || size <= sizeof(int32_t)) {
-        return;
-    }
-
-    int32_t socketId = -1;
-    if (memcpy_s(&socketId, sizeof(int32_t), data, sizeof(int32_t)) != EOK) {
-        return;
-    }
-
+    int32_t socketId = provider.ConsumeIntegral<int32_t>();
     std::shared_ptr<DatabusSocketListener> listener = DelayedSingleton<DatabusSocketListener>::GetInstance();
     if (listener == nullptr) {
         return;
@@ -102,9 +94,8 @@ static void GetPidAndUidFromServiceNameFuzzTest(FuzzedDataProvider &provider)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ShutdownSocketFuzzTest(data, size);
-
     FuzzedDataProvider provider(data, size);
+    OHOS::ShutdownSocketFuzzTest(provider);
     OHOS::EraseDeviceLockFuzzTest(provider);
     OHOS::ClientOnBindFuzzTest(provider);
     OHOS::GetPidAndUidFromServiceNameFuzzTest(provider);
