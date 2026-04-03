@@ -436,4 +436,65 @@ HWTEST_F(ProcessSkeletonUnitTest, NotifyChildThreadStop003, TestSize.Level1)
     processSkeleton->NotifyChildThreadStop();
     EXPECT_TRUE(processSkeleton->GetThreadStopFlag());
 }
+
+/**
+ * @tc.name: AttachObjectTest001
+ * @tc.desc: Verify the AttachObject function with empty descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, AttachObjectTest001, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"");
+    ASSERT_TRUE(object != nullptr);
+
+    bool ret = skeleton->AttachObject(object.GetRefPtr(), object->GetObjectDescriptor(), true);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: DetachObjectTest002
+ * @tc.desc: Verify the DetachObject function when descriptor does not exist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, DetachObjectTest002, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"testObject");
+    ASSERT_TRUE(object != nullptr);
+
+    bool ret = skeleton->DetachObject(object.GetRefPtr(), u"missing");
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsValidObjectTest002
+ * @tc.desc: Verify the IsValidObject function with null object
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, IsValidObjectTest002, TestSize.Level1)
+{
+    ProcessSkeleton *skeleton = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::u16string desc;
+    bool ret = skeleton->IsValidObject(nullptr, desc);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ConvertToSecureDescTest002
+ * @tc.desc: Verify the ConvertToSecureDesc function with short string
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessSkeletonUnitTest, ConvertToSecureDescTest002, TestSize.Level1)
+{
+    std::string desc = "abc";
+    std::string secureDesc = ProcessSkeleton::ConvertToSecureDesc(desc);
+    EXPECT_EQ(secureDesc, "abc");
+}
 } // namespace OHOS

@@ -115,6 +115,23 @@ HWTEST_F(BinderConnectorTest, IsAccessTokenSupported001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsAccessTokenSupported002
+ * @tc.desc: Verify the IsAccessTokenSupported function when feature flag is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsAccessTokenSupported002, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = 1;
+    binderConnector->featureSet_ = ACCESS_TOKEN_FAETURE_MASK;
+
+    auto ret = binderConnector->IsAccessTokenSupported();
+    ASSERT_TRUE(ret);
+
+    binderConnector->driverFD_ = -1;
+}
+
+/**
  * @tc.name: GetSelfTokenID001
  * @tc.desc: Verify the GetSelfTokenID function
  * @tc.type: FUNC
@@ -177,5 +194,46 @@ HWTEST_F(BinderConnectorTest, IsRealPidSupported002, TestSize.Level1)
     binderConnector->featureSet_ = 0;
     bool res = binderConnector->IsRealPidSupported();
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: IsDriverAlive001
+ * @tc.desc: Verify the IsDriverAlive function
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsDriverAlive001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->driverFD_ = -1;
+    EXPECT_FALSE(binderConnector->IsDriverAlive());
+
+    binderConnector->driverFD_ = 1;
+    EXPECT_TRUE(binderConnector->IsDriverAlive());
+
+    binderConnector->driverFD_ = -1;
+}
+
+/**
+ * @tc.name: IsRefreshSupported001
+ * @tc.desc: Verify the IsRefreshSupported function when feature flag is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsRefreshSupported001, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->featureSet_ = REFRESH_RECIPIENT_ENABLED_MASK;
+    EXPECT_TRUE(binderConnector->IsRefreshSupported());
+}
+
+/**
+ * @tc.name: IsRefreshSupported002
+ * @tc.desc: Verify the IsRefreshSupported function when feature flag is disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderConnectorTest, IsRefreshSupported002, TestSize.Level1)
+{
+    BinderConnector* binderConnector = BinderConnector::GetInstance();
+    binderConnector->featureSet_ = 0;
+    EXPECT_FALSE(binderConnector->IsRefreshSupported());
 }
 } // namespace OHOS
