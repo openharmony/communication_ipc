@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
+#include <climits>
+
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #define private public
 #include "dbinder_session_object.h"
@@ -35,6 +37,7 @@ constexpr int THREAD_NUM_2 = 2;
 constexpr uint32_t INDEX_1 = 1;
 constexpr uint32_t INDEX_2 = 2;
 constexpr int32_t EXECUTE_TIME_TEST = 500;
+constexpr int32_t LARGE_THREAD_NUM = INT_MAX / 2;
 }
 class IPCProcessSkeletonUnitTest : public testing::Test {
 public:
@@ -85,6 +88,32 @@ HWTEST_F(IPCProcessSkeletonUnitTest, MakeHandleDescriptorTest001, TestSize.Level
 }
 
 /**
+ * @tc.name: ConvertToSecureStringTest001
+ * @tc.desc: Verify the ConvertToSecureString function with short string
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ConvertToSecureStringTest001, TestSize.Level1)
+{
+    std::string str = "abc";
+    std::string ret = IPCProcessSkeleton::ConvertToSecureString(str);
+
+    EXPECT_EQ(ret, "****");
+}
+
+/**
+ * @tc.name: ConvertToSecureStringTest002
+ * @tc.desc: Verify the ConvertToSecureString function with long string
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, ConvertToSecureStringTest002, TestSize.Level1)
+{
+    std::string str = "123456789";
+    std::string ret = IPCProcessSkeleton::ConvertToSecureString(str);
+
+    EXPECT_EQ(ret, "1234****6789");
+}
+
+/**
  * @tc.name: FindOrNewObjectTest001
  * @tc.desc: Verify the FindOrNewObject function
  * @tc.type: FUNC
@@ -124,6 +153,20 @@ HWTEST_F(IPCProcessSkeletonUnitTest, SetMaxWorkThreadTest002, TestSize.Level1)
 
     bool ret = skeleton->SetMaxWorkThread(1);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: SetMaxWorkThreadTest003
+ * @tc.desc: Verify the SetMaxWorkThread function with too large thread number
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, SetMaxWorkThreadTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool ret = skeleton->SetMaxWorkThread(LARGE_THREAD_NUM);
+    EXPECT_EQ(ret, false);
 }
 
 /**
@@ -251,6 +294,63 @@ HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest001, TestSize.Level1)
     bool ret = skeleton->IsContainsObject(object.GetRefPtr());
 
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsContainsObjectTest002
+ * @tc.desc: Verify the IsContainsObject function with null object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, IsContainsObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool ret = skeleton->IsContainsObject(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AttachObjectTest001
+ * @tc.desc: Verify the AttachObject function with null object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, AttachObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool ret = skeleton->AttachObject(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: DetachObjectTest001
+ * @tc.desc: Verify the DetachObject function with null object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    bool ret = skeleton->DetachObject(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: DetachObjectTest002
+ * @tc.desc: Verify the DetachObject function with empty descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, DetachObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> object = new IPCObjectStub(u"");
+    bool ret = skeleton->DetachObject(object.GetRefPtr());
+    EXPECT_EQ(ret, false);
 }
 
 #ifndef CONFIG_IPC_SINGLE
