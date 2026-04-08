@@ -239,6 +239,52 @@ HWTEST_F(HitraceInvokerTest, TraceClientSendTest004, TestSize.Level1)  // line: 
 }
 
 /**
+ * @tc.name: IsClientTracedTest001
+ * @tc.desc: Verify the IsClientTraced function with sync call
+ * @tc.type: FUNC
+ */
+HWTEST_F(HitraceInvokerTest, IsClientTracedTest001, TestSize.Level1)
+{
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
+
+    bool ret = HitraceInvoker::IsClientTraced(1, 0, traceId);
+    EXPECT_TRUE(ret);
+
+    HiTraceChain::End(traceId);
+}
+
+/**
+ * @tc.name: IsClientTracedTest002
+ * @tc.desc: Verify the IsClientTraced function with async call but no async flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(HitraceInvokerTest, IsClientTracedTest002, TestSize.Level1)
+{
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", 0);
+    uint32_t flags = TF_ONE_WAY;
+
+    bool ret = HitraceInvoker::IsClientTraced(1, flags, traceId);
+    EXPECT_FALSE(ret);
+
+    HiTraceChain::End(traceId);
+}
+
+/**
+ * @tc.name: IsClientTracedTest003
+ * @tc.desc: Verify the IsClientTraced function with invalid handle
+ * @tc.type: FUNC
+ */
+HWTEST_F(HitraceInvokerTest, IsClientTracedTest003, TestSize.Level1)
+{
+    const HiTraceId traceId = HiTraceChain::Begin("ipc hitrace", HITRACE_FLAG_INCLUDE_ASYNC);
+
+    bool ret = HitraceInvoker::IsClientTraced(0, TF_ONE_WAY, traceId);
+    EXPECT_FALSE(ret);
+
+    HiTraceChain::End(traceId);
+}
+
+/**
  * @tc.name: RecoveryDataAndFlagTest001
  * @tc.desc: RecoveryDataAndFlag
  * @tc.type: FUNC
@@ -316,6 +362,21 @@ HWTEST_F(HitraceInvokerTest, TraceServerReceiveTest003, TestSize.Level1)  // lin
     EXPECT_CALL(mock, ReadUint8).WillOnce(Return(num - 1));
     bool ret = HitraceInvoker::TraceServerReceive(handle, code, data, flags);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: TraceServerReceiveTest004
+ * @tc.desc: Verify TraceServerReceive returns false when TF_HITRACE is not set
+ * @tc.type: FUNC
+ */
+HWTEST_F(HitraceInvokerTest, TraceServerReceiveTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    uint32_t flags = 0;
+    uint32_t code = 1001;
+
+    bool ret = HitraceInvoker::TraceServerReceive(1, code, data, flags);
+    EXPECT_FALSE(ret);
 }
 
 } // namespace OHOS
