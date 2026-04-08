@@ -25,6 +25,7 @@ using namespace OHOS;
 namespace OHOS {
 namespace {
     constexpr uint32_t RPC_FEATURE_ACK = 0x80000000;
+    constexpr uint32_t LOCAL_RPC_FEATURE = 0x1;
     constexpr uint32_t INVAL_TOKEN_ID = 0x0;
     constexpr uint32_t EXTRA_SIZE = 10;
     constexpr uint32_t EXPECTED_TOKEN_ID = 123789;
@@ -130,6 +131,22 @@ HWTEST_F(RpcFeatureSetTest, SetFeatureTransData005, TestSize.Level1)
     uint32_t size = (uint32_t)sizeof(FeatureTransData) - 1;
     bool res = SetFeatureTransData(&data, size);
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: SetFeatureTransData006
+ * @tc.desc: Verify SetFeatureTransData only updates protocol fields and keeps tokenId untouched
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, SetFeatureTransData006, TestSize.Level1)
+{
+    FeatureTransData data;
+    data.tokenId = EXPECTED_TOKEN_ID;
+    uint32_t size = (uint32_t)sizeof(FeatureTransData);
+
+    bool res = SetFeatureTransData(&data, size);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(data.tokenId, EXPECTED_TOKEN_ID);
 }
 
 /**
@@ -312,5 +329,45 @@ HWTEST_F(RpcFeatureSetTest, IsFeatureAck002, TestSize.Level1)
     uint32_t featureSet = 0;
     bool res = IsFeatureAck(featureSet);
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetLocalRpcFeature001
+ * @tc.desc: Verify the GetLocalRpcFeature function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetLocalRpcFeature001, TestSize.Level1)
+{
+    EXPECT_EQ(GetLocalRpcFeature(), LOCAL_RPC_FEATURE);
+}
+
+/**
+ * @tc.name: GetRpcFeatureAck001
+ * @tc.desc: Verify the GetRpcFeatureAck function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetRpcFeatureAck001, TestSize.Level1)
+{
+    EXPECT_EQ(GetRpcFeatureAck(), RPC_FEATURE_ACK);
+}
+
+/**
+ * @tc.name: GetTokenIdSize001
+ * @tc.desc: Verify the GetTokenIdSize function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetTokenIdSize001, TestSize.Level1)
+{
+    EXPECT_EQ(GetTokenIdSize(), (uint32_t)sizeof(uint32_t));
+}
+
+/**
+ * @tc.name: GetFeatureSize001
+ * @tc.desc: Verify the GetFeatureSize function
+ * @tc.type: FUNC
+ */
+HWTEST_F(RpcFeatureSetTest, GetFeatureSize001, TestSize.Level1)
+{
+    EXPECT_EQ(GetFeatureSize(), (uint32_t)sizeof(FeatureTransData));
 }
 } // namespace OHOS

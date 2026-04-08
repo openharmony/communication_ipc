@@ -126,6 +126,24 @@ HWTEST_F(IPCFileDescOpsTest, Marshalling002, TestSize.Level1)
     ASSERT_TRUE(ret);
 }
 
+HWTEST_F(IPCFileDescOpsTest, Marshalling003, TestSize.Level1)
+{
+    IPCFileDescriptor fdesc(-1);
+    Parcel parcel;
+
+    auto ret = fdesc.Marshalling(parcel);
+    ASSERT_FALSE(ret);
+}
+
+HWTEST_F(IPCFileDescOpsTest, Marshalling004, TestSize.Level1)
+{
+    Parcel parcel;
+    sptr<IPCFileDescriptor> object = nullptr;
+
+    auto ret = IPCFileDescriptor::Marshalling(parcel, object);
+    ASSERT_FALSE(ret);
+}
+
 HWTEST_F(IPCFileDescOpsTest, Unmarshalling001, TestSize.Level1)
 {
     int fd = 9876;
