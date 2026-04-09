@@ -106,6 +106,10 @@ ipc_unittest("DBinderSoftbusClientUnitTest") {
   sources = [ "dbinder_softbus_client_unittest.cpp" ]
 }
 
+ipc_unittest("DBinderSoftbusClientAdditionalUnitTest") {
+  sources = [ "dbinder_softbus_client_additional_unittest.cpp" ]
+}
+
 ipc_unittest("IremoteBrokerUnitTest") {
   sources = [ "iremote_broker_unittest.cpp" ]
 }
@@ -146,7 +150,10 @@ ipc_unittest("IPCFileDescriptorUnitTest") {
   sources = [ "ipc_file_descriptor_unittest.cpp" ]
 }
 
-ipc_unittest("IPCTraceUnitTest") {
+# Keep a unique GN target name here. `test/unittest/common` already defines
+# `IPCTraceUnitTest` with the same `ipc_trace.cpp`, which otherwise collides in
+# independent-build ninja output generation.
+ipc_unittest("IPCTraceNativeCoreUnitTest") {
   sources = [
     "$IPC_CORE_ROOT/src/core/framework/source/ipc_trace.cpp",
     "ipc_trace_unittest.cpp",
@@ -164,6 +171,7 @@ group("ipc_nativecore_unittest") {
     ":BinderInvokerUnitTest",
     ":DBinderCallbackStubUnitTest",
     ":DBinderSoftbusClientUnitTest",
+    ":DBinderSoftbusClientAdditionalUnitTest",
     ":DatabusSocketListenerUnitTest",
     ":DbinderDataBusInvokerUnitTest",
     ":IPCFileDescriptorUnitTest",
@@ -176,7 +184,7 @@ group("ipc_nativecore_unittest") {
     ":IremoteObjectUnitTest",
     ":MessageParcelAddUnitTest",
     ":ProcessSkeletonUnitTest",
-    ":IPCTraceUnitTest",
+    ":IPCTraceNativeCoreUnitTest",
     ":IPCWorkThreadUnitTest",
   ]
 }
