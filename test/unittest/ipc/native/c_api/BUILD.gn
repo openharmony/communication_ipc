@@ -84,6 +84,13 @@ c_api_unittest("IPCInternalUtilsUnitTest") {
   ]
 }
 
+c_api_unittest("IPCInternalUtilsAdditionalUnitTest") {
+  sources = [
+    "$IPC_CORE_ROOT/src/c_api/source/ipc_internal_utils.cpp",
+    "ipc_internal_utils_additional_unittest.cpp",
+  ]
+}
+
 c_api_unittest("IPCCskeletonUnitTest") {
   sources = [
     "$IPC_CORE_ROOT/src/c_api/source/ipc_cskeleton.cpp",
@@ -116,6 +123,7 @@ group("ipc_capi_unittest") {
     ":IPCCskeletonUnitTest",
     ":IPCInnerObjectUnitTest",
     ":IPCInternalUtilsUnitTest",
+    ":IPCInternalUtilsAdditionalUnitTest",
     ":IPCRemoteObjectInternalUnitTest",
   ]
 }
