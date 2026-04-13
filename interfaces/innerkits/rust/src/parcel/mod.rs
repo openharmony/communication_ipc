@@ -16,7 +16,7 @@
 mod exts;
 pub(crate) mod msg;
 
-pub(crate) mod wrapper;
+pub mod wrapper;
 
 pub mod error;
 pub use exts::{Deserialize, Serialize};
