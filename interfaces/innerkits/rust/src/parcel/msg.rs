@@ -646,7 +646,8 @@ impl MsgParcel {
         self.as_parcel_mut().SkipBytes(size)
     }
 
-    fn as_msg_parcel_mut(&mut self) -> Pin<&mut MessageParcel> {
+    /// Transfer rust MsgParcel to c++ MessageParcel 
+    pub fn as_msg_parcel_mut(&mut self) -> Pin<&mut MessageParcel> {
         match &mut self.inner {
             ParcelMem::Unique(p) => p.pin_mut(),
             ParcelMem::Borrow(p) => unsafe { Pin::new_unchecked(&mut **p) },
