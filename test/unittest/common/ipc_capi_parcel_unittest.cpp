@@ -22,6 +22,7 @@
 #include <thread>
 #include <chrono>
 #include <cstdio>
+#include <type_traits>
 #include "parcel.h"
 #include "refbase.h"
 #include "ipc_cparcel.h"
@@ -50,6 +51,10 @@ static constexpr int MAX_INTERFACE_TOKEN_LEN = 100;
 static constexpr int TEST_PARCEL_SIZE = MAX_MEMORY_SIZE - 10;
 static constexpr int TEST_PERFORMANCE_OPERATOR_COUNT = 2000;
 static constexpr int TEST_PERFORMANCE_OPERATOR_GROUP = 50;
+static constexpr uint32_t UINT8_WRITE_SIZE = 4;
+static constexpr uint32_t UINT16_WRITE_SIZE = 4;
+static constexpr uint32_t UINT32_WRITE_SIZE = 4;
+static constexpr uint32_t UINT64_WRITE_SIZE = 8;
 
 struct PerformanceResult {
     uint32_t min{ 100 };
@@ -602,6 +607,32 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint8_001, TestSize.Le
     OH_IPCParcel_Destroy(parcel);
 }
 
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint8_002, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint8_t value = static_cast<uint8_t>(NUMBER_CONSTANT);
+    constexpr uint32_t writeCount = MAX_MEMORY_SIZE / UINT8_WRITE_SIZE;
+    for (uint32_t i = 0; i < writeCount; ++i) {
+        EXPECT_EQ(OH_IPCParcel_WriteUint8(parcel, value), OH_IPC_SUCCESS);
+    }
+    EXPECT_EQ(OH_IPCParcel_WriteUint8(parcel, value), OH_IPC_PARCEL_WRITE_ERROR);
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint8_003, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint8_t value = static_cast<uint8_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint8(parcel, value), OH_IPC_SUCCESS);
+    uint8_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint8(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_TRUE((std::is_same_v<decltype(readValue), uint8_t>));
+    EXPECT_EQ(readValue, value);
+    OH_IPCParcel_Destroy(parcel);
+}
+
 HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint16_001, TestSize.Level1)
 {
     OHIPCParcel *parcel = OH_IPCParcel_Create();
@@ -614,6 +645,32 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint16_001, TestSize.L
     EXPECT_EQ(OH_IPCParcel_ReadUint16(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_ReadUint16(parcel, &readValue), OH_IPC_SUCCESS);
     EXPECT_EQ(readValue, static_cast<uint16_t>(NUMBER_CONSTANT));
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint16_002, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint16_t value = static_cast<uint16_t>(NUMBER_CONSTANT);
+    constexpr uint32_t writeCount = MAX_MEMORY_SIZE / UINT16_WRITE_SIZE;
+    for (uint32_t i = 0; i < writeCount; ++i) {
+        EXPECT_EQ(OH_IPCParcel_WriteUint16(parcel, value), OH_IPC_SUCCESS);
+    }
+    EXPECT_EQ(OH_IPCParcel_WriteUint16(parcel, value), OH_IPC_PARCEL_WRITE_ERROR);
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint16_003, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint16_t value = static_cast<uint16_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint16(parcel, value), OH_IPC_SUCCESS);
+    uint16_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint16(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_TRUE((std::is_same_v<decltype(readValue), uint16_t>));
+    EXPECT_EQ(readValue, value);
     OH_IPCParcel_Destroy(parcel);
 }
 
@@ -632,6 +689,32 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint32_001, TestSize.L
     OH_IPCParcel_Destroy(parcel);
 }
 
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint32_002, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint32_t value = static_cast<uint32_t>(NUMBER_CONSTANT);
+    constexpr uint32_t writeCount = MAX_MEMORY_SIZE / UINT32_WRITE_SIZE;
+    for (uint32_t i = 0; i < writeCount; ++i) {
+        EXPECT_EQ(OH_IPCParcel_WriteUint32(parcel, value), OH_IPC_SUCCESS);
+    }
+    EXPECT_EQ(OH_IPCParcel_WriteUint32(parcel, value), OH_IPC_PARCEL_WRITE_ERROR);
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint32_003, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint32_t value = static_cast<uint32_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint32(parcel, value), OH_IPC_SUCCESS);
+    uint32_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint32(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_TRUE((std::is_same_v<decltype(readValue), uint32_t>));
+    EXPECT_EQ(readValue, value);
+    OH_IPCParcel_Destroy(parcel);
+}
+
 HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint64_001, TestSize.Level1)
 {
     OHIPCParcel *parcel = OH_IPCParcel_Create();
@@ -644,6 +727,32 @@ HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint64_001, TestSize.L
     EXPECT_EQ(OH_IPCParcel_ReadUint64(parcel, nullptr), OH_IPC_CHECK_PARAM_ERROR);
     EXPECT_EQ(OH_IPCParcel_ReadUint64(parcel, &readValue), OH_IPC_SUCCESS);
     EXPECT_EQ(readValue, static_cast<uint64_t>(NUMBER_CONSTANT));
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint64_002, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint64_t value = static_cast<uint64_t>(NUMBER_CONSTANT);
+    constexpr uint32_t writeCount = MAX_MEMORY_SIZE / UINT64_WRITE_SIZE;
+    for (uint32_t i = 0; i < writeCount; ++i) {
+        EXPECT_EQ(OH_IPCParcel_WriteUint64(parcel, value), OH_IPC_SUCCESS);
+    }
+    EXPECT_EQ(OH_IPCParcel_WriteUint64(parcel, value), OH_IPC_PARCEL_WRITE_ERROR);
+    OH_IPCParcel_Destroy(parcel);
+}
+
+HWTEST_F(IpcCApiParcelUnitTest, OH_IPCParcel_TestReadWriteUint64_003, TestSize.Level1)
+{
+    OHIPCParcel *parcel = OH_IPCParcel_Create();
+    ASSERT_NE(parcel, nullptr);
+    uint64_t value = static_cast<uint64_t>(NUMBER_CONSTANT);
+    EXPECT_EQ(OH_IPCParcel_WriteUint64(parcel, value), OH_IPC_SUCCESS);
+    uint64_t readValue = 0;
+    EXPECT_EQ(OH_IPCParcel_ReadUint64(parcel, &readValue), OH_IPC_SUCCESS);
+    EXPECT_TRUE((std::is_same_v<decltype(readValue), uint64_t>));
+    EXPECT_EQ(readValue, value);
     OH_IPCParcel_Destroy(parcel);
 }
 
