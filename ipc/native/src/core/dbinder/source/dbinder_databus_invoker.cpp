@@ -384,53 +384,46 @@ int DBinderDatabusInvoker::OnSendMessage(std::shared_ptr<DBinderSessionObject> s
 
 int DBinderDatabusInvoker::SendData(std::shared_ptr<BufferObject> sessionBuff, int32_t socketId)
 {
-    char *sendBuffer = sessionBuff->GetSendBufferAndLock(SOCKET_DEFAULT_BUFF_SIZE);
-    /* session buffer contain mutex, need release mutex */
-    if (sendBuffer == nullptr) {
-        ZLOGE(LOG_LABEL, "buffer alloc failed in session");
+    SendBufferContext ctx = sessionBuff->AcquireSendBuffer(SOCKET_DEFAULT_BUFF_SIZE);
+    if (ctx.buffer == nullptr) {
+        ZLOGE(LOG_LABEL, "Acquire send buffer failed in session");
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
-    sessionBuff->UpdateSendBuffer(0); // 0 means do not expand buffer when send it
+    // NOTE: UpdateSendBufferLocked may reallocate buffer. Caller MUST use the returned pointer,
+    // NOT ctx.buffer which may become dangling.
+    char* sendBuffer = sessionBuff->UpdateSendBufferLocked(0);
+    if (sendBuffer == nullptr) {
+        ZLOGE(LOG_LABEL, "UpdateSendBufferLocked failed");
+        return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
+    }
     ssize_t writeCursor = sessionBuff->GetSendBufferWriteCursor();
     ssize_t readCursor = sessionBuff->GetSendBufferReadCursor();
-    ssize_t sendBuffSize = (ssize_t)sessionBuff->GetSendBufferSize();
-    if (readCursor > sendBuffSize || readCursor < 0) {
-        ZLOGE(LOG_LABEL, "no data to send, invalid readCursor:%{public}zu, send buff size:%{public}zu",
-            readCursor, sendBuffSize);
-        sessionBuff->ReleaseSendBufferLock();
-        return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
-    }
-    if (writeCursor < readCursor) {
-        ZLOGE(LOG_LABEL, "no data to send, write cursor:%{public}zu, read cursor:%{public}zu",
-            writeCursor, readCursor);
-        sessionBuff->ReleaseSendBufferLock();
+    ssize_t sendBuffSize = sessionBuff->GetSendBufferSizeEx();
+    if (readCursor < 0 || writeCursor < 0 || readCursor > sendBuffSize || writeCursor < readCursor) {
+        ZLOGE(LOG_LABEL, "Invalid cursor state, write:%{public}zd read:%{public}zd buffSize:%{public}zd",
+            writeCursor, readCursor, sendBuffSize);
         return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
     }
     if (writeCursor == readCursor) {
-        ZLOGE(LOG_LABEL, "no data to send, write cursor:%{public}zu, read cursor:%{public}zu",
-            writeCursor, readCursor);
-        sessionBuff->ReleaseSendBufferLock();
+        ZLOGI(LOG_LABEL, "No data to send");
         return ERR_NONE;
     }
     ssize_t size = writeCursor - readCursor;
-
     int32_t ret = DBinderSoftbusClient::GetInstance().SendBytes(
-        socketId, static_cast<const void *>(sendBuffer + readCursor), size);
+        socketId, static_cast<const void*>(sendBuffer + readCursor), static_cast<size_t>(size));
     if (ret != 0) {
         ZLOGE(LOG_LABEL, "SendBytes fail, ret:%{public}d seq:%{public}" PRIu64
             " size:%{public}zd, socketId:%{public}d", ret, seqNumber_, size, socketId);
         DfxReportFailEvent(DbinderErrorCode::RPC_DRIVER, RADAR_SEND_BYTES_FAIL, __FUNCTION__);
-        sessionBuff->ReleaseSendBufferLock();
         return ret;
     }
-
-    readCursor += size;
-    sessionBuff->SetSendBufferReadCursor(readCursor);
-    sessionBuff->SetSendBufferWriteCursor(writeCursor);
+    ssize_t newReadCursor = readCursor + size;
+    if (!sessionBuff->SetSendBufferReadCursorEx(newReadCursor)) {
+        ZLOGE(LOG_LABEL, "SetSendBufferReadCursorEx failed, newReadCursor:%{public}zd", newReadCursor);
+        return -RPC_DATABUS_INVOKER_INVALID_DATA_ERR;
+    }
     ZLOGI(LOG_LABEL, "succ, seq:%{public}" PRIu64 " size:%{public}zd, socketId:%{public}d",
         seqNumber_, size, socketId);
-
-    sessionBuff->ReleaseSendBufferLock();
     return ret;
 }
 
