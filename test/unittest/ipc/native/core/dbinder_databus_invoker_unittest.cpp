@@ -55,6 +55,21 @@ constexpr uint64_t STUB_INDEX = 1;
 constexpr uint32_t TOKEN_ID = 1;
 constexpr int32_t SOCKET_ID_INVALID_TEST = 0;
 constexpr int ACCESS_TOKEN_MAX_LEN = 20;
+static std::mutex g_testMutex;
+
+SendBufferContext MakeEmptySendBufferContext(uint32_t)
+{
+    SendBufferContext ctx{nullptr, 0, BufferLockGuard(g_testMutex)};
+    ctx.lockGuard.Unlock();
+    return ctx;
+}
+
+SendBufferContext MakeSendBufferContext(char* buffer, ssize_t size)
+{
+    SendBufferContext ctx{buffer, size, BufferLockGuard(g_testMutex)};
+    ctx.lockGuard.Unlock();
+    return ctx;
+}
 }
 
 class DbinderDataBusInvokerInterface {
@@ -72,10 +87,10 @@ public:
     virtual uint64_t ReadUint64() = 0;
     virtual bool WriteUint64(uint64_t value) = 0;
     virtual int GetSocketIdleThreadNum() = 0;
-    virtual char *GetSendBufferAndLock(uint32_t size) = 0;
+    virtual SendBufferContext AcquireSendBuffer(uint32_t size) = 0;
     virtual std::shared_ptr<BufferObject> GetSessionBuff() = 0;
     virtual int32_t SendBytes(int32_t socket, const void *data, uint32_t len) = 0;
-    virtual uint32_t GetSendBufferSize() = 0;
+    virtual ssize_t GetSendBufferSizeEx() = 0;
     virtual ssize_t GetSendBufferWriteCursor() = 0;
     virtual ssize_t GetSendBufferReadCursor() = 0;
     virtual std::string GetDeviceId() = 0;
@@ -116,9 +131,9 @@ public:
     MOCK_METHOD1(WriteUint64, bool(uint64_t value));
     MOCK_METHOD0(GetSocketIdleThreadNum, int());
     MOCK_METHOD0(GetSessionBuff, std::shared_ptr<BufferObject>());
-    MOCK_METHOD1(GetSendBufferAndLock, char *(uint32_t size));
+    MOCK_METHOD1(AcquireSendBuffer, SendBufferContext(uint32_t size));
     MOCK_METHOD3(SendBytes, int32_t(int32_t socket, const void *data, uint32_t len));
-    MOCK_METHOD0(GetSendBufferSize, uint32_t());
+    MOCK_METHOD0(GetSendBufferSizeEx, ssize_t());
     MOCK_METHOD0(GetSendBufferWriteCursor, ssize_t());
     MOCK_METHOD0(GetSendBufferReadCursor, ssize_t());
     MOCK_METHOD0(GetDeviceId, std::string());
@@ -239,12 +254,15 @@ extern "C" {
         }
         return GetDbinderDataBusInvokerInterface()->GetSessionBuff();
     }
-    char *BufferObject::GetSendBufferAndLock(uint32_t size)
+    SendBufferContext BufferObject::AcquireSendBuffer(uint32_t size)
     {
+        static std::mutex stubMutex;
         if (GetDbinderDataBusInvokerInterface() == nullptr) {
-            return nullptr;
+            SendBufferContext emptyCtx{nullptr, 0, BufferLockGuard(stubMutex)};
+            emptyCtx.lockGuard.Unlock();
+            return emptyCtx;
         }
-        return GetDbinderDataBusInvokerInterface()->GetSendBufferAndLock(size);
+        return GetDbinderDataBusInvokerInterface()->AcquireSendBuffer(size);
     }
     int32_t DBinderSoftbusClient::SendBytes(int32_t socket, const void *data, uint32_t len)
     {
@@ -253,12 +271,12 @@ extern "C" {
         }
         return GetDbinderDataBusInvokerInterface()->SendBytes(socket, data, len);
     }
-    uint32_t BufferObject::GetSendBufferSize() const
+    ssize_t BufferObject::GetSendBufferSizeEx() const
     {
         if (GetDbinderDataBusInvokerInterface() == nullptr) {
             return 0;
         }
-        return GetDbinderDataBusInvokerInterface()->GetSendBufferSize();
+        return GetDbinderDataBusInvokerInterface()->GetSendBufferSizeEx();
     }
     ssize_t BufferObject::GetSendBufferReadCursor() const
     {
@@ -1318,7 +1336,7 @@ HWTEST_F(DbinderDataBusInvokerTest, OnSendMessageTest004, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
 
     EXPECT_CALL(mock, GetSessionBuff()).WillOnce(testing::Return(sessionBuff));
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, AcquireSendBuffer(testing::_)).WillRepeatedly(testing::Invoke(MakeEmptySendBufferContext));
 
     int result = testInvoker.OnSendMessage(sessionOfPeer);
     EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
@@ -1335,7 +1353,7 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest001, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
     auto sessionBuff = std::make_shared<BufferObject>();
 
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(mock, AcquireSendBuffer(testing::_)).WillRepeatedly(testing::Invoke(MakeEmptySendBufferContext));
 
     int result = testInvoker.SendData(sessionBuff, SOCKET_ID_TEST);
     EXPECT_EQ(result, -RPC_DATABUS_INVOKER_INVALID_DATA_ERR);
@@ -1353,8 +1371,10 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest002, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
     auto sessionBuff = std::make_shared<BufferObject>();
     char sendBuffer[1024] = {0};
+    char* bufPtr = sendBuffer;
 
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillOnce(testing::Return(sendBuffer));
+    EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
+        .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(0));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(1024));
 
@@ -1374,9 +1394,11 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest003, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
     auto sessionBuff = std::make_shared<BufferObject>();
     char sendBuffer[1024] = {0};
+    char* bufPtr = sendBuffer;
 
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillOnce(testing::Return(sendBuffer));
-    EXPECT_CALL(mock, GetSendBufferSize()).WillOnce(testing::Return(1024));
+    EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
+        .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
+    EXPECT_CALL(mock, GetSendBufferSizeEx()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(1024));
 
@@ -1396,8 +1418,10 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest004, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
     auto sessionBuff = std::make_shared<BufferObject>();
     char sendBuffer[1024] = {0};
+    char* bufPtr = sendBuffer;
 
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillOnce(testing::Return(sendBuffer));
+    EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
+        .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(0));
     EXPECT_CALL(mock, SendBytes).WillRepeatedly(testing::Return(1));
@@ -1417,8 +1441,10 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest005, TestSize.Level1)
     NiceMock<DbinderDataBusInvokerMock> mock;
     auto sessionBuff = std::make_shared<BufferObject>();
     char sendBuffer[1024] = {0};
+    char* bufPtr = sendBuffer;
 
-    EXPECT_CALL(mock, GetSendBufferAndLock(testing::_)).WillOnce(testing::Return(sendBuffer));
+    EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
+        .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(0));
     EXPECT_CALL(mock, SendBytes).WillRepeatedly(testing::Return(0));

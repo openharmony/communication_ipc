@@ -42,6 +42,7 @@ const std::string SESSION_NAME_TEST = "sessionNameTest";
 const std::string PEER_SESSION_NAME_TEST = "peerSessionNameTest";
 const std::string SERVICE_NAME_TEST = "serviceNameTest";
 const uint32_t DEVICEID_LENGTH_TEST = 64;
+static std::mutex g_testMutex;
 }
 
 class IPCDbinderDataBusInvokerTest : public testing::Test {
@@ -1026,8 +1027,12 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, OnSendMessage005, TestSize.Level1)
     EXPECT_CALL(*sessionOfPeer, GetSessionBuff())
         .WillRepeatedly(testing::Return(sessionBuff));
 
-    EXPECT_CALL(*sessionBuff, GetSendBufferAndLock(testing::_))
-        .WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(*sessionBuff, AcquireSendBuffer(testing::_))
+        .WillRepeatedly(testing::Invoke([](uint32_t) {
+            SendBufferContext ctx{nullptr, 0, BufferLockGuard(g_testMutex)};
+            ctx.lockGuard.Unlock();
+            return ctx;
+        }));
 
     std::shared_ptr<DBinderSessionObject> ptr(dynamic_cast<DBinderSessionObject *>(sessionOfPeer));
     int ret = testInvoker.OnSendMessage(ptr);
@@ -1046,8 +1051,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SendData001, TestSize.Level1)
     std::shared_ptr<BufferObject> sessionBuff = std::make_shared<BufferObject>();;
     ssize_t writeCursor = 100;
     ssize_t readCursor = 10;
-    sessionBuff->SetSendBufferWriteCursor(writeCursor);
-    sessionBuff->SetSendBufferReadCursor(readCursor);
+    sessionBuff->SetSendBufferWriteCursorEx(writeCursor);
+    sessionBuff->SetSendBufferReadCursorEx(readCursor);
     int ret = testInvoker.SendData(sessionBuff, socketId);
     EXPECT_NE(ret, 0);
 }
@@ -1064,8 +1069,8 @@ HWTEST_F(IPCDbinderDataBusInvokerTest, SendData002, TestSize.Level1)
     std::shared_ptr<BufferObject> sessionBuff = std::make_shared<BufferObject>();;
     ssize_t writeCursor = 10;
     ssize_t readCursor = 10;
-    sessionBuff->SetSendBufferWriteCursor(writeCursor);
-    sessionBuff->SetSendBufferReadCursor(readCursor);
+    sessionBuff->SetSendBufferWriteCursorEx(writeCursor);
+    sessionBuff->SetSendBufferReadCursorEx(readCursor);
     int ret = testInvoker.SendData(sessionBuff, socketId);
     EXPECT_EQ(ret, 0);
 }

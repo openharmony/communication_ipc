@@ -25,9 +25,13 @@
 namespace OHOS {
 class MockBufferObject : public BufferObject {
 public:
-    MOCK_METHOD1(GetSendBufferAndLock, char *(uint32_t size));
+    MOCK_METHOD1(AcquireSendBuffer, SendBufferContext(uint32_t size));
+    MOCK_METHOD1(UpdateSendBufferLocked, char*(uint32_t userDataSize));
     MOCK_CONST_METHOD0(GetSendBufferWriteCursor, ssize_t());
     MOCK_CONST_METHOD0(GetSendBufferReadCursor, ssize_t());
+    MOCK_METHOD1(SetSendBufferWriteCursorEx, bool(ssize_t newWriteCursor));
+    MOCK_METHOD1(SetSendBufferReadCursorEx, bool(ssize_t newReadCursor));
+    MOCK_CONST_METHOD0(GetSendBufferSizeEx, ssize_t());
 };
 } // namespace OHOS
 #endif // OHOS_MOCK_BUFFER_OBJECT_H

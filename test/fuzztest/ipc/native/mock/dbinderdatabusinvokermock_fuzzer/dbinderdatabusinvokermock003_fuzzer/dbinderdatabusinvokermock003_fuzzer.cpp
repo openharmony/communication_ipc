@@ -26,7 +26,7 @@ public:
 
     virtual IPCProcessSkeleton *GetCurrent() = 0;
     virtual int32_t SendBytes(int32_t socket, const void *data, uint32_t len) = 0;
-    virtual void UpdateSendBuffer(uint32_t userDataSize) = 0;
+    virtual char *UpdateSendBufferLocked(uint32_t userDataSize) = 0;
 };
 
 class DBinderDataBusInvokerInterfaceMock : public DBinderDataBusInvokerInterface {
@@ -36,7 +36,7 @@ public:
 
     MOCK_METHOD(IPCProcessSkeleton *, GetCurrent, (), (override));
     MOCK_METHOD(int32_t, SendBytes, (int32_t socket, const void *data, uint32_t len), (override));
-    MOCK_METHOD(void, UpdateSendBuffer, (uint32_t userDataSize), (override));
+    MOCK_METHOD(char *, UpdateSendBufferLocked, (uint32_t userDataSize), (override));
 };
 
 static void *g_interface = nullptr;
@@ -73,12 +73,12 @@ int32_t DBinderSoftbusClient::SendBytes(int32_t socket, const void *data, uint32
     return GetDBinderDataBusInvokerInterfaceMock()->SendBytes(socket, data, len);
 }
 
-void BufferObject::UpdateSendBuffer(uint32_t userDataSize)
+char *BufferObject::UpdateSendBufferLocked(uint32_t userDataSize)
 {
     if (g_interface == nullptr) {
-        return;
+        return nullptr;
     }
-    GetDBinderDataBusInvokerInterfaceMock()->UpdateSendBuffer(userDataSize);
+    return GetDBinderDataBusInvokerInterfaceMock()->UpdateSendBufferLocked(userDataSize);
 }
 }
 
@@ -96,7 +96,7 @@ void SendDataFuzzTest(FuzzedDataProvider &provider)
     buffer->SetSendBufferReadCursor(readCursor);
     buffer->sendBuffSize_ = sendBuffSize;
     NiceMock<DBinderDataBusInvokerInterfaceMock> mock;
-    EXPECT_CALL(mock, UpdateSendBuffer(_)).WillRepeatedly(Return());
+    EXPECT_CALL(mock, UpdateSendBufferLocked(_)).WillRepeatedly(Return(nullptr));
     EXPECT_CALL(mock, SendBytes(_, _, _)).WillRepeatedly(Return(-1));
     int32_t socketId = provider.ConsumeIntegral<int32_t>();
     DBinderDatabusInvoker invoker;
