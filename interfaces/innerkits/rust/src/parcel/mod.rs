@@ -21,3 +21,4 @@ pub(crate) mod wrapper;
 pub mod error;
 pub use exts::{Deserialize, Serialize};
 pub use msg::{MsgOption, MsgParcel};
+pub use wrapper::MessageParcel;
