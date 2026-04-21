@@ -396,7 +396,7 @@ interface RemoteObject : IRemoteObject {
         reply: MessageSequence,
         options: MessageOption,
         callingInfo: CallingInfo
-    ): bool;
+    ): @sts_type("boolean | Promise<boolean>") Opaque;
 
     @rename("onRemoteMessageRequest")
     OnRemoteMessageRequest(
@@ -404,7 +404,7 @@ interface RemoteObject : IRemoteObject {
         data: MessageSequence,
         reply: MessageSequence,
         options: MessageOption
-    ): bool;
+    ): @sts_type("boolean | Promise<boolean>") Opaque;
 
     GetCallingPid(): i32;
     GetCallingUid(): i32;

@@ -620,14 +620,14 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
     return { retVal, code, data, reply };
 }
 
-bool RemoteObjectImpl::OnRemoteMessageRequestWithCallingInfo(int32_t code,
+uintptr_t RemoteObjectImpl::OnRemoteMessageRequestWithCallingInfo(int32_t code,
     ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options, ::ohos::rpc::rpc::CallingInfo const& callingInfo)
 {
     TH_THROW(std::runtime_error, "OnRemoteMessageRequestWithCallingInfo should be implemented in ets");
 }
 
-bool RemoteObjectImpl::OnRemoteMessageRequest(int32_t code,
+uintptr_t RemoteObjectImpl::OnRemoteMessageRequest(int32_t code,
     ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options)
 {

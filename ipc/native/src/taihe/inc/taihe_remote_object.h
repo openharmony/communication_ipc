@@ -61,11 +61,11 @@ public:
     
     bool IsObjectDead();
     
-    bool OnRemoteMessageRequestWithCallingInfo(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
+    uintptr_t OnRemoteMessageRequestWithCallingInfo(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
         ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options,
         ::ohos::rpc::rpc::CallingInfo const& callingInfo);
 
-    bool OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
+    uintptr_t OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
         ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
     
     OHOS::sptr<OHOS::IPCObjectStub> GetNativeObject();
