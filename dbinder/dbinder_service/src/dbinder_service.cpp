@@ -1101,9 +1101,9 @@ bool DBinderService::IsValidSessionName(std::shared_ptr<struct DHandleEntryTxRx>
         return false;
     }
 
-    uint32_t realLen = strlen(replyMessage->serviceName);
-    if (replyMessage->serviceNameLength != realLen) {
-        DBINDER_LOGE(LOG_LABEL, "invalid serviceName, serviceNameLength:%{public}u, realLen:%{public}u",
+    size_t realLen = strnlen(replyMessage->serviceName, SERVICENAME_LENGTH + 1);
+    if (realLen > SERVICENAME_LENGTH || realLen != replyMessage->serviceNameLength) {
+        DBINDER_LOGE(LOG_LABEL, "invalid serviceName, serviceNameLength:%{public}u, realLen:%{public}zu",
             replyMessage->serviceNameLength, realLen);
         return false;
     }

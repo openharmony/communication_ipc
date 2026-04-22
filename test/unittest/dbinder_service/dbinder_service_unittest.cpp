@@ -2874,5 +2874,17 @@ HWTEST_F(DBinderServiceTest, IsValidSessionNameTest001, TestSize.Level1)
     replyMessage->serviceNameLength = testName.size();
     ret = dBinderService->IsValidSessionName(replyMessage);
     ASSERT_TRUE(ret);
+
+    // serviceName has no terminator within SERVICENAME_LENGTH + 1
+    replyMessage->serviceNameLength = SERVICENAME_LENGTH;
+    ASSERT_EQ(memset_s(replyMessage->serviceName, SERVICENAME_LENGTH + 1, 'a', SERVICENAME_LENGTH + 1), EOK);
+    ret = dBinderService->IsValidSessionName(replyMessage);
+    ASSERT_FALSE(ret);
+
+    // serviceName fills SERVICENAME_LENGTH and terminates at the boundary
+    ASSERT_EQ(memset_s(replyMessage->serviceName, SERVICENAME_LENGTH + 1, 'b', SERVICENAME_LENGTH), EOK);
+    replyMessage->serviceName[SERVICENAME_LENGTH] = '\0';
+    ret = dBinderService->IsValidSessionName(replyMessage);
+    ASSERT_TRUE(ret);
 }
 }
