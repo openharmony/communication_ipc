@@ -156,6 +156,38 @@
         "name": "OH_IPCParcel_ReadInt64"
     },
     {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_WriteUint8"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_ReadUint8"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_WriteUint16"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_ReadUint16"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_WriteUint32"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_ReadUint32"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_WriteUint64"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_IPCParcel_ReadUint64"
+    },
+    {
         "first_introduced": "12",
         "name": "OH_IPCParcel_WriteFloat"
     },
