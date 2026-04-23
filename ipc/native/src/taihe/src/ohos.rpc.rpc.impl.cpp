@@ -196,23 +196,51 @@ ANIRemoteObject::~ANIRemoteObject()
     };
 }
 
+::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion ANIRemoteObject::callOnRemoteMessageRequest(int32_t code,
+    ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
+    ::ohos::rpc::rpc::weak::MessageOption options)
+{
+    if (hasCallingInfoAni_) {
+        ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion retWithCallingInfo =
+            jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options, GetCallingInfo());
+        return retWithCallingInfo;
+    } else {
+        ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion ret =
+            jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+        return ret;
+    }
+}
+
 int ANIRemoteObject::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply,
     OHOS::MessageOption &option)
 {
+    auto [asyncCallback, future] =
+        ::taihe::make_async_pair<::taihe::expected<::ohos::rpc::rpc::RequestResult, ::taihe::error>>();
     auto jsData = taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>(&data);
     jsData->AddJsObjWeakRef(jsData);
     auto jsReply = taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>(&reply);
     jsReply->AddJsObjWeakRef(jsReply);
     auto jsOption = taihe::make_holder<MessageOptionImpl, ::ohos::rpc::rpc::MessageOption>(option.GetFlags(),
         option.GetWaitTime());
-    int ret = OHOS::ERR_UNKNOWN_TRANSACTION;
-    if (hasCallingInfoAni_) {
-        ret = jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, jsData, jsReply, jsOption,
-            GetCallingInfo());
+    ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion res =
+        callOnRemoteMessageRequest(code, jsData, jsReply, jsOption);
+    if (res.holds_booleanValue()) {
+        bool boolRes = res.get_booleanValue_ref();
+        return boolRes ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
     } else {
-        ret = jsObjRef_.value()->OnRemoteMessageRequest(code, jsData, jsReply, jsOption);
+        res.get_promiseValue_ref().on_complete(
+            [cb = std::move(asyncCallback), code, jsData = ::ohos::rpc::rpc::MessageSequence(jsData), jsReply =
+            ::ohos::rpc::rpc::MessageSequence(jsReply)](::taihe::expected<bool, ::taihe::error> expectedBool) {
+            if (expectedBool.has_value()) {
+                int32_t retVal = expectedBool.value() ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
+                ::ohos::rpc::rpc::RequestResult resRequestResult = { retVal, code, jsData, jsReply };
+                cb.complete(resRequestResult);
+            } else {
+                cb.complete(::taihe::unexpected<taihe::error>(expectedBool.error()));
+            }
+        });
+        return OHOS::ERR_NONE;
     }
-    return ret ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
 }
 
 int ANIRemoteObject::GetObjectType() const
@@ -602,32 +630,85 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
     return jsLocalInterface_.value();
 }
 
-::ohos::rpc::rpc::RequestResult RemoteObjectImpl::SendMessageRequestSync(
-    int32_t code,
-    ::ohos::rpc::rpc::weak::MessageSequence data,
-    ::ohos::rpc::rpc::weak::MessageSequence reply,
+::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion RemoteObjectImpl::callOnRemoteMessageRequest(int32_t code,
+    ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options)
 {
-    int ret = OHOS::ERR_UNKNOWN_TRANSACTION;
     if (hasCallingInfo_) {
         auto *aniObj = reinterpret_cast<OHOS::ANIRemoteObject *>(GetNativePtr());
-        ret = jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options,
+        ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion retWithCallingInfo =
+            jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options,
             aniObj->GetCallingInfo());
+        return retWithCallingInfo;
     } else {
-        ret = jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+        ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion ret =
+            jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+        return ret;
     }
-    int32_t retVal = ret ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
-    return { retVal, code, data, reply };
 }
 
-uintptr_t RemoteObjectImpl::OnRemoteMessageRequestWithCallingInfo(int32_t code,
-    ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
+::taihe::future<::taihe::expected<::ohos::rpc::rpc::RequestResult, ::taihe::error>>
+    RemoteObjectImpl::SendMessageRequestPromise(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
+    ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options)
+{
+    auto [asyncCallback, future] =
+        ::taihe::make_async_pair<::taihe::expected<::ohos::rpc::rpc::RequestResult, ::taihe::error>>();
+    ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion res = callOnRemoteMessageRequest(code, data, reply, options);
+    if (res.holds_booleanValue()) {
+        bool boolRes = res.get_booleanValue_ref();
+        int32_t retVal = boolRes ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
+        ::ohos::rpc::rpc::RequestResult resRequestResult = { retVal, code, data, reply };
+        asyncCallback.complete(resRequestResult);
+        return std::move(future);
+    } else {
+        res.get_promiseValue_ref().on_complete(
+            [cb = std::move(asyncCallback), code, data = ::ohos::rpc::rpc::MessageSequence(data),
+            reply = ::ohos::rpc::rpc::MessageSequence(reply)](::taihe::expected<bool, ::taihe::error> expectedBool) {
+            if (expectedBool.has_value()) {
+                int32_t retVal = expectedBool.value() ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
+                ::ohos::rpc::rpc::RequestResult resRequestResult = { retVal, code, data, reply };
+                cb.complete(resRequestResult);
+            } else {
+                cb.complete(::taihe::unexpected<taihe::error>(expectedBool.error()));
+            }
+        });
+        return std::move(future);
+    }
+}
+
+void RemoteObjectImpl::SendMessageRequestAsync(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
+    ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options,
+    ::taihe::completer<::taihe::expected<::ohos::rpc::rpc::RequestResult, ::taihe::error>> asyncCallback)
+{
+    ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion res = callOnRemoteMessageRequest(code, data, reply, options);
+    if (res.holds_booleanValue()) {
+        bool boolRes = res.get_booleanValue_ref();
+        int32_t retVal = boolRes ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
+        ::ohos::rpc::rpc::RequestResult resRequestResult = { retVal, code, data, reply };
+        asyncCallback.complete(resRequestResult);
+    } else {
+        res.get_promiseValue_ref().on_complete(
+            [cb = std::move(asyncCallback), code, data = ::ohos::rpc::rpc::MessageSequence(data),
+            reply = ::ohos::rpc::rpc::MessageSequence(reply)](::taihe::expected<bool, ::taihe::error> expectedBool) {
+            if (expectedBool.has_value()) {
+                int32_t retVal = expectedBool.value() ? OHOS::ERR_NONE : OHOS::ERR_UNKNOWN_TRANSACTION;
+                ::ohos::rpc::rpc::RequestResult resRequestResult = { retVal, code, data, reply };
+                cb.complete(resRequestResult);
+            } else {
+                cb.complete(::taihe::unexpected<taihe::error>(expectedBool.error()));
+            }
+        });
+    }
+}
+
+::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion RemoteObjectImpl::OnRemoteMessageRequestWithCallingInfo(
+    int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options, ::ohos::rpc::rpc::CallingInfo const& callingInfo)
 {
     TH_THROW(std::runtime_error, "OnRemoteMessageRequestWithCallingInfo should be implemented in ets");
 }
 
-uintptr_t RemoteObjectImpl::OnRemoteMessageRequest(int32_t code,
+::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion RemoteObjectImpl::OnRemoteMessageRequest(int32_t code,
     ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options)
 {
