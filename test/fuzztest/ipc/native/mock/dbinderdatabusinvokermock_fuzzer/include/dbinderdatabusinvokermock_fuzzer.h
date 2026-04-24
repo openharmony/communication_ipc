@@ -22,6 +22,10 @@
 #include "dbinder_databus_invoker.h"
 #include "string_ex.h"
 
+#define private public
+#include "buffer_object.h"
+#undef private
+
 namespace OHOS {
 static constexpr size_t MAX_STR_LEN = 100;
 
