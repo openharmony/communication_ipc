@@ -375,6 +375,17 @@ int32_t IPCSkeleton::GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsi
 #endif // MEMORY_USAGE_ENABLED
 }
 
+std::optional<bool> IPCSkeleton::HasSoUnreleasedRemoteObject(const std::unordered_set<std::string> &targets)
+{
+    IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
+    if (current == nullptr) {
+        return std::nullopt;
+    }
+    
+    std::string undestroyed = current->GetUndestroyObject(targets);
+    return !undestroyed.empty();
+}
+
 void IPCDfx::BlockUntilThreadAvailable()
 {
     IPCProcessSkeleton *current = IPCProcessSkeleton::GetCurrent();
@@ -391,4 +402,6 @@ bool IPCDfx::SetIPCProxyLimit(uint64_t num, IPCProxyLimitCallback callback)
     }
     return false;
 }
+
+
 } // namespace OHOS
