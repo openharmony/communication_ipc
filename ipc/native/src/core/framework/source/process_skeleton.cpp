@@ -280,6 +280,26 @@ bool ProcessSkeleton::IsValidObject(IRemoteObject *object, std::u16string &desc)
     return false;
 }
 
+std::unordered_map<void *, std::u16string> ProcessSkeleton::GetValidVtblSnapShot()
+{
+    CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, {});
+    std::shared_lock<std::shared_mutex> lockGuard(validObjectMutex_);
+    std::unordered_map<void *, std::u16string> vtblSnapshot;
+    ZLOGI(LOG_LABEL, "num of validObjectRecord is %{public}zu", validObjectRecord_.size());
+    for (const auto &item : validObjectRecord_) {
+        IRemoteObject *stub = item.first;
+        if (stub == nullptr || stub->IsProxyObject()) {
+            continue;
+        }
+        auto **vtbl = reinterpret_cast<void **>(stub);
+        if (vtbl == nullptr || *vtbl == nullptr) {
+            continue;
+        }
+        vtblSnapshot[*vtbl] = item.second;
+    }
+    return vtblSnapshot;
+}
+
 bool ProcessSkeleton::AttachInvokerProcInfo(bool isLocal, InvokerProcInfo &invokeInfo)
 {
     CHECK_INSTANCE_EXIT_WITH_RETVAL(exitFlag_, false);

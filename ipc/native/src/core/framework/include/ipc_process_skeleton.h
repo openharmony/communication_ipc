@@ -28,6 +28,7 @@
 #include "iremote_object.h"
 #include "nocopyable.h"
 #include "sys_binder.h"
+#include <unordered_set>
 
 #ifndef CONFIG_IPC_SINGLE
 #include "comm_auth_info.h"
@@ -76,6 +77,12 @@ struct AppAuthInfo {
     std::string deviceId;
 };
 #endif
+
+struct SoSegment {
+    uintptr_t start;
+    uintptr_t end;
+    std::string soName;
+};
 
 class IPCProcessSkeleton {
 public:
@@ -209,6 +216,7 @@ public:
     void DetachDBinderCallbackStub(DBinderCallbackStub *stub);
     sptr<DBinderCallbackStub> QueryDBinderCallbackStub(sptr<IRemoteObject> rpcProxy);
     sptr<IRemoteObject> QueryDBinderCallbackProxy(sptr<IRemoteObject> stub);
+    std::string GetUndestroyObject(const std::unordered_set<std::string> &targets);
 #endif
 
 public:

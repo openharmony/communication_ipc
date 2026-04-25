@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <climits>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -26,6 +24,7 @@
 #include "ipc_object_stub.h"
 #include "ipc_thread_pool.h"
 #include "stub_refcount_object.h"
+#include "process_skeleton.h"
 #undef private
 
 using namespace testing::ext;
@@ -1679,6 +1678,194 @@ HWTEST_F(IPCProcessSkeletonUnitTest, QueryIsAuthTest002, TestSize.Level1)
     EXPECT_EQ(ret, false);
     skeleton->commAuth_.clear();
     auth->stub_ = nullptr;
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest001
+ * @tc.desc: Verify the GetUndestroyObject function with empty targets
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest001, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets;
+    std::string result = skeleton->GetUndestroyObject(targets);
+
+    EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest002
+ * @tc.desc: Verify the GetUndestroyObject function with non-existent target
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest002, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets = {"lib_nonexistent_test.so"};
+    std::string result = skeleton->GetUndestroyObject(targets);
+
+    EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest003
+ * @tc.desc: Verify the GetUndestroyObject function with valid target
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest003, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets = {"libc.so"};
+    std::string result = skeleton->GetUndestroyObject(targets);
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest004
+ * @tc.desc: Verify the GetUndestroyObject function with multiple targets
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest004, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets = {"libc.so", "libm.so", "libpthread.so"};
+    std::string result = skeleton->GetUndestroyObject(targets);
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest005
+ * @tc.desc: Verify the GetUndestroyObject function with attached stub object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest005, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    sptr<IRemoteObject> stub = new IPCObjectStub(u"testStub");
+    skeleton->AttachObject(stub);
+
+    std::unordered_set<std::string> targets = {"libc.so"};
+    std::string result = skeleton->GetUndestroyObject(targets);
+
+    skeleton->DetachObject(stub.GetRefPtr());
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest006
+ * @tc.desc: Verify the GetUndestroyObject function with multiple so names including empty string
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest006, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets = {"libc.so", "", "libm.so"};
+    std::string result = skeleton->GetUndestroyObject(targets);
+
+    EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest007
+ * @tc.desc: Verify the GetUndestroyObject function with empty targets set
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest007, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets;
+    std::string result = skeleton->GetUndestroyObject(targets);
+
+    EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest008
+ * @tc.desc: Verify the GetUndestroyObject function with empty string target
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest008, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+
+    std::unordered_set<std::string> targets = {""};
+    std::string result = skeleton->GetUndestroyObject(targets);
+
+    EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetUndestroyObjectTest009
+ * @tc.desc: Verify GetUndestroyObject returns content by using existing object's so
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCProcessSkeletonUnitTest, GetUndestroyObjectTest009, TestSize.Level1)
+{
+    IPCProcessSkeleton *skeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(skeleton != nullptr);
+    
+    // 获取ProcessSkeleton实例以访问validObjectRecord_
+    auto current = ProcessSkeleton::GetInstance();
+    ASSERT_NE(current, nullptr);
+    
+    // 确保validObjectRecord_中有对象，如果为空则创建一个
+    sptr<IRemoteObject> tempStub;
+    if (current->validObjectRecord_.empty()) {
+        tempStub = new IPCObjectStub(u"testDescriptor");
+        ASSERT_TRUE(skeleton->AttachObject(tempStub));
+    }
+    
+    // 从validObjectRecord_中取出第一个对象
+    auto it = current->validObjectRecord_.begin();
+    ASSERT_NE(it, current->validObjectRecord_.end());
+    
+    IRemoteObject* obj = it->first;
+    ASSERT_NE(obj, nullptr);
+    
+    // 获取对象的虚函数表指针
+    auto** vtbl = reinterpret_cast<void**>(obj);
+    ASSERT_NE(vtbl, nullptr);
+    ASSERT_NE(*vtbl, nullptr);
+    
+    // 使用dladdr获取vtbl指针所在的so库信息
+    Dl_info dlInfo;
+    int ret = dladdr(*vtbl, &dlInfo);
+    ASSERT_NE(ret, 0); // dladdr成功返回非0
+    
+    // 提取so库名称（只取文件名部分，不包含路径）
+    std::string soPath = dlInfo.dli_fname;
+    ASSERT_FALSE(soPath.empty());
+    
+    // 从路径中提取文件名
+    size_t pos = soPath.find_last_of('/');
+    std::string soName = (pos != std::string::npos) ? soPath.substr(pos + 1) : soPath;
+    
+    // 将这个so库传入GetUndestroyObject
+    std::unordered_set<std::string> targets = {soName};
+    std::string result = skeleton->GetUndestroyObject(targets);
+    
+    // 验证结果不为空且包含格式正确的信息
+    ASSERT_FALSE(result.empty());
+    EXPECT_TRUE(result.find(soName) != std::string::npos);
+    EXPECT_TRUE(result.find("-%-") != std::string::npos);
+    
+    // 清理：如果是我们创建的临时对象，需要detach
+    if (tempStub != nullptr) {
+        skeleton->DetachObject(tempStub.GetRefPtr());
+    }
 }
 
 /**

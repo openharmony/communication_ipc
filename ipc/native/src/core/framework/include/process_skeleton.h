@@ -76,6 +76,7 @@ public:
     void IncreaseThreadCount();
     void DecreaseThreadCount();
     void NotifyChildThreadStop();
+    std::unordered_map<void *, std::u16string> GetValidVtblSnapShot();
 
 private:
     DISALLOW_COPY_AND_MOVE(ProcessSkeleton);
