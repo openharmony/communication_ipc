@@ -52,7 +52,7 @@ export namespace rpc {
         private unregisterToken: object;
     }
 
-    let finalizer = new FinalizationRegistry<Cleaner>(Cleaner.callback)
+    let finalizer: FinalizationRegistry<Cleaner> = new FinalizationRegistry<Cleaner>(Cleaner.callback);
     export class MessageSequence {
         constructor() {}
         native readString(): string;
