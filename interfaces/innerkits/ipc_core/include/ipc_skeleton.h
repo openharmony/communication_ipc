@@ -17,6 +17,7 @@
 #define OHOS_IPC_IPC_SKELETON_H
 
 #include "iremote_object.h"
+#include <unordered_set>
 
 namespace OHOS {
 class IPCSkeleton {
@@ -256,6 +257,8 @@ public:
      * @since 26.0.0
      */
     static pid_t GetDCallingUid();
+
+    static std::optional<bool> HasSoUnreleasedRemoteObject(const std::unordered_set<std::string> &targets);
 };
 
 class IPCDfx {

@@ -15,10 +15,16 @@
 
 #include "ipc_process_skeleton.h"
 
+#include <algorithm>
+#include <fstream>
+#include <functional>
 #include <random>
 #include <securec.h>
+#include <sstream>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "check_instance_exit.h"
 #include "ipc_debug.h"
@@ -28,6 +34,9 @@
 #include "process_skeleton.h"
 #include "string_ex.h"
 #include "sys_binder.h"
+
+#include <dlfcn.h>
+#include <link.h>
 
 #ifndef CONFIG_IPC_SINGLE
 #include "databus_socket_listener.h"
@@ -1745,6 +1754,46 @@ IPCProcessSkeleton::DestroyInstance::~DestroyInstance()
 
     delete instance_;
     instance_ = nullptr;
+}
+
+std::string IPCProcessSkeleton::GetUndestroyObject(const std::unordered_set<std::string> &targets)
+{
+    std::string  result = "";
+    if (targets.empty()) {
+        return result;
+    }
+    auto current = ProcessSkeleton::GetInstance();
+    if (current == nullptr) {
+        ZLOGE(LOG_LABEL, "get ProcessSkeleton Failed");
+        return result;
+    }
+    std::unordered_map<void *, std::u16string> vtblSnapshot = current->GetValidVtblSnapShot();
+    for (auto &it : vtblSnapshot) {
+        // 使用dladdr直接查找so名称
+        Dl_info dlInfo;
+        if (dladdr(it.first, &dlInfo) == 0) {
+            continue;
+        }
+        
+        if (!dlInfo.dli_fname) {
+            continue;
+        }
+        
+        std::string soPath = dlInfo.dli_fname;
+        size_t pos = soPath.find_last_of('/');
+        std::string soName = (pos != std::string::npos) ? soPath.substr(pos + 1) : soPath;
+        // 检查是否在目标集合中
+        if (targets.find(soName) == targets.end()) {
+            continue;
+        }
+        
+        std::string descriptor = Str16ToStr8(it.second);
+        result = soName + "-%-" + descriptor;
+        ZLOGI(LOG_LABEL, "result = %{public}s", result.c_str());
+        return result;
+    }
+    ZLOGI(LOG_LABEL, "result = %{public}s", result.c_str());
+    return result;
 }
 #ifdef CONFIG_IPC_SINGLE
 } // namespace IPC_SINGLE
