@@ -19,6 +19,10 @@
 static { loadLibraryWithPermissionCheck("rpc_taihe.z", "@ohos.rpc"); }
 """)
 
+@!sts_inject_into_module("""
+import type { AsyncCallback } from '@ohos.base';
+""")
+
 union IRemoteObjectUnion {
     errRet: @undefined unit;
     remoteProxy: RemoteProxy;
@@ -354,16 +358,34 @@ function wrapRemoteObject(nativePtr: i64): IRemoteObjectUnion;
 interface IRemoteObject {
     GetLocalInterface(descriptor: String): IRemoteBroker;
 
-    @gen_promise("sendMessageRequest")
-    @gen_async("sendMessageRequest")
-    SendMessageRequestSync(code: i32, data: MessageSequence, reply: MessageSequence, options: MessageOption):
-        RequestResult;
+    @!sts_inject_into_interface("""
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption):
+            Promise<RequestResult>;
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption,
+            callback: AsyncCallback<RequestResult>): void;
+    """)
+
+    @!sts_inject_into_class("""
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption):
+            Promise<RequestResult> {
+            throw new Error("not implemented");
+        }
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption,
+            callback: AsyncCallback<RequestResult>): void {
+            throw new Error("not implemented");
+        }
+    """)
 
     RegisterDeathRecipient(recipient: DeathRecipient, flags: i32): void;
     UnregisterDeathRecipient(recipient: DeathRecipient, flags: i32): void;
 
     GetDescriptor(): String;
     IsObjectDead(): bool;
+}
+
+union OnRemoteMessageRequestResultUnion {
+    booleanValue: bool;
+    promiseValue: Future<bool>;
 }
 
 @class
@@ -396,7 +418,7 @@ interface RemoteObject : IRemoteObject {
         reply: MessageSequence,
         options: MessageOption,
         callingInfo: CallingInfo
-    ): @sts_type("boolean | Promise<boolean>") Opaque;
+    ): OnRemoteMessageRequestResultUnion;
 
     @rename("onRemoteMessageRequest")
     OnRemoteMessageRequest(
@@ -404,7 +426,26 @@ interface RemoteObject : IRemoteObject {
         data: MessageSequence,
         reply: MessageSequence,
         options: MessageOption
-    ): @sts_type("boolean | Promise<boolean>") Opaque;
+    ): OnRemoteMessageRequestResultUnion;
+
+    @!sts_inject_into_class("""
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption):
+            Promise<RequestResult> {
+            return this.sendMessageRequestInner(code, data, reply, options);
+        }
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption,
+            callback: AsyncCallback<RequestResult>): void {
+            this.sendMessageRequestInner(code, data, reply, options, callback);
+        }
+    """)
+
+    @rename("sendMessageRequestInner")
+    SendMessageRequestPromise(code: i32, data: MessageSequence, reply: MessageSequence, options: MessageOption):
+        Future<RequestResult>;
+
+    @rename("sendMessageRequestInner")
+    SendMessageRequestAsync(code: i32, data: MessageSequence, reply: MessageSequence, options: MessageOption,
+        asyncCallback: Completer<RequestResult>): void;
 
     GetCallingPid(): i32;
     GetCallingUid(): i32;
@@ -423,6 +464,23 @@ function CreateRemoteObjectFromNative(nativePtr: i64): RemoteObject;
 
 @class
 interface RemoteProxy : IRemoteObject {
+
+    @!sts_inject_into_class("""
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption):
+            Promise<RequestResult> {
+            return this.sendMessageRequestInner(code, data, reply, options);
+        }
+        sendMessageRequest(code: int, data: MessageSequence, reply: MessageSequence, options: MessageOption,
+            callback: AsyncCallback<RequestResult>): void {
+            this.sendMessageRequestInner(code, data, reply, options, callback);
+        }
+    """)
+
+    @gen_promise("sendMessageRequestInner")
+    @gen_async("sendMessageRequestInner")
+    SendMessageRequestSync(code: i32, data: MessageSequence, reply: MessageSequence, options: MessageOption):
+        RequestResult;
+
     GetNativePtr(): i64;
     AddJsObjWeakRef(obj: RemoteProxy): void;
 }

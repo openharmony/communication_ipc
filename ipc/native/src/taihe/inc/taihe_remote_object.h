@@ -48,8 +48,13 @@ public:
     
     ::ohos::rpc::rpc::IRemoteBroker GetLocalInterface(::taihe::string_view descriptor);
     
-    ::ohos::rpc::rpc::RequestResult SendMessageRequestSync(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
-        ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
+    ::taihe::future<::taihe::expected<::ohos::rpc::rpc::RequestResult, ::taihe::error>> SendMessageRequestPromise(
+        int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
+        ::ohos::rpc::rpc::weak::MessageOption options);
+
+    void SendMessageRequestAsync(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
+        ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options,
+        ::taihe::completer<::taihe::expected<::ohos::rpc::rpc::RequestResult, ::taihe::error>> asyncCallback);
     
     void RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags);
     
@@ -61,12 +66,16 @@ public:
     
     bool IsObjectDead();
     
-    uintptr_t OnRemoteMessageRequestWithCallingInfo(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
-        ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options,
+    ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion OnRemoteMessageRequestWithCallingInfo(int32_t code,
+        ::ohos::rpc::rpc::weak::MessageSequence data,
+        ::ohos::rpc::rpc::weak::MessageSequence reply,
+        ::ohos::rpc::rpc::weak::MessageOption options,
         ::ohos::rpc::rpc::CallingInfo const& callingInfo);
 
-    uintptr_t OnRemoteMessageRequest(int32_t code, ::ohos::rpc::rpc::weak::MessageSequence data,
-        ::ohos::rpc::rpc::weak::MessageSequence reply, ::ohos::rpc::rpc::weak::MessageOption options);
+    ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion OnRemoteMessageRequest(int32_t code,
+        ::ohos::rpc::rpc::weak::MessageSequence data,
+        ::ohos::rpc::rpc::weak::MessageSequence reply,
+        ::ohos::rpc::rpc::weak::MessageOption options);
     
     OHOS::sptr<OHOS::IPCObjectStub> GetNativeObject();
 
@@ -77,6 +86,10 @@ public:
     static ::ohos::rpc::rpc::RemoteObject CreateRemoteObject(::ohos::rpc::rpc::weak::RemoteObject jsSelf,
         ::taihe::string_view descriptor, ::taihe::callback_view<bool()> hasCallingInfoCB);
     static ::ohos::rpc::rpc::RemoteObject CreateRemoteObjectFromNative(uintptr_t nativePtr);
+
+    ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion callOnRemoteMessageRequest(int32_t code,
+        ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
+        ::ohos::rpc::rpc::weak::MessageOption options);
     
 private:
     std::mutex mutex_;
