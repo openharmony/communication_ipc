@@ -78,12 +78,6 @@ struct AppAuthInfo {
 };
 #endif
 
-struct SoSegment {
-    uintptr_t start;
-    uintptr_t end;
-    std::string soName;
-};
-
 class IPCProcessSkeleton {
 public:
     enum {
