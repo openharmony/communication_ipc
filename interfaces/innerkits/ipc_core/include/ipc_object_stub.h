@@ -290,6 +290,17 @@ public:
      */
     bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient) override;
 
+    virtual void stub_reserved1() {}
+    virtual void stub_reserved2() {}
+    virtual void stub_reserved3() {}
+    virtual void stub_reserved4() {}
+    virtual void stub_reserved5() {}
+    virtual void stub_reserved6() {}
+    virtual void stub_reserved7() {}
+    virtual void stub_reserved8() {}
+    virtual void stub_reserved9() {}
+    virtual void stub_reserved10() {}
+
 protected:
 #ifndef CONFIG_IPC_SINGLE
     /**

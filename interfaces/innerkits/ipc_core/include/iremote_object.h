@@ -212,6 +212,17 @@ public:
         return false;
     }
 
+    virtual void reserved1() {}
+    virtual void reserved2() {}
+    virtual void reserved3() {}
+    virtual void reserved4() {}
+    virtual void reserved5() {}
+    virtual void reserved6() {}
+    virtual void reserved7() {}
+    virtual void reserved8() {}
+    virtual void reserved9() {}
+    virtual void reserved10() {}
+
 protected:
     explicit IRemoteObject(std::u16string descriptor = {});
     virtual ~IRemoteObject() = default;

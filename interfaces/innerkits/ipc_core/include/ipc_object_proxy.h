@@ -269,6 +269,17 @@ public:
      */
     void SendRefreshObituary();
 
+    virtual void proxy_reserved1() {}
+    virtual void proxy_reserved2() {}
+    virtual void proxy_reserved3() {}
+    virtual void proxy_reserved4() {}
+    virtual void proxy_reserved5() {}
+    virtual void proxy_reserved6() {}
+    virtual void proxy_reserved7() {}
+    virtual void proxy_reserved8() {}
+    virtual void proxy_reserved9() {}
+    virtual void proxy_reserved10() {}
+
 private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);
     int SendRequestInner(bool isLocal, uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
