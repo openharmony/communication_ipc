@@ -1080,4 +1080,120 @@ HWTEST_F(IPCSkeletonTest, GetMemoryUsageTest02, TestSize.Level1)
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
 }
 #endif // MEMORY_USAGE_ENABLED
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest001
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with empty targets
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    std::unordered_set<std::string> targets;
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result.value());
+}
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest002
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with non-existent so name
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest002, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    std::unordered_set<std::string> targets = {"lib_nonexistent_test.so"};
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result.value());
+}
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest003
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with valid so name
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest003, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    std::unordered_set<std::string> targets = {"libc.so"};
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+}
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest004
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with multiple targets
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest004, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    std::unordered_set<std::string> targets = {"libc.so", "libm.so", "libpthread.so"};
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+}
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest005
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with attached stub object
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest005, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    IPCProcessSkeleton *procSkeleton = IPCProcessSkeleton::GetCurrent();
+    ASSERT_TRUE(procSkeleton != nullptr);
+
+    sptr<IRemoteObject> stub = new IPCObjectStub(u"testStub");
+    procSkeleton->AttachObject(stub);
+
+    std::unordered_set<std::string> targets = {"libc.so"};
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+
+    procSkeleton->DetachObject(stub.GetRefPtr());
+}
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest006
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with empty string target
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest006, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    std::unordered_set<std::string> targets = {""};
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result.value());
+}
+
+/**
+ * @tc.name: HasSoUnreleasedRemoteObjectTest007
+ * @tc.desc: Verify the HasSoUnreleasedRemoteObject function with multiple so names including empty string
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, HasSoUnreleasedRemoteObjectTest007, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+
+    std::unordered_set<std::string> targets = {"libc.so", "", "libm.so"};
+    auto result = skeleton.HasSoUnreleasedRemoteObject(targets);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result.value());
+}
 } // namespace OHOS

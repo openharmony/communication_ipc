@@ -38,9 +38,7 @@ void IsValidSessionNameTest(FuzzedDataProvider &provider)
         return;
     }
 
-    replyMessage->serviceNameLength = SERVICENAME_LENGTH;
-    dBinderService->IsValidSessionName(replyMessage);
-    replyMessage->serviceNameLength = SERVICENAME_LENGTH + 1;
+    replyMessage->serviceNameLength = provider.ConsumeIntegral<int>();
     dBinderService->IsValidSessionName(replyMessage);
 }
 
