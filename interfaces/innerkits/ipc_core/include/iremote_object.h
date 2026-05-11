@@ -190,6 +190,7 @@ public:
         virtual void OnRemoteRefreshed(const wptr<IRemoteObject> &object) = 0;
     };
 
+// LCOV_EXCL_START
     /**
      * @brief Add a callback used to receive notifications of the refresh of a remote object.
      * @return Returns <b>true</b> if the identity is legal; returns <b>false</b> otherwise.
@@ -200,7 +201,9 @@ public:
         (void)recipient;
         return false;
     }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
     /**
      * @brief Remove a callback used to receive notifications of the refresh of a remote object.
      * @return Returns <b>true</b> if the identity is legal; returns <b>false</b> otherwise.
@@ -211,17 +214,47 @@ public:
         (void)recipient;
         return false;
     }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
     virtual void reserved1() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved2() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved3() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved4() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved5() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved6() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved7() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved8() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved9() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void reserved10() {}
+// LCOV_EXCL_STOP
 
 protected:
     explicit IRemoteObject(std::u16string descriptor = {});

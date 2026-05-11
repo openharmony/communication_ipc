@@ -502,29 +502,37 @@ void IPCObjectStub::OnLastStrongRef(const void *objectId)
     }
 }
 
+// LCOV_EXCL_START
 bool IPCObjectStub::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
     (void)recipient;
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IPCObjectStub::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
 {
     (void)recipient;
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IPCObjectStub::AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
 {
     (void)recipient;
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool IPCObjectStub::RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
 {
     (void)recipient;
     return false;
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 pid_t IPCObjectStub::GetCallingPid()

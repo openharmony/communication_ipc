@@ -269,16 +269,45 @@ public:
      */
     void SendRefreshObituary();
 
+// LCOV_EXCL_START
     virtual void proxy_reserved1() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved2() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved3() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved4() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved5() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved6() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved7() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved8() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved9() {}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
     virtual void proxy_reserved10() {}
+// LCOV_EXCL_STOP
 
 private:
     int SendLocalRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &optionoption);

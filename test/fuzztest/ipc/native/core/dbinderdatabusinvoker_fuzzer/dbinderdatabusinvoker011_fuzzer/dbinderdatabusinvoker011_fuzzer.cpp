@@ -40,7 +40,7 @@ void WriteFileDescriptorFuzzTest(FuzzedDataProvider &provider)
 
 void AuthSession2ProxyFuzzTest(FuzzedDataProvider &provider)
 {
-    uint32_t handle = 0;
+    uint32_t handle = provider.ConsumeIntegral<uint32_t>();
     DBinderDatabusInvoker invoker;
     invoker.AuthSession2Proxy(handle, nullptr);
 }
