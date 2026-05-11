@@ -1070,6 +1070,10 @@ uint16_t *ReadString16(IpcIo *io, size_t *len)
         return NULL;
     }
 
+    if (*len > (MAX_IO_SIZE / sizeof(uint16_t)) - 1) {
+        RPC_LOG_ERROR("IPC string16 size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = (*len + 1) * sizeof(uint16_t);
     uint16_t *ptr = (uint16_t *)IoPop(io, readCapacity);
     if (ptr != NULL && ptr[*len] == 0) {
@@ -1091,6 +1095,10 @@ uint16_t *ReadInterfaceToken(IpcIo *io, size_t *len)
         return NULL;
     }
 
+    if (*len > (MAX_IO_SIZE / sizeof(uint16_t)) - 1) {
+        RPC_LOG_ERROR("IPC interface token size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = (*len + 1) * sizeof(uint16_t);
     uint16_t *ptr = (uint16_t *)IoPop(io, readCapacity);
     if (ptr != NULL && ptr[*len] == 0) {
@@ -1186,6 +1194,10 @@ int16_t *ReadInt16Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(int16_t)) {
+        RPC_LOG_ERROR("IPC int16 vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     int16_t *val = (int16_t *)calloc(1, (*size) * sizeof(int16_t));
     if (val == NULL) {
         RPC_LOG_ERROR("IPC  malloc failed: %s:%d\n", __FUNCTION__, __LINE__);
@@ -1215,6 +1227,10 @@ int32_t *ReadInt32Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(int32_t)) {
+        RPC_LOG_ERROR("IPC int32 vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(int32_t);
     int32_t *ptr = (int32_t *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
@@ -1236,6 +1252,10 @@ int64_t *ReadInt64Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(int64_t)) {
+        RPC_LOG_ERROR("IPC int64 vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(int64_t);
     int64_t *ptr = (int64_t *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
@@ -1278,6 +1298,10 @@ uint16_t *ReadUInt16Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(uint16_t)) {
+        RPC_LOG_ERROR("IPC uint16 vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(uint16_t);
     uint16_t *ptr = (uint16_t *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
@@ -1299,6 +1323,10 @@ uint32_t *ReadUInt32Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(uint32_t)) {
+        RPC_LOG_ERROR("IPC uint32 vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(uint32_t);
     uint32_t *ptr = (uint32_t *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
@@ -1320,6 +1348,10 @@ uint64_t *ReadUInt64Vector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(uint64_t)) {
+        RPC_LOG_ERROR("IPC uint64 vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(uint64_t);
     uint64_t *ptr = (uint64_t *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
@@ -1341,6 +1373,10 @@ float *ReadFloatVector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(float)) {
+        RPC_LOG_ERROR("IPC float vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(float);
     float *ptr = (float *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
@@ -1362,6 +1398,10 @@ double *ReadDoubleVector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(double)) {
+        RPC_LOG_ERROR("IPC double vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
     size_t readCapacity = *size * sizeof(double);
     double *ptr = (double *)IoPopUnaligned(io, readCapacity);
     if (ptr == NULL) {
