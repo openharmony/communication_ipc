@@ -326,7 +326,6 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
         }
         break;
     }
-    pthread_mutex_unlock(&g_ipcSkeleton->lock);
     if (firstDeathNode) {
         RPC_LOG_DEBUG("first add death callback for handle = %d.", handle);
         RemoteInvoker *invoker = GetRemoteInvoker();
@@ -335,6 +334,7 @@ int32_t ProcessAddDeathRecipient(int32_t handle, OnRemoteDead deathFunc, void *a
             ret = (invoker->AddDeathRecipient)(handle, node);
         }
     }
+    pthread_mutex_unlock(&g_ipcSkeleton->lock);
     return ret;
 }
 
