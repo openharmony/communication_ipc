@@ -608,12 +608,34 @@ void OnDatabusSessionClosed(int sessionId)
     }
 }
 
+static int CheckTransactionData(const dbinder_transaction_data *tr)
+{
+    if (tr->sizeOfSelf == 0 || tr->sizeOfSelf > SOCKET_MAX_BUFF_SIZE + sizeof(dbinder_transaction_data) ||
+        tr->buffer_size > SOCKET_MAX_BUFF_SIZE ||
+        tr->buffer_size == 0 || tr->offsets != tr->buffer_size ||
+        tr->sizeOfSelf < sizeof(dbinder_transaction_data) + tr->buffer_size) {
+        return 0;
+    }
+
+    if ((tr->flags & TF_OP_STATUS_CODE) && (tr->offsets != sizeof(size_t))) {
+        return 0;
+    }
+
+    if (!(tr->flags & TF_OP_STATUS_CODE)) {
+        if (tr->offsets_size > (tr->sizeOfSelf - sizeof(dbinder_transaction_data) - tr->buffer_size)) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 static uint32_t HasCompletePackage(const char *data, uint32_t readCursor, uint32_t len)
 {
     const dbinder_transaction_data *tr = (const dbinder_transaction_data *)(data + readCursor);
     if ((tr->magic == DBINDER_MAGICWORD) &&
         (tr->sizeOfSelf <= SOCKET_MAX_BUFF_SIZE + sizeof(dbinder_transaction_data)) &&
-        (readCursor + tr->sizeOfSelf <= len)) {
+        (readCursor + tr->sizeOfSelf <= len) && CheckTransactionData(tr)) {
         return (uint32_t)tr->sizeOfSelf;
     }
     return 0;
