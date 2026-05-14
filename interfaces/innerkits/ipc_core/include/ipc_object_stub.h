@@ -290,45 +290,16 @@ public:
      */
     bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient) override;
 
-// LCOV_EXCL_START
     virtual void stub_reserved1() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved2() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved3() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved4() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved5() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved6() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved7() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved8() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved9() {}
-// LCOV_EXCL_STOP
-
-// LCOV_EXCL_START
     virtual void stub_reserved10() {}
-// LCOV_EXCL_STOP
 
 protected:
 #ifndef CONFIG_IPC_SINGLE
