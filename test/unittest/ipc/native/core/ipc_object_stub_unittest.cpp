@@ -26,6 +26,7 @@
 #include "ipc_process_skeleton.h"
 #include "ipc_thread_skeleton.h"
 #include "mock_iremote_invoker.h"
+#include "mock_iremote_object.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1686,5 +1687,165 @@ HWTEST_F(IPCObjectStubTest, InvokerThreadTest002, TestSize.Level1)
     auto ret = stub->InvokerThread(CODE_TEST, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_INVALID_DATA_ERR);
     current->appInfoToStubIndex_.clear();
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest001
+ * @tc.desc: Verify the AddRefreshRecipient function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, AddRefreshRecipientTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    sptr<IRemoteObject::RefreshRecipient> recipient = new MockRefreshRecipient();
+    bool ret = stub->AddRefreshRecipient(recipient);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientTest002
+ * @tc.desc: Verify the AddRefreshRecipient function return false when recipient is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, AddRefreshRecipientTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    bool ret = stub->AddRefreshRecipient(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest001
+ * @tc.desc: Verify the RemoveRefreshRecipient function return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, RemoveRefreshRecipientTest001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    sptr<IRemoteObject::RefreshRecipient> recipient = new MockRefreshRecipient();
+    bool ret = stub->RemoveRefreshRecipient(recipient);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientTest002
+ * @tc.desc: Verify the RemoveRefreshRecipient function return false when recipient is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, RemoveRefreshRecipientTest002, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    bool ret = stub->RemoveRefreshRecipient(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: StubReserved1Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved1 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved1Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved1());
+}
+
+/**
+ * @tc.name: StubReserved2Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved2 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved2Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved2());
+}
+
+/**
+ * @tc.name: StubReserved3Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved3 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved3Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved3());
+}
+
+/**
+ * @tc.name: StubReserved4Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved4 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved4Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved4());
+}
+
+/**
+ * @tc.name: StubReserved5Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved5 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved5Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved5());
+}
+
+/**
+ * @tc.name: StubReserved6Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved6 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved6Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved6());
+}
+
+/**
+ * @tc.name: StubReserved7Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved7 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved7Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved7());
+}
+
+/**
+ * @tc.name: StubReserved8Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved8 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved8Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved8());
+}
+
+/**
+ * @tc.name: StubReserved9Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved9 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved9Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved9());
+}
+
+/**
+ * @tc.name: StubReserved10Test001
+ * @tc.desc: Verify the IPCObjectStub::stub_reserved10 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectStubTest, StubReserved10Test001, TestSize.Level1)
+{
+    sptr<IPCObjectStub> stub = new IPCObjectStub(u"testObjectStub");
+    ASSERT_NO_FATAL_FAILURE(stub->stub_reserved10());
 }
 }

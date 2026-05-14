@@ -1219,4 +1219,114 @@ HWTEST_F(IPCObjectProxyTest, PrintErrorDetailedInfoTest001, TestSize.Level1)
     ASSERT_NO_FATAL_FAILURE(object.PrintErrorDetailedInfo(err, desc));
 }
 #endif
+
+/**
+ * @tc.name: ProxyReserved1Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved1 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved1Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved1());
+}
+
+/**
+ * @tc.name: ProxyReserved2Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved2 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved2Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved2());
+}
+
+/**
+ * @tc.name: ProxyReserved3Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved3 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved3Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved3());
+}
+
+/**
+ * @tc.name: ProxyReserved4Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved4 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved4Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved4());
+}
+
+/**
+ * @tc.name: ProxyReserved5Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved5 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved5Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved5());
+}
+
+/**
+ * @tc.name: ProxyReserved6Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved6 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved6Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved6());
+}
+
+/**
+ * @tc.name: ProxyReserved7Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved7 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved7Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved7());
+}
+
+/**
+ * @tc.name: ProxyReserved8Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved8 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved8Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved8());
+}
+
+/**
+ * @tc.name: ProxyReserved9Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved9 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved9Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved9());
+}
+
+/**
+ * @tc.name: ProxyReserved10Test001
+ * @tc.desc: Verify the IPCObjectProxy::proxy_reserved10 function
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCObjectProxyTest, ProxyReserved10Test001, TestSize.Level1)
+{
+    IPCObjectProxy object(1);
+    ASSERT_NO_FATAL_FAILURE(object.proxy_reserved10());
+}
 } // namespace OHOS
