@@ -796,13 +796,9 @@ void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj,
     }
 }
 
-::ohos::rpc::rpc::RemoteObject RemoteObjectImpl::CreateRemoteObject(::ohos::rpc::rpc::weak::RemoteObject jsSelf,
-    ::taihe::string_view descriptor, ::taihe::callback_view<bool()> hasCallingInfoCB)
+::ohos::rpc::rpc::RemoteObject RemoteObjectImpl::CreateRemoteObject(::taihe::string_view descriptor, bool)
 {
-    ::ohos::rpc::rpc::RemoteObject obj = taihe::make_holder<RemoteObjectImpl,
-        ::ohos::rpc::rpc::RemoteObject>(descriptor);
-    obj->AddJsObjWeakRef(jsSelf, true, hasCallingInfoCB());
-    return obj;
+    return taihe::make_holder<RemoteObjectImpl, ::ohos::rpc::rpc::RemoteObject>(descriptor);
 }
 
 ::ohos::rpc::rpc::RemoteObject RemoteObjectImpl::CreateRemoteObjectFromNative(uintptr_t nativePtr)
