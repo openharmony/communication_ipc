@@ -23,6 +23,7 @@
 #include "log_tags.h"
 #include "message_parcel.h"
 #include "string_ex.h"
+
 #include <ani.h>
 #include <array>
 #include <cstring>
