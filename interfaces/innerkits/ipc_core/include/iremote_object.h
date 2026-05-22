@@ -190,7 +190,6 @@ public:
         virtual void OnRemoteRefreshed(const wptr<IRemoteObject> &object) = 0;
     };
 
-// LCOV_EXCL_START
     /**
      * @brief Add a callback used to receive notifications of the refresh of a remote object.
      * @return Returns <b>true</b> if the identity is legal; returns <b>false</b> otherwise.
@@ -201,9 +200,7 @@ public:
         (void)recipient;
         return false;
     }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
     /**
      * @brief Remove a callback used to receive notifications of the refresh of a remote object.
      * @return Returns <b>true</b> if the identity is legal; returns <b>false</b> otherwise.
@@ -214,7 +211,6 @@ public:
         (void)recipient;
         return false;
     }
-// LCOV_EXCL_STOP
 
     virtual void reserved1() {}
     virtual void reserved2() {}
