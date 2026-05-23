@@ -701,10 +701,6 @@ int32_t CreateTransServer(const char *sessionName)
         return ERR_FAILED;
     }
 
-    if (rpcSkeleton->isServerCreated == 0) {
-        return ERR_NONE;
-    }
-
     pthread_mutex_lock(&rpcSkeleton->lock);
     if (rpcSkeleton->isServerCreated == -1) {
         if (rpcSkeleton->rpcTrans->StartListen(sessionName, GetRpcTransCallback()) != ERR_NONE) {
