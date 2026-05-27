@@ -1143,6 +1143,11 @@ bool *ReadBoolVector(IpcIo *io, size_t *size)
         return NULL;
     }
 
+    if (*size > MAX_IO_SIZE / sizeof(int32_t)) {
+        RPC_LOG_ERROR("IPC bool vector size overflow: %s:%d\n", __FUNCTION__, __LINE__);
+        return NULL;
+    }
+
     bool *val = (bool *)malloc((*size) * sizeof(bool));
     if (val == NULL) {
         RPC_LOG_ERROR("IPC malloc failed: %s:%d\n", __FUNCTION__, __LINE__);
@@ -1150,7 +1155,7 @@ bool *ReadBoolVector(IpcIo *io, size_t *size)
     }
 
     int32_t *ptr = NULL;
-    for (int32_t i = 0; i != *size; i++) {
+    for (size_t i = 0; i < *size; i++) {
         ptr = (int32_t *)IoPop(io, sizeof(int32_t));
         if (ptr == NULL) {
             free(val);
