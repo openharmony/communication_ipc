@@ -166,6 +166,11 @@ int32_t GetPidAndUidInfo(ProxyObject *proxyObject)
 
     size_t len;
     char *sessionName = (char *)ReadString(&reply, &len);
+    if (sessionName == NULL) {
+        RPC_LOG_ERROR("GetPidAndUidInfo ReadString failed");
+        FreeBuffer((void *)ptr);
+        return ERR_FAILED;
+    }
 
     proxyObject->sessionName = (char *)malloc(len + 1);
     if (proxyObject->sessionName == NULL) {
@@ -190,9 +195,7 @@ char *GetDataBusName(void)
     IpcIo reply;
     uint8_t dataAlloc[RPC_IPC_LENGTH];
     IpcIoInit(&data, dataAlloc, RPC_IPC_LENGTH, 0);
-    MessageOption option = {
-        .flags = TF_OP_SYNC
-    };
+    MessageOption option = { .flags = TF_OP_SYNC };
     uintptr_t ptr;
     SvcIdentity *identity = (SvcIdentity *)GetContextObject();
     if (identity == NULL) {
@@ -218,6 +221,11 @@ char *GetDataBusName(void)
     }
     size_t len;
     const char *name = (const char *)ReadString(&reply, &len);
+    if (name == NULL) {
+        RPC_LOG_ERROR("GetDataBusName ReadString failed");
+        FreeBuffer((void *)ptr);
+        return NULL;
+    }
     RPC_LOG_INFO("GetDataBusName name %s, len %lu", name, len);
     char *sessionName = (char *)malloc(len + 1);
     if (sessionName == NULL) {
