@@ -144,11 +144,6 @@ void DeinitThreadPool(ThreadPool *threadPool)
 
 int32_t SpawnNewThread(ThreadPool *threadPool, int32_t policy, int32_t proto)
 {
-    if (!(proto == IF_PROT_BINDER && threadPool->idleThreadNum > 0) &&
-        !(proto == IF_PROT_DATABUS && threadPool->idleSocketThreadNum > 0)) {
-        RPC_LOG_ERROR("thread pool is full.");
-        return ERR_INVALID_PARAM;
-    }
     pthread_t threadId;
     if (pthread_mutex_lock(&threadPool->lock) != 0) {
         RPC_LOG_ERROR("get thread pool lock failed.");
