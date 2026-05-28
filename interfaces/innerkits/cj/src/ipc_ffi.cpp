@@ -481,18 +481,8 @@ void FfiRpcMessageSequenceImplWriteStringArray(int64_t id, OHOS::CJStringArray v
         *errCode = errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
         return;
     }
-    std::u16string stringValue[value.len];
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    for (uint32_t i = 0; i < value.len; i++) {
-        stringValue[i] = converter.from_bytes(value.data[i]);
-        if (stringValue[i].length() >= MAX_BYTES_LENGTH) {
-            ZLOGE(LOG_LABEL, "string length too large");
-            *errCode = errorDesc::CHECK_PARAM_ERROR;
-            return;
-        }
-    }
     ZLOGD(LOG_LABEL, "[RPC] FfiRpcMessageSequenceImplWriteStringArray end");
-    *errCode = rpc->CJ_WriteStringArray(stringValue, value.len);
+    *errCode = rpc->CJ_WriteStringArray(value);
 }
 
 void FfiRpcMessageSequenceImplWriteArrayBuffer(
@@ -1625,7 +1615,7 @@ NAPIRemoteProxyHolder *GetRemoteProxyHolder(napi_env env, napi_value jsRemotePro
 
 int64_t FfiCreateRemoteObjectFromNapi(napi_env env, napi_value object)
 {
-    if (env != nullptr || object != nullptr) {
+    if (env != nullptr && object != nullptr) {
         napi_value global = nullptr;
         napi_status status = napi_get_global(env, &global);
         if (status != napi_ok) {

@@ -68,7 +68,7 @@ public:
     int32_t CJ_WriteDoubleArray(CJDoubleArray value);
     int32_t CJ_WriteBooleanArray(CJByteArray value);
     int32_t CJ_WriteCharArray(CJCharArray value);
-    int32_t CJ_WriteStringArray(std::u16string value[], uint32_t arrayLength);
+    int32_t CJ_WriteStringArray(CJStringArray value);
     int32_t CJ_WriteArrayBuffer(int32_t typeCode, void* value, size_t byteLength);
     int32_t CJ_WriteRawDataBuffer(uint8_t* data, int64_t size);
     bool CJ_WriteUint32(uint32_t value);
