@@ -101,10 +101,12 @@ OPEN_ERR:
 
 static void CloseDriver(void)
 {
+    pthread_mutex_lock(&g_connectorMutex);
     if (g_connector == NULL) {
+        pthread_mutex_unlock(&g_connectorMutex);
         return;
     }
-    pthread_mutex_lock(&g_connectorMutex);
+
     munmap(g_connector->mmapAddr, g_connector->mmapSize);
     close(g_connector->fd);
     free(g_connector);
