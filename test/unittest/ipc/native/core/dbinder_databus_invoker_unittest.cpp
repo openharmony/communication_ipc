@@ -93,6 +93,8 @@ public:
     virtual ssize_t GetSendBufferSizeEx() = 0;
     virtual ssize_t GetSendBufferWriteCursor() = 0;
     virtual ssize_t GetSendBufferReadCursor() = 0;
+    virtual char* UpdateSendBufferLocked(uint32_t userDataSize) = 0;
+    virtual bool SetSendBufferReadCursorEx(ssize_t newReadCursor) = 0;
     virtual std::string GetDeviceId() = 0;
     virtual std::string GetServiceName() = 0;
     virtual bool QueryProxyBySocketId(int32_t socketId, std::vector<uint32_t> &proxyHandle) = 0;
@@ -136,6 +138,8 @@ public:
     MOCK_METHOD0(GetSendBufferSizeEx, ssize_t());
     MOCK_METHOD0(GetSendBufferWriteCursor, ssize_t());
     MOCK_METHOD0(GetSendBufferReadCursor, ssize_t());
+    MOCK_METHOD1(UpdateSendBufferLocked, char*(uint32_t userDataSize));
+    MOCK_METHOD1(SetSendBufferReadCursorEx, bool(ssize_t newReadCursor));
     MOCK_METHOD0(GetDeviceId, std::string());
     MOCK_METHOD0(GetServiceName, std::string());
     MOCK_METHOD2(QueryProxyBySocketId, bool(int32_t socketId, std::vector<uint32_t> &proxyHandle));
@@ -284,6 +288,20 @@ extern "C" {
             return 0;
         }
         return GetDbinderDataBusInvokerInterface()->GetSendBufferReadCursor();
+    }
+    char* BufferObject::UpdateSendBufferLocked(uint32_t userDataSize)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return nullptr;
+        }
+        return GetDbinderDataBusInvokerInterface()->UpdateSendBufferLocked(userDataSize);
+    }
+    bool BufferObject::SetSendBufferReadCursorEx(ssize_t newReadCursor)
+    {
+        if (GetDbinderDataBusInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetDbinderDataBusInvokerInterface()->SetSendBufferReadCursorEx(newReadCursor);
     }
     ssize_t BufferObject::GetSendBufferWriteCursor() const
     {
@@ -1375,6 +1393,8 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest002, TestSize.Level1)
 
     EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
         .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
+    EXPECT_CALL(mock, UpdateSendBufferLocked(0)).WillOnce(testing::Return(bufPtr));
+    EXPECT_CALL(mock, GetSendBufferSizeEx()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(0));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(1024));
 
@@ -1398,6 +1418,7 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest003, TestSize.Level1)
 
     EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
         .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
+    EXPECT_CALL(mock, UpdateSendBufferLocked(0)).WillOnce(testing::Return(bufPtr));
     EXPECT_CALL(mock, GetSendBufferSizeEx()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(1024));
@@ -1422,12 +1443,15 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest004, TestSize.Level1)
 
     EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
         .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
+    EXPECT_CALL(mock, UpdateSendBufferLocked(0)).WillOnce(testing::Return(bufPtr));
+    EXPECT_CALL(mock, GetSendBufferSizeEx()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(0));
-    EXPECT_CALL(mock, SendBytes).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, SetSendBufferReadCursorEx(1024)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, SendBytes(testing::_, testing::_, testing::_)).WillRepeatedly(testing::Return(0));
 
     int result = testInvoker.SendData(sessionBuff, SOCKET_ID_TEST);
-    EXPECT_EQ(result, 1);
+    EXPECT_EQ(result, 0);
 }
 
 /**
@@ -1442,12 +1466,15 @@ HWTEST_F(DbinderDataBusInvokerTest, SendDataTest005, TestSize.Level1)
     auto sessionBuff = std::make_shared<BufferObject>();
     char sendBuffer[1024] = {0};
     char* bufPtr = sendBuffer;
-
+    EXPECT_CALL(mock, UpdateSendBufferLocked(0)).WillOnce(testing::Return(bufPtr));
+    EXPECT_CALL(mock, GetSendBufferSizeEx()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, AcquireSendBuffer(testing::_))
         .WillOnce(testing::Invoke([bufPtr](uint32_t) { return MakeSendBufferContext(bufPtr, 1024); }));
     EXPECT_CALL(mock, GetSendBufferWriteCursor()).WillOnce(testing::Return(1024));
     EXPECT_CALL(mock, GetSendBufferReadCursor()).WillOnce(testing::Return(0));
     EXPECT_CALL(mock, SendBytes).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, SetSendBufferReadCursorEx(1024)).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, SendBytes(testing::_, testing::_, testing::_)).WillRepeatedly(testing::Return(0));
 
     int result = testInvoker.SendData(sessionBuff, SOCKET_ID_TEST);
     EXPECT_EQ(result, 0);
