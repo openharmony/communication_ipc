@@ -782,8 +782,8 @@ HWTEST_F(BufferObjectUnitTest, UpdateSendBufferLockedTest002, TestSize.Level1)
     char* result = object.UpdateSendBufferLocked(0);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(object.GetSendBufferWriteCursor(),
-        BUFFER_WRITE_CURSOR_TEST - BUFFER_READ_CURSOR_TEST);
-    EXPECT_EQ(object.GetSendBufferReadCursor(), 0);
+        BUFFER_WRITE_CURSOR_TEST);
+    EXPECT_EQ(object.GetSendBufferReadCursor(), BUFFER_READ_CURSOR_TEST);
 }
 
 /**
@@ -801,8 +801,8 @@ HWTEST_F(BufferObjectUnitTest, UpdateSendBufferLockedTest003, TestSize.Level1)
     EXPECT_NE(result, nullptr);
     EXPECT_GT(object.GetSendBufferSizeEx(), static_cast<ssize_t>(BUFF_SIZE_TEST));
     EXPECT_EQ(object.GetSendBufferWriteCursor(),
-        BUFFER_WRITE_CURSOR_TEST - BUFFER_READ_CURSOR_TEST);
-    EXPECT_EQ(object.GetSendBufferReadCursor(), 0);
+        BUFFER_WRITE_CURSOR_TEST);
+    EXPECT_EQ(object.GetSendBufferReadCursor(), BUFFER_READ_CURSOR_TEST);
 }
 
 /**
@@ -853,8 +853,8 @@ HWTEST_F(BufferObjectUnitTest, UpdateReceiveBufferLockedTest002, TestSize.Level1
     char* result = object.UpdateReceiveBufferLocked(0);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(object.GetReceiveBufferWriteCursor(),
-        BUFFER_WRITE_CURSOR_TEST - BUFFER_READ_CURSOR_TEST);
-    EXPECT_EQ(object.GetReceiveBufferReadCursor(), 0);
+        BUFFER_WRITE_CURSOR_TEST);
+    EXPECT_EQ(object.GetReceiveBufferReadCursor(), BUFFER_READ_CURSOR_TEST);
 }
 
 /**
@@ -872,8 +872,8 @@ HWTEST_F(BufferObjectUnitTest, UpdateReceiveBufferLockedTest003, TestSize.Level1
     EXPECT_NE(result, nullptr);
     EXPECT_GT(object.GetRecvBufferSizeEx(), static_cast<ssize_t>(BUFF_SIZE_TEST));
     EXPECT_EQ(object.GetReceiveBufferWriteCursor(),
-        BUFFER_WRITE_CURSOR_TEST - BUFFER_READ_CURSOR_TEST);
-    EXPECT_EQ(object.GetReceiveBufferReadCursor(), 0);
+        BUFFER_WRITE_CURSOR_TEST);
+    EXPECT_EQ(object.GetReceiveBufferReadCursor(), BUFFER_READ_CURSOR_TEST);
 }
 
 /**
