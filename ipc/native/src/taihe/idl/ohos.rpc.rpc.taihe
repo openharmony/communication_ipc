@@ -393,21 +393,20 @@ interface RemoteObject : IRemoteObject {
 
     @!sts_inject_into_class("""
     constructor(descriptor: String) {
-        this(this, descriptor, (): boolean => {
-            let cls = Class.of(this);
-            let methodName = "onRemoteMessageRequest";
-            let methods = cls.getInstanceMethods();
-            for (let idx = 0; idx < methods.length; idx++) {
-                let method = methods[idx];
-                let name = method.getName();
-                let num = method.getParametersNum();
-                let owner = method.getOwner();
-                if (name === methodName && num == 5 && owner == cls) {
-                    return true;
-                }
+        this(descriptor, true);
+        let cls = Class.of(this);
+        let methodName = "onRemoteMessageRequest";
+        let hasCallingInfo = false;
+        for (let method of cls.getInstanceMethods()) {
+            let name = method.getName();
+            let num = method.getParametersNum();
+            let owner = method.getOwner();
+            if (name === methodName && num == 5 && owner == cls) {
+                hasCallingInfo = true;
+                break;
             }
-            return false;
-        });
+        }
+        this.addJsObjWeakRef(this, true, hasCallingInfo);
     }
     """)
 
@@ -457,7 +456,7 @@ interface RemoteObject : IRemoteObject {
 }
 
 @ctor("RemoteObject")
-function CreateRemoteObject(self: RemoteObject, descriptor: String, hasCallingInfoCB: () => bool): RemoteObject;
+function CreateRemoteObject(descriptor: String, isNative: bool): RemoteObject;
 
 @ctor("RemoteObject")
 function CreateRemoteObjectFromNative(nativePtr: i64): RemoteObject;

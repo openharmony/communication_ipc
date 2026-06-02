@@ -83,8 +83,7 @@ public:
     
     void AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj, bool isNative, bool hasCallingInfo);
     
-    static ::ohos::rpc::rpc::RemoteObject CreateRemoteObject(::ohos::rpc::rpc::weak::RemoteObject jsSelf,
-        ::taihe::string_view descriptor, ::taihe::callback_view<bool()> hasCallingInfoCB);
+    static ::ohos::rpc::rpc::RemoteObject CreateRemoteObject(::taihe::string_view descriptor, bool);
     static ::ohos::rpc::rpc::RemoteObject CreateRemoteObjectFromNative(uintptr_t nativePtr);
 
     ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion callOnRemoteMessageRequest(int32_t code,
