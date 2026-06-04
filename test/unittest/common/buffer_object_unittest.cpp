@@ -1181,7 +1181,7 @@ HWTEST_F(BufferObjectUnitTest, TryExpandSendBufferLockedTest003, TestSize.Level1
     SendBufferContext ctx = object.AcquireSendBuffer(SOCKET_BUFF_SIZE_USER_HUGE);
     object.SetSendBufferWriteCursorEx(SOCKET_BUFF_SIZE_USER_HUGE - 1);
     object.SetSendBufferReadCursorEx(0);
-    bool result = object.TryExpandSendBufferLocked(SOCKET_BUFF_SIZE_USER_HUGE);
+    bool result = object.TryExpandSendBufferLocked(SOCKET_BUFF_SIZE_USER_HUGE - SOCKET_BUFF_RESERVED_SIZE);
     EXPECT_FALSE(result);
     EXPECT_EQ(object.GetSendBufferWriteCursor(), 0);
     EXPECT_EQ(object.GetSendBufferReadCursor(), 0);
@@ -1246,7 +1246,7 @@ HWTEST_F(BufferObjectUnitTest, TryExpandReceiveBufferLockedTest003, TestSize.Lev
     ReceiveBufferContext ctx = object.AcquireReceiveBuffer(SOCKET_BUFF_SIZE_USER_HUGE);
     object.SetReceiveBufferWriteCursorEx(SOCKET_BUFF_SIZE_USER_HUGE - 1);
     object.SetReceiveBufferReadCursorEx(0);
-    bool result = object.TryExpandReceiveBufferLocked(SOCKET_BUFF_SIZE_USER_HUGE);
+    bool result = object.TryExpandReceiveBufferLocked(SOCKET_BUFF_SIZE_USER_HUGE - SOCKET_BUFF_RESERVED_SIZE);
     EXPECT_FALSE(result);
     EXPECT_EQ(object.GetReceiveBufferWriteCursor(), 0);
     EXPECT_EQ(object.GetReceiveBufferReadCursor(), 0);
