@@ -33,6 +33,36 @@ namespace {
     const std::string SO_PATH_TEST = "test_so_path";
 }
 
+class TestRemoteObject : public IRemoteObject {
+public:
+    explicit TestRemoteObject() : IRemoteObject(u"test_remote_object") {}
+    int32_t GetObjectRefCount() override { return 0; }
+    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        (void)code;
+        (void)data;
+        (void)reply;
+        (void)option;
+        return 0;
+    }
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) override
+    {
+        (void)recipient;
+        return false;
+    }
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) override
+    {
+        (void)recipient;
+        return false;
+    }
+    int Dump(int fd, const std::vector<std::u16string> &args) override
+    {
+        (void)fd;
+        (void)args;
+        return 0;
+    }
+};
+
 class IremoteObjectInterface {
 public:
     IremoteObjectInterface() {};
@@ -425,5 +455,55 @@ HWTEST_F(IremoteObjectTest, Reserved10Test001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
     ASSERT_NO_FATAL_FAILURE(object.reserved10());
+}
+
+/**
+ * @tc.name: AddRefreshRecipientBaseTest001
+ * @tc.desc: Verify the IRemoteObject base class AddRefreshRecipient function return false when recipient is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IremoteObjectTest, AddRefreshRecipientBaseTest001, TestSize.Level1)
+{
+    TestRemoteObject object;
+    bool ret = object.AddRefreshRecipient(nullptr);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AddRefreshRecipientBaseTest002
+ * @tc.desc: Verify the IRemoteObject base class AddRefreshRecipient function return false when recipient is valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(IremoteObjectTest, AddRefreshRecipientBaseTest002, TestSize.Level1)
+{
+    TestRemoteObject object;
+    sptr<IRemoteObject::RefreshRecipient> recipient = new MockRefreshRecipient();
+    bool ret = object.AddRefreshRecipient(recipient);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientBaseTest001
+ * @tc.desc: Verify the IRemoteObject base class RemoveRefreshRecipient function return false when recipient is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IremoteObjectTest, RemoveRefreshRecipientBaseTest001, TestSize.Level1)
+{
+    TestRemoteObject object;
+    bool ret = object.RemoveRefreshRecipient(nullptr);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RemoveRefreshRecipientBaseTest002
+ * @tc.desc: Verify the IRemoteObject base class RemoveRefreshRecipient function return false when recipient is valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(IremoteObjectTest, RemoveRefreshRecipientBaseTest002, TestSize.Level1)
+{
+    TestRemoteObject object;
+    sptr<IRemoteObject::RefreshRecipient> recipient = new MockRefreshRecipient();
+    bool ret = object.RemoveRefreshRecipient(recipient);
+    ASSERT_EQ(ret, false);
 }
 } // namespace OHOS
