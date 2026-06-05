@@ -321,19 +321,17 @@ bool IPCProcessSkeleton::SetMaxWorkThread(int maxThreadNum)
         ZLOGE(LOG_LABEL, "Set Invalid thread Number:%{public}d", maxThreadNum);
         return false;
     }
-    if (threadPool_ == nullptr) {
-        {
-            std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
+    {
+        std::lock_guard<std::mutex> lockGuard(threadPoolMutex_);
+        if (threadPool_ == nullptr) {
+            threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
             if (threadPool_ == nullptr) {
-                threadPool_ = new (std::nothrow) IPCWorkThreadPool(maxThreadNum);
-                if (threadPool_ == nullptr) {
-                    ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
-                    return false;
-                }
+                ZLOGE(LOG_LABEL, "create IPCWorkThreadPool object failed");
+                return false;
             }
         }
+        threadPool_->UpdateMaxThreadNum(maxThreadNum);
     }
-    threadPool_->UpdateMaxThreadNum(maxThreadNum);
     IRemoteInvoker *invoker = IPCThreadSkeleton::GetRemoteInvoker(IRemoteObject::IF_PROT_DEFAULT);
     if (invoker != nullptr) {
         return invoker->SetMaxWorkThread(maxThreadNum);

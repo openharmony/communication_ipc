@@ -215,18 +215,12 @@ HWTEST_F(IPCCparcelTest, ReadIPCRemoteObject001, TestSize.Level1)
 
 /**
  * @tc.name: ReadIPCRemoteObject002
- * @tc.desc: Test ReadIPCRemoteObject when ReadRemoteObject return nullptr
+ * @tc.desc: Test ReadIPCRemoteObject when parcel is nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(IPCCparcelTest, ReadIPCRemoteObject002, TestSize.Level1)
 {
-    OHIPCParcel parcel;
-    NiceMock<IpcCparcelInterfaceMock> mock;
-    EXPECT_CALL(mock, IsIPCParcelValid(testing::_, testing::_))
-        .WillRepeatedly(Return(true));
-    EXPECT_CALL(mock, ReadRemoteObject())
-        .WillOnce(Return(nullptr));
-    auto result = OH_IPCParcel_ReadRemoteProxy(&parcel);
+    auto result = OH_IPCParcel_ReadRemoteProxy(nullptr);
     EXPECT_EQ(result, nullptr);
 }
 
