@@ -50,7 +50,8 @@
           "rust",
           "faultloggerd",
           "runtime_core",
-          "rust_cxx"
+          "rust_cxx",
+          "taihe_ffi_gen"
         ],
         "third_party": [
         ]
