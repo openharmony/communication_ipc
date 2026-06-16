@@ -717,13 +717,13 @@ void RemoteObjectImpl::SendMessageRequestAsync(int32_t code, ::ohos::rpc::rpc::w
 
 void RemoteObjectImpl::RegisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
-    ZLOGI(LOG_LABEL, "only RemoteProxy needed");
+    ZLOGE(LOG_LABEL, "only RemoteProxy needed");
     RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
 void RemoteObjectImpl::UnregisterDeathRecipient(::ohos::rpc::rpc::DeathRecipient const& recipient, int32_t flags)
 {
-    ZLOGI(LOG_LABEL, "only RemoteProxy needed");
+    ZLOGE(LOG_LABEL, "only RemoteProxy needed");
     RPC_TAIHE_ERROR(OHOS::RpcTaiheErrorCode::TAIHE_ONLY_PROXY_OBJECT_PERMITTED_ERROR);
 }
 
