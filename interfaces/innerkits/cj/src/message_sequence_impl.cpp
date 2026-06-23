@@ -540,24 +540,33 @@ int32_t MessageSequenceImpl::CJ_WriteCharArray(CJCharArray value)
     return errorDesc::CHECK_PARAM_ERROR;
 }
 
-int32_t MessageSequenceImpl::CJ_WriteStringArray(std::u16string value[], uint32_t arrayLength)
+int32_t MessageSequenceImpl::CJ_WriteStringArray(CJStringArray value)
 {
     if (nativeParcel_ == nullptr) {
         return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
     }
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
     size_t pos = nativeParcel_->GetWritePosition();
-    nativeParcel_->WriteUint32(arrayLength);
-    bool result = false;
-    for (size_t i = 0; i < arrayLength; i++) {
-        if (RewindIfWriteCheckFail(BYTE_SIZE_32 * value[i].length(), pos)) {
-            result = nativeParcel_->WriteString16(value[i]);
-            if (!result) {
-                nativeParcel_->RewindWrite(pos);
-                ZLOGE(LOG_LABEL, "write string16 failed");
-                return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
-            }
-        } else {
-            ZLOGE(LOG_LABEL, "No enough capacity to write");
+    nativeParcel_->WriteUint32(value.len);
+    for (uint32_t i = 0; i < value.len; i++) {
+        if (value.data[i] == nullptr) {
+            nativeParcel_->RewindWrite(pos);
+            ZLOGE(LOG_LABEL, "string data is nullptr, index:%{public}u", i);
+            return errorDesc::CHECK_PARAM_ERROR;
+        }
+        std::u16string str = converter.from_bytes(value.data[i]);
+        if (str.length() >= MAX_BYTES_LENGTH) {
+            nativeParcel_->RewindWrite(pos);
+            ZLOGE(LOG_LABEL, "string length too large");
+            return errorDesc::CHECK_PARAM_ERROR;
+        }
+        if (!RewindIfWriteCheckFail(BYTE_SIZE_32 * str.length(), pos)) {
+            return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
+        }
+        bool result = nativeParcel_->WriteString16(str);
+        if (!result) {
+            nativeParcel_->RewindWrite(pos);
+            ZLOGE(LOG_LABEL, "write string16 failed");
             return errorDesc::WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR;
         }
     }
@@ -1020,7 +1029,7 @@ CJStringArray MessageSequenceImpl::CJ_ReadStringArray(int32_t* errCode)
         return arr;
     }
     if (CheckReadLength(static_cast<size_t>(arr.len), BYTE_SIZE_32)) {
-        arr.data = static_cast<char**>(malloc(sizeof(char*) * arr.len));
+        arr.data = static_cast<char**>(calloc(arr.len, sizeof(char*)));
         if (arr.data == nullptr) {
             *errCode = errorDesc::READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR;
             return arr;
@@ -1028,6 +1037,7 @@ CJStringArray MessageSequenceImpl::CJ_ReadStringArray(int32_t* errCode)
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
         for (uint32_t i = 0; i < arr.len; i++) {
             if (nativeParcel_->GetReadableBytes() <= 0) {
+                arr.len = i;
                 break;
             }
             std::u16string parcelString = nativeParcel_->ReadString16();
