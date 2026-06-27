@@ -877,8 +877,5 @@ function main() {
     console.log(`*************************************************`);
     testIPCSkeleton_getCallingTokenId();
     console.log(`*************************************************`);
-    //testMessageSequence_WriteAndRead_FileDescriptor();
-    console.log(`*************************************************`);
-    //testMessageSequence_closeFileDescriptor();
     console.log(`out main`);
 }
