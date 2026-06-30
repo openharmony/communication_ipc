@@ -64,6 +64,9 @@ public:
     MOCK_CONST_METHOD0(GetCallerUid, uid_t());
     MOCK_CONST_METHOD0(GetCallerTokenID, uint64_t());
     MOCK_CONST_METHOD0(GetFirstCallerTokenID, uint64_t());
+#ifdef CALLING_USER_INFO_ENABLED
+    MOCK_METHOD0(GetCallerUserID, uint64_t());
+#endif // CALLING_USER_INFO_ENABLED
     MOCK_CONST_METHOD0(GetSelfTokenID, uint64_t());
     MOCK_CONST_METHOD0(GetSelfFirstCallerTokenID, uint64_t());
     MOCK_METHOD0(GetStatus, uint32_t());

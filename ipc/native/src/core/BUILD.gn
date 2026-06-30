@@ -59,6 +59,9 @@ ohos_shared_library("ipc_common") {
     external_deps += [ "hisysevent:libhisysevent" ]
     defines += [ "HIVIEWDFX_HISYSEVENT_SUPPORT" ]
   }
+  if (ipc_feature_calling_user_info_enabled) {
+    defines += [ "CALLING_USER_INFO_ENABLED" ]
+  }
 
   innerapi_tags = [
     "platformsdk_indirect",

@@ -157,6 +157,9 @@ struct binder_node_info_for_ref {
 #define SENDER_INFO_FAETURE_MASK (1 << 2)
 //      ACTV_BINDER_FEATURE_MASK  (1 << 1)
 #define REFRESH_RECIPIENT_ENABLED_MASK (1 << 3)
+#ifdef CALLING_USER_INFO_ENABLED
+#define CALLING_USER_INFO_FEATURE_MASK (1 << 4)
+#endif // CALLING_USER_INFO_ENABLED
 
 struct binder_feature_set {
     __u64 feature_set;
@@ -172,6 +175,17 @@ struct binder_sender_info {
     struct access_token tokens;
     __u64 sender_pid_nr;
 };
+
+#ifdef CALLING_USER_INFO_ENABLED
+struct binder_calling_user_info {
+    __u64 tokenid;
+    __u64 ftokenid;
+    __u64 parent_tokenid;
+    __u64 sender_pid;
+    __u64 user_id;
+    __u64 reserverd[5];
+};
+#endif // CALLING_USER_INFO_ENABLED
 
 #define BINDER_WRITE_READ _IOWR('b', 1, struct binder_write_read)
 #define BINDER_SET_IDLE_TIMEOUT _IOW('b', 3, __s64)
@@ -194,6 +208,9 @@ struct binder_sender_info {
 #endif // MEMORY_USAGE_ENABLED
 #define BINDER_GET_SENDER_INFO _IOWR('b', 32, struct binder_sender_info)
 #define BINDER_THREAD_RECLAIM _IOW('b', 33, __s32)
+#ifdef CALLING_USER_INFO_ENABLED
+#define BINDER_GET_CALLING_USER_INFO _IOWR('b', 170, struct binder_calling_user_info)
+#endif // CALLING_USER_INFO_ENABLED
 
 enum transaction_flags {
     TF_ONE_WAY = 0x01,

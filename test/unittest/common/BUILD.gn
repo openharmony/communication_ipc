@@ -72,6 +72,9 @@ template("ipc_unittest") {
     if (ipc_feature_memory_usage_enabled) {
       defines += ["MEMORY_USAGE_ENABLED"]
     }
+    if (ipc_feature_calling_user_info_enabled) {
+      defines += ["CALLING_USER_INFO_ENABLED"]
+    }
 
     if (hiviewdfx_hisysevent_support) {
       external_deps += [ "hisysevent:libhisysevent" ]

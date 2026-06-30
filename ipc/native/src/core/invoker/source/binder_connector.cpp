@@ -136,6 +136,13 @@ bool BinderConnector::IsRefreshSupported()
     return (featureSet_ & REFRESH_RECIPIENT_ENABLED_MASK) != 0;
 }
 
+#ifdef CALLING_USER_INFO_ENABLED
+bool BinderConnector::IsCallingUserInfoSupported()
+{
+    return (featureSet_ & CALLING_USER_INFO_FEATURE_MASK) != 0;
+}
+#endif // CALLING_USER_INFO_ENABLED
+
 int BinderConnector::WriteBinder(unsigned long request, void *value)
 {
     int err = -EINTR;
