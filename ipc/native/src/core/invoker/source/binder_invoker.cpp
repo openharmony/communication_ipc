@@ -210,7 +210,7 @@ bool BinderInvoker::TranslateDBinderProxy(int handle, MessageParcel &parcel)
         auto flat = reinterpret_cast<flat_binder_object *>(dataOffset + *(objOffset + i));
 #ifdef CONFIG_IPC_SINGLE
         if (flat->hdr.type == BINDER_TYPE_HANDLE && flat->cookie != IRemoteObject::IF_PROT_BINDER) {
-            ZLOGE(LABEL, "sending a dbinder proxy in ipc_single.z.so is not allowed");
+            ZLOGE(LABEL, "send dbinder proxy in ipc_single.z.so is not allowed");
             return false;
         }
 #else
