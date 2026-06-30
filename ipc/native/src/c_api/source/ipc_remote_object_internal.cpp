@@ -62,8 +62,8 @@ OHIPCRemoteServiceStub::~OHIPCRemoteServiceStub()
     requestCallback_ = nullptr;
 }
 
-int OHIPCRemoteServiceStub::OnRemoteRequest(uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply,
-    OHOS::MessageOption &option)
+int OHIPCRemoteServiceStub::OnRemoteRequest(
+    uint32_t code, OHOS::MessageParcel &data, OHOS::MessageParcel &reply, OHOS::MessageOption &option)
 {
     if (requestCallback_ == nullptr) {
         ZLOGE(LOG_LABEL, "Callback is null for code: %{public}u", code);
