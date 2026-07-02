@@ -18,6 +18,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include "ipc_types.h"
 #include "parcel.h"
 #include "sys_binder.h"
 #include "iremote_object.h"
@@ -88,6 +89,10 @@ public:
     virtual uint64_t GetCallerTokenID() const = 0;
 
     virtual uint64_t GetFirstCallerTokenID() const = 0;
+
+#ifdef CALLING_USER_INFO_ENABLED
+    virtual uint64_t GetCallerUserID() = 0;
+#endif // CALLING_USER_INFO_ENABLED
 
     virtual uint64_t GetSelfTokenID() const = 0;
 

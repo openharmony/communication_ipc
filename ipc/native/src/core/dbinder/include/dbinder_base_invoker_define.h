@@ -122,6 +122,9 @@ public:
 #ifdef MEMORY_USAGE_ENABLED
     virtual int32_t GetMemoryUsage(uint32_t pid, unsigned long &totalSize, unsigned long &oneWayFreeSize) override;
 #endif // MEMORY_USAGE_ENABLED
+#ifdef CALLING_USER_INFO_ENABLED
+    virtual uint64_t GetCallerUserID() override;
+#endif // CALLING_USER_INFO_ENABLED
 private:
     uint32_t TranslateBinderType(flat_binder_object *binderObject, unsigned char *sessionOffset,
         std::shared_ptr<T> session);

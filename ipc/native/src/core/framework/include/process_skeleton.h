@@ -35,6 +35,9 @@ struct InvokerProcInfo {
     pid_t uid;
     uint64_t tokenId;
     uint64_t firstTokenId;
+#ifdef CALLING_USER_INFO_ENABLED
+    uint64_t userId;
+#endif // CALLING_USER_INFO_ENABLED
     std::string sid;
     uint32_t invoker;
 };

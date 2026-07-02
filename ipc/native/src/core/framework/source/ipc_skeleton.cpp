@@ -212,6 +212,20 @@ uint64_t IPCSkeleton::GetFirstFullTokenID()
     return 0;
 }
 
+#ifdef CALLING_USER_INFO_ENABLED
+uint64_t IPCSkeleton::GetCallingUserID()
+{
+    if (!IsLocalCalling()) {
+        return 0;
+    }
+    IRemoteInvoker *invoker = IPCThreadSkeleton::GetActiveInvoker();
+    if (invoker == nullptr) {
+        return 0;
+    }
+    return invoker->GetCallerUserID();
+}
+#endif // CALLING_USER_INFO_ENABLED
+
 // LCOV_EXCL_START
 std::string IPCSkeleton::GetLocalDeviceID()
 {

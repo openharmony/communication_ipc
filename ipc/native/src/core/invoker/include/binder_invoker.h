@@ -122,6 +122,10 @@ public:
 
     uint64_t GetFirstCallerTokenID() const override;
 
+#ifdef CALLING_USER_INFO_ENABLED
+    uint64_t GetCallerUserID() override;
+#endif // CALLING_USER_INFO_ENABLED
+
     uint64_t GetSelfTokenID() const override;
 
     uint64_t GetSelfFirstCallerTokenID() const override;
@@ -172,6 +176,9 @@ protected:
     pid_t callerUid_;
     uint64_t callerTokenID_;
     uint64_t firstTokenID_;
+#ifdef CALLING_USER_INFO_ENABLED
+    uint64_t callerUserId_;
+#endif // CALLING_USER_INFO_ENABLED
     std::string callerSid_;
 
 private:
@@ -219,6 +226,10 @@ private:
     void GetAccessToken(uint64_t &callerTokenID, uint64_t &firstTokenID);
 
     void GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid);
+#ifdef CALLING_USER_INFO_ENABLED
+    bool GetCallerUserIDFromDriver(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid,
+        uint64_t &userId);
+#endif // CALLING_USER_INFO_ENABLED
 
     void OnTransactionComplete(MessageParcel *reply, bool &continueLoop, int32_t &error, uint32_t cmd);
 

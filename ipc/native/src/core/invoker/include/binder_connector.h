@@ -32,6 +32,9 @@ public:
     bool IsAccessTokenSupported();
     bool IsRealPidSupported();
     bool IsRefreshSupported();
+#ifdef CALLING_USER_INFO_ENABLED
+    bool IsCallingUserInfoSupported();
+#endif // CALLING_USER_INFO_ENABLED
     uint64_t GetSelfTokenID();
     uint64_t GetSelfFirstCallerTokenID();
     void CloseDriverFd();

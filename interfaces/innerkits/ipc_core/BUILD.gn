@@ -21,6 +21,9 @@ config("ipc_all_deps_config") {
   if (current_os == "ohos") {
     defines = [ "OHOS_PLATFORM" ]
   }
+  if (ipc_feature_calling_user_info_enabled) {
+    defines += [ "CALLING_USER_INFO_ENABLED" ]
+  }
 }
 
 ohos_prebuilt_shared_library("ipc_core") {

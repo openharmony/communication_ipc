@@ -114,6 +114,7 @@
             "OHOS::IPCSkeleton::GetCallingUid()";
             "OHOS::IPCSkeleton::GetCallingTokenID()";
             "OHOS::IPCSkeleton::GetCallingFullTokenID()";
+            "OHOS::IPCSkeleton::GetCallingUserID()";
             "OHOS::IPCSkeleton::GetFirstTokenID()";
             "OHOS::IPCSkeleton::GetFirstFullTokenID()";
             "OHOS::IPCSkeleton::GetSelfTokenID()";

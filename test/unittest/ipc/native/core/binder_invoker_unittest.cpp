@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <unistd.h>
 
 #include "binder_connector.h"
 #include "binder_invoker.h"
@@ -51,6 +52,9 @@ static constexpr pid_t PID_TEST_INVALID = 0;
 static constexpr pid_t PID_TEST = 1;
 static constexpr pid_t UID_INVALID_TEST = 0;
 static constexpr pid_t UID_TEST = 1;
+#ifdef CALLING_USER_INFO_ENABLED
+static constexpr uint64_t USER_ID_TEST = 100;
+#endif // CALLING_USER_INFO_ENABLED
 
 namespace OHOS {
 class BinderInvokerInterface {
@@ -75,6 +79,9 @@ public:
     virtual uint64_t GetSelfFirstCallerTokenID() = 0;
     virtual bool IsDriverAlive() = 0;
     virtual bool IsRefreshSupported() = 0;
+#ifdef CALLING_USER_INFO_ENABLED
+    virtual bool IsCallingUserInfoSupported() = 0;
+#endif // CALLING_USER_INFO_ENABLED
     virtual bool GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length) = 0;
     virtual bool StrToUint64(const std::string &str, uint64_t &value) = 0;
     virtual bool StrToInt32(const std::string &str, int32_t &value) = 0;
@@ -105,6 +112,9 @@ public:
     MOCK_METHOD0(GetSelfFirstCallerTokenID, uint64_t());
     MOCK_METHOD0(IsDriverAlive, bool());
     MOCK_METHOD0(IsRefreshSupported, bool());
+#ifdef CALLING_USER_INFO_ENABLED
+    MOCK_METHOD0(IsCallingUserInfoSupported, bool());
+#endif // CALLING_USER_INFO_ENABLED
     MOCK_METHOD4(GetSubStr, bool(const std::string &str, std::string &substr, size_t offset, size_t length));
     MOCK_METHOD2(StrToUint64, bool(const std::string &str, uint64_t &value));
     MOCK_METHOD2(StrToInt32, bool(const std::string &str, int32_t &value));
@@ -258,6 +268,15 @@ extern "C" {
         }
         return GetBinderInvokerInterface()->IsRefreshSupported();
     }
+#ifdef CALLING_USER_INFO_ENABLED
+    bool BinderConnector::IsCallingUserInfoSupported()
+    {
+        if (GetBinderInvokerInterface() == nullptr) {
+            return false;
+        }
+        return GetBinderInvokerInterface()->IsCallingUserInfoSupported();
+    }
+#endif // CALLING_USER_INFO_ENABLED
     bool ProcessSkeleton::GetSubStr(const std::string &str, std::string &substr, size_t offset, size_t length)
     {
         if (GetBinderInvokerInterface() == nullptr) {
@@ -326,6 +345,105 @@ void BinderInvokerTest::SetUp()
 void BinderInvokerTest::TearDown()
 {
 }
+
+#ifdef CALLING_USER_INFO_ENABLED
+/**
+ * @tc.name: GetCallerUserIDTest001
+ * @tc.desc: Verify GetCallerUserID returns unsupported when there is no active transaction
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUserIDTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    uint64_t ret = binderInvoker.GetCallerUserID();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetCallerUserIDTest002
+ * @tc.desc: Verify GetCallerUserIDFromDriver returns false when feature bit is not supported
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUserIDTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    BinderConnector connector(DRIVER_NAME_INVALID);
+    binderInvoker.binderConnector_ = &connector;
+    uint64_t tokenId = TOKEN_ID_TEST;
+    uint64_t firstTokenId = FIRST_TOKEN_ID_TEST;
+    pid_t realPid = PID_TEST;
+    uint64_t userId = USER_ID_TEST;
+
+    EXPECT_CALL(mock, IsCallingUserInfoSupported()).WillRepeatedly(testing::Return(false));
+
+    bool ret = binderInvoker.GetCallerUserIDFromDriver(tokenId, firstTokenId, realPid, userId);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(userId, 0);
+    binderInvoker.binderConnector_ = nullptr;
+}
+
+/**
+ * @tc.name: GetCallerUserIDTest003
+ * @tc.desc: Verify GetCallerUserIDFromDriver returns false when ioctl fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUserIDTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    BinderConnector connector(DRIVER_NAME_INVALID);
+    binderInvoker.binderConnector_ = &connector;
+    uint64_t tokenId = TOKEN_ID_TEST;
+    uint64_t firstTokenId = FIRST_TOKEN_ID_TEST;
+    pid_t realPid = PID_TEST;
+    uint64_t userId = USER_ID_TEST;
+
+    EXPECT_CALL(mock, IsCallingUserInfoSupported()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(BINDER_GET_CALLING_USER_INFO, testing::_)).WillOnce(testing::Return(-EINVAL));
+
+    bool ret = binderInvoker.GetCallerUserIDFromDriver(tokenId, firstTokenId, realPid, userId);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(userId, 0);
+    binderInvoker.binderConnector_ = nullptr;
+}
+
+/**
+ * @tc.name: GetCallerUserIDTest004
+ * @tc.desc: Verify GetCallerUserIDFromDriver fills caller information when ioctl succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, GetCallerUserIDTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    BinderConnector connector(DRIVER_NAME_INVALID);
+    binderInvoker.binderConnector_ = &connector;
+    uint64_t tokenId = 0;
+    uint64_t firstTokenId = 0;
+    pid_t realPid = 0;
+    uint64_t userId = 0;
+
+    EXPECT_CALL(mock, IsCallingUserInfoSupported()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, WriteBinder(BINDER_GET_CALLING_USER_INFO, testing::_))
+        .WillOnce(testing::Invoke([](unsigned long request, void *value) {
+            auto *driverInfo = reinterpret_cast<binder_calling_user_info *>(value);
+            driverInfo->tokenid = TOKEN_ID_TEST;
+            driverInfo->ftokenid = FIRST_TOKEN_ID_TEST;
+            driverInfo->sender_pid = PID_TEST;
+            driverInfo->user_id = USER_ID_TEST;
+            return ERR_NONE;
+        }));
+
+    bool ret = binderInvoker.GetCallerUserIDFromDriver(tokenId, firstTokenId, realPid, userId);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(tokenId, TOKEN_ID_TEST);
+    EXPECT_EQ(firstTokenId, FIRST_TOKEN_ID_TEST);
+    EXPECT_EQ(realPid, PID_TEST);
+    EXPECT_EQ(userId, USER_ID_TEST);
+    binderInvoker.binderConnector_ = nullptr;
+}
+#endif // CALLING_USER_INFO_ENABLED
 
 /**
  * @tc.name: AcquireHandleTest001

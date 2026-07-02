@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_IPC_SKELETON_H
 #define OHOS_IPC_IPC_SKELETON_H
 
+#include "ipc_types.h"
 #include "iremote_object.h"
 #include <unordered_set>
 
@@ -102,6 +103,16 @@ public:
      * @since 9
      */
     static uint64_t GetFirstFullTokenID();
+
+#ifdef CALLING_USER_INFO_ENABLED
+    /**
+     * @brief Get calling user ID of caller.
+     * @return Returns the user ID of caller in the local Binder caller context; returns 0 when there is no active
+     * IPC transaction or in the RPC context.
+     * @since 26.0.0
+     */
+    static uint64_t GetCallingUserID();
+#endif // CALLING_USER_INFO_ENABLED
 
     /**
      * @brief Get the token ID of the self.

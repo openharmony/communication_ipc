@@ -15,3 +15,6 @@ target
 Cargo.lock
 .clang-format
 .vscode
+.codex
+oh_venv/
+tools/

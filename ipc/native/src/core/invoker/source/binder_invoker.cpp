@@ -85,9 +85,17 @@ enum {
 BinderInvoker::BinderInvoker()
     : isMainWorkThread(false), stopWorkThread(false), callerPid_(getpid()),
     callerRealPid_(getprocpid()), callerUid_(getuid()),
-    callerTokenID_(0), firstTokenID_(0), callerSid_(""), status_(0)
+    callerTokenID_(0), firstTokenID_(0),
+#ifdef CALLING_USER_INFO_ENABLED
+    callerUserId_(0),
+#endif // CALLING_USER_INFO_ENABLED
+    callerSid_(""), status_(0)
 {
-    invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_,
+    invokerInfo_ = { callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
+#ifdef CALLING_USER_INFO_ENABLED
+        callerUserId_,
+#endif // CALLING_USER_INFO_ENABLED
+        callerSid_,
         reinterpret_cast<uintptr_t>(this) };
     input_.SetDataCapacity(IPC_DEFAULT_PARCEL_SIZE);
     binderConnector_ = BinderConnector::GetInstance();
@@ -799,6 +807,33 @@ void BinderInvoker::GetSenderInfo(uint64_t &callerTokenID, uint64_t &firstTokenI
     realPid = static_cast<pid_t>(sender.sender_pid_nr);
 }
 
+#ifdef CALLING_USER_INFO_ENABLED
+bool BinderInvoker::GetCallerUserIDFromDriver(uint64_t &callerTokenID, uint64_t &firstTokenID, pid_t &realPid,
+    uint64_t &userId)
+{
+    if (binderConnector_ == nullptr) {
+        userId = 0;
+        return false;
+    }
+    if (!binderConnector_->IsCallingUserInfoSupported()) {
+        userId = 0;
+        ZLOGE(LABEL, "not sup");
+        return false;
+    }
+    struct binder_calling_user_info info {};
+    int error = binderConnector_->WriteBinder(BINDER_GET_CALLING_USER_INFO, &info);
+    if (error != ERR_NONE) {
+        userId = 0;
+        return false;
+    }
+    callerTokenID = info.tokenid;
+    firstTokenID = info.ftokenid;
+    realPid = static_cast<pid_t>(info.sender_pid);
+    userId = info.user_id;
+    return true;
+}
+#endif // CALLING_USER_INFO_ENABLED
+
 void BinderInvoker::RestoreInvokerProcInfo(const InvokerProcInfo &info)
 {
     callerPid_ = info.pid;
@@ -806,13 +841,20 @@ void BinderInvoker::RestoreInvokerProcInfo(const InvokerProcInfo &info)
     callerUid_ = info.uid;
     callerTokenID_ = info.tokenId;
     firstTokenID_ = info.firstTokenId;
+#ifdef CALLING_USER_INFO_ENABLED
+    callerUserId_ = info.userId;
+#endif // CALLING_USER_INFO_ENABLED
     callerSid_ = info.sid;
 }
 
 void BinderInvoker::AttachInvokerProcInfoWrapper()
 {
     InvokerProcInfo invokerInfo = { callerPid_, callerRealPid_,
-        callerUid_, callerTokenID_, firstTokenID_, callerSid_, ProcessSkeleton::ConvertAddr(this) };
+        callerUid_, callerTokenID_, firstTokenID_,
+#ifdef CALLING_USER_INFO_ENABLED
+        callerUserId_,
+#endif // CALLING_USER_INFO_ENABLED
+        callerSid_, ProcessSkeleton::ConvertAddr(this) };
     auto current = ProcessSkeleton::GetInstance();
     if (current != nullptr) {
         current->AttachInvokerProcInfo(true, invokerInfo);
@@ -953,18 +995,26 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
         }
         data->InjectOffsets(tr.data.ptr.offsets, tr.offsets_size / sizeof(binder_size_t));
     }
-
     uint32_t &newFlags = const_cast<uint32_t&>(tr.flags);
     int isServerTraced = HitraceInvoker::TraceServerReceive(static_cast<uint64_t>(tr.target.handle),
         tr.code, *data, newFlags);
-
     InvokerProcInfo oldInvokerProcInfo = {
-        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_, callerSid_, 0 };
+        callerPid_, callerRealPid_, callerUid_, callerTokenID_, firstTokenID_,
+#ifdef CALLING_USER_INFO_ENABLED
+        callerUserId_,
+#endif // CALLING_USER_INFO_ENABLED
+        callerSid_, 0 };
     uint32_t oldStatus = status_;
     callerSid_ = (trSecctx.secctx != 0) ? reinterpret_cast<char *>(trSecctx.secctx) : "";
     callerPid_ = tr.sender_pid;
     callerUid_ = tr.sender_euid;
     callerRealPid_ = callerPid_;
+#ifdef CALLING_USER_INFO_ENABLED
+    callerUserId_ = 0;
+    if (GetCallerUserIDFromDriver(callerTokenID_, firstTokenID_, callerRealPid_, callerUserId_)) {
+        ZLOGD(LABEL, "caller user info updated");
+    } else
+#endif // CALLING_USER_INFO_ENABLED
     if (binderConnector_ != nullptr && binderConnector_->IsRealPidSupported()) {
         GetSenderInfo(callerTokenID_, firstTokenID_, callerRealPid_);
     } else if (binderConnector_ != nullptr && binderConnector_->IsAccessTokenSupported()) {
@@ -975,14 +1025,12 @@ void BinderInvoker::Transaction(binder_transaction_data_secctx& trSecctx)
     MessageParcel reply;
     MessageOption option;
     uint32_t flagValue;
-
     SetStatus(IRemoteInvoker::ACTIVE_INVOKER);
     int32_t error = TargetStubSendRequest(tr, *data, reply, option, flagValue);
     HitraceInvoker::TraceServerSend(static_cast<uint64_t>(tr.target.handle), tr.code, isServerTraced, newFlags);
     if (!(flagValue & TF_ONE_WAY)) {
         SendReply(reply, 0, error);
     }
-
     RestoreInvokerProcInfo(oldInvokerProcInfo);
     // restore caller information to another binderinvoker
     AttachInvokerProcInfoWrapper();
@@ -1591,6 +1639,20 @@ uint64_t BinderInvoker::GetFirstCallerTokenID() const
     return firstTokenID_;
 }
 
+#ifdef CALLING_USER_INFO_ENABLED
+uint64_t BinderInvoker::GetCallerUserID()
+{
+    auto pid = getpid();
+    if (!status_ && pid != invokerInfo_.pid) {
+        return invokerInfo_.userId;
+    }
+    if (GetStatus() != IRemoteInvoker::ACTIVE_INVOKER) {
+        return 0;
+    }
+    return callerUserId_;
+}
+#endif // CALLING_USER_INFO_ENABLED
+
 // LCOV_EXCL_START
 uint64_t BinderInvoker::GetSelfTokenID() const
 {
@@ -2047,3 +2109,4 @@ bool BinderInvoker::GetCallerPidAndUidByStr(const std::string &str, size_t offse
 } // namespace IPC_SINGLE
 #endif
 } // namespace OHOS
+

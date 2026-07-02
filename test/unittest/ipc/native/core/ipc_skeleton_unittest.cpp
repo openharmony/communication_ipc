@@ -15,6 +15,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "dbinder_databus_invoker.h"
 #include "ipc_process_skeleton.h"
@@ -31,6 +32,9 @@ namespace {
     const std::u16string DESCRIPTOR_TEST = u"test";
     const int HANDLE_TEST = 1;
     const int RESULT_TEST = 111;
+#ifdef CALLING_USER_INFO_ENABLED
+    constexpr uint64_t USER_ID_TEST = 100;
+#endif // CALLING_USER_INFO_ENABLED
 }
 
 class IPCSkeletonInterface {
@@ -382,6 +386,47 @@ HWTEST_F(IPCSkeletonTest, GetFirstFullTokenID001, TestSize.Level1)
     std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
     delete invoker;
 }
+
+#ifdef CALLING_USER_INFO_ENABLED
+/**
+ * @tc.name: GetCallingUserID001
+ * @tc.desc: Verify the GetCallingUserID function returns unsupported when active invoker is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingUserID001, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    NiceMock<IPCSkeletonInterfaceMock> mock;
+
+    EXPECT_CALL(mock, GetActiveInvoker()).WillRepeatedly(testing::Return(nullptr));
+
+    uint64_t ret = skeleton.GetCallingUserID();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetCallingUserID002
+ * @tc.desc: Verify the GetCallingUserID function returns active invoker result
+ * @tc.type: FUNC
+ */
+HWTEST_F(IPCSkeletonTest, GetCallingUserID002, TestSize.Level1)
+{
+    IPCSkeleton skeleton = IPCSkeleton::GetInstance();
+    NiceMock<IPCSkeletonInterfaceMock> mock;
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
+
+    EXPECT_CALL(mock, GetActiveInvoker()).WillRepeatedly(testing::Return(invoker));
+    EXPECT_CALL(*invoker, IsLocalCalling()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*invoker, GetCallerUserID()).WillRepeatedly(testing::Return(USER_ID_TEST));
+
+    uint64_t ret = skeleton.GetCallingUserID();
+    EXPECT_EQ(ret, USER_ID_TEST);
+    std::fill(current->invokers_, current->invokers_ + IPCThreadSkeleton::INVOKER_MAX_COUNT, nullptr);
+    delete invoker;
+}
+#endif // CALLING_USER_INFO_ENABLED
 
 /**
  * @tc.name: FlushCommands001
