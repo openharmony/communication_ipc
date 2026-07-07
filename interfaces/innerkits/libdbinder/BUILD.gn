@@ -24,6 +24,7 @@ config("libdbinder_config") {
   if (is_standard_system) {
     cflags += [ "-DCONFIG_STANDARD_SYSTEM" ]
   }
+  cflags += [ "-fstack-protector-strong" ]
   include_dirs = [
     "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
     "$SUBSYSTEM_DIR/interfaces/innerkits/libdbinder/include",
