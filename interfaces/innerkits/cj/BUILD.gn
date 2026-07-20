@@ -47,6 +47,7 @@ if (support_jsapi) {
       "napi:ace_napi",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",
+      "node:node_header_notice",
     ]
     sources = [
       "src/ashmem_impl.cpp",
