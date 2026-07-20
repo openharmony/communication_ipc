@@ -41,6 +41,7 @@
           "c_utils",
           "access_token",
           "napi",
+          "node",
           "ylong_runtime",
           "ffrt",
           "libuv",
