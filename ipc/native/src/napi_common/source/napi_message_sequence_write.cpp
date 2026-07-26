@@ -1863,7 +1863,7 @@ napi_value NAPI_MessageSequence::JS_checkWriteArrayBufferArgs(napi_env env, size
         ZLOGE(LOG_LABEL, "requires 2 parameter");
         return napiErr.ThrowError(env, errorDesc::CHECK_PARAM_ERROR);
     }
-    
+
     bool isArrayBuffer = false;
     napi_status status = napi_is_arraybuffer(env, argv[ARGV_INDEX_0], &isArrayBuffer);
     if (!isArrayBuffer) {
