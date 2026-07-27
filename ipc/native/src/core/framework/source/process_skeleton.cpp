@@ -287,11 +287,11 @@ std::unordered_map<void *, std::u16string> ProcessSkeleton::GetValidVtblSnapShot
     std::unordered_map<void *, std::u16string> vtblSnapshot;
     ZLOGI(LOG_LABEL, "num of validObjectRecord is %{public}zu", validObjectRecord_.size());
     for (const auto &item : validObjectRecord_) {
-        IRemoteObject *stub = item.first;
-        if (stub == nullptr || stub->IsProxyObject()) {
+        IRemoteObject *remoteObject = item.first;
+        if (remoteObject == nullptr) {
             continue;
         }
-        auto **vtbl = reinterpret_cast<void **>(stub);
+        auto **vtbl = reinterpret_cast<void **>(remoteObject);
         if (vtbl == nullptr || *vtbl == nullptr) {
             continue;
         }

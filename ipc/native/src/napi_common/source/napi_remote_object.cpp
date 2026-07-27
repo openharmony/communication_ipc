@@ -994,7 +994,7 @@ int NAPIRemoteObject::OnJsRemoteRequest(CallbackParam *jsParam)
     ZLOGD(LOG_LABEL, "start nv queue work loop. desc:%{public}s time:%{public}" PRIu64,
         desc_.c_str(), curTime);
 
-    std::string descriptor = desc_;
+    std::string descriptor = desc_ + ":" + std::to_string(gettid());
     auto task = [jsParam, &descriptor]() {
         OnJsRemoteRequestCallBack(jsParam, descriptor);
     };
