@@ -22,6 +22,7 @@ if (support_jsapi) {
     sanitize = {
       integer_overflow = true
     }
+    branch_protector_ret = "pac_ret"
 
     if (!defined(defines)) {
       defines = []
