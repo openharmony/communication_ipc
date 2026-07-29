@@ -65,6 +65,7 @@ if (support_jsapi) {
       "hilog:libhilog",
       "napi:ace_napi",
       "runtime_core:ani_helpers",
+      "node:node_header_notice",
     ]
   }
 
