@@ -24,6 +24,8 @@ if (support_jsapi) {
     }
     branch_protector_ret = "pac_ret"
 
+    branch_protector_frt = "bti"
+
     if (!defined(defines)) {
       defines = []
     }
