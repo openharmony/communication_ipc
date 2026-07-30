@@ -23,6 +23,8 @@ if (support_jsapi) {
       integer_overflow = true
     }
 
+    branch_protector_frt = "bti"
+
     if (!defined(defines)) {
       defines = []
     }
