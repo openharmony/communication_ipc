@@ -18,3 +18,4 @@ Cargo.lock
 .codex
 oh_venv/
 tools/
+config/softbus_headers/

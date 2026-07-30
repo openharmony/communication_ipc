@@ -233,6 +233,7 @@ if (support_jsapi) {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "napi:ace_napi",
+      "node:node_header_notice",
     ]
   }
 }
