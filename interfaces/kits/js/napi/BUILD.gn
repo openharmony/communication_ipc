@@ -26,6 +26,7 @@ if (support_jsapi) {
     }
     version_script = "librpc_map"
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     include_dirs = [
       "$SUBSYSTEM_DIR/utils/include",
       "$SUBSYSTEM_DIR/ipc/native/c/adapter/include",
