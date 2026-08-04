@@ -1018,7 +1018,7 @@ void MessageSequenceImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion
                 ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
                 return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
             }
-            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsObjRef);
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsObjRef.value());
         } else {
             uintptr_t addr = reinterpret_cast<uintptr_t>(stub);
             auto jsStub = RemoteObjectImpl::CreateRemoteObjectFromNative(addr);
@@ -1090,7 +1090,7 @@ int64_t unwrapRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& obj)
                 ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
                 return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
             }
-            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsObjRef);
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsObjRef.value());
         } else if (objectType == OHOS::IPCObjectStub::OBJECT_TYPE_NATIVE) {
             uintptr_t addr = reinterpret_cast<uintptr_t>(stub);
             auto jsStub = RemoteObjectImpl::CreateRemoteObjectFromNative(addr);
