@@ -45,7 +45,7 @@ public:
 
     int GetObjectType() const override;
 
-    ::ohos::rpc::rpc::RemoteObject GetJsObject();
+    std::optional<::ohos::rpc::rpc::RemoteObject> GetJsObject();
 
     ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion callOnRemoteMessageRequest(int32_t code,
         ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
