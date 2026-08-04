@@ -199,13 +199,19 @@ ANIRemoteObject::~ANIRemoteObject()
     ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options)
 {
+    if (!jsObjRef_.has_value()) {
+        ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+        return ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion::make_booleanValue(false);
+    }
+    auto jsObjRef = jsObjRef_.value();
+
     if (hasCallingInfoAni_) {
         ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion retWithCallingInfo =
-            jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options, GetCallingInfo());
+            jsObjRef->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options, GetCallingInfo());
         return retWithCallingInfo;
     } else {
         ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion ret =
-            jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+            jsObjRef->OnRemoteMessageRequest(code, data, reply, options);
         return ret;
     }
 }
@@ -247,9 +253,9 @@ int ANIRemoteObject::GetObjectType() const
     return OBJECT_TYPE_JAVASCRIPT;
 }
 
-::ohos::rpc::rpc::RemoteObject ANIRemoteObject::GetJsObject()
+std::optional<::ohos::rpc::rpc::RemoteObject> ANIRemoteObject::GetJsObject()
 {
-    return jsObjRef_.value();
+    return jsObjRef_;
 }
 
 // IRemoteBrokerImpl
@@ -633,15 +639,21 @@ void RemoteObjectImpl::ModifyLocalInterface(::ohos::rpc::rpc::weak::IRemoteBroke
     ::ohos::rpc::rpc::weak::MessageSequence data, ::ohos::rpc::rpc::weak::MessageSequence reply,
     ::ohos::rpc::rpc::weak::MessageOption options)
 {
+    if (!jsObjRef_.has_value()) {
+        ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+        return ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion::make_booleanValue(false);
+    }
+    auto jsObjRef = jsObjRef_.value();
+
     if (hasCallingInfo_) {
         auto *aniObj = reinterpret_cast<OHOS::ANIRemoteObject *>(GetNativePtr());
         ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion retWithCallingInfo =
-            jsObjRef_.value()->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options,
+            jsObjRef->OnRemoteMessageRequestWithCallingInfo(code, data, reply, options,
             aniObj->GetCallingInfo());
         return retWithCallingInfo;
     } else {
         ::ohos::rpc::rpc::OnRemoteMessageRequestResultUnion ret =
-            jsObjRef_.value()->OnRemoteMessageRequest(code, data, reply, options);
+            jsObjRef->OnRemoteMessageRequest(code, data, reply, options);
         return ret;
     }
 }
@@ -755,6 +767,10 @@ OHOS::sptr<OHOS::IPCObjectStub> RemoteObjectImpl::GetNativeObject()
     if (tmp == nullptr) {
         auto desc = GetDescriptor();
         std::u16string descStr16(desc.begin(), desc.end());
+        if (!jsObjRef_.has_value()) {
+            ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+            return nullptr;
+        }
         tmp = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value());
         if (tmp == nullptr) {
             ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");
@@ -782,6 +798,10 @@ void RemoteObjectImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::RemoteObject obj,
     }
     auto desc = GetDescriptor();
     std::u16string descStr16(desc.begin(), desc.end());
+    if (!jsObjRef_.has_value()) {
+        ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+        return;
+    }
     ANIRemoteObject *newObject = new (std::nothrow) ANIRemoteObject(descStr16, jsObjRef_.value(), hasCallingInfo);
     if (newObject == nullptr) {
         ZLOGE(LOG_LABEL, "new ANIRemoteObject failed");
@@ -993,7 +1013,12 @@ void MessageSequenceImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion
         auto stub = reinterpret_cast<OHOS::IPCObjectStub *>(obj.GetRefPtr());
         if (stub->GetObjectType() == OHOS::IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
             auto aniStub = reinterpret_cast<ANIRemoteObject *>(obj.GetRefPtr());
-            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(aniStub->GetJsObject());
+            auto jsObjRef = aniStub->GetJsObject();
+            if (!jsObjRef.has_value()) {
+                ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+                return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
+            }
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsObjRef);
         } else {
             uintptr_t addr = reinterpret_cast<uintptr_t>(stub);
             auto jsStub = RemoteObjectImpl::CreateRemoteObjectFromNative(addr);
@@ -1060,7 +1085,12 @@ int64_t unwrapRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& obj)
         
         if (objectType == OHOS::IPCObjectStub::OBJECT_TYPE_JAVASCRIPT) {
             auto* aniStub = static_cast<OHOS::ANIRemoteObject*>(stub);
-            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(aniStub->GetJsObject());
+            auto jsObjRef = aniStub->GetJsObject();
+            if (!jsObjRef.has_value()) {
+                ZLOGE(LOG_LABEL, "jsObjRef_ is empty");
+                return ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet();
+            }
+            return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteObject(jsObjRef);
         } else if (objectType == OHOS::IPCObjectStub::OBJECT_TYPE_NATIVE) {
             uintptr_t addr = reinterpret_cast<uintptr_t>(stub);
             auto jsStub = RemoteObjectImpl::CreateRemoteObjectFromNative(addr);
