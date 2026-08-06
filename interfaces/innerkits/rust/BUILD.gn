@@ -40,6 +40,7 @@ if (ipc_rust_enable) {
 
   ohos_static_library("ipc_rust_cxx") {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     sources = [
       "src/cxx/parcel_wrapper.cpp",
       "src/cxx/remote_object_wrapper.cpp",

@@ -27,6 +27,7 @@ if (support_jsapi) {
       integer_overflow = true
     }
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     include_dirs = [
       "include",
       "../../../utils/include",

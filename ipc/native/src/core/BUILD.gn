@@ -28,6 +28,7 @@ ohos_shared_library("ipc_common") {
     integer_overflow = true
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
   include_dirs = [
     "$IPC_CORE_ROOT/src/core/dbinder/include",
     "$IPC_CORE_ROOT/src/core/framework/include",
