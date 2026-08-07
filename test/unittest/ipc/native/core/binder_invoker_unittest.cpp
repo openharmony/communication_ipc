@@ -1207,6 +1207,125 @@ HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest003, TestSize.Level1) {
 }
 
 /**
+ * @tc.name: OnBinderDiedTest001
+ * @tc.desc: Verify OnBinderDied when proxy is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderDiedTest001, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return(0));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderDied());
+}
+
+/**
+ * @tc.name: OnBinderDiedTest002
+ * @tc.desc: Verify OnBinderDied when proxy is valid but GetSptrRefCount <= 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderDiedTest002, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_)).WillRepeatedly(testing::Return(true));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderDied());
+}
+
+/**
+ * @tc.name: OnBinderDiedTest003
+ * @tc.desc: Verify OnBinderDied when IsValidObject returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderDiedTest003, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_)).WillRepeatedly(testing::Return(false));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderDied());
+}
+
+/**
+ * @tc.name: OnBinderDiedTest004
+ * @tc.desc: Verify OnBinderDied when AttemptIncStrongRef fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderDiedTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_)).WillRepeatedly(testing::Return(true));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderDied());
+}
+
+/**
+ * @tc.name: OnBinderRefreshedTest004
+ * @tc.desc: Verify OnBinderRefreshed when proxy is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest004, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return(0));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
+}
+
+/**
+ * @tc.name: OnBinderRefreshedTest005
+ * @tc.desc: Verify OnBinderRefreshed when proxy is valid but GetSptrRefCount <= 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest005, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_)).WillRepeatedly(testing::Return(true));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
+}
+
+/**
+ * @tc.name: OnBinderRefreshedTest006
+ * @tc.desc: Verify OnBinderRefreshed when IsValidObject returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(BinderInvokerTest, OnBinderRefreshedTest006, TestSize.Level1)
+{
+    BinderInvoker binderInvoker;
+    NiceMock<BinderInvokerInterfaceMock> mock;
+    sptr<IRemoteObject> testProxy = new IPCObjectProxy(5, u"testproxy");
+    ProcessSkeleton *current = ProcessSkeleton::GetInstance();
+    ASSERT_TRUE(current != nullptr);
+
+    EXPECT_CALL(mock, ReadPointer()).WillOnce(testing::Return((uintptr_t)testProxy.GetRefPtr()));
+    EXPECT_CALL(mock, GetSptrRefCount()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, IsValidObject(testing::_, testing::_)).WillRepeatedly(testing::Return(false));
+
+    EXPECT_NO_FATAL_FAILURE(binderInvoker.OnBinderRefreshed());
+}
+
+/**
  * @tc.name: GetDBinderCallingPidUidTest001
  * @tc.desc: Verify the GetDBinderCallingPidUid function When pid is -1 and uid is 0
  * @tc.type: FUNC

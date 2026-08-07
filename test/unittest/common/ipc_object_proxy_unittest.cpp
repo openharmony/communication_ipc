@@ -896,20 +896,24 @@ HWTEST_F(IPCObjectProxyTest, RemoveDbinderDeathRecipientTest001, TestSize.Level1
 /**
  * @tc.name: RegisterBinderRefreshRecipientTest001
  * @tc.desc: Verify the IPCObjectProxy::RegisterBinderRefreshRecipient function
- * when proto_ == IRemoteObject::IF_PROT_DATABUS
+ * when AddRefreshRecipient return true
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, RegisterBinderRefreshRecipientTest001, TestSize.Level1)
 {
     IPCObjectProxy object(1);
-    object.proto_ = IRemoteObject::IF_PROT_DATABUS;
-    EXPECT_FALSE(object.RegisterBinderRefreshRecipient());
+    MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    EXPECT_CALL(*invoker, AddRefreshRecipient(testing::_, testing::_)).WillRepeatedly(testing::Return(true));
+    EXPECT_TRUE(object.RegisterBinderRefreshRecipient());
+    delete invoker;
 }
 
 /**
  * @tc.name: RegisterBinderRefreshRecipientTest002
  * @tc.desc: Verify the IPCObjectProxy::RegisterBinderRefreshRecipient function
- * when proto_ == IRemoteObject::IF_PROT_BINDER
+ * when AddRefreshRecipient return false
  * @tc.type: FUNC
  */
 HWTEST_F(IPCObjectProxyTest, RegisterBinderRefreshRecipientTest002, TestSize.Level1)
@@ -918,8 +922,8 @@ HWTEST_F(IPCObjectProxyTest, RegisterBinderRefreshRecipientTest002, TestSize.Lev
     object.proto_ = IRemoteObject::IF_PROT_BINDER;
     MockIRemoteInvoker *invoker = new MockIRemoteInvoker();
     IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
-    current->invokers_[IRemoteObject::IF_PROT_BINDER] = invoker;
     current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    EXPECT_CALL(*invoker, AddRefreshRecipient(testing::_, testing::_)).WillRepeatedly(testing::Return(false));
     EXPECT_FALSE(object.RegisterBinderRefreshRecipient());
     delete invoker;
 }

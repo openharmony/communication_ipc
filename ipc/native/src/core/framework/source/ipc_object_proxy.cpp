@@ -1262,6 +1262,7 @@ bool IPCObjectProxy::RegisterBinderDeathRecipient()
 #ifndef CONFIG_IPC_SINGLE
     if (proto_ == IRemoteObject::IF_PROT_DATABUS && !AddDbinderDeathRecipient()) {
         ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
+        invoker->RemoveDeathRecipient(handle_, this);
         return false;
     }
 #endif
@@ -1340,12 +1341,6 @@ bool IPCObjectProxy::RegisterBinderRefreshRecipient()
         ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
         return false;
     }
-#ifndef CONFIG_IPC_SINGLE
-    if (proto_ == IRemoteObject::IF_PROT_DATABUS) {
-        ZLOGE(LABEL, "add failed, handle:%{public}d", handle_);
-        return false;
-    }
-#endif
     ZLOGD(LABEL, "success, handle:%{public}d", handle_);
     return true;
 }

@@ -652,8 +652,8 @@ void BinderInvoker::OnBinderDied()
     ZLOGD(LABEL, "enter");
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
-    if ((proxy == nullptr) || (proxy->GetSptrRefCount() <= 0)) {
-        ZLOGE(LABEL, "Invalid proxy object %{public}u.", ProcessSkeleton::ConvertAddr(proxy));
+    if (proxy == nullptr) {
+        ZLOGE(LABEL, "proxy is nullptr");
         return;
     }
     ProcessSkeleton *current = ProcessSkeleton::GetInstance();
@@ -663,11 +663,13 @@ void BinderInvoker::OnBinderDied()
     } else {
         std::string descTemp = Str16ToStr8(desc);
         CrashObjDumper dumper(descTemp.c_str());
-        if (proxy->AttemptIncStrongRef(this)) {
+        if (proxy->GetSptrRefCount() <= 0) {
+            ZLOGE(LABEL, "Invalid proxy object %{public}u.", ProcessSkeleton::ConvertAddr(proxy));
+        } else if (proxy->AttemptIncStrongRef(this)) {
             proxy->SendObituary();
             proxy->DecStrongRef(this);
         } else {
-            ZLOGW(LABEL, "failed to increment strong reference count");
+            ZLOGW(LABEL, "failed to increment strong reference count %{public}u", ProcessSkeleton::ConvertAddr(proxy));
         }
     }
     size_t rewindPos = output_.GetWritePosition();
@@ -688,8 +690,8 @@ void BinderInvoker::OnBinderRefreshed()
     ZLOGD(LABEL, "enter");
     uintptr_t cookie = input_.ReadPointer();
     auto *proxy = reinterpret_cast<IPCObjectProxy *>(cookie);
-    if ((proxy == nullptr) || (proxy->GetSptrRefCount() <= 0)) {
-        ZLOGE(LABEL, "Invalid proxy object %{public}u.", ProcessSkeleton::ConvertAddr(proxy));
+    if (proxy == nullptr) {
+        ZLOGE(LABEL, "proxy is nullptr");
         return;
     }
     
@@ -700,11 +702,13 @@ void BinderInvoker::OnBinderRefreshed()
     } else {
         std::string descTemp = Str16ToStr8(desc);
         CrashObjDumper dumper(descTemp.c_str());
-        if (proxy->AttemptIncStrongRef(this)) {
+        if (proxy->GetSptrRefCount() <= 0) {
+            ZLOGE(LABEL, "Invalid proxy object %{public}u.", ProcessSkeleton::ConvertAddr(proxy));
+        } else if (proxy->AttemptIncStrongRef(this)) {
             proxy->SendRefreshObituary();
             proxy->DecStrongRef(this);
         } else {
-            ZLOGW(LABEL, "failed to increment strong reference count");
+            ZLOGW(LABEL, "failed to increment strong reference count %{public}u", ProcessSkeleton::ConvertAddr(proxy));
         }
     }
     size_t rewindPos = output_.GetWritePosition();
