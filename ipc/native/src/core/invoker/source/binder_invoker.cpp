@@ -891,8 +891,13 @@ int32_t BinderInvoker::Freeze(uint32_t pid, bool freeze, uint32_t timeout)
     info.timeout_ms = timeout;
     int error = binderConnector_->WriteBinder(BINDER_FREEZE, &info);
     if (error != ERR_NONE) {
-        ZLOGE(LABEL, "failed, error:%{public}d", error);
+        ZLOGE(LABEL, "binder freeze failed, targetPid:%{public}u, error:%{public}d", pid, error);
         return error;
+    }
+    ZLOGI(LABEL, "binder freeze success, targetPid:%{public}u", pid);
+    std::string backtrace;
+    if (GetBacktrace(backtrace, false)) {
+        ZLOGD(LABEL, "backtrace info:\n%{public}s", backtrace.c_str());
     }
     return ERR_NONE;
 }
