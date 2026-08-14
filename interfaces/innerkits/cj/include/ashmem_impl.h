@@ -22,7 +22,7 @@
 
 namespace OHOS {
 class AshmemImpl : public OHOS::FFI::FFIData {
-    DECL_TYPE(MessageSequenceImpl, OHOS::FFI::FFIData)
+    DECL_TYPE(AshmemImpl, OHOS::FFI::FFIData)
 public:
     enum {
         PROT_EXEC = 4,
