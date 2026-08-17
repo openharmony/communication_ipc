@@ -62,7 +62,6 @@ ohos_shared_library("libdbinder") {
     integer_overflow = true
   }
   branch_protector_ret = "pac_ret"
-  branch_protector_frt = "bti"
   include_dirs = [
     "$SUBSYSTEM_DIR/ipc/native/c/rpc/include",
     "$SUBSYSTEM_DIR/utils/include",

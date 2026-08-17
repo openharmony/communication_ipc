@@ -105,7 +105,6 @@ ohos_shared_library("ipc_single") {
   }
   version_script = "libipc_single_map"
   branch_protector_ret = "pac_ret"
-  branch_protector_frt = "bti"
   include_dirs = common_include
 
   sources = common_source
@@ -167,7 +166,6 @@ ohos_shared_library("ipc_single_test") {
   }
 
   branch_protector_ret = "pac_ret"
-  branch_protector_frt = "bti"
   include_dirs = common_include
 
   sources = common_source
