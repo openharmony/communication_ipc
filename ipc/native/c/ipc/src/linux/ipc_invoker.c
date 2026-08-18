@@ -373,10 +373,6 @@ static void IpcJoinThread(bool initiative)
         bwr.read_buffer = (uintptr_t)readbuf;
         ret = ioctl(g_connector->fd, BINDER_WRITE_READ, &bwr);
         if (ret < 0) {
-            if (errno == EINTR) {
-                RPC_LOG_ERROR("ioctl interrupted by signal, continuing...");
-                continue;
-            }
             RPC_LOG_ERROR("ioctl failed errno = %d.", errno);
             break;
         }
