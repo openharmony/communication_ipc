@@ -1023,8 +1023,8 @@ napi_value CreateJsProxyRemoteObject(napi_env env, const sptr<IRemoteObject> tar
     NAPI_ASSERT(env, status == napi_ok, "get proxy constructor failed");
     napi_value jsRemoteProxy;
     status = napi_new_instance(env, constructor, 0, nullptr, &jsRemoteProxy);
-    if (status != napi_o) {
-        ZLOGE(LOG_LABEL, "new instance fail, status is %{public}d", static<int>(status));
+    if (status != napi_ok) {
+        ZLOGE(LOG_LABEL, "new instance failed, status is %{public}d", static<int>(status));
     }
     NAPI_ASSERT(env, status == napi_ok, "failed to  construct js RemoteProxy");
     NAPIRemoteProxyHolder *proxyHolder = NAPI_ohos_rpc_getRemoteProxyHolder(env, jsRemoteProxy);
