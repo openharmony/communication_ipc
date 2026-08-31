@@ -1398,10 +1398,14 @@ napi_value NAPI_MessageSequence::JS_reclaim(napi_env env, napi_callback_info inf
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageSequence *napiSequence = nullptr;
-    napi_remove_wrap(env, thisVar, (void **)&napiSequence);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiSequence));
     NAPI_ASSERT(env, napiSequence != nullptr, "napiSequence is null");
-    delete napiSequence;
-
+    bool isOwner = napiSequence->owner;
+    
+    napi_remove_wrap(env, thisVar, (void **)&napiSequence);
+    if (isOwner) {
+        delete napiSequence;
+    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;

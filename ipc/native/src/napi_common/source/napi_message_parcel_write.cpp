@@ -1118,10 +1118,14 @@ napi_value NAPI_MessageParcel::JS_reclaim(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
 
     NAPI_MessageParcel *napiParcel = nullptr;
-    napi_remove_wrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
     NAPI_ASSERT(env, napiParcel != nullptr, "napiParcel is null");
-    delete napiParcel;
+    bool isOwner = napiParcel->owner;
 
+    napi_remove_wrap(env, thisVar, reinterpret_cast<void **>(&napiParcel));
+    if (isOwner) {
+        delete napiParcel;
+    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;
