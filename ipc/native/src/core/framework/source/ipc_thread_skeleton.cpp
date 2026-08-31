@@ -257,6 +257,7 @@ IRemoteInvoker *IPCThreadSkeleton::GetActiveInvoker()
         return dbinderInvoker;
     }
 #endif
+    ZLOGE(LOG_LABEL, "get activeInvoker failed");
     return nullptr;
 }
 // LCOV_EXCL_STOP
