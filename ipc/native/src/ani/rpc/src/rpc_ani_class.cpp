@@ -96,7 +96,7 @@ static ani_object CreateMessageOption(ani_env *env, MessageOption &option)
     ZLOGI(LOG_LABEL, "[ANI] CreateMessageOption Object_New");
     ani_object optionObj;
     if (ANI_OK != env->Object_New(cls, ctor, &optionObj, flagsObj, waitTimeObj)) {
-        ZLOGE(LOG_LABEL, "[ANI] [ANI] New MessageOption Fail");
+        ZLOGE(LOG_LABEL, "[ANI] New MessageOption Fail");
         return nullobj;
     }
 
