@@ -47,8 +47,8 @@
 #include "napi/native_api.h"
 #include "napi_message_sequence.h"
 
-// MessageSequenceImpl
-MessageSequenceImpl::MessageSequenceImpl()
+// MessageParcelImpl
+MessageParcelImpl::MessageParcelImpl()
 {
     nativeParcel_ = new (std::nothrow) OHOS::MessageParcel();
     if (nativeParcel_ == nullptr) {
@@ -58,18 +58,18 @@ MessageSequenceImpl::MessageSequenceImpl()
     isOwner_ = true;
 }
 
-MessageSequenceImpl::MessageSequenceImpl(OHOS::MessageParcel* messageparcel)
+MessageParcelImpl::MessageParcelImpl(OHOS::MessageParcel* messageparcel)
 {
     nativeParcel_ = messageparcel;
     isOwner_ = false;
 }
 
-MessageSequenceImpl::~MessageSequenceImpl()
+MessageParcelImpl::~MessageParcelImpl()
 {
     Reclaim();
 }
 
-void MessageSequenceImpl::Reclaim()
+void MessageParcelImpl::Reclaim()
 {
     if (isOwner_ && nativeParcel_ != nullptr) {
         delete nativeParcel_;
@@ -77,43 +77,43 @@ void MessageSequenceImpl::Reclaim()
     nativeParcel_ = nullptr;
 }
 
-int64_t MessageSequenceImpl::GetMessageSequenceImpl()
+int64_t MessageParcelImpl::GetMessageParcelImpl()
 {
     return reinterpret_cast<int64_t>(this);
 }
 
-::ohos::rpc::rpc::MessageSequence MessageSequenceImpl::RpcTransferStaicImpl(uintptr_t input)
+::ohos::rpc::rpc::MessageSequence MessageParcelImpl::RpcTransferStaicImpl(uintptr_t input)
 {
     ZLOGE(LOG_LABEL, "RpcTransferStaicImpl start");
     void* nativePtr = nullptr;
     if (!arkts_esvalue_unwrap(taihe::get_env(), reinterpret_cast<ani_object>(input), &nativePtr) ||
         !nativePtr) {
         ZLOGE(LOG_LABEL, "arkts_esvalue_unwrap failed");
-        return taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
+        return taihe::make_holder<MessageParcelImpl, ::ohos::rpc::rpc::MessageSequence>();
     }
 
     auto* napiMessageSequence = reinterpret_cast<NAPI_MessageSequence*>(nativePtr);
     if (!napiMessageSequence) {
         ZLOGE(LOG_LABEL, "napiMessageSequence is nullptr");
-        return taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
+        return taihe::make_holder<MessageParcelImpl, ::ohos::rpc::rpc::MessageSequence>();
     }
 
     OHOS::MessageParcel* parcel = napiMessageSequence->GetMessageParcel().get();
     if (!parcel) {
         ZLOGE(LOG_LABEL, "parcel is nullptr");
-        return taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
+        return taihe::make_holder<MessageParcelImpl, ::ohos::rpc::rpc::MessageSequence>();
     }
 
-    auto jsref = taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>(parcel);
+    auto jsref = taihe::make_holder<MessageParcelImpl, ::ohos::rpc::rpc::MessageSequence>(parcel);
     jsref->AddJsObjWeakRef(jsref);
     return jsref;
 }
 
-uintptr_t MessageSequenceImpl::RpcTransferDynamicImpl(::ohos::rpc::rpc::MessageSequence obj)
+uintptr_t MessageParcelImpl::RpcTransferDynamicImpl(::ohos::rpc::rpc::MessageSequence obj)
 {
     ZLOGE(LOG_LABEL, "RpcTransferDynamicImpl start");
-    int64_t impRawPtr = obj->GetMessageSequenceImpl();
-    auto* impl = reinterpret_cast<MessageSequenceImpl*>(impRawPtr);
+    int64_t impRawPtr = obj->GetMessageParcelImpl();
+    auto* impl = reinterpret_cast<MessageParcelImpl*>(impRawPtr);
     if (!impl || !impl->GetNativeParcel()) {
         ZLOGE(LOG_LABEL, "impl or parcel is nullptr");
         return 0;
@@ -165,7 +165,7 @@ uintptr_t MessageSequenceImpl::RpcTransferDynamicImpl(::ohos::rpc::rpc::MessageS
     return result;
 }
 
-void MessageSequenceImpl::CreateJsMessageSequence(napi_env jsenv, napi_status status, napi_value global,
+void MessageParcelImpl::CreateJsMessageSequence(napi_env jsenv, napi_status status, napi_value global,
     napi_value* jsMessageSequence)
 
 {
@@ -183,7 +183,7 @@ void MessageSequenceImpl::CreateJsMessageSequence(napi_env jsenv, napi_status st
     }
 }
 
-void MessageSequenceImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& object)
+void MessageParcelImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& object)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     if (object.get_tag() == ::ohos::rpc::rpc::IRemoteObjectUnion::tag_t::remoteObject) {
@@ -215,7 +215,7 @@ void MessageSequenceImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion
     }
 }
 
-::ohos::rpc::rpc::IRemoteObjectUnion MessageSequenceImpl::ReadRemoteObject()
+::ohos::rpc::rpc::IRemoteObjectUnion MessageParcelImpl::ReadRemoteObject()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::ohos::rpc::rpc::IRemoteObjectUnion::make_errRet());
@@ -246,7 +246,7 @@ void MessageSequenceImpl::WriteRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion
     }
 }
 
-void MessageSequenceImpl::WriteInterfaceToken(::taihe::string_view token)
+void MessageParcelImpl::WriteInterfaceToken(::taihe::string_view token)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     if (token.size() >= MAX_BYTES_LENGTH) {
@@ -325,7 +325,7 @@ int64_t unwrapRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& obj)
     return ::ohos::rpc::rpc::IRemoteObjectUnion::make_remoteProxy(obj);
 }
 
-::taihe::string MessageSequenceImpl::ReadInterfaceToken()
+::taihe::string MessageParcelImpl::ReadInterfaceToken()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, "");
@@ -333,7 +333,7 @@ int64_t unwrapRemoteObject(::ohos::rpc::rpc::IRemoteObjectUnion const& obj)
     return OHOS::Str16ToStr8(result);
 }
 
-int32_t MessageSequenceImpl::GetCapacity()
+int32_t MessageParcelImpl::GetCapacity()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -341,7 +341,7 @@ int32_t MessageSequenceImpl::GetCapacity()
     return result;
 }
 
-void MessageSequenceImpl::SetCapacity(int32_t size)
+void MessageParcelImpl::SetCapacity(int32_t size)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->SetDataCapacity(size);
@@ -351,7 +351,7 @@ void MessageSequenceImpl::SetCapacity(int32_t size)
     }
 }
 
-void MessageSequenceImpl::WriteNoException()
+void MessageParcelImpl::WriteNoException()
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteInt32(0);
@@ -361,7 +361,7 @@ void MessageSequenceImpl::WriteNoException()
     }
 }
 
-void MessageSequenceImpl::ReadException()
+void MessageParcelImpl::ReadException()
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     int32_t code = nativeParcel_->ReadInt32();
@@ -373,7 +373,7 @@ void MessageSequenceImpl::ReadException()
     taihe::set_business_error(code, OHOS::Str16ToStr8(result));
 }
 
-void MessageSequenceImpl::WriteInt(int32_t val)
+void MessageParcelImpl::WriteInt(int32_t val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteInt32(val);
@@ -383,7 +383,7 @@ void MessageSequenceImpl::WriteInt(int32_t val)
     }
 }
 
-void MessageSequenceImpl::WriteLong(int64_t val)
+void MessageParcelImpl::WriteLong(int64_t val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteInt64(val);
@@ -393,7 +393,7 @@ void MessageSequenceImpl::WriteLong(int64_t val)
     }
 }
 
-void MessageSequenceImpl::WriteBoolean(bool val)
+void MessageParcelImpl::WriteBoolean(bool val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteInt8(val);
@@ -403,7 +403,7 @@ void MessageSequenceImpl::WriteBoolean(bool val)
     }
 }
 
-void MessageSequenceImpl::WriteChar(int32_t val)
+void MessageParcelImpl::WriteChar(int32_t val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteUint8(static_cast<uint8_t>(val));
@@ -413,7 +413,7 @@ void MessageSequenceImpl::WriteChar(int32_t val)
     }
 }
 
-void MessageSequenceImpl::WriteString(::taihe::string_view val)
+void MessageParcelImpl::WriteString(::taihe::string_view val)
 {
     if (val.size() >= MAX_BYTES_LENGTH) {
         ZLOGE(LOG_LABEL, "write string failed, string size:%{public}zu is too large", val.size());
@@ -429,7 +429,7 @@ void MessageSequenceImpl::WriteString(::taihe::string_view val)
     }
 }
 
-void MessageSequenceImpl::WriteParcelable(::ohos::rpc::rpc::weak::Parcelable val)
+void MessageParcelImpl::WriteParcelable(::ohos::rpc::rpc::weak::Parcelable val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     size_t pos = nativeParcel_->GetWritePosition();
@@ -442,7 +442,7 @@ void MessageSequenceImpl::WriteParcelable(::ohos::rpc::rpc::weak::Parcelable val
     }
 }
 
-void MessageSequenceImpl::WriteByteArray(::taihe::array_view<int8_t> byteArray)
+void MessageParcelImpl::WriteByteArray(::taihe::array_view<int8_t> byteArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = byteArray.size();
@@ -460,7 +460,7 @@ void MessageSequenceImpl::WriteByteArray(::taihe::array_view<int8_t> byteArray)
     }
 }
 
-void MessageSequenceImpl::WriteShortArray(::taihe::array_view<int32_t> shortArray)
+void MessageParcelImpl::WriteShortArray(::taihe::array_view<int32_t> shortArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = shortArray.size();
@@ -478,7 +478,7 @@ void MessageSequenceImpl::WriteShortArray(::taihe::array_view<int32_t> shortArra
     }
 }
 
-void MessageSequenceImpl::WriteIntArray(::taihe::array_view<int32_t> intArray)
+void MessageParcelImpl::WriteIntArray(::taihe::array_view<int32_t> intArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = intArray.size();
@@ -496,7 +496,7 @@ void MessageSequenceImpl::WriteIntArray(::taihe::array_view<int32_t> intArray)
     }
 }
 
-void MessageSequenceImpl::WriteLongArray(::taihe::array_view<int64_t> longArray)
+void MessageParcelImpl::WriteLongArray(::taihe::array_view<int64_t> longArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = longArray.size();
@@ -514,7 +514,7 @@ void MessageSequenceImpl::WriteLongArray(::taihe::array_view<int64_t> longArray)
     }
 }
 
-void MessageSequenceImpl::WriteFloatArray(::taihe::array_view<double> floatArray)
+void MessageParcelImpl::WriteFloatArray(::taihe::array_view<double> floatArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = floatArray.size();
@@ -532,7 +532,7 @@ void MessageSequenceImpl::WriteFloatArray(::taihe::array_view<double> floatArray
     }
 }
 
-void MessageSequenceImpl::WriteDoubleArray(::taihe::array_view<double> doubleArray)
+void MessageParcelImpl::WriteDoubleArray(::taihe::array_view<double> doubleArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = doubleArray.size();
@@ -550,7 +550,7 @@ void MessageSequenceImpl::WriteDoubleArray(::taihe::array_view<double> doubleArr
     }
 }
 
-void MessageSequenceImpl::WriteBooleanArray(::taihe::array_view<bool> booleanArray)
+void MessageParcelImpl::WriteBooleanArray(::taihe::array_view<bool> booleanArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = booleanArray.size();
@@ -568,7 +568,7 @@ void MessageSequenceImpl::WriteBooleanArray(::taihe::array_view<bool> booleanArr
     }
 }
 
-void MessageSequenceImpl::WriteCharArray(::taihe::array_view<int32_t> charArray)
+void MessageParcelImpl::WriteCharArray(::taihe::array_view<int32_t> charArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = charArray.size();
@@ -586,7 +586,7 @@ void MessageSequenceImpl::WriteCharArray(::taihe::array_view<int32_t> charArray)
     }
 }
 
-void MessageSequenceImpl::WriteStringArray(::taihe::array_view<::taihe::string> stringArray)
+void MessageParcelImpl::WriteStringArray(::taihe::array_view<::taihe::string> stringArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = stringArray.size();
@@ -611,7 +611,7 @@ void MessageSequenceImpl::WriteStringArray(::taihe::array_view<::taihe::string> 
     }
 }
 
-void MessageSequenceImpl::WriteParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray)
+void MessageParcelImpl::WriteParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = parcelableArray.size();
@@ -631,7 +631,7 @@ void MessageSequenceImpl::WriteParcelableArray(::taihe::array_view<::ohos::rpc::
     }
 }
 
-void MessageSequenceImpl::WriteRemoteObjectArray(::taihe::array_view<::ohos::rpc::rpc::IRemoteObjectUnion> objectArray)
+void MessageParcelImpl::WriteRemoteObjectArray(::taihe::array_view<::ohos::rpc::rpc::IRemoteObjectUnion> objectArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     uint32_t arrayLength = objectArray.size();
@@ -673,35 +673,35 @@ void MessageSequenceImpl::WriteRemoteObjectArray(::taihe::array_view<::ohos::rpc
     }
 }
 
-int32_t MessageSequenceImpl::ReadInt()
+int32_t MessageParcelImpl::ReadInt()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
     return nativeParcel_->ReadInt32();
 }
 
-int64_t MessageSequenceImpl::ReadLong()
+int64_t MessageParcelImpl::ReadLong()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
     return nativeParcel_->ReadInt64();
 }
 
-bool MessageSequenceImpl::ReadBoolean()
+bool MessageParcelImpl::ReadBoolean()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, false);
     return static_cast<bool>(nativeParcel_->ReadInt8());
 }
 
-::taihe::string MessageSequenceImpl::ReadString()
+::taihe::string MessageParcelImpl::ReadString()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, "");
     return OHOS::Str16ToStr8(nativeParcel_->ReadString16());
 }
 
-void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable dataIn)
+void MessageParcelImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable dataIn)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     int32_t flags = nativeParcel_->ReadInt32();
@@ -716,7 +716,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     }
 }
 
-::taihe::array<int32_t> MessageSequenceImpl::ReadIntArrayImpl()
+::taihe::array<int32_t> MessageParcelImpl::ReadIntArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<int32_t>(nullptr, 0));
@@ -738,7 +738,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return res;
 }
 
-::taihe::array<double> MessageSequenceImpl::ReadDoubleArrayImpl()
+::taihe::array<double> MessageParcelImpl::ReadDoubleArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<double>(nullptr, 0));
@@ -760,7 +760,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return res;
 }
 
-::taihe::array<bool> MessageSequenceImpl::ReadBooleanArrayImpl()
+::taihe::array<bool> MessageParcelImpl::ReadBooleanArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<bool>(nullptr, 0));
@@ -784,7 +784,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return res;
 }
 
-::taihe::array<::taihe::string> MessageSequenceImpl::ReadStringArrayImpl()
+::taihe::array<::taihe::string> MessageParcelImpl::ReadStringArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<::taihe::string>(nullptr, 0));
@@ -809,7 +809,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return ::taihe::array<::taihe::string>(taihe::copy_data_t{}, res.data(), res.size());
 }
 
-::taihe::array<int32_t> MessageSequenceImpl::ReadCharArrayImpl()
+::taihe::array<int32_t> MessageParcelImpl::ReadCharArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
@@ -828,7 +828,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return ::taihe::array<int32_t>(res);
 }
 
-::taihe::array<double> MessageSequenceImpl::ReadFloatArrayImpl()
+::taihe::array<double> MessageParcelImpl::ReadFloatArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<double>(nullptr, 0));
@@ -846,7 +846,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return ::taihe::array<double>(res);
 }
 
-::taihe::array<int64_t> MessageSequenceImpl::ReadLongArrayImpl()
+::taihe::array<int64_t> MessageParcelImpl::ReadLongArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int64_t>(nullptr, 0));
@@ -864,7 +864,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return ::taihe::array<int64_t>(res);
 }
 
-::taihe::array<int32_t> MessageSequenceImpl::ReadShortArrayImpl()
+::taihe::array<int32_t> MessageParcelImpl::ReadShortArrayImpl()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
         ::taihe::array<int32_t>(nullptr, 0));
@@ -883,7 +883,7 @@ void MessageSequenceImpl::ReadParcelable(::ohos::rpc::rpc::weak::Parcelable data
     return ::taihe::array<int32_t>(res);
 }
 
-int32_t MessageSequenceImpl::ReadChar()
+int32_t MessageParcelImpl::ReadChar()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -891,7 +891,7 @@ int32_t MessageSequenceImpl::ReadChar()
     return static_cast<int32_t>(value);
 }
 
-double MessageSequenceImpl::ReadFloat()
+double MessageParcelImpl::ReadFloat()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -899,12 +899,12 @@ double MessageSequenceImpl::ReadFloat()
     return value;
 }
 
-double MessageSequenceImpl::ReadDouble()
+double MessageParcelImpl::ReadDouble()
 {
     return ReadFloat();
 }
 
-int32_t MessageSequenceImpl::ReadShort()
+int32_t MessageParcelImpl::ReadShort()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -912,7 +912,7 @@ int32_t MessageSequenceImpl::ReadShort()
     return static_cast<int32_t>(value);
 }
 
-int32_t MessageSequenceImpl::ReadByte()
+int32_t MessageParcelImpl::ReadByte()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -920,7 +920,7 @@ int32_t MessageSequenceImpl::ReadByte()
     return static_cast<int32_t>(value);
 }
 
-void MessageSequenceImpl::ReadParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray)
+void MessageParcelImpl::ReadParcelableArray(::taihe::array_view<::ohos::rpc::rpc::Parcelable> parcelableArray)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR);
     int32_t arrayLength = nativeParcel_->ReadInt32();
@@ -939,7 +939,7 @@ void MessageSequenceImpl::ReadParcelableArray(::taihe::array_view<::ohos::rpc::r
     }
 }
 
-void MessageSequenceImpl::WriteFileDescriptor(int32_t fd)
+void MessageParcelImpl::WriteFileDescriptor(int32_t fd)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteFileDescriptor(fd);
@@ -949,7 +949,7 @@ void MessageSequenceImpl::WriteFileDescriptor(int32_t fd)
     }
 }
 
-int32_t MessageSequenceImpl::ReadFileDescriptor()
+int32_t MessageParcelImpl::ReadFileDescriptor()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -961,7 +961,7 @@ int32_t MessageSequenceImpl::ReadFileDescriptor()
     return result;
 }
 
-void MessageSequenceImpl::WriteAshmem(::ohos::rpc::rpc::weak::Ashmem ashmem)
+void MessageParcelImpl::WriteAshmem(::ohos::rpc::rpc::weak::Ashmem ashmem)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     if (!nativeParcel_->WriteAshmem(reinterpret_cast<OHOS::Ashmem *>(ashmem->GetNativePtr()))) {
@@ -970,7 +970,7 @@ void MessageSequenceImpl::WriteAshmem(::ohos::rpc::rpc::weak::Ashmem ashmem)
     }
 }
 
-::ohos::rpc::rpc::Ashmem MessageSequenceImpl::ReadAshmem()
+::ohos::rpc::rpc::Ashmem MessageParcelImpl::ReadAshmem()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR,
@@ -984,7 +984,7 @@ void MessageSequenceImpl::WriteAshmem(::ohos::rpc::rpc::weak::Ashmem ashmem)
     return taihe::make_holder<AshmemImpl, ::ohos::rpc::rpc::Ashmem>(nativeAshmem);
 }
 
-void MessageSequenceImpl::WriteRawDataBuffer(::taihe::array_view<uint8_t> rawData, int32_t size)
+void MessageParcelImpl::WriteRawDataBuffer(::taihe::array_view<uint8_t> rawData, int32_t size)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     if (!nativeParcel_->WriteRawData(static_cast<const void*>(rawData.data()), size)) {
@@ -993,7 +993,7 @@ void MessageSequenceImpl::WriteRawDataBuffer(::taihe::array_view<uint8_t> rawDat
     }
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadRawDataBuffer(int32_t size)
+::taihe::array<uint8_t> MessageParcelImpl::ReadRawDataBuffer(int32_t size)
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<uint8_t>(nullptr, 0));
@@ -1014,25 +1014,25 @@ void MessageSequenceImpl::WriteRawDataBuffer(::taihe::array_view<uint8_t> rawDat
     return ::taihe::array<uint8_t>(res);
 }
 
-int64_t MessageSequenceImpl::GetNativePtr()
+int64_t MessageParcelImpl::GetNativePtr()
 {
     return reinterpret_cast<int64_t>(nativeParcel_);
 }
 
-void MessageSequenceImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageSequence obj)
+void MessageParcelImpl::AddJsObjWeakRef(::ohos::rpc::rpc::weak::MessageSequence obj)
 {
     jsObjRef_ = std::optional<::ohos::rpc::rpc::weak::MessageSequence>(std::in_place, obj);
 }
 
-::ohos::rpc::rpc::MessageSequence MessageSequenceImpl::CreateMessageSequence()
+::ohos::rpc::rpc::MessageSequence MessageParcelImpl::CreateMessageSequence()
 {
     ::ohos::rpc::rpc::MessageSequence obj =
-        taihe::make_holder<MessageSequenceImpl, ::ohos::rpc::rpc::MessageSequence>();
+        taihe::make_holder<MessageParcelImpl, ::ohos::rpc::rpc::MessageSequence>();
     obj->AddJsObjWeakRef(obj);
     return obj;
 }
 
-int32_t MessageSequenceImpl::DupFileDescriptor(int32_t fd)
+int32_t MessageParcelImpl::DupFileDescriptor(int32_t fd)
 {
     if (fd < 0) {
         ZLOGE(LOG_LABEL, "invalid fd:%{public}d", fd);
@@ -1046,7 +1046,7 @@ int32_t MessageSequenceImpl::DupFileDescriptor(int32_t fd)
     return dupResult;
 }
 
-void MessageSequenceImpl::CloseFileDescriptor(int32_t fd)
+void MessageParcelImpl::CloseFileDescriptor(int32_t fd)
 {
     if (fd < 0) {
         ZLOGE(LOG_LABEL, "invalid fd:%{public}d", fd);
@@ -1055,7 +1055,7 @@ void MessageSequenceImpl::CloseFileDescriptor(int32_t fd)
     close(fd);
 }
 
-void MessageSequenceImpl::WriteArrayBuffer(::taihe::array_view<uint8_t> buf, ::ohos::rpc::rpc::TypeCode typeCode)
+void MessageParcelImpl::WriteArrayBuffer(::taihe::array_view<uint8_t> buf, ::ohos::rpc::rpc::TypeCode typeCode)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     if (typeCode.get_key() < ohos::rpc::rpc::TypeCode::key_t::INT8_ARRAY
@@ -1081,7 +1081,7 @@ static std::vector<T> BufferToVector(void *data, size_t byteLength)
     return vec;
 }
 
-bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::TypeCode typeCode, int32_t byteLength)
+bool MessageParcelImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::TypeCode typeCode, int32_t byteLength)
 {
     switch (typeCode.get_key()) {
         case ohos::rpc::rpc::TypeCode::key_t::INT8_ARRAY: {
@@ -1120,7 +1120,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadArrayBuffer(::ohos::rpc::rpc::TypeCode typeCode)
+::taihe::array<uint8_t> MessageParcelImpl::ReadArrayBuffer(::ohos::rpc::rpc::TypeCode typeCode)
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, ::taihe::array<uint8_t>(nullptr, 0));
@@ -1167,7 +1167,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     }
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadInt8ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadInt8ArrayBuffer()
 {
     std::vector<int8_t> int8Vector;
     if (!nativeParcel_->ReadInt8Vector(&int8Vector)) {
@@ -1184,7 +1184,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadUInt8ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadUInt8ArrayBuffer()
 {
     std::vector<uint8_t> uint8Vector;
     if (!nativeParcel_->ReadUInt8Vector(&uint8Vector)) {
@@ -1195,7 +1195,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(uint8Vector);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadInt16ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadInt16ArrayBuffer()
 {
     std::vector<int16_t> int16Vector;
     if (!nativeParcel_->ReadInt16Vector(&int16Vector)) {
@@ -1211,7 +1211,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadUInt16ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadUInt16ArrayBuffer()
 {
     std::vector<uint16_t> uint16Vector;
     if (!nativeParcel_->ReadUInt16Vector(&uint16Vector)) {
@@ -1227,7 +1227,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadInt32ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadInt32ArrayBuffer()
 {
     std::vector<int32_t> int32Vector;
     if (!nativeParcel_->ReadInt32Vector(&int32Vector)) {
@@ -1243,7 +1243,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadUInt32ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadUInt32ArrayBuffer()
 {
     std::vector<uint32_t> uint32Vector;
     if (!nativeParcel_->ReadUInt32Vector(&uint32Vector)) {
@@ -1259,7 +1259,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadFloatArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadFloatArrayBuffer()
 {
     std::vector<float> floatVector;
     if (!nativeParcel_->ReadFloatVector(&floatVector)) {
@@ -1275,7 +1275,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadDoubleArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadDoubleArrayBuffer()
 {
     std::vector<double> doubleVector;
     if (!nativeParcel_->ReadDoubleVector(&doubleVector)) {
@@ -1291,7 +1291,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadInt64ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadInt64ArrayBuffer()
 {
     std::vector<int64_t> int64Vector;
     if (!nativeParcel_->ReadInt64Vector(&int64Vector)) {
@@ -1307,7 +1307,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-::taihe::array<uint8_t> MessageSequenceImpl::ReadUInt64ArrayBuffer()
+::taihe::array<uint8_t> MessageParcelImpl::ReadUInt64ArrayBuffer()
 {
     std::vector<uint64_t> uint64Vector;
     if (!nativeParcel_->ReadUInt64Vector(&uint64Vector)) {
@@ -1323,7 +1323,7 @@ bool MessageSequenceImpl::WriteVectorByTypeCode(void *data, ::ohos::rpc::rpc::Ty
     return ::taihe::array<uint8_t>(ret);
 }
 
-int32_t MessageSequenceImpl::GetSize()
+int32_t MessageParcelImpl::GetSize()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -1331,7 +1331,7 @@ int32_t MessageSequenceImpl::GetSize()
     return result;
 }
 
-int32_t MessageSequenceImpl::GetWritableBytes()
+int32_t MessageParcelImpl::GetWritableBytes()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -1339,7 +1339,7 @@ int32_t MessageSequenceImpl::GetWritableBytes()
     return result;
 }
 
-int32_t MessageSequenceImpl::GetReadableBytes()
+int32_t MessageParcelImpl::GetReadableBytes()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -1347,7 +1347,7 @@ int32_t MessageSequenceImpl::GetReadableBytes()
     return result;
 }
 
-int32_t MessageSequenceImpl::GetReadPosition()
+int32_t MessageParcelImpl::GetReadPosition()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -1355,7 +1355,7 @@ int32_t MessageSequenceImpl::GetReadPosition()
     return result;
 }
 
-int32_t MessageSequenceImpl::GetWritePosition()
+int32_t MessageParcelImpl::GetWritePosition()
 {
     CHECK_NATIVE_OBJECT_WITH_RETVAL(nativeParcel_,
         OHOS::RpcTaiheErrorCode::TAIHE_READ_DATA_FROM_MESSAGE_SEQUENCE_ERROR, 0);
@@ -1363,19 +1363,19 @@ int32_t MessageSequenceImpl::GetWritePosition()
     return result;
 }
 
-bool MessageSequenceImpl::ContainFileDescriptors()
+bool MessageParcelImpl::ContainFileDescriptors()
 {
     bool result = nativeParcel_->ContainFileDescriptors();
     return result;
 }
 
-int32_t MessageSequenceImpl::GetRawDataCapacity()
+int32_t MessageParcelImpl::GetRawDataCapacity()
 {
     int32_t result = static_cast<int32_t>(nativeParcel_->GetRawDataCapacity());
     return result;
 }
 
-void MessageSequenceImpl::WriteByte(int32_t val)
+void MessageParcelImpl::WriteByte(int32_t val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteInt8(static_cast<int8_t>(val));
@@ -1385,7 +1385,7 @@ void MessageSequenceImpl::WriteByte(int32_t val)
     }
 }
 
-void MessageSequenceImpl::WriteShort(int32_t val)
+void MessageParcelImpl::WriteShort(int32_t val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteInt16(static_cast<int16_t>(val));
@@ -1395,7 +1395,7 @@ void MessageSequenceImpl::WriteShort(int32_t val)
     }
 }
 
-void MessageSequenceImpl::WriteFloat(double val)
+void MessageParcelImpl::WriteFloat(double val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteDouble(val);
@@ -1405,7 +1405,7 @@ void MessageSequenceImpl::WriteFloat(double val)
     }
 }
 
-void MessageSequenceImpl::WriteDouble(double val)
+void MessageParcelImpl::WriteDouble(double val)
 {
     CHECK_NATIVE_OBJECT(nativeParcel_, OHOS::RpcTaiheErrorCode::TAIHE_WRITE_DATA_TO_MESSAGE_SEQUENCE_ERROR);
     bool result = nativeParcel_->WriteDouble(val);
