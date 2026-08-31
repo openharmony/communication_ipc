@@ -259,7 +259,6 @@ BinderConnector *BinderConnector::GetInstance()
 
     return instance_;
 }
-
 #include "binder_invoker.h"
 
 #include <chrono>
