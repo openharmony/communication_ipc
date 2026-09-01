@@ -302,7 +302,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
     if (isLocalCalling) {
         uint64_t token = 0;
         auto ret = std::from_chars(identity.c_str(), identity.c_str() + identity.size(), token);
-        if (ret.ec != std::errc()) {
+        if (ret.ec != std::errc() || ret.ptr != identity.c_str() + identity.size()) {
             ZLOGE(LOG_LABEL, "identity is invalid");
             napi_get_boolean(env, false, &result);
             return result;
@@ -327,7 +327,7 @@ napi_value NAPI_IPCSkeleton_setCallingIdentity(napi_env env, napi_callback_info 
         const std::string readIdentity = identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH);
         uint64_t token = 0;
         auto ret = std::from_chars(readIdentity.c_str(), readIdentity.c_str() + readIdentity.size(), token);
-        if (ret.ec != std::errc()) {
+        if (ret.ec != std::errc() || ret.ptr != readIdentity.c_str() + readIdentity.size()) {
             ZLOGE(LOG_LABEL, "identity is invalid");
             napi_get_boolean(env, false, &result);
             return result;
@@ -362,7 +362,7 @@ static napi_value NAPI_IPCSkeleton_restoreCallingIdentitySetProperty(napi_env en
     if (isLocalCalling) {
         uint64_t token = 0;
         auto ret = std::from_chars(identity.c_str(), identity.c_str() + identity.size(), token);
-        if (ret.ec != std::errc()) {
+        if (ret.ec != std::errc() || ret.ptr != identity.c_str() + identity.size()) {
             ZLOGE(LOG_LABEL, "identity is invalid");
             return result;
         }
@@ -384,7 +384,7 @@ static napi_value NAPI_IPCSkeleton_restoreCallingIdentitySetProperty(napi_env en
     const std::string readIdentity = identity.substr(DEVICEID_LENGTH, identity.length() - DEVICEID_LENGTH);
     uint64_t token = 0;
     auto ret = std::from_chars(readIdentity.c_str(), readIdentity.c_str() + readIdentity.size(), token);
-    if (ret.ec != std::errc()) {
+    if (ret.ec != std::errc() || ret.ptr != readIdentity.c_str() + readIdentity.size()) {
         ZLOGE(LOG_LABEL, "readIdentity is invalid");
         return result;
     }
