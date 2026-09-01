@@ -455,7 +455,7 @@ std::shared_ptr<struct DHandleEntryTxRx> DBinderService::CreateMessage(const spt
     std::string serviceName = Str16ToStr8(stub->GetServiceName());
     uint64_t subIndex = 0;
     auto result = std::from_chars(serviceName.c_str(), serviceName.c_str() + serviceName.size(), subIndex);
-    if (result.ec != std::errc()) {
+    if (result.ec != std::errc() || result.ptr != serviceName.c_str() + serviceName.size()) {
         DBINDER_LOGE(LOG_LABEL, "invalid serviceName:%{public}s", serviceName.c_str());
         return nullptr;
     }

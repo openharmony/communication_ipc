@@ -292,12 +292,12 @@ bool DatabusSocketListener::GetPidAndUidFromServiceName(const std::string &servi
     std::string uidStr = str.substr(0, pos);
     std::string pidStr = str.substr(pos + 1);
     auto result = std::from_chars(uidStr.c_str(), uidStr.c_str() + uidStr.size(), uid);
-    if (result.ec != std::errc()) {
+    if (result.ec != std::errc() || result.ptr != uidStr.c_str() + uidStr.size()) {
         ZLOGE(LOG_LABEL, "uid:%{public}s is invalid", uidStr.c_str());
         return false;
     }
     result = std::from_chars(pidStr.c_str(), pidStr.c_str() + pidStr.size(), pid);
-    if (result.ec != std::errc()) {
+    if (result.ec != std::errc() || result.ptr != pidStr.c_str() + pidStr.size()) {
         ZLOGE(LOG_LABEL, "pid:%{public}s is invalid", pidStr.c_str());
         return false;
     }
