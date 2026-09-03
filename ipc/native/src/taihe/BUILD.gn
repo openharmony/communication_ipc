@@ -45,7 +45,6 @@ if (support_jsapi) {
 
   taihe_shared_library("rpc_taihe") {
     branch_protector_ret = "pac_ret"
-    branch_protector_frt = "bti"
     taihe_generated_file_path = "$TAIHE_FILE_PATH"
     part_name = "$PART_NAME"
     subsystem_name = "$SUBSYSTEM_NAME"
@@ -97,7 +96,6 @@ if (support_jsapi) {
   SUBSYSTEM_DIR = "//foundation/communication/ipc"
   ohos_shared_library("rpc_taihe") {
     branch_protector_ret = "pac_ret"
-    branch_protector_frt = "bti"
     include_dirs = [
       "$SUBSYSTEM_DIR/interfaces/innerkits/ipc_core/include",
       "$SUBSYSTEM_DIR/ipc/native/src/taihe/inc",
