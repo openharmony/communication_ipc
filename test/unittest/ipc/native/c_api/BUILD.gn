@@ -82,6 +82,7 @@ c_api_unittest("IPCInternalUtilsUnitTest") {
     "$IPC_CORE_ROOT/src/c_api/source/ipc_internal_utils.cpp",
     "ipc_internal_utils_unittest.cpp",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 c_api_unittest("IPCInternalUtilsAdditionalUnitTest") {
@@ -96,6 +97,7 @@ c_api_unittest("IPCCskeletonUnitTest") {
     "$IPC_CORE_ROOT/src/c_api/source/ipc_cskeleton.cpp",
     "ipc_cskeleton_unittest.cpp",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 c_api_unittest("IPCCremoteObjectUnitTest") {

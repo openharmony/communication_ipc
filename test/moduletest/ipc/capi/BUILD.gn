@@ -78,6 +78,7 @@ template("ipc_capi_moduletest") {
 if (ipc_feature_test_enabled) {
   ipc_capi_moduletest("IPCCAPIModuleTest") {
     sources = [ "ipc_capi_remote_object_module_test.cpp" ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
   }
 }
 
