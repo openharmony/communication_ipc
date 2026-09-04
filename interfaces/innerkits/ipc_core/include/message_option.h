@@ -29,6 +29,7 @@ public:
 #ifdef FREEZE_PROCESS_ENABLED
         TF_UPDATE_TXN = 0x40,
 #endif // FREEZE_PROCESS_ENABLED
+        TF_ASYNC_FORCE_TRANS = 0x10000,
         TF_ASYNC_WAKEUP_LATER = 0x100000,
         TF_IMAGE = 0x200000,
     };
