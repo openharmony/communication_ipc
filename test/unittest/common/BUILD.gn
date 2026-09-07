@@ -113,6 +113,7 @@ ipc_unittest("IPCNativeUnitTest") {
     "message_parcel_unittest.cpp",
     "process_skeleton_unittest.cpp",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 ipc_unittest("IPCFileDescOpsUnitTest") {
@@ -135,6 +136,7 @@ ipc_unittest("BufferObjectUnitTest") {
     "$IPC_CORE_ROOT/src/core/framework/source/buffer_object.cpp",
     "buffer_object_unittest.cpp",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 ipc_unittest("CommAuthInfoUnitTest") {
@@ -169,6 +171,7 @@ ipc_unittest("InvokerFactoryUnitTest") {
 
 ipc_unittest("RPCFeatureUnitTest") {
   sources = [ "rpc_feature_set_unittest.cpp" ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 ipc_unittest("StubRefCountObjectUnitTest") {
@@ -192,6 +195,7 @@ ipc_unittest("HitraceInvokerUnitTest") {
     "$IPC_CORE_ROOT/src/core/invoker/source/hitrace_invoker.cpp",
     "hitrace_invoker_unittest.cpp",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 ipc_unittest("DatabusSocketListenerUnitTest") {
@@ -201,6 +205,7 @@ ipc_unittest("DatabusSocketListenerUnitTest") {
     "$IPC_CORE_ROOT/src/core/invoker/source/binder_connector.cpp",
     "databus_socket_listener_unittest.cpp",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 }
 
 ipc_unittest("MessageParcelUnitTest") {

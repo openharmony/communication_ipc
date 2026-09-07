@@ -88,6 +88,7 @@ ohos_distributedtest("DBinderTestAgent") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gtest",
     "hilog:libhilog",
