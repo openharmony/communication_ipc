@@ -63,6 +63,8 @@ if (support_jsapi) {
       "src/remote_proxy_impl.cpp",
     ]
 
+    version_script = "libcj_ipc_ffi.map"
+
     innerapi_tags = [ "platformsdk" ]
 
     subsystem_name = "communication"
